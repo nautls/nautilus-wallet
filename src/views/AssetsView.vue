@@ -70,14 +70,15 @@
 import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
 import { assetLogoIndex } from "@/utils/assetLogoIndex";
+import { ASSETS_BALANCE, ERG_BALANCE, FIAT_BALANCE } from "@/constants/store/getters";
 
 export default defineComponent({
   name: "AssetsView",
   computed: {
     ...mapGetters({
-      assetsBalance: "assetsBalance",
-      ergBalance: "ergBalance",
-      fiatBalance: "fiatBalance"
+      assetsBalance: ASSETS_BALANCE,
+      ergBalance: ERG_BALANCE,
+      fiatBalance: FIAT_BALANCE
     })
   },
   props: {

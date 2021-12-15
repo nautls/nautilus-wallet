@@ -9,6 +9,21 @@ import { Network, WalletType, AddressState } from "@/types";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateWallet } from "@/store/stateTypes";
 import { UNITS_IN_ONE_ERG } from "@/constants/ergo";
+import {
+  CALC_TOTAL_ERG_BALANCE,
+  SET_CURRENT_ADDRESSES,
+  SET_CURRENT_WALLET,
+  SET_ERG_PRICE,
+  UPDATE_ADDRESSES_BALANCES
+} from "@/constants/store/mutations";
+import { ASSETS_BALANCE, ERG_BALANCE, FIAT_BALANCE } from "@/constants/store/getters";
+import {
+  FETCH_CURRENT_WALLET,
+  GET_CURRENT_PRICE,
+  PUT_WALLET,
+  REFRESH_BALANCES,
+  REFRESH_CURRENT_ADDRESSES
+} from "@/constants/store/actions";
 
 export default createStore({
   state: {
@@ -24,13 +39,13 @@ export default createStore({
     currentAddresses: [] as StateAddress[]
   },
   getters: {
-    ergBalance(state) {
+    [ERG_BALANCE](state) {
       return state.currentWallet.balance.toFormat();
     },
-    fiatBalance(state) {
+    [FIAT_BALANCE](state) {
       return state.currentWallet.balance.multipliedBy(state.ergPrice).toFormat(2);
     },
-    assetsBalance(state) {
+    [ASSETS_BALANCE](state) {
       type TokenBalanceType = {
         tokenId: string;
         amount: number;
@@ -60,17 +75,17 @@ export default createStore({
     }
   },
   mutations: {
-    setCurrentWallet(state, wallet: StateWallet) {
+    [SET_CURRENT_WALLET](state, wallet: StateWallet) {
       if (!wallet.id) {
         return;
       }
 
       state.currentWallet = wallet;
     },
-    setAddresses(state, addresses: StateAddress[]) {
+    [SET_CURRENT_ADDRESSES](state, addresses: StateAddress[]) {
       state.currentAddresses = addresses;
     },
-    updateBalances(state, balances: { address: string; data: any }[]) {
+    [UPDATE_ADDRESSES_BALANCES](state, balances: { address: string; data: any }[]) {
       for (const bal of balances) {
         for (const address of state.currentAddresses) {
           if (bal.address === address.address) {
@@ -79,7 +94,7 @@ export default createStore({
         }
       }
     },
-    calcTotalBalance(state) {
+    [CALC_TOTAL_ERG_BALANCE](state) {
       let balance = new BigNumber(0);
       for (const addr of state.currentAddresses) {
         if (addr.balance) {
@@ -89,12 +104,12 @@ export default createStore({
 
       state.currentWallet.balance = balance.div(UNITS_IN_ONE_ERG);
     },
-    setPrice(state, price) {
+    [SET_ERG_PRICE](state, price) {
       state.ergPrice = price;
     }
   },
   actions: {
-    async putWallet(
+    async [PUT_WALLET](
       context,
       wallet: { extendedPublicKey: string; name: string; type: WalletType }
     ) {
@@ -110,10 +125,10 @@ export default createStore({
         privateKey: bip32.privateKey?.toString("hex")
       });
 
-      await context.dispatch("setCurrentWallet", walletId);
-      await context.dispatch("refreshCurrentAddresses");
+      await context.dispatch(FETCH_CURRENT_WALLET, walletId);
+      await context.dispatch(REFRESH_CURRENT_ADDRESSES);
     },
-    async setCurrentWallet(context, id: number) {
+    async [FETCH_CURRENT_WALLET](context, id: number) {
       const wallet = await walletDbService.getFromId(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
@@ -129,9 +144,9 @@ export default createStore({
         extendedPublicKey: bip32.extendedPublicKey.toString("hex")
       };
 
-      context.commit("setCurrentWallet", stateWallet);
+      context.commit(SET_CURRENT_WALLET, stateWallet);
     },
-    async refreshCurrentAddresses(context) {
+    async [REFRESH_CURRENT_ADDRESSES](context) {
       const bip32 = bip32Pool.get(context.state.currentWallet.publicKey);
       let active: StateAddress[] = [];
       let derived: DerivedAddress[] = [];
@@ -171,27 +186,27 @@ export default createStore({
         }
       }
 
-      context.commit("setAddresses", active);
+      context.commit(SET_CURRENT_ADDRESSES, active);
 
       if (lastUsed !== null) {
         context.dispatch(
-          "refreshBalances",
+          REFRESH_BALANCES,
           active.filter(a => a.state === AddressState.Used).map(a => a.address)
         );
       }
-      context.dispatch("getCurrentPrice");
+      context.dispatch(GET_CURRENT_PRICE);
     },
-    async refreshBalances(context, addresses: string[] | undefined) {
+    async [REFRESH_BALANCES](context, addresses: string[] | undefined) {
       const balance = await explorerService.getAddressesBalance(
         addresses ? addresses : context.state.currentAddresses.map(a => a.address)
       );
 
-      context.commit("updateBalances", balance);
-      context.commit("calcTotalBalance");
+      context.commit(UPDATE_ADDRESSES_BALANCES, balance);
+      context.commit(CALC_TOTAL_ERG_BALANCE);
     },
-    async getCurrentPrice(context) {
+    async [GET_CURRENT_PRICE](context) {
       const responseData = await coinGeckoService.getPrice();
-      context.commit("setPrice", responseData.ergo.usd);
+      context.commit(SET_ERG_PRICE, responseData.ergo.usd);
     }
   }
 });

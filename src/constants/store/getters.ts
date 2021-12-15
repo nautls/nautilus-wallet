@@ -1,0 +1,3 @@
+export const ERG_BALANCE = "ERG_BALANCE";
+export const FIAT_BALANCE = "FIAT_BALANCE";
+export const ASSETS_BALANCE = "ASSETS_BALANCE";
