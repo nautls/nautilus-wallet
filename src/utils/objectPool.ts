@@ -1,4 +1,5 @@
 import Bip32 from "@/api/ergo/bip32";
+import { find, findIndex } from "lodash";
 
 type PoolItem<ObjectType, Key> = {
   key: Key;
@@ -17,7 +18,15 @@ class ObjectPool<ObjectType, KeyType> {
     const item = this.getPoolItem(key);
     if (item) {
       item.alive = true;
+      item.object = object;
     } else {
+      const index = findIndex(this._pool, item => !item.alive);
+
+      if (index > -1) {
+        this._pool[index].object = object;
+        this._pool[index].key = key;
+        this._pool[index].alive = true;
+      }
       this._pool.push({ key, object, alive: true });
     }
 
@@ -47,11 +56,7 @@ class ObjectPool<ObjectType, KeyType> {
   }
 
   public getPoolItem(key: KeyType): PoolItem<ObjectType, KeyType> | undefined {
-    for (let i = 0; i < this._pool.length; i++) {
-      if (this._pool[i].key === key) {
-        return this._pool[i];
-      }
-    }
+    return find(this._pool, item => item.key === key);
   }
 }
 
