@@ -3,13 +3,19 @@
   <div class="flex-col flex gap-3">
     <div>
       <label
-        >Wallet name <input type="text" v-model.lazy="walletName" class="w-full control block"
+        >Wallet name
+        <input
+          :disabled="loading"
+          type="text"
+          v-model.lazy="walletName"
+          class="w-full control block"
       /></label>
     </div>
     <div>
       <label class="mt-3">
         Public Key
         <textarea
+          :disabled="loading"
           class="font-mono text-base w-full control block resize-none"
           rows="6"
           v-model.lazy="publicKey"
@@ -17,8 +23,9 @@
       </label>
     </div>
     <div>
-      <button type="button" @click="add()" class="w-full btn">
-        <vue-feather type="loader" animation="spin"></vue-feather>
+      <button type="button" :disabled="loading" @click="add()" class="w-full btn">
+        <vue-feather v-if="loading" type="loader" animation="spin"></vue-feather>
+        <span v-else>Confirm</span>
       </button>
     </div>
   </div>
@@ -34,18 +41,22 @@ export default defineComponent({
   name: "AddReadOnly",
   data() {
     return {
+      loading: false,
       walletName: "",
       publicKey: ""
     };
   },
   methods: {
     ...mapActions({ putWallet: "putWallet" }),
-    add() {
-      this.putWallet({
+    async add() {
+      this.loading = true;
+      await this.putWallet({
         name: this.walletName,
         extendedPublicKey: this.publicKey,
         type: WalletType.ReadOnly
       });
+
+      this.$router.push({ name: "assets-page" });
     }
   },
   components: { PageTitle }

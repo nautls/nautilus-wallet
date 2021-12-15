@@ -1,6 +1,5 @@
 import { walletDbService } from "@/api/database/walletDbService";
 import { createStore } from "vuex";
-import router from "@/router";
 import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
@@ -129,8 +128,6 @@ export default createStore({
 
       await context.dispatch("setCurrentWallet", walletId);
       await context.dispatch("refreshCurrentAddresses");
-
-      router.push({ name: "assets-page" });
     },
     async setCurrentWallet(context, id: number) {
       const wallet = await walletDbService.getFromId(id);
