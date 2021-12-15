@@ -2,24 +2,24 @@
   <div class="flex flex-col gap-5">
     <div class="flex flex-row gap-3"></div>
     <div>
-      <input type="text" placeholder="Search" class="control block w-full" />
+      <input type="text" placeholder="Search" class="w-full control block" />
     </div>
     <div class="flex flex-col">
       <div class="-my-2 -mx-8">
-        <div class="py-2 align-middle inline-block min-w-full px-8">
-          <div class="shadow overflow-hidden border-b border-gray-200 rounded-lg">
+        <div class="min-w-full py-2 px-8 align-middle inline-block">
+          <div class="border-b rounded-lg border-gray-200 shadow overflow-hidden">
             <table class="table">
               <thead>
                 <tr>
                   <th>Asset</th>
                   <th class="text-right">Balance</th>
-                  <th class="relative w-20px"></th>
+                  <th class="w-20px relative"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>
-                    <img :src="logoFor('erg')" class="w-6 h-6 inline-block mr-1" alt="ERG" />
+                    <img :src="logoFor('erg')" class="h-6 mr-1 w-6 inline-block" alt="ERG" />
                     <span class="align-middle">ERG </span>
                   </td>
                   <td class="text-right whitespace-nowrap">
@@ -36,11 +36,14 @@
                   <td>
                     <img
                       :src="logoFor(asset.tokenId)"
-                      class="w-6 h-6 inline-block mr-1"
+                      class="h-6 mr-1 w-6 inline-block"
                       :alt="asset.name"
                     />
                     <span class="align-middle"
-                      >{{ $filters.compactString(asset.name, 20, "end") }}
+                      ><template v-if="asset.name">{{
+                        $filters.compactString(asset.name, 20, "end")
+                      }}</template>
+                      <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
                   </td>
                   <td class="text-right">

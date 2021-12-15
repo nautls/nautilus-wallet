@@ -9,7 +9,7 @@ import PageTitle from "@/components/PageTitle.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
-import "@oruga-ui/oruga-next/dist/oruga.css";
+// import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
