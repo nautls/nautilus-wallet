@@ -18,7 +18,7 @@
               </thead>
               <tbody>
                 <tr v-for="asset in assetsBalance" :key="asset.tokenId">
-                  <td>
+                  <td class="w-12">
                     <img
                       :src="logoFor(asset.tokenId)"
                       class="h-6 w-6 inline-block"
