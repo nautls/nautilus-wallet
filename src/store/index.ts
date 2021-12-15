@@ -4,11 +4,10 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sumBy, sortBy, find, findIndex, last, take } from "lodash";
+import { groupBy, sortBy, find, findIndex, last, take } from "lodash";
 import { Network, WalletType, AddressState } from "@/types";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateWallet } from "@/store/stateTypes";
-import { UNITS_IN_ONE_ERG } from "@/constants/ergo";
 import {
   CALC_TOTAL_ERG_BALANCE,
   SET_CURRENT_ADDRESSES,
@@ -19,11 +18,13 @@ import {
 import { ASSETS_BALANCE, ERG_BALANCE, FIAT_BALANCE } from "@/constants/store/getters";
 import {
   FETCH_CURRENT_WALLET,
-  GET_CURRENT_PRICE,
+  FETCH_CURRENT_PRICES,
   PUT_WALLET,
   REFRESH_BALANCES,
   REFRESH_CURRENT_ADDRESSES
 } from "@/constants/store/actions";
+import { setDecimals, sumBigNumberBy, toBigNumber } from "@/utils/numbersUtil";
+import { ERG_TOKEN_ID, ERG_DECIMALS } from "@/constants/ergo";
 
 export default createStore({
   state: {
@@ -46,32 +47,43 @@ export default createStore({
       return state.currentWallet.balance.multipliedBy(state.ergPrice).toFormat(2);
     },
     [ASSETS_BALANCE](state) {
-      type TokenBalanceType = {
+      type AssetBalanceType = {
         tokenId: string;
-        amount: number;
+        amount: BigNumber;
         decimals: number;
         name: string;
+        price?: number;
       };
 
-      const balance: TokenBalanceType[] = [];
+      const balance: AssetBalanceType[] = [];
       const tokenGroups = groupBy(
         state.currentAddresses
           .filter(a => a.balance && a.balance.tokens)
-          .map(a => a.balance.tokens as TokenBalanceType)
+          .map(a => a.balance.tokens as AssetBalanceType)
           .flat(),
         t => t.tokenId
       );
 
       for (const key in tokenGroups) {
         const token = Object.create(tokenGroups[key][0]);
-        token.amount = sumBy(tokenGroups[key], t => t.amount);
+        token.amount = sumBigNumberBy(tokenGroups[key], t => toBigNumber(t.amount));
         if (token.decimals > 0) {
-          token.amount = token.amount * Math.pow(10, token.decimals * -1);
+          token.amount = setDecimals(token.amount, token.decimals);
         }
+
         balance.push(token);
       }
 
-      return sortBy(balance, t => t.name);
+      const sortedBalance = sortBy(balance, t => t.name);
+      sortedBalance.unshift({
+        name: "ERG",
+        amount: state.currentWallet.balance,
+        decimals: ERG_DECIMALS,
+        tokenId: ERG_TOKEN_ID,
+        price: state.ergPrice
+      });
+
+      return sortedBalance;
     }
   },
   mutations: {
@@ -102,7 +114,7 @@ export default createStore({
         }
       }
 
-      state.currentWallet.balance = balance.div(UNITS_IN_ONE_ERG);
+      state.currentWallet.balance = setDecimals(balance, ERG_DECIMALS);
     },
     [SET_ERG_PRICE](state, price) {
       state.ergPrice = price;
@@ -194,7 +206,6 @@ export default createStore({
           active.filter(a => a.state === AddressState.Used).map(a => a.address)
         );
       }
-      context.dispatch(GET_CURRENT_PRICE);
     },
     async [REFRESH_BALANCES](context, addresses: string[] | undefined) {
       const balance = await explorerService.getAddressesBalance(
@@ -204,7 +215,7 @@ export default createStore({
       context.commit(UPDATE_ADDRESSES_BALANCES, balance);
       context.commit(CALC_TOTAL_ERG_BALANCE);
     },
-    async [GET_CURRENT_PRICE](context) {
+    async [FETCH_CURRENT_PRICES](context) {
       const responseData = await coinGeckoService.getPrice();
       context.commit(SET_ERG_PRICE, responseData.ergo.usd);
     }

@@ -17,23 +17,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td class="w-12">
-                    <img :src="logoFor('erg')" class="h-6 w-6 inline-block" alt="ERG" />
-                  </td>
-                  <td>
-                    <span class="align-middle">ERG </span>
-                  </td>
-                  <td class="text-right whitespace-nowrap">
-                    <p>{{ ergBalance }}</p>
-                    <p class="text-xs text-gray-500" v-if="ergBalance > 0">
-                      ≈{{ fiatBalance }} USD
-                    </p>
-                  </td>
-                  <td class="text-right">
-                    <vue-feather type="send" size="16" />
-                  </td>
-                </tr>
                 <tr v-for="asset in assetsBalance" :key="asset.tokenId">
                   <td>
                     <img
@@ -43,7 +26,7 @@
                     />
                   </td>
                   <td>
-                    <span class="align-middle"
+                    <span class="align-middle" :class="isErg(asset.tokenId) ? 'font-semibold' : ''"
                       ><template v-if="asset.name">{{
                         $filters.compactString(asset.name, 30, "end")
                       }}</template>
@@ -51,7 +34,10 @@
                     </span>
                   </td>
                   <td class="text-right">
-                    {{ asset.amount.toLocaleString() }}
+                    <p>{{ asset.amount.toFormat() }}</p>
+                    <p class="text-xs text-gray-500" v-if="asset.price && !asset.amount.isZero()">
+                      ≈ {{ asset.amount.multipliedBy(asset.price).toFormat(2) }} USD
+                    </p>
                   </td>
                   <td class="text-right">
                     <vue-feather type="send" size="16" />
@@ -70,15 +56,14 @@
 import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
 import { assetLogoMapper } from "@/mappers/assetLogoMapper";
-import { ASSETS_BALANCE, ERG_BALANCE, FIAT_BALANCE } from "@/constants/store/getters";
+import { ASSETS_BALANCE } from "@/constants/store/getters";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export default defineComponent({
   name: "AssetsView",
   computed: {
     ...mapGetters({
-      assetsBalance: ASSETS_BALANCE,
-      ergBalance: ERG_BALANCE,
-      fiatBalance: FIAT_BALANCE
+      assetsBalance: ASSETS_BALANCE
     })
   },
   props: {
@@ -86,6 +71,9 @@ export default defineComponent({
     backButton: { type: Boolean, default: false }
   },
   methods: {
+    isErg(tokenId: string): boolean {
+      return tokenId === ERG_TOKEN_ID;
+    },
     logoFor(tokenId: string): string {
       const assetLogo = assetLogoMapper[tokenId];
       return `/icons/assets/${assetLogo ?? "default.svg"}`;

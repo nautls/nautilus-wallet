@@ -1,0 +1,1 @@
+export const PRICE_FETCH_INTERVAL = 1000 * 30;
