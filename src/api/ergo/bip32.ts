@@ -1,7 +1,7 @@
 import { fromPublicKey, fromSeed, BIP32Interface } from "bip32";
-import * as consts from "@/utils/constants";
 import bs58check from "bs58check";
 import { Address } from "@coinbarn/ergo-ts";
+import { DERIVATION_PATH } from "@/constants/ergo";
 
 export type DerivedAddress = {
   index: number;
@@ -16,7 +16,7 @@ export default class Bip32 {
     if (bip32.isNeutered()) {
       this._change = bip32;
     } else {
-      this._change = bip32.derivePath(consts.derivationPath);
+      this._change = bip32.derivePath(DERIVATION_PATH);
       this._change.index = 0;
       this._change.parentFingerprint = 0;
     }

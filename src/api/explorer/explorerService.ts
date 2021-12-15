@@ -1,5 +1,5 @@
+import { BASE_URL } from "@/constants/explorer";
 import axios from "axios";
-import { explorerApiUrl } from "@/utils/constants";
 import { find } from "lodash";
 
 class ExplorerService {
@@ -11,7 +11,7 @@ class ExplorerService {
       concise?: boolean;
     }
   ) {
-    const response = await axios.get(`${explorerApiUrl}/api/v0/addresses/${address}/transactions`, {
+    const response = await axios.get(`${BASE_URL}/api/v0/addresses/${address}/transactions`, {
       params
     });
 
@@ -19,9 +19,7 @@ class ExplorerService {
   }
 
   public async getAddressBalance(address: string) {
-    const response = await axios.get(
-      `${explorerApiUrl}/api/v1/addresses/${address}/balance/confirmed`
-    );
+    const response = await axios.get(`${BASE_URL}/api/v1/addresses/${address}/balance/confirmed`);
 
     return { address, data: response.data };
   }

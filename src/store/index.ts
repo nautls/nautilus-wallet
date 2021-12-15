@@ -3,28 +3,12 @@ import { createStore } from "vuex";
 import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
-import { unitsInOneErgo } from "@/utils/constants";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import { groupBy, sumBy, sortBy, find, findIndex, last, take } from "lodash";
 import { Network, WalletType, AddressState } from "@/types";
 import { bip32Pool } from "@/utils/objectPool";
-
-type StateAddress = {
-  address: string;
-  state: AddressState;
-  index: number;
-  balance: any;
-};
-
-type StateWallet = {
-  id: number;
-  name: string;
-  type: WalletType;
-  publicKey: string;
-  extendedPublicKey: string;
-  balance: BigNumber;
-  // addresses: AddressType[];
-};
+import { StateAddress, StateWallet } from "@/store/stateTypes";
+import { UNITS_IN_ONE_ERG } from "@/constants/ergo";
 
 export default createStore({
   state: {
@@ -103,7 +87,7 @@ export default createStore({
         }
       }
 
-      state.currentWallet.balance = balance.div(unitsInOneErgo);
+      state.currentWallet.balance = balance.div(UNITS_IN_ONE_ERG);
     },
     setPrice(state, price) {
       state.ergPrice = price;
