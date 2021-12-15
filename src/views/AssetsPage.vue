@@ -41,7 +41,7 @@
                     />
                     <span class="align-middle"
                       ><template v-if="asset.name">{{
-                        $filters.compactString(asset.name, 20, "end")
+                        $filters.compactString(asset.name, 50, "end")
                       }}</template>
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
