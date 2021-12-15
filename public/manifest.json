@@ -1,0 +1,17 @@
+{
+  "name": "Nautilus",
+  "short_name": "Nautilus",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "minimum_chrome_version": "48",
+  "description": "A light wallet for Ergo Platform",
+  "browser_action": {
+    "default_popup": "index.html",
+    "default_title": "Nautilus"
+  },
+  "icons": {
+    "16": "/icons/app/16x16.png",
+    "48": "/icons/app/48x48.png",
+    "128": "/icons/app/128x128.png"
+  }
+}

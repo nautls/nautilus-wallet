@@ -1,0 +1,107 @@
+body {
+  @apply bg-light-100 text-base leading-normal tracking-wide text-dark-600 antialiased;
+}
+
+::-webkit-scrollbar {
+  @apply w-5px;
+}
+
+/* scrollbar track */
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+/* scrollbar handle */
+::-webkit-scrollbar-thumb {
+  @apply rounded bg-gray-300;
+}
+
+/* scrollbar handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+label {
+  @apply font-bold;
+}
+
+.default-transition {
+  @apply transition-all ease-linear duration-150;
+}
+
+.control {
+  @apply rounded border-1 border-gray-400 my-1 p-2 default-transition 
+  hover:border-light-blue-600 focus:outline-none focus:border-light-blue-600 focus:ring-2 
+  focus:ring-light-blue-200;
+}
+
+.tabs {
+  @apply flex flex-row mx-10 text-sm text-gray-500;
+}
+
+.tabs .tab-item {
+  @apply outline-none text-center py-4 block default-transition
+    hover:text-light-blue-700 focus:outline-none active:outline-none;
+}
+
+.tabs .tab-item.active {
+  @apply text-light-blue-700;
+}
+
+.table {
+  @apply divide-y min-w-full divide-gray-200;
+}
+
+.table thead {
+  @apply bg-gray-50 text-left;
+}
+
+.table thead th {
+  @apply font-medium text-xs tracking-wider py-3 px-2 text-gray-500 uppercase;
+}
+
+.table tbody {
+  @apply divide-y bg-white divide-gray-200;
+}
+
+.table tbody td {
+  @apply text-sm py-4 px-2 align-middle;
+}
+
+table tbody td:first-child,
+table thead th:first-child {
+  @apply pl-4;
+}
+
+table tbody td:last-child,
+table thead th:last-child {
+  @apply pr-4;
+}
+
+.back-btn {
+  @apply bg-transparent cursor-pointer default-transition
+  hover:text-light-blue-700 focus:outline-none active:text-light-blue-800;
+}
+
+.btn {
+  @apply bg-transparent border border-solid rounded 
+    font-bold outline-none border-light-blue-600 text-xs mr-1 mb-1 py-3 
+    px-4 text-light-blue-700 uppercase default-transition
+    hover:bg-light-blue-700 hover:text-white focus:outline-none
+    focus:ring-2 focus:ring-light-blue-200 active:bg-light-blue-800;
+}
+
+.nav-btn {
+  @apply bg-transparent border border-solid rounded 
+    font-bold  outline-none border-light-blue-600 text-xs mr-1 mb-1 
+    w-full py-6 px-4 text-light-blue-700 default-transition
+    hover:bg-light-blue-50 focus:outline-none active:bg-light-blue-100;
+}
+
+.nav-btn .title {
+  @apply block uppercase;
+}
+
+.nav-btn .subtitle {
+  @apply font-normal pt-2 text-gray-500 block;
+}
