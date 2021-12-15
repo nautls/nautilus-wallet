@@ -69,7 +69,7 @@
 <script lang="ts">
 import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
-import { assetLogoIndex } from "@/utils/assetLogoIndex";
+import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import { ASSETS_BALANCE, ERG_BALANCE, FIAT_BALANCE } from "@/constants/store/getters";
 
 export default defineComponent({
@@ -87,7 +87,7 @@ export default defineComponent({
   },
   methods: {
     logoFor(tokenId: string): string {
-      const assetLogo = assetLogoIndex[tokenId];
+      const assetLogo = assetLogoMapper[tokenId];
       return `/icons/assets/${assetLogo ?? "default.svg"}`;
     }
   }
