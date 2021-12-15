@@ -38,7 +38,7 @@ import PageTitle from "@/components/PageTitle.vue";
 import { WalletType } from "@/types";
 
 export default defineComponent({
-  name: "AddReadOnly",
+  name: "AddReadOnlyView",
   data() {
     return {
       loading: false,

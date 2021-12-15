@@ -3,7 +3,7 @@ import { createStore } from "vuex";
 import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
-import { unitsInOneErgo } from "@/api/constants";
+import { unitsInOneErgo } from "@/utils/constants";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import { groupBy, sumBy, sortBy, find, findIndex, last, take } from "lodash";
 import { Network, WalletType, AddressState } from "@/types";

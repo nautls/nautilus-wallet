@@ -1,7 +1,6 @@
-import { DerivedAddress } from "./../ergo/bip32";
 import axios from "axios";
-import { explorerApiUrl } from "../constants";
-import { add, find } from "lodash";
+import { explorerApiUrl } from "@/utils/constants";
+import { find } from "lodash";
 
 class ExplorerService {
   public async getTxHistory(

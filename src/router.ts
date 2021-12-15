@@ -1,43 +1,37 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import Home from "@/views/Home.vue";
-import About from "@/views/About.vue";
-import ReadOnly from "@/views/ReadOnly.vue";
-import Receive from "@/views/Receive.vue";
-import AssetsPage from "@/views/AssetsPage.vue";
+import AddView from "@/views/add/AddView.vue";
+import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
+import AssetsView from "@/views/AssetsView.vue";
+import ReceiveView from "@/views/ReceiveView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "home-page",
-    component: Home,
-    meta: { fullPage: true },
+    component: AddView,
+    meta: { fullPage: true }
   },
   {
     path: "/add/read-only",
     name: "add-read-only-wallet",
-    component: ReadOnly,
-    meta: { fullPage: true },
+    component: AddReadOnlyView,
+    meta: { fullPage: true }
   },
   {
     path: "/assets",
     name: "assets-page",
-    component: AssetsPage,
+    component: AssetsView
   },
   {
     path: "/receive",
     name: "receive-page",
-    component: Receive,
-  },
-  {
-    path: "/transactions",
-    name: "tx-page",
-    component: About,
-  },
+    component: ReceiveView
+  }
 ];
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes,
+  routes
 });
 
 export default router;

@@ -1,6 +1,6 @@
 import { fromPublicKey, fromSeed, BIP32Interface } from "bip32";
-import * as consts from "@/api/constants";
-import * as bs58check from "bs58check";
+import * as consts from "@/utils/constants";
+import bs58check from "bs58check";
 import { Address } from "@coinbarn/ergo-ts";
 
 export type DerivedAddress = {

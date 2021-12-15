@@ -1,5 +1,5 @@
 import * as bip39 from "bip39";
-import * as consts from "@/api/constants";
+import * as consts from "@/utils/constantsts";
 import Bip32 from "./bip32";
 
 export default class Mnemonic {
@@ -28,10 +28,10 @@ export default class Mnemonic {
   public async toBip32(): Promise<Bip32> {
     return bip39
       .mnemonicToSeed(this._mnemonic)
-      .then((buffer) => {
+      .then(buffer => {
         return Bip32.fromSeed(buffer);
       })
-      .catch((reason) => {
+      .catch(reason => {
         return Promise.reject(reason);
       });
   }

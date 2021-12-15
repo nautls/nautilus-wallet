@@ -72,7 +72,7 @@ import { defineComponent } from "vue";
 import { assetLogoIndex } from "@/utils/assetLogoIndex";
 
 export default defineComponent({
-  name: "AssetsPage",
+  name: "AssetsView",
   computed: {
     ...mapGetters({
       assetsBalance: "assetsBalance",

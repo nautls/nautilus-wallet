@@ -57,7 +57,7 @@ import { defineComponent } from "vue";
 import QRCode from "qrcode";
 
 export default defineComponent({
-  name: "ReceivePage",
+  name: "ReceiveView",
   computed: mapState({ addresses: "currentAddresses" }),
   props: {
     title: { type: String, require: true },

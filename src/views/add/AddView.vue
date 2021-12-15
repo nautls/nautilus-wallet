@@ -5,8 +5,7 @@
       <button type="button" class="nav-btn">
         <span class="title">Create wallet</span>
         <span class="subtitle"
-          >Generate a 15-word recovery phrase and create a new Ergo
-          wallet.</span
+          >Generate a 15-word recovery phrase and create a new Ergo wallet.</span
         >
       </button>
     </p>
@@ -14,8 +13,7 @@
       <button type="button" class="nav-btn">
         <span class="title">Restore wallet</span>
         <span class="subtitle"
-          >Enter a recovery phrase to restore an already-existing Ergo
-          wallet.</span
+          >Enter a recovery phrase to restore an already-existing Ergo wallet.</span
         >
       </button>
     </p>
@@ -29,9 +27,7 @@
           class="nav-btn"
         >
           <span class="title">Load read-only wallet</span>
-          <span class="subtitle"
-            >Enter a public key to load an Ergo wallet in read-only mode.</span
-          >
+          <span class="subtitle">Enter a public key to load an Ergo wallet in read-only mode.</span>
         </button>
       </router-link>
     </p>
@@ -43,7 +39,7 @@ import { defineComponent } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
 
 export default defineComponent({
-  name: "HomePage",
-  components: { PageTitle },
+  name: "AddView",
+  components: { PageTitle }
 });
 </script>
