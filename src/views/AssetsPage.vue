@@ -11,15 +11,17 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>Asset</th>
+                  <th colspan="2">Asset</th>
                   <th class="text-right">Balance</th>
-                  <th class="w-20px relative"></th>
+                  <th class="text-left w-11"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td class="w-12">
+                    <img :src="logoFor('erg')" class="h-6 w-6 inline-block" alt="ERG" />
+                  </td>
                   <td>
-                    <img :src="logoFor('erg')" class="h-6 mr-1 w-6 inline-block" alt="ERG" />
                     <span class="align-middle">ERG </span>
                   </td>
                   <td class="text-right whitespace-nowrap">
@@ -28,7 +30,7 @@
                       ≈{{ fiatBalance }} USD
                     </p>
                   </td>
-                  <td class="relative">
+                  <td class="text-right">
                     <vue-feather type="send" size="16" />
                   </td>
                 </tr>
@@ -36,12 +38,14 @@
                   <td>
                     <img
                       :src="logoFor(asset.tokenId)"
-                      class="h-6 mr-1 w-6 inline-block"
+                      class="h-6 w-6 inline-block"
                       :alt="asset.name"
                     />
+                  </td>
+                  <td>
                     <span class="align-middle"
                       ><template v-if="asset.name">{{
-                        $filters.compactString(asset.name, 50, "end")
+                        $filters.compactString(asset.name, 30, "end")
                       }}</template>
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
@@ -49,7 +53,7 @@
                   <td class="text-right">
                     {{ asset.amount.toLocaleString() }}
                   </td>
-                  <td class="relative">
+                  <td class="text-right">
                     <vue-feather type="send" size="16" />
                   </td>
                 </tr>

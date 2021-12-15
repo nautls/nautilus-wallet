@@ -57,7 +57,7 @@ label {
 }
 
 .table thead th {
-  @apply font-medium text-xs tracking-wider py-3 px-2 text-gray-500 uppercase;
+  @apply font-medium text-xs tracking-wider py-3 text-gray-500 uppercase;
 }
 
 .table tbody {
@@ -65,7 +65,7 @@ label {
 }
 
 .table tbody td {
-  @apply text-sm py-4 px-2 align-middle;
+  @apply text-sm py-4 align-middle;
 }
 
 table tbody td:first-child,
