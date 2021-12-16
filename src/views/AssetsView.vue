@@ -18,12 +18,8 @@
               </thead>
               <tbody>
                 <tr v-for="asset in assetsBalance" :key="asset.tokenId">
-                  <td class="w-12">
-                    <img
-                      :src="logoFor(asset.tokenId)"
-                      class="h-6 w-6 inline-block"
-                      :alt="asset.name"
-                    />
+                  <td class="w-14">
+                    <img :src="logoFor(asset.tokenId)" class="h-8 w-8" :alt="asset.name" />
                   </td>
                   <td>
                     <span class="align-middle" :class="isErg(asset.tokenId) ? 'font-semibold' : ''"
