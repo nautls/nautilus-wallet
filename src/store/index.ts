@@ -37,7 +37,10 @@ export default createStore({
       extendedPublicKey: "",
       balance: new BigNumber(0)
     } as StateWallet,
-    currentAddresses: [] as StateAddress[]
+    currentAddresses: [] as StateAddress[],
+    loading: {
+      price: false
+    }
   },
   getters: {
     [ERG_BALANCE](state) {
@@ -122,7 +125,7 @@ export default createStore({
   },
   actions: {
     async [PUT_WALLET](
-      context,
+      { dispatch },
       wallet: { extendedPublicKey: string; name: string; type: WalletType }
     ) {
       const bip32 = Bip32.fromPublicKey(wallet.extendedPublicKey);
@@ -137,10 +140,10 @@ export default createStore({
         privateKey: bip32.privateKey?.toString("hex")
       });
 
-      await context.dispatch(FETCH_CURRENT_WALLET, walletId);
-      await context.dispatch(REFRESH_CURRENT_ADDRESSES);
+      await dispatch(FETCH_CURRENT_WALLET, walletId);
+      await dispatch(REFRESH_CURRENT_ADDRESSES);
     },
-    async [FETCH_CURRENT_WALLET](context, id: number) {
+    async [FETCH_CURRENT_WALLET]({ commit }, id: number) {
       const wallet = await walletDbService.getFromId(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
@@ -156,10 +159,10 @@ export default createStore({
         extendedPublicKey: bip32.extendedPublicKey.toString("hex")
       };
 
-      context.commit(SET_CURRENT_WALLET, stateWallet);
+      commit(SET_CURRENT_WALLET, stateWallet);
     },
-    async [REFRESH_CURRENT_ADDRESSES](context) {
-      const bip32 = bip32Pool.get(context.state.currentWallet.publicKey);
+    async [REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
+      const bip32 = bip32Pool.get(state.currentWallet.publicKey);
       let active: StateAddress[] = [];
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
@@ -198,26 +201,30 @@ export default createStore({
         }
       }
 
-      context.commit(SET_CURRENT_ADDRESSES, active);
+      commit(SET_CURRENT_ADDRESSES, active);
 
       if (lastUsed !== null) {
-        context.dispatch(
+        dispatch(
           REFRESH_BALANCES,
           active.filter(a => a.state === AddressState.Used).map(a => a.address)
         );
       }
     },
-    async [REFRESH_BALANCES](context, addresses: string[] | undefined) {
+    async [REFRESH_BALANCES]({ state, commit }, addresses: string[] | undefined) {
       const balance = await explorerService.getAddressesBalance(
-        addresses ? addresses : context.state.currentAddresses.map(a => a.address)
+        addresses ? addresses : state.currentAddresses.map(a => a.address)
       );
 
-      context.commit(UPDATE_ADDRESSES_BALANCES, balance);
-      context.commit(CALC_TOTAL_ERG_BALANCE);
+      commit(UPDATE_ADDRESSES_BALANCES, balance);
+      commit(CALC_TOTAL_ERG_BALANCE);
     },
-    async [FETCH_CURRENT_PRICES](context) {
+    async [FETCH_CURRENT_PRICES]({ commit, state }) {
+      if (state.loading.price) {
+        return;
+      }
+
       const responseData = await coinGeckoService.getPrice();
-      context.commit(SET_ERG_PRICE, responseData.ergo.usd);
+      commit(SET_ERG_PRICE, responseData.ergo.usd);
     }
   }
 });
