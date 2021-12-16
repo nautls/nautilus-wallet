@@ -1,5 +1,5 @@
+import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import * as bip39 from "bip39";
-import * as consts from "@/utils/constantsts";
 import Bip32 from "./bip32";
 
 export default class Mnemonic {
@@ -18,7 +18,7 @@ export default class Mnemonic {
       return;
     }
 
-    this._mnemonic = this.newMnemonic(value || consts.defaultStrength);
+    this._mnemonic = this.newMnemonic(value || DEFAULT_WALLET_STRENGTH);
   }
 
   private newMnemonic(strength: number): string {

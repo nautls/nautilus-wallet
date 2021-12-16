@@ -1,7 +1,7 @@
 import { fromPublicKey, fromSeed, BIP32Interface } from "bip32";
-import bs58check from "bs58check";
 import { Address } from "@coinbarn/ergo-ts";
 import { DERIVATION_PATH } from "@/constants/ergo";
+import bs58check from "bs58check";
 
 export type DerivedAddress = {
   index: number;
