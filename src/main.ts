@@ -3,12 +3,14 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import VueFeather from "vue-feather";
-// import { Button } from "@oruga-ui/oruga-next";
 import { WasmModule } from "./wasm-module";
 import PageTitle from "@/components/PageTitle.vue";
+import ClickToCopy from "@/components/ClickToCopy.vue";
+import ToolTip from "@/components/ToolTip.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
+// import { Tooltip } from "@oruga-ui/oruga-next";
 // import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
@@ -31,10 +33,11 @@ axios.defaults.transformResponse = [
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
-
 app
   .use(store)
   .use(router)
   .component("vue-feather", VueFeather)
   .component("page-title", PageTitle)
+  .component("click-to-copy", ClickToCopy)
+  .component("tool-tip", ToolTip)
   .mount("#app");

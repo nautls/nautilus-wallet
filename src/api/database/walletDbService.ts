@@ -17,6 +17,10 @@ class WalletDbService {
     }
     return nautilusDb.wallets.put(wallet);
   }
+
+  public async all(): Promise<IDbWallet[]> {
+    return await nautilusDb.wallets.toArray();
+  }
 }
 
 export const walletDbService = new WalletDbService();

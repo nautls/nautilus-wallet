@@ -21,7 +21,8 @@ import {
   FETCH_CURRENT_PRICES,
   PUT_WALLET,
   REFRESH_BALANCES,
-  REFRESH_CURRENT_ADDRESSES
+  REFRESH_CURRENT_ADDRESSES,
+  LOAD_WALLETS
 } from "@/constants/store/actions";
 import { setDecimals, sumBigNumberBy, toBigNumber } from "@/utils/numbersUtil";
 import { ERG_TOKEN_ID, ERG_DECIMALS } from "@/constants/ergo";
@@ -29,6 +30,7 @@ import { ERG_TOKEN_ID, ERG_DECIMALS } from "@/constants/ergo";
 export default createStore({
   state: {
     ergPrice: 0,
+    wallets: [] as StateWallet[],
     currentWallet: {
       id: 0,
       name: "",
@@ -124,6 +126,7 @@ export default createStore({
     }
   },
   actions: {
+    async [LOAD_WALLETS]({ commit }) {},
     async [PUT_WALLET](
       { dispatch },
       wallet: { extendedPublicKey: string; name: string; type: WalletType }

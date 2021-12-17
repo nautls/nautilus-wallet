@@ -5,7 +5,7 @@
         <label>Your address</label>
         <p class="rounded font-mono bg-gray-200 text-sm p-2 text-dark-800 break-all">
           {{ addresses[addresses.length - 1].address }}
-          <vue-feather type="copy" size="12" />
+          <click-to-copy :content="addresses[addresses.length - 1].address" size="12" />
         </p>
         <p class="text-xs pt-1 text-gray-700">Share this address to receive assets.</p>
       </div>
@@ -32,8 +32,7 @@
                   <td class="font-mono">
                     <span
                       >{{ $filters.compactString(address.address, 12) }}
-                      <vue-feather type="copy" size="16" />
-                      <!-- <vue-feather class="pl-1" type="info" size="16" /> -->
+                      <click-to-copy :content="address.address" size="12" />
                     </span>
                   </td>
                   <td class="text-right">
@@ -55,6 +54,7 @@
 import { mapState } from "vuex";
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
+import ClickToCopy from "@/components/ClickToCopy.vue";
 
 export default defineComponent({
   name: "ReceiveView",
@@ -73,6 +73,7 @@ export default defineComponent({
         scale: 4
       }
     );
-  }
+  },
+  components: { ClickToCopy }
 });
 </script>
