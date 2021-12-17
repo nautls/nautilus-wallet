@@ -1,84 +1,75 @@
 <template>
-  <div class="flex flex-row-reverse p-4 gap-3">
-    <div class="w-min">
-      <canvas
-        class="rounded h-10 ring-2 ring-gray-400 ring-offset-1 w-10 inline-block"
-        id="checksum-img"
-      ></canvas>
-    </div>
-    <div class="flex-grow leading-none">
-      <div class="flex flex-col h-full align-bottom whitespace-nowrap">
-        <div class="font-semibold h-1/2">{{ wallet.name }}</div>
-        <div class="h-1/2">
-          <small>{{ checksum }}</small>
-          <small class="rounded bg-light-800 mx-1 text-xs py-1 px-2 text-gray-500 uppercase">{{
-            $filters.walletType(wallet.type)
-          }}</small>
+  <div class="flex flex-row p-4 gap-3 items-center">
+    <div class="text-lg ml-3">Nautilus</div>
+    <div class="flex-grow">
+      <div class="text-left w-full relative inline-block">
+        <button
+          class="bg-white border rounded rounded-b-none border-b-0 border-gray-300 w-full p-4 text-gray-700 gap-2 items-center inline-flex justify-center hover:bg-gray-100 focus:outline-none"
+        >
+          <wallet-item :wallet="wallet" :key="wallet.id" />
+          <vue-feather type="chevron-down" />
+        </button>
+
+        <div
+          class="divide-y bg-white border rounded rounded-t-none divide-gray-100 border-t-0 border-gray-300 shadow-lg w-full max-h-120 origin-top-right right-0 overflow-y-auto absolute focus:outline-none"
+          tabindex="-1"
+        >
+          <div class="pb-1" role="none">
+            <a
+              v-for="wlt in wallets"
+              :key="wlt.id"
+              href="#"
+              class="py-4 px-4 text-gray-700 block hover:bg-gray-100"
+            >
+              <wallet-item :wallet="wlt" :key="wallet.id" />
+            </a>
+          </div>
+          <div class="py-1">
+            <a href="#" class="text-sm py-2 px-4 text-gray-700 block">Add new wallet</a>
+            <a href="#" class="text-sm py-2 px-4 text-gray-700 block">Settings</a>
+          </div>
         </div>
       </div>
     </div>
-    <div class="flex-grow text-lg ml-3 pt-1.5">Nautilus</div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapState } from "vuex";
-import { walletChecksum } from "@emurgo/cip4-js";
-import { renderIcon } from "@download/blockies";
 import NavHeader from "@/components/NavHeader.vue";
-
-const mkcolor = (primary: string, secondary: string, spots: string) => ({
-  primary,
-  secondary,
-  spots
-});
-
-const COLORS = [
-  mkcolor("#17D1AA", "#E1F2FF", "#A80B32"),
-  mkcolor("#FA5380", "#E1F2FF", "#0833B2"),
-  mkcolor("#F06EF5", "#E1F2FF", "#0804F7"),
-  mkcolor("#EBB687", "#E1F2FF", "#852D62"),
-  mkcolor("#F59F9A", "#E1F2FF", "#085F48")
-];
+import WalletItem from "@/components/WalletItem.vue";
+import { StateWallet } from "@/store/stateTypes";
 
 export default defineComponent({
-  components: { NavHeader },
+  name: "WalletHeader",
+  components: { NavHeader, WalletItem },
   data() {
     return {
       checksum: ""
     };
   },
-  name: "WalletHeader",
   computed: {
     ...mapState({
       wallet: "currentWallet"
-    })
-  },
-  watch: {
-    wallet: {
-      deep: true,
-      handler() {
-        {
-          const plate = walletChecksum(this.wallet.extendedPublicKey);
-          this.checksum = plate.TextPart;
-          const colorIdx = Buffer.from(plate.ImagePart, "hex")[0] % COLORS.length;
-          const color = COLORS[colorIdx];
-
-          renderIcon(
-            {
-              seed: plate.ImagePart,
-              size: 7,
-              scale: 4,
-              color: color.primary,
-              bgcolor: color.secondary,
-              spotcolor: color.spots
-            },
-            document.getElementById("checksum-img")
-          );
-        }
-      }
+    }),
+    wallets() {
+      const currentId = this.$store.state.currentWallet?.id;
+      return this.$store.state.wallets.filter((w: StateWallet) => w.id !== currentId);
     }
   }
+  // watch: {
+  //   wallet: {
+  //     deep: true,
+  //     handler() {
+  //       {
+  //         const plate = walletChecksum(this.wallet.extendedPublicKey);
+  //         this.checksum = plate.TextPart;
+  //         const colorIdx = Buffer.from(plate.ImagePart, "hex")[0] % COLORS.length;
+  //         const color = COLORS[colorIdx];
+  //       }
+  //     }
+  //   }
+  // }
 });
 </script>

@@ -98,16 +98,30 @@ export default createStore({
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
       state.ergPrice = price;
+    },
+    [MUTATIONS.SET_WALLETS](state, wallets: IDbWallet[]) {
+      state.wallets = wallets.map(w => {
+        return {
+          id: w.id,
+          name: w.name,
+          type: w.type,
+          publicKey: w.publicKey,
+          extendedPublicKey: bip32Pool.get(w.publicKey).extendedPublicKey.toString("hex"),
+          balance: new BigNumber(0)
+        };
+      });
     }
-    // [SET_WALLETS](state, wallets: IDbWallet[]) {
-    //   state.wallets = wallets.map(w => {
-    //     name: w.name;
-    //   });
-    // }
   },
   actions: {
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletDbService.all();
+      for (const wallet of wallets) {
+        bip32Pool.alloc(
+          Bip32.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
+          wallet.publicKey
+        );
+      }
+
       commit(MUTATIONS.SET_WALLETS, wallets);
     },
     async [ACTIONS.PUT_WALLET](

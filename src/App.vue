@@ -14,6 +14,7 @@
 import { defineComponent } from "vue";
 import NavHeader from "@/components/NavHeader.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
+
 import { PRICE_FETCH_INTERVAL } from "./constants/price";
 import { mapActions } from "vuex";
 import { ACTIONS } from "./constants/store/actions";
@@ -29,6 +30,8 @@ export default defineComponent({
     return { getPriceTimerId: Object.freeze({} as NodeJS.Timer) };
   },
   created() {
+    this.loadWallets();
+
     this.getPriceTimerId = Object.freeze(
       runSetInterval(() => {
         this.fetchPrices();
@@ -39,7 +42,10 @@ export default defineComponent({
     clearInterval(this.getPriceTimerId);
   },
   methods: {
-    ...mapActions({ fetchPrices: ACTIONS.FETCH_CURRENT_PRICES })
+    ...mapActions({
+      fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
+      loadWallets: ACTIONS.LOAD_WALLETS
+    })
   },
   components: {
     NavHeader,
