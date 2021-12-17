@@ -83,24 +83,18 @@ export default createStore({
       state.currentAddresses = addresses;
     },
     [MUTATIONS.UPDATE_BALANCES](state, balances: { address: string; data: any }[]) {
+      let walletNanoErgs = new BigNumber(0);
       for (const address of state.currentAddresses) {
         const balance = find(balances, b => b.address === address.address);
         if (balance) {
           address.balance = balance.data;
+          walletNanoErgs = walletNanoErgs.plus(address.balance.nanoErgs);
         } else {
           address.balance = undefined;
         }
       }
-    },
-    [MUTATIONS.UPDATE_ERG_BALANCE](state) {
-      let balance = new BigNumber(0);
-      for (const addr of state.currentAddresses) {
-        if (addr.balance) {
-          balance = balance.plus(addr.balance.nanoErgs);
-        }
-      }
 
-      state.currentWallet.balance = setDecimals(balance, ERG_DECIMALS);
+      state.currentWallet.balance = setDecimals(walletNanoErgs, ERG_DECIMALS);
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
       state.ergPrice = price;
@@ -208,7 +202,6 @@ export default createStore({
       );
 
       commit(MUTATIONS.UPDATE_BALANCES, balance);
-      commit(MUTATIONS.UPDATE_ERG_BALANCE);
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {
       if (state.loading.price) {
