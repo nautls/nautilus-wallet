@@ -83,15 +83,16 @@ export default createStore({
       state.currentAddresses = addresses;
     },
     [MUTATIONS.UPDATE_BALANCES](state, balances: { address: string; data: any }[]) {
-      for (const bal of balances) {
-        for (const address of state.currentAddresses) {
-          if (bal.address === address.address) {
-            address.balance = bal.data;
-          }
+      for (const address of state.currentAddresses) {
+        const balance = find(balances, b => b.address === address.address);
+        if (balance) {
+          address.balance = balance.data;
+        } else {
+          address.balance = undefined;
         }
       }
     },
-    [MUTATIONS.CALC_TOTAL_ERG_BALANCE](state) {
+    [MUTATIONS.UPDATE_ERG_BALANCE](state) {
       let balance = new BigNumber(0);
       for (const addr of state.currentAddresses) {
         if (addr.balance) {
@@ -207,7 +208,7 @@ export default createStore({
       );
 
       commit(MUTATIONS.UPDATE_BALANCES, balance);
-      commit(MUTATIONS.CALC_TOTAL_ERG_BALANCE);
+      commit(MUTATIONS.UPDATE_ERG_BALANCE);
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {
       if (state.loading.price) {
