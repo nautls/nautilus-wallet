@@ -16,7 +16,7 @@ import NavHeader from "@/components/NavHeader.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import { PRICE_FETCH_INTERVAL } from "./constants/price";
 import { mapActions } from "vuex";
-import { FETCH_CURRENT_PRICES } from "./constants/store/actions";
+import { ACTIONS } from "./constants/store/actions";
 
 function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
   callback();
@@ -39,7 +39,7 @@ export default defineComponent({
     clearInterval(this.getPriceTimerId);
   },
   methods: {
-    ...mapActions({ fetchPrices: FETCH_CURRENT_PRICES })
+    ...mapActions({ fetchPrices: ACTIONS.FETCH_CURRENT_PRICES })
   },
   components: {
     NavHeader,

@@ -52,14 +52,14 @@
 import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
 import { assetLogoMapper } from "@/mappers/assetLogoMapper";
-import { ASSETS_BALANCE } from "@/constants/store/getters";
+import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export default defineComponent({
   name: "AssetsView",
   computed: {
     ...mapGetters({
-      assetsBalance: ASSETS_BALANCE
+      assetsBalance: GETTERS.ASSETS_BALANCE
     })
   },
   props: {

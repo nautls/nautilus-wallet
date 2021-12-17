@@ -36,7 +36,7 @@ import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 import PageTitle from "@/components/PageTitle.vue";
 import { WalletType } from "@/types";
-import { PUT_WALLET } from "@/constants/store/actions";
+import { ACTIONS } from "@/constants/store/actions";
 
 export default defineComponent({
   name: "AddReadOnlyView",
@@ -48,7 +48,7 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({ putWallet: PUT_WALLET }),
+    ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
       this.loading = true;
       await this.putWallet({
