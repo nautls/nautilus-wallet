@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row px-4 pt-4 gap-3 items-center">
+  <div class="flex flex-row px-4 pt-2 gap-3 items-center">
     <div class="text-lg ml-3">Nautilus</div>
     <div class="flex-grow">
       <drop-down>
