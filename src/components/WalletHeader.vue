@@ -22,8 +22,9 @@
             </a>
           </div>
           <div class="group">
-            <a class="group-item narrow">Add new wallet</a>
-            <a class="group-item narrow">Settings</a>
+            <router-link :to="{ name: 'add-wallet' }" class="group-item narrow"
+              >Add new wallet</router-link
+            >
           </div>
         </template>
       </drop-down>

@@ -29,14 +29,14 @@ export default defineComponent({
   data: () => {
     return { getPriceTimerId: Object.freeze({} as NodeJS.Timer) };
   },
-  created() {
-    this.init();
-
+  async created() {
     this.getPriceTimerId = Object.freeze(
       runSetInterval(() => {
         this.fetchPrices();
       }, PRICE_FETCH_INTERVAL)
     );
+
+    await this.init();
   },
   deactivated() {
     clearInterval(this.getPriceTimerId);
