@@ -8,8 +8,13 @@
         </template>
         <template v-slot:items>
           <div class="group">
-            <a v-for="wlt in wallets" :key="wlt.id" class="group-item">
-              <wallet-item :wallet="wlt" :key="wallet.id" />
+            <a
+              v-for="unselected in unselectedWallets"
+              @click="setCurrentWallet(unselected)"
+              :key="unselected.id"
+              class="group-item"
+            >
+              <wallet-item :wallet="unselected" :key="wallet.id" />
             </a>
           </div>
           <div class="group">
@@ -24,10 +29,11 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import NavHeader from "@/components/NavHeader.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { StateWallet } from "@/store/stateTypes";
+import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({
   name: "WalletHeader",
@@ -37,27 +43,17 @@ export default defineComponent({
       checksum: ""
     };
   },
+  methods: {
+    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET })
+  },
   computed: {
     ...mapState({
       wallet: "currentWallet"
     }),
-    wallets() {
+    unselectedWallets() {
       const currentId = this.$store.state.currentWallet?.id;
       return this.$store.state.wallets.filter((w: StateWallet) => w.id !== currentId);
     }
   }
-  // watch: {
-  //   wallet: {
-  //     deep: true,
-  //     handler() {
-  //       {
-  //         const plate = walletChecksum(this.wallet.extendedPublicKey);
-  //         this.checksum = plate.TextPart;
-  //         const colorIdx = Buffer.from(plate.ImagePart, "hex")[0] % COLORS.length;
-  //         const color = COLORS[colorIdx];
-  //       }
-  //     }
-  //   }
-  // }
 });
 </script>

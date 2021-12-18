@@ -16,10 +16,6 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "DropDown",
-  props: {
-    // size: { type: String, default: "16" },
-    // content: { type: String, required: true }
-  },
   data: () => {
     return { active: false };
   },

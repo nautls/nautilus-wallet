@@ -77,6 +77,13 @@ export default createStore({
         return;
       }
 
+      const i = findIndex(state.wallets, x => x.id == wallet.id);
+      if (i > -1) {
+        state.wallets[i] = wallet;
+      } else {
+        state.wallets.push(wallet);
+      }
+
       state.currentWallet = wallet;
     },
     [MUTATIONS.SET_CURRENT_ADDRESSES](state, addresses: StateAddress[]) {
@@ -97,6 +104,7 @@ export default createStore({
       state.currentWallet.balance = setDecimals(walletNanoErgs, ERG_DECIMALS);
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
+      state.loading.price = false;
       state.ergPrice = price;
     },
     [MUTATIONS.SET_WALLETS](state, wallets: IDbWallet[]) {
@@ -140,10 +148,10 @@ export default createStore({
         privateKey: bip32.privateKey?.toString("hex")
       });
 
-      await dispatch(ACTIONS.FETCH_CURRENT_WALLET, walletId);
+      await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
-    async [ACTIONS.FETCH_CURRENT_WALLET]({ commit }, id: number) {
+    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ commit }, id: number) {
       const wallet = await walletDbService.getFromId(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
@@ -160,6 +168,11 @@ export default createStore({
       };
 
       commit(MUTATIONS.SET_CURRENT_WALLET, stateWallet);
+    },
+    [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet) {
+      commit(MUTATIONS.SET_CURRENT_ADDRESSES, []);
+      commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
+      dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
       const bip32 = bip32Pool.get(state.currentWallet.publicKey);
@@ -222,6 +235,7 @@ export default createStore({
         return;
       }
 
+      state.loading.price = true;
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     }
