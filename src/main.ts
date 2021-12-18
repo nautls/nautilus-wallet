@@ -7,6 +7,7 @@ import { WasmModule } from "./wasm-module";
 import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
+import DropDown from "@/components/DropDown.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
@@ -40,4 +41,5 @@ app
   .component("page-title", PageTitle)
   .component("click-to-copy", ClickToCopy)
   .component("tool-tip", ToolTip)
+  .component("drop-down", DropDown)
   .mount("#app");

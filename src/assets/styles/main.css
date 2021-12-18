@@ -105,3 +105,41 @@ table thead th:last-child {
 .nav-btn .subtitle {
   @apply font-normal text-xs pt-2 text-gray-500 block;
 }
+
+.dropdown {
+  @apply text-left w-full relative inline-block;
+}
+
+.dropdown .trigger {
+  @apply bg-white border border-transparent rounded outline-none w-full py-4 px-2
+  text-gray-700 gap-2 default-transition items-center inline-flex justify-center 
+  hover:bg-gray-100 hover:border-gray-300 focus:outline-none active:outline-none 
+  active:bg-gray-200;
+}
+
+.dropdown .trigger.active {
+  @apply rounded-b-none border-gray-300;
+}
+
+.dropdown .items-list {
+  @apply divide-y bg-white border rounded rounded-t-none divide-gray-100 border-t-0 
+    border-gray-300 shadow-lg text-sm w-full max-h-120 origin-top-right right-0 
+    overflow-y-auto absolute focus:outline-none;
+}
+
+.dropdown .items-list .group {
+  @apply py-1;
+}
+
+.dropdown .items-list .group:first-child {
+  @apply pt-0;
+}
+
+.dropdown .items-list .group .group-item {
+  @apply p-4 block cursor-pointer hover:bg-gray-100 active:outline-none 
+    active:bg-gray-200;
+}
+
+.dropdown .items-list .group .group-item.narrow {
+  @apply py-2;
+}
