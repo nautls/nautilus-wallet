@@ -24,7 +24,7 @@
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
-        <vue-feather v-if="loading" type="loader" animation="spin"></vue-feather>
+        <loading-indicator v-if="loading" class="h-7 w-7" />
         <span v-else>Confirm</span>
       </button>
     </div>
@@ -34,12 +34,14 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import PageTitle from "@/components/PageTitle.vue";
 import { WalletType } from "@/types";
 import { ACTIONS } from "@/constants/store/actions";
+import PageTitle from "@/components/PageTitle.vue";
+import LoadingIndicator from "@/components/LoadingIndicator.vue";
 
 export default defineComponent({
   name: "AddReadOnlyView",
+  components: { PageTitle, LoadingIndicator },
   data() {
     return {
       loading: false,
@@ -59,7 +61,6 @@ export default defineComponent({
 
       this.$router.push({ name: "assets-page" });
     }
-  },
-  components: { PageTitle }
+  }
 });
 </script>

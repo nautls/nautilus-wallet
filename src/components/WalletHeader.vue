@@ -4,7 +4,11 @@
     <div class="flex-grow">
       <drop-down>
         <template v-slot:trigger>
-          <wallet-item :wallet="wallet" :key="wallet.id" />
+          <wallet-item
+            :wallet="wallet"
+            :loading="loading.addresses || loading.balance"
+            :key="wallet.id"
+          />
         </template>
         <template v-slot:items>
           <div class="group">
@@ -48,7 +52,8 @@ export default defineComponent({
   },
   computed: {
     ...mapState({
-      wallet: "currentWallet"
+      wallet: "currentWallet",
+      loading: "loading"
     }),
     unselectedWallets() {
       const currentId = this.$store.state.currentWallet?.id;

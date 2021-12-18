@@ -27,7 +27,9 @@ export default createStore({
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
     loading: {
-      price: false
+      price: false,
+      addresses: false,
+      balance: false
     }
   },
   getters: {
@@ -107,6 +109,9 @@ export default createStore({
       state.loading.price = false;
       state.ergPrice = price;
     },
+    [MUTATIONS.SET_LOADING](state, obj) {
+      state.loading = Object.assign(state.loading, obj);
+    },
     [MUTATIONS.SET_WALLETS](state, wallets: IDbWallet[]) {
       state.wallets = wallets.map(w => {
         return {
@@ -149,9 +154,8 @@ export default createStore({
       });
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
-      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
-    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ commit }, id: number) {
+    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ commit, dispatch }, id: number) {
       const wallet = await walletDbService.getFromId(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
@@ -168,8 +172,10 @@ export default createStore({
       };
 
       commit(MUTATIONS.SET_CURRENT_WALLET, stateWallet);
+      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet) {
+      commit(MUTATIONS.SET_LOADING, { addresses: true });
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, []);
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
@@ -217,11 +223,14 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, active);
 
       if (lastUsed !== null) {
+        commit(MUTATIONS.SET_LOADING, { balance: true });
         dispatch(
           ACTIONS.REFRESH_BALANCES,
           active.filter(a => a.state === AddressState.Used).map(a => a.address)
         );
       }
+
+      commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
     async [ACTIONS.REFRESH_BALANCES]({ state, commit }, addresses: string[] | undefined) {
       const balance = await explorerService.getAddressesBalance(
@@ -229,6 +238,7 @@ export default createStore({
       );
 
       commit(MUTATIONS.UPDATE_BALANCES, balance);
+      commit(MUTATIONS.SET_LOADING, { balance: false });
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {
       if (state.loading.price) {

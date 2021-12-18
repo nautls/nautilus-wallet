@@ -8,6 +8,7 @@ import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
+import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
@@ -42,4 +43,5 @@ app
   .component("click-to-copy", ClickToCopy)
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)
+  .component("loading-indicator", LoadingIndicator)
   .mount("#app");

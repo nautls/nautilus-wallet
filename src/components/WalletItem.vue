@@ -8,6 +8,7 @@
           <small class="rounded bg-gray-300 mx-2 py-1 px-2 text-dark-200 uppercase">{{
             $filters.walletType(wallet.type)
           }}</small>
+          <loading-indicator v-if="loading" class="w-5 h-5" />
         </div>
       </div>
     </div>
@@ -22,6 +23,7 @@
 import { defineComponent } from "vue";
 import { walletChecksum } from "@emurgo/cip4-js";
 import { renderIcon } from "@download/blockies";
+import LoadingIndicator from "./LoadingIndicator.vue";
 
 const mkcolor = (primary: string, secondary: string, spots: string) => ({
   primary,
@@ -40,7 +42,8 @@ const COLORS = [
 export default defineComponent({
   name: "WalletItem",
   props: {
-    wallet: { type: Object, required: true }
+    wallet: { type: Object, required: true },
+    loading: { type: Boolean, default: false }
   },
   data() {
     return {
@@ -58,7 +61,6 @@ export default defineComponent({
             this.checksum = plate.TextPart;
             const colorIdx = Buffer.from(plate.ImagePart, "hex")[0] % COLORS.length;
             const color = COLORS[colorIdx];
-
             renderIcon(
               {
                 seed: plate.ImagePart,
@@ -74,6 +76,7 @@ export default defineComponent({
         }
       }
     }
-  }
+  },
+  components: { LoadingIndicator }
 });
 </script>
