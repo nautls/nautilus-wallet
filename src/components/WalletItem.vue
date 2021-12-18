@@ -8,7 +8,7 @@
           <small class="rounded bg-gray-300 mx-2 py-1 px-2 text-dark-200 uppercase">{{
             $filters.walletType(wallet.type)
           }}</small>
-          <loading-indicator v-if="loading" class="w-5 h-5" />
+          <loading-indicator v-if="loading" class="w-4 h-4" />
         </div>
       </div>
     </div>
