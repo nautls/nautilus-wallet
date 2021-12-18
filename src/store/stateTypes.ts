@@ -17,3 +17,11 @@ export type StateWallet = {
   balance: BigNumber;
   addresses?: AddressType[];
 };
+
+export type StateAsset = {
+  tokenId: string;
+  amount: BigNumber;
+  decimals: number;
+  name: string;
+  price?: number;
+};

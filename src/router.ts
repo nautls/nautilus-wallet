@@ -16,6 +16,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/add",
     name: "add-wallet",
     component: AddView,
+    props: true,
     meta: { fullPage: true }
   },
   {

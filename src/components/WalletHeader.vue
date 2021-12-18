@@ -22,7 +22,9 @@
             </a>
           </div>
           <div class="group">
-            <router-link :to="{ name: 'add-wallet' }" class="group-item narrow"
+            <router-link
+              :to="{ name: 'add-wallet', params: { backButton: true } }"
+              class="group-item narrow"
               >Add new wallet</router-link
             >
           </div>

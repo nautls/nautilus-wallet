@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-5">
     <div class="flex flex-row gap-3"></div>
     <div>
-      <input type="text" placeholder="Search" class="w-full control block" />
+      <input type="text" v-model="filter" placeholder="Search" class="w-full control block" />
     </div>
     <div class="flex flex-col">
       <div class="-my-2 -mx-8">
@@ -17,7 +17,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="asset in assetsBalance" :key="asset.tokenId">
+                <tr v-for="asset in assets" :key="asset.tokenId">
                   <td class="w-14">
                     <img :src="logoFor(asset.tokenId)" class="h-8 w-8" :alt="asset.name" />
                   </td>
@@ -54,22 +54,31 @@
 </template>
 
 <script lang="ts">
-import { mapGetters } from "vuex";
 import { defineComponent } from "vue";
 import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { StateAsset } from "@/store/stateTypes";
 
 export default defineComponent({
   name: "AssetsView",
   computed: {
-    ...mapGetters({
-      assetsBalance: GETTERS.ASSETS_BALANCE
-    })
+    assets(): StateAsset[] {
+      const assetList = this.$store.getters[GETTERS.ASSETS_BALANCE];
+
+      if (this.filter !== "" && assetList.length > 0) {
+        return assetList.filter((a: StateAsset) =>
+          a.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
+        );
+      }
+
+      return assetList;
+    }
   },
-  props: {
-    title: { type: String, require: true },
-    backButton: { type: Boolean, default: false }
+  data() {
+    return {
+      filter: ""
+    };
   },
   methods: {
     isErg(tokenId: string): boolean {

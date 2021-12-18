@@ -7,7 +7,7 @@ import { coinGeckoService } from "@/api/coinGeckoService";
 import { groupBy, sortBy, find, findIndex, last, take, first } from "lodash";
 import { Network, WalletType, AddressState } from "@/types";
 import { bip32Pool } from "@/utils/objectPool";
-import { StateAddress, StateWallet } from "@/store/stateTypes";
+import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, sumBigNumberBy, toBigNumber } from "@/utils/numbersUtil";
 import { ERG_TOKEN_ID, ERG_DECIMALS } from "@/constants/ergo";
@@ -38,19 +38,11 @@ export default createStore({
   },
   getters: {
     [GETTERS.ASSETS_BALANCE](state) {
-      type AssetBalanceType = {
-        tokenId: string;
-        amount: BigNumber;
-        decimals: number;
-        name: string;
-        price?: number;
-      };
-
-      const balance: AssetBalanceType[] = [];
+      const balance: StateAsset[] = [];
       const tokenGroups = groupBy(
         state.currentAddresses
           .filter(a => a.balance && a.balance.tokens)
-          .map(a => a.balance.tokens as AssetBalanceType)
+          .map(a => a.balance.tokens as StateAsset)
           .flat(),
         t => t.tokenId
       );

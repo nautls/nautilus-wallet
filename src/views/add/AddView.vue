@@ -1,6 +1,6 @@
 <template>
   <div>
-    <page-title title="Welcome to Ergo Wallet." />
+    <page-title title="Welcome to Ergo Wallet." :back-button="backButton === 'true'" />
     <p class="pt-2 pb-5">
       <button type="button" class="nav-btn">
         <span class="title">Create wallet</span>
@@ -40,6 +40,9 @@ import PageTitle from "@/components/PageTitle.vue";
 
 export default defineComponent({
   name: "AddView",
-  components: { PageTitle }
+  components: { PageTitle },
+  props: {
+    backButton: { type: String, default: "false" }
+  }
 });
 </script>
