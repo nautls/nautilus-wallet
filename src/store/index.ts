@@ -4,7 +4,7 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sortBy, find, findIndex, last, take } from "lodash";
+import { groupBy, sortBy, find, findIndex, last, take, first } from "lodash";
 import { Network, WalletType, AddressState } from "@/types";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateWallet } from "@/store/stateTypes";
@@ -12,6 +12,7 @@ import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, sumBigNumberBy, toBigNumber } from "@/utils/numbersUtil";
 import { ERG_TOKEN_ID, ERG_DECIMALS } from "@/constants/ergo";
 import { IDbWallet } from "@/db/dbTypes";
+import router from "@/router";
 
 export default createStore({
   state: {
@@ -26,6 +27,9 @@ export default createStore({
       balance: new BigNumber(0)
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
+    settings: {
+      lastOpenedWalletId: 0
+    },
     loading: {
       price: false,
       addresses: false,
@@ -123,9 +127,39 @@ export default createStore({
           balance: new BigNumber(0)
         };
       });
+    },
+    [MUTATIONS.SET_SETTINGS](state, settings) {
+      state.settings = Object.assign(state.settings, settings);
     }
   },
   actions: {
+    async [ACTIONS.INIT]({ state, dispatch }) {
+      dispatch(ACTIONS.LOAD_SETTINGS);
+      await dispatch(ACTIONS.LOAD_WALLETS);
+
+      if (state.wallets.length > 0) {
+        let current = find(state.wallets, w => w.id === state.settings.lastOpenedWalletId);
+        if (!current) {
+          current = first(state.wallets);
+        }
+
+        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
+
+        router.push({ name: "assets-page" });
+      }
+    },
+    [ACTIONS.LOAD_SETTINGS]({ commit }) {
+      const rawSettings = localStorage.getItem("settings");
+      if (rawSettings) {
+        commit(MUTATIONS.SET_SETTINGS, JSON.parse(rawSettings));
+      }
+    },
+    [ACTIONS.SAVE_SETTINGS]({ state, commit }, newSettings) {
+      if (newSettings) {
+        commit(MUTATIONS.SET_SETTINGS, newSettings);
+      }
+      localStorage.setItem("settings", JSON.stringify(state.settings));
+    },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletDbService.all();
       for (const wallet of wallets) {
@@ -171,7 +205,7 @@ export default createStore({
         extendedPublicKey: bip32.extendedPublicKey.toString("hex")
       };
 
-      commit(MUTATIONS.SET_CURRENT_WALLET, stateWallet);
+      await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet) {
@@ -179,6 +213,7 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, []);
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
+      dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: wallet.id });
     },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
       const bip32 = bip32Pool.get(state.currentWallet.publicKey);

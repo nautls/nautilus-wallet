@@ -30,7 +30,7 @@ export default defineComponent({
     return { getPriceTimerId: Object.freeze({} as NodeJS.Timer) };
   },
   created() {
-    this.loadWallets();
+    this.init();
 
     this.getPriceTimerId = Object.freeze(
       runSetInterval(() => {
@@ -44,7 +44,7 @@ export default defineComponent({
   methods: {
     ...mapActions({
       fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
-      loadWallets: ACTIONS.LOAD_WALLETS
+      init: ACTIONS.INIT
     })
   },
   components: {
