@@ -31,9 +31,14 @@
                   </td>
                   <td class="text-right">
                     <p>{{ asset.amount.toFormat() }}</p>
-                    <p class="text-xs text-gray-500" v-if="asset.price && !asset.amount.isZero()">
-                      ≈ {{ asset.amount.multipliedBy(asset.price).toFormat(2) }} USD
-                    </p>
+                    <tool-tip
+                      :label="`${asset.name} ≈ ${asset.price} USD`"
+                      v-if="asset.price && !asset.amount.isZero()"
+                    >
+                      <p class="text-xs text-gray-500">
+                        ≈ {{ asset.amount.multipliedBy(asset.price).toFormat(2) }} USD
+                      </p>
+                    </tool-tip>
                   </td>
                   <td class="text-right">
                     <vue-feather type="send" size="16" />
