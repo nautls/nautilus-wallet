@@ -29,6 +29,10 @@ label {
   @apply transition-all ease-linear duration-150;
 }
 
+.skeleton {
+  @apply bg-gray-300 animate-pulse inline-block;
+}
+
 .control {
   @apply rounded border-1 border-gray-400 my-1 p-2 default-transition 
   hover:border-light-blue-600 focus:outline-none focus:border-light-blue-600 focus:ring-2 
@@ -91,6 +95,12 @@ table thead th:last-child {
     focus:ring-2 focus:ring-light-blue-200 active:bg-light-blue-800;
 }
 
+button:disabled,
+input:disabled {
+  @apply bg-gray-100 text-gray-500 cursor-not-allowed border-gray-700 
+  outline-none hover:bg-gray-100 hover: text-gray-500 hover:border-gray-700;
+}
+
 .nav-btn {
   @apply bg-transparent border border-solid rounded 
     font-bold  outline-none border-light-blue-600 text-sm mr-1 mb-1 
@@ -124,7 +134,7 @@ table thead th:last-child {
 .dropdown .items-list {
   @apply divide-y bg-white border rounded rounded-t-none divide-gray-100 border-t-0 
     border-gray-300 shadow-lg text-sm w-full max-h-120 origin-top-right right-0 
-    overflow-y-auto absolute focus:outline-none;
+    overflow-y-auto absolute z-50 focus:outline-none;
 }
 
 .dropdown .items-list .group {
