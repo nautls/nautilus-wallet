@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-5">
-    <div class="flex flex-row gap-3">
+    <div class="flex flex-row gap-5">
       <div class="flex-grow">
         <label>Your address</label>
         <div class="rounded font-mono bg-gray-200 text-sm p-2 text-dark-800 break-all">
@@ -16,7 +16,7 @@
         </div>
         <p class="text-xs pt-1 text-gray-600">Share this address to receive assets.</p>
       </div>
-      <div class="text-right w-min">
+      <div class="text-right w-auto">
         <div v-show="loading" class="skeleton h-3 w-29 h-29"></div>
         <canvas v-show="!loading" class="inline w-29 h-29" id="primary-address-canvas"></canvas>
       </div>

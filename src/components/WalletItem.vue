@@ -4,7 +4,7 @@
       <div class="flex flex-col gap-1 h-auto text-left whitespace-nowrap">
         <div class="font-semibold text-base h-1/2">{{ wallet.name }}</div>
         <div class="h-1/2 text-xs">
-          <span>{{ checksum }}</span>
+          <span class="align-middle">{{ checksum }}</span>
           <small class="rounded bg-gray-300 mx-2 py-1 px-2 text-dark-200 uppercase">{{
             $filters.walletType(wallet.type)
           }}</small>
