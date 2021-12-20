@@ -202,7 +202,7 @@ export default createStore({
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet) {
-      commit(MUTATIONS.SET_LOADING, { addresses: true });
+      commit(MUTATIONS.SET_LOADING, { addresses: true, balance: true });
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, []);
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);

@@ -1,7 +1,6 @@
 import { defineConfig } from "windicss/helpers";
 
 export default defineConfig({
-  safelist: ["animate-pulse"],
   theme: {
     extend: {
       fontFamily: {

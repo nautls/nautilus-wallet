@@ -4,7 +4,7 @@
       <slot />
     </span>
     <span
-      class="rounded font-sans bg-dark-400 bottom-full shadow-lg text-center text-xs mb-2 w-auto opacity-0 py-2 px-3 transition-all ease-linear text-light-200 z-10 duration-150 absolute pointer-events-none group-hover:opacity-100"
+      class="rounded font-sans tracking-normal bg-dark-400 bottom-full shadow-lg text-center text-xs mb-2 w-auto opacity-0 py-2 px-3 transition-all ease-linear text-light-200 z-10 duration-150 absolute pointer-events-none group-hover:opacity-100"
     >
       <slot name="label" v-if="$slots.label" />
       <span class="whitespace-nowrap" v-else>{{ label }}</span>

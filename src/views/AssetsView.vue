@@ -16,7 +16,18 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="asset in assets" :key="asset.tokenId">
+                <tr v-if="loading">
+                  <td class="w-14">
+                    <img src="@/assets/images/default.svg" class="h-8 w-8 animate-pulse" />
+                  </td>
+                  <td>
+                    <div class="skeleton h-3 w-2/3 rounded"></div>
+                  </td>
+                  <td class="text-right w-50">
+                    <div class="skeleton h-3 w-1/3 rounded"></div>
+                  </td>
+                </tr>
+                <tr v-else v-for="asset in assets" :key="asset.tokenId">
                   <td class="w-14">
                     <img :src="logoFor(asset.tokenId)" class="h-8 w-8" :alt="asset.name" />
                   </td>
@@ -55,10 +66,26 @@ import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/store/stateTypes";
+import { first } from "lodash";
 
 export default defineComponent({
   name: "AssetsView",
   computed: {
+    loading(): boolean {
+      if (!this.$store.state.loading.balance) {
+        return false;
+      }
+
+      const assetList: StateAsset[] = this.$store.getters[GETTERS.ASSETS_BALANCE];
+      if (assetList.length === 1) {
+        const asset = first(assetList);
+        if (!asset || asset.amount.isZero()) {
+          return true;
+        }
+      }
+
+      return false;
+    },
     assets(): StateAsset[] {
       const assetList = this.$store.getters[GETTERS.ASSETS_BALANCE];
 
