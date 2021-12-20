@@ -10,8 +10,10 @@
             <div class="skeleton h-3 w-1/2 rounded"></div>
           </template>
           <template v-else>
-            {{ addresses[addresses.length - 1].address }}
-            <click-to-copy :content="addresses[addresses.length - 1].address" size="12" />
+            <a :href="createUrlFor(lastAddress)" target="_blank">
+              {{ lastAddress }}
+            </a>
+            <click-to-copy :content="lastAddress" class="px-2" size="12" />
           </template>
         </div>
         <p class="text-xs pt-1 text-gray-600">Share this address to receive assets.</p>
@@ -51,10 +53,10 @@
                   :key="address.address"
                 >
                   <td class="font-mono">
-                    <span
-                      >{{ $filters.compactString(address.address, 12) }}
-                      <click-to-copy :content="address.address" size="12" />
-                    </span>
+                    <a :href="createUrlFor(address.address)" target="_blank">{{
+                      $filters.compactString(address.address, 12)
+                    }}</a>
+                    <click-to-copy :content="address.address" class="px-2" size="12" />
                   </td>
                   <td class="text-right tracking-tight">
                     <span v-if="address.balance">{{ address.balance.nanoErgs / 1000000000 }}</span>
@@ -76,6 +78,7 @@ import { defineComponent } from "vue";
 import QRCode from "qrcode";
 import { last } from "lodash";
 import { StateAddress } from "@/store/stateTypes";
+import { ADDRESS_URL } from "@/constants/explorer";
 
 export default defineComponent({
   name: "ReceiveView",
@@ -106,6 +109,11 @@ export default defineComponent({
           });
         });
       }
+    }
+  },
+  methods: {
+    createUrlFor(address: string | undefined): string {
+      return `${ADDRESS_URL}${address}`;
     }
   }
 });

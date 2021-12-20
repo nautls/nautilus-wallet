@@ -12,6 +12,10 @@ body {
   @apply bg-light-100 text-base leading-normal tracking-wide text-dark-600 antialiased;
 }
 
+a {
+  @apply hover:underline underline-current;
+}
+
 ::-webkit-scrollbar {
   @apply w-5px;
 }
@@ -157,7 +161,7 @@ input:disabled {
 
 .dropdown .items-list .group .group-item {
   @apply p-4 block cursor-pointer hover:bg-gray-100 active:outline-none 
-    active:bg-gray-200;
+    underline-transparent active:bg-gray-200;
 }
 
 .dropdown .items-list .group .group-item.narrow {

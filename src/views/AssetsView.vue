@@ -2,7 +2,13 @@
   <div class="flex flex-col gap-5">
     <div class="flex flex-row gap-3"></div>
     <div>
-      <input type="text" v-model="filter" placeholder="Search" class="w-full control block" />
+      <input
+        type="text"
+        :disabled="loading"
+        v-model="filter"
+        placeholder="Search"
+        class="w-full control block"
+      />
     </div>
     <div class="flex flex-col">
       <div class="-my-2 -mx-8">
