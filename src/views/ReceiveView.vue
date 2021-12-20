@@ -44,14 +44,19 @@
                     <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
                   </td>
                 </tr>
-                <tr v-else v-for="address in addresses.slice().reverse()" :key="address.address">
+                <tr
+                  class="font-mono"
+                  v-else
+                  v-for="address in addresses.slice().reverse()"
+                  :key="address.address"
+                >
                   <td class="font-mono">
                     <span
                       >{{ $filters.compactString(address.address, 12) }}
                       <click-to-copy :content="address.address" size="12" />
                     </span>
                   </td>
-                  <td class="text-right">
+                  <td class="text-right tracking-tight">
                     <span v-if="address.balance">{{ address.balance.nanoErgs / 1000000000 }}</span>
                     <span v-else>0</span>
                     ERG

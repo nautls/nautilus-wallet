@@ -134,10 +134,11 @@ export default createStore({
         if (!current) {
           current = first(state.wallets);
         }
-
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
 
         router.push({ name: "assets-page" });
+      } else {
+        router.push({ name: "add-wallet" });
       }
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {

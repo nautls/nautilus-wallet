@@ -13,7 +13,6 @@
                 <tr>
                   <th colspan="2">Asset</th>
                   <th class="text-right">Balance</th>
-                  <th class="text-left w-11"></th>
                 </tr>
               </thead>
               <tbody>
@@ -29,7 +28,7 @@
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
                   </td>
-                  <td class="text-right">
+                  <td class="text-right font-mono tracking-tight">
                     <p>{{ asset.amount.toFormat() }}</p>
                     <tool-tip
                       :label="`${asset.name} ≈ ${asset.price} USD`"
@@ -39,9 +38,6 @@
                         ≈ {{ asset.amount.multipliedBy(asset.price).toFormat(2) }} USD
                       </p>
                     </tool-tip>
-                  </td>
-                  <td class="text-right">
-                    <vue-feather type="send" size="16" />
                   </td>
                 </tr>
               </tbody>
