@@ -43,10 +43,6 @@ label {
   @apply transition-all ease-linear duration-150;
 }
 
-.skeleton {
-  @apply bg-gray-300 animate-pulse inline-block;
-}
-
 .control {
   @apply rounded border-1 border-gray-400 my-1 p-2 default-transition 
   hover:border-light-blue-600 focus:outline-none focus:border-light-blue-600 focus:ring-2 
