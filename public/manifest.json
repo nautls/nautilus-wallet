@@ -5,6 +5,7 @@
   "manifest_version": 2,
   "minimum_chrome_version": "48",
   "description": "A light wallet for Ergo Platform",
+  "content_security_policy": "script-src 'self' 'wasm-eval'; object-src 'self';",
   "browser_action": {
     "default_popup": "index.html",
     "default_title": "Nautilus"
