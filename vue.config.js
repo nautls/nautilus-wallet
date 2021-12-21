@@ -1,4 +1,5 @@
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 
 module.exports = {
   publicPath: "/",
@@ -20,5 +21,7 @@ module.exports = {
         cleanStaleWebpackAssets: false
       })
     );
+
+    config.plugin("windicss").use(new WindiCSSWebpackPlugin());
   }
 };

@@ -160,8 +160,8 @@ input:disabled {
 }
 
 .dropdown .items-list .group .group-item {
-  @apply p-4 block cursor-pointer hover:bg-gray-100 active:outline-none 
-    underline-transparent active:bg-gray-200;
+  @apply p-4 block cursor-pointer underline-transparent hover:bg-gray-100 
+  active:(outline-none bg-gray-200);
 }
 
 .dropdown .items-list .group .group-item.narrow {

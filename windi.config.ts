@@ -1,6 +1,7 @@
 import { defineConfig } from "windicss/helpers";
 
 export default defineConfig({
+  generatedKeyframes: false,
   theme: {
     extend: {
       fontFamily: {
