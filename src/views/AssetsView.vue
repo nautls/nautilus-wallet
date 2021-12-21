@@ -1,6 +1,5 @@
 <template>
   <div class="flex flex-col gap-5">
-    <div class="flex flex-row gap-3"></div>
     <div>
       <input
         type="text"
