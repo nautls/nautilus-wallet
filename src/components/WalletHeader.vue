@@ -1,7 +1,6 @@
 <template>
   <div class="flex flex-row px-4 pt-2 gap-3 items-center">
-    <div class="text-lg ml-3">Nautilus</div>
-    <div class="flex-grow">
+    <div class="w-9/12">
       <drop-down>
         <template v-slot:trigger>
           <wallet-item
@@ -30,6 +29,9 @@
           </div>
         </template>
       </drop-down>
+    </div>
+    <div class="w-3/12">
+      <img src="@/assets/images/logo.jpg" class="image-render-auto w-18 float-right mr-2" />
     </div>
   </div>
 </template>
