@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row px-4 pt-2 gap-3 items-center">
+  <div class="flex flex-row px-4 pt-2 gap-4 items-center">
     <div class="w-9/12">
       <drop-down>
         <template v-slot:trigger>

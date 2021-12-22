@@ -14,6 +14,8 @@ import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
 // import { Tooltip } from "@oruga-ui/oruga-next";
 // import "@oruga-ui/oruga-next/dist/oruga.css";
+
+import "@/assets/styles/fonts.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
