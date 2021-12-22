@@ -82,7 +82,7 @@ export default defineComponent({
       return this.$store.state.currentAddresses;
     },
     loading(): boolean {
-      return this.addresses.length === 0;
+      return this.addresses.length === 0 && this.$store.state.loading.addresses;
     },
     lastAddress(): string | undefined {
       return last(this.addresses)?.address;

@@ -16,4 +16,4 @@ class NautilusDb extends Dexie {
   }
 }
 
-export const nautilusDb = new NautilusDb();
+export const dbContext = new NautilusDb();

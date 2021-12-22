@@ -1,13 +1,13 @@
 import { IDbWallet } from "@/db/dbTypes";
-import { nautilusDb } from "@/db/nautilusDb";
+import { dbContext } from "@/db/dbContext";
 
-class WalletDbService {
-  public async getFromPk(publicKey: string): Promise<IDbWallet | undefined> {
-    return await nautilusDb.wallets.where("publicKey").equals(publicKey).first();
+class WalletsDbService {
+  public async getFromId(id: number): Promise<IDbWallet | undefined> {
+    return await dbContext.wallets.where("id").equals(id).first();
   }
 
-  public async getFromId(id: number): Promise<IDbWallet | undefined> {
-    return await nautilusDb.wallets.where("id").equals(id).first();
+  public async getFromPk(publicKey: string): Promise<IDbWallet | undefined> {
+    return await dbContext.wallets.where("publicKey").equals(publicKey).first();
   }
 
   public async put(wallet: IDbWallet): Promise<number> {
@@ -15,12 +15,13 @@ class WalletDbService {
     if (!wallet.id) {
       wallet.id = dbWallet?.id;
     }
-    return nautilusDb.wallets.put(wallet);
+
+    return dbContext.wallets.put(wallet);
   }
 
-  public async all(): Promise<IDbWallet[]> {
-    return await nautilusDb.wallets.toArray();
+  public async getAll(): Promise<IDbWallet[]> {
+    return await dbContext.wallets.toArray();
   }
 }
 
-export const walletDbService = new WalletDbService();
+export const walletsDbService = new WalletsDbService();

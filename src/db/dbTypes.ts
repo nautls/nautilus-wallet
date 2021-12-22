@@ -15,7 +15,7 @@ export type IDbAddress = {
   type: AddressType;
   state: AddressState;
   script: string;
-  balance: string;
+  index: number;
   walletId: number;
 };
 

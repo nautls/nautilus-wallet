@@ -1,13 +1,3 @@
-@font-face {
-  font-family: "FiraSans";
-  src: url("../fonts/FiraSans-Regular.ttf");
-}
-
-@font-face {
-  font-family: "FiraMono";
-  src: url("../fonts/FiraMono-Regular.ttf");
-}
-
 body {
   @apply bg-light-100 text-base leading-normal tracking-wide text-dark-600 antialiased;
 }

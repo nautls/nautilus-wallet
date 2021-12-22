@@ -1,18 +1,19 @@
-import { walletDbService } from "@/api/database/walletDbService";
+import { walletsDbService } from "@/api/database/walletDbService";
 import { createStore } from "vuex";
 import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sortBy, find, findIndex, last, take, first } from "lodash";
-import { Network, WalletType, AddressState } from "@/types";
+import { groupBy, sortBy, find, findIndex, last, take, first, maxBy } from "lodash";
+import { Network, WalletType, AddressState, AddressType } from "@/types";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, sumBigNumberBy, toBigNumber } from "@/utils/numbersUtil";
-import { ERG_TOKEN_ID, ERG_DECIMALS } from "@/constants/ergo";
+import { ERG_TOKEN_ID, ERG_DECIMALS, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
 import { IDbWallet } from "@/db/dbTypes";
 import router from "@/router";
+import { addressesDbService } from "@/api/database/addressesDbService";
 
 export default createStore({
   state: {
@@ -84,8 +85,16 @@ export default createStore({
 
       state.currentWallet = wallet;
     },
-    [MUTATIONS.SET_CURRENT_ADDRESSES](state, addresses: StateAddress[]) {
-      state.currentAddresses = addresses;
+    [MUTATIONS.SET_CURRENT_ADDRESSES](
+      state,
+      content: { addresses: StateAddress[]; walletId?: number }
+    ) {
+      // don't commit if the default wallet gets changed
+      if (state.currentWallet.id !== content.walletId) {
+        return;
+      }
+
+      state.currentAddresses = content.addresses;
     },
     [MUTATIONS.UPDATE_BALANCES](state, balances: { address: string; data: any }[]) {
       let walletNanoErgs = new BigNumber(0);
@@ -111,7 +120,7 @@ export default createStore({
     [MUTATIONS.SET_WALLETS](state, wallets: IDbWallet[]) {
       state.wallets = wallets.map(w => {
         return {
-          id: w.id,
+          id: w.id || 0,
           name: w.name,
           type: w.type,
           publicKey: w.publicKey,
@@ -154,7 +163,7 @@ export default createStore({
       localStorage.setItem("settings", JSON.stringify(state.settings));
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
-      const wallets = await walletDbService.all();
+      const wallets = await walletsDbService.getAll();
       for (const wallet of wallets) {
         bip32Pool.alloc(
           Bip32.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
@@ -171,7 +180,7 @@ export default createStore({
       const bip32 = Bip32.fromPublicKey(wallet.extendedPublicKey);
       bip32Pool.alloc(bip32, bip32.publicKey.toString("hex"));
 
-      const walletId = await walletDbService.put({
+      const walletId = await walletsDbService.put({
         name: wallet.name,
         network: Network.ErgoMainet,
         type: wallet.type,
@@ -183,7 +192,7 @@ export default createStore({
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
     },
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ commit, dispatch }, id: number) {
-      const wallet = await walletDbService.getFromId(id);
+      const wallet = await walletsDbService.getFromId(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
       }
@@ -202,24 +211,53 @@ export default createStore({
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet) {
-      commit(MUTATIONS.SET_LOADING, { addresses: true, balance: true });
-      commit(MUTATIONS.SET_CURRENT_ADDRESSES, []);
+      commit(MUTATIONS.SET_LOADING, { balance: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
+      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId: wallet.id });
       dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
       dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: wallet.id });
     },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
+      const walletId = state.currentWallet.id;
+
       const bip32 = bip32Pool.get(state.currentWallet.publicKey);
-      let active: StateAddress[] = [];
+      let active: StateAddress[] = (
+        await addressesDbService.getAllFromWalletId(state.currentWallet.id)
+      ).map(a => {
+        return {
+          address: a.script,
+          state: a.state,
+          index: a.index,
+          balance: undefined
+        };
+      });
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
       let lastUsed: string | undefined;
-      let counter = 0;
+      const maxIndex = maxBy(active, a => a.index)?.index;
+      let offset = maxIndex !== undefined ? maxIndex + 1 : 0;
+
+      if (active.length > 0) {
+        if (state.currentAddresses.length === 0) {
+          commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId: walletId });
+        }
+
+        used = used.concat(
+          await explorerService.getUsedAddresses(
+            active.map(a => a.address),
+            { chunkBy: CHUNK_DERIVE_LENGTH }
+          )
+        );
+        lastUsed = last(used);
+      }
+
+      commit(MUTATIONS.SET_LOADING, { addresses: true });
 
       do {
-        derived = bip32.deriveAddresses(20, counter * 20);
-        usedChunk = await explorerService.getUsedAddressesFrom(derived.map(x => x.address));
+        derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
+        offset += derived.length;
+        usedChunk = await explorerService.getUsedAddresses(derived.map(a => a.address));
         used = used.concat(usedChunk);
         active = active.concat(
           derived.map(d => ({
@@ -232,8 +270,6 @@ export default createStore({
         if (usedChunk.length > 0) {
           lastUsed = last(usedChunk);
         }
-
-        counter++;
       } while (usedChunk.length > 0);
 
       if (lastUsed) {
@@ -248,7 +284,21 @@ export default createStore({
         }
       }
 
-      commit(MUTATIONS.SET_CURRENT_ADDRESSES, active);
+      await addressesDbService.bulkPut(
+        active.map(a => {
+          return {
+            type: AddressType.P2PK,
+            state: a.state,
+            script: a.address,
+            index: a.index,
+            balance: "0",
+            walletId: 0
+          };
+        }),
+        walletId
+      );
+
+      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId: walletId });
 
       if (lastUsed !== null) {
         commit(MUTATIONS.SET_LOADING, { balance: true });

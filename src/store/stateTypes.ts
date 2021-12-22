@@ -9,7 +9,7 @@ export type StateAddress = {
 };
 
 export type StateWallet = {
-  id?: number;
+  id: number;
   name: string;
   type: WalletType;
   publicKey: string;

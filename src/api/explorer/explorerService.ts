@@ -1,6 +1,6 @@
 import { API_URL } from "@/constants/explorer";
 import axios from "axios";
-import { find } from "lodash";
+import { chunk, find } from "lodash";
 
 class ExplorerService {
   public async getTxHistory(
@@ -28,7 +28,21 @@ class ExplorerService {
     return await Promise.all(addresses.map(a => this.getAddressBalance(a)));
   }
 
-  public async getUsedAddressesFrom(addresses: string[]): Promise<string[]> {
+  public async getUsedAddresses(addresses: string[], options = { chunkBy: 0 }): Promise<string[]> {
+    if (options.chunkBy <= 0 || options.chunkBy > addresses.length) {
+      return this.getUsedAddressesFromChunk(addresses);
+    }
+
+    const chunks = chunk(addresses, options.chunkBy);
+    let used: string[] = [];
+    for (const c of chunks) {
+      used = used.concat(await this.getUsedAddressesFromChunk(c));
+    }
+
+    return used;
+  }
+
+  private async getUsedAddressesFromChunk(addresses: string[]): Promise<string[]> {
     const resp = await Promise.all(
       addresses.map(address => this.getTxHistory(address, { limit: 1, concise: true }))
     );
