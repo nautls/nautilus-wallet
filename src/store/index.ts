@@ -219,18 +219,19 @@ export default createStore({
     },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
       const walletId = state.currentWallet.id;
+      const pk = state.currentWallet.publicKey;
 
-      const bip32 = bip32Pool.get(state.currentWallet.publicKey);
-      let active: StateAddress[] = (
-        await addressesDbService.getAllFromWalletId(state.currentWallet.id)
-      ).map(a => {
-        return {
-          address: a.script,
-          state: a.state,
-          index: a.index,
-          balance: undefined
-        };
-      });
+      const bip32 = bip32Pool.get(pk);
+      let active: StateAddress[] = (await addressesDbService.getAllFromWalletId(walletId)).map(
+        a => {
+          return {
+            address: a.script,
+            state: a.state,
+            index: a.index,
+            balance: undefined
+          };
+        }
+      );
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
@@ -251,8 +252,6 @@ export default createStore({
         );
         lastUsed = last(used);
       }
-
-      commit(MUTATIONS.SET_LOADING, { addresses: true });
 
       do {
         derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
