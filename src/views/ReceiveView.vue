@@ -29,7 +29,7 @@
     <div class="flex flex-col">
       <div class="-my-2 -mx-8">
         <div class="min-w-full py-2 px-8 align-middle inline-block">
-          <div class="border-b rounded-lg border-gray-200 shadow overflow-hidden">
+          <div class="border-b rounded-lg border-gray-200 shadow">
             <table class="table">
               <thead>
                 <tr>
