@@ -4,12 +4,12 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sortBy, find, findIndex, last, take, first, maxBy } from "lodash";
+import { groupBy, sortBy, find, findIndex, last, take, first, maxBy, unionBy } from "lodash";
 import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
-import { setDecimals, sumBigNumberBy, toBigNumber } from "@/utils/numbersUtil";
+import { setDecimals, toBigNumber } from "@/utils/numbersUtil";
 import { ERG_TOKEN_ID, ERG_DECIMALS, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
 import { IDbWallet } from "@/db/dbTypes";
 import router from "@/router";
@@ -39,36 +39,36 @@ export default createStore({
     }
   },
   getters: {
-    [GETTERS.ASSETS_BALANCE](state) {
+    [GETTERS.BALANCE](state) {
       const balance: StateAsset[] = [];
-      const tokenGroups = groupBy(
+
+      const groups = groupBy(
         state.currentAddresses
-          .filter(a => a.balance && a.balance.confirmed.tokens)
-          .map(a => a.balance?.confirmed.tokens || [])
+          .filter(a => a.balance)
+          .map(a => a.balance || [])
           .flat(),
-        t => t.tokenId
+        a => a?.tokenId
       );
 
-      for (const key in tokenGroups) {
-        const token = Object.create(tokenGroups[key][0]);
-        token.amount = sumBigNumberBy(tokenGroups[key], t => toBigNumber(t.amount));
-        if (token.decimals > 0) {
-          token.amount = setDecimals(token.amount, token.decimals);
+      for (const key in groups) {
+        const group = groups[key];
+        if (group.length === 0) {
+          continue;
         }
+
+        const token: StateAsset = {
+          tokenId: group[0].tokenId,
+          name: group[0].name,
+          confirmedAmount: group.map(a => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
+          unconfirmedAmount: group
+            .map(a => a.unconfirmedAmount)
+            .reduce((acc, val) => acc?.plus(val || 0))
+        };
 
         balance.push(token);
       }
 
-      const sortedBalance = sortBy(balance, t => t.name);
-      sortedBalance.unshift({
-        name: "ERG",
-        amount: state.currentWallet.balance,
-        decimals: ERG_DECIMALS,
-        tokenId: ERG_TOKEN_ID,
-        price: state.ergPrice
-      });
-
-      return sortedBalance;
+      return sortBy(balance, [a => a.tokenId !== ERG_TOKEN_ID, a => a.name]);
     }
   },
   mutations: {
@@ -101,18 +101,44 @@ export default createStore({
       state,
       balances: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]
     ) {
-      let walletNanoErgs = new BigNumber(0);
       for (const address of state.currentAddresses) {
-        const balance = find(balances, b => b.address === address.address);
-        if (balance) {
-          address.balance = balance.data;
-          walletNanoErgs = walletNanoErgs.plus(address.balance.confirmed.nanoErgs);
+        const balance = find(balances, b => b.address === address.script);
+
+        if (balance && balance.data) {
+          const confirmed = balance.data.confirmed.tokens;
+          const unconfirmed = balance.data.unconfirmed.tokens;
+          const newBalance: StateAsset[] = unionBy(confirmed, unconfirmed, t => t.tokenId).map(
+            t => {
+              return {
+                tokenId: t.tokenId,
+                name: t.name,
+                confirmedAmount: setDecimals(toBigNumber(t.amount), t.decimals) || new BigNumber(0),
+                unconfirmedAmount: setDecimals(
+                  toBigNumber(find(unconfirmed, ut => ut.tokenId === t.tokenId)?.amount),
+                  t.decimals
+                )
+              };
+            }
+          );
+
+          newBalance.push({
+            tokenId: ERG_TOKEN_ID,
+            name: "ERG",
+            confirmedAmount:
+              setDecimals(toBigNumber(balance.data.confirmed.nanoErgs), ERG_DECIMALS) ||
+              new BigNumber(0),
+            unconfirmedAmount: setDecimals(
+              toBigNumber(balance.data.unconfirmed.nanoErgs),
+              ERG_DECIMALS
+            ),
+            price: state.ergPrice
+          });
+
+          address.balance = newBalance;
         } else {
           address.balance = undefined;
         }
       }
-
-      state.currentWallet.balance = setDecimals(walletNanoErgs, ERG_DECIMALS);
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
       state.loading.price = false;
@@ -229,7 +255,7 @@ export default createStore({
       let active: StateAddress[] = (await addressesDbService.getAllFromWalletId(walletId)).map(
         a => {
           return {
-            address: a.script,
+            script: a.script,
             state: a.state,
             index: a.index,
             balance: undefined
@@ -250,7 +276,7 @@ export default createStore({
 
         used = used.concat(
           await explorerService.getUsedAddresses(
-            active.map(a => a.address),
+            active.map(a => a.script),
             { chunkBy: CHUNK_DERIVE_LENGTH }
           )
         );
@@ -265,7 +291,7 @@ export default createStore({
         active = active.concat(
           derived.map(d => ({
             index: d.index,
-            address: d.address,
+            script: d.address,
             state: AddressState.Unused,
             balance: undefined
           }))
@@ -276,13 +302,13 @@ export default createStore({
       } while (usedChunk.length > 0);
 
       if (lastUsed) {
-        active = take(active, findIndex(active, a => a.address == lastUsed) + 1);
+        active = take(active, findIndex(active, a => a.script == lastUsed) + 1);
       } else {
         active = take(active, 1);
       }
 
       for (const addr of active) {
-        if (find(used, address => addr.address === address)) {
+        if (find(used, address => addr.script === address)) {
           addr.state = AddressState.Used;
         }
       }
@@ -292,7 +318,7 @@ export default createStore({
           return {
             type: AddressType.P2PK,
             state: a.state,
-            script: a.address,
+            script: a.script,
             index: a.index,
             balance: "0",
             walletId: 0
@@ -307,7 +333,7 @@ export default createStore({
         commit(MUTATIONS.SET_LOADING, { balance: true });
         dispatch(
           ACTIONS.REFRESH_BALANCES,
-          active.filter(a => a.state === AddressState.Used).map(a => a.address)
+          active.filter(a => a.state === AddressState.Used).map(a => a.script)
         );
       }
 
@@ -315,7 +341,7 @@ export default createStore({
     },
     async [ACTIONS.REFRESH_BALANCES]({ state, commit }, addresses: string[] | undefined) {
       const balance = await explorerService.getAddressesBalance(
-        addresses ? addresses : state.currentAddresses.map(a => a.address)
+        addresses ? addresses : state.currentAddresses.map(a => a.script)
       );
 
       commit(MUTATIONS.UPDATE_BALANCES, balance);

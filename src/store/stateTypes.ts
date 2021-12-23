@@ -1,12 +1,11 @@
-import { ExplorerV1AddressBalanceResponse } from "@/types/explorer";
 import { AddressState, AddressType, WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
 export type StateAddress = {
-  address: string;
+  script: string;
   state: AddressState;
   index: number;
-  balance?: ExplorerV1AddressBalanceResponse;
+  balance?: StateAsset[];
 };
 
 export type StateWallet = {
@@ -21,8 +20,8 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
-  amount: BigNumber;
-  decimals: number;
   name: string;
+  confirmedAmount: BigNumber;
+  unconfirmedAmount?: BigNumber;
   price?: number;
 };

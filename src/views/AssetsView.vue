@@ -44,14 +44,24 @@
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
                   </td>
-                  <td class="text-right tracking-wider">
-                    <p>{{ asset.amount.toFormat() }}</p>
+                  <td class="text-right tracking-tighter font-mono">
+                    <p
+                      class="animate-pulse"
+                      v-if="asset.unconfirmedAmount && !asset.unconfirmedAmount.isZero()"
+                      :class="
+                        asset.unconfirmedAmount.isPositive() ? 'text-green-700' : 'text-red-700'
+                      "
+                    >
+                      {{ asset.unconfirmedAmount.isPositive() ? "+" : "-"
+                      }}{{ asset.unconfirmedAmount.toFormat() }}
+                    </p>
+                    <p>{{ asset.confirmedAmount.toFormat() }}</p>
                     <tool-tip
                       :label="`${asset.name} ≈ ${asset.price} USD`"
-                      v-if="asset.price && !asset.amount.isZero()"
+                      v-if="asset.price && !asset.confirmedAmount.isZero()"
                     >
                       <p class="text-xs text-gray-500">
-                        ≈ {{ asset.amount.multipliedBy(asset.price).toFormat(2) }} USD
+                        ≈ {{ asset.confirmedAmount.multipliedBy(asset.price).toFormat(2) }} USD
                       </p>
                     </tool-tip>
                   </td>
@@ -81,18 +91,15 @@ export default defineComponent({
         return false;
       }
 
-      const assetList: StateAsset[] = this.$store.getters[GETTERS.ASSETS_BALANCE];
-      if (assetList.length === 1) {
-        const asset = first(assetList);
-        if (!asset || asset.amount.isZero()) {
-          return true;
-        }
+      const assetList: StateAsset[] = this.$store.getters[GETTERS.BALANCE];
+      if (assetList.length === 0) {
+        return true;
       }
 
       return false;
     },
     assets(): StateAsset[] {
-      const assetList = this.$store.getters[GETTERS.ASSETS_BALANCE];
+      const assetList = this.$store.getters[GETTERS.BALANCE];
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>

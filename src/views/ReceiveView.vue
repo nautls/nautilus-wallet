@@ -46,18 +46,15 @@
                     <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
                   </td>
                 </tr>
-                <tr v-else v-for="address in addresses.slice().reverse()" :key="address.address">
+                <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono">
-                    <a :href="createUrlFor(address.address)" target="_blank">{{
-                      $filters.compactString(address.address, 12)
+                    <a :href="createUrlFor(address.script)" target="_blank">{{
+                      $filters.compactString(address.script, 12)
                     }}</a>
-                    <click-to-copy :content="address.address" class="px-2" size="12" />
+                    <click-to-copy :content="address.script" class="px-2" size="12" />
                   </td>
                   <td class="text-right tracking-wider">
-                    <span v-if="address.balance">{{
-                      address.balance.confirmed.nanoErgs / 1000000000
-                    }}</span>
-                    <span v-else>0</span>
+                    <span>{{ ergBalanceFor(address) }}</span>
                     ERG
                   </td>
                 </tr>
@@ -73,9 +70,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
-import { last } from "lodash";
+import { find, last } from "lodash";
 import { StateAddress } from "@/store/stateTypes";
 import { ADDRESS_URL } from "@/constants/explorer";
+import BigNumber from "bignumber.js";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export default defineComponent({
   name: "ReceiveView",
@@ -87,7 +86,7 @@ export default defineComponent({
       return this.addresses.length === 0 && this.$store.state.loading.addresses;
     },
     lastAddress(): string | undefined {
-      return last(this.addresses)?.address;
+      return last(this.addresses)?.script;
     }
   },
   watch: {
@@ -109,6 +108,11 @@ export default defineComponent({
     }
   },
   methods: {
+    ergBalanceFor(address: StateAddress): BigNumber {
+      return (
+        find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount || new BigNumber(0)
+      );
+    },
     createUrlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;
     }

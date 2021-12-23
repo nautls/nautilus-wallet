@@ -1,8 +1,6 @@
 <template>
   <span class="inline-flex group justify-center relative">
-    <span>
-      <slot />
-    </span>
+    <slot />
     <span
       class="rounded font-sans tracking-normal bg-dark-400 bottom-full shadow-lg text-center text-xs mb-2 w-auto opacity-0 py-2 px-3 transition-all ease-linear text-light-200 z-10 duration-150 absolute pointer-events-none group-hover:opacity-100"
     >

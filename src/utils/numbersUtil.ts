@@ -1,10 +1,18 @@
 import BigNumber from "bignumber.js";
 
-export function setDecimals(value: BigNumber, decimals: number): BigNumber {
+export function setDecimals(value: BigNumber | undefined, decimals: number): BigNumber | undefined {
+  if (!decimals || value === undefined) {
+    return value;
+  }
+
   return value.multipliedBy(Math.pow(10, decimals * -1));
 }
 
-export function toBigNumber(value: string | number | BigNumber): BigNumber {
+export function toBigNumber(value?: string | number | BigNumber): BigNumber | undefined {
+  if (value === undefined) {
+    return value;
+  }
+
   const valueType = typeof value;
   if (valueType === "string" || valueType === "number") {
     return new BigNumber(value);
