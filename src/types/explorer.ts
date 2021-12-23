@@ -73,7 +73,7 @@ export type ExplorerV0TransactionsPerAddressResponse = {
 };
 
 type ExplorerBalanceItem = {
-  nanoErgs: number;
+  nanoErgs: number | BigNumber;
   tokens: [
     {
       tokenId: string;
