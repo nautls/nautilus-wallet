@@ -1,11 +1,12 @@
-import { AddressState, AddressType, WalletType } from "@/types";
+import { ExplorerV1AddressBalanceResponse } from "@/types/explorer";
+import { AddressState, AddressType, WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
 export type StateAddress = {
   address: string;
   state: AddressState;
   index: number;
-  balance: any;
+  balance?: ExplorerV1AddressBalanceResponse;
 };
 
 export type StateWallet = {

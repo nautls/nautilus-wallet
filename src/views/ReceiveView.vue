@@ -54,7 +54,9 @@
                     <click-to-copy :content="address.address" class="px-2" size="12" />
                   </td>
                   <td class="text-right tracking-wider">
-                    <span v-if="address.balance">{{ address.balance.nanoErgs / 1000000000 }}</span>
+                    <span v-if="address.balance">{{
+                      address.balance.confirmed.nanoErgs / 1000000000
+                    }}</span>
                     <span v-else>0</span>
                     ERG
                   </td>

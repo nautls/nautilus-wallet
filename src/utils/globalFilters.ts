@@ -1,4 +1,4 @@
-import { WalletType } from "@/types";
+import { WalletType } from "@/types/internal";
 
 export const filters = {
   compactString(

@@ -5,7 +5,7 @@ import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import { groupBy, sortBy, find, findIndex, last, take, first, maxBy } from "lodash";
-import { Network, WalletType, AddressState, AddressType } from "@/types";
+import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
@@ -14,6 +14,7 @@ import { ERG_TOKEN_ID, ERG_DECIMALS, CHUNK_DERIVE_LENGTH } from "@/constants/erg
 import { IDbWallet } from "@/db/dbTypes";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
+import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
 
 export default createStore({
   state: {
@@ -42,8 +43,8 @@ export default createStore({
       const balance: StateAsset[] = [];
       const tokenGroups = groupBy(
         state.currentAddresses
-          .filter(a => a.balance && a.balance.tokens)
-          .map(a => a.balance.tokens as StateAsset)
+          .filter(a => a.balance && a.balance.confirmed.tokens)
+          .map(a => a.balance?.confirmed.tokens || [])
           .flat(),
         t => t.tokenId
       );
@@ -96,13 +97,16 @@ export default createStore({
 
       state.currentAddresses = content.addresses;
     },
-    [MUTATIONS.UPDATE_BALANCES](state, balances: { address: string; data: any }[]) {
+    [MUTATIONS.UPDATE_BALANCES](
+      state,
+      balances: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]
+    ) {
       let walletNanoErgs = new BigNumber(0);
       for (const address of state.currentAddresses) {
         const balance = find(balances, b => b.address === address.address);
         if (balance) {
           address.balance = balance.data;
-          walletNanoErgs = walletNanoErgs.plus(address.balance.nanoErgs);
+          walletNanoErgs = walletNanoErgs.plus(address.balance.confirmed.nanoErgs);
         } else {
           address.balance = undefined;
         }
@@ -263,7 +267,7 @@ export default createStore({
             index: d.index,
             address: d.address,
             state: AddressState.Unused,
-            balance: 0
+            balance: undefined
           }))
         );
         if (usedChunk.length > 0) {

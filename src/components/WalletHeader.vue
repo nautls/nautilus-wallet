@@ -10,7 +10,7 @@
           />
         </template>
         <template v-slot:items>
-          <div class="group">
+          <div class="group" v-if="unselectedWallets.length > 0">
             <a
               v-for="unselected in unselectedWallets"
               @click="setCurrentWallet(unselected)"

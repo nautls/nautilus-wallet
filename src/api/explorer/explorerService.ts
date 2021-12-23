@@ -1,4 +1,9 @@
 import { API_URL } from "@/constants/explorer";
+import {
+  AddressAPIResponse,
+  ExplorerV0TransactionsPerAddressResponse,
+  ExplorerV1AddressBalanceResponse
+} from "@/types/explorer";
 import axios from "axios";
 import { chunk, find } from "lodash";
 
@@ -10,7 +15,7 @@ class ExplorerService {
       limit?: number;
       concise?: boolean;
     }
-  ) {
+  ): Promise<AddressAPIResponse<ExplorerV0TransactionsPerAddressResponse>> {
     const response = await axios.get(`${API_URL}/api/v0/addresses/${address}/transactions`, {
       params
     });
@@ -18,13 +23,17 @@ class ExplorerService {
     return { address, data: response.data };
   }
 
-  public async getAddressBalance(address: string) {
-    const response = await axios.get(`${API_URL}/api/v1/addresses/${address}/balance/confirmed`);
+  public async getAddressBalance(
+    address: string
+  ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>> {
+    const response = await axios.get(`${API_URL}/api/v1/addresses/${address}/balance/total`);
 
     return { address, data: response.data };
   }
 
-  public async getAddressesBalance(addresses: string[]) {
+  public async getAddressesBalance(
+    addresses: string[]
+  ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
     return await Promise.all(addresses.map(a => this.getAddressBalance(a)));
   }
 

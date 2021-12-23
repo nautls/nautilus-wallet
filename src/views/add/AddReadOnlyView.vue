@@ -34,7 +34,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import { WalletType } from "@/types";
+import { WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
 import PageTitle from "@/components/PageTitle.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
