@@ -45,17 +45,16 @@
                     </span>
                   </td>
                   <td class="text-right tracking-tighter font-mono">
-                    <p
-                      class="animate-pulse"
-                      v-if="asset.unconfirmedAmount && !asset.unconfirmedAmount.isZero()"
-                      :class="
-                        asset.unconfirmedAmount.isPositive() ? 'text-green-700' : 'text-red-700'
-                      "
-                    >
-                      {{ asset.unconfirmedAmount.isPositive() ? "+" : "-"
-                      }}{{ asset.unconfirmedAmount.toFormat() }}
+                    <p>
+                      <tool-tip
+                        label="Pending transaction"
+                        class="align-middle"
+                        v-if="asset.unconfirmedAmount && !asset.unconfirmedAmount.isZero()"
+                      >
+                        <loading-indicator class="w-4 h-4" />
+                      </tool-tip>
+                      {{ asset.confirmedAmount.toFormat() }}
                     </p>
-                    <p>{{ asset.confirmedAmount.toFormat() }}</p>
                     <tool-tip
                       :label="`${asset.name} ≈ ${asset.price} USD`"
                       v-if="asset.price && !asset.confirmedAmount.isZero()"
