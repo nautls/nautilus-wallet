@@ -23,7 +23,7 @@
               <tbody>
                 <tr v-if="loading">
                   <td class="w-14">
-                    <img src="@/assets/images/default.svg" class="h-8 w-8 animate-pulse" />
+                    <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
                   </td>
                   <td>
                     <div class="skeleton h-3 w-2/3 rounded"></div>
