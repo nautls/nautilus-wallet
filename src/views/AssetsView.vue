@@ -80,7 +80,6 @@ import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/store/stateTypes";
-import { first } from "lodash";
 
 export default defineComponent({
   name: "AssetsView",
