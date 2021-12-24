@@ -13,9 +13,9 @@ class AddressesDbService {
 
   public async put(address: IDbAddress): Promise<number> {
     const dbAddress = await this.getFromScript(address.script);
-    if (!address.id) {
-      address.id = dbAddress?.id;
-    }
+    // if (!address.id) {
+    //   address.id = dbAddress?.id;
+    // }
 
     return dbContext.addresses.put(address);
   }
@@ -29,9 +29,9 @@ class AddressesDbService {
 
       if (this.isNewOrModified(address, dbAddress)) {
         address.walletId = walletId;
-        if (!address.id) {
-          address.id = dbAddress?.id;
-        }
+        // if (!address.id) {
+        //   address.id = dbAddress?.id;
+        // }
 
         putAddresses.push(address);
       }

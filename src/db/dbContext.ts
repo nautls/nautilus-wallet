@@ -9,9 +9,9 @@ class NautilusDb extends Dexie {
   constructor() {
     super("nautilusDb");
     this.version(1).stores({
-      wallets: "++id, network, *publicKey",
-      addresses: "++id, type, *script, walletId",
-      assets: "++id, tokenId, addressId"
+      wallets: "++id, network, &publicKey",
+      addresses: "&script, type, walletId",
+      assets: "tokenId, addressId"
     });
   }
 }

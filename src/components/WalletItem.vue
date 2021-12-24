@@ -1,19 +1,18 @@
 <template>
   <div class="flex flex-row w-full gap-2 items-center">
     <canvas
-      class="rounded h-11 w-11 ring-1 ring-gray-400 ring-offset-1 inline-block"
+      class="rounded w-11 h-11 max-h-max max-w-max min-h-min min-w-min ring-1 ring-gray-400 ring-offset-1 inline-block"
       :id="`wlt-checksum-${wallet.id}`"
     ></canvas>
-    <div class="flex-grow flex">
-      <div class="flex flex-col gap-1 h-auto text-left whitespace-nowrap">
-        <div class="font-semibold text-base h-1/2">{{ wallet.name }}</div>
-        <div class="h-1/2 text-xs">
-          <span class="align-middle font-mono">{{ checksum }}</span>
-          <small class="rounded bg-gray-300 mx-2 py-1 px-2 text-dark-200 uppercase">{{
-            $filters.walletType(wallet.type)
-          }}</small>
-          <loading-indicator v-if="loading" class="w-4 h-4" />
-        </div>
+
+    <div class="flex flex-col gap-1 gap h-auto text-left whitespace-nowrap w-full">
+      <div class="font-semibold text-base h-1/2 truncate">{{ wallet.name }}</div>
+      <div class="h-1/2 text-xs">
+        <span class="align-middle font-mono">{{ checksum }}</span>
+        <small class="rounded bg-gray-300 mx-2 py-1 px-2 text-dark-200 uppercase">{{
+          $filters.walletType(wallet.type)
+        }}</small>
+        <loading-indicator v-if="loading" class="w-4 h-4" />
       </div>
     </div>
   </div>

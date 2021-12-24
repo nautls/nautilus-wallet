@@ -11,7 +11,6 @@ export type IDbWallet = {
 };
 
 export type IDbAddress = {
-  id?: number;
   type: AddressType;
   state: AddressState;
   script: string;
@@ -20,7 +19,6 @@ export type IDbAddress = {
 };
 
 export type IDbAsset = {
-  id?: number;
   type: AssetType;
   tokenId: string;
   amount: string;
