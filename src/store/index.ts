@@ -62,7 +62,8 @@ export default createStore({
           confirmedAmount: group.map(a => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
           unconfirmedAmount: group
             .map(a => a.unconfirmedAmount)
-            .reduce((acc, val) => acc?.plus(val || 0))
+            .reduce((acc, val) => acc?.plus(val || 0)),
+          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice : undefined
         };
 
         balance.push(token);
@@ -130,8 +131,7 @@ export default createStore({
             unconfirmedAmount: setDecimals(
               toBigNumber(balance.data.unconfirmed.nanoErgs),
               ERG_DECIMALS
-            ),
-            price: state.ergPrice
+            )
           });
 
           address.balance = newBalance;
