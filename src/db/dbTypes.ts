@@ -19,10 +19,11 @@ export type IDbAddress = {
 };
 
 export type IDbAsset = {
-  type: AssetType;
   tokenId: string;
-  amount: string;
-  decimals: number;
   name: string;
+  type: AssetType;
+  confirmedAmount: string;
+  unconfirmedAmount: string;
+  decimals: number;
   address: string;
 };

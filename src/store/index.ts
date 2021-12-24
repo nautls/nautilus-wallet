@@ -1,4 +1,4 @@
-import { walletsDbService } from "@/api/database/walletDbService";
+import { walletsDbService } from "@/api/database/walletsDbService";
 import { createStore } from "vuex";
 import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
@@ -330,7 +330,6 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId: walletId });
 
       if (lastUsed !== null) {
-        commit(MUTATIONS.SET_LOADING, { balance: true });
         dispatch(
           ACTIONS.REFRESH_BALANCES,
           active.filter(a => a.state === AddressState.Used).map(a => a.script)
@@ -340,6 +339,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
     async [ACTIONS.REFRESH_BALANCES]({ state, commit }, addresses: string[] | undefined) {
+      commit(MUTATIONS.SET_LOADING, { balance: true });
       const balance = await explorerService.getAddressesBalance(
         addresses ? addresses : state.currentAddresses.map(a => a.script)
       );
