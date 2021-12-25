@@ -12,8 +12,22 @@
     <router-link to="/receive" active-class="active" class="w-full tab-item">
       <vue-feather type="download" size="22px" />
     </router-link>
-    <router-link to="/send" active-class="active" class="w-full tab-item">
+    <router-link to="/send" v-if="!readonly" active-class="active" class="w-full tab-item">
       <vue-feather type="send" size="22px" />
     </router-link>
   </nav>
 </template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+import { WalletType } from "@/types/internal";
+
+export default defineComponent({
+  name: "NavHeader",
+  computed: {
+    readonly(): boolean {
+      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    }
+  }
+});
+</script>
