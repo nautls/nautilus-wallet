@@ -29,6 +29,8 @@
                     <div class="skeleton h-3 w-2/3 rounded"></div>
                   </td>
                   <td class="text-right w-50">
+                    <div class="skeleton h-3 w-2/5 rounded"></div>
+                    <br />
                     <div class="skeleton h-3 w-1/3 rounded"></div>
                   </td>
                 </tr>
