@@ -1,5 +1,5 @@
 <template>
-  <tool-tip :label="copied ? 'Copied!' : 'Copy'">
+  <tool-tip :label="copied ? 'Copied!' : 'Copy'" :type="type">
     <a @click="copy()" class="cursor-pointer">
       <vue-feather type="copy" :size="size" />
     </a>
@@ -16,7 +16,10 @@ export default defineComponent({
     content: { type: String, required: true }
   },
   data: () => {
-    return { copied: false };
+    return {
+      copied: false,
+      type: "default"
+    };
   },
   methods: {
     copy() {
@@ -24,9 +27,15 @@ export default defineComponent({
       this.setCopied();
       setTimeout(() => {
         this.setCopied(false);
-      }, 1000 * 5);
+      }, 1000 * 2);
     },
     setCopied(value = true) {
+      if (value) {
+        this.type = "success";
+      } else {
+        this.type = "default";
+      }
+
       this.copied = value;
     }
   }

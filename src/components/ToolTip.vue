@@ -2,19 +2,11 @@
   <span class="inline-flex group justify-center relative">
     <slot />
     <span
-      class="rounded font-sans tracking-normal bg-dark-400 bottom-full shadow-lg text-center text-xs mb-2 w-auto opacity-0 py-2 px-3 transition-all ease-linear text-light-200 z-10 duration-150 absolute pointer-events-none group-hover:opacity-100"
+      class="rounded font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-100"
+      :class="customClass"
     >
       <slot name="label" v-if="$slots.label" />
       <span class="whitespace-nowrap" v-else>{{ label }}</span>
-      <svg
-        class="top-full h-2 w-full left-0 text-dark-400 absolute"
-        x="0px"
-        y="0px"
-        viewBox="0 0 255 255"
-        xml:space="preserve"
-      >
-        <polygon class="fill-current" points="0,0 127.5,127.5 255,0" />
-      </svg>
     </span>
   </span>
 </template>
@@ -24,9 +16,26 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "ToolTip",
+  computed: {
+    customClass(): string[] {
+      const cl = [this.position === "top" ? "bottom-full" : "top-full"];
+      switch (this.type) {
+        case "success":
+          cl.push("bg-green-600 text-light-100");
+          break;
+        case "default":
+        default:
+          cl.push("bg-dark-400 text-light-700");
+          break;
+      }
+
+      return cl;
+    }
+  },
   props: {
     label: { type: String, required: false },
-    color: { type: String, required: false }
+    position: { type: String, default: "top" },
+    type: { type: String, default: "default" }
   }
 });
 </script>

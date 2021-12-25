@@ -1,19 +1,29 @@
 <template>
   <nav class="tabs">
     <router-link to="/assets" active-class="active" class="w-full tab-item">
-      <vue-feather type="pie-chart" size="22px" />
+      <tool-tip position="bottom" label="Assets">
+        <vue-feather type="pie-chart" class="m-3" size="24" />
+      </tool-tip>
     </router-link>
     <router-link to="/" active-class="active" class="w-full tab-item">
-      <vue-feather type="image" size="22px" />
+      <tool-tip position="bottom" label="NFT">
+        <vue-feather type="image" class="m-3" size="24" />
+      </tool-tip>
     </router-link>
     <router-link to="/transactions" active-class="active" class="w-full tab-item">
-      <vue-feather type="clock" size="22px" />
+      <tool-tip position="bottom" label="Transactions">
+        <vue-feather type="clock" class="m-3" size="24" />
+      </tool-tip>
     </router-link>
     <router-link to="/receive" active-class="active" class="w-full tab-item">
-      <vue-feather type="download" size="22px" />
+      <tool-tip position="bottom" label="Receive">
+        <vue-feather type="download" class="m-3" size="24" />
+      </tool-tip>
     </router-link>
     <router-link to="/send" v-if="!readonly" active-class="active" class="w-full tab-item">
-      <vue-feather type="send" size="22px" />
+      <tool-tip position="bottom" label="Send">
+        <vue-feather type="send" class="m-3" size="24" />
+      </tool-tip>
     </router-link>
   </nav>
 </template>

@@ -40,11 +40,11 @@ label {
 }
 
 .tabs {
-  @apply flex flex-row mx-10 text-sm text-gray-500 justify-center;
+  @apply flex flex-row mx-10 my-1 text-sm text-gray-500 justify-center;
 }
 
 .tabs .tab-item {
-  @apply outline-none text-center py-4 block default-transition max-w-20
+  @apply outline-none text-center block default-transition max-w-20
     hover:text-light-blue-700 focus:outline-none active:outline-none;
 }
 
