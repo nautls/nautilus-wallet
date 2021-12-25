@@ -38,7 +38,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="loading">
+                <tr v-if="loading" v-for="i in prevCount" :key="i">
                   <td>
                     <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
                   </td>
@@ -90,6 +90,12 @@ export default defineComponent({
     }
   },
   watch: {
+    ["addresses.length"](newLen, oldLen) {
+      const length = oldLen || 1;
+      if (length > 1) {
+        this.prevCount = length;
+      }
+    },
     lastAddress: {
       immediate: true,
       handler() {
@@ -106,6 +112,11 @@ export default defineComponent({
         });
       }
     }
+  },
+  data() {
+    return {
+      prevCount: 1
+    };
   },
   methods: {
     ergBalanceFor(address: StateAddress): BigNumber {
