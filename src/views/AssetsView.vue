@@ -44,7 +44,7 @@
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
                   </td>
-                  <td class="text-right tracking-tighter font-mono">
+                  <td class="text-right tracking-wider">
                     <p>
                       <tool-tip
                         label="Pending transaction"

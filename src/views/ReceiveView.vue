@@ -53,7 +53,7 @@
                     }}</a>
                     <click-to-copy :content="address.script" class="px-2" size="12" />
                   </td>
-                  <td class="text-right tracking-tighter font-mono">
+                  <td class="text-right tracking-wider">
                     <span>{{ ergBalanceFor(address) }}</span>
                     ERG
                   </td>
