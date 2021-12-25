@@ -21,7 +21,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="loading">
+                <tr v-if="loading" v-for="i in prevCount" :key="i">
                   <td class="w-14">
                     <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
                   </td>
@@ -108,9 +108,18 @@ export default defineComponent({
       return assetList;
     }
   },
+  watch: {
+    ["assets.length"](newLen, oldLen) {
+      const length = oldLen || 1;
+      if (length > 1) {
+        this.prevCount = length;
+      }
+    }
+  },
   data() {
     return {
-      filter: ""
+      filter: "",
+      prevCount: 1
     };
   },
   methods: {
