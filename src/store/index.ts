@@ -336,7 +336,7 @@ export default createStore({
 
       const balances = await explorerService.getAddressesBalance(data.addresses);
       const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
-      assestsDbService.sync(assets);
+      assestsDbService.sync(assets, data.walletId);
 
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });

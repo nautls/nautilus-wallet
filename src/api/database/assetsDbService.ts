@@ -14,8 +14,8 @@ class assetsDbService {
     return await dbContext.assets.where({ address: address }).toArray();
   }
 
-  public async getAllFromWalletId(walletId: number): Promise<IDbAsset[]> {
-    return await dbContext.assets.where({ walletId }).toArray();
+  public async getAllFromWalletId(walletId: number): Promise<{ [key: string]: IDbAsset[] }> {
+    return (await dbContext.assets.where({ walletId }).toArray()) as any;
   }
 
   public parseAddressBalanceAPIResponse(
@@ -64,23 +64,24 @@ class assetsDbService {
     return assets;
   }
 
-  public async sync(assets: IDbAsset[]): Promise<void> {
+  public async sync(assets: IDbAsset[], walletId: number): Promise<void> {
     const groups = groupBy(assets, a => a.address);
+    const dbGroups = await this.getAllFromWalletId(walletId);
 
     for (const key in groups) {
       const group = groups[key];
-      if (group.length === 0) {
+      if (!group || group.length === 0) {
         continue;
       }
 
-      const dbAssets = await this.getAllFromAddress(key);
-      if (!dbAssets) {
+      const dbGroup = dbGroups[key];
+      if (!dbGroup || dbGroup.length === 0) {
         await dbContext.assets.bulkPut(group);
-        return;
+        continue;
       }
 
-      const remove = differenceBy(dbAssets, group, a => a.tokenId).map(a => a.tokenId);
-      const put = this.newOrChanged(dbAssets, group);
+      const remove = differenceBy(dbGroup, group, a => a.tokenId).map(a => a.tokenId);
+      const put = this.newOrChanged(dbGroup, group);
       if (remove.length > 0) {
         await dbContext.assets.bulkDelete(remove);
       }

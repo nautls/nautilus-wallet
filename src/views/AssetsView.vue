@@ -29,9 +29,11 @@
                     <div class="skeleton h-3 w-2/3 rounded"></div>
                   </td>
                   <td class="text-right w-50">
-                    <div class="skeleton h-3 w-2/5 rounded"></div>
-                    <br />
-                    <div class="skeleton h-3 w-1/3 rounded"></div>
+                    <div class="skeleton h-3 w-3/5 rounded"></div>
+                    <template v-if="i === 1">
+                      <br />
+                      <div class="skeleton h-3 w-2/5 rounded"></div>
+                    </template>
                   </td>
                 </tr>
                 <tr v-else v-for="asset in assets" :key="asset.tokenId">
