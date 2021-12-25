@@ -21,11 +21,11 @@ export default defineComponent({
       const cl = [this.position === "top" ? "bottom-full" : "top-full"];
       switch (this.type) {
         case "success":
-          cl.push("bg-green-600 text-light-100");
+          cl.push("bg-green-600 text-light-50");
           break;
         case "default":
         default:
-          cl.push("bg-dark-400 text-light-700");
+          cl.push("bg-dark-100 text-light-600");
           break;
       }
 
