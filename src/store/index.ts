@@ -4,17 +4,17 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sortBy, find, findIndex, last, take, first, maxBy, unionBy } from "lodash";
+import { groupBy, sortBy, find, findIndex, last, take, first, maxBy, unionBy, some } from "lodash";
 import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/numbersUtil";
-import { ERG_TOKEN_ID, ERG_DECIMALS, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
-import { IDbWallet } from "@/db/dbTypes";
+import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
+import { IDbAsset, IDbWallet } from "@/db/dbTypes";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
-import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
+import { assestsDbService } from "@/api/database/assetsDbService";
 
 export default createStore({
   state: {
@@ -34,8 +34,8 @@ export default createStore({
     },
     loading: {
       price: false,
-      addresses: false,
-      balance: false
+      addresses: true,
+      balance: true
     }
   },
   getters: {
@@ -98,46 +98,34 @@ export default createStore({
 
       state.currentAddresses = content.addresses;
     },
-    [MUTATIONS.UPDATE_BALANCES](
-      state,
-      balances: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]
-    ) {
+    [MUTATIONS.UPDATE_BALANCES](state, data: { assets: IDbAsset[]; walletId: number }) {
+      if (
+        !data.assets ||
+        data.assets.length === 0 ||
+        state.currentAddresses.length === 0 ||
+        state.currentWallet.id !== data.walletId
+      ) {
+        return;
+      }
+
+      const groups = groupBy(data.assets, a => a.address);
       for (const address of state.currentAddresses) {
-        const balance = find(balances, b => b.address === address.script);
-
-        if (balance && balance.data) {
-          const confirmed = balance.data.confirmed.tokens;
-          const unconfirmed = balance.data.unconfirmed.tokens;
-          const newBalance: StateAsset[] = unionBy(confirmed, unconfirmed, t => t.tokenId).map(
-            t => {
-              return {
-                tokenId: t.tokenId,
-                name: t.name,
-                confirmedAmount: setDecimals(toBigNumber(t.amount), t.decimals) || new BigNumber(0),
-                unconfirmedAmount: setDecimals(
-                  toBigNumber(find(unconfirmed, ut => ut.tokenId === t.tokenId)?.amount),
-                  t.decimals
-                )
-              };
-            }
-          );
-
-          newBalance.push({
-            tokenId: ERG_TOKEN_ID,
-            name: "ERG",
-            confirmedAmount:
-              setDecimals(toBigNumber(balance.data.confirmed.nanoErgs), ERG_DECIMALS) ||
-              new BigNumber(0),
-            unconfirmedAmount: setDecimals(
-              toBigNumber(balance.data.unconfirmed.nanoErgs),
-              ERG_DECIMALS
-            )
-          });
-
-          address.balance = newBalance;
-        } else {
+        const group = groups[address.script];
+        if (!group || group.length === 0) {
           address.balance = undefined;
+          continue;
         }
+
+        address.balance = group.map(x => {
+          return {
+            tokenId: x.tokenId,
+            name: x.name,
+            confirmedAmount:
+              setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
+            unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
+            price: undefined
+          };
+        });
       }
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
@@ -271,7 +259,8 @@ export default createStore({
 
       if (active.length > 0) {
         if (state.currentAddresses.length === 0) {
-          commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId: walletId });
+          commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId });
+          dispatch(ACTIONS.LOAD_BALANCES, walletId);
         }
 
         used = used.concat(
@@ -330,21 +319,26 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId: walletId });
 
       if (lastUsed !== null) {
-        dispatch(
-          ACTIONS.REFRESH_BALANCES,
-          active.filter(a => a.state === AddressState.Used).map(a => a.script)
-        );
+        dispatch(ACTIONS.REFRESH_BALANCES, {
+          addresses: active.filter(a => a.state === AddressState.Used).map(a => a.script),
+          walletId
+        });
       }
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.REFRESH_BALANCES]({ state, commit }, addresses: string[] | undefined) {
+    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
+      const assets = await assestsDbService.getAllFromWalletId(walletId);
+      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
+    },
+    async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
       commit(MUTATIONS.SET_LOADING, { balance: true });
-      const balance = await explorerService.getAddressesBalance(
-        addresses ? addresses : state.currentAddresses.map(a => a.script)
-      );
 
-      commit(MUTATIONS.UPDATE_BALANCES, balance);
+      const balances = await explorerService.getAddressesBalance(data.addresses);
+      const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
+      assestsDbService.sync(assets);
+
+      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {

@@ -20,7 +20,7 @@
               <wallet-item :wallet="unselected" :key="wallet.id" />
             </a>
           </div>
-          <div class="group">
+          <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
             <router-link
               :to="{ name: 'add-wallet', params: { backButton: true } }"
               class="group-item narrow"

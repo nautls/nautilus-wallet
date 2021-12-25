@@ -23,7 +23,8 @@ export type IDbAsset = {
   name: string;
   type: AssetType;
   confirmedAmount: string;
-  unconfirmedAmount: string;
+  unconfirmedAmount?: string;
   decimals: number;
   address: string;
+  walletId: number;
 };

@@ -23,8 +23,15 @@ export enum AddressType {
 }
 
 export enum AssetType {
-  Token,
-  NFT
+  Native = "Native",
+  EIP4 = "EIP-004"
+}
+
+export enum AssetCategory {
+  PictureNFT = "0101",
+  AudioNFT = "0102",
+  VideoNFT = "0103",
+  MembershipThresholdSignToken = "0201"
 }
 
 export type Wallet = {
@@ -32,6 +39,7 @@ export type Wallet = {
   name: string;
   network: Network;
   type: WalletType;
+  category?: AssetCategory;
   publicKey: string;
   privateKey?: string;
   chainCode: string;
