@@ -3,7 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import VueFeather from "vue-feather";
-import { WasmModule } from "./wasm-module";
+import { wasmModule } from "./wasm-module";
 import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
@@ -19,7 +19,7 @@ import "@/assets/styles/fonts.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
-WasmModule.loadAsync();
+wasmModule.loadAsync();
 
 axios.defaults.transformResponse = [
   data => {

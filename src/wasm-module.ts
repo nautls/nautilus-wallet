@@ -17,4 +17,4 @@ class WasmLoader {
   }
 }
 
-export const WasmModule = new WasmLoader();
+export const wasmModule = new WasmLoader();
