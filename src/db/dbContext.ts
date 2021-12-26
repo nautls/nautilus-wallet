@@ -4,7 +4,7 @@ import { IDbAddress, IDbAsset, IDbWallet } from "./dbTypes";
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
   addresses!: Table<IDbAddress, string>;
-  assets!: Table<IDbAsset, string>;
+  assets!: Table<IDbAsset, { address: string; tokenId: string }>;
 
   constructor() {
     super("nautilusDb");

@@ -1,9 +1,10 @@
 import { IDbAsset } from "@/db/dbTypes";
 import { dbContext } from "@/db/dbContext";
-import { differenceBy, find, groupBy, unionBy } from "lodash";
+import { differenceBy, find, groupBy, isEmpty, unionBy } from "lodash";
 import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
 import { AssetType } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { isZero } from "@/utils/numbersUtil";
 
 class assetsDbService {
   public async getFromTokenId(tokenId: string): Promise<IDbAsset | undefined> {
@@ -14,8 +15,8 @@ class assetsDbService {
     return await dbContext.assets.where({ address: address }).toArray();
   }
 
-  public async getAllFromWalletId(walletId: number): Promise<{ [key: string]: IDbAsset[] }> {
-    return (await dbContext.assets.where({ walletId }).toArray()) as any;
+  public async getAllFromWalletId(walletId: number): Promise<IDbAsset[]> {
+    return await dbContext.assets.where({ walletId }).toArray();
   }
 
   public parseAddressBalanceAPIResponse(
@@ -24,7 +25,7 @@ class assetsDbService {
   ): IDbAsset[] {
     let assets: IDbAsset[] = [];
 
-    for (const balance of apiResponse) {
+    for (const balance of apiResponse.filter(r => !this.isEmptyBalance(r.data))) {
       if (!balance.data) {
         continue;
       }
@@ -64,9 +65,18 @@ class assetsDbService {
     return assets;
   }
 
+  public isEmptyBalance(balance: ExplorerV1AddressBalanceResponse): boolean {
+    return (
+      isZero(balance.confirmed.nanoErgs) &&
+      isZero(balance.unconfirmed.nanoErgs) &&
+      isEmpty(balance.confirmed.tokens) &&
+      isEmpty(balance.unconfirmed.tokens)
+    );
+  }
+
   public async sync(assets: IDbAsset[], walletId: number): Promise<void> {
     const groups = groupBy(assets, a => a.address);
-    const dbGroups = await this.getAllFromWalletId(walletId);
+    const dbGroups = groupBy(await this.getAllFromWalletId(walletId), a => a.address);
 
     for (const key in groups) {
       const group = groups[key];
@@ -80,7 +90,9 @@ class assetsDbService {
         continue;
       }
 
-      const remove = differenceBy(dbGroup, group, a => a.tokenId).map(a => a.tokenId);
+      const remove = differenceBy(dbGroup, group, a => a.tokenId).map(a => {
+        return { address: a.address, tokenId: a.tokenId };
+      });
       const put = this.newOrChanged(dbGroup, group);
       if (remove.length > 0) {
         await dbContext.assets.bulkDelete(remove);

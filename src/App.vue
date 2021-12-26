@@ -48,6 +48,7 @@ export default defineComponent({
   },
   deactivated() {
     clearInterval(this.getPriceTimerId);
+    clearInterval(this.syncTimerId);
   },
   methods: {
     ...mapActions({

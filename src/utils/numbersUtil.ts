@@ -28,3 +28,18 @@ export function sumBigNumberBy<T>(collection: T[], iteratee: (value: T) => BigNu
   }
   return acc;
 }
+
+export function isZero(value?: string | number | BigNumber): boolean {
+  if (value === undefined) {
+    return true;
+  }
+
+  const valueType = typeof value;
+  if (valueType === "number") {
+    return value === 0;
+  } else if (valueType === "string") {
+    return new BigNumber(value).isZero();
+  }
+
+  return (value as BigNumber).isZero();
+}
