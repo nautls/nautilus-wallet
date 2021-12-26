@@ -1,6 +1,6 @@
 import { IDbAddress } from "@/db/dbTypes";
 import { dbContext } from "@/db/dbContext";
-import { find } from "lodash";
+import { find, last, maxBy } from "lodash";
 
 class AddressesDbService {
   public async getFromScript(script: string): Promise<IDbAddress | undefined> {
@@ -9,6 +9,13 @@ class AddressesDbService {
 
   public async getAllFromWalletId(walletId: number): Promise<IDbAddress[]> {
     return await dbContext.addresses.where("walletId").equals(walletId).toArray();
+  }
+
+  public async getLastFromWalletId(walletId: number): Promise<IDbAddress | undefined> {
+    return maxBy(
+      await dbContext.addresses.where("walletId").equals(walletId).primaryKeys(),
+      x => x.index
+    );
   }
 
   public async put(address: IDbAddress): Promise<string> {
