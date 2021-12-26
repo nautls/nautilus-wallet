@@ -96,6 +96,15 @@ export default createStore({
         return;
       }
 
+      if (state.currentAddresses.length !== 0) {
+        for (const address of content.addresses) {
+          const stateAddr = find(state.currentAddresses, a => a.script === address.script);
+          if (stateAddr && stateAddr.balance) {
+            address.balance = stateAddr.balance;
+          }
+        }
+      }
+
       state.currentAddresses = content.addresses;
     },
     [MUTATIONS.UPDATE_BALANCES](state, data: { assets: IDbAsset[]; walletId: number }) {
@@ -332,8 +341,6 @@ export default createStore({
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
     },
     async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
-      commit(MUTATIONS.SET_LOADING, { balance: true });
-
       const balances = await explorerService.getAddressesBalance(data.addresses);
       const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
       assestsDbService.sync(assets, data.walletId);

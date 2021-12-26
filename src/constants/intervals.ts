@@ -1,0 +1,2 @@
+export const PRICE_FETCH_INTERVAL = 30 * 1000;
+export const REFRESH_BALANCE_INTERVAL = 15 * 1000;

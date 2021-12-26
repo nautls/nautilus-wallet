@@ -15,7 +15,7 @@ import { defineComponent } from "vue";
 import NavHeader from "@/components/NavHeader.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 
-import { PRICE_FETCH_INTERVAL } from "./constants/price";
+import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { mapActions } from "vuex";
 import { ACTIONS } from "./constants/store/actions";
 
@@ -27,13 +27,22 @@ function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
 export default defineComponent({
   name: "App",
   data: () => {
-    return { getPriceTimerId: Object.freeze({} as NodeJS.Timer) };
+    return {
+      getPriceTimerId: Object.freeze({} as NodeJS.Timer),
+      syncTimerId: Object.freeze({} as NodeJS.Timer)
+    };
   },
   async created() {
     this.getPriceTimerId = Object.freeze(
       runSetInterval(() => {
         this.fetchPrices();
       }, PRICE_FETCH_INTERVAL)
+    );
+    this.syncTimerId = Object.freeze(
+      setInterval(() => {
+        console.log("5235");
+        this.refresh();
+      }, REFRESH_BALANCE_INTERVAL)
     );
 
     await this.init();
@@ -44,7 +53,8 @@ export default defineComponent({
   methods: {
     ...mapActions({
       fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
-      init: ACTIONS.INIT
+      init: ACTIONS.INIT,
+      refresh: ACTIONS.REFRESH_CURRENT_ADDRESSES
     })
   },
   components: {
