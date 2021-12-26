@@ -40,7 +40,6 @@ export default defineComponent({
     );
     this.syncTimerId = Object.freeze(
       setInterval(() => {
-        console.log("5235");
         this.refresh();
       }, REFRESH_BALANCE_INTERVAL)
     );
