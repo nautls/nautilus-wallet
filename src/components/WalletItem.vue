@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-row w-full gap-2 items-center">
     <canvas
-      class="rounded w-11 h-11 max-h-max max-w-max min-h-min min-w-min ring-1 ring-gray-400 ring-offset-1 inline-block"
+      class="rounded w-11 h-11 ring-1 ring-gray-400 ring-offset-1 inline-block"
       :id="`wlt-checksum-${wallet.id}`"
     ></canvas>
 
-    <div class="flex flex-col gap-1 gap h-auto text-left whitespace-nowrap w-full">
+    <div class="flex flex-col gap-1 gap h-auto min-w-42 text-left whitespace-nowrap">
       <div class="font-semibold text-base h-1/2 truncate">{{ wallet.name }}</div>
       <div class="h-1/2 text-xs">
         <span class="align-middle font-mono">{{ checksum }}</span>

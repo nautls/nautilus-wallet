@@ -1,7 +1,7 @@
 <template>
   <div class="dropdown">
     <button @click="troggle()" class="trigger flex flex-row" :class="active ? 'active' : ''">
-      <div class="w-8/12">
+      <div class="w-10/12">
         <slot name="trigger" />
       </div>
       <vue-feather type="chevron-down" />

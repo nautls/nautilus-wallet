@@ -7,7 +7,7 @@ export default defineConfig({
   theme: {
     extend: {
       fontFamily: {
-        sans: ["FiraSans"],
+        sans: ["OpenSans"],
         mono: ["RobotoMono"]
       },
       plugins: [require("windicss/plugin/forms")]

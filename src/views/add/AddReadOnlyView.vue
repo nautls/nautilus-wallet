@@ -6,6 +6,7 @@
         >Wallet name
         <input
           :disabled="loading"
+          maxlength="50"
           type="text"
           v-model.lazy="walletName"
           class="w-full control block"
@@ -15,6 +16,7 @@
       <label class="mt-3">
         Public Key
         <textarea
+          maxlength="156"
           :disabled="loading"
           class="font-mono text-base w-full control block resize-none"
           rows="6"

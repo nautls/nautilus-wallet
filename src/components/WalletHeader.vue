@@ -30,8 +30,9 @@
         </template>
       </drop-down>
     </div>
-    <div class="w-3/12">
-      <img src="@/assets/images/logo.jpg" class="image-render-auto w-18 float-right mr-2" />
+    <div class="w-max">
+      <p class="text-center">Nautilus Wallet</p>
+      <!-- <img src="@/assets/images/logo.jpg" class="image-render-auto w-18 float-right mr-2" /> -->
     </div>
   </div>
 </template>

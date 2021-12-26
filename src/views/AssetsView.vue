@@ -48,7 +48,7 @@
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </span>
                   </td>
-                  <td class="text-right tracking-wider">
+                  <td class="text-right">
                     <p>
                       {{ asset.confirmedAmount.toFormat() }}
                     </p>

@@ -1,9 +1,9 @@
 @font-face {
-  font-family: "FiraSans";
-  src: url("../fonts/FiraSans-Regular.ttf");
+  font-family: "OpenSans";
+  src: url("../fonts/OpenSans.ttf");
 }
 
 @font-face {
   font-family: "RobotoMono";
-  src: url("../fonts/RobotoMono-VariableFont_wght.ttf");
+  src: url("../fonts/RobotoMono.ttf");
 }

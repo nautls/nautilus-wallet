@@ -65,7 +65,7 @@
                       <loading-indicator class="w-4 h-4" />
                     </tool-tip>
                   </td>
-                  <td class="text-right tracking-wider">
+                  <td class="text-right">
                     <span>{{ ergBalanceFor(address) }}</span>
                     Σ
                   </td>
