@@ -24,7 +24,12 @@
       </div>
     </div>
     <div>
-      <button class="w-full btn" :disabled="loading">Add new address</button>
+      <button class="w-full btn" @click="newAddress()" :disabled="loading || errorMsg != ''">
+        Add new address
+      </button>
+      <p class="text-xs text-red-600" v-if="errorMsg != ''">
+        {{ errorMsg }}
+      </p>
     </div>
     <div class="flex flex-col">
       <div class="-my-2 -mx-8">
@@ -48,6 +53,7 @@
                 </tr>
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono" :class="{ 'text-gray-500': isUsed(address) }">
+                    {{ address.index }}
                     <a :href="createUrlFor(address.script)" target="_blank">{{
                       $filters.compactString(address.script, 12)
                     }}</a>
@@ -83,6 +89,7 @@ import { ADDRESS_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
+import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({
   name: "ReceiveView",
@@ -123,10 +130,18 @@ export default defineComponent({
   },
   data() {
     return {
-      prevCount: 1
+      prevCount: 1,
+      errorMsg: ""
     };
   },
   methods: {
+    async newAddress() {
+      try {
+        await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
+      } catch (e: any) {
+        this.errorMsg = e.message;
+      }
+    },
     ergBalanceFor(address: StateAddress): BigNumber {
       return (
         find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount || new BigNumber(0)

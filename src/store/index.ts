@@ -4,14 +4,26 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sortBy, find, findIndex, last, take, first, maxBy, clone } from "lodash";
+import {
+  groupBy,
+  sortBy,
+  find,
+  findIndex,
+  last,
+  take,
+  first,
+  maxBy,
+  clone,
+  add,
+  findLastIndex
+} from "lodash";
 import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/numbersUtil";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
-import { IDbAsset, IDbWallet } from "@/db/dbTypes";
+import { IDbAddress, IDbAsset, IDbWallet } from "@/db/dbTypes";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
@@ -105,7 +117,14 @@ export default createStore({
         }
       }
 
-      state.currentAddresses = content.addresses;
+      state.currentAddresses = sortBy(content.addresses, a => a.index);
+    },
+    [MUTATIONS.ADD_ADDRESS](state, content: { address: StateAddress; walletId: number }) {
+      if (state.currentWallet.id != content.walletId) {
+        return;
+      }
+
+      state.currentAddresses.push(content.address);
     },
     [MUTATIONS.UPDATE_BALANCES](state, data: { assets: IDbAsset[]; walletId: number }) {
       if (
@@ -244,6 +263,41 @@ export default createStore({
       dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
       dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: wallet.id });
     },
+    async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
+      const lastUsedIndex = findLastIndex(
+        state.currentAddresses,
+        a => a.state === AddressState.Used
+      );
+
+      if (state.currentAddresses.length - lastUsedIndex > CHUNK_DERIVE_LENGTH) {
+        throw Error(
+          `You cannot generate more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
+        );
+      }
+      const walletId = state.currentWallet.id;
+      const pk = state.currentWallet.publicKey;
+      const index = (maxBy(state.currentAddresses, a => a.index)?.index || 0) + 1;
+      const bip32 = bip32Pool.get(pk);
+      const address = bip32.deriveAddress(index);
+      console.log(index);
+      await addressesDbService.put({
+        type: AddressType.P2PK,
+        state: AddressState.Unused,
+        script: address.script,
+        index: address.index,
+        walletId: walletId
+      });
+
+      commit(MUTATIONS.ADD_ADDRESS, {
+        address: {
+          script: address.script,
+          state: AddressState.Unused,
+          index: address.index,
+          balance: undefined
+        },
+        walletId
+      });
+    },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
@@ -258,13 +312,13 @@ export default createStore({
             balance: undefined
           };
         }),
-        a => a.index,
-        "desc"
+        a => a.index
       );
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
       let lastUsed: string | undefined;
+      let lastStored = last(active)?.script;
       const maxIndex = maxBy(active, a => a.index)?.index;
       let offset = maxIndex !== undefined ? maxIndex + 1 : 0;
 
@@ -286,12 +340,12 @@ export default createStore({
       do {
         derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
         offset += derived.length;
-        usedChunk = await explorerService.getUsedAddresses(derived.map(a => a.address));
+        usedChunk = await explorerService.getUsedAddresses(derived.map(a => a.script));
         used = used.concat(usedChunk);
         active = active.concat(
           derived.map(d => ({
             index: d.index,
-            script: d.address,
+            script: d.script,
             state: AddressState.Unused,
             balance: undefined
           }))
@@ -301,8 +355,12 @@ export default createStore({
         }
       } while (usedChunk.length > 0);
 
-      if (lastUsed) {
-        active = take(active, findIndex(active, a => a.script == lastUsed) + 2);
+      const lastUsedIndex = findIndex(active, a => a.script === lastUsed);
+      const lastStoredIndex = findIndex(active, a => a.script === lastStored);
+      if (lastStoredIndex > lastUsedIndex) {
+        active = take(active, lastStoredIndex + 1);
+      } else if (lastUsedIndex > -1) {
+        active = take(active, lastUsedIndex + 2);
       } else {
         active = take(active, 1);
       }
@@ -326,7 +384,15 @@ export default createStore({
         walletId
       );
 
-      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId: walletId });
+      const addr = (await addressesDbService.getAllFromWalletId(walletId)).map(a => {
+        return {
+          script: a.script,
+          state: a.state,
+          index: a.index,
+          balance: undefined
+        };
+      });
+      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
 
       if (lastUsed !== null) {
         dispatch(ACTIONS.REFRESH_BALANCES, {

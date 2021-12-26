@@ -5,7 +5,7 @@ import bs58check from "bs58check";
 
 export type DerivedAddress = {
   index: number;
-  address: string;
+  script: string;
 };
 
 export default class Bip32 {
@@ -60,15 +60,15 @@ export default class Bip32 {
     return this._extendedPk;
   }
 
-  public deriveAddress(index: number): string {
+  public deriveAddress(index: number): DerivedAddress {
     const derivedPk = this._change.derive(index).publicKey;
-    return Address.fromPk(derivedPk.toString("hex")).address;
+    return { index, script: Address.fromPk(derivedPk.toString("hex")).address };
   }
 
   public deriveAddresses(count: number, offset = 0): DerivedAddress[] {
     const addresses: DerivedAddress[] = [];
     for (let i = offset; i < count + offset; i++) {
-      addresses.push({ index: i, address: this.deriveAddress(i) });
+      addresses.push(this.deriveAddress(i));
     }
 
     return addresses;
