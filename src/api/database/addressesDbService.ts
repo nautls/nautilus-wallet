@@ -11,13 +11,6 @@ class AddressesDbService {
     return await dbContext.addresses.where("walletId").equals(walletId).toArray();
   }
 
-  public async getLastFromWalletId(walletId: number): Promise<IDbAddress | undefined> {
-    return maxBy(
-      await dbContext.addresses.where("walletId").equals(walletId).primaryKeys(),
-      x => x.index
-    );
-  }
-
   public async put(address: IDbAddress): Promise<string> {
     return dbContext.addresses.put(address);
   }
