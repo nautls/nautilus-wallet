@@ -113,6 +113,7 @@ export default defineComponent({
     lastAddress: {
       immediate: true,
       handler() {
+        this.errorMsg = "";
         this.$nextTick(() => {
           if (!this.lastAddress) {
             return;
