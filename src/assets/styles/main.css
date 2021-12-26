@@ -117,7 +117,7 @@ input:disabled {
 }
 
 .nav-btn .subtitle {
-  @apply font-normal text-xs pt-2 text-gray-500 block;
+  @apply font-normal text-xs pt-2 text-gray-500 block mx-4;
 }
 
 .dropdown {
