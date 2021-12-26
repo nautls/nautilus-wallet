@@ -38,7 +38,7 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>Address</th>
+                  <th>Address ({{ addresses.length }})</th>
                   <th class="text-right">Balance</th>
                 </tr>
               </thead>
@@ -53,7 +53,6 @@
                 </tr>
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono" :class="{ 'text-gray-500': isUsed(address) }">
-                    {{ address.index }}
                     <a :href="createUrlFor(address.script)" target="_blank">{{
                       $filters.compactString(address.script, 12)
                     }}</a>
