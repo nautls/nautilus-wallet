@@ -1,6 +1,6 @@
 <template>
   <div>
-    <page-title title="Welcome to Ergo Wallet." :back-button="backButton === 'true'" />
+    <page-title title="Welcome to Nautilus." :back-button="backButton === 'true'" />
     <p class="pt-2 pb-5">
       <button type="button" disabled class="nav-btn">
         <span class="title">Create wallet</span>
