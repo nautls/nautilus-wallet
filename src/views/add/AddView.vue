@@ -2,7 +2,7 @@
   <div>
     <page-title title="Welcome to Ergo Wallet." :back-button="backButton === 'true'" />
     <p class="pt-2 pb-5">
-      <button type="button" class="nav-btn">
+      <button type="button" disabled class="nav-btn">
         <span class="title">Create wallet</span>
         <span class="subtitle"
           >Generate a 15-word recovery phrase and create a new Ergo wallet.</span
@@ -10,7 +10,7 @@
       </button>
     </p>
     <p class="pb-5">
-      <button type="button" class="nav-btn">
+      <button type="button" disabled class="nav-btn">
         <span class="title">Restore wallet</span>
         <span class="subtitle"
           >Enter a recovery phrase to restore an already-existing Ergo wallet.</span

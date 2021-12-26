@@ -27,7 +27,7 @@
       <button class="w-full btn" @click="newAddress()" :disabled="loading || errorMsg != ''">
         New address
       </button>
-      <p class="text-xs text-red-600" v-if="errorMsg != ''">
+      <p class="text-danger" v-if="errorMsg != ''">
         {{ errorMsg }}
       </p>
     </div>

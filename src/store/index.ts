@@ -225,7 +225,6 @@ export default createStore({
     ) {
       const bip32 = Bip32.fromPublicKey(wallet.extendedPublicKey);
       bip32Pool.alloc(bip32, bip32.publicKey.toString("hex"));
-
       const walletId = await walletsDbService.put({
         name: wallet.name,
         network: Network.ErgoMainet,
@@ -271,7 +270,7 @@ export default createStore({
 
       if (state.currentAddresses.length - lastUsedIndex > CHUNK_DERIVE_LENGTH) {
         throw Error(
-          `You cannot generate more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
+          `You cannot add more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
         );
       }
       const walletId = state.currentWallet.id;

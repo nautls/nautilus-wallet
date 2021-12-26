@@ -26,7 +26,7 @@ export const filters = {
       case WalletType.Standard:
         return "Standard";
       case WalletType.ReadOnly:
-        return "Read only";
+        return "Read-only";
       case WalletType.Ledger:
         return "Ledger";
       default:

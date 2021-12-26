@@ -11,6 +11,7 @@
           v-model.lazy="walletName"
           class="w-full control block"
       /></label>
+      <p class="text-danger" v-if="errorMsg.name != ''">{{ errorMsg.name }}</p>
     </div>
     <div>
       <label class="mt-3">
@@ -18,11 +19,12 @@
         <textarea
           maxlength="156"
           :disabled="loading"
-          class="font-mono text-base w-full control block resize-none"
+          class="font-mono w-full control block resize-none"
           rows="6"
           v-model.lazy="publicKey"
         ></textarea>
       </label>
+      <p class="text-danger" v-if="errorMsg.pk != ''">{{ errorMsg.pk }}</p>
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
@@ -48,18 +50,40 @@ export default defineComponent({
     return {
       loading: false,
       walletName: "",
-      publicKey: ""
+      publicKey: "",
+      errorMsg: { name: "", pk: "" }
     };
   },
   methods: {
     ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
+      if (this.walletName === "") {
+        this.errorMsg.name = "Wallet name is a required field.";
+      } else {
+        this.errorMsg.name = "";
+      }
+      if (this.publicKey === "") {
+        this.errorMsg.pk = "Public key is a required field.";
+      } else {
+        this.errorMsg.pk = "";
+      }
+
+      if (this.errorMsg.name !== "" || this.errorMsg.pk !== "") {
+        return;
+      }
+
       this.loading = true;
-      await this.putWallet({
-        name: this.walletName,
-        extendedPublicKey: this.publicKey,
-        type: WalletType.ReadOnly
-      });
+      try {
+        await this.putWallet({
+          name: this.walletName,
+          extendedPublicKey: this.publicKey,
+          type: WalletType.ReadOnly
+        });
+      } catch (e: any) {
+        this.errorMsg.pk = "Invalid public key.";
+        this.loading = false;
+        return;
+      }
 
       this.$router.push({ name: "assets-page" });
     }

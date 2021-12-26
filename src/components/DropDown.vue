@@ -1,10 +1,12 @@
 <template>
   <div class="dropdown">
     <button @click="troggle()" class="trigger flex flex-row" :class="active ? 'active' : ''">
-      <div class="w-10/12">
+      <div class="w-max">
         <slot name="trigger" />
       </div>
-      <vue-feather type="chevron-down" />
+      <div>
+        <vue-feather type="chevron-down" class="align-middle" />
+      </div>
     </button>
 
     <div v-show="active" @click="troggle()" class="items-list" tabindex="-1">

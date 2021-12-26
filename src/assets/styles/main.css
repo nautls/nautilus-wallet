@@ -25,8 +25,12 @@ a {
   @apply bg-gray-400;
 }
 
+.text-danger {
+  @apply text-xs text-red-600;
+}
+
 label {
-  @apply font-bold;
+  @apply font-bold text-sm;
 }
 
 .default-transition {
@@ -34,7 +38,7 @@ label {
 }
 
 .control {
-  @apply rounded border-1 border-gray-400 my-1 p-2 default-transition 
+  @apply rounded border-1 border-gray-400 my-1 p-2 default-transition text-sm
   hover:border-light-blue-600 focus:outline-none focus:border-light-blue-600 focus:ring-2 
   focus:ring-light-blue-200;
 }
