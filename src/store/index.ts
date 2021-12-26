@@ -4,7 +4,7 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import { groupBy, sortBy, find, findIndex, last, take, first, maxBy, unionBy, some } from "lodash";
+import { groupBy, sortBy, find, findIndex, last, take, first, maxBy, clone } from "lodash";
 import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
@@ -249,15 +249,17 @@ export default createStore({
       const pk = state.currentWallet.publicKey;
 
       const bip32 = bip32Pool.get(pk);
-      let active: StateAddress[] = (await addressesDbService.getAllFromWalletId(walletId)).map(
-        a => {
+      let active: StateAddress[] = sortBy(
+        (await addressesDbService.getAllFromWalletId(walletId)).map(a => {
           return {
             script: a.script,
             state: a.state,
             index: a.index,
             balance: undefined
           };
-        }
+        }),
+        a => a.index,
+        "desc"
       );
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
@@ -268,7 +270,7 @@ export default createStore({
 
       if (active.length > 0) {
         if (state.currentAddresses.length === 0) {
-          commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: active, walletId });
+          commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: clone(active), walletId });
           dispatch(ACTIONS.LOAD_BALANCES, walletId);
         }
 
@@ -300,7 +302,7 @@ export default createStore({
       } while (usedChunk.length > 0);
 
       if (lastUsed) {
-        active = take(active, findIndex(active, a => a.script == lastUsed) + 1);
+        active = take(active, findIndex(active, a => a.script == lastUsed) + 2);
       } else {
         active = take(active, 1);
       }
@@ -318,8 +320,7 @@ export default createStore({
             state: a.state,
             script: a.script,
             index: a.index,
-            balance: "0",
-            walletId: 0
+            walletId: walletId
           };
         }),
         walletId

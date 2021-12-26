@@ -6,7 +6,7 @@
       :class="customClass"
     >
       <slot name="label" v-if="$slots.label" />
-      <span class="whitespace-nowrap" v-else>{{ label }}</span>
+      <span class="whitespace-nowrap" v-html="label" v-else></span>
     </span>
   </span>
 </template>

@@ -47,15 +47,22 @@
                   </td>
                 </tr>
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
-                  <td class="font-mono">
+                  <td class="font-mono" :class="{ 'text-gray-500': isUsed(address) }">
                     <a :href="createUrlFor(address.script)" target="_blank">{{
                       $filters.compactString(address.script, 12)
                     }}</a>
                     <click-to-copy :content="address.script" class="px-2" size="12" />
+                    <tool-tip
+                      v-if="hasPendingBalance(address)"
+                      label="Pending transaction<br />for this address"
+                      class="align-middle"
+                    >
+                      <loading-indicator class="w-4 h-4" />
+                    </tool-tip>
                   </td>
                   <td class="text-right tracking-wider">
                     <span>{{ ergBalanceFor(address) }}</span>
-                    ERG
+                    Σ
                   </td>
                 </tr>
               </tbody>
@@ -75,6 +82,7 @@ import { StateAddress } from "@/store/stateTypes";
 import { ADDRESS_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { AddressState } from "@/types/internal";
 
 export default defineComponent({
   name: "ReceiveView",
@@ -123,6 +131,12 @@ export default defineComponent({
       return (
         find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount || new BigNumber(0)
       );
+    },
+    isUsed(address: StateAddress): boolean {
+      return address.state === AddressState.Used;
+    },
+    hasPendingBalance(address: StateAddress): boolean {
+      return !!find(address.balance, b => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
     },
     createUrlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;

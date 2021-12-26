@@ -50,13 +50,6 @@
                   </td>
                   <td class="text-right tracking-wider">
                     <p>
-                      <tool-tip
-                        label="Pending transaction"
-                        class="align-middle"
-                        v-if="asset.unconfirmedAmount && !asset.unconfirmedAmount.isZero()"
-                      >
-                        <loading-indicator class="w-4 h-4" />
-                      </tool-tip>
                       {{ asset.confirmedAmount.toFormat() }}
                     </p>
                     <tool-tip
