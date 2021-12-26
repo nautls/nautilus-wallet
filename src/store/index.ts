@@ -329,7 +329,7 @@ export default createStore({
 
       if (lastUsed !== null) {
         dispatch(ACTIONS.REFRESH_BALANCES, {
-          addresses: active.filter(a => a.state === AddressState.Used).map(a => a.script),
+          addresses: active.map(a => a.script),
           walletId
         });
       }

@@ -27,18 +27,34 @@ class ExplorerService {
     address: string
   ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>> {
     const response = await axios.get(`${API_URL}/api/v1/addresses/${address}/balance/total`);
-
     return { address, data: response.data };
   }
 
   public async getAddressesBalance(
+    addresses: string[],
+    options = { chunkBy: 20 }
+  ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
+    if (options.chunkBy <= 0 || options.chunkBy >= addresses.length) {
+      return this.getAddressesBalanceFromChunk(addresses);
+    }
+
+    const chunks = chunk(addresses, options.chunkBy);
+    let balances: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[] = [];
+    for (const c of chunks) {
+      balances = balances.concat(await this.getAddressesBalanceFromChunk(c));
+    }
+
+    return balances;
+  }
+
+  public async getAddressesBalanceFromChunk(
     addresses: string[]
   ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
     return await Promise.all(addresses.map(a => this.getAddressBalance(a)));
   }
 
-  public async getUsedAddresses(addresses: string[], options = { chunkBy: 0 }): Promise<string[]> {
-    if (options.chunkBy <= 0 || options.chunkBy > addresses.length) {
+  public async getUsedAddresses(addresses: string[], options = { chunkBy: 20 }): Promise<string[]> {
+    if (options.chunkBy <= 0 || options.chunkBy >= addresses.length) {
       return this.getUsedAddressesFromChunk(addresses);
     }
 
