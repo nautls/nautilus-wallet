@@ -5,7 +5,7 @@
       :id="`wlt-checksum-${wallet.id}`"
     ></canvas>
 
-    <div class="flex flex-col gap-1 gap h-auto min-w-42 text-left whitespace-nowrap">
+    <div class="flex flex-col gap-1 gap h-auto w-42 text-left whitespace-nowrap">
       <div class="font-semibold text-base h-1/2 truncate">{{ wallet.name }}</div>
       <div class="h-1/2 text-xs">
         <span class="align-middle font-mono">{{ checksum }}</span>
