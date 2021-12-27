@@ -53,7 +53,7 @@
                       {{ asset.confirmedAmount.toFormat() }}
                     </p>
                     <tool-tip
-                      :label="`${asset.name} ≈ ${asset.price} USD`"
+                      :label="`1 ${asset.name} ≈ ${asset.price} USD`"
                       v-if="asset.price && !asset.confirmedAmount.isZero()"
                     >
                       <p class="text-xs text-gray-500">

@@ -9,5 +9,9 @@
   "browser_action": {
     "default_popup": "index.html",
     "default_title": "Nautilus"
+  },
+  "icons": {
+    "48": "icons/app/48x48.png",
+    "128": "icons/app/128x128.png"
   }
 }

@@ -31,8 +31,8 @@
       </drop-down>
     </div>
     <div class="w-max">
-      <p class="text-center">Nautilus Wallet</p>
-      <!-- <img src="@/assets/images/logo.jpg" class="image-render-auto w-18 float-right mr-2" /> -->
+      <img src="@/assets/images/logo.png" class="image-render-auto w-18 mb-1 float-right mr-2" />
+      <p class="text-center mr-2 select-none">Nautilus</p>
     </div>
   </div>
 </template>
