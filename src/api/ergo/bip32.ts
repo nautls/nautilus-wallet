@@ -1,7 +1,10 @@
-import { fromPublicKey, fromSeed, BIP32Interface } from "bip32";
+import BIP32Factory, { BIP32Interface } from "bip32";
+import * as ecc from "tiny-secp256k1";
 import { Address } from "@coinbarn/ergo-ts";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import bs58check from "bs58check";
+
+const bip32 = BIP32Factory(ecc);
 
 export type DerivedAddress = {
   index: number;
@@ -23,16 +26,16 @@ export default class Bip32 {
   }
 
   public static fromSeed(seed: Buffer): Bip32 {
-    return new this(fromSeed(seed));
+    return new this(bip32.fromSeed(seed));
   }
 
   public static fromPublicKey(publicKey: string | { publicKey: string; chainCode: string }): Bip32 {
     if (typeof publicKey === "string") {
       const buffer = Buffer.from(publicKey, "hex");
-      return new this(fromPublicKey(buffer.slice(45, 78), buffer.slice(13, 45)));
+      return new this(bip32.fromPublicKey(buffer.slice(45, 78), buffer.slice(13, 45)));
     } else {
       return new this(
-        fromPublicKey(
+        bip32.fromPublicKey(
           Buffer.from(publicKey.publicKey, "hex"),
           Buffer.from(publicKey.chainCode, "hex")
         )

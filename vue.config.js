@@ -8,10 +8,6 @@ module.exports = {
     writeToDisk: true
   },
   lintOnSave: false,
-  // filenameHashing: false,
-  // chainWebpack: (config) => {
-  //   config.optimization.delete("splitChunks");
-  // },
   configureWebpack: {
     devtool: "cheap-module-source-map"
   },
