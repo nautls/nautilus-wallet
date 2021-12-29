@@ -48,8 +48,8 @@ class ObjectPool<ObjectType, KeyType> {
       throw Error("object not found");
     }
 
-    if (!item) {
-      throw Error("object not alive");
+    if (!item.alive) {
+      throw Error("object is not alive");
     }
 
     return item.object;

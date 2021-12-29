@@ -1,5 +1,5 @@
-import { IDbWallet } from "@/db/dbTypes";
-import { dbContext } from "@/db/dbContext";
+import { IDbWallet } from "@/types/database";
+import { dbContext } from "@/api/database/dbContext";
 
 class WalletsDbService {
   public async getFromId(id: number): Promise<IDbWallet | undefined> {

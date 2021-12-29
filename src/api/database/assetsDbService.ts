@@ -1,10 +1,10 @@
-import { IDbAsset } from "@/db/dbTypes";
-import { dbContext } from "@/db/dbContext";
+import { IDbAsset } from "@/types/database";
+import { dbContext } from "@/api/database/dbContext";
 import { differenceBy, find, groupBy, isEmpty, unionBy } from "lodash";
 import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
 import { AssetType } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
-import { isZero } from "@/utils/numbersUtil";
+import { isZero } from "@/utils/bigNumbers";
 
 class assetsDbService {
   public async getFromTokenId(tokenId: string): Promise<IDbAsset | undefined> {

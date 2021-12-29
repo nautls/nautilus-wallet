@@ -34,31 +34,27 @@ export enum AssetCategory {
   MembershipThresholdSignToken = "0201"
 }
 
-export type Wallet = {
-  id?: number;
-  name: string;
-  network: Network;
-  type: WalletType;
-  category?: AssetCategory;
-  publicKey: string;
-  privateKey?: string;
-  chainCode: string;
-  addresses: Address[];
-};
-
-export type Address = {
-  id?: number;
-  type: AddressType;
+export type StateAddress = {
   script: string;
-  balance: BigNumber;
-  assets?: Asset[];
+  state: AddressState;
+  index: number;
+  balance?: StateAsset[];
 };
 
-export type Asset = {
-  id?: number;
-  type: AssetType;
-  tokenId: string;
-  amount: BigNumber;
-  decimals: number;
+export type StateWallet = {
+  id: number;
   name: string;
+  type: WalletType;
+  publicKey: string;
+  extendedPublicKey: string;
+  balance: BigNumber;
+  addresses?: AddressType[];
+};
+
+export type StateAsset = {
+  tokenId: string;
+  name: string;
+  confirmedAmount: BigNumber;
+  unconfirmedAmount?: BigNumber;
+  price?: number;
 };

@@ -42,7 +42,7 @@ import { defineComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import NavHeader from "@/components/NavHeader.vue";
 import WalletItem from "@/components/WalletItem.vue";
-import { StateWallet } from "@/store/stateTypes";
+import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({

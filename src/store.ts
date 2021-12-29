@@ -14,16 +14,15 @@ import {
   first,
   maxBy,
   clone,
-  add,
   findLastIndex
 } from "lodash";
 import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
-import { StateAddress, StateAsset, StateWallet } from "@/store/stateTypes";
+import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
-import { setDecimals, toBigNumber } from "@/utils/numbersUtil";
+import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IDbWallet } from "@/db/dbTypes";
+import { IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";

@@ -1,6 +1,6 @@
-import { IDbAddress } from "@/db/dbTypes";
-import { dbContext } from "@/db/dbContext";
-import { find, last, maxBy } from "lodash";
+import { IDbAddress } from "@/types/database";
+import { dbContext } from "@/api/database/dbContext";
+import { find } from "lodash";
 
 class AddressesDbService {
   public async getFromScript(script: string): Promise<IDbAddress | undefined> {

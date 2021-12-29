@@ -3,7 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import VueFeather from "vue-feather";
-import { wasmModule } from "./wasm-module";
+import { wasmModule } from "./utils/wasm-module";
 import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";

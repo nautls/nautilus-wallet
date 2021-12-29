@@ -1,5 +1,5 @@
 import Dexie, { Table } from "dexie";
-import { IDbAddress, IDbAsset, IDbWallet } from "./dbTypes";
+import { IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;

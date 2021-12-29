@@ -54,7 +54,7 @@
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono" :class="{ 'text-gray-500': isUsed(address) }">
                     <a :href="createUrlFor(address.script)" target="_blank">{{
-                      $filters.compactString(address.script, 12)
+                      $filters.compactString(address.script, 14)
                     }}</a>
                     <click-to-copy :content="address.script" class="px-2" size="12" />
                     <tool-tip
@@ -83,7 +83,7 @@
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
 import { find, last } from "lodash";
-import { StateAddress } from "@/store/stateTypes";
+import { StateAddress } from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
