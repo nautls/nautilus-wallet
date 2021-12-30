@@ -9,13 +9,13 @@
         <label class="mt-3">
           Recovery phrase
           <o-inputitems
-            v-model="tags"
-            :data="filteredTags"
+            v-model="words"
+            :data="filteredWords"
             autocomplete
             :allow-new="false"
             :open-on-focus="false"
             field="user.first_name"
-            root-class="itens-select"
+            root-class="items-select"
             item-class="tag"
             :autocompleteClasses="{
               menuClass: 'autocomplete-list',
@@ -43,10 +43,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
-import * as bip39 from "bip39";
-import { take } from "lodash";
+import { wordlists } from "bip39";
+import { orderBy, take } from "lodash";
 
-const data = bip39.wordlists.english;
+const words = wordlists.english;
 
 export default defineComponent({
   name: "RestoreFromMnemonic",
@@ -56,20 +56,28 @@ export default defineComponent({
   },
   data() {
     return {
-      filteredTags: data,
-      tags: [],
-      allowNew: true,
-      openOnFocus: true
+      filteredWords: Object.freeze(words),
+      words: []
     };
   },
   methods: {
     getFilteredTags(text: string) {
-      this.filteredTags = take(
-        data.filter(option => {
-          return option.indexOf(text.toLowerCase()) >= 0;
-        }),
-        10
+      if (text === "" || text.trim() === "") {
+        return Object.freeze(take(words, 10));
+      }
+
+      const lowerText = text.toLowerCase();
+      const filtered = orderBy(
+        take(
+          words.filter(w => {
+            return w.includes(lowerText);
+          }),
+          10
+        ),
+        w => !w.startsWith(lowerText)
       );
+
+      this.filteredWords = Object.freeze(filtered);
     }
   }
 });

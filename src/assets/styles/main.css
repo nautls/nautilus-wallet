@@ -162,18 +162,18 @@ input:disabled {
   @apply py-2;
 }
 
-.itens-select {
+.items-select {
   @apply min-h-40 h-auto cursor-text rounded border-1 border-gray-400
   default-transition text-sm outline-none hover:border-light-blue-600 my-1 p-2
   focus-within: (outline-none border-light-blue-600 ring-2 ring-light-blue-200);
 }
 
-.itens-select .o-inputit__container {
+.items-select .o-inputit__container {
   @apply border-none gap-2;
 }
 
-.itens-select .tag {
-  @apply inline-flex rounded bg-gray-300 font-normal text-dark-500 px-1 m-0;
+.items-select .tag {
+  @apply inline-flex rounded bg-gray-200 font-normal text-dark-400 px-1 m-0;
 }
 
 .autocomplete-list {
