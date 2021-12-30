@@ -27,7 +27,7 @@
             :on-paste-separators="[',', ' ']"
             :confirmKeys="[',', 'Tab', 'Enter', ' ']"
             :keep-first="true"
-            @typing="getFilteredTags"
+            @typing="filterBy"
           />
         </label>
       </div>
@@ -61,7 +61,7 @@ export default defineComponent({
     };
   },
   methods: {
-    getFilteredTags(text: string) {
+    filterBy(text: string) {
       if (text === "" || text.trim() === "") {
         return Object.freeze(take(words, 10));
       }
