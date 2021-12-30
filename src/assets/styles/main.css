@@ -39,8 +39,8 @@ label {
 
 .control {
   @apply rounded border-1 border-gray-400 my-1 p-2 default-transition text-sm
-  hover:border-light-blue-600 focus:outline-none focus:border-light-blue-600 focus:ring-2 
-  focus:ring-light-blue-200;
+  focus:(outline-none border-light-blue-600 ring-2 ring-light-blue-200)
+  hover:border-light-blue-600 outline-none;
 }
 
 .tabs {
@@ -160,4 +160,31 @@ input:disabled {
 
 .dropdown .items-list .group .group-item.narrow {
   @apply py-2;
+}
+
+.itens-select {
+  @apply min-h-40 h-auto cursor-text rounded border-1 border-gray-400
+  default-transition text-sm outline-none hover:border-light-blue-600 my-1 p-2
+  focus-within: (outline-none border-light-blue-600 ring-2 ring-light-blue-200);
+}
+
+.itens-select .o-inputit__container {
+  @apply border-none gap-2;
+}
+
+.itens-select .tag {
+  @apply inline-flex rounded bg-gray-300 font-normal text-dark-500 px-1 m-0;
+}
+
+.autocomplete-list {
+  @apply shadow-lg border border-1 border-gray-200 mt-2 rounded max-h-40 overflow-auto;
+}
+
+.autocomplete-list .item {
+  @apply p-2 px-4 font-normal block cursor-pointer underline-transparent 
+  hover:bg-gray-100 active:(outline-none bg-gray-200);
+}
+
+.autocomplete-list .item.selected {
+  @apply bg-gray-200;
 }

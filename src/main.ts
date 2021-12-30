@@ -12,10 +12,10 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
-// import { Tooltip } from "@oruga-ui/oruga-next";
-// import "@oruga-ui/oruga-next/dist/oruga.css";
+import { Inputitems } from "@oruga-ui/oruga-next";
 
 import "@/assets/styles/fonts.css";
+import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
@@ -40,6 +40,7 @@ app.config.globalProperties.$filters = filters;
 app
   .use(store)
   .use(router)
+  .use(Inputitems)
   .component("vue-feather", VueFeather)
   .component("page-title", PageTitle)
   .component("click-to-copy", ClickToCopy)

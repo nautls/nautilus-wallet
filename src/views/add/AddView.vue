@@ -10,12 +10,14 @@
       </button>
     </p>
     <p class="pb-5">
-      <button type="button" disabled class="nav-btn">
-        <span class="title">Restore wallet</span>
-        <span class="subtitle"
-          >Enter a recovery phrase to restore an already-existing Ergo wallet.</span
-        >
-      </button>
+      <router-link to="/add/mnemonic-restore" custom v-slot="{ navigate }">
+        <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+          <span class="title">Restore wallet</span>
+          <span class="subtitle"
+            >Enter a recovery phrase to restore an already-existing Ergo wallet.</span
+          >
+        </button>
+      </router-link>
     </p>
     <p class="pb-5">
       <router-link to="/add/read-only" custom v-slot="{ navigate }">

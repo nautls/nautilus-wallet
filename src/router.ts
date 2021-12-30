@@ -4,6 +4,7 @@ import AddView from "@/views/add/AddView.vue";
 import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import ReceiveView from "@/views/ReceiveView.vue";
+import RestoreFromMnemonicView from "@/views/add/RestoreFromMnemonicView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -23,6 +24,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/add/read-only",
     name: "add-read-only-wallet",
     component: AddReadOnlyView,
+    meta: { fullPage: true }
+  },
+  {
+    path: "/add/mnemonic-restore",
+    name: "mnemonic-restore-wallet",
+    component: RestoreFromMnemonicView,
     meta: { fullPage: true }
   },
   {
