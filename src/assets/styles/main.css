@@ -1,5 +1,5 @@
 body {
-  @apply bg-light-100 text-base leading-normal tracking-wide text-dark-600 antialiased;
+  @apply bg-light-50 text-base leading-normal tracking-wide text-dark-600 antialiased;
 }
 
 a {
@@ -39,21 +39,22 @@ label {
 
 .control {
   @apply rounded border-1 border-gray-400 my-1 p-2 default-transition text-sm
-  focus:(outline-none border-light-blue-600 ring-2 ring-light-blue-200)
-  hover:border-light-blue-600 outline-none;
+  focus:(outline-none border-blue-800 ring-2 ring-blue-300)
+  hover:border-blue-800 outline-none;
 }
 
 .tabs {
-  @apply flex flex-row mx-10 my-1 text-sm text-gray-500 justify-center;
+  @apply flex flex-row shadow px-10 mb-1 text-sm text-gray-500 justify-center;
 }
 
 .tabs .tab-item {
   @apply outline-none text-center block default-transition max-w-20
-    hover:text-light-blue-700 focus:outline-none active:outline-none;
+     border-b-2 border-transparent
+    hover:text-blue-800 focus:outline-none active:outline-none;
 }
 
 .tabs .tab-item.active {
-  @apply text-light-blue-700;
+  @apply text-blue-800 border-blue-800 border-b-2;
 }
 
 .table {
@@ -93,10 +94,10 @@ table thead th:last-child {
 
 .btn {
   @apply bg-transparent border border-solid rounded font-bold
-    outline-none border-light-blue-600 text-sm mr-1 mb-1 min-h-14 py-3 
-    px-4 text-light-blue-700 uppercase default-transition
-    hover:bg-light-blue-700 hover:text-white focus:outline-none
-    focus:ring-2 focus:ring-light-blue-200 active:bg-light-blue-800;
+    outline-none border-blue-600 text-sm mr-1 mb-1 py-4 
+    px-4 text-blue-800 uppercase default-transition
+    hover:(bg-blue-800 text-white) focus:(outline-none ring-2 ring-blue-300)
+    active:bg-blue-900;
 }
 
 button:disabled,
@@ -125,7 +126,7 @@ input:disabled {
 }
 
 .dropdown .trigger {
-  @apply bg-transparent border border-transparent rounded outline-none w-full py-4 px-2
+  @apply bg-transparent border border-transparent rounded outline-none w-full py-2 px-4
   text-gray-700 gap-2 default-transition items-center inline-flex justify-between
   hover:bg-gray-100 hover:border-gray-300 focus:outline-none active:outline-none 
   active:bg-gray-200;
@@ -150,12 +151,8 @@ input:disabled {
 }
 
 .dropdown .items-list .group .group-item {
-  @apply p-4 block cursor-pointer underline-transparent hover:bg-gray-100
+  @apply py-2 px-4 block cursor-pointer underline-transparent hover:bg-gray-100
   active:(outline-none bg-gray-200);
-}
-
-.dropdown .items-list .group .group-item div {
-  @apply w-11/12;
 }
 
 .dropdown .items-list .group .group-item.narrow {
@@ -164,8 +161,8 @@ input:disabled {
 
 .items-select {
   @apply min-h-40 h-auto cursor-text rounded border-1 border-gray-400
-  default-transition text-sm outline-none hover:border-light-blue-600 my-1 p-2
-  focus-within: (outline-none border-light-blue-600 ring-2 ring-light-blue-200);
+  default-transition text-sm outline-none hover:border-blue-600 my-1 p-2
+  focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
 }
 
 .items-select .o-inputit__container {

@@ -11,7 +11,8 @@
     "default_title": "Nautilus"
   },
   "icons": {
-    "48": "icons/app/48x48.png",
-    "128": "icons/app/128x128.png"
+    "48": "icons/app/48.png",
+    "128": "icons/app/128.png",
+    "512": "icons/app/512.png"
   }
 }
