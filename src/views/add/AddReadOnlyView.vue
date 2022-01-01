@@ -12,7 +12,7 @@
           v-model.lazy="walletName"
           class="w-full control block"
       /></label>
-      <p class="text-danger" v-if="v$.walletName.$error">Wallet name is a required.</p>
+      <p class="text-danger" v-if="v$.walletName.$error">{{ v$.walletName.$errors[0].$message }}</p>
     </div>
     <div>
       <label class="mt-3">
@@ -26,7 +26,9 @@
           v-model.lazy="publicKey"
         ></textarea>
       </label>
-      <p class="text-danger" v-if="v$.publicKey.$error">Public key is a required.</p>
+      <p class="text-danger" v-if="v$.publicKey.$error">
+        {{ v$.publicKey.$errors[0].$message }}
+      </p>
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
@@ -45,7 +47,7 @@ import { ACTIONS } from "@/constants/store/actions";
 import PageTitle from "@/components/PageTitle.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
-import { required } from "@vuelidate/validators";
+import { required, helpers } from "@vuelidate/validators";
 
 export default defineComponent({
   name: "AddReadOnlyView",
@@ -57,14 +59,13 @@ export default defineComponent({
     return {
       loading: false,
       walletName: "",
-      publicKey: "",
-      errorMsg: { name: "", pk: "" }
+      publicKey: ""
     };
   },
   validations() {
     return {
-      walletName: { required },
-      publicKey: { required }
+      walletName: { required: helpers.withMessage("Wallet name is required.", required) },
+      publicKey: { required: helpers.withMessage("Public key is required.", required) }
     };
   },
   methods: {
@@ -83,7 +84,7 @@ export default defineComponent({
           type: WalletType.ReadOnly
         });
       } catch (e: any) {
-        this.errorMsg.pk = "Invalid public key.";
+        // this.errorMsg.pk = "Invalid public key.";
         this.loading = false;
         return;
       }
