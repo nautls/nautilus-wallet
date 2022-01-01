@@ -151,7 +151,7 @@ input:disabled {
 }
 
 .dropdown .items-list .group .group-item {
-  @apply py-2 px-4 block cursor-pointer underline-transparent hover:bg-gray-100
+  @apply py-4 px-4 block cursor-pointer underline-transparent hover:bg-gray-100
   active:(outline-none bg-gray-200);
 }
 
