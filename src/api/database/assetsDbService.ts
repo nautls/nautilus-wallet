@@ -1,6 +1,6 @@
 import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
-import { differenceBy, find, first, groupBy, isEmpty, keys, union, unionBy } from "lodash";
+import { differenceBy, find, groupBy, isEmpty, keys, union, unionBy } from "lodash";
 import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
 import { AssetType } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
