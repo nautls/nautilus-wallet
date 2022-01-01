@@ -8,15 +8,17 @@
           :disabled="loading"
           maxlength="50"
           type="text"
+          @blur="v$.walletName.$touch()"
           v-model.lazy="walletName"
           class="w-full control block"
       /></label>
-      <p class="text-danger" v-if="errorMsg.name != ''">{{ errorMsg.name }}</p>
+      <p class="text-danger" v-if="v$.walletName.$error">Wallet name is a required.</p>
     </div>
     <div>
       <label class="mt-3">
         Public Key
         <textarea
+          @blur="v$.publicKey.$touch()"
           maxlength="156"
           :disabled="loading"
           class="font-mono w-full control block resize-none"
@@ -24,7 +26,7 @@
           v-model.lazy="publicKey"
         ></textarea>
       </label>
-      <p class="text-danger" v-if="errorMsg.pk != ''">{{ errorMsg.pk }}</p>
+      <p class="text-danger" v-if="v$.publicKey.$error">Public key is a required.</p>
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
@@ -42,10 +44,15 @@ import { WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
 import PageTitle from "@/components/PageTitle.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
+import useVuelidate from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
 
 export default defineComponent({
   name: "AddReadOnlyView",
   components: { PageTitle, LoadingIndicator },
+  setup() {
+    return { v$: useVuelidate() };
+  },
   data() {
     return {
       loading: false,
@@ -54,21 +61,17 @@ export default defineComponent({
       errorMsg: { name: "", pk: "" }
     };
   },
+  validations() {
+    return {
+      walletName: { required },
+      publicKey: { required }
+    };
+  },
   methods: {
     ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
-      if (this.walletName === "") {
-        this.errorMsg.name = "Wallet name is a required field.";
-      } else {
-        this.errorMsg.name = "";
-      }
-      if (this.publicKey === "") {
-        this.errorMsg.pk = "Public key is a required field.";
-      } else {
-        this.errorMsg.pk = "";
-      }
-
-      if (this.errorMsg.name !== "" || this.errorMsg.pk !== "") {
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
         return;
       }
 
