@@ -10,7 +10,7 @@
       </button>
     </p>
     <p class="pb-5">
-      <router-link to="/add/mnemonic-restore" custom v-slot="{ navigate }">
+      <router-link to="/add/restore" custom v-slot="{ navigate }">
         <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
           <span class="title">Restore wallet</span>
           <span class="subtitle"

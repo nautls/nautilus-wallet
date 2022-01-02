@@ -50,7 +50,7 @@
                   </td>
                   <td class="text-right">
                     <p>
-                      {{ asset.confirmedAmount.toFormat() }}
+                      {{ $filters.formatBigNumber(asset.confirmedAmount) }}
                     </p>
                     <tool-tip
                       :label="`1 ${asset.name} ≈ ${asset.price} USD`"

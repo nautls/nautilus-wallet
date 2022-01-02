@@ -49,7 +49,7 @@ import { orderBy, take } from "lodash";
 const words = wordlists.english;
 
 export default defineComponent({
-  name: "RestoreFromMnemonic",
+  name: "RestoreView",
   components: { PageTitle },
   props: {
     backButton: { type: String, default: "false" }

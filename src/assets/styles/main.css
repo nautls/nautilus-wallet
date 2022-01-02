@@ -89,12 +89,12 @@ table thead th:last-child {
 
 .back-btn {
   @apply bg-transparent cursor-pointer default-transition
-  hover:text-light-blue-700 focus:outline-none active:text-light-blue-800;
+  hover:text-blue-700 focus:outline-none active:text-blue-800;
 }
 
 .btn {
   @apply bg-transparent border border-solid rounded font-bold
-    outline-none border-blue-600 text-sm mr-1 mb-1 py-4 
+    outline-none border-blue-800 text-sm mr-1 mb-1 py-4 
     px-4 text-blue-800 uppercase default-transition
     hover:(bg-blue-800 text-white) focus:(outline-none ring-2 ring-blue-300)
     active:bg-blue-900;
@@ -108,9 +108,9 @@ input:disabled {
 
 .nav-btn {
   @apply bg-transparent border border-solid rounded 
-    font-bold  outline-none border-light-blue-600 text-sm mr-1 mb-1 
-    w-full py-6 px-4 text-light-blue-700 default-transition
-    hover:bg-light-blue-50 focus:outline-none active:bg-light-blue-100;
+    font-bold  outline-none border-blue-800 text-sm mr-1 mb-1 
+    w-full py-6 px-4 text-blue-800 default-transition
+    hover:bg-blue-50 focus:outline-none active:bg-blue-100;
 }
 
 .nav-btn .title {
@@ -133,7 +133,7 @@ input:disabled {
 }
 
 .dropdown .trigger.active {
-  @apply rounded-b-none border-gray-300 bg-white hover:bg-gray-100;
+  @apply border-gray-300 border-b-transparent rounded-b-none  bg-white hover:bg-gray-100;
 }
 
 .dropdown .items-list {
@@ -151,7 +151,7 @@ input:disabled {
 }
 
 .dropdown .items-list .group .group-item {
-  @apply py-4 px-4 block cursor-pointer underline-transparent hover:bg-gray-100
+  @apply py-3 px-4 block cursor-pointer underline-transparent hover:bg-gray-100
   active:(outline-none bg-gray-200);
 }
 
@@ -174,11 +174,11 @@ input:disabled {
 }
 
 .autocomplete-list {
-  @apply shadow-lg border border-1 border-gray-200 mt-2 rounded max-h-40 overflow-auto;
+  @apply shadow-lg block border border-1 border-gray-200 mt-2 rounded max-h-40 overflow-auto;
 }
 
 .autocomplete-list .item {
-  @apply p-2 px-4 font-normal block cursor-pointer underline-transparent 
+  @apply p-2 px-4 font-normal block cursor-pointer underline-transparent
   hover:bg-gray-100 active:(outline-none bg-gray-200);
 }
 

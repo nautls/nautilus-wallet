@@ -2,8 +2,8 @@
   <div class="flex flex-col gap-5">
     <div class="flex flex-row gap-5">
       <div class="flex-grow">
-        <label>Your address</label>
-        <div class="rounded font-mono bg-gray-200 text-sm p-2 text-dark-800 break-all">
+        <label>Your current address</label>
+        <div class="rounded font-mono bg-gray-200 text-sm p-2 break-all">
           <template v-if="loading">
             <div class="skeleton h-3 w-full rounded"></div>
             <div class="skeleton h-3 w-full rounded"></div>
@@ -16,11 +16,14 @@
             <click-to-copy :content="lastAddress" class="px-2" size="12" />
           </template>
         </div>
-        <p class="text-xs pt-1 text-gray-600">Share this address to receive assets.</p>
       </div>
       <div class="text-right w-auto">
-        <div v-show="loading" class="skeleton h-3 w-29 h-29"></div>
-        <canvas v-show="!loading" class="inline w-29 h-29" id="primary-address-canvas"></canvas>
+        <div v-show="loading" class="skeleton rounded h-3 w-25 h-25"></div>
+        <canvas
+          v-show="!loading"
+          class="inline-block max-w-25 max-h-25 rounded"
+          id="primary-address-canvas"
+        ></canvas>
       </div>
     </div>
     <div>
@@ -54,7 +57,7 @@
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
                     <a :href="createUrlFor(address.script)" target="_blank">{{
-                      $filters.compactString(address.script, 14)
+                      $filters.compactString(address.script, 12)
                     }}</a>
                     <click-to-copy :content="address.script" class="px-2" size="12" />
                     <tool-tip

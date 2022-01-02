@@ -1,4 +1,11 @@
 import { WalletType } from "@/types/internal";
+import BigNumber from "bignumber.js";
+
+const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
+  notation: "compact",
+  compactDisplay: "short",
+  maximumFractionDigits: 1
+});
 
 export const filters = {
   compactString(
@@ -20,6 +27,13 @@ export const filters = {
     } else {
       return `${val.slice(0, maxLength - ellipsis.length + 1)}${ellipsis}`;
     }
+  },
+  formatBigNumber(value: BigNumber) {
+    if (value.isGreaterThan(Number.MAX_SAFE_INTEGER)) {
+      return defaultBitNumbersFormatter.format(value.toNumber());
+    }
+
+    return value.toFormat();
   },
   walletType(type: WalletType): string {
     switch (type) {
