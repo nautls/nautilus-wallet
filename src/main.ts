@@ -37,6 +37,7 @@ axios.defaults.transformResponse = [
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
+
 app
   .use(store)
   .use(router)

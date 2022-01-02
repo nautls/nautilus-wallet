@@ -29,6 +29,7 @@
       <p class="text-danger" v-if="v$.publicKey.$error">
         {{ v$.publicKey.$errors[0].$message }}
       </p>
+      <p class="text-danger" v-if="pkError !== ''">{{ pkError }}</p>
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
@@ -48,6 +49,7 @@ import PageTitle from "@/components/PageTitle.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
+import { validPublicKey } from "@/validators";
 
 export default defineComponent({
   name: "AddReadOnlyView",
@@ -59,18 +61,23 @@ export default defineComponent({
     return {
       loading: false,
       walletName: "",
-      publicKey: ""
+      publicKey: "",
+      pkError: ""
     };
   },
   validations() {
     return {
       walletName: { required: helpers.withMessage("Wallet name is required.", required) },
-      publicKey: { required: helpers.withMessage("Public key is required.", required) }
+      publicKey: {
+        required: helpers.withMessage("Public key is required.", required),
+        validPublicKey
+      }
     };
   },
   methods: {
     ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
+      this.pkError = "";
       const isValid = await this.v$.$validate();
       if (!isValid) {
         return;
@@ -84,7 +91,7 @@ export default defineComponent({
           type: WalletType.ReadOnly
         });
       } catch (e: any) {
-        // this.errorMsg.pk = "Invalid public key.";
+        this.pkError = e.message;
         this.loading = false;
         return;
       }
