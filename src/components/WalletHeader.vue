@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row px-4 py-2 gap-4 items-center bg-light-500">
+  <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
     <div class="w-max flex-grow">
       <img src="@/assets/images/logo.png" class="w-14 ml-2" />
     </div>

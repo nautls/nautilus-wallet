@@ -52,7 +52,7 @@
                   </td>
                 </tr>
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
-                  <td class="font-mono" :class="{ 'text-gray-500': isUsed(address) }">
+                  <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
                     <a :href="createUrlFor(address.script)" target="_blank">{{
                       $filters.compactString(address.script, 14)
                     }}</a>
@@ -142,9 +142,9 @@ export default defineComponent({
         this.errorMsg = e.message;
       }
     },
-    ergBalanceFor(address: StateAddress): BigNumber {
+    ergBalanceFor(address: StateAddress): string {
       return (
-        find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount || new BigNumber(0)
+        find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
       );
     },
     isUsed(address: StateAddress): boolean {
