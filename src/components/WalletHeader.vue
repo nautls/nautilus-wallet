@@ -27,7 +27,9 @@
             <router-link
               :to="{ name: 'add-wallet', params: { backButton: true } }"
               class="group-item narrow"
-              >Add new wallet</router-link
+            >
+              <vue-feather type="plus-circle" size="18" class="align-middle pr-2" />
+              <span class="align-middle">Add new wallet</span></router-link
             >
           </div>
         </template>
