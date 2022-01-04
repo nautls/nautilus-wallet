@@ -1,4 +1,8 @@
 # Nautilus Wallet
+Privacy Wallet Designed for Ergo Network
+
+Built-in secrecy, sourcing parts from unnamed sources.
+Roams the seas beyond the reach of land-based governments.
 
 ## Project setup
 ```
