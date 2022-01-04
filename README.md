@@ -1,4 +1,4 @@
-# Nautilus
+# Nautilus Wallet
 
 ## Project setup
 ```
