@@ -20,8 +20,6 @@ export default class Bip32 {
       this._change = bip32;
     } else {
       this._change = bip32.derivePath(DERIVATION_PATH);
-      this._change.index = 0;
-      this._change.parentFingerprint = 0;
     }
   }
 
