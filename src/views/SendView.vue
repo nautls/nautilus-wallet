@@ -21,10 +21,9 @@
             <template v-slot:trigger>ERG <vue-feather type="chevron-down" size="16" /></template>
             <template v-slot:items>
               <div class="group">
-                <a class="group-item narrow">te</a>
-                <a class="group-item narrow">te</a>
-                <a class="group-item narrow">te</a>
-                <a class="group-item narrow">te</a>
+                <a class="group-item narrow">Test 1</a>
+                <a class="group-item narrow">Test 2</a>
+                <a class="group-item narrow">Test 3</a>
               </div>
             </template>
           </drop-down>
