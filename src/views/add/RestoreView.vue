@@ -18,7 +18,7 @@
             :allow-new="false"
             :open-on-focus="false"
             field="user.first_name"
-            root-class="items-select"
+            root-class="input-wrap items-select"
             item-class="tag"
             :autocompleteClasses="{
               menuClass: 'autocomplete-list',

@@ -159,10 +159,14 @@ input:disabled {
   @apply py-2;
 }
 
-.items-select {
-  @apply min-h-40 h-auto cursor-text rounded border-1 border-gray-400
+.input-wrap {
+  @apply cursor-text rounded border-1 border-gray-400
   default-transition text-sm outline-none hover:border-blue-600 my-1 p-2
   focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
+}
+
+.items-select {
+  @apply min-h-40 h-auto;
 }
 
 .items-select .o-inputit__container {
@@ -184,4 +188,14 @@ input:disabled {
 
 .autocomplete-list .item.selected {
   @apply bg-gray-200;
+}
+
+.asset-input {
+  @apply cursor-text rounded border-1 border-gray-400
+  default-transition text-sm outline-none hover:border-blue-600 my-1 p-0.5
+  focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
+}
+
+.asset-input button {
+  @apply !p-1.3;
 }
