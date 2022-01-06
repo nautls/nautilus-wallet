@@ -191,8 +191,8 @@ input:disabled {
 }
 
 .asset-input {
-  @apply cursor-text rounded border-1 border-gray-400
-  default-transition text-sm outline-none hover:border-blue-600 my-1 p-0.5
+  @apply cursor-text rounded border-1 border-gray-400 font-normal
+  default-transition text-sm outline-none hover:border-blue-600 my-1 p-2
   focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
 }
 
