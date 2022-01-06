@@ -3,7 +3,10 @@
     <page-title title="Restore wallet" :back-button="backButton === 'true'" />
     <div class="flex-col flex gap-3">
       <div>
-        <label>Wallet name <input maxlength="50" type="text" class="w-full control block" /></label>
+        <label
+          >Wallet name
+          <input v-model.lazy="walletName" maxlength="50" type="text" class="w-full control block"
+        /></label>
       </div>
       <div>
         <label class="mt-3">
@@ -15,7 +18,7 @@
             :allow-new="false"
             :open-on-focus="false"
             field="user.first_name"
-            root-class="items-select"
+            root-class="input-wrap items-select"
             item-class="tag"
             :autocompleteClasses="{
               menuClass: 'autocomplete-list',
@@ -32,7 +35,7 @@
         </label>
       </div>
       <div>
-        <button type="button" class="w-full btn">
+        <button @click="add()" type="button" class="w-full btn">
           <span>Confirm</span>
         </button>
       </div>
@@ -44,7 +47,11 @@
 import { defineComponent } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
 import { wordlists } from "bip39";
-import { orderBy, take } from "lodash";
+import { join, orderBy, take } from "lodash";
+import { mapActions } from "vuex";
+import { ACTIONS } from "@/constants/store/actions";
+import { WalletType } from "@/types/internal";
+import * as bip39 from "bip39";
 
 const words = wordlists.english;
 
@@ -57,10 +64,27 @@ export default defineComponent({
   data() {
     return {
       filteredWords: Object.freeze(words),
+      walletName: "",
       words: []
     };
   },
   methods: {
+    ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
+    async add() {
+      console.log(join(this.words, " "));
+      try {
+        await this.putWallet({
+          name: this.walletName,
+          seed: await bip39.mnemonicToSeed(join(this.words, " ")),
+          type: WalletType.Standard
+        });
+      } catch (e: any) {
+        console.error(e);
+        return;
+      }
+
+      this.$router.push({ name: "assets-page" });
+    },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
         return Object.freeze(take(words, 10));

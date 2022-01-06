@@ -220,9 +220,15 @@ export default createStore({
     },
     async [ACTIONS.PUT_WALLET](
       { dispatch },
-      wallet: { extendedPublicKey: string; name: string; type: WalletType }
+      wallet:
+        | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly }
+        | { seed: Buffer; name: string; type: WalletType.Standard }
     ) {
-      const bip32 = Bip32.fromPublicKey(wallet.extendedPublicKey);
+      const bip32 =
+        wallet.type === WalletType.ReadOnly
+          ? Bip32.fromPublicKey(wallet.extendedPublicKey)
+          : Bip32.fromSeed(wallet.seed);
+
       bip32Pool.alloc(bip32, bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
         name: wallet.name,
@@ -230,7 +236,7 @@ export default createStore({
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
         chainCode: bip32.chainCode.toString("hex"),
-        privateKey: bip32.privateKey?.toString("hex")
+        seed: wallet.type === WalletType.Standard ? wallet.seed.toString("hex") : undefined
       });
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);

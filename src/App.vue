@@ -3,9 +3,7 @@
     <wallet-header v-show="!$route.meta.fullPage" />
     <nav-header v-if="!$route.meta.fullPage" />
     <div class="flex-grow overflow-y-auto overflow-x-hidden">
-      <div class="p-4">
-        <router-view />
-      </div>
+      <router-view class="p-4" />
     </div>
   </div>
 </template>

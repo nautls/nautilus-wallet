@@ -8,6 +8,7 @@ export type IDbWallet = {
   publicKey: string;
   privateKey?: string;
   chainCode: string;
+  seed?: string;
 };
 
 export type IDbAddress = {

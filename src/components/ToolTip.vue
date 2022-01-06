@@ -21,7 +21,7 @@ export default defineComponent({
       const cl = [this.position === "top" ? "bottom-full" : "top-full"];
       switch (this.type) {
         case "success":
-          cl.push("bg-green-600 text-light-50");
+          cl.push("bg-green-500 text-light-50");
           break;
         case "default":
         default:

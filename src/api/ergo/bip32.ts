@@ -20,8 +20,6 @@ export default class Bip32 {
       this._change = bip32;
     } else {
       this._change = bip32.derivePath(DERIVATION_PATH);
-      this._change.index = 0;
-      this._change.parentFingerprint = 0;
     }
   }
 
@@ -57,10 +55,14 @@ export default class Bip32 {
 
   public get extendedPublicKey(): Buffer {
     if (!this._extendedPk) {
-      this._extendedPk = bs58check.decode(this._change.neutered().toBase58());
+      this._extendedPk = this.normalize(bs58check.decode(this._change.neutered().toBase58()));
     }
 
     return this._extendedPk;
+  }
+
+  private normalize(key: Buffer) {
+    return key.fill(0, 4, 12);
   }
 
   public deriveAddress(index: number): DerivedAddress {

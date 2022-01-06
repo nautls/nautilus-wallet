@@ -5,6 +5,7 @@ import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import ReceiveView from "@/views/ReceiveView.vue";
 import RestoreView from "@/views/add/RestoreView.vue";
+import SendView from "@/views/SendView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -41,6 +42,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/receive",
     name: "receive-page",
     component: ReceiveView
+  },
+  {
+    path: "/send",
+    name: "send-page",
+    component: SendView
   }
 ];
 

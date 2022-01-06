@@ -1,5 +1,5 @@
 <template>
-  <tool-tip :label="copied ? 'Copied!' : 'Copy'" :type="type">
+  <tool-tip :label="copied ? 'Copied' : 'Copy'" :type="type">
     <a @click="copy()" class="cursor-pointer">
       <vue-feather type="copy" :size="size" />
     </a>
