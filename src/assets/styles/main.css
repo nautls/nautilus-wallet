@@ -1,5 +1,5 @@
 body {
-  @apply bg-light-50 text-base leading-normal tracking-wide text-dark-600 antialiased;
+  @apply bg-light-50 text-base leading-normal tracking-wide text-dark-500 antialiased;
 }
 
 a {
@@ -194,8 +194,4 @@ input:disabled {
   @apply cursor-text rounded border-1 border-gray-400 font-normal
   default-transition text-sm outline-none hover:border-blue-600 my-1 p-2
   focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
-}
-
-.asset-input button {
-  @apply !p-1.3;
 }

@@ -1,17 +1,26 @@
 <template>
-  <label @mouseover="troggleHover(true)" @mouseout="troggleHover(false)">
+  <label @click="setInputFocus()" @mouseover="troggleHover(true)" @mouseout="troggleHover(false)">
     <span v-if="label && label !== ''">{{ label }}</span>
     <div class="asset-input relative">
-      <span
+      <button
         v-if="disposable"
-        :class="{ 'opacity-100': hovered }"
-        class="inline-flex opacity-0 hover:opacity-100 cursor-pointer border-1 border-gray-400 bg-gray-200 w-5.5 h-5.5 -top-4.5 -right-0.5 absolute rounded-full ring-2 ring-white transform translate-x-1/3 translate-y-1/3"
+        v-show="hovered"
+        class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-4.5 -right-0.5 absolute rounded-full ring-2 ring-light-50 transform translate-x-1/3 translate-y-1/3"
       >
         <vue-feather type="trash" class="p-1" size="12" />
-      </span>
+      </button>
       <div class="flex flex-row gap-2 text-base">
         <div class="w-7/12">
-          <input v-model="value" class="w-full outline-none" placeholder="Amount" />
+          <input
+            ref="val-input"
+            v-cleave="{
+              numeral: true,
+              numeralDecimalScale: asset.decimals
+            }"
+            v-model="value"
+            class="w-full outline-none"
+            placeholder="Amount"
+          />
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
@@ -26,9 +35,10 @@
           </div>
         </div>
       </div>
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
           <span class="text-xs text-gray-400" v-if="asset.price">≈ {{ price }} USD</span>
+          <span class="text-xs text-gray-400" v-else>No conversion rate</span>
         </div>
         <div class="flex-grow text-right">
           <a
@@ -70,6 +80,9 @@ export default defineComponent({
       }
 
       this.hovered = val;
+    },
+    setInputFocus() {
+      (this.$refs as any)["val-input"].focus();
     },
     logoFor(tokenId: string): string {
       const assetLogo = assetLogoMapper[tokenId];

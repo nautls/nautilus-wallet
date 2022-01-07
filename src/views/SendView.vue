@@ -2,13 +2,7 @@
   <div class="flex flex-col gap-5">
     <label>
       Receiver
-      <input
-        type="text"
-        spellcheck="false"
-        :disabled="loading"
-        v-model="filter"
-        class="w-full control block"
-      />
+      <input type="text" spellcheck="false" class="w-full control block" />
     </label>
     <div class="flex-grow">
       <div class="flex flex-col gap-2">
@@ -40,7 +34,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
@@ -50,43 +43,9 @@ export default defineComponent({
   name: "SendView",
   components: { AssetInput },
   computed: {
-    loading(): boolean {
-      if (!this.$store.state.loading.balance) {
-        return false;
-      }
-
-      const assetList: StateAsset[] = this.$store.getters[GETTERS.BALANCE];
-      if (assetList.length === 0) {
-        return true;
-      }
-
-      return false;
-    },
     assets(): StateAsset[] {
-      const assetList = this.$store.getters[GETTERS.BALANCE];
-
-      if (this.filter !== "" && assetList.length > 0) {
-        return assetList.filter((a: StateAsset) =>
-          a.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
-        );
-      }
-
-      return assetList;
+      return this.$store.getters[GETTERS.BALANCE];
     }
-  },
-  watch: {
-    ["assets.length"](newLen, oldLen) {
-      const length = oldLen || 1;
-      if (length > 1) {
-        this.prevCount = length;
-      }
-    }
-  },
-  data() {
-    return {
-      filter: "",
-      prevCount: 1
-    };
   },
   methods: {
     isErg(tokenId: string): boolean {

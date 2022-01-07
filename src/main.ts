@@ -13,6 +13,7 @@ import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems } from "@oruga-ui/oruga-next";
+import { vueCleave } from "@/directives/cleave";
 
 import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
@@ -42,6 +43,7 @@ app
   .use(store)
   .use(router)
   .use(Inputitems)
+  .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
   .component("page-title", PageTitle)
   .component("click-to-copy", ClickToCopy)
