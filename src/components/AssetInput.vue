@@ -55,22 +55,34 @@
 <script lang="ts">
 import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import BigNumber from "bignumber.js";
+import { isEmpty } from "lodash";
 import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "AssetInput",
+  props: {
+    label: { type: String, required: false },
+    disposable: { type: Boolean, defaul: false },
+    asset: { type: Object, required: true }
+  },
   data() {
     return {
-      value: 0,
+      value: "",
       hovered: false
     };
   },
   computed: {
     price() {
-      if (!this.value) {
+      if (!this.asset.price || isEmpty(this.value)) {
         return "0.00";
       }
-      return new BigNumber(this.value).multipliedBy(this.asset.price).toFormat(2);
+
+      const n = new BigNumber(this.value.replaceAll(",", ""));
+      if (n.isNaN()) {
+        return "0.00";
+      }
+
+      return n.multipliedBy(this.asset.price).toFormat(2);
     }
   },
   methods: {
@@ -88,11 +100,6 @@ export default defineComponent({
       const assetLogo = assetLogoMapper[tokenId];
       return `/icons/assets/${assetLogo ?? "default.svg"}`;
     }
-  },
-  props: {
-    label: { type: String, required: false },
-    disposable: { type: Boolean, defaul: false },
-    asset: { type: Object, required: true }
   }
 });
 </script>
