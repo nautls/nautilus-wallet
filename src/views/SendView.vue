@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col gap-5 h-full">
     <label>
       Receiver
       <input type="text" spellcheck="false" class="w-full control block" />
@@ -38,13 +38,14 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
+import { take } from "lodash";
 
 export default defineComponent({
   name: "SendView",
   components: { AssetInput },
   computed: {
     assets(): StateAsset[] {
-      return this.$store.getters[GETTERS.BALANCE];
+      return take(this.$store.getters[GETTERS.BALANCE], 2);
     }
   },
   methods: {
