@@ -6,5 +6,9 @@ export const vueCleave = {
   },
   unmounted(el: any) {
     el.cleave.destroy();
+  },
+  updated: (el: HTMLElement) => {
+    const event = new Event("input");
+    el.dispatchEvent(event);
   }
 };

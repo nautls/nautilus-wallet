@@ -5,7 +5,7 @@
       <button
         v-if="disposable"
         v-show="hovered"
-        class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-4.5 -right-0.5 absolute rounded-full ring-2 ring-light-50 transform translate-x-1/3 translate-y-1/3"
+        class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
       >
         <vue-feather type="trash" class="p-1" size="12" />
       </button>
@@ -42,7 +42,7 @@
         </div>
         <div class="flex-grow text-right">
           <a
-            @click="value = asset.confirmedAmount.toString()"
+            @click="setMaxValue()"
             class="text-xs cursor-pointer underline-transparent text-gray-400"
             >Balance: {{ $filters.formatBigNumber(asset.confirmedAmount) }}</a
           >
@@ -92,6 +92,9 @@ export default defineComponent({
       }
 
       this.hovered = val;
+    },
+    setMaxValue() {
+      this.value = this.asset.confirmedAmount.toString();
     },
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();

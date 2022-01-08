@@ -56,5 +56,6 @@ export type StateAsset = {
   name: string;
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
+  decimals: number;
   price?: number;
 };
