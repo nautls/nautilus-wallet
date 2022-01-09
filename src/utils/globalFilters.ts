@@ -1,3 +1,4 @@
+import { logoMapper } from "@/mappers/logoMapper";
 import { WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
@@ -34,6 +35,10 @@ export const filters = {
     }
 
     return value.toFormat();
+  },
+  assetLogo(tokenId: string): string {
+    const assetLogo = logoMapper[tokenId];
+    return `/icons/assets/${assetLogo ?? "default.svg"}`;
   },
   walletType(type: WalletType): string {
     switch (type) {

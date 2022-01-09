@@ -126,10 +126,15 @@ input:disabled {
 }
 
 .dropdown .trigger {
+  @apply outline-none w-full py-2 px-4 text-gray-700 gap-2 default-transition 
+  items-center inline-flex justify-between bg-gray-100 border rounded border-gray-300 
+  focus:outline-none hover:bg-gray-200 active:bg-gray-300;
+}
+
+.dropdown .trigger.discrete {
   @apply bg-transparent border border-transparent rounded outline-none w-full py-2 px-4
   text-gray-700 gap-2 default-transition items-center inline-flex justify-between
-  hover:bg-gray-100 hover:border-gray-300 focus:outline-none active:outline-none 
-  active:bg-gray-200;
+  hover:(bg-gray-100 border-gray-300) focus:outline-none active:(outline-none bg-gray-200);
 }
 
 .dropdown .trigger.active {

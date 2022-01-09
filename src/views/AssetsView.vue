@@ -38,7 +38,11 @@
                 </tr>
                 <tr v-else v-for="asset in assets" :key="asset.tokenId">
                   <td class="w-14">
-                    <img :src="logoFor(asset.tokenId)" class="h-8 w-8" :alt="asset.name" />
+                    <img
+                      :src="$filters.assetLogo(asset.tokenId)"
+                      class="h-8 w-8"
+                      :alt="asset.name"
+                    />
                   </td>
                   <td>
                     <span class="align-middle" :class="isErg(asset.tokenId) ? 'font-semibold' : ''"
@@ -73,7 +77,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
@@ -122,10 +125,6 @@ export default defineComponent({
   methods: {
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
-    },
-    logoFor(tokenId: string): string {
-      const assetLogo = assetLogoMapper[tokenId];
-      return `/icons/assets/${assetLogo ?? "default.svg"}`;
     }
   }
 });

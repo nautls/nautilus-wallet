@@ -5,6 +5,7 @@
       <button
         v-if="disposable"
         v-show="hovered"
+        @click="onRemoveClicked()"
         class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
       >
         <vue-feather type="trash" class="p-1" size="12" />
@@ -30,7 +31,7 @@
             <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
             <img
               class="h-5 object-scale-down w-5 inline-block flex-shrink"
-              :src="logoFor(asset.tokenId)"
+              :src="$filters.assetLogo(asset.tokenId)"
             />
           </div>
         </div>
@@ -53,7 +54,6 @@
 </template>
 
 <script lang="ts">
-import { assetLogoMapper } from "@/mappers/assetLogoMapper";
 import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
 import { defineComponent } from "vue";
@@ -63,15 +63,23 @@ export default defineComponent({
   props: {
     label: { type: String, required: false },
     disposable: { type: Boolean, defaul: false },
-    asset: { type: Object, required: true }
+    asset: { type: Object, required: true },
+    modelValue: { type: String, required: true }
   },
   data() {
     return {
-      value: "",
       hovered: false
     };
   },
   computed: {
+    value: {
+      get(): string {
+        return this.modelValue;
+      },
+      set(value: string) {
+        this.$emit("update:modelValue", value);
+      }
+    },
     price() {
       if (!this.asset.price || isEmpty(this.value)) {
         return "0.00";
@@ -99,9 +107,8 @@ export default defineComponent({
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();
     },
-    logoFor(tokenId: string): string {
-      const assetLogo = assetLogoMapper[tokenId];
-      return `/icons/assets/${assetLogo ?? "default.svg"}`;
+    onRemoveClicked() {
+      this.$emit("remove");
     }
   }
 });

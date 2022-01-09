@@ -4,7 +4,7 @@
       <img src="@/assets/images/logo.png" class="w-14 ml-2" />
     </div>
     <div>
-      <drop-down>
+      <drop-down discrete>
         <template v-slot:trigger>
           <wallet-item
             :wallet="wallet"
