@@ -10,6 +10,7 @@
         v-if="disposable"
         v-show="hovered"
         @click.prevent.stop="onRemoveClicked()"
+        tabindex="-1"
         class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
       >
         <vue-feather type="trash" class="p-1" size="12" />

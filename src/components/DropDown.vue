@@ -3,12 +3,19 @@
     <button
       @click="troggle()"
       class="trigger flex flex-row"
-      :class="{ active: active, discrete: discrete }"
+      :class="[{ active: active, discrete: discrete }, position]"
     >
       <slot name="trigger" />
     </button>
 
-    <div v-show="active" @click="troggle()" class="items-list" tabindex="-1">
+    <div
+      ref="its"
+      v-show="active"
+      @click="troggle()"
+      :class="position"
+      class="items-list"
+      tabindex="-1"
+    >
       <slot name="items" />
     </div>
   </div>
@@ -23,7 +30,12 @@ export default defineComponent({
     discrete: { type: Boolean, default: false }
   },
   data: () => {
-    return { active: false };
+    return { active: false, position: "bottom" };
+  },
+  watch: {
+    active() {
+      this.calcPosition();
+    }
   },
   methods: {
     troggle(): void {
@@ -37,10 +49,27 @@ export default defineComponent({
       if (!this.$el.contains(e.target)) {
         this.active = false;
       }
+    },
+    calcPosition() {
+      const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+      let el = this.$refs.its as HTMLElement;
+      if (!el) {
+        return;
+      }
+
+      this.$nextTick(() => {
+        const rect = el.getBoundingClientRect();
+        const isVerticallyInViewport =
+          rect.top >= 0 &&
+          rect.bottom + (el.parentElement?.getBoundingClientRect().height ?? 0) <= clientHeight;
+
+        this.position = isVerticallyInViewport ? "bottom" : "top";
+      });
     }
   },
   mounted() {
     addEventListener("click", this.close);
+    this.calcPosition();
   },
   deactivated() {
     removeEventListener("click", this.close);

@@ -134,17 +134,33 @@ input:disabled {
 .dropdown .trigger.discrete {
   @apply bg-transparent border border-transparent rounded outline-none w-full py-2 px-4
   text-gray-700 gap-2 default-transition items-center inline-flex justify-between
-  hover:(bg-gray-100 border-gray-300) focus:outline-none active:(outline-none bg-gray-200);
+  hover:(bg-gray-100) focus:outline-none active:(outline-none bg-gray-200);
 }
 
 .dropdown .trigger.active {
-  @apply border-gray-300 border-b-transparent rounded-b-none  bg-white hover:bg-gray-100;
+  @apply border-gray-300 bg-white hover:bg-gray-100;
+}
+
+.dropdown .trigger.active.bottom {
+  @apply border-b-transparent rounded-b-none;
+}
+
+.dropdown .trigger.active.top {
+  @apply border-t-transparent rounded-t-none;
 }
 
 .dropdown .items-list {
-  @apply divide-y bg-white border rounded rounded-t-none divide-gray-100 border-t-0 
-    border-gray-300 shadow-lg text-sm w-full max-h-120 origin-top-right right-0 
+  @apply divide-y bg-white border rounded divide-gray-100 
+    border-gray-300 shadow-lg text-sm w-full max-h-120 right-0 
     overflow-y-auto absolute z-50 focus:outline-none;
+}
+
+.dropdown .items-list.bottom {
+  @apply top-full bottom-auto rounded-t-none border-t-0 origin-top;
+}
+
+.dropdown .items-list.top {
+  @apply top-auto bottom-full rounded-b-none border-b-0 origin-bottom shadow-none;
 }
 
 .dropdown .items-list .group {
@@ -153,6 +169,9 @@ input:disabled {
 
 .dropdown .items-list .group:first-child {
   @apply pt-0;
+}
+.dropdown .items-list .group:last-child {
+  @apply pb-0;
 }
 
 .dropdown .items-list .group .group-item {
