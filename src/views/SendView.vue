@@ -13,7 +13,7 @@
           v-model="val"
           :asset="asset"
           :disposable="!isErg(asset.tokenId)"
-          @remove="remove(asset)"
+          @remove="remove(asset.tokenId)"
         />
         <p class="text-xs text-right">Fee: 0.0011 ERG</p>
         <drop-down class="mt-3">
@@ -94,8 +94,8 @@ export default defineComponent({
     add(asset: StateAsset) {
       this.selected.push(asset);
     },
-    remove(asset: StateAsset) {
-      remove(this.selected, a => a.tokenId === asset.tokenId);
+    remove(tokenId: string) {
+      remove(this.selected, a => a.tokenId === tokenId);
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
