@@ -125,6 +125,10 @@ input:disabled {
   @apply text-left w-full relative inline-block;
 }
 
+.dropdown.active {
+  @apply shadow-lg;
+}
+
 .dropdown .trigger {
   @apply outline-none w-full py-2 px-4 text-gray-700 gap-2 default-transition 
   items-center inline-flex justify-between bg-gray-100 border rounded border-gray-300 
@@ -134,7 +138,7 @@ input:disabled {
 .dropdown .trigger.discrete {
   @apply bg-transparent border border-transparent rounded outline-none w-full py-2 px-4
   text-gray-700 gap-2 default-transition items-center inline-flex justify-between
-  hover:(bg-gray-100) focus:outline-none active:(outline-none bg-gray-200);
+  hover:(bg-gray-100 border-gray-300) focus:outline-none active:(outline-none bg-gray-200);
 }
 
 .dropdown .trigger.active {
@@ -151,7 +155,7 @@ input:disabled {
 
 .dropdown .items-list {
   @apply divide-y bg-white border rounded divide-gray-100 
-    border-gray-300 shadow-lg text-sm w-full max-h-120 right-0 
+    border-gray-300 text-sm w-full max-h-120 right-0 shadow-lg
     overflow-y-auto absolute z-50 focus:outline-none;
 }
 

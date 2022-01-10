@@ -1,5 +1,5 @@
 <template>
-  <div class="dropdown">
+  <div class="dropdown" :class="{ active: active }">
     <button
       @click="troggle()"
       class="trigger flex flex-row"
@@ -59,9 +59,7 @@ export default defineComponent({
 
       this.$nextTick(() => {
         const rect = el.getBoundingClientRect();
-        const isVerticallyInViewport =
-          rect.top >= 0 &&
-          rect.bottom + (el.parentElement?.getBoundingClientRect().height ?? 0) <= clientHeight;
+        const isVerticallyInViewport = rect.top >= 0 && rect.bottom <= clientHeight;
 
         this.position = isVerticallyInViewport ? "bottom" : "top";
       });
@@ -69,7 +67,6 @@ export default defineComponent({
   },
   mounted() {
     addEventListener("click", this.close);
-    this.calcPosition();
   },
   deactivated() {
     removeEventListener("click", this.close);
