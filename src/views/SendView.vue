@@ -57,7 +57,6 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AssetSendItem, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
-import BigNumber from "bignumber.js";
 
 export default defineComponent({
   name: "SendView",
@@ -84,20 +83,19 @@ export default defineComponent({
 
         const erg = find(this.assets, a => a.tokenId === ERG_TOKEN_ID);
         if (erg) {
-          this.selected.push({ asset: erg, amount: new BigNumber(0) });
+          this.selected.push({ asset: erg });
         }
       }
     }
   },
   data() {
     return {
-      selected: [] as AssetSendItem[],
-      val: ""
+      selected: [] as AssetSendItem[]
     };
   },
   methods: {
     add(asset: StateAsset) {
-      this.selected.push({ asset, amount: new BigNumber(0) });
+      this.selected.push({ asset });
     },
     remove(tokenId: string) {
       remove(this.selected, a => a.asset.tokenId === tokenId);

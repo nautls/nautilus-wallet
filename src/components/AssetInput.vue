@@ -21,9 +21,9 @@
             ref="val-input"
             v-cleave="{
               numeral: true,
-              numeralDecimalScale: asset.decimals
+              numeralDecimalScale: asset.decimals,
+              onValueChanged
             }"
-            v-model="internalValue"
             class="w-full outline-none"
             placeholder="Amount"
           />
@@ -79,15 +79,16 @@ export default defineComponent({
       if (!this.asset.price) {
         return "0.00";
       }
-
       return this.parsedValue?.multipliedBy(this.asset.price).toFormat(2) || "0.00";
     }
   },
   watch: {
     parsedValue(value: BigNumber | undefined) {
-      if (value || isEmpty(this.internalValue)) {
-        this.$emit("update:modelValue", value);
+      if (!value && !isEmpty(this.internalValue)) {
+        return;
       }
+
+      this.$emit("update:modelValue", value);
     }
   },
   data() {
@@ -97,6 +98,9 @@ export default defineComponent({
     };
   },
   methods: {
+    onValueChanged(e: { target: { value: string; rawValue: string } }) {
+      this.internalValue = e.target.rawValue;
+    },
     parseToBigNumber(val: string): BigNumber | undefined {
       if (isEmpty(val)) {
         return undefined;
@@ -115,7 +119,7 @@ export default defineComponent({
       this.hovered = val;
     },
     setMaxValue() {
-      this.internalValue = this.asset.confirmedAmount.toFormat();
+      (this.$refs as any)["val-input"].cleave.setRawValue(this.asset.confirmedAmount.toString());
     },
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();
