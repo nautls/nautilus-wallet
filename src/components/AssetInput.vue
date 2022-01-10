@@ -23,7 +23,7 @@
               numeral: true,
               numeralDecimalScale: asset.decimals
             }"
-            v-model="value"
+            v-model="internalValue"
             class="w-full outline-none"
             placeholder="Amount"
           />
@@ -69,36 +69,44 @@ export default defineComponent({
     label: { type: String, required: false },
     disposable: { type: Boolean, defaul: false },
     asset: { type: Object, required: true },
-    modelValue: { type: String, required: true }
+    modelValue: { type: Object, required: false }
+  },
+  computed: {
+    parsedValue() {
+      return this.parseToBigNumber(this.internalValue);
+    },
+    price() {
+      if (!this.asset.price) {
+        return "0.00";
+      }
+
+      return this.parsedValue?.multipliedBy(this.asset.price).toFormat(2) || "0.00";
+    }
+  },
+  watch: {
+    parsedValue(value: BigNumber | undefined) {
+      if (value || isEmpty(this.internalValue)) {
+        this.$emit("update:modelValue", value);
+      }
+    }
   },
   data() {
     return {
-      hovered: false
+      hovered: false,
+      internalValue: ""
     };
   },
-  computed: {
-    value: {
-      get(): string {
-        return this.modelValue;
-      },
-      set(value: string) {
-        this.$emit("update:modelValue", value);
+  methods: {
+    parseToBigNumber(val: string): BigNumber | undefined {
+      if (isEmpty(val)) {
+        return undefined;
+      }
+
+      const n = new BigNumber(val.replaceAll(",", ""));
+      if (!n.isNaN()) {
+        return n;
       }
     },
-    price() {
-      if (!this.asset.price || isEmpty(this.value)) {
-        return "0.00";
-      }
-
-      const n = new BigNumber(this.value.replaceAll(",", ""));
-      if (n.isNaN()) {
-        return "0.00";
-      }
-
-      return n.multipliedBy(this.asset.price).toFormat(2);
-    }
-  },
-  methods: {
     troggleHover(val: boolean) {
       if (val === this.hovered) {
         return;
@@ -107,7 +115,7 @@ export default defineComponent({
       this.hovered = val;
     },
     setMaxValue() {
-      this.value = this.asset.confirmedAmount.toString();
+      this.internalValue = this.asset.confirmedAmount.toFormat();
     },
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();

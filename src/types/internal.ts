@@ -59,3 +59,8 @@ export type StateAsset = {
   decimals: number;
   price?: number;
 };
+
+export type AssetSendItem = {
+  asset: StateAsset;
+  amount?: BigNumber;
+};

@@ -8,12 +8,12 @@
       <div class="flex flex-col gap-2">
         <asset-input
           :label="index === 0 ? 'Assets' : ''"
-          v-for="(asset, index) in selected"
-          :key="asset.tokenId"
-          v-model="val"
-          :asset="asset"
-          :disposable="!isErg(asset.tokenId)"
-          @remove="remove(asset.tokenId)"
+          v-for="(item, index) in selected"
+          :key="item.asset.tokenId"
+          v-model="item.amount"
+          :asset="item.asset"
+          :disposable="!isErg(item.asset.tokenId)"
+          @remove="remove(item.asset.tokenId)"
         />
         <p class="text-xs text-right">Fee: 0.0011 ERG</p>
         <drop-down class="mt-3">
@@ -54,9 +54,10 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { StateAsset } from "@/types/internal";
+import { AssetSendItem, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
+import BigNumber from "bignumber.js";
 
 export default defineComponent({
   name: "SendView",
@@ -66,7 +67,11 @@ export default defineComponent({
       return this.$store.getters[GETTERS.BALANCE];
     },
     unselected(): StateAsset[] {
-      return differenceBy(this.assets, this.selected, a => a.tokenId);
+      return differenceBy(
+        this.assets,
+        this.selected.map(a => a.asset),
+        a => a.tokenId
+      );
     }
   },
   watch: {
@@ -79,23 +84,23 @@ export default defineComponent({
 
         const erg = find(this.assets, a => a.tokenId === ERG_TOKEN_ID);
         if (erg) {
-          this.selected.push(erg);
+          this.selected.push({ asset: erg, amount: new BigNumber(0) });
         }
       }
     }
   },
   data() {
     return {
-      selected: [] as StateAsset[],
+      selected: [] as AssetSendItem[],
       val: ""
     };
   },
   methods: {
     add(asset: StateAsset) {
-      this.selected.push(asset);
+      this.selected.push({ asset, amount: new BigNumber(0) });
     },
     remove(tokenId: string) {
-      remove(this.selected, a => a.tokenId === tokenId);
+      remove(this.selected, a => a.asset.tokenId === tokenId);
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;

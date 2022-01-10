@@ -1,6 +1,6 @@
 <template>
-  <page-title title="Add read-only wallet" :back-button="true" />
   <div class="flex-col flex gap-3">
+    <page-title title="Add read-only wallet" :back-button="true" />
     <div>
       <label
         >Wallet name
