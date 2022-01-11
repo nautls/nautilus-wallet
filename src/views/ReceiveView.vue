@@ -10,7 +10,7 @@
             <div class="skeleton h-3 w-1/2 rounded"></div>
           </template>
           <template v-else>
-            <a :href="createUrlFor(lastAddress)" target="_blank">
+            <a :href="urlFor(lastAddress)" target="_blank">
               {{ lastAddress }}
             </a>
             <click-to-copy :content="lastAddress" class="px-2" size="12" />
@@ -56,7 +56,7 @@
                 </tr>
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
-                    <a :href="createUrlFor(address.script)" target="_blank">{{
+                    <a :href="urlFor(address.script)" target="_blank">{{
                       $filters.compactString(address.script, 12)
                     }}</a>
                     <click-to-copy :content="address.script" class="px-2" size="12" />
@@ -88,7 +88,6 @@ import QRCode from "qrcode";
 import { find, last } from "lodash";
 import { StateAddress } from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
-import BigNumber from "bignumber.js";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
@@ -156,7 +155,7 @@ export default defineComponent({
     hasPendingBalance(address: StateAddress): boolean {
       return !!find(address.balance, b => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
     },
-    createUrlFor(address: string | undefined): string {
+    urlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;
     }
   }

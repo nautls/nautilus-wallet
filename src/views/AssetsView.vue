@@ -45,12 +45,15 @@
                     />
                   </td>
                   <td>
-                    <span class="align-middle" :class="isErg(asset.tokenId) ? 'font-semibold' : ''"
-                      ><template v-if="asset.name">{{
+                    <p v-if="isErg(asset.tokenId)" class="font-semibold align-middle">
+                      {{ asset.name }}
+                    </p>
+                    <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="align-middle">
+                      <template v-if="asset.name">{{
                         $filters.compactString(asset.name, 30, "end")
                       }}</template>
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
-                    </span>
+                    </a>
                   </td>
                   <td class="text-right">
                     <p>
@@ -80,6 +83,7 @@ import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
+import { TOKEN_INFO_URL } from "@/constants/explorer";
 
 export default defineComponent({
   name: "AssetsView",
@@ -125,6 +129,9 @@ export default defineComponent({
   methods: {
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
+    },
+    urlFor(tokenId: string): string {
+      return `${TOKEN_INFO_URL}${tokenId}`;
     }
   }
 });
