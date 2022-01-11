@@ -13,7 +13,7 @@
             <a :href="urlFor(lastAddress)" target="_blank">
               {{ lastAddress }}
             </a>
-            <click-to-copy :content="lastAddress" class="px-2" size="12" />
+            <click-to-copy :content="lastAddress" class="mx-2" size="12" />
           </template>
         </div>
       </div>
@@ -59,7 +59,7 @@
                     <a :href="urlFor(address.script)" target="_blank">{{
                       $filters.compactString(address.script, 12)
                     }}</a>
-                    <click-to-copy :content="address.script" class="px-2" size="12" />
+                    <click-to-copy :content="address.script" class="mx-2" size="12" />
                     <tool-tip
                       v-if="hasPendingBalance(address)"
                       label="Pending transaction<br />for this address"
@@ -70,7 +70,7 @@
                   </td>
                   <td class="text-right">
                     <span>{{ ergBalanceFor(address) }}</span>
-                    Σ
+                    ERG
                   </td>
                 </tr>
               </tbody>
