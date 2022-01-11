@@ -35,7 +35,7 @@
             }}</span>
             <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
             <img
-              class="h-5 object-scale-down w-5 inline-block flex-shrink"
+              class="h-5 rounded-full object-scale-down w-5 inline-block flex-shrink"
               :src="$filters.assetLogo(asset.tokenId)"
             />
           </div>

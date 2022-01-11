@@ -40,7 +40,7 @@
                   <td class="w-14">
                     <img
                       :src="$filters.assetLogo(asset.tokenId)"
-                      class="h-8 w-8"
+                      class="h-8 w-8 rounded-full"
                       :alt="asset.name"
                     />
                   </td>
