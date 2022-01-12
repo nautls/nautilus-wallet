@@ -1,6 +1,6 @@
 <template>
   <div>
-    <page-title title="Restore wallet" :back-button="backButton === 'true'" />
+    <page-title title="Restore wallet" back-button />
     <div class="flex-col flex gap-3">
       <div>
         <label
@@ -58,9 +58,6 @@ const words = wordlists.english;
 export default defineComponent({
   name: "RestoreView",
   components: { PageTitle },
-  props: {
-    backButton: { type: String, default: "false" }
-  },
   data() {
     return {
       filteredWords: Object.freeze(words),

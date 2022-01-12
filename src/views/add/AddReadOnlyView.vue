@@ -1,6 +1,6 @@
 <template>
   <div class="flex-col flex gap-3">
-    <page-title title="Add read-only wallet" :back-button="true" />
+    <page-title title="Add read-only wallet" back-button />
     <div>
       <label
         >Wallet name

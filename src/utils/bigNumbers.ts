@@ -4,7 +4,6 @@ export function setDecimals(value: BigNumber | undefined, decimals: number): Big
   if (!decimals || value === undefined) {
     return value;
   }
-
   return value.multipliedBy(Math.pow(10, decimals * -1));
 }
 
@@ -17,7 +16,6 @@ export function toBigNumber(value?: string | number | BigNumber): BigNumber | un
   if (valueType === "string" || valueType === "number") {
     return new BigNumber(value);
   }
-
   return value as BigNumber;
 }
 

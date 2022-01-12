@@ -1,6 +1,6 @@
 <template>
   <div>
-    <page-title title="Welcome to Nautilus." :back-button="backButton === 'true'" />
+    <page-title title="Welcome to Nautilus." :back-button="hasWallets" />
     <p class="pt-2 pb-5">
       <button type="button" disabled class="nav-btn">
         <span class="title">Create wallet</span>
@@ -39,10 +39,16 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
+import { isEmpty } from "lodash";
 
 export default defineComponent({
   name: "AddView",
   components: { PageTitle },
+  computed: {
+    hasWallets() {
+      return !isEmpty(this.$store.state.wallets);
+    }
+  },
   props: {
     backButton: { type: String, default: "false" }
   }

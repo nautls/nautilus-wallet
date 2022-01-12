@@ -5,16 +5,6 @@
         <vue-feather type="pie-chart" class="m-3" size="24" />
       </tool-tip>
     </router-link>
-    <!-- <router-link to="/" active-class="active" class="w-full tab-item">
-      <tool-tip position="bottom" label="NFT">
-        <vue-feather type="image" class="m-3" size="24" />
-      </tool-tip>
-    </router-link>
-    <router-link to="/transactions" active-class="active" class="w-full tab-item">
-      <tool-tip position="bottom" label="Transactions">
-        <vue-feather type="clock" class="m-3" size="24" />
-      </tool-tip>
-    </router-link> -->
     <router-link to="/receive" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="Receive">
         <vue-feather type="download" class="m-3" size="24" />

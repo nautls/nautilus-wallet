@@ -24,10 +24,7 @@
             </a>
           </div>
           <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
-            <router-link
-              :to="{ name: 'add-wallet', params: { backButton: true } }"
-              class="group-item narrow"
-            >
+            <router-link :to="{ name: 'add-wallet' }" class="group-item narrow">
               <vue-feather type="plus-circle" size="18" class="align-middle pr-2" />
               <span class="align-middle">Add new wallet</span></router-link
             >
