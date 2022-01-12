@@ -16,7 +16,7 @@ import {
   clone,
   findLastIndex
 } from "lodash";
-import { Network, WalletType, AddressState, AddressType } from "@/types/internal";
+import { Network, WalletType, AddressState, AddressType, AssetSendItem } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
@@ -26,6 +26,8 @@ import { IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
+import { wasmModule } from "./utils/wasm-module";
+import * as bip39 from "bip39";
 
 export default createStore({
   state: {
@@ -238,6 +240,7 @@ export default createStore({
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
         chainCode: bip32.chainCode.toString("hex"),
+        privateKey: bip32.privateKey?.toString("hex"),
         seed: wallet.type === WalletType.Standard ? wallet.seed.toString("hex") : undefined
       });
 
@@ -429,6 +432,63 @@ export default createStore({
       state.loading.price = true;
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
+    },
+    async [ACTIONS.SEND_TX](
+      { commit, state },
+      data: { assets: AssetSendItem[]; walletId: number }
+    ) {
+      const changeAddress = state.currentAddresses[0].script;
+      const recipientAddress = state.currentAddresses[1].script;
+
+      const boxes = await explorerService.getUnspentBoxes(changeAddress);
+      const sigmaRust = wasmModule.SigmaRust;
+
+      const recipient = sigmaRust.Address.from_mainnet_str(recipientAddress);
+      const unspent_boxes = sigmaRust.ErgoBoxes.from_boxes_json(boxes.data);
+      const contract = sigmaRust.Contract.pay_to_address(recipient);
+      const outbox_value = sigmaRust.BoxValue.SAFE_USER_MIN();
+      const outbox = new sigmaRust.ErgoBoxCandidateBuilder(outbox_value, contract, 0).build();
+      const tx_outputs = new sigmaRust.ErgoBoxCandidates(outbox);
+      const fee = sigmaRust.TxBuilder.SUGGESTED_TX_FEE();
+      const change_address = sigmaRust.Address.from_mainnet_str(changeAddress);
+      const min_change_value = sigmaRust.BoxValue.SAFE_USER_MIN();
+      const box_selector = new sigmaRust.SimpleBoxSelector();
+      const target_balance = sigmaRust.BoxValue.from_i64(
+        outbox_value.as_i64().checked_add(fee.as_i64())
+      );
+      const box_selection = box_selector.select(
+        unspent_boxes,
+        target_balance,
+        new sigmaRust.Tokens()
+      );
+      const tx_builder = sigmaRust.TxBuilder.new(
+        box_selection,
+        tx_outputs,
+        0,
+        fee,
+        change_address,
+        min_change_value
+      );
+
+      const unsigned = tx_builder.build();
+      const sk = sigmaRust.SecretKey.dlog_from_bytes(
+        Buffer.from((await walletsDbService.getSeed(data.walletId)) || "", "hex")
+      );
+      console.log(data.walletId);
+      const sks = new sigmaRust.SecretKeys();
+      sks.add(sk);
+      const wallet = sigmaRust.Wallet.from_secrets(sks);
+      // const block_headers = generate_block_headers();
+      const lastBlock = await explorerService.getLastBlock();
+      const pre_header = sigmaRust.PreHeader.from_block_header(lastBlock.block.header);
+      const ctx = new sigmaRust.ErgoStateContext(pre_header);
+      wallet.sign_transaction(
+        ctx,
+        unsigned,
+        unspent_boxes,
+        sigmaRust.ErgoBoxes.from_boxes_json([])
+      );
+      console.log(unsigned.to_js_eip12());
     }
   }
 });

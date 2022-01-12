@@ -35,7 +35,7 @@ class ExplorerService {
     options = { chunkBy: 20 }
   ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
     if (options.chunkBy <= 0 || options.chunkBy >= addresses.length) {
-      return this.getAddressesBalanceFromChunk(addresses);
+      return await this.getAddressesBalanceFromChunk(addresses);
     }
 
     const chunks = chunk(addresses, options.chunkBy);
@@ -81,6 +81,36 @@ class ExplorerService {
     }
 
     return used;
+  }
+
+  public async getUnspentBoxes(address: string): Promise<AddressAPIResponse<any>> {
+    const response = await axios.get(
+      `${API_URL}/api/v0/transactions/boxes/byAddress/unspent/${address}`
+    );
+
+    return { address, data: response.data };
+  }
+
+  public async getBlock(blockId: string): Promise<any> {
+    const response = await axios.get(`${API_URL}/api/v1/blocks/${blockId}`);
+
+    return response.data;
+  }
+
+  public async getBlocks(params?: {
+    offset?: number;
+    limit?: number;
+    sortBy?: string;
+    sortDirection?: string;
+  }) {
+    const response = await axios.get(`${API_URL}/api/v1/blocks/`, { params });
+    return response.data;
+  }
+
+  public async getLastBlock(): Promise<any> {
+    const lastBlockResponse = await this.getBlocks({ limit: 1 });
+    const blockDetailsResponse = await this.getBlock(lastBlockResponse.items[0].id);
+    return blockDetailsResponse.data;
   }
 }
 

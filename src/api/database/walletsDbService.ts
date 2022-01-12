@@ -19,6 +19,11 @@ class WalletsDbService {
     return dbContext.wallets.put(wallet);
   }
 
+  public async getSeed(walletId: number): Promise<string | undefined> {
+    const wallet = await dbContext.wallets.where("id").equals(walletId).first();
+    return wallet?.privateKey;
+  }
+
   public async getAll(): Promise<IDbWallet[]> {
     return await dbContext.wallets.toArray();
   }

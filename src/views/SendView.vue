@@ -50,7 +50,7 @@
       </div>
     </div>
 
-    <div class="flex-shrink"><button class="btn w-full">Confirm</button></div>
+    <div class="flex-shrink"><button class="btn w-full" @click="sendTx()">Confirm</button></div>
   </div>
 </template>
 
@@ -61,6 +61,8 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AssetSendItem, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
+import { mapActions } from "vuex";
+import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({
   name: "SendView",
@@ -98,6 +100,13 @@ export default defineComponent({
     };
   },
   methods: {
+    async sendTx() {
+      const currentWalletId = this.$store.state.currentWallet.id;
+      await this.$store.dispatch(ACTIONS.SEND_TX, {
+        assets: this.selected,
+        walletId: currentWalletId
+      });
+    },
     add(asset: StateAsset) {
       this.selected.push({ asset });
     },
