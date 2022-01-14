@@ -5,7 +5,7 @@ import {
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
 import axios from "axios";
-import { chunk, find } from "lodash";
+import { chunk, find, Primitive } from "lodash";
 
 class ExplorerService {
   public async getTxHistory(
@@ -91,9 +91,16 @@ class ExplorerService {
     return { address, data: response.data };
   }
 
+  public async getLastTenBlockHeaders(): Promise<any> {
+    const blocks = await this.getBlocks({ limit: 10 });
+    console.log(blocks);
+    return (await Promise.all(blocks.items.map((b: any) => this.getBlock(b.id)))).map(
+      (b: any) => b.block.header
+    );
+  }
+
   public async getBlock(blockId: string): Promise<any> {
     const response = await axios.get(`${API_URL}/api/v1/blocks/${blockId}`);
-
     return response.data;
   }
 
@@ -109,8 +116,7 @@ class ExplorerService {
 
   public async getLastBlock(): Promise<any> {
     const lastBlockResponse = await this.getBlocks({ limit: 1 });
-    const blockDetailsResponse = await this.getBlock(lastBlockResponse.items[0].id);
-    return blockDetailsResponse.data;
+    return await this.getBlock(lastBlockResponse.items[0].id);
   }
 }
 

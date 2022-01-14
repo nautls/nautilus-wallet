@@ -23,7 +23,7 @@
     "cleave.js": "^1.6.0",
     "core-js": "^3.20.2",
     "dexie": "^3.2.0",
-    "ergo-lib-wasm-browser": "^0.14.0",
+    "ergo-lib-wasm-browser": "^0.15.0-alpha-5d78f2d",
     "feather-icons": "^4.28.0",
     "json-bigint": "^1.0.0",
     "lodash": "^4.17.21",
