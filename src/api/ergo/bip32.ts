@@ -15,8 +15,8 @@ export default class Bip32 {
   private _change!: BIP32Interface;
   private _extendedPk!: Buffer;
 
-  private constructor(bip32: BIP32Interface) {
-    if (bip32.isNeutered()) {
+  private constructor(bip32: BIP32Interface, isRootPath = false) {
+    if (bip32.isNeutered() || isRootPath) {
       this._change = bip32;
     } else {
       this._change = bip32.derivePath(DERIVATION_PATH);
@@ -41,6 +41,13 @@ export default class Bip32 {
     }
   }
 
+  public static fromPrivateKey(privateKey: string, chainCode: string): Bip32 {
+    return new this(
+      bip32.fromPrivateKey(Buffer.from(privateKey, "hex"), Buffer.from(chainCode, "hex")),
+      true
+    );
+  }
+
   public get privateKey(): Buffer | undefined {
     return this._change.privateKey;
   }
@@ -63,6 +70,10 @@ export default class Bip32 {
 
   private normalize(key: Buffer) {
     return key.fill(0, 4, 12);
+  }
+
+  public derivePrivateKey(index: number): Buffer | undefined {
+    return this._change.derive(index).privateKey;
   }
 
   public deriveAddress(index: number): DerivedAddress {

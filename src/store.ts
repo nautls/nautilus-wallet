@@ -28,6 +28,7 @@ import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import { wasmModule } from "./utils/wasm-module";
 import * as bip39 from "bip39";
+import { setDevtoolsHook } from "vue";
 
 export default createStore({
   state: {
@@ -471,53 +472,32 @@ export default createStore({
       );
 
       const unsigned = tx_builder.build();
+
+      const dbWallet = await walletsDbService.getFromId(data.walletId);
+      const bip32 = Bip32.fromPrivateKey(dbWallet?.privateKey || "", dbWallet?.chainCode || "");
+
       const sk = sigmaRust.SecretKey.dlog_from_bytes(
-        Buffer.from((await walletsDbService.getSeed(data.walletId)) || "", "hex")
+        bip32.derivePrivateKey(state.currentAddresses[0].index) || Buffer.from([])
       );
-      // console.log(data.walletId);
+      console.log(changeAddress);
+      console.log(sk.get_address().to_base58(sigmaRust.NetworkPrefix.Mainnet));
       const sks = new sigmaRust.SecretKeys();
       sks.add(sk);
-      const wallet = sigmaRust.Wallet.from_mnemonic(
-        "build warfare install excite like sphere announce pond neutral cycle sell tuition alpha shuffle coin",
-        ""
-      );
+      const wallet = sigmaRust.Wallet.from_secrets(sks);
 
       const blocks = await explorerService.getLastTenBlockHeaders();
-      console.log(blocks);
-      const lastBlock = await explorerService.getLastBlock();
-      const blockHeader = sigmaRust.BlockHeader.from_json(createMockHeader(lastBlock));
-      const pre_header = sigmaRust.PreHeader.from_block_header(blockHeader);
-      console.log("ok");
       const blockHeaders = sigmaRust.BlockHeaders.from_json(blocks); //blocks.map((x: any) => x.header));
+      const pre_header = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
       const ctx = new sigmaRust.ErgoStateContext(pre_header, blockHeaders);
-      wallet?.sign_transaction(
+      const signed = wallet?.sign_transaction(
         ctx,
         unsigned,
         unspent_boxes,
         sigmaRust.ErgoBoxes.from_boxes_json([])
       );
-      console.log(unsigned.to_js_eip12());
+      console.log(signed.to_js_eip12());
+      const resp = await explorerService.sendTx(signed.to_json());
+      console.log(resp);
     }
   }
 });
-
-function createMockHeader(block: any) {
-  // We could modify the best block backend to return this information for the previous block
-  // but I'm guessing that votes of the previous block isn't useful for the current one
-  // and I'm also unsure if any of these 3 would impact signing or not.
-  // Maybe version would later be used in the ergoscript context?
-  // console.log(block);
-  return JSON.stringify({
-    version: 2, // TODO: where to get version? (does this impact signing?)
-    parentId: block.block.header.id,
-    timestamp: Date.now(),
-    nBits: 682315684511744, // TODO: where to get difficulty? (does this impact signing?)
-    height: block.block.header.height + 1,
-    votes: "040000", // TODO: where to get votes? (does this impact signing?)
-    id: "4caa17e62fe66ba7bd69597afdc996ae35b1ff12e0ba90c22ff288a4de10e91b",
-    stateRoot: "8ad868627ea4f7de6e2a2fe3f98fafe57f914e0f2ef3331c006def36c697f92713",
-    adProofsRoot: "d882aaf42e0a95eb95fcce5c3705adf758e591532f733efe790ac3c404730c39",
-    transactionsRoot: "63eaa9aff76a1de3d71c81e4b2d92e8d97ae572a8e9ab9e66599ed0912dd2f8b",
-    extensionHash: "3f91f3c680beb26615fdec251aee3f81aaf5a02740806c167c0f3c929471df44"
-  });
-}

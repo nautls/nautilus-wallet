@@ -118,6 +118,11 @@ class ExplorerService {
     const lastBlockResponse = await this.getBlocks({ limit: 1 });
     return await this.getBlock(lastBlockResponse.items[0].id);
   }
+
+  public async sendTx(tx: any): Promise<any> {
+    const response = await axios.post(`${API_URL}/api/v1/mempool/transactions/submit`, tx);
+    return response.data;
+  }
 }
 
 export const explorerService = new ExplorerService();
