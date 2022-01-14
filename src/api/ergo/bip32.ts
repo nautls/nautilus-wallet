@@ -62,13 +62,15 @@ export default class Bip32 {
 
   public get extendedPublicKey(): Buffer {
     if (!this._extendedPk) {
-      this._extendedPk = this.normalize(bs58check.decode(this._change.neutered().toBase58()));
+      this._extendedPk = this.normalizeExtendedKey(
+        bs58check.decode(this._change.neutered().toBase58())
+      );
     }
 
     return this._extendedPk;
   }
 
-  private normalize(key: Buffer) {
+  private normalizeExtendedKey(key: Buffer) {
     return key.fill(0, 4, 12);
   }
 

@@ -1,6 +1,10 @@
 import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
+  ExplorerBlockHeaderResponse,
+  ExplorerGetApiV1BlocksP1Response,
+  ExplorerGetApiV1BlocksResponse,
+  ExplorerPostApiV1MempoolTransactionsSubmitResponse,
   ExplorerV0TransactionsPerAddressResponse,
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
@@ -91,7 +95,7 @@ class ExplorerService {
     return { address, data: response.data };
   }
 
-  public async getLastTenBlockHeaders(): Promise<any> {
+  public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {
     const blocks = await this.getBlocks({ limit: 10 });
     console.log(blocks);
     return (await Promise.all(blocks.items.map((b: any) => this.getBlock(b.id)))).map(
@@ -99,7 +103,7 @@ class ExplorerService {
     );
   }
 
-  public async getBlock(blockId: string): Promise<any> {
+  public async getBlock(blockId: string): Promise<ExplorerGetApiV1BlocksP1Response> {
     const response = await axios.get(`${API_URL}/api/v1/blocks/${blockId}`);
     return response.data;
   }
@@ -109,17 +113,12 @@ class ExplorerService {
     limit?: number;
     sortBy?: string;
     sortDirection?: string;
-  }) {
+  }): Promise<ExplorerGetApiV1BlocksResponse> {
     const response = await axios.get(`${API_URL}/api/v1/blocks/`, { params });
     return response.data;
   }
 
-  public async getLastBlock(): Promise<any> {
-    const lastBlockResponse = await this.getBlocks({ limit: 1 });
-    return await this.getBlock(lastBlockResponse.items[0].id);
-  }
-
-  public async sendTx(tx: any): Promise<any> {
+  public async sendTx(tx: any): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
     const response = await axios.post(`${API_URL}/api/v1/mempool/transactions/submit`, tx);
     return response.data;
   }
