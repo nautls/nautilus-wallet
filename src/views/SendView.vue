@@ -15,7 +15,7 @@
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
         />
-        <p class="text-xs text-right">Fee: 0.0011 ERG</p>
+        <p class="text-xs text-right">Fee: {{ suggestedFee }} ERG</p>
         <drop-down class="mt-3">
           <template v-slot:trigger>
             <div class="text-sm w-full uppercase py-1 pl-6 text-center font-bold">Add asset</div>
@@ -57,12 +57,14 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { AssetSendItem, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
-import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store";
+import { wasmModule } from "@/utils/wasm-module";
+import BigNumber from "bignumber.js";
+import { setDecimals } from "@/utils/bigNumbers";
 
 export default defineComponent({
   name: "SendView",
@@ -77,6 +79,12 @@ export default defineComponent({
         this.selected.map(a => a.asset),
         a => a.tokenId
       );
+    },
+    suggestedFee(): string {
+      const fee = new BigNumber(
+        wasmModule.SigmaRust.TxBuilder.SUGGESTED_TX_FEE().as_i64().to_str()
+      );
+      return setDecimals(fee, ERG_DECIMALS)?.toString() || "";
     }
   },
   watch: {

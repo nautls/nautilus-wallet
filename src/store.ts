@@ -486,10 +486,10 @@ export default createStore({
       const wallet = sigmaRust.Wallet.from_secrets(sks);
 
       const blocks = await explorerService.getLastTenBlockHeaders();
-      const blockHeaders = sigmaRust.BlockHeaders.from_json(blocks); //blocks.map((x: any) => x.header));
+      const blockHeaders = sigmaRust.BlockHeaders.from_json(blocks);
       const pre_header = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
       const ctx = new sigmaRust.ErgoStateContext(pre_header, blockHeaders);
-      const signed = wallet?.sign_transaction(
+      const signed = wallet.sign_transaction(
         ctx,
         unsigned,
         unspent_boxes,
