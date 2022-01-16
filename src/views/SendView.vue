@@ -81,6 +81,10 @@ export default defineComponent({
       );
     },
     suggestedFee(): string {
+      if (!wasmModule.loaded) {
+        return "";
+      }
+
       const fee = new BigNumber(
         wasmModule.SigmaRust.TxBuilder.SUGGESTED_TX_FEE().as_i64().to_str()
       );

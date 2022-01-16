@@ -14,14 +14,15 @@ import {
   first,
   maxBy,
   clone,
-  findLastIndex
+  findLastIndex,
+  isEmpty
 } from "lodash";
 import { Network, WalletType, AddressState, AddressType, AssetSendItem } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
-import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
+import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
 import { IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
@@ -84,6 +85,15 @@ export default createStore({
         balance.push(token);
       }
 
+      if (isEmpty(balance)) {
+        balance.push({
+          name: "ERG",
+          tokenId: ERG_TOKEN_ID,
+          decimals: ERG_DECIMALS,
+          confirmedAmount: new BigNumber(0),
+          price: state.ergPrice
+        });
+      }
       return sortBy(balance, [a => a.tokenId !== ERG_TOKEN_ID, a => a.name]);
     }
   },
