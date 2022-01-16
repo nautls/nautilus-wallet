@@ -93,7 +93,10 @@ export default createStore({
           confirmedAmount: new BigNumber(0),
           price: state.ergPrice
         });
+
+        return balance;
       }
+
       return sortBy(balance, [a => a.tokenId !== ERG_TOKEN_ID, a => a.name]);
     }
   },
