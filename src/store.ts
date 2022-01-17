@@ -30,6 +30,7 @@ import { assestsDbService } from "@/api/database/assetsDbService";
 import { wasmModule } from "./utils/wasm-module";
 import * as bip39 from "bip39";
 import { setDevtoolsHook } from "vue";
+import AES from "crypto-js/aes";
 
 export default createStore({
   state: {
@@ -240,22 +241,24 @@ export default createStore({
       { dispatch },
       wallet:
         | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly }
-        | { seed: Buffer; name: string; type: WalletType.Standard }
+        | { mnemonic: string; password: string; name: string; type: WalletType.Standard }
     ) {
       const bip32 =
         wallet.type === WalletType.ReadOnly
           ? Bip32.fromPublicKey(wallet.extendedPublicKey)
-          : Bip32.fromSeed(wallet.seed);
+          : await Bip32.fromMnemonic(wallet.mnemonic);
 
-      bip32Pool.alloc(bip32, bip32.publicKey.toString("hex"));
+      bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
         name: wallet.name,
         network: Network.ErgoMainet,
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
         chainCode: bip32.chainCode.toString("hex"),
-        privateKey: bip32.privateKey?.toString("hex"),
-        seed: wallet.type === WalletType.Standard ? wallet.seed.toString("hex") : undefined
+        mnemonic:
+          wallet.type === WalletType.Standard
+            ? AES.encrypt(wallet.mnemonic, wallet.password).toString()
+            : undefined
       });
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
@@ -449,7 +452,7 @@ export default createStore({
     },
     async [ACTIONS.SEND_TX](
       { commit, state },
-      data: { assets: AssetSendItem[]; walletId: number }
+      data: { assets: AssetSendItem[]; walletId: number; password: string }
     ) {
       const changeAddress = state.currentAddresses[0].script;
       const recipientAddress = state.currentAddresses[1].script;
@@ -486,8 +489,9 @@ export default createStore({
 
       const unsigned = tx_builder.build();
 
-      const dbWallet = await walletsDbService.getFromId(data.walletId);
-      const bip32 = Bip32.fromPrivateKey(dbWallet?.privateKey || "", dbWallet?.chainCode || "");
+      const bip32 = await Bip32.fromMnemonic(
+        await walletsDbService.getMnemonic(data.walletId, data.password)
+      );
 
       const sk = sigmaRust.SecretKey.dlog_from_bytes(
         bip32.derivePrivateKey(state.currentAddresses[0].index) || Buffer.from([])

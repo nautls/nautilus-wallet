@@ -6,9 +6,8 @@ export type IDbWallet = {
   network: Network;
   type: WalletType;
   publicKey: string;
-  privateKey?: string;
   chainCode: string;
-  seed?: string;
+  mnemonic?: string;
 };
 
 export type IDbAddress = {

@@ -35,7 +35,12 @@
         </label>
       </div>
       <div>
-        <button @click="add()" type="button" class="w-full btn">
+        <label
+          >Password <input v-model.lazy="password" type="password" class="w-full control block"
+        /></label>
+      </div>
+      <div>
+        <button @click="add()" type="button" class="w-full btn mt-3">
           <span>Confirm</span>
         </button>
       </div>
@@ -51,7 +56,6 @@ import { join, orderBy, take } from "lodash";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";
-import * as bip39 from "bip39";
 
 const words = wordlists.english;
 
@@ -62,6 +66,7 @@ export default defineComponent({
     return {
       filteredWords: Object.freeze(words),
       walletName: "",
+      password: "",
       words: []
     };
   },
@@ -72,7 +77,8 @@ export default defineComponent({
       try {
         await this.putWallet({
           name: this.walletName,
-          seed: await bip39.mnemonicToSeed(join(this.words, " ")),
+          mnemonic: join(this.words, " "),
+          password: this.password,
           type: WalletType.Standard
         });
       } catch (e: any) {

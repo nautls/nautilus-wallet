@@ -3,6 +3,7 @@ import * as ecc from "tiny-secp256k1";
 import { Address } from "@coinbarn/ergo-ts";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import bs58check from "bs58check";
+import * as bip39 from "bip39";
 
 const bip32 = BIP32Factory(ecc);
 
@@ -15,16 +16,25 @@ export default class Bip32 {
   private _change!: BIP32Interface;
   private _extendedPk!: Buffer;
 
-  private constructor(bip32: BIP32Interface, isRootPath = false) {
-    if (bip32.isNeutered() || isRootPath) {
+  private constructor(bip32: BIP32Interface) {
+    if (bip32.isNeutered()) {
       this._change = bip32;
     } else {
       this._change = bip32.derivePath(DERIVATION_PATH);
     }
   }
 
-  public static fromSeed(seed: Buffer): Bip32 {
-    return new this(bip32.fromSeed(seed));
+  public neutered(): Bip32 {
+    if (this._change.isNeutered()) {
+      return this;
+    }
+
+    this._change = this._change.neutered();
+    return this;
+  }
+
+  public static async fromMnemonic(mnemonic: string): Promise<Bip32> {
+    return new this(bip32.fromSeed(await bip39.mnemonicToSeed(mnemonic)));
   }
 
   public static fromPublicKey(publicKey: string | { publicKey: string; chainCode: string }): Bip32 {
@@ -39,13 +49,6 @@ export default class Bip32 {
         )
       );
     }
-  }
-
-  public static fromPrivateKey(privateKey: string, chainCode: string): Bip32 {
-    return new this(
-      bip32.fromPrivateKey(Buffer.from(privateKey, "hex"), Buffer.from(chainCode, "hex")),
-      true
-    );
   }
 
   public get privateKey(): Buffer | undefined {

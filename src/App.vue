@@ -12,7 +12,6 @@
 import { defineComponent } from "vue";
 import NavHeader from "@/components/NavHeader.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
-
 import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { mapActions } from "vuex";
 import { ACTIONS } from "./constants/store/actions";

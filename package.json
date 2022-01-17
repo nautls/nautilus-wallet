@@ -22,6 +22,7 @@
     "bs58check": "^2.1.2",
     "cleave.js": "^1.6.0",
     "core-js": "^3.20.2",
+    "crypto-js": "^4.1.1",
     "dexie": "^3.2.0",
     "ergo-lib-wasm-browser": "^0.15.0-alpha-5d78f2d",
     "feather-icons": "^4.28.0",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@types/bs58check": "^2.1.0",
     "@types/cleave.js": "^1.4.6",
+    "@types/crypto-js": "^4.1.0",
     "@types/jest": "^27.0.3",
     "@types/json-bigint": "^1.0.1",
     "@types/lodash": "^4.14.178",

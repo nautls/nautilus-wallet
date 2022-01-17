@@ -50,7 +50,14 @@
       </div>
     </div>
 
-    <div class="flex-shrink"><button class="btn w-full" @click="sendTx()">Confirm</button></div>
+    <div class="flex-shrink">
+      <div>
+        <label
+          >Password <input v-model.lazy="password" type="password" class="w-full control block"
+        /></label>
+      </div>
+      <button class="btn w-full mt-5" @click="sendTx()">Confirm</button>
+    </div>
   </div>
 </template>
 
@@ -108,7 +115,8 @@ export default defineComponent({
   },
   data() {
     return {
-      selected: [] as AssetSendItem[]
+      selected: [] as AssetSendItem[],
+      password: ""
     };
   },
   methods: {
@@ -116,7 +124,8 @@ export default defineComponent({
       const currentWalletId = this.$store.state.currentWallet.id;
       await this.$store.dispatch(ACTIONS.SEND_TX, {
         assets: this.selected,
-        walletId: currentWalletId
+        walletId: currentWalletId,
+        password: this.password
       });
     },
     add(asset: StateAsset) {

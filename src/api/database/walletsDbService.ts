@@ -1,9 +1,23 @@
 import { IDbWallet } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
+import AES from "crypto-js/aes";
+import utf8Enc from "crypto-js/enc-utf8";
 
 class WalletsDbService {
   public async getFromId(id: number): Promise<IDbWallet | undefined> {
     return await dbContext.wallets.where("id").equals(id).first();
+  }
+
+  public async getMnemonic(id: number, password: string) {
+    const wallet = await this.getFromId(id);
+    if (!wallet) {
+      throw Error("wallet not found");
+    }
+    if (!wallet.mnemonic) {
+      throw Error("wallet doesn't have a mnemonic phrase");
+    }
+
+    return AES.decrypt(wallet.mnemonic, password).toString(utf8Enc);
   }
 
   public async getFromPk(publicKey: string): Promise<IDbWallet | undefined> {
@@ -17,11 +31,6 @@ class WalletsDbService {
     }
 
     return dbContext.wallets.put(wallet);
-  }
-
-  public async getSeed(walletId: number): Promise<string | undefined> {
-    const wallet = await dbContext.wallets.where("id").equals(walletId).first();
-    return wallet?.privateKey;
   }
 
   public async getAll(): Promise<IDbWallet[]> {
