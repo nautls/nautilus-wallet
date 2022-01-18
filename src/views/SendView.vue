@@ -65,7 +65,7 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
-import { AssetSendItem, StateAsset } from "@/types/internal";
+import { SendTxCommandAsset, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
@@ -115,7 +115,7 @@ export default defineComponent({
   },
   data() {
     return {
-      selected: [] as AssetSendItem[],
+      selected: [] as SendTxCommandAsset[],
       password: ""
     };
   },

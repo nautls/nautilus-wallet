@@ -17,7 +17,7 @@ import {
   findLastIndex,
   isEmpty
 } from "lodash";
-import { Network, WalletType, AddressState, AddressType, AssetSendItem } from "@/types/internal";
+import { Network, WalletType, AddressState, AddressType, SendTxCommand } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
@@ -28,9 +28,8 @@ import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import { wasmModule } from "./utils/wasm-module";
-import * as bip39 from "bip39";
-import { setDevtoolsHook } from "vue";
 import AES from "crypto-js/aes";
+import { signTx } from "./api/ergo/signTx";
 
 export default createStore({
   state: {
@@ -305,7 +304,6 @@ export default createStore({
       const index = (maxBy(state.currentAddresses, a => a.index)?.index || 0) + 1;
       const bip32 = bip32Pool.get(pk);
       const address = bip32.deriveAddress(index);
-      console.log(index);
       await addressesDbService.put({
         type: AddressType.P2PK,
         state: AddressState.Unused,
@@ -450,71 +448,15 @@ export default createStore({
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
-    async [ACTIONS.SEND_TX](
-      { commit, state },
-      data: { assets: AssetSendItem[]; walletId: number; password: string }
-    ) {
-      const changeAddress = state.currentAddresses[0].script;
-      const recipientAddress = state.currentAddresses[1].script;
+    async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
+      let unused = find(state.currentAddresses, a => a.state === AddressState.Unused);
+      if (!unused) {
+        await dispatch(ACTIONS.NEW_ADDRESS);
+      }
 
-      const boxes = await explorerService.getUnspentBoxes(changeAddress);
-      const sigmaRust = wasmModule.SigmaRust;
-
-      const recipient = sigmaRust.Address.from_mainnet_str(recipientAddress);
-      const unspent_boxes = sigmaRust.ErgoBoxes.from_boxes_json(boxes.data);
-      const contract = sigmaRust.Contract.pay_to_address(recipient);
-      const outbox_value = sigmaRust.BoxValue.SAFE_USER_MIN();
-      const outbox = new sigmaRust.ErgoBoxCandidateBuilder(outbox_value, contract, 0).build();
-      const tx_outputs = new sigmaRust.ErgoBoxCandidates(outbox);
-      const fee = sigmaRust.TxBuilder.SUGGESTED_TX_FEE();
-      const change_address = sigmaRust.Address.from_mainnet_str(changeAddress);
-      const min_change_value = sigmaRust.BoxValue.SAFE_USER_MIN();
-      const box_selector = new sigmaRust.SimpleBoxSelector();
-      const target_balance = sigmaRust.BoxValue.from_i64(
-        outbox_value.as_i64().checked_add(fee.as_i64())
-      );
-      const box_selection = box_selector.select(
-        unspent_boxes,
-        target_balance,
-        new sigmaRust.Tokens()
-      );
-      const tx_builder = sigmaRust.TxBuilder.new(
-        box_selection,
-        tx_outputs,
-        0,
-        fee,
-        change_address,
-        min_change_value
-      );
-
-      const unsigned = tx_builder.build();
-
-      const bip32 = await Bip32.fromMnemonic(
-        await walletsDbService.getMnemonic(data.walletId, data.password)
-      );
-
-      const sk = sigmaRust.SecretKey.dlog_from_bytes(
-        bip32.derivePrivateKey(state.currentAddresses[0].index) || Buffer.from([])
-      );
-      console.log(changeAddress);
-      console.log(sk.get_address().to_base58(sigmaRust.NetworkPrefix.Mainnet));
-      const sks = new sigmaRust.SecretKeys();
-      sks.add(sk);
-      const wallet = sigmaRust.Wallet.from_secrets(sks);
-
-      const blocks = await explorerService.getLastTenBlockHeaders();
-      const blockHeaders = sigmaRust.BlockHeaders.from_json(blocks);
-      const pre_header = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
-      const ctx = new sigmaRust.ErgoStateContext(pre_header, blockHeaders);
-      const signed = wallet.sign_transaction(
-        ctx,
-        unsigned,
-        unspent_boxes,
-        sigmaRust.ErgoBoxes.from_boxes_json([])
-      );
-      console.log(signed.to_js_eip12());
-      const resp = await explorerService.sendTx(signed.to_json());
-      console.log(resp);
+      const signedJson = await signTx(command);
+      const resp = await explorerService.sendTx(signedJson);
+      console.log(resp.id);
     }
   }
 });

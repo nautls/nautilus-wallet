@@ -13,6 +13,10 @@ class NautilusDb extends Dexie {
       addresses: "&script, type, walletId",
       assets: "&[tokenId+address], &[address+tokenId], walletId"
     });
+
+    this.version(2).stores({
+      addresses: "&script, type, state, walletId"
+    });
   }
 }
 

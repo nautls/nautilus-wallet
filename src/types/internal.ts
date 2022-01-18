@@ -60,7 +60,15 @@ export type StateAsset = {
   price?: number;
 };
 
-export type AssetSendItem = {
+export type SendTxCommandAsset = {
   asset: StateAsset;
   amount?: BigNumber;
+};
+
+export type SendTxCommand = {
+  walletId: number;
+  assets: SendTxCommandAsset[];
+  fee: BigNumber;
+  recipient: string;
+  password: string;
 };

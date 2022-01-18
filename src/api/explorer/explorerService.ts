@@ -97,7 +97,6 @@ class ExplorerService {
 
   public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {
     const blocks = await this.getBlocks({ limit: 10 });
-    console.log(blocks);
     return (await Promise.all(blocks.items.map((b: any) => this.getBlock(b.id)))).map(
       (b: any) => b.block.header
     );

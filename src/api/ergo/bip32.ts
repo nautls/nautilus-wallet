@@ -4,6 +4,7 @@ import { Address } from "@coinbarn/ergo-ts";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import bs58check from "bs58check";
 import * as bip39 from "bip39";
+import { isEmpty } from "lodash";
 
 const bip32 = BIP32Factory(ecc);
 
@@ -77,8 +78,13 @@ export default class Bip32 {
     return key.fill(0, 4, 12);
   }
 
-  public derivePrivateKey(index: number): Buffer | undefined {
-    return this._change.derive(index).privateKey;
+  public derivePrivateKey(index: number): Buffer {
+    const pk = this._change.derive(index).privateKey;
+    if (!pk) {
+      throw Error("private key not found.");
+    }
+
+    return pk;
   }
 
   public deriveAddress(index: number): DerivedAddress {
