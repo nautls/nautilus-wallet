@@ -1,12 +1,19 @@
 import { ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { IDbAddress } from "@/types/database";
 import { ExplorergetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { BoxValue, SecretKeys, Tokens, Wallet } from "ergo-lib-wasm-browser";
-import { find, forEach } from "lodash";
+import {
+  Address,
+  BoxValue,
+  ErgoBoxCandidate,
+  ErgoBoxCandidates,
+  I64,
+  Tokens,
+  Wallet
+} from "ergo-lib-wasm-browser";
+import { find } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 
@@ -54,36 +61,25 @@ export class Transaction {
   public sign(context: SignContext): string {
     const sigmaRust = wasmModule.SigmaRust;
 
-    const currentHeight = this._boxes[0]?.creationHeight || 0;
+    const height = this._boxes[0]?.creationHeight || 0;
     const recipient = sigmaRust.Address.from_mainnet_str(this._to);
     const change_address = sigmaRust.Address.from_mainnet_str(this._change);
 
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(this._boxes);
-    const outboxValue = this.getErgAmount();
+    const outputValue = this.getErgAmount();
     const tokens = this.buildTokenList();
-    const outboxBuilder = new sigmaRust.ErgoBoxCandidateBuilder(
-      outboxValue,
-      sigmaRust.Contract.pay_to_address(recipient),
-      currentHeight
-    );
-
-    for (let i = 0; i < tokens.len(); i++) {
-      outboxBuilder.add_token(tokens.get(i).id(), tokens.get(i).amount());
-    }
-
-    const tx_outputs = new sigmaRust.ErgoBoxCandidates(outboxBuilder.build());
-
+    const tx_outputs = this.buildOutputBoxes(outputValue, tokens, recipient, height);
     const fee = this.getFee();
-
     const box_selector = new sigmaRust.SimpleBoxSelector();
     const target_balance = sigmaRust.BoxValue.from_i64(
-      outboxValue.as_i64().checked_add(fee.as_i64())
+      outputValue.as_i64().checked_add(fee.as_i64())
     );
     const box_selection = box_selector.select(unspentBoxes, target_balance, tokens);
+
     const unsigned = sigmaRust.TxBuilder.new(
       box_selection,
       tx_outputs,
-      currentHeight,
+      height,
       fee,
       change_address,
       sigmaRust.BoxValue.SAFE_USER_MIN()
@@ -103,6 +99,25 @@ export class Transaction {
     return signed.to_json();
   }
 
+  private buildOutputBoxes(
+    outputValue: BoxValue,
+    tokens: Tokens,
+    recipient: Address,
+    height: number
+  ): ErgoBoxCandidates {
+    const builder = new wasmModule.SigmaRust.ErgoBoxCandidateBuilder(
+      outputValue,
+      wasmModule.SigmaRust.Contract.pay_to_address(recipient),
+      height
+    );
+
+    for (let i = 0; i < tokens.len(); i++) {
+      builder.add_token(tokens.get(i).id(), tokens.get(i).amount());
+    }
+
+    return new wasmModule.SigmaRust.ErgoBoxCandidates(builder.build());
+  }
+
   private buildWallet(addresses: StateAddress[], bip32: Bip32): Wallet {
     const sigmaRust = wasmModule.SigmaRust;
     const sks = new sigmaRust.SecretKeys();
@@ -118,6 +133,7 @@ export class Transaction {
     if (!find(this._assets, a => a.asset.tokenId !== ERG_TOKEN_ID)) {
       return tokens;
     }
+    const sigmaRust = wasmModule.SigmaRust;
 
     for (const asset of this._assets.filter(x => x.asset.tokenId !== ERG_TOKEN_ID)) {
       if (!asset.amount || asset.amount.isLessThanOrEqualTo(0)) {
@@ -125,12 +141,10 @@ export class Transaction {
       }
 
       tokens.add(
-        new wasmModule.SigmaRust.Token(
-          wasmModule.SigmaRust.TokenId.from_str(asset.asset.tokenId),
-          wasmModule.SigmaRust.TokenAmount.from_i64(
-            wasmModule.SigmaRust.I64.from_str(
-              removeDecimals(asset.amount, asset.asset.decimals).toString()
-            )
+        new sigmaRust.Token(
+          sigmaRust.TokenId.from_str(asset.asset.tokenId),
+          sigmaRust.TokenAmount.from_i64(
+            this.toI64(removeDecimals(asset.amount, asset.asset.decimals))
           )
         )
       );
@@ -150,7 +164,7 @@ export class Transaction {
     }
 
     return wasmModule.SigmaRust.BoxValue.from_i64(
-      wasmModule.SigmaRust.I64.from_str(removeDecimals(erg.amount, erg.asset.decimals).toString())
+      this.toI64(removeDecimals(erg.amount, erg.asset.decimals))
     );
   }
 
@@ -158,6 +172,10 @@ export class Transaction {
     const sigmaRust = wasmModule.SigmaRust;
     return !this._fee || this._fee.isZero()
       ? sigmaRust.TxBuilder.SUGGESTED_TX_FEE()
-      : sigmaRust.BoxValue.from_i64(sigmaRust.I64.from_str(this._fee.toString()));
+      : sigmaRust.BoxValue.from_i64(this.toI64(this._fee));
+  }
+
+  private toI64(value: BigNumber): I64 {
+    return wasmModule.SigmaRust.I64.from_str(value.toString());
   }
 }
