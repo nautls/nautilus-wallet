@@ -15,7 +15,8 @@ import {
   maxBy,
   clone,
   findLastIndex,
-  isEmpty
+  isEmpty,
+  filter
 } from "lodash";
 import { Network, WalletType, AddressState, AddressType, SendTxCommand } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
@@ -27,9 +28,9 @@ import { IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
-import { wasmModule } from "./utils/wasm-module";
 import AES from "crypto-js/aes";
-import { signTx } from "./api/ergo/signTx";
+import { Transaction } from "./api/ergo/transaction/transaction";
+import { SignContext } from "./api/ergo/transaction/signContext";
 
 export default createStore({
   state: {
@@ -449,13 +450,32 @@ export default createStore({
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
+      const addresses = clone(state.currentAddresses);
       let unused = find(state.currentAddresses, a => a.state === AddressState.Unused);
       if (!unused) {
         await dispatch(ACTIONS.NEW_ADDRESS);
       }
 
-      const signedJson = await signTx(command);
-      const resp = await explorerService.sendTx(signedJson);
+      const selectedAddresses = addresses.filter(a => a.state === AddressState.Used && a.balance);
+      const bip32 = await Bip32.fromMnemonic(
+        await walletsDbService.getMnemonic(command.walletId, command.password)
+      );
+      const changeAddress =
+        find(addresses, a => a.state === AddressState.Unused)?.script ||
+        bip32.deriveAddress(0).script;
+
+      const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map(a => a.script));
+      const blockHeaders = await explorerService.getLastTenBlockHeaders();
+
+      const signedtx = Transaction.from(selectedAddresses)
+        .to(command.recipient)
+        .change(changeAddress)
+        .withAssets(command.assets)
+        // .withFee(new BigNumber(1))
+        .fromBoxes(boxes.map(a => a.data).flat())
+        .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
+
+      const resp = await explorerService.sendTx(signedtx);
       console.log(resp.id);
     }
   }

@@ -7,6 +7,13 @@ export function setDecimals(value: BigNumber | undefined, decimals: number): Big
   return value.multipliedBy(Math.pow(10, decimals * -1));
 }
 
+export function removeDecimals(value: BigNumber, decimals: number): BigNumber {
+  if (!decimals) {
+    return value;
+  }
+  return value.multipliedBy(Math.pow(10, decimals));
+}
+
 export function toBigNumber(value?: string | number | BigNumber): BigNumber | undefined {
   if (value === undefined) {
     return value;

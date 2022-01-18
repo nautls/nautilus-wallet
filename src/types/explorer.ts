@@ -303,3 +303,29 @@ export type ExplorerGetApiV1BlocksP1Response = {
 export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
   id: string;
 };
+
+export type ExplorergetUnspentBox = {
+  id: string;
+  txId: string;
+  value: number;
+  index: number;
+  creationHeight: number;
+  ergoTree: string;
+  address: string;
+  assets: [
+    {
+      tokenId: string;
+      index: number;
+      amount: number;
+      name: string;
+      decimals: number;
+      type: string;
+    }
+  ];
+  additionalRegisters: {
+    property1: string;
+    property2: string;
+  };
+  spentTransactionId: string;
+  mainChain: boolean;
+};

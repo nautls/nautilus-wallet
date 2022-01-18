@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-5 h-full">
     <label>
       Receiver
-      <input type="text" spellcheck="false" class="w-full control block" />
+      <input type="text" v-model.lazy="recipient" spellcheck="false" class="w-full control block" />
     </label>
     <div class="flex-grow">
       <div class="flex flex-col gap-2">
@@ -64,7 +64,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE } from "@/constants/ergo";
 import { SendTxCommandAsset, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
@@ -88,14 +88,7 @@ export default defineComponent({
       );
     },
     suggestedFee(): string {
-      if (!wasmModule.loaded) {
-        return "";
-      }
-
-      const fee = new BigNumber(
-        wasmModule.SigmaRust.TxBuilder.SUGGESTED_TX_FEE().as_i64().to_str()
-      );
-      return setDecimals(fee, ERG_DECIMALS)?.toString() || "";
+      return setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS)?.toString() || "";
     }
   },
   watch: {
@@ -116,13 +109,15 @@ export default defineComponent({
   data() {
     return {
       selected: [] as SendTxCommandAsset[],
-      password: ""
+      password: "",
+      recipient: ""
     };
   },
   methods: {
     async sendTx() {
       const currentWalletId = this.$store.state.currentWallet.id;
       await this.$store.dispatch(ACTIONS.SEND_TX, {
+        recipient: this.recipient,
         assets: this.selected,
         walletId: currentWalletId,
         password: this.password
