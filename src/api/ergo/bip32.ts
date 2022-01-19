@@ -4,7 +4,6 @@ import { Address } from "@coinbarn/ergo-ts";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import bs58check from "bs58check";
 import * as bip39 from "bip39";
-import { isEmpty } from "lodash";
 
 const bip32 = BIP32Factory(ecc);
 
