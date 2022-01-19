@@ -450,11 +450,11 @@ export default createStore({
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
-      const addresses = clone(state.currentAddresses);
       let unused = find(state.currentAddresses, a => a.state === AddressState.Unused);
       if (!unused) {
         await dispatch(ACTIONS.NEW_ADDRESS);
       }
+      const addresses = clone(state.currentAddresses);
 
       const selectedAddresses = addresses.filter(a => a.state === AddressState.Used && a.balance);
       const bip32 = await Bip32.fromMnemonic(
@@ -471,7 +471,6 @@ export default createStore({
         .to(command.recipient)
         .change(changeAddress)
         .withAssets(command.assets)
-        // .withFee(new BigNumber(1))
         .fromBoxes(boxes.map(a => a.data).flat())
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 

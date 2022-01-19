@@ -12,6 +12,7 @@
           :key="item.asset.tokenId"
           v-model="item.amount"
           :asset="item.asset"
+          :locked-amount="isErg(item.asset.tokenId) ? lockedErgAmount : undefined"
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
         />
@@ -64,12 +65,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
-import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
 import { SendTxCommandAsset, StateAsset } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
-import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import { setDecimals } from "@/utils/bigNumbers";
 
@@ -87,8 +87,35 @@ export default defineComponent({
         a => a.tokenId
       );
     },
-    suggestedFee(): string {
-      return setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS)?.toString() || "";
+    hasChange(): boolean {
+      if (!isEmpty(this.unselected)) {
+        return true;
+      }
+
+      for (const asset of this.selected.filter(a => a.asset.tokenId !== ERG_TOKEN_ID)) {
+        if (!asset.amount || !asset.amount.isEqualTo(asset.asset.confirmedAmount)) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    lockedErgAmount(): BigNumber {
+      if (!this.minimumChangeValue) {
+        return this.suggestedFee;
+      }
+
+      return this.suggestedFee.plus(this.minimumChangeValue);
+    },
+    suggestedFee(): BigNumber {
+      return setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS) || new BigNumber(0);
+    },
+    minimumChangeValue(): BigNumber | undefined {
+      if (!this.hasChange) {
+        return;
+      }
+
+      return setDecimals(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
     }
   },
   watch: {

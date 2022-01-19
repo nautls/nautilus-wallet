@@ -3,5 +3,5 @@ export const DEFAULT_WALLET_STRENGTH = 160;
 export const DERIVATION_PATH = "m/44'/429'/0'/0";
 export const ERG_DECIMALS = 9;
 export const FEE_VALUE = 1100000;
-export const MIN_BOX_VALUE = 100000;
+export const MIN_BOX_VALUE = 1000000;
 export const CHUNK_DERIVE_LENGTH = 20;

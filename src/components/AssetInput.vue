@@ -50,7 +50,7 @@
           <a
             @click="setMaxValue()"
             class="text-xs cursor-pointer underline-transparent text-gray-400"
-            >Balance: {{ $filters.formatBigNumber(asset.confirmedAmount) }}</a
+            >Balance: {{ $filters.formatBigNumber(balance) }}</a
           >
         </div>
       </div>
@@ -69,9 +69,17 @@ export default defineComponent({
     label: { type: String, required: false },
     disposable: { type: Boolean, defaul: false },
     asset: { type: Object, required: true },
-    modelValue: { type: Object, required: false }
+    modelValue: { type: Object, required: false },
+    lockedAmount: { type: BigNumber, required: false }
   },
   computed: {
+    balance() {
+      if (!this.lockedAmount) {
+        return this.asset.confirmedAmount;
+      }
+
+      return this.asset.confirmedAmount.minus(this.lockedAmount);
+    },
     parsedValue() {
       return this.parseToBigNumber(this.internalValue);
     },
@@ -119,7 +127,7 @@ export default defineComponent({
       this.hovered = val;
     },
     setMaxValue() {
-      (this.$refs as any)["val-input"].cleave.setRawValue(this.asset.confirmedAmount.toString());
+      (this.$refs as any)["val-input"].cleave.setRawValue(this.balance.toString());
     },
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();
