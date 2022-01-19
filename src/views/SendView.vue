@@ -194,9 +194,25 @@ export default defineComponent({
     },
     add(asset: StateAsset) {
       this.selected.push({ asset });
+      this.setMinBoxValue();
     },
     remove(tokenId: string) {
       remove(this.selected, a => a.asset.tokenId === tokenId);
+      this.setMinBoxValue();
+    },
+    setMinBoxValue() {
+      if (this.selected.length === 1) {
+        return;
+      }
+
+      const erg = find(this.selected, a => this.isErg(a.asset.tokenId));
+      if (!erg) {
+        return;
+      }
+
+      if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
+        erg.amount = new BigNumber(this.minBoxValue);
+      }
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;

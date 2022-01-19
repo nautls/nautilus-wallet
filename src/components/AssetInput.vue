@@ -108,6 +108,13 @@ export default defineComponent({
       }
 
       this.$emit("update:modelValue", value);
+    },
+    modelValue(value: BigNumber) {
+      if (!value || value.isNaN() || this.parsedValue?.isEqualTo(value)) {
+        return;
+      }
+
+      (this.$refs as any)["val-input"].cleave.setRawValue(value.toString());
     }
   },
   data() {
