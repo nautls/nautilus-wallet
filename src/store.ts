@@ -450,7 +450,10 @@ export default createStore({
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
-      let unused = find(state.currentAddresses, a => a.state === AddressState.Unused);
+      let unused = find(
+        state.currentAddresses,
+        a => a.state === AddressState.Unused && a.script !== command.recipient
+      );
       if (!unused) {
         await dispatch(ACTIONS.NEW_ADDRESS);
       }
