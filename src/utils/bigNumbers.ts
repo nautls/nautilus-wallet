@@ -1,5 +1,7 @@
 import BigNumber from "bignumber.js";
 
+export function setDecimals(value: BigNumber, decimals: number): BigNumber;
+export function setDecimals(value: BigNumber | undefined, decimals: number): BigNumber | undefined;
 export function setDecimals(value: BigNumber | undefined, decimals: number): BigNumber | undefined {
   if (!decimals || value === undefined) {
     return value;

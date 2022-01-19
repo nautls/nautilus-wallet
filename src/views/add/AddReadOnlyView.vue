@@ -12,7 +12,7 @@
           v-model.lazy="walletName"
           class="w-full control block"
       /></label>
-      <p class="text-danger" v-if="v$.walletName.$error">{{ v$.walletName.$errors[0].$message }}</p>
+      <p class="input-error" v-if="v$.walletName.$error">{{ v$.walletName.$errors[0].$message }}</p>
     </div>
     <div>
       <label class="mt-3">
@@ -26,10 +26,10 @@
           v-model.lazy="publicKey"
         ></textarea>
       </label>
-      <p class="text-danger" v-if="v$.publicKey.$error">
+      <p class="input-error" v-if="v$.publicKey.$error">
         {{ v$.publicKey.$errors[0].$message }}
       </p>
-      <p class="text-danger" v-if="pkError !== ''">{{ pkError }}</p>
+      <p class="input-error" v-if="pkError !== ''">{{ pkError }}</p>
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">

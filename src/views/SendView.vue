@@ -2,7 +2,14 @@
   <div class="flex flex-col gap-5 h-full">
     <label>
       Receiver
-      <input type="text" v-model.lazy="recipient" spellcheck="false" class="w-full control block" />
+      <input
+        type="text"
+        @blur="v$.recipient.$touch()"
+        v-model.lazy="recipient"
+        spellcheck="false"
+        class="w-full control block"
+      />
+      <p class="input-error" v-if="v$.recipient.$error">{{ v$.recipient.$errors[0].$message }}</p>
     </label>
     <div class="flex-grow">
       <div class="flex flex-col gap-2">
@@ -13,6 +20,7 @@
           v-model="item.amount"
           :asset="item.asset"
           :locked-amount="isErg(item.asset.tokenId) ? lockedErgAmount : undefined"
+          :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
         />
@@ -54,8 +62,17 @@
     <div class="flex-shrink">
       <div>
         <label
-          >Password <input v-model.lazy="password" type="password" class="w-full control block"
-        /></label>
+          >Password
+          <input
+            @blur="v$.password.$touch()"
+            v-model.lazy="password"
+            type="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
+          </p>
+        </label>
       </div>
       <button class="btn w-full mt-5" @click="sendTx()">Confirm</button>
     </div>
@@ -72,10 +89,16 @@ import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import BigNumber from "bignumber.js";
 import { setDecimals } from "@/utils/bigNumbers";
+import { required, helpers } from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { validErgoAddress } from "@/validators";
 
 export default defineComponent({
   name: "SendView",
   components: { AssetInput },
+  setup() {
+    return { v$: useVuelidate() };
+  },
   computed: {
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
@@ -101,21 +124,24 @@ export default defineComponent({
       return false;
     },
     lockedErgAmount(): BigNumber {
-      if (!this.minimumChangeValue) {
+      if (!this.changeValue) {
         return this.suggestedFee;
       }
 
-      return this.suggestedFee.plus(this.minimumChangeValue);
+      return this.suggestedFee.plus(this.changeValue);
     },
     suggestedFee(): BigNumber {
-      return setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS) || new BigNumber(0);
+      return setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS);
     },
-    minimumChangeValue(): BigNumber | undefined {
+    changeValue(): BigNumber | undefined {
       if (!this.hasChange) {
         return;
       }
 
-      return setDecimals(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
+      return this.minBoxValue;
+    },
+    minBoxValue(): BigNumber {
+      return setDecimals(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
     }
   },
   watch: {
@@ -140,8 +166,24 @@ export default defineComponent({
       recipient: ""
     };
   },
+  validations() {
+    return {
+      recipient: {
+        required: helpers.withMessage("Receiver address is required.", required),
+        validErgoAddress
+      },
+      password: {
+        required: helpers.withMessage("A password is required for transaction signing.", required)
+      }
+    };
+  },
   methods: {
     async sendTx() {
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
+        return;
+      }
+
       const currentWalletId = this.$store.state.currentWallet.id;
       await this.$store.dispatch(ACTIONS.SEND_TX, {
         recipient: this.recipient,

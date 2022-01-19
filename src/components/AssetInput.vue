@@ -19,6 +19,7 @@
         <div class="w-7/12">
           <input
             ref="val-input"
+            @blur="v$.parsedValue.$touch()"
             v-cleave="{
               numeral: true,
               numeralDecimalScale: asset.decimals,
@@ -55,10 +56,16 @@
         </div>
       </div>
     </div>
+    <p class="input-error" v-if="v$.parsedValue.$error">
+      {{ v$.parsedValue.$errors[0].$message }}
+    </p>
   </label>
 </template>
 
 <script lang="ts">
+import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
 import { defineComponent } from "vue";
@@ -70,7 +77,11 @@ export default defineComponent({
     disposable: { type: Boolean, defaul: false },
     asset: { type: Object, required: true },
     modelValue: { type: Object, required: false },
-    lockedAmount: { type: BigNumber, required: false }
+    lockedAmount: { type: BigNumber, required: false },
+    minAmount: { type: BigNumber, required: false }
+  },
+  setup() {
+    return { v$: useVuelidate() };
   },
   computed: {
     balance() {
@@ -103,6 +114,15 @@ export default defineComponent({
     return {
       hovered: false,
       internalValue: ""
+    };
+  },
+  validations() {
+    return {
+      parsedValue: {
+        required: helpers.withMessage("An amount value is required.", required),
+        minValue: bigNumberMinValue(this.minAmount || new BigNumber(0)),
+        maxValue: bigNumberMaxValue(this.balance)
+      }
     };
   },
   methods: {
