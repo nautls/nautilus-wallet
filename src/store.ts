@@ -263,7 +263,7 @@ export default createStore({
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
     },
-    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ commit, dispatch }, id: number) {
+    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ dispatch }, id: number) {
       const wallet = await walletsDbService.getFromId(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
@@ -477,8 +477,8 @@ export default createStore({
         .fromBoxes(boxes.map(a => a.data).flat())
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      const resp = await explorerService.sendTx(signedtx);
-      console.log(resp.id);
+      const response = await explorerService.sendTx(signedtx);
+      return response.id;
     }
   }
 });

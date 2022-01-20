@@ -4,6 +4,7 @@ import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash";
 import { AddressState } from "@/types/internal";
+import { PasswordError } from "@/types/errors";
 
 class WalletsDbService {
   public async getFromId(id: number): Promise<IDbWallet | undefined> {
@@ -22,12 +23,12 @@ class WalletsDbService {
     try {
       const mnemonic = AES.decrypt(wallet.mnemonic, password).toString(utf8Enc);
       if (isEmpty(mnemonic)) {
-        throw Error("wrong password");
+        throw new PasswordError();
       }
 
       return mnemonic;
     } catch {
-      throw Error("wrong password");
+      throw new PasswordError();
     }
   }
 

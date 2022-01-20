@@ -8,11 +8,12 @@ import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
+import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
-import { Inputitems } from "@oruga-ui/oruga-next";
+import { Inputitems, Modal } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
 
 import "@/assets/styles/fonts.css";
@@ -43,11 +44,13 @@ app
   .use(store)
   .use(router)
   .use(Inputitems)
+  .use(Modal)
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
   .component("page-title", PageTitle)
   .component("click-to-copy", ClickToCopy)
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)
+  .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
   .mount("#app");

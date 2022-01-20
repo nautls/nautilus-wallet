@@ -76,6 +76,12 @@
       </div>
       <button class="btn w-full mt-5" @click="sendTx()">Confirm</button>
     </div>
+    <loading-modal
+      title="Signing"
+      :message="singMessage"
+      :state="singState"
+      @close="singState = 'disabled'"
+    />
   </div>
 </template>
 
@@ -92,10 +98,13 @@ import { setDecimals } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
+import { PasswordError, TxSignError } from "@/types/errors";
+import LoadingModal from "@/components/LoadingModal.vue";
+import { TRANSACTION_URL } from "@/constants/explorer";
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput },
+  components: { AssetInput, LoadingModal },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -163,7 +172,9 @@ export default defineComponent({
     return {
       selected: [] as SendTxCommandAsset[],
       password: "",
-      recipient: ""
+      recipient: "",
+      singState: "disabled",
+      singMessage: ""
     };
   },
   validations() {
@@ -184,13 +195,47 @@ export default defineComponent({
         return;
       }
 
+      this.singState = "loading";
+      this.singMessage = "";
       const currentWalletId = this.$store.state.currentWallet.id;
-      await this.$store.dispatch(ACTIONS.SEND_TX, {
-        recipient: this.recipient,
-        assets: this.selected,
-        walletId: currentWalletId,
-        password: this.password
-      });
+
+      try {
+        const txId = await this.$store.dispatch(ACTIONS.SEND_TX, {
+          recipient: this.recipient,
+          assets: this.selected,
+          walletId: currentWalletId,
+          password: this.password
+        });
+
+        this.clear();
+
+        this.singState = "success";
+        this.singMessage = `Transaction submitted<br><a href='${this.urlForTransaction(
+          txId
+        )}' target='_blank'>View on Explorer</a>`;
+      } catch (e) {
+        this.singState = "error";
+        console.error(e);
+
+        if (e instanceof TxSignError) {
+          this.singMessage = `Something went wrong on signing processs.<br /><br /><code>${e.message}</code>`;
+        } else if (e instanceof PasswordError) {
+          this.singMessage = e.message;
+        } else {
+          this.singMessage = `Something went wrong on signing process. Please try again later.<br /><br /><code>${
+            (e as Error).message
+          }</code>`;
+        }
+      }
+    },
+    clear(): void {
+      this.recipient = "";
+      this.selected = [];
+      this.password = "";
+      this.v$.$reset();
+    },
+    urlForTransaction(txId: string): string {
+      return `${TRANSACTION_URL}${txId}`;
     },
     add(asset: StateAsset) {
       this.selected.push({ asset });
