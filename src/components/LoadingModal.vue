@@ -8,7 +8,7 @@
     content-class="!w-auto rounded"
   >
     <div class="p-5 w-60 text-center">
-      <div :class="stateClass">
+      <div :class="stateClass" class="w-full h-26">
         <vue-feather type="check-circle" v-if="state === 'success'" class="w-25 h-25" />
         <vue-feather type="alert-circle" v-else-if="state === 'error'" class="w-25 h-25" />
         <loading-indicator v-else type="circular" class="w-25 h-25" />
