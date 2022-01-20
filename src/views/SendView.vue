@@ -89,7 +89,7 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { SendTxCommandAsset, StateAsset } from "@/types/internal";
+import { SendTxCommandAsset, StateAsset, StateWallet, WalletType } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
@@ -101,6 +101,7 @@ import { validErgoAddress } from "@/validators";
 import { PasswordError, TxSignError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
+import { mapState } from "vuex";
 
 export default defineComponent({
   name: "SendView",
@@ -109,6 +110,9 @@ export default defineComponent({
     return { v$: useVuelidate() };
   },
   computed: {
+    ...mapState({
+      currentWallet: "currentWallet"
+    }),
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
     },
@@ -133,6 +137,11 @@ export default defineComponent({
       return false;
     },
     lockedErgAmount(): BigNumber {
+      const erg = find(this.selected, a => a.asset.tokenId === ERG_TOKEN_ID);
+      if (!erg || erg.asset.confirmedAmount.isZero()) {
+        return new BigNumber(0);
+      }
+
       if (!this.changeValue) {
         return this.suggestedFee;
       }
@@ -154,17 +163,17 @@ export default defineComponent({
     }
   },
   watch: {
+    currentWallet(wallet: StateWallet) {
+      this.$router.push({ name: "assets-page" });
+    },
     assets: {
       immediate: true,
-      handler() {
+      handler(t: any, d: any) {
         if (!isEmpty(this.selected)) {
           return;
         }
 
-        const erg = find(this.assets, a => a.tokenId === ERG_TOKEN_ID);
-        if (erg) {
-          this.selected.push({ asset: erg });
-        }
+        this.setErgAsSelected();
       }
     }
   },
@@ -229,10 +238,17 @@ export default defineComponent({
       }
     },
     clear(): void {
-      this.recipient = "";
       this.selected = [];
+      this.setErgAsSelected();
+      this.recipient = "";
       this.password = "";
       this.v$.$reset();
+    },
+    setErgAsSelected(): void {
+      const erg = find(this.assets, a => a.tokenId === ERG_TOKEN_ID);
+      if (erg) {
+        this.selected.push({ asset: erg });
+      }
     },
     urlForTransaction(txId: string): string {
       return `${TRANSACTION_URL}${txId}`;
