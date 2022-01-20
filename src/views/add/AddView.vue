@@ -2,12 +2,14 @@
   <div>
     <page-title title="Welcome to Nautilus." :back-button="hasWallets" />
     <p class="pt-2 pb-5">
-      <button type="button" disabled class="nav-btn">
-        <span class="title">Create wallet</span>
-        <span class="subtitle"
-          >Generate a 15-word recovery phrase and create a new Ergo wallet.</span
-        >
-      </button>
+      <router-link to="/add/new" custom v-slot="{ navigate }">
+        <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+          <span class="title">Create wallet</span>
+          <span class="subtitle"
+            >Generate a 15-word recovery phrase and create a new Ergo wallet.</span
+          >
+        </button>
+      </router-link>
     </p>
     <p class="pb-5">
       <router-link to="/add/restore" custom v-slot="{ navigate }">

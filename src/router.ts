@@ -1,10 +1,11 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
 import AddView from "@/views/add/AddView.vue";
-import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import ReceiveView from "@/views/ReceiveView.vue";
+import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import RestoreView from "@/views/add/RestoreView.vue";
+import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -31,6 +32,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/add/restore",
     name: "restore-wallet",
     component: RestoreView,
+    meta: { fullPage: true }
+  },
+  {
+    path: "/add/new",
+    name: "add-standard-wallet",
+    component: AddStandardView,
     meta: { fullPage: true }
   },
   {
