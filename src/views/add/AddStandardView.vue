@@ -21,7 +21,9 @@
       <div>
         <label class="mt-3">
           Recovery phrase
-          <div class="rounded text-md font-semibold leading-relaxed bg-gray-100 py-2 px-4">
+          <div
+            class="rounded border-gray-300 border-1 text-md font-semibold leading-relaxed bg-gray-100 p-2"
+          >
             {{ mnemonic }}
           </div>
           <p class="text-xs font-normal p-1">
