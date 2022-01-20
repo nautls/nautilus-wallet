@@ -1,9 +1,10 @@
 <template>
-  <div class="dropdown" :class="{ active: active }">
+  <div class="dropdown" :class="{ active: active, discrete: discrete }">
     <button
       @click="troggle()"
+      :disabled="disabled"
       class="trigger flex flex-row"
-      :class="[{ active: active, discrete: discrete }, position]"
+      :class="[{ active: active }, position]"
     >
       <slot name="trigger" />
     </button>
@@ -27,7 +28,8 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "DropDown",
   props: {
-    discrete: { type: Boolean, default: false }
+    discrete: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false }
   },
   data: () => {
     return { active: false, position: "bottom" };

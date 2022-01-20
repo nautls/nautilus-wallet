@@ -25,7 +25,7 @@
           @remove="remove(item.asset.tokenId)"
         />
         <p class="text-xs text-right">Fee: {{ suggestedFee }} ERG</p>
-        <drop-down class="mt-3">
+        <drop-down class="mt-3" :disabled="unselected.length === 0">
           <template v-slot:trigger>
             <div class="text-sm w-full uppercase py-1 pl-6 text-center font-bold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />

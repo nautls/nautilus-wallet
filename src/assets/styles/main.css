@@ -102,8 +102,8 @@ table thead th:last-child {
 
 button:disabled,
 input:disabled {
-  @apply bg-gray-50 text-gray-500 cursor-not-allowed border-gray-700 
-  outline-none hover:bg-gray-50 hover: text-gray-500 hover:border-gray-700;
+  @apply bg-gray-50 text-gray-400 cursor-not-allowed border-gray-700 
+  outline-none hover:bg-gray-50 hover:text-gray-400 hover:border-gray-700;
 }
 
 .nav-btn {
@@ -125,7 +125,7 @@ input:disabled {
   @apply text-left w-full relative inline-block;
 }
 
-.dropdown.active {
+.dropdown.discrete.active {
   @apply shadow-lg;
 }
 
@@ -135,36 +135,57 @@ input:disabled {
   focus:outline-none hover:bg-gray-200 active:bg-gray-300;
 }
 
-.dropdown .trigger.discrete {
+.dropdown.discrete .trigger {
   @apply bg-transparent border border-transparent rounded outline-none w-full py-2 px-4
   text-gray-700 gap-2 default-transition items-center inline-flex justify-between
   hover:(bg-gray-100 border-gray-300) focus:outline-none active:(outline-none bg-gray-200);
 }
 
-.dropdown .trigger.active {
+.dropdown.discrete .trigger.active {
   @apply border-gray-300 bg-white hover:bg-gray-100;
 }
 
-.dropdown .trigger.active.bottom {
+.dropdown .trigger.active {
+  @apply bg-gray-200 hover:bg-gray-100;
+}
+
+.dropdown .trigger:disabled {
+  @apply bg-gray-50 text-gray-400 cursor-not-allowed 
+  outline-none hover:bg-gray-50 hover:text-gray-400 hover:border-gray-300;
+}
+
+.dropdown.discrete .trigger.active.bottom {
   @apply border-b-transparent rounded-b-none;
 }
 
-.dropdown .trigger.active.top {
+.dropdown.discrete .trigger.active.top {
   @apply border-t-transparent rounded-t-none;
+}
+
+.dropdown.discrete .items-list {
+  @apply max-h-100;
 }
 
 .dropdown .items-list {
   @apply divide-y bg-white border rounded divide-gray-100 
-    border-gray-300 text-sm w-full max-h-47 right-0 shadow-lg
+    border-gray-300 text-sm w-full max-h-50 right-0 shadow-lg
     overflow-y-auto absolute z-50 focus:outline-none;
 }
 
+.dropdown.discrete .items-list.bottom {
+  @apply top-full bottom-auto rounded-t-none border-t-0 origin-top mt-0;
+}
+
+.dropdown.discrete .items-list.top {
+  @apply top-auto bottom-full rounded-b-none border-b-0 origin-bottom shadow-none mb-0;
+}
+
 .dropdown .items-list.bottom {
-  @apply top-full bottom-auto rounded-t-none border-t-0 origin-top;
+  @apply top-full bottom-auto origin-top mt-0.5;
 }
 
 .dropdown .items-list.top {
-  @apply top-auto bottom-full rounded-b-none border-b-0 origin-bottom shadow-none;
+  @apply top-auto bottom-full origin-bottom mb-0.5;
 }
 
 .dropdown .items-list .group {
