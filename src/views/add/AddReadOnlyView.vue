@@ -11,8 +11,11 @@
           @blur="v$.walletName.$touch()"
           v-model.lazy="walletName"
           class="w-full control block"
-      /></label>
-      <p class="input-error" v-if="v$.walletName.$error">{{ v$.walletName.$errors[0].$message }}</p>
+        />
+        <p class="input-error" v-if="v$.walletName.$error">
+          {{ v$.walletName.$errors[0].$message }}
+        </p>
+      </label>
     </div>
     <div>
       <label class="mt-3">
@@ -25,10 +28,10 @@
           rows="6"
           v-model.lazy="publicKey"
         ></textarea>
+        <p class="input-error" v-if="v$.publicKey.$error">
+          {{ v$.publicKey.$errors[0].$message }}
+        </p>
       </label>
-      <p class="input-error" v-if="v$.publicKey.$error">
-        {{ v$.publicKey.$errors[0].$message }}
-      </p>
       <p class="input-error" v-if="pkError !== ''">{{ pkError }}</p>
     </div>
     <div>

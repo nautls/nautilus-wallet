@@ -194,7 +194,7 @@ input:disabled {
 }
 
 .items-select {
-  @apply min-h-40 h-auto;
+  @apply min-h-30 h-auto;
 }
 
 .items-select .o-inputit__container {

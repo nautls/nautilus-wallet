@@ -62,7 +62,7 @@
     <div class="flex-shrink">
       <div>
         <label
-          >Password
+          >Spending password
           <input
             @blur="v$.password.$touch()"
             v-model.lazy="password"
