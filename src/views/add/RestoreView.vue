@@ -6,6 +6,7 @@
         <label
           >Wallet name
           <input
+            :disabled="loading"
             v-model.lazy="walletName"
             maxlength="50"
             @blur="v$.walletName.$touch()"
@@ -21,6 +22,7 @@
         <label class="mt-3">
           Recovery phrase
           <o-inputitems
+            :disabled="loading"
             v-model="words"
             :data="filteredWords"
             autocomplete
@@ -51,6 +53,7 @@
         <label
           >Spending password
           <input
+            :disabled="loading"
             v-model.lazy="password"
             @blur="v$.password.$touch()"
             type="password"
@@ -65,6 +68,7 @@
         <label
           >Confirm password
           <input
+            :disabled="loading"
             v-model.lazy="confirmPassword"
             @blur="v$.confirmPassword.$touch()"
             type="password"
@@ -76,8 +80,9 @@
         >
       </div>
       <div>
-        <button @click="add()" type="button" class="w-full btn mt-3">
-          <span>Confirm</span>
+        <button @click="add()" :disabled="loading" type="button" class="w-full btn mt-3">
+          <loading-indicator v-if="loading" class="h-5 w-5" />
+          <span v-else>Confirm</span>
         </button>
       </div>
     </div>
@@ -110,7 +115,8 @@ export default defineComponent({
       walletName: "",
       password: "",
       confirmPassword: "",
-      words: []
+      words: [],
+      loading: false
     };
   },
   validations() {
@@ -138,7 +144,12 @@ export default defineComponent({
   methods: {
     ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
-      console.log(join(this.words, " "));
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
+        return;
+      }
+
+      this.loading = true;
       try {
         await this.putWallet({
           name: this.walletName,
@@ -147,6 +158,7 @@ export default defineComponent({
           type: WalletType.Standard
         });
       } catch (e: any) {
+        this.loading = false;
         console.error(e);
         return;
       }
