@@ -15,8 +15,7 @@ import {
   maxBy,
   clone,
   findLastIndex,
-  isEmpty,
-  filter
+  isEmpty
 } from "lodash";
 import { Network, WalletType, AddressState, AddressType, SendTxCommand } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";

@@ -1,18 +1,11 @@
 import { ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
+import { TxSignError } from "@/types/errors";
 import { ExplorergetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import {
-  Address,
-  BoxValue,
-  ErgoBoxCandidate,
-  ErgoBoxCandidates,
-  I64,
-  Tokens,
-  Wallet
-} from "ergo-lib-wasm-browser";
+import { Address, BoxValue, ErgoBoxCandidates, I64, Tokens, Wallet } from "ergo-lib-wasm-browser";
 import { find } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
@@ -160,7 +153,7 @@ export class Transaction {
       !erg.amount ||
       removeDecimals(erg.amount, erg.asset.decimals).isLessThan(MIN_BOX_VALUE)
     ) {
-      throw Error("not enought ERG to make a transaction");
+      throw new TxSignError("not enought ERG to make a transaction");
     }
 
     return wasmModule.SigmaRust.BoxValue.from_i64(
