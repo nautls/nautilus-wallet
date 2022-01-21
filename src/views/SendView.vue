@@ -193,7 +193,10 @@ export default defineComponent({
         validErgoAddress
       },
       password: {
-        required: helpers.withMessage("A password is required for transaction signing.", required)
+        required: helpers.withMessage(
+          "A spending password is required for transaction signing.",
+          required
+        )
       }
     };
   },

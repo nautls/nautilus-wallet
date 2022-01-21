@@ -126,7 +126,7 @@ export default defineComponent({
   validations() {
     return {
       parsedValue: {
-        required: helpers.withMessage("An amount value is required.", required),
+        required: helpers.withMessage("Amount is required.", required),
         minValue: bigNumberMinValue(this.minAmount || new BigNumber(0)),
         maxValue: bigNumberMaxValue(this.balance)
       }
