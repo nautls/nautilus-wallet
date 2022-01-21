@@ -1,91 +1,81 @@
 <template>
-  <div>
+  <div class="flex-col flex gap-3 h-full">
     <page-title title="Restore wallet" back-button />
-    <div class="flex-col flex gap-3">
-      <div>
-        <label
-          >Wallet name
-          <input
-            :disabled="loading"
-            v-model.lazy="walletName"
-            maxlength="50"
-            @blur="v$.walletName.$touch()"
-            type="text"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.walletName.$error">
-            {{ v$.walletName.$errors[0].$message }}
-          </p>
-        </label>
-      </div>
-      <div>
-        <label class="mt-3">
-          Recovery phrase
-          <o-inputitems
-            :disabled="loading"
-            v-model="words"
-            :data="filteredWords"
-            autocomplete
-            :allow-new="false"
-            :open-on-focus="false"
-            field="user.first_name"
-            root-class="input-wrap items-select"
-            item-class="tag"
-            :autocompleteClasses="{
-              menuClass: 'autocomplete-list',
-              itemClass: 'item',
-              itemHoverClass: 'selected'
-            }"
-            :closable="false"
-            :allow-duplicates="true"
-            :on-paste-separators="[',', ' ']"
-            :confirmKeys="[',', 'Tab', 'Enter', ' ']"
-            :keep-first="true"
-            @typing="filterBy"
-            @blur="v$.words.$touch()"
-          />
-          <p class="input-error" v-if="v$.words.$error">
-            {{ v$.words.$errors[0].$message }}
-          </p>
-        </label>
-      </div>
-      <div>
-        <label
-          >Spending password
-          <input
-            :disabled="loading"
-            v-model.lazy="password"
-            @blur="v$.password.$touch()"
-            type="password"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.password.$error">
-            {{ v$.password.$errors[0].$message }}
-          </p></label
-        >
-      </div>
-      <div>
-        <label
-          >Confirm password
-          <input
-            :disabled="loading"
-            v-model.lazy="confirmPassword"
-            @blur="v$.confirmPassword.$touch()"
-            type="password"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.confirmPassword.$error">
-            {{ v$.confirmPassword.$errors[0].$message }}
-          </p></label
-        >
-      </div>
-      <div>
-        <button @click="add()" :disabled="loading" type="button" class="w-full btn mt-3">
-          <loading-indicator v-if="loading" class="h-5 w-5" />
-          <span v-else>Confirm</span>
-        </button>
-      </div>
+    <div class="flex-col flex gap-3 flex-grow">
+      <label
+        >Wallet name
+        <input
+          :disabled="loading"
+          v-model.lazy="walletName"
+          maxlength="50"
+          @blur="v$.walletName.$touch()"
+          type="text"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.walletName.$error">
+          {{ v$.walletName.$errors[0].$message }}
+        </p>
+      </label>
+      <label class="mt-3">
+        Recovery phrase
+        <o-inputitems
+          :disabled="loading"
+          v-model="words"
+          :data="filteredWords"
+          autocomplete
+          :allow-new="false"
+          :open-on-focus="false"
+          field="user.first_name"
+          root-class="input-wrap items-select"
+          item-class="tag"
+          :autocompleteClasses="{
+            menuClass: 'autocomplete-list',
+            itemClass: 'item',
+            itemHoverClass: 'selected'
+          }"
+          :closable="false"
+          :allow-duplicates="true"
+          :on-paste-separators="[',', ' ']"
+          :confirmKeys="[',', 'Tab', 'Enter', ' ']"
+          :keep-first="true"
+          @typing="filterBy"
+          @blur="v$.words.$touch()"
+        />
+        <p class="input-error" v-if="v$.words.$error">
+          {{ v$.words.$errors[0].$message }}
+        </p>
+      </label>
+      <label
+        >Spending password
+        <input
+          :disabled="loading"
+          v-model.lazy="password"
+          @blur="v$.password.$touch()"
+          type="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p></label
+      >
+      <label
+        >Confirm password
+        <input
+          :disabled="loading"
+          v-model.lazy="confirmPassword"
+          @blur="v$.confirmPassword.$touch()"
+          type="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.confirmPassword.$error">
+          {{ v$.confirmPassword.$errors[0].$message }}
+        </p></label
+      >
     </div>
+    <button @click="add()" :disabled="loading" type="button" class="w-full btn mt-3">
+      <loading-indicator v-if="loading" class="h-5 w-5" />
+      <span v-else>Confirm</span>
+    </button>
   </div>
 </template>
 

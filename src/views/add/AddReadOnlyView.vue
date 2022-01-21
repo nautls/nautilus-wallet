@@ -1,7 +1,7 @@
 <template>
-  <div class="flex-col flex gap-3">
+  <div class="flex-col flex gap-3 h-full">
     <page-title title="Add read-only wallet" back-button />
-    <div>
+    <div class="flex flex-col gap-3 flex-grow">
       <label
         >Wallet name
         <input
@@ -16,8 +16,7 @@
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
-    </div>
-    <div>
+
       <label class="mt-3">
         Public Key
         <textarea

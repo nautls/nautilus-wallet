@@ -30,7 +30,7 @@ a {
 }
 
 label {
-  @apply font-bold text-sm;
+  @apply font-semibold text-sm;
 }
 
 .default-transition {

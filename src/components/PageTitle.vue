@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row text-lg pb-10 pt-1 text-center">
+  <div class="flex flex-row text-lg pb-5 pt-1 text-center">
     <div class="w-1/12">
       <a @click="$router.back()" class="back-btn">
         <vue-feather v-if="backButton" type="chevron-left" size="24" />
@@ -19,7 +19,7 @@ export default defineComponent({
   name: "PageTitle",
   props: {
     title: { type: String, require: true },
-    backButton: { type: Boolean, default: false },
-  },
+    backButton: { type: Boolean, default: false }
+  }
 });
 </script>
