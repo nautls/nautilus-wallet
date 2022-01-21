@@ -7,6 +7,7 @@ import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
+import AboutView from "@/views/AboutView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -54,6 +55,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/send",
     name: "send-page",
     component: SendView
+  },
+  {
+    path: "/about",
+    name: "about-nautilus",
+    component: AboutView
   }
 ];
 

@@ -25,8 +25,12 @@
           </div>
           <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
             <router-link :to="{ name: 'add-wallet' }" class="group-item narrow">
-              <vue-feather type="plus-circle" size="18" class="align-middle pr-2" />
+              <vue-feather type="plus-circle" size="16" class="align-middle pr-2" />
               <span class="align-middle">Add new wallet</span></router-link
+            >
+            <router-link :to="{ name: 'about-nautilus' }" class="group-item narrow">
+              <vue-feather type="info" size="16" class="align-middle pr-2" />
+              <span class="align-middle">About</span></router-link
             >
           </div>
         </template>
