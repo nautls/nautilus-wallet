@@ -5,6 +5,7 @@
     <div class="flex-grow overflow-y-auto overflow-x-hidden">
       <router-view class="p-4" />
     </div>
+    <kya-modal :active="!loading.settings && !settings.isKyaAccepted" />
   </div>
 </template>
 
@@ -13,8 +14,9 @@ import { defineComponent } from "vue";
 import NavHeader from "@/components/NavHeader.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
-import { mapActions } from "vuex";
+import { mapActions, mapState } from "vuex";
 import { ACTIONS } from "./constants/store/actions";
+import KyaModal from "./components/KYAModal.vue";
 
 function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
   callback();
@@ -23,6 +25,11 @@ function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
 
 export default defineComponent({
   name: "App",
+  components: {
+    NavHeader,
+    WalletHeader,
+    KyaModal
+  },
   data: () => {
     return {
       getPriceTimerId: Object.freeze({} as NodeJS.Timer),
@@ -47,16 +54,13 @@ export default defineComponent({
     clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
   },
+  computed: mapState(["loading", "settings"]),
   methods: {
     ...mapActions({
       fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
       init: ACTIONS.INIT,
       refresh: ACTIONS.REFRESH_CURRENT_ADDRESSES
     })
-  },
-  components: {
-    NavHeader,
-    WalletHeader
   }
 });
 </script>

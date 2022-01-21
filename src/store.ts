@@ -45,9 +45,11 @@ export default createStore({
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
     settings: {
-      lastOpenedWalletId: 0
+      lastOpenedWalletId: 0,
+      isKyaAccepted: false
     },
     loading: {
+      settings: true,
       price: false,
       addresses: true,
       balance: true
@@ -217,6 +219,7 @@ export default createStore({
       const rawSettings = localStorage.getItem("settings");
       if (rawSettings) {
         commit(MUTATIONS.SET_SETTINGS, JSON.parse(rawSettings));
+        commit(MUTATIONS.SET_LOADING, { settings: false });
       }
     },
     [ACTIONS.SAVE_SETTINGS]({ state, commit }, newSettings) {

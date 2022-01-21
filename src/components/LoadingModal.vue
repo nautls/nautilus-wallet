@@ -21,11 +21,9 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import LoadingIndicator from "./LoadingIndicator.vue";
 
 export default defineComponent({
   name: "LoadingModal",
-  components: { LoadingIndicator },
   props: {
     title: { type: String, required: true },
     message: { type: String, required: false },
