@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@types/bs58check": "^2.1.0",
+    "@types/chrome": "^0.0.176",
     "@types/cleave.js": "^1.4.6",
     "@types/crypto-js": "^4.1.0",
     "@types/jest": "^27.0.3",

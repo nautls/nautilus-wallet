@@ -10,6 +10,18 @@
     "default_popup": "index.html",
     "default_title": "Nautilus"
   },
+  "background": {
+    "page": "background.html",
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "js": ["injector.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
   "icons": {
     "48": "icons/app/48.png",
     "128": "icons/app/128.png",
