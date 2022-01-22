@@ -23,6 +23,8 @@
       Pricing rates powered by
       <a class="url" target="_blank" href="https://www.coingecko.com/en/api">CoinGecko API</a>
     </p>
-    <p class="text-sm">Copyright © {{ new Date().getFullYear() }} Nautilus Team</p>
+    <p class="text-sm text-gray-500" v-once>
+      Copyright © {{ new Date().getFullYear() }} Nautilus Team
+    </p>
   </div>
 </template>
