@@ -22,4 +22,14 @@ function error(content) {
   console.error(`[Nautilus] ${content}`);
 }
 
-injectIntoPage("const test = () => {console.log('this is a test.')}");
+const api = `
+class ErgoApi {
+  print() {
+    console.log("this is a test.");
+  }
+}
+
+const ergo = Object.freeze(new ErgoApi());
+`;
+
+injectIntoPage(api);
