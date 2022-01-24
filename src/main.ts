@@ -20,6 +20,7 @@ import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
+import { RpcMessage } from "./types/connector";
 
 wasmModule.loadAsync();
 
@@ -54,3 +55,15 @@ app
   .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
   .mount("#app");
+
+if (chrome.runtime) {
+  const port = chrome.runtime.connect({ name: "nautilus-ui" });
+
+  port.postMessage({ type: "rpc/nautilus-request", function: "loaded" } as RpcMessage);
+
+  port.onMessage.addListener((message: RpcMessage, port) => {
+    if (message.type === "rpc/nautilus-request") {
+      console.log(message);
+    }
+  });
+}
