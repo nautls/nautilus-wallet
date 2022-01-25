@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-600px max-h-600px w-365px gap-0">
+  <div class="app">
     <wallet-header v-show="!$route.meta.fullPage" />
     <nav-header v-if="!$route.meta.fullPage" />
     <div class="flex-grow overflow-y-auto overflow-x-hidden">
@@ -51,6 +51,7 @@ export default defineComponent({
     await this.init();
   },
   deactivated() {
+    alert("close");
     clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
   },

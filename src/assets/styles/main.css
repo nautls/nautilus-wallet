@@ -1,5 +1,9 @@
 body {
-  @apply bg-light-50 text-base leading-normal tracking-wide text-dark-500 antialiased;
+  @apply bg-gray-200 text-base leading-normal tracking-wide text-dark-500 antialiased;
+}
+
+.app {
+  @apply bg-light-50 flex flex-col min-h-600px h-600px min-w-365px mx-auto gap-0 md:(max-w-5/12 shadow-lg h-screen max-h-screen);
 }
 
 a {
@@ -44,7 +48,7 @@ label {
 }
 
 .tabs {
-  @apply flex flex-row shadow px-10 mb-1 text-sm text-gray-500 justify-center;
+  @apply flex flex-row shadow px-10 mb-0.6 text-sm text-gray-500 justify-center;
 }
 
 .tabs .tab-item {
