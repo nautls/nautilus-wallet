@@ -19,7 +19,7 @@
           :key="item.asset.tokenId"
           v-model="item.amount"
           :asset="item.asset"
-          :locked-amount="isErg(item.asset.tokenId) ? lockedErgAmount : undefined"
+          :reserved-amount="isErg(item.asset.tokenId) ? reservedErgAmount : undefined"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
@@ -89,7 +89,7 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { SendTxCommandAsset, StateAsset, StateWallet, WalletType } from "@/types/internal";
+import { SendTxCommandAsset, StateAsset, StateWallet } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
@@ -136,7 +136,7 @@ export default defineComponent({
 
       return false;
     },
-    lockedErgAmount(): BigNumber {
+    reservedErgAmount(): BigNumber {
       const erg = find(this.selected, a => a.asset.tokenId === ERG_TOKEN_ID);
       if (!erg || erg.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);

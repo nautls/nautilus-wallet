@@ -17,9 +17,10 @@
       </button>
       <div class="flex flex-row gap-2 text-base">
         <div class="w-7/12">
+          <!-- parsedValue. -->
           <input
             ref="val-input"
-            @blur="v$.parsedValue.$touch()"
+            @blur="v$.$touch()"
             v-cleave="{
               numeral: true,
               numeralDecimalScale: asset.decimals,
@@ -51,13 +52,13 @@
           <a
             @click="setMaxValue()"
             class="text-xs cursor-pointer underline-transparent text-gray-400"
-            >Balance: {{ $filters.formatBigNumber(balance) }}</a
+            >Balance: {{ $filters.formatBigNumber(confirmedAmount) }}</a
           >
         </div>
       </div>
     </div>
-    <p class="input-error" v-if="v$.parsedValue.$error">
-      {{ v$.parsedValue.$errors[0].$message }}
+    <p class="input-error" v-if="v$.$error">
+      {{ v$.$errors[0].$message }}
     </p>
   </label>
 </template>
@@ -77,28 +78,42 @@ export default defineComponent({
     disposable: { type: Boolean, defaul: false },
     asset: { type: Object, required: true },
     modelValue: { type: Object, required: false },
-    lockedAmount: { type: BigNumber, required: false },
+    reservedAmount: { type: BigNumber, required: false },
     minAmount: { type: BigNumber, required: false }
   },
   setup() {
     return { v$: useVuelidate() };
   },
   computed: {
-    balance() {
-      if (!this.lockedAmount) {
-        return this.asset.confirmedAmount;
+    confirmedAmount(): BigNumber {
+      return this.asset.confirmedAmount;
+    },
+    available(): BigNumber {
+      if (!this.reservedAmount) {
+        return this.confirmedAmount;
       }
 
-      return this.asset.confirmedAmount.minus(this.lockedAmount);
+      if (this.confirmedAmount.isGreaterThanOrEqualTo(this.reservedAmount)) {
+        return this.confirmedAmount.minus(this.reservedAmount);
+      } else {
+        return this.confirmedAmount;
+      }
     },
-    parsedValue() {
+    parsedValue(): BigNumber | undefined {
       return this.parseToBigNumber(this.internalValue);
     },
-    price() {
+    price(): string {
       if (!this.asset.price) {
         return "0.00";
       }
       return this.parsedValue?.multipliedBy(this.asset.price).toFormat(2) || "0.00";
+    },
+    minRequired(): BigNumber {
+      if (this.reservedAmount && this.minAmount) {
+        return this.reservedAmount.plus(this.minAmount);
+      }
+
+      return this.minAmount || this.reservedAmount || new BigNumber(0);
     }
   },
   watch: {
@@ -125,10 +140,17 @@ export default defineComponent({
   },
   validations() {
     return {
+      confirmedAmount: {
+        minValue: helpers.withMessage(
+          ({ $params }: any) =>
+            `You need at least ${$params.min} ${this.asset.name} to send this transaction`,
+          bigNumberMinValue(this.minRequired)
+        )
+      },
       parsedValue: {
         required: helpers.withMessage("Amount is required.", required),
         minValue: bigNumberMinValue(this.minAmount || new BigNumber(0)),
-        maxValue: bigNumberMaxValue(this.balance)
+        maxValue: bigNumberMaxValue(this.available)
       }
     };
   },
@@ -154,7 +176,7 @@ export default defineComponent({
       this.hovered = val;
     },
     setMaxValue() {
-      (this.$refs as any)["val-input"].cleave.setRawValue(this.balance.toString());
+      (this.$refs as any)["val-input"].cleave.setRawValue(this.available.toString());
     },
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();
