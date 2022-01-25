@@ -3,7 +3,7 @@ body {
 }
 
 .app {
-  @apply bg-light-50 flex flex-col min-h-600px h-600px min-w-365px mx-auto gap-0 md:(max-w-5/12 shadow-lg h-screen max-h-screen);
+  @apply bg-light-50 flex flex-col min-h-600px h-screen min-w-365px mx-auto gap-0 md:(max-w-5/12 shadow-lg);
 }
 
 a {

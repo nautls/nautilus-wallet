@@ -48,7 +48,12 @@
                     <p v-if="isErg(asset.tokenId)" class="font-semibold align-middle">
                       {{ asset.name }}
                     </p>
-                    <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="align-middle">
+                    <a
+                      v-else
+                      :href="urlFor(asset.tokenId)"
+                      target="_blank"
+                      class="align-middle break-all"
+                    >
                       <template v-if="asset.name">{{
                         $filters.compactString(asset.name, 30, "end")
                       }}</template>
