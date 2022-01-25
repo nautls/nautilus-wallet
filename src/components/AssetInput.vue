@@ -64,6 +64,7 @@
 </template>
 
 <script lang="ts">
+import { StateAsset } from "@/types/internal";
 import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
@@ -114,6 +115,11 @@ export default defineComponent({
       }
 
       return this.minAmount || this.reservedAmount || new BigNumber(0);
+    }
+  },
+  mounted() {
+    if (!this.asset.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
+      this.$emit("update:modelValue", this.asset.confirmedAmount);
     }
   },
   watch: {
