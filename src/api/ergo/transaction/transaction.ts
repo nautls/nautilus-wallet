@@ -1,4 +1,4 @@
-import { ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { TxSignError } from "@/types/errors";
 import { ExplorergetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
@@ -6,7 +6,7 @@ import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import { Address, BoxValue, ErgoBoxCandidates, I64, Tokens, Wallet } from "ergo-lib-wasm-browser";
-import { find } from "lodash";
+import { find, remove } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 
@@ -165,7 +165,7 @@ export class Transaction {
     const sigmaRust = wasmModule.SigmaRust;
     return !this._fee || this._fee.isZero()
       ? sigmaRust.TxBuilder.SUGGESTED_TX_FEE()
-      : sigmaRust.BoxValue.from_i64(this.toI64(this._fee));
+      : sigmaRust.BoxValue.from_i64(this.toI64(removeDecimals(this._fee, ERG_DECIMALS)));
   }
 
   private toI64(value: BigNumber): I64 {

@@ -476,6 +476,7 @@ export default createStore({
         .to(command.recipient)
         .change(changeAddress)
         .withAssets(command.assets)
+        .withFee(command.fee)
         .fromBoxes(boxes.map(a => a.data).flat())
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
