@@ -2,8 +2,8 @@
   <div class="app">
     <wallet-header v-show="!$route.meta.fullPage" />
     <nav-header v-if="!$route.meta.fullPage" />
-    <div class="flex-grow overflow-y-auto overflow-x-hidden">
-      <router-view class="m-4" />
+    <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
+      <router-view />
     </div>
     <kya-modal :active="!loading.settings && !settings.isKyaAccepted" />
   </div>

@@ -24,34 +24,7 @@
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
         />
-        <div class="w-full">
-          <div class="w-1/2 float-right">
-            <drop-down discrete>
-              <template v-slot:trigger>
-                <div class="text-sm w-full text-right py-1 text-center">
-                  <span>Fee: {{ fee }} ERG</span>
-                </div>
-                <vue-feather type="chevron-down" size="18" />
-              </template>
-              <template v-slot:items>
-                <div class="group">
-                  <o-slider
-                    v-model="feeMultiplicator"
-                    @click.prevent.stop
-                    :min="1"
-                    :max="5"
-                    :tooltip="false"
-                    fill-class="bg-blue-800 rounded-l"
-                    root-class="p-4"
-                    track-class="rounded-r"
-                    thumb-class="rounded"
-                  />
-                </div>
-              </template>
-            </drop-down>
-          </div>
-        </div>
-        <drop-down class="mt-3" :disabled="unselected.length === 0">
+        <drop-down :disabled="unselected.length === 0">
           <template v-slot:trigger>
             <div class="text-sm w-full uppercase py-1 pl-6 text-center font-bold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />
@@ -82,6 +55,33 @@
             </div>
           </template>
         </drop-down>
+        <div class="w-full">
+          <div class="w-auto float-right">
+            <drop-down discrete>
+              <template v-slot:trigger>
+                <div class="text-sm w-full text-right py-1 text-center">
+                  <span>Fee: {{ fee }} ERG</span>
+                </div>
+                <vue-feather type="chevron-down" size="18" />
+              </template>
+              <template v-slot:items>
+                <div class="group">
+                  <o-slider
+                    v-model="feeMultiplicator"
+                    @click.prevent.stop
+                    :min="1"
+                    :max="5"
+                    :tooltip="false"
+                    fill-class="bg-blue-800 rounded-l"
+                    root-class="p-4"
+                    track-class="rounded-r"
+                    thumb-class="rounded"
+                  />
+                </div>
+              </template>
+            </drop-down>
+          </div>
+        </div>
       </div>
     </div>
 
