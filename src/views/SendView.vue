@@ -100,7 +100,7 @@
           </p>
         </label>
       </div>
-      <button class="btn w-full mt-5" @click="sendTx()">Confirm</button>
+      <button class="btn w-full mt-4" @click="sendTx()">Confirm</button>
     </div>
     <loading-modal
       title="Signing"
