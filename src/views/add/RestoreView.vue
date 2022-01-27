@@ -161,14 +161,14 @@ export default defineComponent({
       }
 
       const lowerText = text.toLowerCase();
-      const filtered = orderBy(
-        take(
+      const filtered = take(
+        orderBy(
           words.filter(w => {
             return w.includes(lowerText);
           }),
-          10
+          w => !w.startsWith(lowerText)
         ),
-        w => !w.startsWith(lowerText)
+        10
       );
 
       this.filteredWords = Object.freeze(filtered);
