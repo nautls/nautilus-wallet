@@ -28,6 +28,10 @@
               <vue-feather type="plus-circle" size="16" class="align-middle pr-2" />
               <span class="align-middle">Add new wallet</span></router-link
             >
+            <a @click="expandView()" class="group-item narrow">
+              <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
+              <span class="align-middle">Expand view</span></a
+            >
             <router-link :to="{ name: 'about-nautilus' }" class="group-item narrow">
               <vue-feather type="info" size="16" class="align-middle pr-2" />
               <span class="align-middle">About</span></router-link
@@ -56,7 +60,18 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET })
+    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
+    async expandView() {
+      if (!chrome.tabs) {
+        return;
+      }
+
+      chrome.tabs.create({
+        url: chrome.extension.getURL("index.html"),
+        active: true
+      });
+      window.close();
+    }
   },
   computed: {
     ...mapState({

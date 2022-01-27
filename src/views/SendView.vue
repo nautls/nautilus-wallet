@@ -19,13 +19,12 @@
           :key="item.asset.tokenId"
           v-model="item.amount"
           :asset="item.asset"
-          :locked-amount="isErg(item.asset.tokenId) ? lockedErgAmount : undefined"
+          :reserved-amount="isErg(item.asset.tokenId) ? reservedErgAmount : undefined"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
         />
-        <p class="text-xs text-right">Fee: {{ suggestedFee }} ERG</p>
-        <drop-down class="mt-3" :disabled="unselected.length === 0">
+        <drop-down :disabled="unselected.length === 0">
           <template v-slot:trigger>
             <div class="text-sm w-full uppercase py-1 pl-6 text-center font-bold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />
@@ -56,6 +55,33 @@
             </div>
           </template>
         </drop-down>
+        <div class="w-full">
+          <div class="w-auto float-right">
+            <drop-down discrete>
+              <template v-slot:trigger>
+                <div class="text-sm w-full text-right py-1 text-center">
+                  <span>Fee: {{ fee }} ERG</span>
+                </div>
+                <vue-feather type="chevron-down" size="18" />
+              </template>
+              <template v-slot:items>
+                <div class="group">
+                  <o-slider
+                    v-model="feeMultiplicator"
+                    @click.prevent.stop
+                    :min="1"
+                    :max="5"
+                    :tooltip="false"
+                    fill-class="bg-blue-800 rounded-l"
+                    root-class="p-4"
+                    track-class="rounded-r"
+                    thumb-class="rounded"
+                  />
+                </div>
+              </template>
+            </drop-down>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -74,7 +100,7 @@
           </p>
         </label>
       </div>
-      <button class="btn w-full mt-5" @click="sendTx()">Confirm</button>
+      <button class="btn w-full mt-4" @click="sendTx()">Confirm</button>
     </div>
     <loading-modal
       title="Signing"
@@ -86,10 +112,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, toHandlers } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { SendTxCommandAsset, StateAsset, StateWallet, WalletType } from "@/types/internal";
+import { SendTxCommandAsset, StateAsset, StateWallet } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
@@ -136,20 +162,20 @@ export default defineComponent({
 
       return false;
     },
-    lockedErgAmount(): BigNumber {
+    reservedErgAmount(): BigNumber {
       const erg = find(this.selected, a => a.asset.tokenId === ERG_TOKEN_ID);
       if (!erg || erg.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
 
       if (!this.changeValue) {
-        return this.suggestedFee;
+        return this.fee;
       }
 
-      return this.suggestedFee.plus(this.changeValue);
+      return this.fee.plus(this.changeValue);
     },
-    suggestedFee(): BigNumber {
-      return setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS);
+    fee(): BigNumber {
+      return this.minFee.multipliedBy(this.feeMultiplicator);
     },
     changeValue(): BigNumber | undefined {
       if (!this.hasChange) {
@@ -163,12 +189,12 @@ export default defineComponent({
     }
   },
   watch: {
-    currentWallet(wallet: StateWallet) {
+    currentWallet() {
       this.$router.push({ name: "assets-page" });
     },
     assets: {
       immediate: true,
-      handler(t: any, d: any) {
+      handler() {
         if (!isEmpty(this.selected)) {
           return;
         }
@@ -183,7 +209,9 @@ export default defineComponent({
       password: "",
       recipient: "",
       singState: "disabled",
-      singMessage: ""
+      singMessage: "",
+      feeMultiplicator: 1,
+      minFee: Object.freeze(setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
   },
   validations() {
@@ -215,6 +243,7 @@ export default defineComponent({
         const txId = await this.$store.dispatch(ACTIONS.SEND_TX, {
           recipient: this.recipient,
           assets: this.selected,
+          fee: this.fee,
           walletId: currentWalletId,
           password: this.password
         });
@@ -222,7 +251,7 @@ export default defineComponent({
         this.clear();
 
         this.singState = "success";
-        this.singMessage = `Transaction submitted<br><a href='${this.urlForTransaction(
+        this.singMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
           txId
         )}' target='_blank'>View on Explorer</a>`;
       } catch (e) {

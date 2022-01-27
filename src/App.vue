@@ -1,9 +1,9 @@
 <template>
-  <div class="flex flex-col h-600px max-h-600px w-365px gap-0 overflow-hidden">
+  <div class="app">
     <wallet-header v-show="!$route.meta.fullPage" />
     <nav-header v-if="!$route.meta.fullPage" />
-    <div class="flex-grow overflow-y-auto overflow-x-hidden">
-      <router-view class="p-4" />
+    <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
+      <router-view />
     </div>
     <kya-modal :active="!loading.settings && !settings.isKyaAccepted" />
   </div>
@@ -51,6 +51,7 @@ export default defineComponent({
     await this.init();
   },
   deactivated() {
+    alert("close");
     clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
   },

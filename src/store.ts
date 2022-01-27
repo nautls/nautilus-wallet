@@ -466,8 +466,8 @@ export default createStore({
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
       const changeAddress =
-        find(addresses, a => a.state === AddressState.Unused)?.script ||
-        bip32.deriveAddress(0).script;
+        find(addresses, a => a.state === AddressState.Unused && a.script !== command.recipient)
+          ?.script || bip32.deriveAddress(0).script;
 
       const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map(a => a.script));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
@@ -476,6 +476,7 @@ export default createStore({
         .to(command.recipient)
         .change(changeAddress)
         .withAssets(command.assets)
+        .withFee(command.fee)
         .fromBoxes(boxes.map(a => a.data).flat())
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 

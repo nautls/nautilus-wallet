@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -13,6 +13,7 @@
     "@download/blockies": "^1.0.3",
     "@emurgo/cip4-js": "^1.0.6",
     "@oruga-ui/oruga-next": "^0.5.2",
+    "@types/chrome": "^0.0.177",
     "@vuelidate/core": "^2.0.0-alpha.33",
     "@vuelidate/validators": "^2.0.0-alpha.26",
     "axios": "^0.24.0",

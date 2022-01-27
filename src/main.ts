@@ -13,7 +13,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
-import { Inputitems, Modal } from "@oruga-ui/oruga-next";
+import { Inputitems, Modal, Slider } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
 
 import "@/assets/styles/fonts.css";
@@ -46,6 +46,7 @@ app
   .use(router)
   .use(Inputitems)
   .use(Modal)
+  .use(Slider)
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
   .component("page-title", PageTitle)

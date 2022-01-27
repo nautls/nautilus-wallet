@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
   notation: "compact",
   compactDisplay: "short",
-  maximumFractionDigits: 1
+  maximumFractionDigits: 2
 });
 
 export const filters = {
@@ -30,7 +30,7 @@ export const filters = {
     }
   },
   formatBigNumber(value: BigNumber) {
-    if (value.isGreaterThan(Number.MAX_SAFE_INTEGER)) {
+    if (value.isGreaterThanOrEqualTo(1_000_000)) {
       return defaultBitNumbersFormatter.format(value.toNumber());
     }
 
