@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
-    <div class="w-max flex-grow">
+    <div class="flex-grow">
       <img src="@/assets/images/logo.png" class="w-14 ml-2" />
     </div>
-    <div>
-      <drop-down discrete>
+    <div class="w-min">
+      <drop-down discrete :disabled="$route.query.popup === 'true'">
         <template v-slot:trigger>
           <wallet-item
             :wallet="wallet"

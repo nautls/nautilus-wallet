@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-row gap-2 items-center">
-    <div class="flex flex-col gap-1 h-auto w-42 w-auto text-left whitespace-nowrap">
-      <div class="font-semibold text-base h-1/2 truncate">{{ wallet.name }}</div>
-      <div class="h-1/2 text-xs">
-        <span class="align-middle font-mono">{{ checksum }}</span>
-        <small class="rounded bg-gray-200 mx-2 p-1 text-dark-200 uppercase">{{
+  <div class="flex flex-row gap-2 items-center w-full">
+    <div class="flex flex-col gap-1 h-auto w-full text-left whitespace-nowrap">
+      <div class="font-semibold text-base w-40 h-full truncate">{{ wallet.name }}</div>
+      <div class="h-full text-xs">
+        <span class="align-middle font-mono font-normal">{{ checksum }}</span>
+        <small class="rounded bg-gray-200 mx-2 p-1 font-normal text-dark-200 uppercase">{{
           $filters.walletType(wallet.type)
         }}</small>
         <loading-indicator v-if="loading" class="w-4 h-4" />

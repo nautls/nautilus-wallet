@@ -158,6 +158,10 @@ input:disabled {
   outline-none hover:bg-gray-50 hover:text-gray-400 hover:border-gray-300;
 }
 
+.dropdown.discrete .trigger:disabled {
+  @apply cursor-auto bg-transparent text-gray-700 hover:border-transparent;
+}
+
 .dropdown.discrete .trigger.active.bottom {
   @apply border-b-transparent rounded-b-none;
 }

@@ -12,6 +12,7 @@ type SignQueueItem = {
 
 type Session = {
   url: string;
+  favicon?: string;
   port: chrome.runtime.Port;
   walletId?: number;
   signQueue: SignQueueItem[];
@@ -41,7 +42,7 @@ chrome.runtime.onConnect.addListener(port => {
               type: "rpc/nautilus-request",
               id: key,
               function: "requestAccess",
-              params: [key, value.url]
+              params: [key, value.url, value.favicon]
             } as RpcMessage);
           }
         }
@@ -72,7 +73,12 @@ async function requestAccess(message: RpcMessage, port: chrome.runtime.Port) {
     return;
   }
 
-  currentSessions.set(tabId, { port, url: port.sender.origin, signQueue: [] });
+  currentSessions.set(tabId, {
+    port,
+    url: port.sender.origin,
+    favicon: port.sender.tab?.favIconUrl,
+    signQueue: []
+  });
   openWindow(port.sender?.tab?.id);
 }
 

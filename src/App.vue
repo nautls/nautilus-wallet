@@ -1,7 +1,16 @@
 <template>
   <div class="app">
-    <wallet-header v-show="!$route.meta.fullPage" />
-    <nav-header v-if="!$route.meta.fullPage" />
+    <div
+      v-if="$route.meta.fullPage || $route.query.auth === 'true'"
+      class="flex flex-row p-4 gap-3 items-center bg-gray-100"
+    >
+      <img src="@/assets/images/logo.png" class="w-10" />
+      <h1 class="text-xl font-500">Nautilus Wallet</h1>
+    </div>
+    <template v-else>
+      <wallet-header v-show="!$route.meta.fullPage && $route.query.auth !== 'true'" />
+      <nav-header v-if="!$route.meta.fullPage && $route.query.popup !== 'true'" />
+    </template>
     <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
       <router-view />
     </div>

@@ -15,13 +15,14 @@ import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
+import { rpcListener } from "@/rpcListener";
 
 import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
-import { RpcMessage } from "./types/connector";
 
+rpcListener.start();
 wasmModule.loadAsync();
 
 axios.defaults.transformResponse = [
@@ -56,15 +57,3 @@ app
   .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
   .mount("#app");
-
-if (chrome.runtime) {
-  const port = chrome.runtime.connect({ name: "nautilus-ui" });
-
-  port.postMessage({ type: "rpc/nautilus-request", function: "loaded" } as RpcMessage);
-
-  port.onMessage.addListener((message: RpcMessage, port) => {
-    if (message.type === "rpc/nautilus-request") {
-      console.log(message);
-    }
-  });
-}

@@ -210,7 +210,9 @@ export default createStore({
         }
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
 
-        router.push({ name: "assets-page" });
+        if (router.currentRoute.value.query.popup != "true") {
+          router.push({ name: "assets-page" });
+        }
       } else {
         router.push({ name: "add-wallet" });
       }

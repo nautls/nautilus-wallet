@@ -8,6 +8,7 @@ import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
+import AuthView from "@/views/connector/AuthView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -60,6 +61,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/about",
     name: "about-nautilus",
     component: AboutView
+  },
+  {
+    path: "/connector/auth",
+    name: "connector-auth",
+    props: true,
+    component: AuthView
   }
 ];
 

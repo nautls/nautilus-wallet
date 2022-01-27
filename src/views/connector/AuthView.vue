@@ -1,0 +1,56 @@
+<template>
+  <div class="flex flex-col h-full gap-5 text-center pt-2">
+    <div class="w-full">
+      <div
+        class="mx-auto w-11 h-11 rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
+      >
+        <img v-if="favicon" :src="favicon" alt="Nautilus" class="w-11" />
+        <vue-feather v-else type="help-circle" class="w-11 text-gray-500" />
+      </div>
+      <p class="text-gray-600 pt-3">{{ origin || "???" }}</p>
+    </div>
+    <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>
+    <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
+      <label
+        class="p-4 flex gap-4 items-center block cursor-pointer hover:bg-gray-100"
+        v-for="wallet in wallets"
+        :key="wallet.id"
+      >
+        <input :value="wallet.id" v-model="selected" type="radio" class="inline-block" />
+        <wallet-item class="inline-block" :wallet="wallet" :key="wallet.id" />
+      </label>
+    </div>
+    <div class="flex flex-row gap-4">
+      <button class="btn w-full">Cancel</button>
+      <button class="btn w-full">Connect</button>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+import WalletItem from "@/components/WalletItem.vue";
+import { mapState } from "vuex";
+
+export default defineComponent({
+  name: "AuthView",
+  components: { WalletItem },
+  props: {
+    tabId: { type: Number, required: true },
+    favicon: { type: String, required: false },
+    origin: { type: String, required: false }
+  },
+  data() {
+    return {
+      selected: 0
+    };
+  },
+  computed: {
+    ...mapState({ wallets: "wallets" })
+  }
+  //   unselectedWallets() {
+  //   const currentId = this.$store.state.currentWallet?.id;
+  //   return this.$store.state.wallets.filter((w: StateWallet) => w.id !== currentId);
+  // }
+});
+</script>
