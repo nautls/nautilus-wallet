@@ -54,11 +54,11 @@ label {
 .tabs .tab-item {
   @apply outline-none text-center block default-transition max-w-20
      border-b-2 border-transparent
-    hover:text-blue-800 focus:outline-none active:outline-none;
+    hover:text-blue-700 focus:outline-none active:(outline-none text-blue-800);
 }
 
 .tabs .tab-item.active {
-  @apply text-blue-800 border-blue-800 border-b-2;
+  @apply text-blue-600 border-blue-600 border-b-2;
 }
 
 .table {
@@ -97,11 +97,17 @@ table thead th:last-child {
 }
 
 .btn {
-  @apply bg-transparent border border-solid rounded font-bold
-    outline-none border-blue-800 text-sm mr-1 mb-1 py-4 
-    px-4 text-blue-800 uppercase default-transition
-    hover:(bg-blue-800 text-white) focus:(outline-none ring-2 ring-blue-300)
-    active:bg-blue-900;
+  @apply bg-blue-600 border border-solid rounded font-bold
+    outline-none border-blue-800 text-sm mr-1 mb-1 py-3 
+    px-4 text-blue-800 uppercase default-transition text-light-300
+    hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
+    active:bg-blue-800;
+}
+
+.btn.outlined {
+  @apply bg-transparent outline-none text-blue-800 
+    hover:(bg-blue-700 text-light-300) focus:(outline-none ring-2 ring-blue-300)
+    active:(bg-blue-800 text-light-300);
 }
 
 button:disabled,

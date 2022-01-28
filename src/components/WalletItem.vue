@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-row gap-2 items-center w-full">
     <div class="flex flex-col gap-1 h-auto w-full text-left whitespace-nowrap">
-      <div class="font-semibold text-base w-40 h-full truncate">{{ wallet.name }}</div>
+      <div class="font-semibold text-base w-42 h-full truncate">{{ wallet.name }}</div>
       <div class="h-full text-xs">
         <span class="align-middle font-mono font-normal">{{ checksum }}</span>
         <small class="rounded bg-gray-200 mx-2 p-1 font-normal text-dark-200 uppercase">{{

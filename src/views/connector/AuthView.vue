@@ -12,7 +12,8 @@
     <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>
     <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
       <label
-        class="p-4 flex gap-4 items-center block cursor-pointer hover:bg-gray-100"
+        class="p-4 flex gap-4 items-center block cursor-pointer hover:bg-gray-100 active:bg-gray-300"
+        :class="wallet.id === selected ? 'bg-gray-100 hover:bg-gray-200' : ''"
         v-for="wallet in wallets"
         :key="wallet.id"
       >
@@ -21,7 +22,7 @@
       </label>
     </div>
     <div class="flex flex-row gap-4">
-      <button class="btn w-full">Cancel</button>
+      <button class="btn outlined w-full">Cancel</button>
       <button class="btn w-full">Connect</button>
     </div>
   </div>

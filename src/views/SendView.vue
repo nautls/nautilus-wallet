@@ -72,7 +72,7 @@
                     :min="1"
                     :max="5"
                     :tooltip="false"
-                    fill-class="bg-blue-800 rounded-l"
+                    fill-class="bg-blue-600 rounded-l"
                     root-class="p-4"
                     track-class="rounded-r"
                     thumb-class="rounded"
