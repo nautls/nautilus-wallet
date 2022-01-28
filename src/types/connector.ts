@@ -4,13 +4,14 @@ export type RpcMessage = {
     | "rpc/connector-request"
     | "rpc/nautilus-request"
     | "rpc/nautilus-response";
-  id: number;
-  function?: string;
+  sessionId: number;
+  requestId: number;
+  function: string;
   params?: any[];
   return?: RpcReturn;
 };
 
 export type RpcReturn = {
   isSuccess: boolean;
-  data: any;
+  data?: any;
 };

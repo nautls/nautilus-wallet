@@ -15,14 +15,14 @@ import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
-import { rpcListener } from "@/rpcListener";
+import { rpcHandler } from "@/rpcHandler";
 
 import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
-rpcListener.start();
+rpcHandler.start();
 wasmModule.loadAsync();
 
 axios.defaults.transformResponse = [

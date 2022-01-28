@@ -1,21 +1,22 @@
-import { RpcMessage } from "./types/connector";
+import { RpcMessage, RpcReturn } from "./types/connector";
 import { getBoundsForTabWindow } from "@/utils/uiHelpers";
+import { find, isEmpty } from "lodash";
 
 const POPUP_SIZE = { width: 365, height: 630 };
 
-type SignQueueItem = {
-  request: RpcMessage;
+type RequestQueueItem = {
+  message: RpcMessage;
   isWindowOpened: boolean;
-  resolve: (data: any) => {};
-  reject: (data: any) => {};
+  resolve: (value: RpcReturn) => void;
+  // reject: (value: unknown) => void;
 };
 
 type Session = {
-  url: string;
+  origin: string;
   favicon?: string;
   port: chrome.runtime.Port;
   walletId?: number;
-  signQueue: SignQueueItem[];
+  requestQueue: RequestQueueItem[];
 };
 
 const currentSessions = new Map<number, Session>();
@@ -29,23 +30,39 @@ chrome.runtime.onConnect.addListener(port => {
     });
 
     port.onMessage.addListener(async (message: RpcMessage, port) => {
-      if (message.type !== "rpc/nautilus-request") {
+      if (message.type !== "rpc/nautilus-response") {
         return;
       }
 
       if (message.function === "loaded") {
-        console.log("loaded");
-
         for (const [key, value] of currentSessions.entries()) {
-          if (!value.walletId) {
-            port.postMessage({
-              type: "rpc/nautilus-request",
-              id: key,
-              function: "requestAccess",
-              params: [key, value.url, value.favicon]
-            } as RpcMessage);
+          if (isEmpty(value.requestQueue)) {
+            continue;
+          }
+
+          for (const request of value.requestQueue.filter(r => !r.isWindowOpened)) {
+            if (request.message.function === "requestAccess") {
+              request.isWindowOpened = true;
+              port.postMessage({
+                type: "rpc/nautilus-request",
+                sessionId: key,
+                requestId: request.message.requestId,
+                function: "requestAccess",
+                params: [value.origin, value.favicon]
+              } as RpcMessage);
+            }
           }
         }
+      } else if (message.function === "requestAccess") {
+        console.log(message);
+        console.log(currentSessions);
+        const session = currentSessions.get(message.sessionId);
+        if (!session) {
+          return;
+        }
+
+        const request = find(session.requestQueue, r => r.message.requestId === message.requestId);
+        request?.resolve(message?.return || { isSuccess: false });
       }
     });
   } else {
@@ -56,30 +73,41 @@ chrome.runtime.onConnect.addListener(port => {
 
       if (message.function === "requestAccess") {
         const response = await requestAccess(message, port);
-        // sender.postMessage({
-        //   type: "rpc/connector-response",
-        //   id: message.id,
-        //   function: message.function,
-        //   return: { isSuccess: true, data: "hello from background" }
-        // } as RpcMessage);
+        if (response.isSuccess) {
+          const session = currentSessions.get(message.sessionId);
+          if (session) {
+            session.walletId = response.data.walletId;
+          }
+        }
+
+        port.postMessage({
+          type: "rpc/connector-response",
+          sessionId: message.sessionId,
+          requestId: message.requestId,
+          function: message.function,
+          return: { isSuccess: response.isSuccess, data: response.data?.walletId !== undefined }
+        } as RpcMessage);
       }
     });
   }
 });
 
-async function requestAccess(message: RpcMessage, port: chrome.runtime.Port) {
-  const tabId = port.sender?.tab?.id;
-  if (!tabId || !port.sender?.origin) {
-    return;
-  }
+async function requestAccess(message: RpcMessage, port: chrome.runtime.Port): Promise<RpcReturn> {
+  return new Promise((resolve, reject) => {
+    const tabId = port.sender?.tab?.id;
+    if (!tabId || !port.sender?.origin) {
+      return;
+    }
 
-  currentSessions.set(tabId, {
-    port,
-    url: port.sender.origin,
-    favicon: port.sender.tab?.favIconUrl,
-    signQueue: []
+    currentSessions.set(tabId, {
+      port,
+      origin: port.sender.origin,
+      favicon: port.sender.tab?.favIconUrl,
+      requestQueue: [{ isWindowOpened: false, message: message, resolve }]
+    });
+
+    openWindow(port.sender?.tab?.id);
   });
-  openWindow(port.sender?.tab?.id);
 }
 
 async function openWindow(tabId?: number) {

@@ -36,9 +36,9 @@ var nauRpcResolver = new Map();
 window.addEventListener("message", function (event) {
   if (event.data.type === "rpc/connector-response") {
     console.debug("message from connector: " + JSON.stringify(event.data));
-    const promise = nauRpcResolver.get(event.data.id);
+    const promise = nauRpcResolver.get(event.data.requestId);
     if (promise !== undefined) {
-      nauRpcResolver.delete(event.data.id);
+      nauRpcResolver.delete(event.data.requestId);
       const ret = event.data.return;
       if (ret.isSuccess) {
         promise.resolve(ret.data);
@@ -61,7 +61,7 @@ class NautilusAuthApi {
   _rpcCall(func, params) {
     return new Promise(function (resolve, reject) {
       window.postMessage(
-        { type: "rpc/connector-request", id: nauRpcId, function: func, params },
+        { type: "rpc/connector-request", requestId: nauRpcId, function: func, params },
         location.origin
       );
 
@@ -94,7 +94,7 @@ class NautilusErgoApi {
   _rpcCall(func, params) {
     return new Promise(function (resolve, reject) {
       window.postMessage(
-        { type: "rpc/connector-request", id: nauRpcId, function: func, params },
+        { type: "rpc/connector-request", requestId: nauRpcId, function: func, params },
         location.origin
       );
 

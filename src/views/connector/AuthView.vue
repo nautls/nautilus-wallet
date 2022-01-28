@@ -22,8 +22,8 @@
       </label>
     </div>
     <div class="flex flex-row gap-4">
-      <button class="btn outlined w-full">Cancel</button>
-      <button class="btn w-full">Connect</button>
+      <button class="btn outlined w-full" @click="cancel()">Cancel</button>
+      <button class="btn w-full" @click="connect()" :disabled="!selected">Connect</button>
     </div>
   </div>
 </template>
@@ -32,26 +32,56 @@
 import { defineComponent } from "vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { mapState } from "vuex";
+import { rpcHandler } from "@/rpcHandler";
+import { find } from "lodash";
 
 export default defineComponent({
   name: "AuthView",
   components: { WalletItem },
-  props: {
-    tabId: { type: Number, required: true },
-    favicon: { type: String, required: false },
-    origin: { type: String, required: false }
+  created() {
+    const message = find(rpcHandler.messages, m => m.function === "requestAccess");
+    if (!message || !message.params) {
+      return;
+    }
+
+    this.sessionId = message.sessionId;
+    this.requestId = message.requestId;
+    this.origin = message.params[0];
+    this.favicon = message.params[1];
   },
   data() {
     return {
-      selected: 0
+      selected: 0,
+      requestId: 0,
+      sessionId: 0,
+      origin: "",
+      favicon: ""
     };
   },
   computed: {
     ...mapState({ wallets: "wallets" })
+  },
+  methods: {
+    connect() {
+      rpcHandler.postMessage({
+        type: "rpc/nautilus-response",
+        function: "requestAccess",
+        sessionId: this.sessionId,
+        requestId: this.requestId,
+        return: { isSuccess: true, data: { walletId: this.selected } }
+      });
+      window.close();
+    },
+    cancel() {
+      rpcHandler.postMessage({
+        type: "rpc/nautilus-response",
+        function: "requestAccess",
+        sessionId: this.sessionId,
+        requestId: this.requestId,
+        return: { isSuccess: true }
+      });
+      window.close();
+    }
   }
-  //   unselectedWallets() {
-  //   const currentId = this.$store.state.currentWallet?.id;
-  //   return this.$store.state.wallets.filter((w: StateWallet) => w.id !== currentId);
-  // }
 });
 </script>

@@ -65,7 +65,6 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/connector/auth",
     name: "connector-auth",
-    props: true,
     component: AuthView
   }
 ];
