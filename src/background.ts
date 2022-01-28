@@ -1,6 +1,7 @@
 import { RpcMessage, RpcReturn } from "./types/connector";
 import { getBoundsForTabWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
+import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 
 const POPUP_SIZE = { width: 365, height: 630 };
 
@@ -72,12 +73,22 @@ chrome.runtime.onConnect.addListener(port => {
       }
 
       if (message.function === "requestAccess") {
-        const response = await requestAccess(message, port);
-        if (response.isSuccess) {
-          const session = currentSessions.get(message.sessionId);
-          if (session) {
-            session.walletId = response.data.walletId;
+        if (!port.sender || !port.sender.origin) {
+          return;
+        }
+
+        let response: RpcReturn = { isSuccess: true, data: true };
+        const connection = await connectedDAppsDbService.getFromOrigin(port.sender.origin);
+        if (!connection) {
+          response = await requestAccess(message, port);
+          if (response.isSuccess) {
+            const session = currentSessions.get(message.sessionId);
+            if (session) {
+              session.walletId = response.data.walletId;
+            }
           }
+
+          response = { isSuccess: response.isSuccess, data: response.data?.walletId !== undefined };
         }
 
         port.postMessage({
@@ -85,7 +96,7 @@ chrome.runtime.onConnect.addListener(port => {
           sessionId: message.sessionId,
           requestId: message.requestId,
           function: message.function,
-          return: { isSuccess: response.isSuccess, data: response.data?.walletId !== undefined }
+          return: response
         } as RpcMessage);
       }
     });

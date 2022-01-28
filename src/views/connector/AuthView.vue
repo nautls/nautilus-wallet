@@ -33,7 +33,8 @@ import { defineComponent } from "vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/rpcHandler";
-import { find } from "lodash";
+import { find, isEmpty } from "lodash";
+import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 
 export default defineComponent({
   name: "AuthView",
@@ -62,7 +63,13 @@ export default defineComponent({
     ...mapState({ wallets: "wallets" })
   },
   methods: {
-    connect() {
+    async connect() {
+      await connectedDAppsDbService.put({
+        origin: this.origin,
+        walletId: this.selected,
+        favicon: !isEmpty(this.favicon) ? this.favicon : undefined
+      });
+
       rpcHandler.postMessage({
         type: "rpc/nautilus-response",
         function: "requestAccess",
