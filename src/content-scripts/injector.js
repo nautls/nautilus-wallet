@@ -54,8 +54,12 @@ class NautilusAuthApi {
     return this._rpcCall("connect");
   }
 
-  checkAccess(p) {
-    return this._rpcCall("testWithParams", [p]);
+  isConnected() {
+    if (typeof ergo !== "undefined") {
+      return this._rpcCall("checkConnection");
+    } else {
+      return Promise.resolve(false);
+    }
   }
 
   _rpcCall(func, params) {
@@ -64,8 +68,6 @@ class NautilusAuthApi {
         { type: "rpc/connector-request", requestId: nauRpcId, function: func, params },
         location.origin
       );
-
-      // console.debug("rpcId = " + nauRpcId);
 
       nauRpcResolver.set(nauRpcId, { resolve: resolve, reject: reject });
       nauRpcId++;

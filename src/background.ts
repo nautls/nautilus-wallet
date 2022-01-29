@@ -74,6 +74,10 @@ chrome.runtime.onConnect.addListener(port => {
             return;
           }
 
+          if (message.return && message.return.isSuccess) {
+            session.walletId = message.return.data.walletId;
+          }
+
           const request = find(
             session.requestQueue,
             r => r.message.requestId === message.requestId
@@ -97,25 +101,21 @@ chrome.runtime.onConnect.addListener(port => {
             return;
           }
 
+          response.data = { walletId: connection.walletId };
           currentSessions.set(tabId, {
             port,
             origin: connection.origin,
+            walletId: connection.walletId,
             requestQueue: []
           });
-        } else if (!connection) {
+        } else {
           response = await connect(message, port);
-          if (response.isSuccess) {
-            const session = currentSessions.get(message.sessionId);
-            if (session) {
-              session.walletId = response.data.walletId;
-            }
-          }
-
-          response = {
-            isSuccess: response.isSuccess,
-            data: response.data?.walletId !== undefined
-          };
         }
+
+        response = {
+          isSuccess: response.isSuccess,
+          data: response.data?.walletId !== undefined
+        };
 
         port.postMessage({
           type: "rpc/connector-response",
@@ -123,6 +123,20 @@ chrome.runtime.onConnect.addListener(port => {
           requestId: message.requestId,
           function: message.function,
           return: response
+        } as RpcMessage);
+      } else if (message.function === "checkConnection") {
+        const tabId = port.sender?.tab?.id;
+        const session = tabId !== undefined ? currentSessions.get(tabId) : undefined;
+        console.log(session);
+        port.postMessage({
+          type: "rpc/connector-response",
+          sessionId: message.sessionId,
+          requestId: message.requestId,
+          function: message.function,
+          return: {
+            isSuccess: true,
+            data: session !== undefined && session.walletId !== undefined
+          }
         } as RpcMessage);
       }
     });
