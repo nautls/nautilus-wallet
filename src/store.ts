@@ -64,10 +64,10 @@ export default createStore({
 
       const groups = groupBy(
         state.currentAddresses
-          .filter(a => a.balance)
-          .map(a => a.balance || [])
+          .filter((a) => a.balance)
+          .map((a) => a.balance || [])
           .flat(),
-        a => a?.tokenId
+        (a) => a?.tokenId
       );
 
       for (const key in groups) {
@@ -79,9 +79,9 @@ export default createStore({
         const token: StateAsset = {
           tokenId: group[0].tokenId,
           name: group[0].name,
-          confirmedAmount: group.map(a => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
+          confirmedAmount: group.map((a) => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
           unconfirmedAmount: group
-            .map(a => a.unconfirmedAmount)
+            .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
           decimals: group[0].decimals,
           price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice : undefined
@@ -102,7 +102,7 @@ export default createStore({
         return balance;
       }
 
-      return sortBy(balance, [a => a.tokenId !== ERG_TOKEN_ID, a => a.name]);
+      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.name]);
     }
   },
   mutations: {
@@ -111,7 +111,7 @@ export default createStore({
         return;
       }
 
-      const i = findIndex(state.wallets, x => x.id == wallet.id);
+      const i = findIndex(state.wallets, (x) => x.id == wallet.id);
       if (i > -1) {
         state.wallets[i] = wallet;
       } else {
@@ -131,14 +131,14 @@ export default createStore({
 
       if (state.currentAddresses.length !== 0) {
         for (const address of content.addresses) {
-          const stateAddr = find(state.currentAddresses, a => a.script === address.script);
+          const stateAddr = find(state.currentAddresses, (a) => a.script === address.script);
           if (stateAddr && stateAddr.balance) {
             address.balance = stateAddr.balance;
           }
         }
       }
 
-      state.currentAddresses = sortBy(content.addresses, a => a.index);
+      state.currentAddresses = sortBy(content.addresses, (a) => a.index);
     },
     [MUTATIONS.ADD_ADDRESS](state, content: { address: StateAddress; walletId: number }) {
       if (state.currentWallet.id != content.walletId) {
@@ -157,7 +157,7 @@ export default createStore({
         return;
       }
 
-      const groups = groupBy(data.assets, a => a.address);
+      const groups = groupBy(data.assets, (a) => a.address);
       for (const address of state.currentAddresses) {
         const group = groups[address.script];
         if (!group || group.length === 0) {
@@ -165,7 +165,7 @@ export default createStore({
           continue;
         }
 
-        address.balance = group.map(x => {
+        address.balance = group.map((x) => {
           return {
             tokenId: x.tokenId,
             name: x.name,
@@ -186,7 +186,7 @@ export default createStore({
       state.loading = Object.assign(state.loading, obj);
     },
     [MUTATIONS.SET_WALLETS](state, wallets: IDbWallet[]) {
-      state.wallets = wallets.map(w => {
+      state.wallets = wallets.map((w) => {
         return {
           id: w.id || 0,
           name: w.name,
@@ -211,7 +211,7 @@ export default createStore({
       dispatch(ACTIONS.LOAD_CONNECTIONS);
 
       if (state.wallets.length > 0) {
-        let current = find(state.wallets, w => w.id === state.settings.lastOpenedWalletId);
+        let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
         }
@@ -303,7 +303,7 @@ export default createStore({
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
       const lastUsedIndex = findLastIndex(
         state.currentAddresses,
-        a => a.state === AddressState.Used
+        (a) => a.state === AddressState.Used
       );
 
       if (state.currentAddresses.length - lastUsedIndex > CHUNK_DERIVE_LENGTH) {
@@ -313,7 +313,7 @@ export default createStore({
       }
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
-      const index = (maxBy(state.currentAddresses, a => a.index)?.index || 0) + 1;
+      const index = (maxBy(state.currentAddresses, (a) => a.index)?.index || 0) + 1;
       const bip32 = bip32Pool.get(pk);
       const address = bip32.deriveAddress(index);
       await addressesDbService.put({
@@ -340,7 +340,7 @@ export default createStore({
 
       const bip32 = bip32Pool.get(pk);
       let active: StateAddress[] = sortBy(
-        (await addressesDbService.getAllFromWalletId(walletId)).map(a => {
+        (await addressesDbService.getAllFromWalletId(walletId)).map((a) => {
           return {
             script: a.script,
             state: a.state,
@@ -348,14 +348,14 @@ export default createStore({
             balance: undefined
           };
         }),
-        a => a.index
+        (a) => a.index
       );
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
       let lastUsed: string | undefined;
       let lastStored = last(active)?.script;
-      const maxIndex = maxBy(active, a => a.index)?.index;
+      const maxIndex = maxBy(active, (a) => a.index)?.index;
       let offset = maxIndex !== undefined ? maxIndex + 1 : 0;
 
       if (active.length > 0) {
@@ -366,7 +366,7 @@ export default createStore({
 
         used = used.concat(
           await explorerService.getUsedAddresses(
-            active.map(a => a.script),
+            active.map((a) => a.script),
             { chunkBy: CHUNK_DERIVE_LENGTH }
           )
         );
@@ -376,10 +376,10 @@ export default createStore({
       do {
         derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
         offset += derived.length;
-        usedChunk = await explorerService.getUsedAddresses(derived.map(a => a.script));
+        usedChunk = await explorerService.getUsedAddresses(derived.map((a) => a.script));
         used = used.concat(usedChunk);
         active = active.concat(
-          derived.map(d => ({
+          derived.map((d) => ({
             index: d.index,
             script: d.script,
             state: AddressState.Unused,
@@ -391,8 +391,8 @@ export default createStore({
         }
       } while (usedChunk.length > 0);
 
-      const lastUsedIndex = findIndex(active, a => a.script === lastUsed);
-      const lastStoredIndex = findIndex(active, a => a.script === lastStored);
+      const lastUsedIndex = findIndex(active, (a) => a.script === lastUsed);
+      const lastStoredIndex = findIndex(active, (a) => a.script === lastStored);
       if (lastStoredIndex > lastUsedIndex) {
         active = take(active, lastStoredIndex + 1);
       } else if (lastUsedIndex > -1) {
@@ -402,13 +402,13 @@ export default createStore({
       }
 
       for (const addr of active) {
-        if (find(used, address => addr.script === address)) {
+        if (find(used, (address) => addr.script === address)) {
           addr.state = AddressState.Used;
         }
       }
 
       await addressesDbService.bulkPut(
-        active.map(a => {
+        active.map((a) => {
           return {
             type: AddressType.P2PK,
             state: a.state,
@@ -420,7 +420,7 @@ export default createStore({
         walletId
       );
 
-      const addr = (await addressesDbService.getAllFromWalletId(walletId)).map(a => {
+      const addr = (await addressesDbService.getAllFromWalletId(walletId)).map((a) => {
         return {
           script: a.script,
           state: a.state,
@@ -432,7 +432,7 @@ export default createStore({
 
       if (lastUsed !== null) {
         dispatch(ACTIONS.REFRESH_BALANCES, {
-          addresses: active.map(a => a.script),
+          addresses: active.map((a) => a.script),
           walletId
         });
       }
@@ -440,7 +440,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
     async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
-      const assets = await assestsDbService.getAllFromWalletId(walletId);
+      const assets = await assestsDbService.getByWalletId(walletId);
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
     },
     async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
@@ -463,22 +463,22 @@ export default createStore({
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
       let unused = find(
         state.currentAddresses,
-        a => a.state === AddressState.Unused && a.script !== command.recipient
+        (a) => a.state === AddressState.Unused && a.script !== command.recipient
       );
       if (!unused) {
         await dispatch(ACTIONS.NEW_ADDRESS);
       }
       const addresses = clone(state.currentAddresses);
 
-      const selectedAddresses = addresses.filter(a => a.state === AddressState.Used && a.balance);
+      const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
       const changeAddress =
-        find(addresses, a => a.state === AddressState.Unused && a.script !== command.recipient)
+        find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
           ?.script || bip32.deriveAddress(0).script;
 
-      const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map(a => a.script));
+      const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
       const signedtx = Transaction.from(selectedAddresses)
@@ -486,7 +486,7 @@ export default createStore({
         .change(changeAddress)
         .withAssets(command.assets)
         .withFee(command.fee)
-        .fromBoxes(boxes.map(a => a.data).flat())
+        .fromBoxes(boxes.map((a) => a.data).flat())
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
       const response = await explorerService.sendTx(signedtx);
