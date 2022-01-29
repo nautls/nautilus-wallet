@@ -16,7 +16,7 @@ import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
-import { rpcHandler } from "@/rpcHandler";
+import { rpcHandler } from "@/background/rpcHandler";
 
 import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";

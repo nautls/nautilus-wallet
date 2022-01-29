@@ -58,7 +58,7 @@ label {
 }
 
 .tabs .tab-item.active {
-  @apply text-blue-600 border-blue-600 border-b-2;
+  @apply text-blue-700 border-blue-600 border-b-2;
 }
 
 .table {

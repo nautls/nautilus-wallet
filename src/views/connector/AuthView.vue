@@ -31,7 +31,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapState } from "vuex";
-import { rpcHandler } from "@/rpcHandler";
+import { rpcHandler } from "@/background/rpcHandler";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 
@@ -83,7 +83,7 @@ export default defineComponent({
         function: "connect",
         sessionId: this.sessionId,
         requestId: this.requestId,
-        return: { isSuccess: true }
+        return: { isSuccess: true, data: { walletId: undefined } }
       });
       window.close();
     }

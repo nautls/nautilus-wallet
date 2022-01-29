@@ -89,8 +89,40 @@ if (ergoConnector !== undefined) {
 
 const ergoApi = `
 class NautilusErgoApi {
-  getBoxes() {
-    return this._rpcCall("connect");
+  get_utxos(amount = undefined, token_id = "ERG", paginate = undefined) {
+    return this._rpcCall("get_utxos", [amount, token_id, paginate]);
+  }
+
+  get_balance(token_id = "ERG") {
+    return this._rpcCall("get_balance", [token_id]);
+  }
+
+  get_used_addresses(paginate = undefined) {
+    return this._rpcCall("get_used_addresses", [paginate]);
+  }
+
+  get_unused_addresses() {
+    return this._rpcCall("get_unused_addresses", []);
+  }
+
+  get_change_address() {
+    return this._rpcCall("get_change_address", []);
+  }
+
+  sign_tx(tx) {
+    return this._rpcCall("sign_tx", [tx]);
+  }
+
+  sign_tx_input(tx, index) {
+    return this._rpcCall("sign_tx_input", [tx, index]);
+  }
+
+  sign_data(addr, message) {
+    return this._rpcCall("sign_data", [addr, message]);
+  }
+
+  submit_tx(tx) {
+    return this._rpcCall("submit_tx", [tx]);
   }
 
   _rpcCall(func, params) {
@@ -99,8 +131,6 @@ class NautilusErgoApi {
         { type: "rpc/connector-request", requestId: nauRpcId, function: func, params },
         location.origin
       );
-
-      // console.debug("rpcId = " + nauRpcId);
 
       nauRpcResolver.set(nauRpcId, { resolve: resolve, reject: reject });
       nauRpcId++;

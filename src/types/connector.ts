@@ -1,3 +1,17 @@
+export type RequestQueueItem = {
+  message: RpcMessage;
+  isWindowOpened: boolean;
+  resolve: (value: RpcReturn) => void;
+};
+
+export type Session = {
+  origin: string;
+  favicon?: string;
+  port: chrome.runtime.Port;
+  walletId?: number;
+  requestQueue: RequestQueueItem[];
+};
+
 export type RpcMessage = {
   type:
     | "rpc/connector-response"

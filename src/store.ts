@@ -31,7 +31,7 @@ import AES from "crypto-js/aes";
 import { Transaction } from "./api/ergo/transaction/transaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { rpcHandler } from "./rpcHandler";
+import { rpcHandler } from "./background/rpcHandler";
 
 export default createStore({
   state: {

@@ -13,7 +13,7 @@ module.exports = {
   },
   pages: {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
-    background: { entry: "src/background.ts", template: "public/background.html" }
+    background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
   chainWebpack: config => {
     config.plugin("clean-output").use(

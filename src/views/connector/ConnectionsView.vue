@@ -1,7 +1,6 @@
 <template>
   <div class="flex flex-col h-full gap-4 text-center">
     <page-title title="Connected dApps" />
-    <!-- <h1 class="text-xl m-auto">Connections</h1> -->
     <div
       class="relative p-4 border-gray-300 border-1 rounded flex flex-col gap-2 items-center block cursor-default hover:bg-gray-100"
       v-for="(connection, i) in connections"
