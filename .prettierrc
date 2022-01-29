@@ -7,5 +7,5 @@
   "proseWrap": "preserve",
   "singleQuote": false,
   "trailingComma": "none",
-  "arrowParens": "avoid"
+  "arrowParens": "always"
 }

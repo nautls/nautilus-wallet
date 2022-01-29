@@ -1,16 +1,24 @@
-import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
+import {
+  APIError,
+  APIErrorCode,
+  RpcEvent,
+  RpcMessage,
+  RpcReturn,
+  Session
+} from "../types/connector";
 import { getBoundsForTabWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { explorerService } from "@/api/explorer/explorerService";
+import { ErrorCodes } from "vue/node_modules/@vue/compiler-core";
 
 const POPUP_SIZE = { width: 365, height: 630 };
 
 const sessions = new Map<number, Session>();
 
-chrome.runtime.onConnect.addListener(port => {
+chrome.runtime.onConnect.addListener((port) => {
   console.log(`connected with ${port.sender?.origin}`);
 
   if (port.name === "nautilus-ui") {
@@ -59,17 +67,77 @@ chrome.runtime.onConnect.addListener(port => {
 });
 
 async function handleGetBoxesRequest(
-  message: RpcMessage,
+  request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
-  if (!session || !session.walletId) {
+  if (!validateRequest(session, request, port)) {
     return;
   }
 
-  const addresses = await assestsDbService.getAssetHoldingAddresses(session.walletId, ERG_TOKEN_ID);
+  let tokenId = ERG_TOKEN_ID;
+
+  if (request.params) {
+    tokenId = request.params[1] as string;
+    if (!tokenId || tokenId === "ERG") {
+      tokenId = ERG_TOKEN_ID;
+    }
+
+    let error: APIError | undefined = undefined;
+
+    if (request.params[0]) {
+      error = {
+        code: APIErrorCode.InvalidRequest,
+        info: "box query per amount is not implemented"
+      };
+    }
+    if (request.params[2]) {
+      error = {
+        code: APIErrorCode.InvalidRequest,
+        info: "pagination is not implemented"
+      };
+    }
+
+    if (error) {
+      postErrorMessage(error, request, port);
+    }
+  }
+
+  const addresses = await assestsDbService.getAssetHoldingAddresses(session!.walletId!, tokenId);
   const boxes = await explorerService.getUnspentBoxes(addresses);
-  postResponse({ isSuccess: true, data: boxes.map(b => b.data).flat() }, message, port);
+  postResponse({ isSuccess: true, data: boxes.map((b) => b.data).flat() }, request, port);
+}
+
+function validateRequest(
+  session: Session | undefined,
+  request: RpcMessage,
+  port: chrome.runtime.Port
+): boolean {
+  let error: APIError | undefined;
+
+  if (!session) {
+    error = { code: APIErrorCode.InvalidRequest, info: "not connected" };
+  } else if (session.walletId === undefined) {
+    error = { code: APIErrorCode.Refused, info: "not authorized" };
+  }
+
+  if (error) {
+    postErrorMessage(error, request, port);
+    return false;
+  }
+
+  return true;
+}
+
+function postErrorMessage(error: APIError, request: RpcMessage, port: chrome.runtime.Port) {
+  postResponse(
+    {
+      isSuccess: false,
+      data: error
+    },
+    request,
+    port
+  );
 }
 
 function sendRequestsToUI(port: chrome.runtime.Port) {
@@ -78,7 +146,7 @@ function sendRequestsToUI(port: chrome.runtime.Port) {
       continue;
     }
 
-    for (const request of value.requestQueue.filter(r => !r.isWindowOpened)) {
+    for (const request of value.requestQueue.filter((r) => !r.isWindowOpened)) {
       if (request.message.function === "connect") {
         request.isWindowOpened = true;
         port.postMessage({
@@ -125,7 +193,7 @@ async function handleConnectionRequest(
   postResponse(response, message, port);
 }
 
-function handleCheckConnectionRequest(message: RpcMessage, port: chrome.runtime.Port) {
+function handleCheckConnectionRequest(request: RpcMessage, port: chrome.runtime.Port) {
   const tabId = port.sender?.tab?.id;
   const session = tabId !== undefined ? sessions.get(tabId) : undefined;
 
@@ -134,7 +202,7 @@ function handleCheckConnectionRequest(message: RpcMessage, port: chrome.runtime.
       isSuccess: true,
       data: session !== undefined && session.walletId !== undefined
     },
-    message,
+    request,
     port
   );
 }
@@ -159,7 +227,7 @@ function handleConnectionResponse(message: RpcMessage) {
     session.walletId = message.return.data.walletId;
   }
 
-  const request = find(session.requestQueue, r => r.message.requestId === message.requestId);
+  const request = find(session.requestQueue, (r) => r.message.requestId === message.requestId);
   request?.resolve(message?.return || { isSuccess: false });
 }
 
