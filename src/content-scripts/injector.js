@@ -90,39 +90,39 @@ if (ergoConnector !== undefined) {
 const ergoApi = `
 class NautilusErgoApi {
   get_utxos(amount = undefined, token_id = "ERG", paginate = undefined) {
-    return this._rpcCall("get_utxos", [amount, token_id, paginate]);
+    return this._rpcCall("getBoxes", [amount, token_id, paginate]);
   }
 
   get_balance(token_id = "ERG") {
-    return this._rpcCall("get_balance", [token_id]);
+    return this._rpcCall("getBalance", [token_id]);
   }
 
   get_used_addresses(paginate = undefined) {
-    return this._rpcCall("get_used_addresses", [paginate]);
+    return this._rpcCall("getUsedAddresses", [paginate]);
   }
 
   get_unused_addresses() {
-    return this._rpcCall("get_unused_addresses", []);
+    return this._rpcCall("getUnusedAddresses");
   }
 
   get_change_address() {
-    return this._rpcCall("get_change_address", []);
+    return this._rpcCall("getChangeAddress");
   }
 
   sign_tx(tx) {
-    return this._rpcCall("sign_tx", [tx]);
+    return this._rpcCall("signTx", [tx]);
   }
 
   sign_tx_input(tx, index) {
-    return this._rpcCall("sign_tx_input", [tx, index]);
+    return this._rpcCall("signTxInput", [tx, index]);
   }
 
   sign_data(addr, message) {
-    return this._rpcCall("sign_data", [addr, message]);
+    return this._rpcCall("signData", [addr, message]);
   }
 
   submit_tx(tx) {
-    return this._rpcCall("submit_tx", [tx]);
+    return this._rpcCall("submitTx", [tx]);
   }
 
   _rpcCall(func, params) {

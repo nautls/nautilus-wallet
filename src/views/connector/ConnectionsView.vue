@@ -17,12 +17,7 @@
         <div
           class="mx-auto w-11 h-11 rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
         >
-          <img
-            v-if="connection.favicon"
-            :src="connection.favicon"
-            alt="Nautilus"
-            class="w-11 rounded-full"
-          />
+          <img v-if="connection.favicon" :src="connection.favicon" class="w-11 rounded-full" />
           <vue-feather v-else type="help-circle" class="w-11 text-gray-500" />
         </div>
         <p class="text-gray-600 pt-3">{{ connection.origin || "???" }}</p>

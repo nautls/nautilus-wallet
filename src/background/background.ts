@@ -2,6 +2,9 @@ import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
 import { getBoundsForTabWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { assestsDbService } from "@/api/database/assetsDbService";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { explorerService } from "@/api/explorer/explorerService";
 
 const POPUP_SIZE = { width: 365, height: 630 };
 
@@ -35,6 +38,11 @@ chrome.runtime.onConnect.addListener(port => {
         return;
       }
 
+      const tabId = port.sender?.tab?.id;
+      if (!tabId || !port.sender?.origin) {
+        return;
+      }
+
       switch (message.function) {
         case "connect":
           await handleConnectionRequest(message, port, port.sender.origin);
@@ -42,10 +50,27 @@ chrome.runtime.onConnect.addListener(port => {
         case "checkConnection":
           handleCheckConnectionRequest(message, port);
           break;
+        case "getBoxes":
+          await handleGetBoxesRequest(message, port, sessions.get(tabId));
+          break;
       }
     });
   }
 });
+
+async function handleGetBoxesRequest(
+  message: RpcMessage,
+  port: chrome.runtime.Port,
+  session: Session | undefined
+) {
+  if (!session || !session.walletId) {
+    return;
+  }
+
+  const addresses = await assestsDbService.getAssetHoldingAddresses(session.walletId, ERG_TOKEN_ID);
+  const boxes = await explorerService.getUnspentBoxes(addresses);
+  postResponse({ isSuccess: true, data: boxes.map(b => b.data).flat() }, message, port);
+}
 
 function sendRequestsToUI(port: chrome.runtime.Port) {
   for (const [key, value] of sessions.entries()) {
@@ -97,29 +122,31 @@ async function handleConnectionRequest(
     data: response.data.walletId !== undefined
   };
 
+  postResponse(response, message, port);
+}
+
+function handleCheckConnectionRequest(message: RpcMessage, port: chrome.runtime.Port) {
+  const tabId = port.sender?.tab?.id;
+  const session = tabId !== undefined ? sessions.get(tabId) : undefined;
+
+  postResponse(
+    {
+      isSuccess: true,
+      data: session !== undefined && session.walletId !== undefined
+    },
+    message,
+    port
+  );
+}
+
+function postResponse(response: RpcReturn, message: RpcMessage, port: chrome.runtime.Port) {
   port.postMessage({
     type: "rpc/connector-response",
     sessionId: message.sessionId,
     requestId: message.requestId,
     function: message.function,
     return: response
-  } as RpcMessage);
-}
-
-function handleCheckConnectionRequest(message: RpcMessage, port: chrome.runtime.Port) {
-  const tabId = port.sender?.tab?.id;
-  const session = tabId !== undefined ? sessions.get(tabId) : undefined;
-  console.log(session);
-  port.postMessage({
-    type: "rpc/connector-response",
-    sessionId: message.sessionId,
-    requestId: message.requestId,
-    function: message.function,
-    return: {
-      isSuccess: true,
-      data: session !== undefined && session.walletId !== undefined
-    }
-  } as RpcMessage);
+  });
 }
 
 function handleConnectionResponse(message: RpcMessage) {
