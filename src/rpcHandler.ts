@@ -52,7 +52,7 @@ class RpcHandler {
     this._port.onMessage.addListener((message: RpcMessage, port) => {
       this._messages.push(message);
 
-      if (message.type === "rpc/nautilus-request" && message.function === "requestAccess") {
+      if (message.type === "rpc/nautilus-request" && message.function === "connect") {
         router.push({
           name: "connector-auth",
           query: { popup: "true", auth: "true" }

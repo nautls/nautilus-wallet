@@ -38,13 +38,13 @@ chrome.runtime.onConnect.addListener(port => {
             }
 
             for (const request of value.requestQueue.filter(r => !r.isWindowOpened)) {
-              if (request.message.function === "requestAccess") {
+              if (request.message.function === "connect") {
                 request.isWindowOpened = true;
                 port.postMessage({
                   type: "rpc/nautilus-request",
                   sessionId: key,
                   requestId: request.message.requestId,
-                  function: "requestAccess",
+                  function: "connect",
                   params: [value.origin, value.favicon]
                 } as RpcMessage);
               }
@@ -64,11 +64,11 @@ chrome.runtime.onConnect.addListener(port => {
           currentSessions.delete(key);
           session.port.postMessage({
             type: "rpc/nautilus-event",
-            name: "disconnected"
+            name: message.name
           } as RpcEvent);
         }
       } else if (message.type === "rpc/nautilus-response") {
-        if (message.function === "requestAccess") {
+        if (message.function === "connect") {
           const session = currentSessions.get(message.sessionId);
           if (!session) {
             return;
@@ -88,11 +88,22 @@ chrome.runtime.onConnect.addListener(port => {
         return;
       }
 
-      if (message.function === "requestAccess") {
+      if (message.function === "connect") {
         let response: RpcReturn = { isSuccess: true, data: true };
         const connection = await connectedDAppsDbService.getFromOrigin(port.sender.origin);
-        if (!connection) {
-          response = await requestAccess(message, port);
+        if (connection) {
+          const tabId = port.sender?.tab?.id;
+          if (!tabId || !port.sender?.origin) {
+            return;
+          }
+
+          currentSessions.set(tabId, {
+            port,
+            origin: connection.origin,
+            requestQueue: []
+          });
+        } else if (!connection) {
+          response = await connect(message, port);
           if (response.isSuccess) {
             const session = currentSessions.get(message.sessionId);
             if (session) {
@@ -118,7 +129,7 @@ chrome.runtime.onConnect.addListener(port => {
   }
 });
 
-async function requestAccess(message: RpcMessage, port: chrome.runtime.Port): Promise<RpcReturn> {
+async function connect(message: RpcMessage, port: chrome.runtime.Port): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
     if (!tabId || !port.sender?.origin) {

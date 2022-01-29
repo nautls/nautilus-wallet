@@ -38,7 +38,7 @@ import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService"
 export default defineComponent({
   name: "AuthView",
   created() {
-    const message = find(rpcHandler.messages, m => m.function === "requestAccess");
+    const message = find(rpcHandler.messages, m => m.function === "connect");
     if (!message || !message.params) {
       return;
     }
@@ -70,7 +70,7 @@ export default defineComponent({
 
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
-        function: "requestAccess",
+        function: "connect",
         sessionId: this.sessionId,
         requestId: this.requestId,
         return: { isSuccess: true, data: { walletId: this.selected } }
@@ -80,7 +80,7 @@ export default defineComponent({
     cancel() {
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
-        function: "requestAccess",
+        function: "connect",
         sessionId: this.sessionId,
         requestId: this.requestId,
         return: { isSuccess: true }

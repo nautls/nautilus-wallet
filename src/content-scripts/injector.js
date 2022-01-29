@@ -50,8 +50,8 @@ window.addEventListener("message", function (event) {
 });
 
 class NautilusAuthApi {
-  requestAccess() {
-    return this._rpcCall("requestAccess");
+  connect() {
+    return this._rpcCall("connect");
   }
 
   checkAccess(p) {
@@ -88,7 +88,7 @@ if (ergoConnector !== undefined) {
 const ergoApi = `
 class NautilusErgoApi {
   getBoxes() {
-    return this._rpcCall("requestAccess");
+    return this._rpcCall("connect");
   }
 
   _rpcCall(func, params) {
@@ -132,7 +132,7 @@ if (shouldInject()) {
     if (message.type === "rpc/connector-response") {
       if (
         !ergoApiInjected &&
-        message.function === "requestAccess" &&
+        message.function === "connect" &&
         message.return.isSuccess &&
         message.return.data === true
       ) {
