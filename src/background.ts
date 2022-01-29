@@ -9,7 +9,6 @@ type RequestQueueItem = {
   message: RpcMessage;
   isWindowOpened: boolean;
   resolve: (value: RpcReturn) => void;
-  // reject: (value: unknown) => void;
 };
 
 type Session = {
@@ -68,15 +67,11 @@ chrome.runtime.onConnect.addListener(port => {
     });
   } else {
     port.onMessage.addListener(async (message: RpcMessage, port) => {
-      if (message.type !== "rpc/connector-request") {
+      if (message.type !== "rpc/connector-request" || !port.sender || !port.sender.origin) {
         return;
       }
 
       if (message.function === "requestAccess") {
-        if (!port.sender || !port.sender.origin) {
-          return;
-        }
-
         let response: RpcReturn = { isSuccess: true, data: true };
         const connection = await connectedDAppsDbService.getFromOrigin(port.sender.origin);
         if (!connection) {
@@ -88,7 +83,10 @@ chrome.runtime.onConnect.addListener(port => {
             }
           }
 
-          response = { isSuccess: response.isSuccess, data: response.data?.walletId !== undefined };
+          response = {
+            isSuccess: response.isSuccess,
+            data: response.data?.walletId !== undefined
+          };
         }
 
         port.postMessage({

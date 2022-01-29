@@ -23,13 +23,14 @@ import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
-import { IDbAsset, IDbWallet } from "@/types/database";
+import { IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { Transaction } from "./api/ergo/transaction/transaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
+import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 
 export default createStore({
   state: {
@@ -53,7 +54,8 @@ export default createStore({
       price: false,
       addresses: true,
       balance: true
-    }
+    },
+    connections: Object.freeze([] as IDbDAppConnection[])
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -196,12 +198,16 @@ export default createStore({
     },
     [MUTATIONS.SET_SETTINGS](state, settings) {
       state.settings = Object.assign(state.settings, settings);
+    },
+    [MUTATIONS.SET_CONNECTIONS](state, connections) {
+      state.connections = Object.freeze(connections);
     }
   },
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
       await dispatch(ACTIONS.LOAD_WALLETS);
+      dispatch(ACTIONS.LOAD_CONNECTIONS);
 
       if (state.wallets.length > 0) {
         let current = find(state.wallets, w => w.id === state.settings.lastOpenedWalletId);
@@ -484,6 +490,14 @@ export default createStore({
 
       const response = await explorerService.sendTx(signedtx);
       return response.id;
+    },
+    async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
+      const connections = await connectedDAppsDbService.getAll();
+      commit(MUTATIONS.SET_CONNECTIONS, connections);
+    },
+    async [ACTIONS.REMOVE_CONNECTION]({ dispatch }, origin: string) {
+      await connectedDAppsDbService.deleteByOrigin(origin);
+      dispatch(ACTIONS.LOAD_CONNECTIONS);
     }
   }
 });

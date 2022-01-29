@@ -8,7 +8,9 @@ import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
+
 import AuthView from "@/views/connector/AuthView.vue";
+import ConnectionsView from "@/views/connector/ConnectionsView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -66,6 +68,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/connector/auth",
     name: "connector-auth",
     component: AuthView
+  },
+  {
+    path: "/connector/connections",
+    name: "connector-connected",
+    component: ConnectionsView
   }
 ];
 

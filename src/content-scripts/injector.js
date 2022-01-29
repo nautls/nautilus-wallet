@@ -65,7 +65,7 @@ class NautilusAuthApi {
         location.origin
       );
 
-      console.debug("rpcId = " + nauRpcId);
+      // console.debug("rpcId = " + nauRpcId);
 
       nauRpcResolver.set(nauRpcId, { resolve: resolve, reject: reject });
       nauRpcId++;
@@ -98,7 +98,7 @@ class NautilusErgoApi {
         location.origin
       );
 
-      console.debug("rpcId = " + nauRpcId);
+      // console.debug("rpcId = " + nauRpcId);
 
       nauRpcResolver.set(nauRpcId, { resolve: resolve, reject: reject });
       nauRpcId++;
@@ -109,6 +109,7 @@ class NautilusErgoApi {
 const ergo = Object.freeze(new NautilusErgoApi());
 // `;
 
+let ergoApiInjected = false;
 let nautilusPort;
 
 function createPort() {
@@ -126,6 +127,16 @@ if (shouldInject()) {
   nautilusPort.onMessage.addListener(message => {
     if (message.type !== "rpc/connector-response") {
       return;
+    }
+
+    if (
+      !ergoApiInjected &&
+      message.function === "requestAccess" &&
+      message.return.isSuccess &&
+      message.return.data === true
+    ) {
+      inject(ergoApi);
+      ergoApiInjected = true;
     }
 
     window.postMessage(message, location.origin);

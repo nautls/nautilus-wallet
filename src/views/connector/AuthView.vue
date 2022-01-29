@@ -4,7 +4,7 @@
       <div
         class="mx-auto w-11 h-11 rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
       >
-        <img v-if="favicon" :src="favicon" alt="Nautilus" class="w-11" />
+        <img v-if="favicon" :src="favicon" alt="Nautilus" class="w-11 rounded-full" />
         <vue-feather v-else type="help-circle" class="w-11 text-gray-500" />
       </div>
       <p class="text-gray-600 pt-3">{{ origin || "???" }}</p>
@@ -30,7 +30,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import WalletItem from "@/components/WalletItem.vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/rpcHandler";
 import { find, isEmpty } from "lodash";
@@ -38,7 +37,6 @@ import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService"
 
 export default defineComponent({
   name: "AuthView",
-  components: { WalletItem },
   created() {
     const message = find(rpcHandler.messages, m => m.function === "requestAccess");
     if (!message || !message.params) {

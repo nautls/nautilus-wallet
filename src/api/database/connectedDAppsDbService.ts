@@ -6,8 +6,16 @@ class ConnectedDAppsDbService {
     return await dbContext.connectedDApps.where("origin").equals(origin).first();
   }
 
+  public async getAll(): Promise<IDbDAppConnection[]> {
+    return await dbContext.connectedDApps.toArray();
+  }
+
   public async put(connection: IDbDAppConnection) {
     return await dbContext.connectedDApps.put(connection, connection.origin);
+  }
+
+  public async deleteByOrigin(origin: string) {
+    return await dbContext.connectedDApps.delete(origin);
   }
 }
 

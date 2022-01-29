@@ -13,7 +13,7 @@
 
     <canvas
       class="rounded w-10 h-10 ring-1 ring-gray-400 ring-offset-1 inline-block"
-      :id="`wlt-checksum-${wallet.id}`"
+      :id="canvaId"
     ></canvas>
   </div>
 </template>
@@ -42,11 +42,13 @@ export default defineComponent({
   name: "WalletItem",
   props: {
     wallet: { type: Object, required: true },
-    loading: { type: Boolean, default: false }
+    loading: { type: Boolean, default: false },
+    uid: { type: String, default: "" }
   },
   data() {
     return {
-      checksum: ""
+      checksum: "",
+      canvaId: Object.freeze(`wlt-checksum-${this.wallet.id}-${new Date().valueOf()}`)
     };
   },
   watch: {
@@ -69,7 +71,7 @@ export default defineComponent({
                 bgcolor: color.secondary,
                 spotcolor: color.spots
               },
-              document.getElementById(`wlt-checksum-${this.wallet.id}`)
+              document.getElementById(this.canvaId)
             );
           });
         }

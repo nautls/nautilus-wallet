@@ -10,6 +10,7 @@ import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
+import WalletItem from "@/components/WalletItem.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
@@ -56,4 +57,5 @@ app
   .component("drop-down", DropDown)
   .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
+  .component("wallet-item", WalletItem)
   .mount("#app");
