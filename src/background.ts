@@ -1,4 +1,4 @@
-import { RpcMessage, RpcReturn } from "./types/connector";
+import { RpcEvent, RpcMessage, RpcReturn } from "./types/connector";
 import { getBoundsForTabWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
@@ -29,40 +29,57 @@ chrome.runtime.onConnect.addListener(port => {
       console.log("closed");
     });
 
-    port.onMessage.addListener(async (message: RpcMessage, port) => {
-      if (message.type !== "rpc/nautilus-response") {
-        return;
-      }
+    port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port) => {
+      if (message.type === "rpc/nautilus-event") {
+        if (message.name === "loaded") {
+          for (const [key, value] of currentSessions.entries()) {
+            if (isEmpty(value.requestQueue)) {
+              continue;
+            }
 
-      if (message.function === "loaded") {
-        for (const [key, value] of currentSessions.entries()) {
-          if (isEmpty(value.requestQueue)) {
-            continue;
-          }
-
-          for (const request of value.requestQueue.filter(r => !r.isWindowOpened)) {
-            if (request.message.function === "requestAccess") {
-              request.isWindowOpened = true;
-              port.postMessage({
-                type: "rpc/nautilus-request",
-                sessionId: key,
-                requestId: request.message.requestId,
-                function: "requestAccess",
-                params: [value.origin, value.favicon]
-              } as RpcMessage);
+            for (const request of value.requestQueue.filter(r => !r.isWindowOpened)) {
+              if (request.message.function === "requestAccess") {
+                request.isWindowOpened = true;
+                port.postMessage({
+                  type: "rpc/nautilus-request",
+                  sessionId: key,
+                  requestId: request.message.requestId,
+                  function: "requestAccess",
+                  params: [value.origin, value.favicon]
+                } as RpcMessage);
+              }
             }
           }
-        }
-      } else if (message.function === "requestAccess") {
-        console.log(message);
-        console.log(currentSessions);
-        const session = currentSessions.get(message.sessionId);
-        if (!session) {
-          return;
-        }
+        } else if (message.name === "disconnected") {
+          const key = findSessionKeyByOrigin(message.data);
+          if (key === undefined) {
+            return;
+          }
 
-        const request = find(session.requestQueue, r => r.message.requestId === message.requestId);
-        request?.resolve(message?.return || { isSuccess: false });
+          const session = currentSessions.get(key);
+          if (!session) {
+            return;
+          }
+
+          currentSessions.delete(key);
+          session.port.postMessage({
+            type: "rpc/nautilus-event",
+            name: "disconnected"
+          } as RpcEvent);
+        }
+      } else if (message.type === "rpc/nautilus-response") {
+        if (message.function === "requestAccess") {
+          const session = currentSessions.get(message.sessionId);
+          if (!session) {
+            return;
+          }
+
+          const request = find(
+            session.requestQueue,
+            r => r.message.requestId === message.requestId
+          );
+          request?.resolve(message?.return || { isSuccess: false });
+        }
       }
     });
   } else {
@@ -117,6 +134,14 @@ async function requestAccess(message: RpcMessage, port: chrome.runtime.Port): Pr
 
     openWindow(port.sender?.tab?.id);
   });
+}
+
+function findSessionKeyByOrigin(origin: string): number | undefined {
+  for (const [key, value] of currentSessions.entries()) {
+    if (value.origin === origin) {
+      return key;
+    }
+  }
 }
 
 async function openWindow(tabId?: number) {

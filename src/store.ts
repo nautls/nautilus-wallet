@@ -31,6 +31,7 @@ import AES from "crypto-js/aes";
 import { Transaction } from "./api/ergo/transaction/transaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
+import { rpcHandler } from "./rpcHandler";
 
 export default createStore({
   state: {
@@ -498,6 +499,7 @@ export default createStore({
     async [ACTIONS.REMOVE_CONNECTION]({ dispatch }, origin: string) {
       await connectedDAppsDbService.deleteByOrigin(origin);
       dispatch(ACTIONS.LOAD_CONNECTIONS);
+      rpcHandler.sendEvent("disconnected", origin);
     }
   }
 });

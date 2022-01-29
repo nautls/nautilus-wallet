@@ -68,7 +68,7 @@ export default defineComponent({
         favicon: !isEmpty(this.favicon) ? this.favicon : undefined
       });
 
-      rpcHandler.postMessage({
+      rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
         function: "requestAccess",
         sessionId: this.sessionId,
@@ -78,7 +78,7 @@ export default defineComponent({
       window.close();
     },
     cancel() {
-      rpcHandler.postMessage({
+      rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
         function: "requestAccess",
         sessionId: this.sessionId,

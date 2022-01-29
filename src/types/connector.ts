@@ -11,7 +11,24 @@ export type RpcMessage = {
   return?: RpcReturn;
 };
 
+export type RpcEvent = {
+  type: "rpc/nautilus-event";
+  name: string;
+  data?: any;
+};
+
 export type RpcReturn = {
   isSuccess: boolean;
   data?: any;
+};
+
+export enum APIErrorCode {
+  InvalidRequest = -1,
+  InternalError = -2,
+  Refused = -3
+}
+
+export type APIError = {
+  code: APIErrorCode;
+  info: string;
 };

@@ -125,21 +125,27 @@ if (shouldInject()) {
   nautilusPort = chrome.runtime.connect();
 
   nautilusPort.onMessage.addListener(message => {
-    if (message.type !== "rpc/connector-response") {
+    if (message.type !== "rpc/connector-response" && message.type !== "rpc/nautilus-event") {
       return;
     }
 
-    if (
-      !ergoApiInjected &&
-      message.function === "requestAccess" &&
-      message.return.isSuccess &&
-      message.return.data === true
-    ) {
-      inject(ergoApi);
-      ergoApiInjected = true;
-    }
+    if (message.type === "rpc/connector-response") {
+      if (
+        !ergoApiInjected &&
+        message.function === "requestAccess" &&
+        message.return.isSuccess &&
+        message.return.data === true
+      ) {
+        inject(ergoApi);
+        ergoApiInjected = true;
+      }
 
-    window.postMessage(message, location.origin);
+      window.postMessage(message, location.origin);
+    } else if (message.type === "rpc/nautilus-event") {
+      if (message.name === "disconnected") {
+        window.dispatchEvent(new Event("ergo_wallet_disconnected"));
+      }
+    }
   });
 
   window.addEventListener("message", function (event) {
