@@ -3,7 +3,12 @@ import { getBoundsForTabWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { postResponse } from "./messagingUtils";
-import { handleGetBalanceRequest, handleGetBoxesRequest } from "./ergoApiHadlers";
+import {
+  handleGetBalanceRequest,
+  handleGetBoxesRequest,
+  handleGetUsedAddressesRequest as handleAddressesRequest
+} from "./ergoApiHadlers";
+import { AddressState } from "@/types/internal";
 
 const POPUP_SIZE = { width: 365, height: 630 };
 
@@ -54,6 +59,14 @@ chrome.runtime.onConnect.addListener((port) => {
           break;
         case "getBalance":
           await handleGetBalanceRequest(message, port, sessions.get(tabId));
+          break;
+        case "getUsedAddresses":
+          await handleAddressesRequest(message, port, sessions.get(tabId), AddressState.Used);
+          break;
+        case "getUnusedAddresses":
+          await handleAddressesRequest(message, port, sessions.get(tabId), AddressState.Unused);
+          break;
+        case "getChangeAddress":
           break;
       }
     });

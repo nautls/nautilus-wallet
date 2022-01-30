@@ -1,7 +1,9 @@
+import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import { explorerService } from "@/api/explorer/explorerService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { APIError, APIErrorCode, RpcMessage, Session } from "@/types/connector";
+import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 import { sumBy, uniq } from "lodash";
 import { postErrorMessage, postResponse } from "./messagingUtils";
@@ -68,6 +70,27 @@ export async function handleGetBalanceRequest(
     {
       isSuccess: true,
       data: assets.map((a) => toBigNumber(a.confirmedAmount)!).reduce((acc, val) => acc.plus(val))
+    },
+    request,
+    port
+  );
+}
+
+export async function handleGetUsedAddressesRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session: Session | undefined,
+  addressState: AddressState
+) {
+  if (!validateRequest(session, request, port)) {
+    return;
+  }
+
+  const addresses = await addressesDbService.getByState(session!.walletId!, addressState);
+  postResponse(
+    {
+      isSuccess: true,
+      data: addresses.map((x) => x.script)
     },
     request,
     port

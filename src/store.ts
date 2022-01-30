@@ -23,7 +23,7 @@ import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
-import { IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
@@ -340,7 +340,7 @@ export default createStore({
 
       const bip32 = bip32Pool.get(pk);
       let active: StateAddress[] = sortBy(
-        (await addressesDbService.getAllFromWalletId(walletId)).map((a) => {
+        (await addressesDbService.getByWalletId(walletId)).map((a) => {
           return {
             script: a.script,
             state: a.state,
@@ -420,7 +420,7 @@ export default createStore({
         walletId
       );
 
-      const addr = (await addressesDbService.getAllFromWalletId(walletId)).map((a) => {
+      const addr = (await addressesDbService.getByWalletId(walletId)).map((a: IDbAddress) => {
         return {
           script: a.script,
           state: a.state,
