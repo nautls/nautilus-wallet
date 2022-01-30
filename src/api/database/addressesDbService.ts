@@ -16,6 +16,10 @@ class AddressesDbService {
     return await dbContext.addresses.where({ walletId, state }).toArray();
   }
 
+  public async getFirst(walletId: number): Promise<IDbAddress | undefined> {
+    return await dbContext.addresses.where({ walletId }).first();
+  }
+
   public async put(address: IDbAddress): Promise<string> {
     return dbContext.addresses.put(address);
   }

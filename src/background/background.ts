@@ -6,7 +6,8 @@ import { postResponse } from "./messagingUtils";
 import {
   handleGetBalanceRequest,
   handleGetBoxesRequest,
-  handleGetUsedAddressesRequest as handleAddressesRequest
+  handleGetChangeAddressRequest,
+  handleGetUsedAddressesRequest as handleGetAddressesRequest
 } from "./ergoApiHadlers";
 import { AddressState } from "@/types/internal";
 
@@ -61,12 +62,13 @@ chrome.runtime.onConnect.addListener((port) => {
           await handleGetBalanceRequest(message, port, sessions.get(tabId));
           break;
         case "getUsedAddresses":
-          await handleAddressesRequest(message, port, sessions.get(tabId), AddressState.Used);
+          await handleGetAddressesRequest(message, port, sessions.get(tabId), AddressState.Used);
           break;
         case "getUnusedAddresses":
-          await handleAddressesRequest(message, port, sessions.get(tabId), AddressState.Unused);
+          await handleGetAddressesRequest(message, port, sessions.get(tabId), AddressState.Unused);
           break;
         case "getChangeAddress":
+          await handleGetChangeAddressRequest(message, port, sessions.get(tabId));
           break;
       }
     });

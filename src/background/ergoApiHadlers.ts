@@ -86,11 +86,57 @@ export async function handleGetUsedAddressesRequest(
     return;
   }
 
+  if (request.params && request.params[0]) {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InvalidRequest,
+        info: "pagination is not implemented"
+      },
+      request,
+      port
+    );
+
+    return;
+  }
+
   const addresses = await addressesDbService.getByState(session!.walletId!, addressState);
   postResponse(
     {
       isSuccess: true,
       data: addresses.map((x) => x.script)
+    },
+    request,
+    port
+  );
+}
+
+export async function handleGetChangeAddressRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session: Session | undefined
+) {
+  if (!validateRequest(session, request, port)) {
+    return;
+  }
+
+  const address = await addressesDbService.getFirst(session!.walletId!);
+  if (!address) {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InternalError,
+        info: "change address not found"
+      },
+      request,
+      port
+    );
+
+    return;
+  }
+
+  postResponse(
+    {
+      isSuccess: true,
+      data: address.script
     },
     request,
     port
