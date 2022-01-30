@@ -5,19 +5,36 @@ import { AddressState } from "@/types/internal";
 
 class AddressesDbService {
   public async getByScript(script: string): Promise<IDbAddress | undefined> {
-    return await dbContext.addresses.where("script").equals(script).first();
+    return await dbContext.addresses.where({ script }).first();
   }
 
   public async getByWalletId(walletId: number): Promise<IDbAddress[]> {
-    return await dbContext.addresses.where("walletId").equals(walletId).toArray();
+    return await dbContext.addresses.where({ walletId }).toArray();
   }
 
   public async getByState(walletId: number, state: AddressState): Promise<IDbAddress[]> {
-    return await dbContext.addresses.where({ walletId, state }).toArray();
+    const addresses = await dbContext.addresses
+      .orderBy("index")
+      .filter((a) => a.walletId === walletId && a.state == state)
+      .toArray();
+
+    return addresses.reverse();
   }
 
-  public async getFirst(walletId: number): Promise<IDbAddress | undefined> {
-    return await dbContext.addresses.where({ walletId }).first();
+  public async getChangeAddress(walletId: number): Promise<IDbAddress | undefined> {
+    const address = await dbContext.addresses
+      .orderBy("index")
+      .filter((a) => a.walletId === walletId && a.state === AddressState.Unused)
+      .first();
+
+    if (!address) {
+      return await dbContext.addresses
+        .orderBy("index")
+        .filter((a) => a.walletId === walletId)
+        .first();
+    }
+
+    return address;
   }
 
   public async put(address: IDbAddress): Promise<string> {

@@ -5,7 +5,7 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { APIError, APIErrorCode, RpcMessage, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
-import { sumBy, uniq } from "lodash";
+import { uniq } from "lodash";
 import { postErrorMessage, postResponse } from "./messagingUtils";
 
 export async function handleGetBoxesRequest(
@@ -119,7 +119,7 @@ export async function handleGetChangeAddressRequest(
     return;
   }
 
-  const address = await addressesDbService.getFirst(session!.walletId!);
+  const address = await addressesDbService.getChangeAddress(session!.walletId!);
   if (!address) {
     postErrorMessage(
       {

@@ -1,6 +1,6 @@
 export type RequestQueueItem = {
   message: RpcMessage;
-  isWindowOpened: boolean;
+  handled: boolean;
   resolve: (value: RpcReturn) => void;
 };
 

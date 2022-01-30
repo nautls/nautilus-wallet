@@ -156,7 +156,7 @@ if (shouldInject()) {
   inject(initialApi);
   nautilusPort = chrome.runtime.connect();
 
-  nautilusPort.onMessage.addListener(message => {
+  nautilusPort.onMessage.addListener((message) => {
     if (message.type !== "rpc/connector-response" && message.type !== "rpc/nautilus-event") {
       return;
     }

@@ -20,7 +20,8 @@ class NautilusDb extends Dexie {
     });
 
     this.version(3).stores({
-      connectedDApps: "&origin, walletId"
+      connectedDApps: "&origin, walletId",
+      addresses: "&script, type, state, index, walletId"
     });
   }
 }

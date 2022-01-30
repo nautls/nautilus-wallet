@@ -81,9 +81,9 @@ function sendRequestsToUI(port: chrome.runtime.Port) {
       continue;
     }
 
-    for (const request of value.requestQueue.filter((r) => !r.isWindowOpened)) {
+    for (const request of value.requestQueue.filter((r) => !r.handled)) {
       if (request.message.function === "connect") {
-        request.isWindowOpened = true;
+        request.handled = true;
         port.postMessage({
           type: "rpc/nautilus-request",
           sessionId: key,
@@ -188,7 +188,7 @@ async function showConnectionWindow(
       port,
       origin: port.sender.origin,
       favicon: port.sender.tab?.favIconUrl,
-      requestQueue: [{ isWindowOpened: false, message: message, resolve }]
+      requestQueue: [{ handled: false, message: message, resolve }]
     });
 
     openWindow(port.sender?.tab?.id);
