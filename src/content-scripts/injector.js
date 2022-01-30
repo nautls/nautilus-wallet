@@ -85,6 +85,13 @@ if (ergoConnector !== undefined) {
     nautilus: Object.freeze(new NautilusAuthApi())
   };
 }
+
+window.ergo_request_read_access = function () {
+  return ergoConnector.nautilus.connect();
+};
+window.ergo_check_read_access = function () {
+  return ergoConnector.nautilus.isConnected();
+};
 // `;
 
 const ergoApi = `
