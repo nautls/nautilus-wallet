@@ -48,7 +48,9 @@ export default defineComponent({
   data() {
     return {
       checksum: "",
-      canvaId: Object.freeze(`wlt-checksum-${this.wallet.id}-${new Date().valueOf()}`)
+      canvaId: Object.freeze(
+        `wlt-checksum-${this.wallet.id}-${new Date().valueOf() + Math.random()}`
+      )
     };
   },
   watch: {
