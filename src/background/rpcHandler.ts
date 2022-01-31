@@ -50,14 +50,28 @@ class RpcHandler {
     this.sendEvent("loaded");
 
     this._port.onMessage.addListener((message: RpcMessage, port) => {
-      this._messages.push(message);
-
-      if (message.type === "rpc/nautilus-request" && message.function === "connect") {
-        router.push({
-          name: "connector-auth",
-          query: { popup: "true", auth: "true" }
-        });
+      if (message.type !== "rpc/nautilus-request") {
+        return;
       }
+
+      switch (message.function) {
+        case "connect":
+          router.push({
+            name: "connector-auth",
+            query: { popup: "true", auth: "true" }
+          });
+          break;
+        case "signTx":
+          router.push({
+            name: "connector-sign-tx",
+            query: { popup: "true" }
+          });
+          break;
+        default:
+          return;
+      }
+
+      this._messages.push(message);
     });
   }
 

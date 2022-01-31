@@ -2,7 +2,7 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   ExplorerBlockHeaderResponse,
-  ExplorergetUnspentBox,
+  ExplorerGetUnspentBox,
   ExplorerGetApiV1BlocksP1Response,
   ExplorerGetApiV1BlocksResponse,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
@@ -55,7 +55,7 @@ class ExplorerService {
   public async getAddressesBalanceFromChunk(
     addresses: string[]
   ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
-    return await Promise.all(addresses.map(a => this.getAddressBalance(a)));
+    return await Promise.all(addresses.map((a) => this.getAddressBalance(a)));
   }
 
   public async getUsedAddresses(addresses: string[], options = { chunkBy: 20 }): Promise<string[]> {
@@ -74,13 +74,13 @@ class ExplorerService {
 
   private async getUsedAddressesFromChunk(addresses: string[]): Promise<string[]> {
     const resp = await Promise.all(
-      addresses.map(address => this.getTxHistory(address, { limit: 1, concise: true }))
+      addresses.map((address) => this.getTxHistory(address, { limit: 1, concise: true }))
     );
 
-    const usedRaw = resp.filter(r => r.data.total > 0);
+    const usedRaw = resp.filter((r) => r.data.total > 0);
     const used: string[] = [];
     for (const addr of addresses) {
-      if (find(usedRaw, x => addr === x.address)) {
+      if (find(usedRaw, (x) => addr === x.address)) {
         used.push(addr);
       }
     }
@@ -90,7 +90,7 @@ class ExplorerService {
 
   private async getAddressUnspentBoxes(
     address: string
-  ): Promise<AddressAPIResponse<ExplorergetUnspentBox[]>> {
+  ): Promise<AddressAPIResponse<ExplorerGetUnspentBox[]>> {
     const response = await axios.get(
       `${API_URL}/api/v0/transactions/boxes/byAddress/unspent/${address}`
     );
@@ -100,8 +100,8 @@ class ExplorerService {
 
   public async getUnspentBoxes(
     addresses: string[]
-  ): Promise<AddressAPIResponse<ExplorergetUnspentBox[]>[]> {
-    return await Promise.all(addresses.map(a => this.getAddressUnspentBoxes(a)));
+  ): Promise<AddressAPIResponse<ExplorerGetUnspentBox[]>[]> {
+    return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 
   public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {

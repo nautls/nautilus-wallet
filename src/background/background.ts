@@ -1,5 +1,5 @@
 import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
-import { getBoundsForTabWindow } from "@/utils/uiHelpers";
+import { openWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { postResponse } from "./messagingUtils";
@@ -7,11 +7,10 @@ import {
   handleGetBalanceRequest,
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
-  handleGetUsedAddressesRequest as handleGetAddressesRequest
-} from "./ergoApiHadlers";
+  handleGetUsedAddressesRequest as handleGetAddressesRequest,
+  handleSignTxRequest
+} from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
-
-const POPUP_SIZE = { width: 365, height: 630 };
 
 const sessions = new Map<number, Session>();
 
@@ -70,6 +69,9 @@ chrome.runtime.onConnect.addListener((port) => {
         case "getChangeAddress":
           await handleGetChangeAddressRequest(message, port, sessions.get(tabId));
           break;
+        case "signTx":
+          await handleSignTxRequest(message, port, sessions.get(tabId));
+          break;
       }
     });
   }
@@ -83,15 +85,27 @@ function sendRequestsToUI(port: chrome.runtime.Port) {
 
     for (const request of value.requestQueue.filter((r) => !r.handled)) {
       if (request.message.function === "connect") {
-        request.handled = true;
         port.postMessage({
           type: "rpc/nautilus-request",
           sessionId: key,
           requestId: request.message.requestId,
-          function: "connect",
+          function: request.message.function,
           params: [value.origin, value.favicon]
         } as RpcMessage);
+      } else if (request.message.function === "signTx") {
+        port.postMessage({
+          type: "rpc/nautilus-request",
+          sessionId: key,
+          requestId: request.message.requestId,
+          function: request.message.function,
+          params: request.message.params
+        } as RpcMessage);
+      } else {
+        continue;
       }
+
+      request.handled = true;
+      return;
     }
   }
 }
@@ -181,6 +195,7 @@ async function showConnectionWindow(
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
     if (!tabId || !port.sender?.origin) {
+      reject("invalid port");
       return;
     }
 
@@ -188,10 +203,10 @@ async function showConnectionWindow(
       port,
       origin: port.sender.origin,
       favicon: port.sender.tab?.favIconUrl,
-      requestQueue: [{ handled: false, message: message, resolve }]
+      requestQueue: [{ handled: false, message, resolve }]
     });
 
-    openWindow(port.sender?.tab?.id);
+    openWindow(tabId);
   });
 }
 
@@ -201,16 +216,4 @@ function findSessionKeyByOrigin(origin: string): number | undefined {
       return key;
     }
   }
-}
-
-async function openWindow(tabId?: number) {
-  const bounds = await getBoundsForTabWindow(tabId);
-  chrome.windows.create({
-    ...POPUP_SIZE,
-    focused: true,
-    type: "popup",
-    url: chrome.extension.getURL("index.html"),
-    left: bounds.width + bounds.positionX - (POPUP_SIZE.width + 10),
-    top: bounds.positionY + 40
-  });
 }

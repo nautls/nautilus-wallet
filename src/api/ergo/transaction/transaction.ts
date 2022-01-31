@@ -1,6 +1,6 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { TxSignError } from "@/types/errors";
-import { ExplorergetUnspentBox } from "@/types/explorer";
+import { ExplorerGetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
@@ -16,7 +16,7 @@ export class Transaction {
   private _change!: string;
   private _fee!: BigNumber;
   private _assets!: SendTxCommandAsset[];
-  private _boxes!: ExplorergetUnspentBox[];
+  private _boxes!: ExplorerGetUnspentBox[];
 
   private constructor(from: StateAddress[]) {
     this._from = from;
@@ -46,7 +46,7 @@ export class Transaction {
     return this;
   }
 
-  public fromBoxes(boxes: ExplorergetUnspentBox[]): Transaction {
+  public fromBoxes(boxes: ExplorerGetUnspentBox[]): Transaction {
     this._boxes = boxes;
     return this;
   }
@@ -123,12 +123,12 @@ export class Transaction {
 
   private buildTokenList(): Tokens {
     const tokens = new wasmModule.SigmaRust.Tokens();
-    if (!find(this._assets, a => a.asset.tokenId !== ERG_TOKEN_ID)) {
+    if (!find(this._assets, (a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
       return tokens;
     }
     const sigmaRust = wasmModule.SigmaRust;
 
-    for (const asset of this._assets.filter(x => x.asset.tokenId !== ERG_TOKEN_ID)) {
+    for (const asset of this._assets.filter((x) => x.asset.tokenId !== ERG_TOKEN_ID)) {
       if (!asset.amount || asset.amount.isLessThanOrEqualTo(0)) {
         continue;
       }
@@ -147,7 +147,7 @@ export class Transaction {
   }
 
   private getErgAmount(): BoxValue {
-    const erg = find(this._assets, a => a.asset.tokenId === ERG_TOKEN_ID);
+    const erg = find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID);
     if (
       !erg ||
       !erg.amount ||

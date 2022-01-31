@@ -8,6 +8,7 @@ import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
+import SignTxConfirmView from "@/views/SignTxConfirmView.vue";
 
 import AuthView from "@/views/connector/AuthView.vue";
 import ConnectionsView from "@/views/connector/ConnectionsView.vue";
@@ -73,6 +74,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/connector/connections",
     name: "connector-connected",
     component: ConnectionsView
+  },
+  {
+    path: "/connector/sign/tx",
+    name: "connector-sign-tx",
+    component: SignTxConfirmView
   }
 ];
 

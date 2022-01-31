@@ -69,10 +69,12 @@ export type TxSignError = {
 
 export type Token = {
   tokenId: string;
-  amount: number | string;
+  amount: bigint | string;
   name?: string;
   decimals?: number;
 };
+
+export type Registers = { [key: string]: string };
 
 export type UnsignedInput = {
   boxId: string;
@@ -82,16 +84,27 @@ export type UnsignedInput = {
   creationHeight: number;
   value: number | string;
   assets: Token[];
-  additionalRegisters: { [key: string]: string };
+  additionalRegisters: Registers;
   extension: { [key: string]: string };
 };
 
 export type ErgoBoxCandidate = {
-  readonly value: number | string;
-  readonly ergoTree: string;
-  readonly creationHeight: number;
-  readonly assets: Token[];
-  readonly additionalRegisters: { [key: string]: string };
+  value: number | string;
+  ergoTree: string;
+  creationHeight: number;
+  assets: Token[];
+  additionalRegisters: Registers;
+};
+
+export type ErgoBox = {
+  boxId: string;
+  transactionId: string;
+  index: number;
+  ergoTree: string;
+  creationHeight: number;
+  value: bigint | string;
+  assets: Token[];
+  additionalRegisters: Registers;
 };
 
 export type DataInput = {
