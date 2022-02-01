@@ -98,7 +98,11 @@ function sendRequestsToUI(port: chrome.runtime.Port) {
           sessionId: key,
           requestId: request.message.requestId,
           function: request.message.function,
-          params: request.message.params
+          params: [
+            value.origin,
+            value.favicon,
+            request.message.params ? request.message.params[0] : undefined
+          ]
         } as RpcMessage);
       } else {
         continue;
@@ -127,6 +131,7 @@ async function handleConnectionRequest(
     sessions.set(tabId, {
       port,
       origin: connection.origin,
+      favicon: port.sender.tab?.favIconUrl,
       walletId: connection.walletId,
       requestQueue: []
     });

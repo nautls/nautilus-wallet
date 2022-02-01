@@ -11,6 +11,7 @@ import DropDown from "@/components/DropDown.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import WalletItem from "@/components/WalletItem.vue";
+import DAppPlate from "@/components/DappPlate.vue";
 import axios from "axios";
 import JSONBigInt from "json-bigint";
 import { filters } from "@/utils/globalFilters";
@@ -27,7 +28,7 @@ rpcHandler.start();
 wasmModule.loadAsync();
 
 axios.defaults.transformResponse = [
-  data => {
+  (data) => {
     if (typeof data === "string") {
       try {
         data = JSONBigInt.parse(data);
@@ -58,4 +59,5 @@ app
   .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
   .component("wallet-item", WalletItem)
+  .component("dapp-plate", DAppPlate)
   .mount("#app");

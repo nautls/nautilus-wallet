@@ -56,13 +56,13 @@ class RpcHandler {
 
       switch (message.function) {
         case "connect":
-          router.push({
+          router.replace({
             name: "connector-auth",
             query: { popup: "true", auth: "true" }
           });
           break;
         case "signTx":
-          router.push({
+          router.replace({
             name: "connector-sign-tx",
             query: { popup: "true" }
           });

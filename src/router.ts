@@ -8,10 +8,10 @@ import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
-import SignTxConfirmView from "@/views/SignTxConfirmView.vue";
 
 import AuthView from "@/views/connector/AuthView.vue";
 import ConnectionsView from "@/views/connector/ConnectionsView.vue";
+import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {

@@ -1,14 +1,7 @@
 <template>
-  <div class="flex flex-col h-full gap-5 text-center pt-2">
-    <div class="w-full">
-      <div
-        class="mx-auto w-11 h-11 rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
-      >
-        <img v-if="favicon" :src="favicon" class="w-11 rounded-full" />
-        <vue-feather v-else type="help-circle" class="w-11 text-gray-500" />
-      </div>
-      <p class="text-gray-600 pt-3">{{ origin || "???" }}</p>
-    </div>
+  <div class="flex flex-col h-full gap-4 text-center pt-2">
+    <dapp-plate :origin="origin" :favicon="favicon" />
+
     <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>
     <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
       <label
@@ -38,7 +31,7 @@ import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService"
 export default defineComponent({
   name: "AuthView",
   created() {
-    const message = find(rpcHandler.messages, m => m.function === "connect");
+    const message = find(rpcHandler.messages, (m) => m.function === "connect");
     if (!message || !message.params) {
       return;
     }
