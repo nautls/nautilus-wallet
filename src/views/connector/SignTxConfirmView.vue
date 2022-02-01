@@ -53,8 +53,6 @@ import { GETTERS } from "@/constants/store";
 export default defineComponent({
   name: "SignTxConfirmView",
   created() {
-    const b = Buffer.from("0e1056657279204c6172676520546f6b656e");
-    console.log(b.toString("utf8"));
     const message = find(rpcHandler.messages, (m) => m.function === "signTx");
     if (!message || !message.params) {
       return;
