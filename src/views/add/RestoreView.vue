@@ -35,7 +35,7 @@
           }"
           :closable="false"
           :allow-duplicates="true"
-          :on-paste-separators="[',', ' ']"
+          :on-paste-separators="[' ']"
           :confirmKeys="[',', 'Tab', 'Enter', ' ']"
           :keep-first="true"
           @typing="filterBy"
@@ -157,16 +157,16 @@ export default defineComponent({
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
-        return Object.freeze(take(words, 10));
+        this.filteredWords = Object.freeze(take(words, 10));
       }
 
       const lowerText = text.toLowerCase();
       const filtered = take(
         orderBy(
-          words.filter(w => {
+          words.filter((w) => {
             return w.includes(lowerText);
           }),
-          w => !w.startsWith(lowerText)
+          (w) => !w.startsWith(lowerText)
         ),
         10
       );
