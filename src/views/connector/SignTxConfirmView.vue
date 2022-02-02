@@ -8,23 +8,35 @@
       <div class="divide-y divide-gray-300">
         <div class="flex flex-col gap-3" v-for="(output, index) in tx?.sending" :key="index">
           <div>
-            <p class="font-semibold">Recipient</p>
+            <p class="font-semibold mb-2">Recipient</p>
             <p class="font-mono text-gray-600">
-              {{ $filters.compactString($filters.getAddressFromErgoTree(output.ergoTree), 36) }}
+              {{ $filters.compactString(output.receiver, 36) }}
             </p>
           </div>
           <div>
-            <p class="font-semibold">Sending</p>
+            <p class="font-semibold mb-2">Assets</p>
             <ul>
-              <li v-for="token in output.assets">{{ token.tokenId }}</li>
+              <li v-for="asset in output.assets" class="py-1">
+                <div class="flex flex-row items-center gap-2">
+                  <img
+                    :src="$filters.assetLogo(asset.tokenId)"
+                    class="h-8 w-8 rounded-full"
+                    :alt="asset.name"
+                  />
+                  <div class="flex-grow">
+                    <template v-if="asset.name">{{
+                      $filters.compactString(asset.name, 20, "end")
+                    }}</template>
+                    <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
+                  </div>
+                  <div>{{ $filters.formatBigNumber(asset.amount) }}</div>
+                </div>
+              </li>
             </ul>
           </div>
-          <div>
-            <p class="font-semibold">Minting</p>
-          </div>
-          <div>
+          <!-- <div>
             <p class="font-semibold">Burning</p>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -46,7 +58,7 @@ import { rpcHandler } from "@/background/rpcHandler";
 import { find } from "lodash";
 import { UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
-import { TxInterpreter } from "@/api/ergo/transaction/txInterpreter";
+import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { StateAddress, StateAsset } from "@/types/internal";
 import { GETTERS } from "@/constants/store";
 
@@ -80,7 +92,7 @@ export default defineComponent({
 
       // console.log(
       //   new TxInterpreter(
-      //     this.rawTx,
+      //     this.rawTx as UnsignedTx,
       //     this.addresses.map((a) => a.script)
       //   )
       // );
@@ -93,7 +105,7 @@ export default defineComponent({
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
     },
-    assets(): StateAsset {
+    assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
     },
     tx(): TxInterpreter | undefined {
@@ -102,8 +114,14 @@ export default defineComponent({
       }
 
       return new TxInterpreter(
-        this.rawTx,
-        this.addresses.map((a) => a.script)
+        this.rawTx as UnsignedTx,
+        this.addresses.map((a) => a.script),
+        Object.assign(
+          {},
+          ...this.assets.map((a) => {
+            return { [a.tokenId]: { name: a.name, decimals: a.decimals } };
+          })
+        )
       );
     }
   },

@@ -16,15 +16,20 @@ export function removeDecimals(value: BigNumber, decimals: number): BigNumber {
   return value.multipliedBy(Math.pow(10, decimals));
 }
 
-export function toBigNumber(value?: string | number | BigNumber): BigNumber | undefined {
+export function toBigNumber(value?: string | number | bigint | BigNumber): BigNumber | undefined {
   if (value === undefined) {
     return value;
   }
 
   const valueType = typeof value;
-  if (valueType === "string" || valueType === "number") {
-    return new BigNumber(value);
+  if (valueType === "bigint") {
+    return new BigNumber(value.toString());
+  } else if (valueType === "string") {
+    return new BigNumber(value as string);
+  } else if (valueType === "number") {
+    return new BigNumber(value as number);
   }
+
   return value as BigNumber;
 }
 
