@@ -61,7 +61,7 @@
     <div v-if="tx?.fee && tx?.fee.assets[0]" class="text-right px-2 -mt-2 text-sm">
       <p>Fee: {{ $filters.formatBigNumber(tx.fee.assets[0].amount) }} ERG</p>
     </div>
-    <div class="text-left">
+    <div class="text-left" v-if="!isReadonly">
       <label
         >Spending password
         <input
@@ -75,9 +75,13 @@
         </p>
       </label>
     </div>
+    <p v-else>
+      <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" />
+      <span class="align-middle"> This wallet can't sign transactions.</span>
+    </p>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" @click="sign()">Confirm</button>
+      <button class="btn w-full" @click="sign()" :disabled="isReadonly">Confirm</button>
     </div>
     <loading-modal
       title="Signing"
@@ -96,7 +100,7 @@ import { find } from "lodash";
 import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
-import { SignTxFromConnectorCommand, StateAddress, StateAsset } from "@/types/internal";
+import { SignTxFromConnectorCommand, StateAddress, StateAsset, WalletType } from "@/types/internal";
 import { ACTIONS, GETTERS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
@@ -161,6 +165,9 @@ export default defineComponent({
   },
   computed: {
     ...mapState({ wallets: "wallets" }),
+    isReadonly() {
+      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
     },
