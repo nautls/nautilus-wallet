@@ -44,16 +44,11 @@
                       :alt="asset.name"
                     />
                   </td>
-                  <td>
-                    <p v-if="isErg(asset.tokenId)" class="font-semibold align-middle">
+                  <td class="align-middle">
+                    <p v-if="isErg(asset.tokenId)" class="font-semibold">
                       {{ asset.name }}
                     </p>
-                    <a
-                      v-else
-                      :href="urlFor(asset.tokenId)"
-                      target="_blank"
-                      class="align-middle break-all"
-                    >
+                    <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-all">
                       <template v-if="asset.name">{{
                         $filters.compactString(asset.name, 30, "end")
                       }}</template>
