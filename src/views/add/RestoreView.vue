@@ -20,7 +20,7 @@
         Recovery phrase
         <o-inputitems
           :disabled="loading"
-          v-model="words"
+          v-model="selectedWords"
           :data="filteredWords"
           autocomplete
           :allow-new="false"
@@ -39,10 +39,11 @@
           :confirmKeys="[',', 'Tab', 'Enter', ' ']"
           :keep-first="true"
           @typing="filterBy"
-          @blur="v$.words.$touch()"
+          @blur="v$.selectedWords.$touch()"
+          @paste.prevent.stop="onPaste"
         />
-        <p class="input-error" v-if="v$.words.$error">
-          {{ v$.words.$errors[0].$message }}
+        <p class="input-error" v-if="v$.selectedWords.$error">
+          {{ v$.selectedWords.$errors[0].$message }}
         </p>
       </label>
       <label
@@ -83,7 +84,7 @@
 import { defineComponent } from "vue";
 import PageTitle from "@/components/PageTitle.vue";
 import { wordlists } from "bip39";
-import { join, orderBy, take } from "lodash";
+import { intersection, intersectionBy, isEmpty, join, orderBy, take } from "lodash";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";
@@ -91,7 +92,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
 import { validMnemonic } from "@/validators";
 
-const words = wordlists.english;
+const wordlist = wordlists.english;
 
 export default defineComponent({
   name: "RestoreView",
@@ -101,18 +102,18 @@ export default defineComponent({
   },
   data() {
     return {
-      filteredWords: Object.freeze(words),
+      filteredWords: Object.freeze(wordlist),
       walletName: "",
       password: "",
       confirmPassword: "",
-      words: [],
+      selectedWords: [] as string[],
       loading: false
     };
   },
   validations() {
     return {
       walletName: { required: helpers.withMessage("Wallet name is required.", required) },
-      words: {
+      selectedWords: {
         required: helpers.withMessage("Recovery phrase is required.", required),
         validMnemonic: validMnemonic
       },
@@ -143,7 +144,7 @@ export default defineComponent({
       try {
         await this.putWallet({
           name: this.walletName,
-          mnemonic: join(this.words, " "),
+          mnemonic: join(this.selectedWords, " "),
           password: this.password,
           type: WalletType.Standard
         });
@@ -157,13 +158,13 @@ export default defineComponent({
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
-        this.filteredWords = Object.freeze(take(words, 10));
+        this.filteredWords = Object.freeze(take(wordlist, 10));
       }
 
       const lowerText = text.toLowerCase();
       const filtered = take(
         orderBy(
-          words.filter((w) => {
+          wordlist.filter((w) => {
             return w.includes(lowerText);
           }),
           (w) => !w.startsWith(lowerText)
@@ -172,6 +173,24 @@ export default defineComponent({
       );
 
       this.filteredWords = Object.freeze(filtered);
+    },
+    onPaste(event: ClipboardEvent) {
+      const pasteData = event.clipboardData?.getData("text");
+      if (!pasteData) {
+        return;
+      }
+
+      const pasteWords = pasteData.split(" ");
+      if (isEmpty(pasteWords)) {
+        return;
+      }
+
+      const intersec = intersection(wordlist, pasteWords);
+
+      if (intersec.length == pasteWords.length) {
+        // need to paste from pasteWords since intersect doesn't garantees the order os elements
+        this.selectedWords = pasteWords;
+      }
     }
   }
 });
