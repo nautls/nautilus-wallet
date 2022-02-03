@@ -128,7 +128,6 @@ import { PasswordError, TxSignError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
 import { mapState } from "vuex";
-import JSONBig from "json-bigint";
 
 export default defineComponent({
   name: "SendView",

@@ -79,6 +79,12 @@
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
       <button class="btn w-full" @click="sign()">Confirm</button>
     </div>
+    <loading-modal
+      title="Signing"
+      :message="singMessage"
+      :state="singState"
+      @close="singState = 'disabled'"
+    />
   </div>
 </template>
 
@@ -97,6 +103,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
+import { PasswordError } from "@/types/errors";
 
 export default defineComponent({
   name: "SignTxConfirmView",
@@ -133,7 +140,9 @@ export default defineComponent({
       sessionId: 0,
       password: "",
       origin: "",
-      favicon: ""
+      favicon: "",
+      singState: "disabled",
+      singMessage: ""
     };
   },
   validations() {
@@ -183,6 +192,9 @@ export default defineComponent({
         return;
       }
 
+      this.singState = "loading";
+      this.singMessage = "";
+
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX_FROM_CONNECTOR, {
           tx: this.rawTx,
@@ -199,13 +211,20 @@ export default defineComponent({
             data: JSONBig.parse(signedTx)
           }
         });
-      } catch (e) {
-        (e as Error).message;
-        console.error(e);
-        this.fail((e as Error).message);
-      } finally {
+
         window.removeEventListener("beforeunload", this.onWindowClosing);
         window.close();
+      } catch (e) {
+        (e as Error).message;
+        this.singState = "error";
+        console.error(e);
+
+        if (e instanceof PasswordError) {
+          this.singMessage = e.message;
+        } else {
+          window.removeEventListener("beforeunload", this.onWindowClosing);
+          this.fail((e as Error).message);
+        }
       }
     },
     cancel() {
