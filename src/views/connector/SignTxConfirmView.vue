@@ -77,7 +77,7 @@
     </div>
     <p v-else>
       <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" />
-      <span class="align-middle"> This wallet can't sign transactions.</span>
+      <span class="align-middle"> This wallet cannot sign transactions.</span>
     </p>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
