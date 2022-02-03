@@ -22,13 +22,13 @@
               </thead>
               <tbody>
                 <tr v-if="loading" v-for="i in prevCount" :key="i">
-                  <td class="w-14">
+                  <td class="w-14 align-middle">
                     <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
                   </td>
-                  <td>
+                  <td class="align-middle">
                     <div class="skeleton h-3 w-2/3 rounded"></div>
                   </td>
-                  <td class="text-right w-50">
+                  <td class="text-right w-50 align-middle">
                     <div class="skeleton h-3 w-3/5 rounded"></div>
                     <template v-if="i === 1">
                       <br />
@@ -37,7 +37,7 @@
                   </td>
                 </tr>
                 <tr v-else v-for="asset in assets" :key="asset.tokenId">
-                  <td class="w-14">
+                  <td class="w-14 align-middle">
                     <img
                       :src="$filters.assetLogo(asset.tokenId)"
                       class="h-8 w-8 rounded-full"
@@ -55,7 +55,7 @@
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </a>
                   </td>
-                  <td class="text-right">
+                  <td class="text-right align-middle">
                     <p>
                       {{ $filters.formatBigNumber(asset.confirmedAmount) }}
                     </p>
