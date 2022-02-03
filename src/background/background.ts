@@ -8,7 +8,8 @@ import {
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
   handleGetUsedAddressesRequest as handleGetAddressesRequest,
-  handleSignTxRequest
+  handleSignTxRequest,
+  handleSubmitTxRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 
@@ -43,6 +44,7 @@ chrome.runtime.onConnect.addListener((port) => {
         return;
       }
 
+      const session = sessions.get(tabId);
       switch (message.function) {
         case "connect":
           await handleConnectionRequest(message, port, port.sender.origin);
@@ -51,22 +53,28 @@ chrome.runtime.onConnect.addListener((port) => {
           handleCheckConnectionRequest(message, port);
           break;
         case "getBoxes":
-          await handleGetBoxesRequest(message, port, sessions.get(tabId));
+          await handleGetBoxesRequest(message, port, session);
           break;
         case "getBalance":
-          await handleGetBalanceRequest(message, port, sessions.get(tabId));
+          await handleGetBalanceRequest(message, port, session);
           break;
         case "getUsedAddresses":
-          await handleGetAddressesRequest(message, port, sessions.get(tabId), AddressState.Used);
+          await handleGetAddressesRequest(message, port, session, AddressState.Used);
           break;
         case "getUnusedAddresses":
-          await handleGetAddressesRequest(message, port, sessions.get(tabId), AddressState.Unused);
+          await handleGetAddressesRequest(message, port, session, AddressState.Unused);
           break;
         case "getChangeAddress":
-          await handleGetChangeAddressRequest(message, port, sessions.get(tabId));
+          await handleGetChangeAddressRequest(message, port, session);
           break;
         case "signTx":
-          await handleSignTxRequest(message, port, sessions.get(tabId));
+          await handleSignTxRequest(message, port, session);
+          break;
+        case "signTxInput":
+        case "signData":
+          break;
+        case "submitTx":
+          await handleSubmitTxRequest(message, port, sessions.get(tabId));
           break;
       }
     });

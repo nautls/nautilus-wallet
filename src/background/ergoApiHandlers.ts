@@ -17,6 +17,7 @@ import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
 import { uniq } from "lodash";
 import { postErrorMessage, postResponse } from "./messagingUtils";
+import JSONBig from "json-bigint";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
@@ -213,6 +214,52 @@ export async function handleSignTxRequest(
 
   const response = await showSignTxWindow(session!, request, port);
   postResponse(response, request, port);
+}
+
+export async function handleSubmitTxRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session: Session | undefined
+) {
+  if (!validateRequest(session, request, port)) {
+    return;
+  }
+
+  if (!request.params || !request.params[0]) {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InvalidRequest,
+        info: "empty tx"
+      },
+      request,
+      port
+    );
+
+    return;
+  }
+
+  try {
+    const tx = request.params[0];
+    const txId = await explorerService.sendTx(typeof tx === "string" ? tx : JSONBig.stringify(tx));
+
+    postResponse(
+      {
+        isSuccess: true,
+        data: txId.id
+      },
+      request,
+      port
+    );
+  } catch (e) {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InternalError,
+        info: (e as Error).message
+      },
+      request,
+      port
+    );
+  }
 }
 
 async function showSignTxWindow(
