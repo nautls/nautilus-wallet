@@ -262,6 +262,25 @@ export async function handleSubmitTxRequest(
   }
 }
 
+export async function handleNotImplementedRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session: Session | undefined
+) {
+  if (!validateRequest(session, request, port)) {
+    return;
+  }
+
+  postErrorMessage(
+    {
+      code: APIErrorCode.InvalidRequest,
+      info: "not implemented"
+    },
+    request,
+    port
+  );
+}
+
 async function showSignTxWindow(
   session: Session,
   message: RpcMessage,

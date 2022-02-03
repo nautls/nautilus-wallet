@@ -8,6 +8,7 @@ import {
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
   handleGetUsedAddressesRequest as handleGetAddressesRequest,
+  handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
@@ -72,6 +73,7 @@ chrome.runtime.onConnect.addListener((port) => {
           break;
         case "signTxInput":
         case "signData":
+          await handleNotImplementedRequest(message, port, session);
           break;
         case "submitTx":
           await handleSubmitTxRequest(message, port, sessions.get(tabId));
