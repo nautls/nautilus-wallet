@@ -1,5 +1,5 @@
 <template>
-  <div v-once class="text-center flex gap-3 mx-auto items-center" :class="wraperClass">
+  <div class="text-center flex gap-3 mx-auto items-center" :class="wraperClass">
     <div
       class="mx-auto rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
       :class="faviconClass"

@@ -40,6 +40,8 @@ export default defineComponent({
     this.requestId = message.requestId;
     this.origin = message.params[0];
     this.favicon = message.params[1];
+
+    window.addEventListener("beforeunload", this.refuse);
   },
   data() {
     return {
@@ -68,9 +70,15 @@ export default defineComponent({
         requestId: this.requestId,
         return: { isSuccess: true, data: { walletId: this.selected } }
       });
+      window.removeEventListener("beforeunload", this.refuse);
       window.close();
     },
     cancel() {
+      this.refuse();
+      window.removeEventListener("beforeunload", this.refuse);
+      window.close();
+    },
+    refuse() {
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
         function: "connect",
@@ -78,7 +86,6 @@ export default defineComponent({
         requestId: this.requestId,
         return: { isSuccess: true, data: { walletId: undefined } }
       });
-      window.close();
     }
   }
 });

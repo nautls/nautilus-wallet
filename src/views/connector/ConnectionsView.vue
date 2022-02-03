@@ -37,7 +37,7 @@ export default defineComponent({
     getWalletBy(walletId: number) {
       return find(this.wallets, (w) => w.id === walletId);
     },
-    remove(origin: number) {
+    remove(origin: string) {
       this.$store.dispatch(ACTIONS.REMOVE_CONNECTION, origin);
     }
   }

@@ -242,7 +242,7 @@ export function validateRequest(
   if (!session) {
     error = { code: APIErrorCode.InvalidRequest, info: "not connected" };
   } else if (session.walletId === undefined) {
-    error = { code: APIErrorCode.Refused, info: "not authorized" };
+    error = { code: APIErrorCode.Refused, info: "unauthorized" };
   }
 
   if (error) {

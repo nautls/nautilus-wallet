@@ -2,7 +2,7 @@ import { IDbDAppConnection } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 
 class ConnectedDAppsDbService {
-  public async getFromOrigin(origin: string): Promise<IDbDAppConnection | undefined> {
+  public async getByOrigin(origin: string): Promise<IDbDAppConnection | undefined> {
     return await dbContext.connectedDApps.where("origin").equals(origin).first();
   }
 

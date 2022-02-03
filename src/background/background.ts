@@ -29,11 +29,7 @@ chrome.runtime.onConnect.addListener((port) => {
             break;
         }
       } else if (message.type === "rpc/nautilus-response") {
-        switch (message.function) {
-          case "connect":
-            handleConnectionResponse(message);
-            break;
-        }
+        handleNautilusResponse(message);
       }
     });
   } else {
@@ -120,7 +116,7 @@ async function handleConnectionRequest(
   origin: string
 ) {
   let response: RpcReturn = { isSuccess: true, data: true };
-  const connection = await connectedDAppsDbService.getFromOrigin(origin);
+  const connection = await connectedDAppsDbService.getByOrigin(origin);
   if (connection) {
     const tabId = port.sender?.tab?.id;
     if (!tabId || !port.sender?.origin) {
@@ -161,13 +157,13 @@ function handleCheckConnectionRequest(request: RpcMessage, port: chrome.runtime.
   );
 }
 
-function handleConnectionResponse(message: RpcMessage) {
+function handleNautilusResponse(message: RpcMessage) {
   const session = sessions.get(message.sessionId);
   if (!session) {
     return;
   }
 
-  if (message.return && message.return.isSuccess) {
+  if (message.function === "connect" && message.return && message.return.isSuccess) {
     session.walletId = message.return.data.walletId;
   }
 

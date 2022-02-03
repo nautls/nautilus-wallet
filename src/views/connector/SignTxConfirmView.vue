@@ -76,32 +76,34 @@
       </label>
     </div>
     <div class="flex flex-row gap-4">
-      <button class="btn outlined w-full">Cancel</button>
-      <button class="btn w-full">Confirm</button>
+      <button class="btn outlined w-full" @click="cancel()">Cancel</button>
+      <button class="btn w-full" @click="sign()">Confirm</button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapState } from "vuex";
+import { mapActions, mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
 import { find } from "lodash";
-import { UnsignedTx } from "@/types/connector";
+import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
-import { StateAddress, StateAsset } from "@/types/internal";
-import { GETTERS } from "@/constants/store";
+import { SignTxFromConnectorCommand, StateAddress, StateAsset } from "@/types/internal";
+import { ACTIONS, GETTERS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
+import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import JSONBig from "json-bigint";
 
 export default defineComponent({
   name: "SignTxConfirmView",
   setup() {
     return { v$: useVuelidate() };
   },
-  created() {
+  async created() {
     const message = find(rpcHandler.messages, (m) => m.function === "signTx");
     if (!message || !message.params) {
       return;
@@ -112,10 +114,21 @@ export default defineComponent({
     this.origin = message.params[0];
     this.favicon = message.params[1];
     this.rawTx = Object.freeze(message.params[2]);
+
+    const connection = await connectedDAppsDbService.getByOrigin(this.origin);
+    if (!connection) {
+      window.close();
+      return;
+    }
+
+    window.addEventListener("beforeunload", this.onWindowClosing);
+    this.setCurrentWallet(connection.walletId);
+    this.currentWalletId = connection.walletId;
   },
   data() {
     return {
       rawTx: Object.freeze({} as UnsignedTx),
+      currentWalletId: 0,
       requestId: 0,
       sessionId: 0,
       password: "",
@@ -126,10 +139,7 @@ export default defineComponent({
   validations() {
     return {
       password: {
-        required: helpers.withMessage(
-          "A spending password is required for transaction signing.",
-          required
-        )
+        required: helpers.withMessage("Spending password is required.", required)
       }
     };
   },
@@ -166,8 +176,65 @@ export default defineComponent({
     }
   },
   methods: {
-    // getTokenName(tokenId: string) {
-    // }
+    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
+    async sign() {
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
+        return;
+      }
+
+      try {
+        const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX_FROM_CONNECTOR, {
+          tx: this.rawTx,
+          walletId: this.currentWalletId,
+          password: this.password
+        } as SignTxFromConnectorCommand);
+        rpcHandler.sendMessage({
+          type: "rpc/nautilus-response",
+          function: "signTx",
+          sessionId: this.sessionId,
+          requestId: this.requestId,
+          return: {
+            isSuccess: true,
+            data: JSONBig.parse(signedTx)
+          }
+        });
+      } catch (e) {
+        (e as Error).message;
+        console.error(e);
+        this.fail((e as Error).message);
+      } finally {
+        window.removeEventListener("beforeunload", this.onWindowClosing);
+        window.close();
+      }
+    },
+    cancel() {
+      this.refuse("User rejected");
+      window.close();
+    },
+    refuse(info: string) {
+      this.sendError({ code: TxSignErrorCode.UserDeclined, info });
+    },
+    fail(info: string) {
+      this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
+    },
+    sendError(error: TxSignError) {
+      window.removeEventListener("beforeunload", this.onWindowClosing);
+
+      rpcHandler.sendMessage({
+        type: "rpc/nautilus-response",
+        function: "signTx",
+        sessionId: this.sessionId,
+        requestId: this.requestId,
+        return: {
+          isSuccess: false,
+          data: error
+        }
+      });
+    },
+    onWindowClosing() {
+      this.refuse("unauthorized");
+    }
   },
   components: { DappPlate, ToolTip }
 });

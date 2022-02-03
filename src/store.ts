@@ -17,7 +17,14 @@ import {
   findLastIndex,
   isEmpty
 } from "lodash";
-import { Network, WalletType, AddressState, AddressType, SendTxCommand } from "@/types/internal";
+import {
+  Network,
+  WalletType,
+  AddressState,
+  AddressType,
+  SendTxCommand,
+  SignTxFromConnectorCommand
+} from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
@@ -32,6 +39,7 @@ import { Transaction } from "./api/ergo/transaction/transaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
+import { Address } from "@coinbarn/ergo-ts";
 
 export default createStore({
   state: {
@@ -106,19 +114,26 @@ export default createStore({
     }
   },
   mutations: {
-    [MUTATIONS.SET_CURRENT_WALLET](state, wallet: StateWallet) {
-      if (!wallet.id) {
-        return;
+    [MUTATIONS.SET_CURRENT_WALLET](state, identifier: StateWallet | number) {
+      const selected =
+        typeof identifier === "number"
+          ? find(state.wallets, (w) => w.id == identifier)
+          : identifier;
+
+      if (!selected || !selected.id) {
+        throw Error("Wallet not found");
       }
 
-      const i = findIndex(state.wallets, (x) => x.id == wallet.id);
-      if (i > -1) {
-        state.wallets[i] = wallet;
-      } else {
-        state.wallets.push(wallet);
+      if (typeof identifier !== "number") {
+        const i = findIndex(state.wallets, (x) => x.id == selected.id);
+        if (i > -1) {
+          state.wallets[i] = selected;
+        } else {
+          state.wallets.push(selected);
+        }
       }
 
-      state.currentWallet = wallet;
+      state.currentWallet = selected;
     },
     [MUTATIONS.SET_CURRENT_ADDRESSES](
       state,
@@ -275,7 +290,7 @@ export default createStore({
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
     },
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ dispatch }, id: number) {
-      const wallet = await walletsDbService.getFromId(id);
+      const wallet = await walletsDbService.getById(id);
       if (!wallet || !wallet.id) {
         throw Error("wallet not found");
       }
@@ -293,12 +308,14 @@ export default createStore({
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
-    [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet) {
+    [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
+      const walletId = typeof wallet === "number" ? wallet : wallet.id;
+
       commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
-      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId: wallet.id });
+      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
       dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
-      dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: wallet.id });
+      dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: walletId });
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
       const lastUsedIndex = findLastIndex(
@@ -474,6 +491,8 @@ export default createStore({
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
+      command.password = "";
+
       const changeAddress =
         find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
           ?.script || bip32.deriveAddress(0).script;
@@ -492,6 +511,24 @@ export default createStore({
       const response = await explorerService.sendTx(signedtx);
       return response.id;
     },
+    async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
+      const boxAddress = command.tx.inputs.map((b) => Address.fromErgoTree(b.ergoTree).address);
+      const addresses = state.currentAddresses.filter((a) => boxAddress.includes(a.script));
+
+      const bip32 = await Bip32.fromMnemonic(
+        await walletsDbService.getMnemonic(command.walletId, command.password)
+      );
+      command.password = "";
+
+      const blockHeaders = await explorerService.getLastTenBlockHeaders();
+      const signedtx = Transaction.from(addresses).signFromConnector(
+        command.tx,
+        SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
+      );
+
+      return signedtx;
+    },
+
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();
       commit(MUTATIONS.SET_CONNECTIONS, connections);

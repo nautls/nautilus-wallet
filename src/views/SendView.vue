@@ -112,7 +112,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toHandlers } from "vue";
+import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
 import { SendTxCommandAsset, StateAsset, StateWallet } from "@/types/internal";
@@ -128,6 +128,7 @@ import { PasswordError, TxSignError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
 import { mapState } from "vuex";
+import JSONBig from "json-bigint";
 
 export default defineComponent({
   name: "SendView",
@@ -145,8 +146,8 @@ export default defineComponent({
     unselected(): StateAsset[] {
       return differenceBy(
         this.assets,
-        this.selected.map(a => a.asset),
-        a => a.tokenId
+        this.selected.map((a) => a.asset),
+        (a) => a.tokenId
       );
     },
     hasChange(): boolean {
@@ -154,7 +155,7 @@ export default defineComponent({
         return true;
       }
 
-      for (const asset of this.selected.filter(a => a.asset.tokenId !== ERG_TOKEN_ID)) {
+      for (const asset of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
         if (!asset.amount || !asset.amount.isEqualTo(asset.asset.confirmedAmount)) {
           return true;
         }
@@ -163,7 +164,7 @@ export default defineComponent({
       return false;
     },
     reservedErgAmount(): BigNumber {
-      const erg = find(this.selected, a => a.asset.tokenId === ERG_TOKEN_ID);
+      const erg = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
       if (!erg || erg.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
@@ -277,7 +278,7 @@ export default defineComponent({
       this.v$.$reset();
     },
     setErgAsSelected(): void {
-      const erg = find(this.assets, a => a.tokenId === ERG_TOKEN_ID);
+      const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
         this.selected.push({ asset: erg });
       }
@@ -290,7 +291,7 @@ export default defineComponent({
       this.setMinBoxValue();
     },
     remove(tokenId: string) {
-      remove(this.selected, a => a.asset.tokenId === tokenId);
+      remove(this.selected, (a) => a.asset.tokenId === tokenId);
       this.setMinBoxValue();
     },
     setMinBoxValue() {
@@ -298,7 +299,7 @@ export default defineComponent({
         return;
       }
 
-      const erg = find(this.selected, a => this.isErg(a.asset.tokenId));
+      const erg = find(this.selected, (a) => this.isErg(a.asset.tokenId));
       if (!erg) {
         return;
       }
