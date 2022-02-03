@@ -1,48 +1,79 @@
 <template>
-  <div class="flex flex-col h-full gap-4 text-center pt-2">
-    <dapp-plate :origin="origin" :favicon="favicon" />
+  <div class="flex flex-col h-full gap-4 text-center">
+    <dapp-plate :origin="origin" :favicon="favicon" compact />
     <h1 class="text-xl m-auto">Wants to sign a transaction</h1>
     <div
-      class="leading-relaxed text-sm flex-grow overflow-auto flex flex-col gap-4 border-gray-300 border-1 rounded text-left px-2 py-1"
+      class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto border-gray-300 border-1 rounded text-left px-2 py-1"
     >
-      <div class="divide-y divide-gray-300">
-        <div class="flex flex-col gap-3" v-for="(output, index) in tx?.sending" :key="index">
-          <div>
-            <p class="font-semibold mb-2">Recipient</p>
-            <p class="font-mono text-gray-600">
-              {{ $filters.compactString(output.receiver, 36) }}
-            </p>
-          </div>
-          <div>
-            <p class="font-semibold mb-2">Assets</p>
-            <ul>
-              <li v-for="asset in output.assets" class="py-1">
-                <div class="flex flex-row items-center gap-2">
-                  <img
-                    :src="$filters.assetLogo(asset.tokenId)"
-                    class="h-8 w-8 rounded-full"
-                    :alt="asset.name"
-                  />
-                  <div class="flex-grow">
+      <div class="flex flex-col gap-2" v-for="(output, index) in tx?.sending" :key="index">
+        <div class="mb-1">
+          <p class="font-semibold mb-1">Recipient</p>
+
+          <p class="rounded font-mono bg-gray-200 text-sm py-1 px-2 break-all">
+            {{ $filters.compactString(output.receiver, 60) }}
+            <click-to-copy :content="output.receiver" size="12" />
+          </p>
+        </div>
+        <div class="my-1">
+          <p class="font-semibold mb-1">Assets</p>
+          <ul class="px-1">
+            <li v-for="asset in output.assets" class="py-1">
+              <div class="flex flex-row items-center gap-2">
+                <img
+                  :src="$filters.assetLogo(asset.tokenId)"
+                  class="h-8 w-8 rounded-full"
+                  :alt="asset.name"
+                />
+                <div class="flex-grow items-center align-middle">
+                  <span class="align-middle">
                     <template v-if="asset.name">{{
                       $filters.compactString(asset.name, 20, "end")
                     }}</template>
-                    <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
-                  </div>
-                  <div>{{ $filters.formatBigNumber(asset.amount) }}</div>
+                    <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
+                  </span>
+                  <tool-tip v-if="asset.isMinting" class="align-middle">
+                    <template v-slot:label>
+                      <div class="block w-38">
+                        <span>This asset is being minted by this transaction.</span>
+                        <div class="text-left pt-2">
+                          <p v-if="asset.description">
+                            <span class="font-bold">Description</span>:
+                            {{ $filters.compactString(asset.description, 50, "end") }}
+                          </p>
+                          <p v-if="asset.decimals">
+                            <span class="font-bold">Decimals</span>: {{ asset.decimals }}
+                          </p>
+                        </div>
+                      </div>
+                    </template>
+                    <vue-feather type="git-commit" class="align-middle pl-2" />
+                  </tool-tip>
                 </div>
-              </li>
-            </ul>
-          </div>
-          <!-- <div>
-            <p class="font-semibold">Burning</p>
-          </div> -->
+                <div>
+                  {{ $filters.formatBigNumber(asset.amount) }}
+                </div>
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
-
-      <div class="text-right">
-        <p class="font-semibold">Fee: 0.0011 ERG</p>
-      </div>
+    </div>
+    <div v-if="tx?.fee && tx?.fee.assets[0]" class="text-right px-2 -mt-2 text-sm">
+      <p>Fee: {{ $filters.formatBigNumber(tx.fee.assets[0].amount) }} ERG</p>
+    </div>
+    <div class="text-left">
+      <label
+        >Spending password
+        <input
+          type="password"
+          @blur="v$.password.$touch()"
+          v-model.lazy="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p>
+      </label>
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full">Cancel</button>
@@ -61,14 +92,21 @@ import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { StateAddress, StateAsset } from "@/types/internal";
 import { GETTERS } from "@/constants/store";
+import ToolTip from "@/components/ToolTip.vue";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
 
 export default defineComponent({
   name: "SignTxConfirmView",
+  setup() {
+    return { v$: useVuelidate() };
+  },
   created() {
     const message = find(rpcHandler.messages, (m) => m.function === "signTx");
     if (!message || !message.params) {
       return;
     }
+
     this.sessionId = message.sessionId;
     this.requestId = message.requestId;
     this.origin = message.params[0];
@@ -80,8 +118,19 @@ export default defineComponent({
       rawTx: Object.freeze({} as UnsignedTx),
       requestId: 0,
       sessionId: 0,
+      password: "",
       origin: "",
       favicon: ""
+    };
+  },
+  validations() {
+    return {
+      password: {
+        required: helpers.withMessage(
+          "A spending password is required for transaction signing.",
+          required
+        )
+      }
     };
   },
   watch: {
@@ -89,15 +138,6 @@ export default defineComponent({
       if (newLength === 0) {
         return;
       }
-
-      // console.log(
-      //   new TxInterpreter(
-      //     this.rawTx as UnsignedTx,
-      //     this.addresses.map((a) => a.script)
-      //   )
-      // );
-
-      console.log(this.rawTx);
     }
   },
   computed: {
@@ -129,6 +169,6 @@ export default defineComponent({
     // getTokenName(tokenId: string) {
     // }
   },
-  components: { DappPlate }
+  components: { DappPlate, ToolTip }
 });
 </script>

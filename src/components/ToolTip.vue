@@ -2,7 +2,7 @@
   <span class="inline-flex group justify-center relative">
     <slot />
     <span
-      class="rounded font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-100"
+      class="rounded font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-95"
       :class="customClass"
     >
       <slot name="label" v-if="$slots.label" />
@@ -21,11 +21,11 @@ export default defineComponent({
       const cl = [this.position === "top" ? "bottom-full" : "top-full"];
       switch (this.type) {
         case "success":
-          cl.push("bg-green-500 text-light-50");
+          cl.push("bg-green-600 text-light-50");
           break;
         case "default":
         default:
-          cl.push("bg-dark-100 text-light-600");
+          cl.push("bg-dark-100 text-light-300");
           break;
       }
 

@@ -29,6 +29,7 @@ export class TxInterpreter {
       [this._feeBox, this._changeBox],
       (b) => b?.ergoTree
     );
+    // this._sendingBoxes = tx.outputs;
 
     if (isEmpty(this._sendingBoxes) && this._changeBox) {
       this._sendingBoxes.push(this._changeBox);
@@ -54,7 +55,11 @@ export class TxInterpreter {
     });
   }
 
-  public get fee(): ErgoBoxCandidate | undefined {
-    return this._feeBox;
+  public get fee(): OutputInterpreter | undefined {
+    if (!this._feeBox) {
+      return;
+    }
+
+    return new OutputInterpreter(this._feeBox, this._tx.inputs, this._assetInfo);
   }
 }

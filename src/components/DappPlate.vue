@@ -1,12 +1,13 @@
 <template>
-  <div class="w-full">
+  <div v-once class="text-center flex gap-3 mx-auto items-center" :class="wraperClass">
     <div
-      class="mx-auto w-11 h-11 rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
+      class="mx-auto rounded-full ring-2 ring-offset-2 ring-offset-gray-50 ring-gray-300"
+      :class="faviconClass"
     >
-      <img v-if="favicon" :src="favicon" class="w-11 rounded-full" />
-      <vue-feather v-else type="help-circle" class="w-11 text-gray-500" />
+      <img v-if="favicon" :src="favicon" class="rounded-full" :class="faviconClass" />
+      <vue-feather v-else type="help-circle" class="text-gray-500" :class="faviconClass" />
     </div>
-    <p class="text-gray-600 pt-2">{{ stripProtocol(origin) }}</p>
+    <p class="text-gray-600">{{ stripProtocol(origin) }}</p>
   </div>
 </template>
 
@@ -17,11 +18,18 @@ export default defineComponent({
   name: "DAppPlate",
   props: {
     origin: { type: String },
-    favicon: { type: String }
+    favicon: { type: String },
+    compact: { type: Boolean, default: false }
   },
   computed: {
     domain() {
       return this.stripProtocol(this.origin) || "???";
+    },
+    wraperClass() {
+      return this.compact ? "flex-row" : "flex-col";
+    },
+    faviconClass() {
+      return this.compact ? "w-7 h-7" : "w-11 h-11";
     }
   },
   methods: {

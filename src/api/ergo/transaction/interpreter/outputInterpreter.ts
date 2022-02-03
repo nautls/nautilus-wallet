@@ -44,6 +44,10 @@ export class OutputInterpreter {
       amount: setDecimals(toBigNumber(this._box.value)!, ERG_DECIMALS)
     });
 
+    if (isEmpty(this._box.assets)) {
+      return assets;
+    }
+
     const tokens = this._box.assets.map((t) => {
       return {
         tokenId: t.tokenId,
