@@ -20,8 +20,9 @@ export class OutputInterpreter {
   private _inputs!: UnsignedInput[];
   private _assets!: OutputAsset[];
   private _assetInfo!: AssetInfo;
+  private _addresses?: string[];
 
-  public get receiver(): String {
+  public get receiver(): string {
     return Address.fromErgoTree(this._box.ergoTree).address;
   }
 
@@ -29,11 +30,21 @@ export class OutputInterpreter {
     return this._assets;
   }
 
-  constructor(boxCandidate: ErgoBoxCandidate, inputs: UnsignedInput[], assetInfo: AssetInfo) {
+  public get isIntrawallet(): boolean {
+    return this._addresses?.includes(this.receiver) ?? false;
+  }
+
+  constructor(
+    boxCandidate: ErgoBoxCandidate,
+    inputs: UnsignedInput[],
+    assetInfo: AssetInfo,
+    addresses?: string[]
+  ) {
     this._box = boxCandidate;
     this._inputs = inputs;
     this._assetInfo = assetInfo;
     this._assets = this.getSendingAssets();
+    this._addresses = addresses;
   }
 
   getSendingAssets(): OutputAsset[] {

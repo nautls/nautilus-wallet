@@ -12,6 +12,11 @@
           <p class="rounded font-mono bg-gray-200 text-sm py-1 px-2 break-all">
             {{ $filters.compactString(output.receiver, 60) }}
             <click-to-copy :content="output.receiver" size="12" />
+            <span
+              class="rounded bg-blue-200 mx-2 px-1 font-normal text-xs text-dark-200 uppercase font-sans"
+              v-if="output.isIntrawallet"
+              >Intrawallet</span
+            >
           </p>
         </div>
         <div class="my-1">

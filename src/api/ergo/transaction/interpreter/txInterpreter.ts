@@ -15,9 +15,11 @@ export class TxInterpreter {
   private _feeBox?: ErgoBoxCandidate;
   private _sendingBoxes!: ErgoBoxCandidate[];
   private _assetInfo!: AssetInfo;
+  private _addresses!: string[];
 
   constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: AssetInfo) {
     this._tx = tx;
+    this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
 
     this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
@@ -29,7 +31,6 @@ export class TxInterpreter {
       [this._feeBox, this._changeBox],
       (b) => b?.ergoTree
     );
-    // this._sendingBoxes = tx.outputs;
 
     if (isEmpty(this._sendingBoxes) && this._changeBox) {
       this._sendingBoxes.push(this._changeBox);
@@ -51,7 +52,7 @@ export class TxInterpreter {
 
   public get sending(): OutputInterpreter[] | undefined {
     return this._sendingBoxes.map((b) => {
-      return new OutputInterpreter(b, this._tx.inputs, this._assetInfo);
+      return new OutputInterpreter(b, this._tx.inputs, this._assetInfo, this._addresses);
     });
   }
 
