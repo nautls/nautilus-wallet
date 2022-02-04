@@ -85,9 +85,9 @@
     </div>
     <loading-modal
       title="Signing"
-      :message="singMessage"
-      :state="singState"
-      @close="singState = 'disabled'"
+      :message="signMessage"
+      :state="signState"
+      @close="signState = 'disabled'"
     />
   </div>
 </template>
@@ -145,8 +145,8 @@ export default defineComponent({
       password: "",
       origin: "",
       favicon: "",
-      singState: "disabled",
-      singMessage: ""
+      signState: "disabled",
+      signMessage: ""
     };
   },
   validations() {
@@ -199,8 +199,8 @@ export default defineComponent({
         return;
       }
 
-      this.singState = "loading";
-      this.singMessage = "";
+      this.signState = "loading";
+      this.signMessage = "";
 
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX_FROM_CONNECTOR, {
@@ -223,11 +223,11 @@ export default defineComponent({
         window.close();
       } catch (e) {
         (e as Error).message;
-        this.singState = "error";
+        this.signState = "error";
         console.error(e);
 
         if (e instanceof PasswordError) {
-          this.singMessage = e.message;
+          this.signMessage = e.message;
         } else {
           window.removeEventListener("beforeunload", this.onWindowClosing);
           this.fail((e as Error).message);

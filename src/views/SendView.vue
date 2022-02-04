@@ -104,9 +104,9 @@
     </div>
     <loading-modal
       title="Signing"
-      :message="singMessage"
-      :state="singState"
-      @close="singState = 'disabled'"
+      :message="signMessage"
+      :state="signState"
+      @close="signState = 'disabled'"
     />
   </div>
 </template>
@@ -208,8 +208,8 @@ export default defineComponent({
       selected: [] as SendTxCommandAsset[],
       password: "",
       recipient: "",
-      singState: "disabled",
-      singMessage: "",
+      signState: "disabled",
+      signMessage: "",
       feeMultiplicator: 1,
       minFee: Object.freeze(setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
@@ -235,8 +235,8 @@ export default defineComponent({
         return;
       }
 
-      this.singState = "loading";
-      this.singMessage = "";
+      this.signState = "loading";
+      this.signMessage = "";
       const currentWalletId = this.$store.state.currentWallet.id;
 
       try {
@@ -250,20 +250,20 @@ export default defineComponent({
 
         this.clear();
 
-        this.singState = "success";
-        this.singMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
+        this.signState = "success";
+        this.signMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
           txId
         )}' target='_blank'>View on Explorer</a>`;
       } catch (e) {
-        this.singState = "error";
+        this.signState = "error";
         console.error(e);
 
         if (e instanceof TxSignError) {
-          this.singMessage = `Something went wrong on signing processs.<br /><br /><code>${e.message}</code>`;
+          this.signMessage = `Something went wrong on signing processs.<br /><br /><code>${e.message}</code>`;
         } else if (e instanceof PasswordError) {
-          this.singMessage = e.message;
+          this.signMessage = e.message;
         } else {
-          this.singMessage = `Something went wrong on signing process. Please try again later.<br /><br /><code>${
+          this.signMessage = `Something went wrong on signing process. Please try again later.<br /><br /><code>${
             (e as Error).message
           }</code>`;
         }
