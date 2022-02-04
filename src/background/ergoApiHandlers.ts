@@ -15,7 +15,7 @@ import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
-import { uniq } from "lodash";
+import { find, findIndex, uniq } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 
@@ -59,15 +59,32 @@ export async function handleGetBoxesRequest(
   const boxes = (await explorerService.getUnspentBoxes(addresses)).map((b) => b.data).flat();
   let selected = boxes;
 
-  if (!amount.isZero()) {
+  if (amount.isZero()) {
+    if (tokenId != ERG_TOKEN_ID) {
+      selected = boxes.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
+    }
+  } else {
     let acc = new BigNumber(0);
-    selected = boxes.filter((b) => {
-      if (acc.isGreaterThanOrEqualTo(amount)) {
-        return false;
-      }
-      acc = acc.plus(toBigNumber(b.value)!);
-      return true;
-    });
+
+    if (tokenId === ERG_TOKEN_ID) {
+      selected = boxes.filter((box) => {
+        if (acc.isGreaterThanOrEqualTo(amount)) {
+          return false;
+        }
+        acc = acc.plus(toBigNumber(box.value)!);
+
+        return true;
+      });
+    } else {
+      selected = boxes.filter((box) => {
+        if (acc.isGreaterThanOrEqualTo(amount)) {
+          return false;
+        }
+        acc = acc.plus(toBigNumber(find(box.assets, (a) => a.tokenId === tokenId)?.amount ?? 0)!);
+
+        return true;
+      });
+    }
   }
 
   postConnectorResponse(
