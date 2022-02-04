@@ -1,7 +1,7 @@
 import { APIError, RpcMessage, RpcReturn } from "@/types/connector";
 
 export function postErrorMessage(error: APIError, request: RpcMessage, port: chrome.runtime.Port) {
-  postResponse(
+  postConnectorResponse(
     {
       isSuccess: false,
       data: error
@@ -11,7 +11,11 @@ export function postErrorMessage(error: APIError, request: RpcMessage, port: chr
   );
 }
 
-export function postResponse(response: RpcReturn, message: RpcMessage, port: chrome.runtime.Port) {
+export function postConnectorResponse(
+  response: RpcReturn,
+  message: RpcMessage,
+  port: chrome.runtime.Port
+) {
   port.postMessage({
     type: "rpc/connector-response",
     sessionId: message.sessionId,

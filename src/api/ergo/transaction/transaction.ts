@@ -3,7 +3,7 @@ import { UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { ExplorerGetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
-import { removeDecimals } from "@/utils/bigNumbers";
+import { removeDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import {

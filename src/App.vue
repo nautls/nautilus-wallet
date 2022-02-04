@@ -60,7 +60,6 @@ export default defineComponent({
     await this.init();
   },
   deactivated() {
-    alert("close");
     clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
   },

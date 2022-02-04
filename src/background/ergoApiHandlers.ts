@@ -16,7 +16,7 @@ import { toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
 import { uniq } from "lodash";
-import { postErrorMessage, postResponse } from "./messagingUtils";
+import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 
 export async function handleGetBoxesRequest(
@@ -70,7 +70,7 @@ export async function handleGetBoxesRequest(
     });
   }
 
-  postResponse(
+  postConnectorResponse(
     {
       isSuccess: true,
       data: selected.map((b) => {
@@ -84,9 +84,7 @@ export async function handleGetBoxesRequest(
           assets: b.assets.map((t) => {
             return {
               tokenId: t.tokenId,
-              amount: t.amount.toString(),
-              name: t.name,
-              decimals: t.decimals
+              amount: t.amount.toString()
             } as Token;
           }),
           additionalRegisters: b.additionalRegisters
@@ -113,7 +111,7 @@ export async function handleGetBalanceRequest(
   }
 
   const assets = await assestsDbService.getByTokenId(session!.walletId!, tokenId);
-  postResponse(
+  postConnectorResponse(
     {
       isSuccess: true,
       data: assets.map((a) => toBigNumber(a.confirmedAmount)!).reduce((acc, val) => acc.plus(val))
@@ -123,7 +121,7 @@ export async function handleGetBalanceRequest(
   );
 }
 
-export async function handleGetUsedAddressesRequest(
+export async function handleGetAddressesRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
   session: Session | undefined,
@@ -147,7 +145,7 @@ export async function handleGetUsedAddressesRequest(
   }
 
   const addresses = await addressesDbService.getByState(session!.walletId!, addressState);
-  postResponse(
+  postConnectorResponse(
     {
       isSuccess: true,
       data: addresses.map((x) => x.script)
@@ -180,7 +178,7 @@ export async function handleGetChangeAddressRequest(
     return;
   }
 
-  postResponse(
+  postConnectorResponse(
     {
       isSuccess: true,
       data: address.script
@@ -213,7 +211,7 @@ export async function handleSignTxRequest(
   }
 
   const response = await showSignTxWindow(session!, request, port);
-  postResponse(response, request, port);
+  postConnectorResponse(response, request, port);
 }
 
 export async function handleSubmitTxRequest(
@@ -242,7 +240,7 @@ export async function handleSubmitTxRequest(
     const tx = request.params[0];
     const txId = await explorerService.sendTx(typeof tx === "string" ? tx : JSONBig.stringify(tx));
 
-    postResponse(
+    postConnectorResponse(
       {
         isSuccess: true,
         data: txId.id

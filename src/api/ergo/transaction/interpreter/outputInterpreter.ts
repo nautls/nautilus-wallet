@@ -101,7 +101,7 @@ export class OutputInterpreter {
   }
 
   private parseRegister(input: any): string | undefined {
-    if (typeof input !== "string" || !input.startsWith("0e") || input.length < 4) {
+    if (!input || typeof input !== "string" || !input.startsWith("0e") || input.length < 4) {
       return;
     }
 

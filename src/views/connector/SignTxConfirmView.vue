@@ -229,8 +229,7 @@ export default defineComponent({
         if (e instanceof PasswordError) {
           this.signMessage = e.message;
         } else {
-          window.removeEventListener("beforeunload", this.onWindowClosing);
-          this.fail((e as Error).message);
+          this.fail(typeof e === "string" ? e : (e as Error).message);
         }
       }
     },
@@ -243,6 +242,7 @@ export default defineComponent({
     },
     fail(info: string) {
       this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
+      // window.close();
     },
     sendError(error: TxSignError) {
       window.removeEventListener("beforeunload", this.onWindowClosing);

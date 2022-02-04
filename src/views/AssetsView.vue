@@ -84,6 +84,8 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
+import { wasmModule } from "@/utils/wasm-module";
+import JSONBig from "json-bigint";
 
 export default defineComponent({
   name: "AssetsView",

@@ -2,17 +2,19 @@ import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
 import { openWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import { postResponse } from "./messagingUtils";
+import { postConnectorResponse } from "./messagingUtils";
 import {
   handleGetBalanceRequest,
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
-  handleGetUsedAddressesRequest as handleGetAddressesRequest,
+  handleGetAddressesRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
+
+import "@/config/axiosConfig";
 
 const sessions = new Map<number, Session>();
 
@@ -150,14 +152,14 @@ async function handleConnectionRequest(
     data: response.data.walletId !== undefined
   };
 
-  postResponse(response, message, port);
+  postConnectorResponse(response, message, port);
 }
 
 function handleCheckConnectionRequest(request: RpcMessage, port: chrome.runtime.Port) {
   const tabId = port.sender?.tab?.id;
   const session = tabId !== undefined ? sessions.get(tabId) : undefined;
 
-  postResponse(
+  postConnectorResponse(
     {
       isSuccess: true,
       data: session !== undefined && session.walletId !== undefined

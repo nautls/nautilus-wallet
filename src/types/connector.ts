@@ -85,6 +85,8 @@ export type UnsignedInput = {
   value: number | string;
   assets: Token[];
   additionalRegisters: Registers;
+  spentTransactionId: null | string;
+  mainChain: boolean;
   extension: { [key: string]: string };
 };
 
