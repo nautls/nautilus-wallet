@@ -30,19 +30,13 @@ class assetsDbService {
         continue;
       }
 
-      const confirmed = balance.data.confirmed.tokens;
-      const unconfirmed = balance.data.unconfirmed.tokens;
       assets = assets.concat(
-        unionBy(confirmed, unconfirmed, (t) => t.tokenId).map((t) => {
+        balance.data.confirmed.tokens.map((t) => {
           return {
             tokenId: t.tokenId,
             name: t.name,
             type: AssetType.EIP4,
             confirmedAmount: t.amount?.toString() || "0",
-            unconfirmedAmount: find(
-              unconfirmed,
-              (ut) => ut.tokenId === t.tokenId
-            )?.amount?.toString(),
             decimals: t.decimals,
             address: balance.address,
             walletId
