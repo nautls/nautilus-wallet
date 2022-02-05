@@ -12,7 +12,7 @@ module.exports = {
     devtool: "none"
   },
   pages: {
-    index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
+    index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus Wallet" },
     background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
   chainWebpack: (config) => {
