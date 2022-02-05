@@ -22,13 +22,13 @@
               </thead>
               <tbody>
                 <tr v-if="loading" v-for="i in prevCount" :key="i">
-                  <td class="w-14">
+                  <td class="w-14 align-middle">
                     <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
                   </td>
-                  <td>
+                  <td class="align-middle">
                     <div class="skeleton h-3 w-2/3 rounded"></div>
                   </td>
-                  <td class="text-right w-50">
+                  <td class="text-right w-50 align-middle">
                     <div class="skeleton h-3 w-3/5 rounded"></div>
                     <template v-if="i === 1">
                       <br />
@@ -37,30 +37,25 @@
                   </td>
                 </tr>
                 <tr v-else v-for="asset in assets" :key="asset.tokenId">
-                  <td class="w-14">
+                  <td class="w-14 align-middle">
                     <img
                       :src="$filters.assetLogo(asset.tokenId)"
                       class="h-8 w-8 rounded-full"
                       :alt="asset.name"
                     />
                   </td>
-                  <td>
-                    <p v-if="isErg(asset.tokenId)" class="font-semibold align-middle">
+                  <td class="align-middle">
+                    <p v-if="isErg(asset.tokenId)" class="font-semibold">
                       {{ asset.name }}
                     </p>
-                    <a
-                      v-else
-                      :href="urlFor(asset.tokenId)"
-                      target="_blank"
-                      class="align-middle break-all"
-                    >
+                    <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-all">
                       <template v-if="asset.name">{{
                         $filters.compactString(asset.name, 30, "end")
                       }}</template>
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </a>
                   </td>
-                  <td class="text-right">
+                  <td class="text-right align-middle">
                     <p>
                       {{ $filters.formatBigNumber(asset.confirmedAmount) }}
                     </p>
@@ -89,6 +84,8 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
+import { wasmModule } from "@/utils/wasm-module";
+import JSONBig from "json-bigint";
 
 export default defineComponent({
   name: "AssetsView",

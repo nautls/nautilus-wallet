@@ -1,14 +1,25 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
+import { UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
-import { ExplorergetUnspentBox } from "@/types/explorer";
+import { ExplorerGetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
-import { removeDecimals } from "@/utils/bigNumbers";
+import { removeDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { Address, BoxValue, ErgoBoxCandidates, I64, Tokens, Wallet } from "ergo-lib-wasm-browser";
-import { find, remove } from "lodash";
+import {
+  Address,
+  BoxValue,
+  ErgoBoxCandidates,
+  ErgoBoxes,
+  I64,
+  Tokens,
+  UnsignedTransaction,
+  Wallet
+} from "ergo-lib-wasm-browser";
+import { find } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
+import JSONBig from "json-bigint";
 
 export class Transaction {
   private _from!: StateAddress[];
@@ -16,7 +27,7 @@ export class Transaction {
   private _change!: string;
   private _fee!: BigNumber;
   private _assets!: SendTxCommandAsset[];
-  private _boxes!: ExplorergetUnspentBox[];
+  private _boxes!: ExplorerGetUnspentBox[];
 
   private constructor(from: StateAddress[]) {
     this._from = from;
@@ -46,9 +57,18 @@ export class Transaction {
     return this;
   }
 
-  public fromBoxes(boxes: ExplorergetUnspentBox[]): Transaction {
+  public fromBoxes(boxes: ExplorerGetUnspentBox[]): Transaction {
     this._boxes = boxes;
     return this;
+  }
+
+  public signFromConnector(unsignedTx: UnsignedTx, context: SignContext): string {
+    const sigmaRust = wasmModule.SigmaRust;
+    const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
+    const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+    const signed = this._sign(tx, unspentBoxes, context);
+
+    return signed.to_json();
   }
 
   public sign(context: SignContext): string {
@@ -78,6 +98,13 @@ export class Transaction {
       sigmaRust.BoxValue.SAFE_USER_MIN()
     ).build();
 
+    const signed = this._sign(unsigned, unspentBoxes, context);
+    return signed.to_json();
+  }
+
+  private _sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, context: SignContext) {
+    const sigmaRust = wasmModule.SigmaRust;
+
     const wallet = this.buildWallet(this._from, context.bip32);
     const blockHeaders = sigmaRust.BlockHeaders.from_json(context.blockHeaders);
     const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
@@ -88,8 +115,7 @@ export class Transaction {
       unspentBoxes,
       sigmaRust.ErgoBoxes.from_boxes_json([])
     );
-
-    return signed.to_json();
+    return signed;
   }
 
   private buildOutputBoxes(
@@ -123,12 +149,12 @@ export class Transaction {
 
   private buildTokenList(): Tokens {
     const tokens = new wasmModule.SigmaRust.Tokens();
-    if (!find(this._assets, a => a.asset.tokenId !== ERG_TOKEN_ID)) {
+    if (!find(this._assets, (a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
       return tokens;
     }
     const sigmaRust = wasmModule.SigmaRust;
 
-    for (const asset of this._assets.filter(x => x.asset.tokenId !== ERG_TOKEN_ID)) {
+    for (const asset of this._assets.filter((x) => x.asset.tokenId !== ERG_TOKEN_ID)) {
       if (!asset.amount || asset.amount.isLessThanOrEqualTo(0)) {
         continue;
       }
@@ -147,7 +173,7 @@ export class Transaction {
   }
 
   private getErgAmount(): BoxValue {
-    const erg = find(this._assets, a => a.asset.tokenId === ERG_TOKEN_ID);
+    const erg = find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID);
     if (
       !erg ||
       !erg.amount ||

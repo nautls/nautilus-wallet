@@ -7,12 +7,12 @@ import { AddressState } from "@/types/internal";
 import { PasswordError } from "@/types/errors";
 
 class WalletsDbService {
-  public async getFromId(id: number): Promise<IDbWallet | undefined> {
+  public async getById(id: number): Promise<IDbWallet | undefined> {
     return await dbContext.wallets.where("id").equals(id).first();
   }
 
   public async getMnemonic(id: number, password: string) {
-    const wallet = await this.getFromId(id);
+    const wallet = await this.getById(id);
     if (!wallet) {
       throw Error("wallet not found");
     }
@@ -36,16 +36,16 @@ class WalletsDbService {
     return await dbContext.addresses
       .where("walletId")
       .equals(walletId)
-      .and(a => a.state === AddressState.Unused)
+      .and((a) => a.state === AddressState.Unused)
       .first();
   }
 
-  public async getFromPk(publicKey: string): Promise<IDbWallet | undefined> {
+  public async getByPk(publicKey: string): Promise<IDbWallet | undefined> {
     return await dbContext.wallets.where("publicKey").equals(publicKey).first();
   }
 
   public async put(wallet: IDbWallet): Promise<number> {
-    const dbWallet = await this.getFromPk(wallet.publicKey);
+    const dbWallet = await this.getByPk(wallet.publicKey);
     if (!wallet.id) {
       wallet.id = dbWallet?.id;
     }

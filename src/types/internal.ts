@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { UnsignedTx } from "./connector";
 
 export enum AddressState {
   Used,
@@ -70,5 +71,11 @@ export type SendTxCommand = {
   assets: SendTxCommandAsset[];
   fee: BigNumber;
   recipient: string;
+  password: string;
+};
+
+export type SignTxFromConnectorCommand = {
+  tx: UnsignedTx;
+  walletId: number;
   password: string;
 };

@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-row gap-2 items-center">
-    <div class="flex flex-col gap-1 h-auto w-42 w-auto text-left whitespace-nowrap">
-      <div class="font-semibold text-base h-1/2 truncate">{{ wallet.name }}</div>
-      <div class="h-1/2 text-xs">
-        <span class="align-middle font-mono">{{ checksum }}</span>
-        <small class="rounded bg-gray-200 mx-2 p-1 text-dark-200 uppercase">{{
+  <div class="flex flex-row gap-2 items-center w-full">
+    <div class="flex flex-col gap-1 h-auto w-full text-left whitespace-nowrap">
+      <div class="font-semibold text-base w-42 h-full truncate">{{ wallet.name }}</div>
+      <div class="h-full text-xs">
+        <span class="align-middle font-mono font-normal">{{ checksum }}</span>
+        <small class="rounded bg-gray-200 mx-2 p-1 font-normal text-dark-200 uppercase">{{
           $filters.walletType(wallet.type)
         }}</small>
         <loading-indicator v-if="loading" class="w-4 h-4" />
@@ -13,7 +13,7 @@
 
     <canvas
       class="rounded w-10 h-10 ring-1 ring-gray-400 ring-offset-1 inline-block"
-      :id="`wlt-checksum-${wallet.id}`"
+      :id="canvaId"
     ></canvas>
   </div>
 </template>
@@ -42,11 +42,15 @@ export default defineComponent({
   name: "WalletItem",
   props: {
     wallet: { type: Object, required: true },
-    loading: { type: Boolean, default: false }
+    loading: { type: Boolean, default: false },
+    uid: { type: String, default: "" }
   },
   data() {
     return {
-      checksum: ""
+      checksum: "",
+      canvaId: Object.freeze(
+        `wlt-checksum-${this.wallet.id}-${new Date().valueOf() + Math.random()}`
+      )
     };
   },
   watch: {
@@ -69,7 +73,7 @@ export default defineComponent({
                 bgcolor: color.secondary,
                 spotcolor: color.spots
               },
-              document.getElementById(`wlt-checksum-${this.wallet.id}`)
+              document.getElementById(this.canvaId)
             );
           });
         }

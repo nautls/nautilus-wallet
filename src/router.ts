@@ -9,6 +9,10 @@ import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
 
+import AuthView from "@/views/connector/AuthView.vue";
+import ConnectionsView from "@/views/connector/ConnectionsView.vue";
+import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
@@ -60,6 +64,21 @@ const routes: Array<RouteRecordRaw> = [
     path: "/about",
     name: "about-nautilus",
     component: AboutView
+  },
+  {
+    path: "/connector/auth",
+    name: "connector-auth",
+    component: AuthView
+  },
+  {
+    path: "/connector/connections",
+    name: "connector-connected",
+    component: ConnectionsView
+  },
+  {
+    path: "/connector/sign/tx",
+    name: "connector-sign-tx",
+    component: SignTxConfirmView
   }
 ];
 

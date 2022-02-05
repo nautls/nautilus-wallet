@@ -72,7 +72,7 @@
                     :min="1"
                     :max="5"
                     :tooltip="false"
-                    fill-class="bg-blue-800 rounded-l"
+                    fill-class="bg-blue-600 rounded-l"
                     root-class="p-4"
                     track-class="rounded-r"
                     thumb-class="rounded"
@@ -104,15 +104,15 @@
     </div>
     <loading-modal
       title="Signing"
-      :message="singMessage"
-      :state="singState"
-      @close="singState = 'disabled'"
+      :message="signMessage"
+      :state="signState"
+      @close="signState = 'disabled'"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, toHandlers } from "vue";
+import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
 import { SendTxCommandAsset, StateAsset, StateWallet } from "@/types/internal";
@@ -145,8 +145,8 @@ export default defineComponent({
     unselected(): StateAsset[] {
       return differenceBy(
         this.assets,
-        this.selected.map(a => a.asset),
-        a => a.tokenId
+        this.selected.map((a) => a.asset),
+        (a) => a.tokenId
       );
     },
     hasChange(): boolean {
@@ -154,7 +154,7 @@ export default defineComponent({
         return true;
       }
 
-      for (const asset of this.selected.filter(a => a.asset.tokenId !== ERG_TOKEN_ID)) {
+      for (const asset of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
         if (!asset.amount || !asset.amount.isEqualTo(asset.asset.confirmedAmount)) {
           return true;
         }
@@ -163,7 +163,7 @@ export default defineComponent({
       return false;
     },
     reservedErgAmount(): BigNumber {
-      const erg = find(this.selected, a => a.asset.tokenId === ERG_TOKEN_ID);
+      const erg = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
       if (!erg || erg.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
@@ -208,8 +208,8 @@ export default defineComponent({
       selected: [] as SendTxCommandAsset[],
       password: "",
       recipient: "",
-      singState: "disabled",
-      singMessage: "",
+      signState: "disabled",
+      signMessage: "",
       feeMultiplicator: 1,
       minFee: Object.freeze(setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
@@ -235,8 +235,8 @@ export default defineComponent({
         return;
       }
 
-      this.singState = "loading";
-      this.singMessage = "";
+      this.signState = "loading";
+      this.signMessage = "";
       const currentWalletId = this.$store.state.currentWallet.id;
 
       try {
@@ -250,20 +250,20 @@ export default defineComponent({
 
         this.clear();
 
-        this.singState = "success";
-        this.singMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
+        this.signState = "success";
+        this.signMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
           txId
         )}' target='_blank'>View on Explorer</a>`;
       } catch (e) {
-        this.singState = "error";
+        this.signState = "error";
         console.error(e);
 
         if (e instanceof TxSignError) {
-          this.singMessage = `Something went wrong on signing processs.<br /><br /><code>${e.message}</code>`;
+          this.signMessage = `Something went wrong on signing processs.<br /><br /><code>${e.message}</code>`;
         } else if (e instanceof PasswordError) {
-          this.singMessage = e.message;
+          this.signMessage = e.message;
         } else {
-          this.singMessage = `Something went wrong on signing process. Please try again later.<br /><br /><code>${
+          this.signMessage = `Something went wrong on signing process. Please try again later.<br /><br /><code>${
             (e as Error).message
           }</code>`;
         }
@@ -277,7 +277,7 @@ export default defineComponent({
       this.v$.$reset();
     },
     setErgAsSelected(): void {
-      const erg = find(this.assets, a => a.tokenId === ERG_TOKEN_ID);
+      const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
         this.selected.push({ asset: erg });
       }
@@ -290,7 +290,7 @@ export default defineComponent({
       this.setMinBoxValue();
     },
     remove(tokenId: string) {
-      remove(this.selected, a => a.asset.tokenId === tokenId);
+      remove(this.selected, (a) => a.asset.tokenId === tokenId);
       this.setMinBoxValue();
     },
     setMinBoxValue() {
@@ -298,7 +298,7 @@ export default defineComponent({
         return;
       }
 
-      const erg = find(this.selected, a => this.isErg(a.asset.tokenId));
+      const erg = find(this.selected, (a) => this.isErg(a.asset.tokenId));
       if (!erg) {
         return;
       }

@@ -28,3 +28,9 @@ export type IDbAsset = {
   address: string;
   walletId: number;
 };
+
+export type IDbDAppConnection = {
+  origin: string;
+  walletId: number;
+  favicon?: string;
+};

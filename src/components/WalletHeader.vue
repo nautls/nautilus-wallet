@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
-    <div class="w-max flex-grow">
+    <div class="flex-grow">
       <img src="@/assets/images/logo.png" class="w-14 ml-2" />
     </div>
-    <div>
-      <drop-down discrete>
+    <div class="w-min">
+      <drop-down discrete :disabled="$route.query.popup === 'true'">
         <template v-slot:trigger>
           <wallet-item
             :wallet="wallet"
@@ -32,6 +32,14 @@
               <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
               <span class="align-middle">Expand view</span></a
             >
+            <router-link
+              v-if="connections.length > 0"
+              :to="{ name: 'connector-connected' }"
+              class="group-item narrow"
+            >
+              <vue-feather type="list" size="16" class="align-middle pr-2" />
+              <span class="align-middle">Connected dApps</span></router-link
+            >
             <router-link :to="{ name: 'about-nautilus' }" class="group-item narrow">
               <vue-feather type="info" size="16" class="align-middle pr-2" />
               <span class="align-middle">About</span></router-link
@@ -47,13 +55,12 @@
 import { defineComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import NavHeader from "@/components/NavHeader.vue";
-import WalletItem from "@/components/WalletItem.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({
   name: "WalletHeader",
-  components: { NavHeader, WalletItem },
+  components: { NavHeader },
   data() {
     return {
       checksum: ""
@@ -76,7 +83,8 @@ export default defineComponent({
   computed: {
     ...mapState({
       wallet: "currentWallet",
-      loading: "loading"
+      loading: "loading",
+      connections: "connections"
     }),
     unselectedWallets() {
       const currentId = this.$store.state.currentWallet?.id;

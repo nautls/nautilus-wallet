@@ -10,32 +10,22 @@ import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
-import axios from "axios";
-import JSONBigInt from "json-bigint";
+import WalletItem from "@/components/WalletItem.vue";
+import DAppPlate from "@/components/DappPlate.vue";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
+import { rpcHandler } from "@/background/rpcHandler";
+
+import "@/config/axiosConfig";
 
 import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
+rpcHandler.start();
 wasmModule.loadAsync();
-
-axios.defaults.transformResponse = [
-  data => {
-    if (typeof data === "string") {
-      try {
-        data = JSONBigInt.parse(data);
-      } catch (e) {
-        console.error(e);
-        return data;
-      }
-    }
-    return data;
-  }
-];
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
@@ -54,4 +44,6 @@ app
   .component("drop-down", DropDown)
   .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
+  .component("wallet-item", WalletItem)
+  .component("dapp-plate", DAppPlate)
   .mount("#app");

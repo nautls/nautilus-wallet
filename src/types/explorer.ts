@@ -26,16 +26,16 @@ type ExplorerDataInputBox = {
   address: string;
 };
 
-type ExplorerToken = {
+export type ExplorerToken = {
   tokenId: string;
   index: number;
-  amount: number | BigNumber;
+  amount: number | string | BigNumber;
   name: string;
   decimals: number;
   type: string;
 };
 
-type ExplorerOutputBox = {
+export type ExplorerOutputBox = {
   id: string;
   txId: string;
   value: number | BigNumber;
@@ -304,28 +304,16 @@ export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
   id: string;
 };
 
-export type ExplorergetUnspentBox = {
+export type ExplorerGetUnspentBox = {
   id: string;
   txId: string;
-  value: number;
+  value: number | string | BigNumber;
   index: number;
   creationHeight: number;
   ergoTree: string;
   address: string;
-  assets: [
-    {
-      tokenId: string;
-      index: number;
-      amount: number;
-      name: string;
-      decimals: number;
-      type: string;
-    }
-  ];
-  additionalRegisters: {
-    property1: string;
-    property2: string;
-  };
+  assets: ExplorerToken[];
+  additionalRegisters: any;
   spentTransactionId: string;
   mainChain: boolean;
 };
