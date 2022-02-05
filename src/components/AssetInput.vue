@@ -182,7 +182,7 @@ export default defineComponent({
       this.hovered = val;
     },
     setMaxValue() {
-      (this.$refs as any)["val-input"].cleave.setRawValue(this.available.toString());
+      (this.$refs as any)["val-input"].cleave.setRawValue(this.available.toString(10));
     },
     setInputFocus() {
       (this.$refs as any)["val-input"].focus();
