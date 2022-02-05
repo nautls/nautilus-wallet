@@ -59,11 +59,11 @@ export async function handleGetBoxesRequest(
   const boxes = (await explorerService.getUnspentBoxes(addresses)).map((b) => b.data).flat();
   let selected = boxes;
 
-  if (amount.isZero()) {
-    if (tokenId != ERG_TOKEN_ID) {
-      selected = boxes.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
-    }
-  } else {
+  if (tokenId != ERG_TOKEN_ID) {
+    selected = boxes.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
+  }
+
+  if (!amount.isZero()) {
     let acc = new BigNumber(0);
 
     if (tokenId === ERG_TOKEN_ID) {
