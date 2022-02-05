@@ -1,5 +1,5 @@
 {
-  "name": "Nautilus",
+  "name": "Nautilus Wallet",
   "short_name": "Nautilus",
   "version": "0.1.7",
   "manifest_version": 2,
@@ -8,7 +8,7 @@
   "content_security_policy": "script-src 'self' 'wasm-eval'; object-src 'self';",
   "browser_action": {
     "default_popup": "index.html",
-    "default_title": "Nautilus"
+    "default_title": "Nautilus Wallet"
   },
   "background": {
     "page": "background.html",

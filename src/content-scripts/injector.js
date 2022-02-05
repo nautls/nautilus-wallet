@@ -86,10 +86,20 @@ if (ergoConnector !== undefined) {
   };
 }
 
+const warnDeprecated = function (func) {
+  console.warn(
+    "[Deprecated] In order to avoid conflicts with another wallets, this method will be disabled and replaced by '" +
+      func +
+      "' soon."
+  );
+};
+
 window.ergo_request_read_access = function () {
+  warnDeprecated("ergoConnector.nautilus.connect()");
   return ergoConnector.nautilus.connect();
 };
 window.ergo_check_read_access = function () {
+  warnDeprecated("ergoConnector.nautilus.isConnected()");
   return ergoConnector.nautilus.isConnected();
 };
 // `;

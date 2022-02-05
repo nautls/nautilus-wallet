@@ -15,7 +15,7 @@ module.exports = {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
     background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     config.plugin("clean-output").use(
       new CleanWebpackPlugin({
         cleanStaleWebpackAssets: false
