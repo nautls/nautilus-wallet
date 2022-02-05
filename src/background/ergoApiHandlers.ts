@@ -56,18 +56,18 @@ export async function handleGetBoxesRequest(
 
   const assets = await assestsDbService.getByTokenId(session!.walletId!, tokenId);
   const addresses = uniq(assets.map((a) => a.address));
-  const boxes = (await explorerService.getUnspentBoxes(addresses)).map((b) => b.data).flat();
-  let selected = boxes;
+  const boxes = await explorerService.getUnspentBoxes(addresses);
+  let selected = boxes.map((b) => b.data).flat();
 
   if (tokenId != ERG_TOKEN_ID) {
-    selected = boxes.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
+    selected = selected.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
   }
 
   if (!amount.isZero()) {
     let acc = new BigNumber(0);
 
     if (tokenId === ERG_TOKEN_ID) {
-      selected = boxes.filter((box) => {
+      selected = selected.filter((box) => {
         if (acc.isGreaterThanOrEqualTo(amount)) {
           return false;
         }
@@ -76,7 +76,7 @@ export async function handleGetBoxesRequest(
         return true;
       });
     } else {
-      selected = boxes.filter((box) => {
+      selected = selected.filter((box) => {
         if (acc.isGreaterThanOrEqualTo(amount)) {
           return false;
         }

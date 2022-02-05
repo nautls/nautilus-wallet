@@ -247,7 +247,7 @@ export default defineComponent({
     },
     fail(info: string) {
       this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
-      // window.close();
+      window.close();
     },
     sendError(error: TxSignError) {
       window.removeEventListener("beforeunload", this.onWindowClosing);
