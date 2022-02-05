@@ -224,9 +224,8 @@ export default createStore({
       dispatch(ACTIONS.LOAD_SETTINGS);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
-      dispatch(ACTIONS.LOAD_CONNECTIONS);
-
       if (state.wallets.length > 0) {
+        dispatch(ACTIONS.LOAD_CONNECTIONS);
         let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
@@ -255,6 +254,10 @@ export default createStore({
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
+      if (isEmpty(wallets)) {
+        return;
+      }
+
       for (const wallet of wallets) {
         bip32Pool.alloc(
           Bip32.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
@@ -353,6 +356,10 @@ export default createStore({
       });
     },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
+      if (!state.currentWallet.id) {
+        return;
+      }
+
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
 
