@@ -223,6 +223,7 @@ export default createStore({
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
       await dispatch(ACTIONS.LOAD_WALLETS);
+
       dispatch(ACTIONS.LOAD_CONNECTIONS);
 
       if (state.wallets.length > 0) {
@@ -243,8 +244,8 @@ export default createStore({
       const rawSettings = localStorage.getItem("settings");
       if (rawSettings) {
         commit(MUTATIONS.SET_SETTINGS, JSON.parse(rawSettings));
-        commit(MUTATIONS.SET_LOADING, { settings: false });
       }
+      commit(MUTATIONS.SET_LOADING, { settings: false });
     },
     [ACTIONS.SAVE_SETTINGS]({ state, commit }, newSettings) {
       if (newSettings) {
