@@ -1,9 +1,9 @@
 body {
-  @apply bg-gray-200 text-base leading-normal tracking-wide text-dark-500 antialiased;
+  @apply bg-gray-200 overflow-x-hidden text-base leading-normal tracking-wide text-dark-500 antialiased;
 }
 
 .app {
-  @apply bg-light-50 flex flex-col min-h-600px h-screen min-w-365px mx-auto gap-0 md:(max-w-5/12 shadow-lg);
+  @apply bg-light-50 overflow-x-hidden flex flex-col min-h-600px h-600px h-screen min-w-365px gap-0 mx-auto md:(max-w-5/12 shadow-lg);
 }
 
 a {

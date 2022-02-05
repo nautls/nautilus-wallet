@@ -1,4 +1,4 @@
-const POPUP_SIZE = { width: 365, height: 630 };
+const POPUP_SIZE = { width: 370, height: 630 };
 
 function getDefaultBounds() {
   return {
