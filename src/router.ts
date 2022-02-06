@@ -8,6 +8,7 @@ import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
+import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
 
 import AuthView from "@/views/connector/AuthView.vue";
 import ConnectionsView from "@/views/connector/ConnectionsView.vue";
@@ -43,6 +44,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/add/new",
     name: "add-standard-wallet",
     component: AddStandardView,
+    meta: { fullPage: true }
+  },
+  {
+    path: "/add/hw/ledger",
+    name: "add-hw-ledger",
+    component: ConnectLedgerView,
     meta: { fullPage: true }
   },
   {

@@ -270,13 +270,13 @@ export default createStore({
     async [ACTIONS.PUT_WALLET](
       { dispatch },
       wallet:
-        | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly }
+        | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly | WalletType.Ledger }
         | { mnemonic: string; password: string; name: string; type: WalletType.Standard }
     ) {
       const bip32 =
-        wallet.type === WalletType.ReadOnly
-          ? Bip32.fromPublicKey(wallet.extendedPublicKey)
-          : await Bip32.fromMnemonic(wallet.mnemonic);
+        wallet.type === WalletType.Standard
+          ? await Bip32.fromMnemonic(wallet.mnemonic)
+          : Bip32.fromPublicKey(wallet.extendedPublicKey);
 
       bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({

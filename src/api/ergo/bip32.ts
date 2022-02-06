@@ -16,9 +16,13 @@ export default class Bip32 {
   private _change!: BIP32Interface;
   private _extendedPk!: Buffer;
 
-  private constructor(bip32: BIP32Interface) {
+  private constructor(bip32: BIP32Interface, derivationPath?: string) {
     if (bip32.isNeutered()) {
-      this._change = bip32;
+      if (derivationPath) {
+        this._change = bip32.derivePath(derivationPath);
+      } else {
+        this._change = bip32;
+      }
     } else {
       this._change = bip32.derivePath(DERIVATION_PATH);
     }
@@ -37,7 +41,10 @@ export default class Bip32 {
     return new this(bip32.fromSeed(await bip39.mnemonicToSeed(mnemonic)));
   }
 
-  public static fromPublicKey(publicKey: string | { publicKey: string; chainCode: string }): Bip32 {
+  public static fromPublicKey(
+    publicKey: string | { publicKey: string; chainCode: string },
+    derivationPath?: string
+  ): Bip32 {
     if (typeof publicKey === "string") {
       const buffer = Buffer.from(publicKey, "hex");
       return new this(bip32.fromPublicKey(buffer.slice(45, 78), buffer.slice(13, 45)));
@@ -46,7 +53,8 @@ export default class Bip32 {
         bip32.fromPublicKey(
           Buffer.from(publicKey.publicKey, "hex"),
           Buffer.from(publicKey.chainCode, "hex")
-        )
+        ),
+        derivationPath
       );
     }
   }

@@ -22,6 +22,16 @@
       </router-link>
     </p>
     <p class="pb-5">
+      <router-link to="/add/hw/ledger" custom v-slot="{ navigate }">
+        <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+          <span class="title">Connect a harware wallet</span>
+          <span class="subtitle"
+            >Create or restore an Ergo wallet using a Ledger hardware wallet.</span
+          >
+        </button>
+      </router-link>
+    </p>
+    <p class="pb-5">
       <router-link to="/add/read-only" custom v-slot="{ navigate }">
         <button
           @click="navigate"
