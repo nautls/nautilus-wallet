@@ -50,7 +50,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 
-import { ErgoApp } from "ledgerjs-hw-app-ergo";
+import { ErgoLedgerApp } from "ledgerjs-hw-app-ergo";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
@@ -86,14 +86,14 @@ export default defineComponent({
 
       this.loading = true;
       this.loadingText = "Waiting for device confirmation...";
-      const app = new ErgoApp(await HidTransport.create());
+      const app = new ErgoLedgerApp(await HidTransport.create());
 
       try {
         const pk = await app.getExtendedPublicKey("m/44'/429'/0'");
         // this.publicKey = pk.chainCodeHex + pk.publicKeyHex;
 
         const bip32 = Bip32.fromPublicKey(
-          { publicKey: pk.publicKeyHex, chainCode: pk.chainCodeHex },
+          { publicKey: pk.publicKey, chainCode: pk.chainCode },
           "0"
         );
 
@@ -109,7 +109,7 @@ export default defineComponent({
           return;
         }
       } finally {
-        app.closeTransport();
+        app.transport.close();
       }
 
       this.confirmAddress = "";
