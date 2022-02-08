@@ -60,7 +60,11 @@ export default createStore({
       type: WalletType.Standard,
       publicKey: "",
       extendedPublicKey: "",
-      balance: new BigNumber(0)
+      settings: {
+        avoidAddressReuse: false,
+        hideUsedAddresses: true,
+        defaultChangeIndex: 0
+      }
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
     settings: {
@@ -217,7 +221,8 @@ export default createStore({
           type: w.type,
           publicKey: w.publicKey,
           extendedPublicKey: bip32Pool.get(w.publicKey).extendedPublicKey.toString("hex"),
-          balance: new BigNumber(0)
+          balance: new BigNumber(0),
+          settings: w.settings
         };
       });
     },
@@ -297,7 +302,12 @@ export default createStore({
         mnemonic:
           wallet.type === WalletType.Standard
             ? AES.encrypt(wallet.mnemonic, wallet.password).toString()
-            : undefined
+            : undefined,
+        settings: {
+          avoidAddressReuse: false,
+          hideUsedAddresses: true,
+          defaultChangeIndex: 0
+        }
       });
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
@@ -314,8 +324,8 @@ export default createStore({
         name: wallet.name,
         type: wallet.type,
         publicKey: wallet.publicKey,
-        balance: new BigNumber(0),
-        extendedPublicKey: bip32.extendedPublicKey.toString("hex")
+        extendedPublicKey: bip32.extendedPublicKey.toString("hex"),
+        settings: wallet.settings
       };
 
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);

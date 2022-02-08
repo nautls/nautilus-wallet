@@ -23,6 +23,16 @@ class NautilusDb extends Dexie {
       connectedDApps: "&origin, walletId",
       addresses: "&script, type, state, index, walletId"
     });
+
+    this.version(4).upgrade((t) => {
+      t.table("wallets").each((obj, k) => {
+        t.table("wallets").update(k.primaryKey, {
+          "settings.avoidAddressReuse": false,
+          "settings.hideUsedAddresses": true,
+          "settings.defaultChangeIndex": 0
+        });
+      });
+    });
   }
 }
 
