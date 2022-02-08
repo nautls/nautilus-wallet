@@ -39,7 +39,16 @@ import { Transaction } from "./api/ergo/transaction/transaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
-import { Address } from "@coinbarn/ergo-ts";
+import { extractAddressesFromInputs } from "./api/ergo/addresses";
+
+function dbAddressMapper(a: IDbAddress) {
+  return {
+    script: a.script,
+    state: a.state,
+    index: a.index,
+    balance: undefined
+  };
+}
 
 export default createStore({
   state: {
@@ -362,17 +371,9 @@ export default createStore({
 
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
-
       const bip32 = bip32Pool.get(pk);
       let active: StateAddress[] = sortBy(
-        (await addressesDbService.getByWalletId(walletId)).map((a) => {
-          return {
-            script: a.script,
-            state: a.state,
-            index: a.index,
-            balance: undefined
-          };
-        }),
+        (await addressesDbService.getByWalletId(walletId)).map((a) => dbAddressMapper(a)),
         (a) => a.index
       );
       let derived: DerivedAddress[] = [];
@@ -520,9 +521,13 @@ export default createStore({
       return response.id;
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
-      const boxAddress = command.tx.inputs.map((b) => Address.fromErgoTree(b.ergoTree).address);
-      const addresses = state.currentAddresses.filter((a) => boxAddress.includes(a.script));
-
+      const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
+      console.log(addressesFromBoxes);
+      const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
+      const addresses = dbAddresses
+        .filter((a) => addressesFromBoxes.includes(a.script))
+        .map((a) => dbAddressMapper(a));
+      console.log(addresses);
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );

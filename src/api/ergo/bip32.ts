@@ -1,9 +1,9 @@
 import BIP32Factory, { BIP32Interface } from "bip32";
 import * as ecc from "tiny-secp256k1";
-import { Address } from "@coinbarn/ergo-ts";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import bs58check from "bs58check";
 import * as bip39 from "bip39";
+import { addressFromPk } from "./addresses";
 
 const bip32 = BIP32Factory(ecc);
 
@@ -88,7 +88,7 @@ export default class Bip32 {
 
   public deriveAddress(index: number): DerivedAddress {
     const derivedPk = this._change.derive(index).publicKey;
-    return { index, script: Address.fromPk(derivedPk.toString("hex")).address };
+    return { index, script: addressFromPk(derivedPk.toString("hex")) };
   }
 
   public deriveAddresses(count: number, offset = 0): DerivedAddress[] {
