@@ -2,7 +2,7 @@ import { SIGMA_CONSTANT_PK_MATCHER, P2PK_TREE_PREFIX } from "@/constants/ergo";
 import { Registers, UnsignedInput } from "@/types/connector";
 import { wasmModule } from "@/utils/wasm-module";
 import { Address } from "@coinbarn/ergo-ts";
-import { first, isEmpty, uniq } from "lodash";
+import { isEmpty, uniq } from "lodash";
 
 export function extractAddressesFromInputs(inputs: UnsignedInput[]) {
   return inputs.map((input) => extractAddressesFromInput(input)).flat();
