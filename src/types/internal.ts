@@ -89,5 +89,11 @@ export type SignTxFromConnectorCommand = {
 export type UpdateWalletSettingsCommand = {
   walletId: number;
   name: string;
-  settings: WalletSettings;
+  avoidAddressReuse: boolean;
+  hideUsedAddresses: boolean;
+};
+
+export type UpdateChangeIndexCommand = {
+  walletId: number;
+  index: number;
 };

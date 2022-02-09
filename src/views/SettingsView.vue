@@ -110,11 +110,8 @@ export default defineComponent({
       const command = {
         walletId: this.currentWallet.id,
         name: this.walletName,
-        settings: {
-          avoidAddressReuse: this.avoidAddressReuse,
-          hideUsedAddresses: this.hideUsedAddresses,
-          defaultChangeIndex: this.currentWallet.settings.defaultChangeIndex
-        }
+        avoidAddressReuse: this.avoidAddressReuse,
+        hideUsedAddresses: this.hideUsedAddresses
       } as UpdateWalletSettingsCommand;
 
       await this.updateWalletSettings(command);

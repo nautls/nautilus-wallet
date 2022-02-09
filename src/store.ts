@@ -24,7 +24,8 @@ import {
   AddressType,
   SendTxCommand,
   SignTxFromConnectorCommand,
-  UpdateWalletSettingsCommand
+  UpdateWalletSettingsCommand,
+  UpdateChangeIndexCommand
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -240,7 +241,16 @@ export default createStore({
       }
 
       wallet.name = command.name;
-      wallet.settings = command.settings;
+      wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
+      wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
+    },
+    [MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.settings.defaultChangeIndex = command.index;
     }
   },
   actions: {
@@ -575,8 +585,12 @@ export default createStore({
       rpcHandler.sendEvent("disconnected", origin);
     },
     async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, commad: UpdateWalletSettingsCommand) {
-      await walletsDbService.updateSettings(commad.walletId, commad.name, commad.settings);
+      await walletsDbService.updateSettings(commad.walletId, commad.name, commad);
       commit(MUTATIONS.SET_WALLET_SETTINGS, commad);
+    },
+    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
+      await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
+      commit(MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX, commad);
     }
   }
 });
