@@ -9,6 +9,7 @@ import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
 import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
+import SettingsView from "@/views/SettingsView.vue";
 
 import AuthView from "@/views/connector/AuthView.vue";
 import ConnectionsView from "@/views/connector/ConnectionsView.vue";
@@ -86,6 +87,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/connector/sign/tx",
     name: "connector-sign-tx",
     component: SignTxConfirmView
+  },
+  {
+    path: "/wallet/settings",
+    name: "wallet-settings",
+    component: SettingsView
   }
 ];
 

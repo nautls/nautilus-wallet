@@ -1,4 +1,11 @@
-import { AddressState, AddressType, AssetType, Network, WalletType } from "@/types/internal";
+import {
+  AddressState,
+  AddressType,
+  AssetType,
+  Network,
+  WalletSettings,
+  WalletType
+} from "@/types/internal";
 
 export type IDbWallet = {
   id?: number;
@@ -8,6 +15,7 @@ export type IDbWallet = {
   publicKey: string;
   chainCode: string;
   mnemonic?: string;
+  settings: WalletSettings;
 };
 
 export type IDbAddress = {

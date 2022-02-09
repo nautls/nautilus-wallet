@@ -1,7 +1,7 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate } from "@/types/connector";
-import { Address } from "@coinbarn/ergo-ts";
 import { differenceBy, find, isEmpty } from "lodash";
+import { addressFromErgoTree } from "../../addresses";
 import { OutputInterpreter } from "./outputInterpreter";
 
 export type AssetInfo = {
@@ -24,7 +24,7 @@ export class TxInterpreter {
 
     this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
     this._changeBox = find(tx.outputs, (b) =>
-      ownAddresses.includes(Address.fromErgoTree(b.ergoTree).address)
+      ownAddresses.includes(addressFromErgoTree(b.ergoTree))
     );
     this._sendingBoxes = differenceBy(
       tx.outputs,
@@ -39,11 +39,11 @@ export class TxInterpreter {
   }
 
   public get from(): string[] {
-    return this._tx.inputs.map((b) => Address.fromErgoTree(b.ergoTree).address);
+    return this._tx.inputs.map((b) => addressFromErgoTree(b.ergoTree));
   }
 
   public get to(): string[] | undefined {
-    return this._sendingBoxes?.map((b) => Address.fromErgoTree(b.ergoTree).address);
+    return this._sendingBoxes?.map((b) => addressFromErgoTree(b.ergoTree));
   }
 
   public get change(): ErgoBoxCandidate | undefined {

@@ -42,14 +42,20 @@ export type StateAddress = {
   balance?: StateAsset[];
 };
 
+export type WalletSettings = {
+  avoidAddressReuse: boolean;
+  hideUsedAddresses: boolean;
+  defaultChangeIndex: number;
+};
+
 export type StateWallet = {
   id: number;
   name: string;
   type: WalletType;
   publicKey: string;
   extendedPublicKey: string;
-  balance: BigNumber;
   addresses?: AddressType[];
+  settings: WalletSettings;
 };
 
 export type StateAsset = {
@@ -78,4 +84,16 @@ export type SignTxFromConnectorCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
+};
+
+export type UpdateWalletSettingsCommand = {
+  walletId: number;
+  name: string;
+  avoidAddressReuse: boolean;
+  hideUsedAddresses: boolean;
+};
+
+export type UpdateChangeIndexCommand = {
+  walletId: number;
+  index: number;
 };

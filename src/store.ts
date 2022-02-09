@@ -23,7 +23,9 @@ import {
   AddressState,
   AddressType,
   SendTxCommand,
-  SignTxFromConnectorCommand
+  SignTxFromConnectorCommand,
+  UpdateWalletSettingsCommand,
+  UpdateChangeIndexCommand
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -39,7 +41,16 @@ import { Transaction } from "./api/ergo/transaction/transaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
-import { Address } from "@coinbarn/ergo-ts";
+import { extractAddressesFromInputs } from "./api/ergo/addresses";
+
+function dbAddressMapper(a: IDbAddress) {
+  return {
+    script: a.script,
+    state: a.state,
+    index: a.index,
+    balance: undefined
+  };
+}
 
 export default createStore({
   state: {
@@ -51,7 +62,11 @@ export default createStore({
       type: WalletType.Standard,
       publicKey: "",
       extendedPublicKey: "",
-      balance: new BigNumber(0)
+      settings: {
+        avoidAddressReuse: false,
+        hideUsedAddresses: false,
+        defaultChangeIndex: 0
+      }
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
     settings: {
@@ -208,7 +223,8 @@ export default createStore({
           type: w.type,
           publicKey: w.publicKey,
           extendedPublicKey: bip32Pool.get(w.publicKey).extendedPublicKey.toString("hex"),
-          balance: new BigNumber(0)
+          balance: new BigNumber(0),
+          settings: w.settings
         };
       });
     },
@@ -217,6 +233,24 @@ export default createStore({
     },
     [MUTATIONS.SET_CONNECTIONS](state, connections) {
       state.connections = Object.freeze(connections);
+    },
+    [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.name = command.name;
+      wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
+      wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
+    },
+    [MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.settings.defaultChangeIndex = command.index;
     }
   },
   actions: {
@@ -280,7 +314,7 @@ export default createStore({
 
       bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
-        name: wallet.name,
+        name: wallet.name.trim(),
         network: Network.ErgoMainet,
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
@@ -288,7 +322,12 @@ export default createStore({
         mnemonic:
           wallet.type === WalletType.Standard
             ? AES.encrypt(wallet.mnemonic, wallet.password).toString()
-            : undefined
+            : undefined,
+        settings: {
+          avoidAddressReuse: false,
+          hideUsedAddresses: false,
+          defaultChangeIndex: 0
+        }
       });
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
@@ -305,8 +344,8 @@ export default createStore({
         name: wallet.name,
         type: wallet.type,
         publicKey: wallet.publicKey,
-        balance: new BigNumber(0),
-        extendedPublicKey: bip32.extendedPublicKey.toString("hex")
+        extendedPublicKey: bip32.extendedPublicKey.toString("hex"),
+        settings: wallet.settings
       };
 
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
@@ -362,17 +401,9 @@ export default createStore({
 
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
-
       const bip32 = bip32Pool.get(pk);
       let active: StateAddress[] = sortBy(
-        (await addressesDbService.getByWalletId(walletId)).map((a) => {
-          return {
-            script: a.script,
-            state: a.state,
-            index: a.index,
-            balance: undefined
-          };
-        }),
+        (await addressesDbService.getByWalletId(walletId)).map((a) => dbAddressMapper(a)),
         (a) => a.index
       );
       let derived: DerivedAddress[] = [];
@@ -486,31 +517,34 @@ export default createStore({
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
-      let unused = find(
-        state.currentAddresses,
-        (a) => a.state === AddressState.Unused && a.script !== command.recipient
-      );
-      if (!unused) {
-        await dispatch(ACTIONS.NEW_ADDRESS);
+      if (state.currentWallet.settings.avoidAddressReuse) {
+        let unused = find(
+          state.currentAddresses,
+          (a) => a.state === AddressState.Unused && a.script !== command.recipient
+        );
+        if (!unused) {
+          await dispatch(ACTIONS.NEW_ADDRESS);
+        }
       }
-      const addresses = clone(state.currentAddresses);
 
+      const addresses = state.currentAddresses;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
       command.password = "";
 
-      const changeAddress =
-        find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
-          ?.script || bip32.deriveAddress(0).script;
+      const changeAddress = state.currentWallet.settings.avoidAddressReuse
+        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
+            ?.index ?? state.currentWallet.settings.defaultChangeIndex
+        : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
       const signedtx = Transaction.from(selectedAddresses)
         .to(command.recipient)
-        .change(changeAddress)
+        .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
         .fromBoxes(boxes.map((a) => a.data).flat())
@@ -520,9 +554,13 @@ export default createStore({
       return response.id;
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
-      const boxAddress = command.tx.inputs.map((b) => Address.fromErgoTree(b.ergoTree).address);
-      const addresses = state.currentAddresses.filter((a) => boxAddress.includes(a.script));
-
+      const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
+      console.log(addressesFromBoxes);
+      const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
+      const addresses = dbAddresses
+        .filter((a) => addressesFromBoxes.includes(a.script))
+        .map((a) => dbAddressMapper(a));
+      console.log(addresses);
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
@@ -545,6 +583,14 @@ export default createStore({
       await connectedDAppsDbService.deleteByOrigin(origin);
       dispatch(ACTIONS.LOAD_CONNECTIONS);
       rpcHandler.sendEvent("disconnected", origin);
+    },
+    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, commad: UpdateWalletSettingsCommand) {
+      await walletsDbService.updateSettings(commad.walletId, commad.name, commad);
+      commit(MUTATIONS.SET_WALLET_SETTINGS, commad);
+    },
+    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
+      await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
+      commit(MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX, commad);
     }
   }
 });

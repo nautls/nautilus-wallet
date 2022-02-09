@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row text-lg pb-5 text-center">
+  <div class="flex flex-row text-lg text-center">
     <div class="w-1/12">
       <a @click="$router.back()" class="back-btn">
         <vue-feather v-if="backButton" type="chevron-left" size="24" />

@@ -1,11 +1,66 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
-    <title>Fill 1</title>
-    <desc>Created with Sketch.</desc>
-    <g id="main" stroke="none" stroke-width="1" fill="#d1d5db" fill-rule="evenodd">
-        <g id="Tech" transform="translate(-428.000000, -216.000000)">
-            <path d="M457.932489,230.514568 L453.675133,220.547543 C453.588915,220.342397 453.423508,220.181307 453.217018,220.0986 L443.15877,216.060544 C442.952281,215.978107 442.721197,215.979458 442.516059,216.067031 L432.548082,220.324288 C432.342674,220.410779 432.181591,220.575923 432.098887,220.782691 L428.061263,230.841073 C427.977208,231.049192 427.979911,231.278664 428.06775,231.48408 L432.324836,241.452457 C432.411324,241.657603 432.576731,241.818693 432.78295,241.9014 L442.841198,245.939186 C442.940659,245.979458 443.047958,246 443.153635,246 C443.265799,246 443.378233,245.978107 443.485261,245.931618 L453.451887,241.674361 C453.657295,241.58787 453.818378,241.422455 453.901082,241.216228 L457.938706,231.157576 C458.022761,230.949457 458.020058,230.719985 457.932489,230.514568" id="Fill-1"></path>
-        </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="30px"
+   height="30px"
+   viewBox="0 0 30 30"
+   version="1.1"
+   id="svg16"
+   sodipodi:docname="default.svg"
+   inkscape:version="1.1.1 (c3084ef, 2021-09-22)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     id="namedview18"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="9.0666667"
+     inkscape:cx="5.3492647"
+     inkscape:cy="11.360294"
+     inkscape:window-width="1312"
+     inkscape:window-height="766"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg16" />
+  <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+  <title
+     id="title9">Fill 1</title>
+  <desc
+     id="desc11">Created with Sketch.</desc>
+  <g
+     id="main"
+     stroke="none"
+     stroke-width="1"
+     fill="#d1d5db"
+     fill-rule="evenodd">
+    <g
+       id="Tech"
+       transform="translate(-428.000000, -216.000000)">
+      <path
+         d="m 457.71311,230.52194 -4.19475,-9.82045 c -0.0849,-0.20213 -0.24793,-0.36085 -0.45138,-0.44234 l -9.91033,-3.97868 c -0.20346,-0.0812 -0.43114,-0.0799 -0.63326,0.006 l -9.82139,4.19465 c -0.20239,0.0852 -0.3611,0.24793 -0.44259,0.45166 l -3.97825,9.91046 c -0.0828,0.20506 -0.0802,0.43116 0.006,0.63355 l 4.19449,9.82179 c 0.0852,0.20213 0.24819,0.36085 0.45137,0.44234 l 9.91034,3.9784 c 0.098,0.0397 0.20371,0.0599 0.30784,0.0599 0.11051,0 0.22129,-0.0216 0.32675,-0.0674 l 9.82005,-4.19465 c 0.20239,-0.0852 0.36111,-0.2482 0.44259,-0.4514 l 3.97825,-9.91073 c 0.0828,-0.20506 0.0802,-0.43116 -0.006,-0.63355"
+         id="Fill-1"
+         style="stroke-width:0.985294" />
     </g>
+  </g>
+  <metadata
+     id="metadata104">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Fill 1</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>

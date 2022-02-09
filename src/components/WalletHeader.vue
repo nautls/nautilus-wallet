@@ -40,6 +40,10 @@
               <vue-feather type="list" size="16" class="align-middle pr-2" />
               <span class="align-middle">Connected dApps</span></router-link
             >
+            <router-link :to="{ name: 'wallet-settings' }" class="group-item narrow">
+              <vue-feather type="settings" size="16" class="align-middle pr-2" />
+              <span class="align-middle">Settings</span></router-link
+            >
             <router-link :to="{ name: 'about-nautilus' }" class="group-item narrow">
               <vue-feather type="info" size="16" class="align-middle pr-2" />
               <span class="align-middle">About</span></router-link

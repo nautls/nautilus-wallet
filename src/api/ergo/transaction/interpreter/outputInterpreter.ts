@@ -1,9 +1,9 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
-import { Address } from "@coinbarn/ergo-ts";
 import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty, min } from "lodash";
+import { addressFromErgoTree } from "../../addresses";
 import { AssetInfo } from "./txInterpreter";
 
 export type OutputAsset = {
@@ -23,7 +23,7 @@ export class OutputInterpreter {
   private _addresses?: string[];
 
   public get receiver(): string {
-    return Address.fromErgoTree(this._box.ergoTree).address;
+    return addressFromErgoTree(this._box.ergoTree);
   }
 
   public get assets(): OutputAsset[] {

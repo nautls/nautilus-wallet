@@ -1,7 +1,8 @@
-import { IDbAddress } from "@/types/database";
+import { IDbAddress, IDbWallet } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { find } from "lodash";
 import { AddressState } from "@/types/internal";
+import { walletsDbService } from "./walletsDbService";
 
 class AddressesDbService {
   public async getByScript(script: string): Promise<IDbAddress | undefined> {
@@ -18,15 +19,16 @@ class AddressesDbService {
       .filter((a) => a.walletId === walletId && a.state == state)
       .toArray();
 
-    return addresses.reverse();
+    return addresses;
   }
 
   public async getChangeAddress(walletId: number): Promise<IDbAddress | undefined> {
-    const address = await dbContext.addresses
-      .orderBy("index")
-      .filter((a) => a.walletId === walletId && a.state === AddressState.Unused)
-      .first();
+    const wallet = await walletsDbService.getById(walletId);
+    if (!wallet) {
+      return;
+    }
 
+    const address = await this._getChangeAddress(wallet);
     if (!address) {
       return await dbContext.addresses
         .orderBy("index")
@@ -35,6 +37,19 @@ class AddressesDbService {
     }
 
     return address;
+  }
+
+  private async _getChangeAddress(wallet: IDbWallet): Promise<IDbAddress | undefined> {
+    if (wallet.settings.avoidAddressReuse) {
+      return await dbContext.addresses
+        .orderBy("index")
+        .filter((a) => a.walletId === wallet.id && a.state === AddressState.Unused)
+        .first();
+    }
+
+    return await dbContext.addresses
+      .filter((a) => a.walletId === wallet.id && a.index === wallet.settings.defaultChangeIndex)
+      .first();
   }
 
   public async put(address: IDbAddress): Promise<string> {

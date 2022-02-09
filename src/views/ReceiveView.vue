@@ -57,20 +57,39 @@
                 <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
                   <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
                     <a :href="urlFor(address.script)" target="_blank">{{
-                      $filters.compactString(address.script, 12)
+                      $filters.compactString(address.script, 10)
                     }}</a>
-                    <click-to-copy :content="address.script" class="mx-2" size="12" />
-                    <tool-tip
-                      v-if="hasPendingBalance(address)"
-                      label="Pending transaction<br />for this address"
-                      class="align-middle"
-                    >
-                      <loading-indicator class="w-4 h-4" />
-                    </tool-tip>
+                    <div class="align-middle inline-block">
+                      <click-to-copy :content="address.script" class="mx-2" size="12" />
+
+                      <template v-if="!currentWallet.settings.avoidAddressReuse">
+                        <vue-feather
+                          v-if="currentWallet.settings.defaultChangeIndex === address.index"
+                          type="check-circle"
+                          class="text-green-600"
+                          size="12"
+                        />
+                        <tool-tip v-else label="Set as default<br />change address">
+                          <a
+                            class="cursor-pointer"
+                            @click="updateDefaultChangeIndex(address.index)"
+                          >
+                            <vue-feather type="circle" size="12" />
+                          </a>
+                        </tool-tip>
+                      </template>
+                      <tool-tip
+                        v-if="hasPendingBalance(address)"
+                        label="Pending transaction<br />for this address"
+                        class="pl-2"
+                      >
+                        <loading-indicator class="w-3 h-3" />
+                      </tool-tip>
+                    </div>
                   </td>
                   <td class="text-right">
-                    <span>{{ ergBalanceFor(address) }}</span>
-                    ERG
+                    <span class="float-left">Σ</span>
+                    <span> {{ ergBalanceFor(address) }}</span>
                   </td>
                 </tr>
               </tbody>
@@ -86,7 +105,7 @@
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
 import { find, last } from "lodash";
-import { StateAddress } from "@/types/internal";
+import { StateAddress, StateWallet, UpdateChangeIndexCommand } from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
@@ -95,8 +114,20 @@ import { ACTIONS } from "@/constants/store";
 export default defineComponent({
   name: "ReceiveView",
   computed: {
-    addresses(): StateAddress[] {
+    currentWallet(): StateWallet {
+      return this.$store.state.currentWallet;
+    },
+    stateAddresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
+    },
+    addresses(): StateAddress[] {
+      if (this.currentWallet.settings.hideUsedAddresses) {
+        return this.stateAddresses.filter(
+          (a) => a.state === AddressState.Unused || (a.state === AddressState.Used && a.balance)
+        );
+      }
+
+      return this.stateAddresses;
     },
     loading(): boolean {
       return this.addresses.length === 0 && this.$store.state.loading.addresses;
@@ -137,6 +168,12 @@ export default defineComponent({
     };
   },
   methods: {
+    updateDefaultChangeIndex(index: number) {
+      this.$store.dispatch(ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX, {
+        walletId: this.currentWallet.id,
+        index
+      } as UpdateChangeIndexCommand);
+    },
     async newAddress() {
       try {
         await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
@@ -146,14 +183,14 @@ export default defineComponent({
     },
     ergBalanceFor(address: StateAddress): string {
       return (
-        find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
+        find(address.balance, (a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
       );
     },
     isUsed(address: StateAddress): boolean {
       return address.state === AddressState.Used;
     },
     hasPendingBalance(address: StateAddress): boolean {
-      return !!find(address.balance, b => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
+      return !!find(address.balance, (b) => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
     },
     urlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;
