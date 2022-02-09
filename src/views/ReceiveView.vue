@@ -79,7 +79,7 @@
                         </tool-tip>
                       </template>
                       <tool-tip
-                        v-if="!hasPendingBalance(address)"
+                        v-if="hasPendingBalance(address)"
                         label="Pending transaction<br />for this address"
                         class="pl-2"
                       >
