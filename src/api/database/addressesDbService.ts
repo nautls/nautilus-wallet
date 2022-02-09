@@ -19,7 +19,7 @@ class AddressesDbService {
       .filter((a) => a.walletId === walletId && a.state == state)
       .toArray();
 
-    return addresses;
+    return addresses.reverse();
   }
 
   public async getChangeAddress(walletId: number): Promise<IDbAddress | undefined> {
