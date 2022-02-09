@@ -13,7 +13,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import DAppPlate from "@/components/DappPlate.vue";
 import { filters } from "@/utils/globalFilters";
-import { Inputitems, Modal, Slider } from "@oruga-ui/oruga-next";
+import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
 
@@ -36,6 +36,12 @@ app
   .use(Inputitems)
   .use(Modal)
   .use(Slider)
+  .use(Switch)
+  .use(Config, {
+    switch: {
+      checkCheckedClass: "bg-blue-600"
+    }
+  })
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
   .component("page-title", PageTitle)

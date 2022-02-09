@@ -85,3 +85,9 @@ export type SignTxFromConnectorCommand = {
   walletId: number;
   password: string;
 };
+
+export type UpdateWalletSettingsCommand = {
+  walletId: number;
+  name: string;
+  settings: WalletSettings;
+};

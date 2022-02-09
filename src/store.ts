@@ -23,7 +23,8 @@ import {
   AddressState,
   AddressType,
   SendTxCommand,
-  SignTxFromConnectorCommand
+  SignTxFromConnectorCommand,
+  UpdateWalletSettingsCommand
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -231,6 +232,15 @@ export default createStore({
     },
     [MUTATIONS.SET_CONNECTIONS](state, connections) {
       state.connections = Object.freeze(connections);
+    },
+    [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.name = command.name;
+      wallet.settings = command.settings;
     }
   },
   actions: {
@@ -294,7 +304,7 @@ export default createStore({
 
       bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
-        name: wallet.name,
+        name: wallet.name.trim(),
         network: Network.ErgoMainet,
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
@@ -560,6 +570,10 @@ export default createStore({
       await connectedDAppsDbService.deleteByOrigin(origin);
       dispatch(ACTIONS.LOAD_CONNECTIONS);
       rpcHandler.sendEvent("disconnected", origin);
+    },
+    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, commad: UpdateWalletSettingsCommand) {
+      await walletsDbService.updateSettings(commad.walletId, commad.name, commad.settings);
+      commit(MUTATIONS.SET_WALLET_SETTINGS, commad);
     }
   }
 });

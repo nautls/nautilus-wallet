@@ -59,7 +59,7 @@ class WalletsDbService {
     settings: WalletSettings
   ): Promise<number> {
     return await dbContext.wallets.update(walletId, {
-      name: walletName,
+      name: walletName.trim(),
       "settings.avoidAddressReuse": settings.avoidAddressReuse,
       "settings.hideUsedAddresses": settings.hideUsedAddresses,
       "settings.defaultChangeIndex": settings.defaultChangeIndex
