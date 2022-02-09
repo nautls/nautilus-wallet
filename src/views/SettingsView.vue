@@ -42,7 +42,10 @@
       </div>
     </div>
 
-    <button class="btn w-full" @click="update()">Save</button>
+    <div class="flex flex-row gap-4">
+      <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
+      <button class="btn w-full" @click="update()">Save</button>
+    </div>
   </div>
 </template>
 
@@ -98,6 +101,11 @@ export default defineComponent({
   methods: {
     ...mapActions({ updateWalletSettings: ACTIONS.UPDATE_WALLET_SETTINGS }),
     async update() {
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
+        return;
+      }
+
       const command = {
         walletId: this.currentWallet.id,
         name: this.walletName,

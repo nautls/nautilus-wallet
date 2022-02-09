@@ -28,7 +28,7 @@ class NautilusDb extends Dexie {
       t.table("wallets").each((obj, k) => {
         t.table("wallets").update(k.primaryKey, {
           "settings.avoidAddressReuse": false,
-          "settings.hideUsedAddresses": true,
+          "settings.hideUsedAddresses": false,
           "settings.defaultChangeIndex": 0
         });
       });

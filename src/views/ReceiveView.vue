@@ -86,7 +86,7 @@
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
 import { find, last } from "lodash";
-import { StateAddress } from "@/types/internal";
+import { StateAddress, StateWallet } from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
@@ -95,8 +95,20 @@ import { ACTIONS } from "@/constants/store";
 export default defineComponent({
   name: "ReceiveView",
   computed: {
-    addresses(): StateAddress[] {
+    currentWallet(): StateWallet {
+      return this.$store.state.currentWallet;
+    },
+    stateAddresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
+    },
+    addresses(): StateAddress[] {
+      if (this.currentWallet.settings.hideUsedAddresses) {
+        return this.stateAddresses.filter(
+          (a) => a.state === AddressState.Unused || (a.state === AddressState.Used && a.balance)
+        );
+      }
+
+      return this.stateAddresses;
     },
     loading(): boolean {
       return this.addresses.length === 0 && this.$store.state.loading.addresses;
@@ -146,14 +158,14 @@ export default defineComponent({
     },
     ergBalanceFor(address: StateAddress): string {
       return (
-        find(address.balance, a => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
+        find(address.balance, (a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
       );
     },
     isUsed(address: StateAddress): boolean {
       return address.state === AddressState.Used;
     },
     hasPendingBalance(address: StateAddress): boolean {
-      return !!find(address.balance, b => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
+      return !!find(address.balance, (b) => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
     },
     urlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;

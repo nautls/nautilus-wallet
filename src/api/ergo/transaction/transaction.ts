@@ -24,7 +24,7 @@ import JSONBig from "json-bigint";
 export class Transaction {
   private _from!: StateAddress[];
   private _to!: string;
-  private _change!: string;
+  private _changeIndex!: number;
   private _fee!: BigNumber;
   private _assets!: SendTxCommandAsset[];
   private _boxes!: ExplorerGetUnspentBox[];
@@ -42,8 +42,8 @@ export class Transaction {
     return this;
   }
 
-  public change(address: string): Transaction {
-    this._change = address;
+  public changeIndex(index: number): Transaction {
+    this._changeIndex = index;
     return this;
   }
 
@@ -76,25 +76,27 @@ export class Transaction {
 
     const height = this._boxes[0]?.creationHeight || 0;
     const recipient = sigmaRust.Address.from_mainnet_str(this._to);
-    const change_address = sigmaRust.Address.from_mainnet_str(this._change);
+    const changeAddress = sigmaRust.Address.from_mainnet_str(
+      context.bip32.deriveAddress(this._changeIndex).script
+    );
 
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(this._boxes);
     const outputValue = this.getErgAmount();
     const tokens = this.buildTokenList();
-    const tx_outputs = this.buildOutputBoxes(outputValue, tokens, recipient, height);
+    const txOutputs = this.buildOutputBoxes(outputValue, tokens, recipient, height);
     const fee = this.getFee();
     const box_selector = new sigmaRust.SimpleBoxSelector();
-    const target_balance = sigmaRust.BoxValue.from_i64(
+    const targetBalance = sigmaRust.BoxValue.from_i64(
       outputValue.as_i64().checked_add(fee.as_i64())
     );
-    const box_selection = box_selector.select(unspentBoxes, target_balance, tokens);
+    const box_selection = box_selector.select(unspentBoxes, targetBalance, tokens);
 
     const unsigned = sigmaRust.TxBuilder.new(
       box_selection,
-      tx_outputs,
+      txOutputs,
       height,
       fee,
-      change_address,
+      changeAddress,
       sigmaRust.BoxValue.SAFE_USER_MIN()
     ).build();
 

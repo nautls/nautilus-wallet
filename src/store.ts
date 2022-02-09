@@ -63,7 +63,7 @@ export default createStore({
       extendedPublicKey: "",
       settings: {
         avoidAddressReuse: false,
-        hideUsedAddresses: true,
+        hideUsedAddresses: false,
         defaultChangeIndex: 0
       }
     } as StateWallet,
@@ -315,7 +315,7 @@ export default createStore({
             : undefined,
         settings: {
           avoidAddressReuse: false,
-          hideUsedAddresses: true,
+          hideUsedAddresses: false,
           defaultChangeIndex: 0
         }
       });
@@ -507,31 +507,34 @@ export default createStore({
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
-      let unused = find(
-        state.currentAddresses,
-        (a) => a.state === AddressState.Unused && a.script !== command.recipient
-      );
-      if (!unused) {
-        await dispatch(ACTIONS.NEW_ADDRESS);
+      if (state.currentWallet.settings.avoidAddressReuse) {
+        let unused = find(
+          state.currentAddresses,
+          (a) => a.state === AddressState.Unused && a.script !== command.recipient
+        );
+        if (!unused) {
+          await dispatch(ACTIONS.NEW_ADDRESS);
+        }
       }
-      const addresses = clone(state.currentAddresses);
 
+      const addresses = state.currentAddresses;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
       command.password = "";
 
-      const changeAddress =
-        find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
-          ?.script || bip32.deriveAddress(0).script;
+      const changeAddress = state.currentWallet.settings.avoidAddressReuse
+        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
+            ?.index ?? state.currentWallet.settings.defaultChangeIndex
+        : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
       const signedtx = Transaction.from(selectedAddresses)
         .to(command.recipient)
-        .change(changeAddress)
+        .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
         .fromBoxes(boxes.map((a) => a.data).flat())
