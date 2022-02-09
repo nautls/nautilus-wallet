@@ -23,10 +23,11 @@
         </label>
         <div class="text-gray-500 text-xs font-normal mt-1">
           <p>
-            Turn off this feature to use the same address multiple times, useful for NFTs, and Defi,
-            but it makes tracking and linking actors on blockchains a simpler task.
+            Address reuse creates a common point of use. It makes tracking and linking actors on
+            blockchains a simpler task. Avoiding address reuse makes tracking more difficult as each
+            user never goes back to a previously used address.
           </p>
-          <p class="mt-1">Create a homebase or roam free.</p>
+          <p class="mt-1">Create a home base, or roam free. This is up to you.</p>
         </div>
       </div>
       <div>
