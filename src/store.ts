@@ -37,11 +37,12 @@ import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
-import { Transaction } from "./api/ergo/transaction/transaction";
+import { ErgoTransaction } from "./api/ergo/transaction/ergoTransaction";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
+import { sign } from "@coinbarn/ergo-ts";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -528,10 +529,14 @@ export default createStore({
       }
 
       const addresses = state.currentAddresses;
+      const walletType = state.currentWallet.type;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
-      const bip32 = await Bip32.fromMnemonic(
-        await walletsDbService.getMnemonic(command.walletId, command.password)
-      );
+      const bip32 =
+        walletType === WalletType.Ledger
+          ? bip32Pool.get(state.currentWallet.publicKey)
+          : await Bip32.fromMnemonic(
+              await walletsDbService.getMnemonic(command.walletId, command.password)
+            );
       command.password = "";
 
       const changeAddress = state.currentWallet.settings.avoidAddressReuse
@@ -542,14 +547,16 @@ export default createStore({
       const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
-      const signedtx = Transaction.from(selectedAddresses)
+      const signedtx = await ErgoTransaction.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
         .fromBoxes(boxes.map((a) => a.data).flat())
+        .useLedger(walletType === WalletType.Ledger)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
+      console.log(signedtx);
       const response = await explorerService.sendTx(signedtx);
       return response.id;
     },
@@ -567,7 +574,7 @@ export default createStore({
       command.password = "";
 
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
-      const signedtx = Transaction.from(addresses).signFromConnector(
+      const signedtx = await ErgoTransaction.from(addresses).signFromConnector(
         command.tx,
         SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
       );

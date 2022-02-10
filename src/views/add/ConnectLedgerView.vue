@@ -89,16 +89,13 @@ export default defineComponent({
       const app = new ErgoLedgerApp(await HidTransport.create());
 
       try {
-        const pk = await app.getExtendedPublicKey("m/44'/429'/0'");
-        // this.publicKey = pk.chainCodeHex + pk.publicKeyHex;
-
+        const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'");
         const bip32 = Bip32.fromPublicKey(
-          { publicKey: pk.publicKey, chainCode: pk.chainCode },
+          { publicKey: ledgerPk.publicKey, chainCode: ledgerPk.chainCode },
           "0"
         );
 
         this.publicKey = bip32.extendedPublicKey.toString("hex");
-
         this.loadingText = "Waiting for address confirmation...";
         this.confirmAddress = bip32.deriveAddress(0).script;
         if (!(await app.showAddress(DERIVATION_PATH + "/0"))) {

@@ -29,7 +29,7 @@
     "ergo-lib-wasm-browser": "^0.15.0-alpha-5d78f2d",
     "feather-icons": "^4.28.0",
     "json-bigint": "^1.0.0",
-    "ledgerjs-hw-app-ergo": "^0.0.11",
+    "ledgerjs-hw-app-ergo": "^0.0.13",
     "lodash": "^4.17.21",
     "qrcode": "^1.5.0",
     "tiny-secp256k1": "^1.1.6",

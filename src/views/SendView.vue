@@ -86,20 +86,18 @@
     </div>
 
     <div class="flex-shrink">
-      <div>
-        <label
-          >Spending password
-          <input
-            @blur="v$.password.$touch()"
-            v-model.lazy="password"
-            type="password"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.password.$error">
-            {{ v$.password.$errors[0].$message }}
-          </p>
-        </label>
-      </div>
+      <label v-if="!isLedger"
+        >Spending password
+        <input
+          @blur="v$.password.$touch()"
+          v-model.lazy="password"
+          type="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p>
+      </label>
       <button class="btn w-full mt-4" @click="sendTx()">Confirm</button>
     </div>
     <loading-modal
@@ -115,13 +113,13 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { SendTxCommandAsset, StateAsset, StateWallet } from "@/types/internal";
+import { SendTxCommandAsset, StateAsset, WalletType } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import BigNumber from "bignumber.js";
 import { setDecimals } from "@/utils/bigNumbers";
-import { required, helpers } from "@vuelidate/validators";
+import { required, helpers, requiredUnless } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { PasswordError, TxSignError } from "@/types/errors";
@@ -139,6 +137,9 @@ export default defineComponent({
     ...mapState({
       currentWallet: "currentWallet"
     }),
+    isLedger(): boolean {
+      return this.currentWallet.type === WalletType.Ledger;
+    },
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
     },
@@ -223,7 +224,7 @@ export default defineComponent({
       password: {
         required: helpers.withMessage(
           "A spending password is required for transaction signing.",
-          required
+          requiredUnless(this.isLedger)
         )
       }
     };
