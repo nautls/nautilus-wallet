@@ -17,20 +17,30 @@
         </p>
       </label>
     </div>
-    <div class="flex-grow">
-      <div v-if="confirmAddress" class="text-sm">
-        <label>Address</label>
-        <div class="rounded font-mono bg-gray-200 p-2 break-all">{{ confirmAddress }}</div>
-        <p class="p-1">
-          Before you continue, please make sure the address above is
-          <span class="font-semibold">EXACTLY</span> the same as what is displayed on your device
-          and then hit «<span class="font-semibold">Approve</span>»
-        </p>
+    <div v-if="confirmAddress" class="text-sm">
+      <label>Address</label>
+      <div class="rounded font-mono bg-gray-200 p-2 break-all">{{ confirmAddress }}</div>
+      <p class="p-1">
+        Before you continue, please make sure the address above is
+        <span class="font-semibold">EXACTLY</span> the same as what is displayed on your device and
+        then hit «<span class="font-semibold">Approve</span>»
+      </p>
+    </div>
+    <div class="flex-grow text-gray-600">
+      <div v-if="isConnected" class="text-sm w-65 mx-auto text-center">
+        <div class="relative">
+          <img src="@/assets/images/hw-devices/ledger-s.svg" class="w-full" />
+          <div v-if="appId" class="absolute top-30.5 w-30 left-11 text-light-500 text-xs">
+            Application<br />
+            <span class="font-bold">{{ appIdHex }}</span>
+          </div>
+        </div>
+        {{ deviceName }}
       </div>
     </div>
-    <div class="my-auto flex-grow text-gray-600" v-if="loadingText">
-      <loading-indicator type="circular" class="w-20 h-20 m-auto !block" />
-      <p class="text-center pt-3">{{ loadingText }}</p>
+    <div v-if="statusText" class="text-center">
+      <loading-indicator v-if="loading" type="circular" class="w-15 h-15" />
+      <p class="pt-3">{{ statusText }}</p>
     </div>
     <div>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
@@ -67,9 +77,21 @@ export default defineComponent({
       walletName: "",
       publicKey: "",
       confirmAddress: "",
-      loadingText: "",
+      statusText: "",
+      deviceName: "",
+      appId: 0,
+      isConnected: false,
       pk: { publicKey: "", chainCode: "" }
     };
+  },
+  computed: {
+    appIdHex(): string {
+      if (!this.appId) {
+        return "";
+      }
+
+      return `0x${this.appId.toString(16)}`;
+    }
   },
   validations() {
     return {
@@ -85,32 +107,47 @@ export default defineComponent({
       }
 
       this.loading = true;
-      this.loadingText = "Waiting for device confirmation...";
-      const app = new ErgoLedgerApp(await HidTransport.create());
+      this.statusText = "Connecting...";
 
+      let app!: ErgoLedgerApp;
       try {
-        const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'");
+        app = new ErgoLedgerApp(await HidTransport.create());
+        this.deviceName = app.transport.deviceModel?.productName ?? "";
+        this.appId = app.authToken;
+        this.isConnected = true;
+      } catch (e) {
+        console.error(e);
+        this.statusText = "Ledger device not detected.";
+      }
+
+      this.statusText = "Waiting for device confirmation...";
+      try {
+        const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'", true);
         const bip32 = Bip32.fromPublicKey(
           { publicKey: ledgerPk.publicKey, chainCode: ledgerPk.chainCode },
           "0"
         );
 
         this.publicKey = bip32.extendedPublicKey.toString("hex");
-        this.loadingText = "Waiting for address confirmation...";
+        this.statusText = "Waiting for address confirmation...";
         this.confirmAddress = bip32.deriveAddress(0).script;
         if (!(await app.showAddress(DERIVATION_PATH + "/0"))) {
           this.loading = false;
-          this.loadingText = "";
+          this.statusText = "";
           this.confirmAddress = "";
           this.publicKey = "";
           return;
         }
       } finally {
+        // this.loading = false;
+        if (!app) {
+          return;
+        }
         app.transport.close();
       }
 
       this.confirmAddress = "";
-      this.loadingText = "Syncing...";
+      this.statusText = "Syncing...";
 
       try {
         await this.putWallet({

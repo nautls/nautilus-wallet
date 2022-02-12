@@ -137,7 +137,7 @@ export class ErgoTransaction {
           }
           console.log(box.id);
           inputs.push({
-            txId: box.txId, // txId of boxId?
+            txId: box.txId,
             index: box.index,
             value: wasmBox.value().as_i64().to_str(),
             ergoTree: Buffer.from(wasmBox.ergo_tree().sigma_serialize_bytes()),
