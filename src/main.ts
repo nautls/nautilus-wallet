@@ -12,6 +12,7 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import DAppPlate from "@/components/DappPlate.vue";
+import LedgerDevice from "@/components/LedgerDevice.vue";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
@@ -51,5 +52,6 @@ app
   .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
   .component("wallet-item", WalletItem)
+  .component("ledger-device", LedgerDevice)
   .component("dapp-plate", DAppPlate)
   .mount("#app");

@@ -17,33 +17,28 @@
         </p>
       </label>
     </div>
-    <div v-if="confirmAddress" class="text-sm">
-      <label>Address</label>
-      <div class="rounded font-mono bg-gray-200 p-2 break-all">{{ confirmAddress }}</div>
+    <div class="flex-grow text-gray-600">
+      <ledger-device
+        :bottom-text="statusText"
+        :state="state"
+        :loading="loading"
+        :connected="connected"
+        :app-id="appId"
+        :screen-text="screenText"
+      />
+    </div>
+    <div v-if="confirmationAddress" class="text-sm">
+      <div class="rounded font-mono bg-gray-200 p-2 break-all">
+        <p><label>Address:</label> {{ confirmationAddress }}</p>
+      </div>
       <p class="p-1">
         Before you continue, please make sure the address above is
         <span class="font-semibold">EXACTLY</span> the same as what is displayed on your device and
         then hit «<span class="font-semibold">Approve</span>»
       </p>
     </div>
-    <div class="flex-grow text-gray-600">
-      <div v-if="isConnected" class="text-sm w-65 mx-auto text-center">
-        <div class="relative">
-          <img src="@/assets/images/hw-devices/ledger-s.svg" class="w-full" />
-          <div v-if="appId" class="absolute top-30.5 w-30 left-11 text-light-500 text-xs">
-            Application<br />
-            <span class="font-bold">{{ appIdHex }}</span>
-          </div>
-        </div>
-        {{ deviceName }}
-      </div>
-    </div>
-    <div v-if="statusText" class="text-center">
-      <loading-indicator v-if="loading" type="circular" class="w-15 h-15" />
-      <p class="pt-3">{{ statusText }}</p>
-    </div>
     <div>
-      <button type="button" :disabled="loading" @click="add()" class="w-full btn">
+      <button type="button" v-if="!loading" @click="add()" class="w-full btn">
         <span>Connect</span>
       </button>
     </div>
@@ -64,34 +59,26 @@ import { ErgoLedgerApp } from "ledgerjs-hw-app-ergo";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
+import LedgerDevice from "@/components/LedgerDevice.vue";
+import { LedgerState } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
-  components: { PageTitle, LoadingIndicator },
+  components: { PageTitle, LoadingIndicator, LedgerDevice },
   setup() {
     return { v$: useVuelidate() };
   },
   data() {
     return {
       loading: false,
+      connected: false,
       walletName: "",
-      publicKey: "",
-      confirmAddress: "",
+      confirmationAddress: "",
       statusText: "",
-      deviceName: "",
-      appId: 0,
-      isConnected: false,
-      pk: { publicKey: "", chainCode: "" }
+      screenText: "",
+      state: LedgerState.unknown,
+      appId: 0
     };
-  },
-  computed: {
-    appIdHex(): string {
-      if (!this.appId) {
-        return "";
-      }
-
-      return `0x${this.appId.toString(16)}`;
-    }
   },
   validations() {
     return {
@@ -108,16 +95,18 @@ export default defineComponent({
 
       this.loading = true;
       this.statusText = "Connecting...";
-
+      let pk = "";
       let app!: ErgoLedgerApp;
       try {
         app = new ErgoLedgerApp(await HidTransport.create());
-        this.deviceName = app.transport.deviceModel?.productName ?? "";
         this.appId = app.authToken;
-        this.isConnected = true;
+        this.connected = true;
       } catch (e) {
+        this.state = LedgerState.deviceNotFound;
+        this.loading = false;
+        this.statusText = "";
         console.error(e);
-        this.statusText = "Ledger device not detected.";
+        return;
       }
 
       this.statusText = "Waiting for device confirmation...";
@@ -128,31 +117,43 @@ export default defineComponent({
           "0"
         );
 
-        this.publicKey = bip32.extendedPublicKey.toString("hex");
-        this.statusText = "Waiting for address confirmation...";
-        this.confirmAddress = bip32.deriveAddress(0).script;
-        if (!(await app.showAddress(DERIVATION_PATH + "/0"))) {
+        pk = bip32.extendedPublicKey.toString("hex");
+        this.screenText = "Confirm Address";
+        this.statusText = "";
+        this.confirmationAddress = bip32.deriveAddress(0).script;
+        if (await app.showAddress(DERIVATION_PATH + "/0")) {
+          this.state = LedgerState.success;
+        } else {
+          this.state = LedgerState.unknown;
           this.loading = false;
           this.statusText = "";
-          this.confirmAddress = "";
-          this.publicKey = "";
+          this.confirmationAddress = "";
           return;
         }
+      } catch (e) {
+        this.state = LedgerState.error;
+        this.loading = false;
+        this.statusText = "user rejected";
+        this.confirmationAddress = "";
+        console.log((e as any).code);
+        return;
       } finally {
-        // this.loading = false;
+        this.connected = false;
+
         if (!app) {
           return;
         }
+
         app.transport.close();
       }
 
-      this.confirmAddress = "";
+      this.confirmationAddress = "";
       this.statusText = "Syncing...";
 
       try {
         await this.putWallet({
           name: this.walletName,
-          extendedPublicKey: this.publicKey,
+          extendedPublicKey: pk,
           type: WalletType.Ledger
         });
       } catch (e: any) {
