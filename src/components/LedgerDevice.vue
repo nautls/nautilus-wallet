@@ -1,9 +1,13 @@
 <template>
   <div class="flex gap-2 flex-col mx-auto items-center min-w-66">
-    <div v-if="connected || state !== 'unknown'" class="w-55 mx-auto text-center text-sm">
+    <div
+      v-if="connected || (state !== 'unknown' && state !== 'deviceNotFound')"
+      class="w-auto mx-auto text-center text-sm"
+    >
       <div class="relative">
-        <img src="@/assets/images/hw-devices/ledger-s.svg" class="w-full" />
-        <div class="absolute top-18.5 left-5.4 w-29.5 h-8 text-light-500 text-xs items-center">
+        <img v-if="isNanoX" src="@/assets/images/hw-devices/ledger-x.svg" class="w-60" />
+        <img v-else src="@/assets/images/hw-devices/ledger-s.svg" class="w-55" />
+        <div :class="screenPosition" class="absolute text-light-500 text-xs items-center">
           <div class="flex h-full items-center">
             <div class="w-full h-auto">
               <p v-if="state === 'success'">
@@ -43,6 +47,7 @@
 </template>
 
 <script lang="ts">
+import { LedgerDeviceModelId } from "@/constants/ledger";
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -57,6 +62,16 @@ export default defineComponent({
     appId: { type: Number, required: false }
   },
   computed: {
+    screenPosition() {
+      if (this.isNanoX) {
+        return "top-18 left-14 w-28.5 h-8";
+      } else {
+        return "top-17.5 left-7 w-28.5 h-8";
+      }
+    },
+    isNanoX() {
+      return this.deviceModel === LedgerDeviceModelId.nanoX;
+    },
     appIdHex(): string {
       if (!this.appId) {
         return "";

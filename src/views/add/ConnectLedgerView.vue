@@ -34,7 +34,7 @@
       <p class="p-1">
         Before you continue, please make sure the address above is
         <span class="font-semibold">EXACTLY</span> the same as what is displayed on your device and
-        then hit «<span class="font-semibold">Approve</span>»
+        then hit <span class="font-semibold">Approve</span> to confirm.
       </p>
     </div>
     <div>
@@ -60,7 +60,7 @@ import HidTransport from "@ledgerhq/hw-transport-webhid";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import LedgerDevice from "@/components/LedgerDevice.vue";
-import { LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
+import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -77,6 +77,7 @@ export default defineComponent({
       statusText: "",
       screenText: "",
       state: LedgerState.unknown,
+      deviceModel: "",
       appId: 0
     };
   },
@@ -101,6 +102,7 @@ export default defineComponent({
       try {
         app = new ErgoLedgerApp(await HidTransport.create());
         this.appId = app.authToken;
+        this.deviceModel = app.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX;
         this.connected = true;
       } catch (e) {
         this.state = LedgerState.deviceNotFound;
