@@ -36,7 +36,7 @@
     <div v-if="loading" class="text-center">
       <loading-indicator type="circular" class="w-10 h-10" />
     </div>
-    <p v-if="bottomText">
+    <p v-if="bottomText" class="text-center">
       {{ bottomText }}
     </p>
   </div>

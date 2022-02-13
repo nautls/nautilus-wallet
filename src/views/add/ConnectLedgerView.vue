@@ -94,6 +94,7 @@ export default defineComponent({
       }
 
       this.loading = true;
+      this.state = LedgerState.unknown;
       this.statusText = "Connecting...";
       let pk = "";
       let app!: ErgoLedgerApp;
