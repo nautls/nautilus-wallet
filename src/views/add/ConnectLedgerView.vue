@@ -55,12 +55,12 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 
-import { ErgoLedgerApp } from "ledgerjs-hw-app-ergo";
+import { DeviceError, ErgoLedgerApp } from "ledgerjs-hw-app-ergo";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import LedgerDevice from "@/components/LedgerDevice.vue";
-import { LedgerState } from "@/constants/ledger";
+import { LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -109,7 +109,7 @@ export default defineComponent({
         return;
       }
 
-      this.statusText = "Waiting for device confirmation...";
+      this.statusText = "Waiting for device extended public key export confirmation...";
       try {
         const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'", true);
         const bip32 = Bip32.fromPublicKey(
@@ -123,27 +123,36 @@ export default defineComponent({
         this.confirmationAddress = bip32.deriveAddress(0).script;
         if (await app.showAddress(DERIVATION_PATH + "/0")) {
           this.state = LedgerState.success;
-        } else {
-          this.state = LedgerState.unknown;
-          this.loading = false;
-          this.statusText = "";
-          this.confirmationAddress = "";
-          return;
         }
       } catch (e) {
-        this.state = LedgerState.error;
+        console.error(e);
         this.loading = false;
-        this.statusText = "user rejected";
-        this.confirmationAddress = "";
-        console.log((e as any).code);
+        this.state = LedgerState.error;
+
+        if (e instanceof DeviceError) {
+          switch (e.code) {
+            case LEDGER_RETURN_CODE.DENIED:
+              if (this.confirmationAddress) {
+                this.statusText = "Address not confirmed.";
+                this.confirmationAddress = "";
+              } else {
+                this.statusText = "Extended public key export denied.";
+              }
+              break;
+            case LEDGER_RETURN_CODE.INTERNAL_CRYPTO_ERROR:
+              this.statusText =
+                "It looks like your device is locked. Make sure it is unlocked before proceeding.";
+              break;
+            default:
+              this.statusText = `[Device error] ${e.message}`;
+          }
+        } else {
+          this.statusText = `[Unknown error] ${e instanceof Error ? e.message : e}`;
+        }
+
         return;
       } finally {
         this.connected = false;
-
-        if (!app) {
-          return;
-        }
-
         app.transport.close();
       }
 
