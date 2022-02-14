@@ -528,6 +528,10 @@ export default createStore({
         }
       }
 
+      if (command.callback) {
+        command.callback({ statusText: "Loading data from the blockchan..." } as any);
+      }
+
       const addresses = state.currentAddresses;
       const walletType = state.currentWallet.type;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
@@ -554,6 +558,7 @@ export default createStore({
         .withFee(command.fee)
         .fromBoxes(boxes.map((a) => a.data).flat())
         .useLedger(walletType === WalletType.Ledger)
+        .setCallback(command.callback)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
       console.log(signedtx);

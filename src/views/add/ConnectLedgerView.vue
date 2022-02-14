@@ -59,12 +59,11 @@ import { DeviceError, ErgoLedgerApp } from "ledgerjs-hw-app-ergo";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
-import LedgerDevice from "@/components/LedgerDevice.vue";
 import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
-  components: { PageTitle, LoadingIndicator, LedgerDevice },
+  components: { PageTitle, LoadingIndicator },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -99,6 +98,7 @@ export default defineComponent({
       this.statusText = "Connecting...";
       let pk = "";
       let app!: ErgoLedgerApp;
+
       try {
         app = new ErgoLedgerApp(await HidTransport.create());
         this.appId = app.authToken;

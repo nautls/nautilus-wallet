@@ -18,12 +18,13 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import { find, unset } from "lodash";
+import { concat, find, unset } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
-import { BoxCandidate, ErgoLedgerApp, Token, UnsignedBox } from "ledgerjs-hw-app-ergo";
+import { BoxCandidate, DeviceError, ErgoLedgerApp, Token, UnsignedBox } from "ledgerjs-hw-app-ergo";
+import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
 
 export class ErgoTransaction {
   private _from!: StateAddress[];
@@ -33,6 +34,7 @@ export class ErgoTransaction {
   private _assets!: SendTxCommandAsset[];
   private _boxes!: ExplorerGetUnspentBox[];
   private _useLedger!: boolean;
+  private _callbackFunc?: (newVal: any) => {};
 
   private constructor(from: StateAddress[]) {
     this._from = from;
@@ -60,6 +62,14 @@ export class ErgoTransaction {
 
   public withAssets(assets: SendTxCommandAsset[]): ErgoTransaction {
     this._assets = assets;
+    return this;
+  }
+
+  public setCallback(callback?: (newState: any) => {}): ErgoTransaction {
+    if (callback) {
+      this._callbackFunc = callback;
+    }
+
     return this;
   }
 
@@ -123,7 +133,25 @@ export class ErgoTransaction {
     const sigmaRust = wasmModule.SigmaRust;
 
     if (this._useLedger) {
-      const ledgerApp = new ErgoLedgerApp(await HidTransport.create());
+      let ledgerApp!: ErgoLedgerApp;
+
+      try {
+        ledgerApp = new ErgoLedgerApp(await HidTransport.create());
+        this.sendCallback({
+          connected: true,
+          appId: ledgerApp.authToken,
+          deviceModel: ledgerApp.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX
+        });
+      } catch (e) {
+        this.sendCallback({
+          connected: false,
+          loading: false,
+          state: LedgerState.deviceNotFound
+        });
+
+        throw e;
+      }
+
       try {
         const inputs: UnsignedBox[] = [];
         const outputs: BoxCandidate[] = [];
@@ -160,6 +188,9 @@ export class ErgoTransaction {
           });
         }
 
+        this.sendCallback({
+          statusText: "Waiting for device transaction signing confirmation..."
+        });
         const signatures = await ledgerApp.signTx(
           {
             inputs,
@@ -174,11 +205,40 @@ export class ErgoTransaction {
           true
         );
 
+        this.sendCallback({
+          screenText: "Signed",
+          statusText: "Sending transaction..."
+        });
+
         return wasmModule.SigmaRust.Transaction.from_unsigned_tx(
           unsigned,
           signatures.map((s) => Buffer.from(s.signature, "hex"))
         );
       } catch (e) {
+        console.error(e);
+
+        if (e instanceof DeviceError) {
+          const resp = {
+            loading: false,
+            state: LedgerState.error,
+            statusText: ""
+          };
+
+          switch (e.code) {
+            case LEDGER_RETURN_CODE.DENIED:
+              resp.statusText = "Transaction signing denied.";
+              break;
+            case LEDGER_RETURN_CODE.INTERNAL_CRYPTO_ERROR:
+              resp.statusText =
+                "It looks like your device is locked. Make sure it is unlocked before proceeding.";
+              break;
+            default:
+              resp.statusText = `[Device error] ${e.message}`;
+          }
+
+          this.sendCallback(resp);
+        }
+
         throw e;
       } finally {
         ledgerApp.transport.close();
@@ -196,6 +256,14 @@ export class ErgoTransaction {
       sigmaRust.ErgoBoxes.from_boxes_json([])
     );
     return signed;
+  }
+
+  private sendCallback(state: any) {
+    if (!this._callbackFunc) {
+      return;
+    }
+
+    this._callbackFunc(state);
   }
 
   private buildOutputBoxes(

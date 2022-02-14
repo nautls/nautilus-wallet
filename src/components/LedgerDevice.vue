@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-2 flex-col mx-auto items-center min-w-66">
+  <div class="flex gap-2 flex-col mx-auto items-center min-w-62 max-w-65 w-65">
     <div
       v-if="connected || (state !== 'unknown' && state !== 'deviceNotFound')"
       class="w-auto mx-auto text-center text-sm"
@@ -37,12 +37,10 @@
       </p>
     </div>
 
-    <div v-if="loading" class="text-center">
+    <div v-if="loading" class="text-center pb-2">
       <loading-indicator type="circular" class="w-10 h-10" />
     </div>
-    <p v-if="bottomText" class="text-center">
-      {{ bottomText }}
-    </p>
+    <p v-if="bottomText" class="text-center" v-html="bottomText"></p>
   </div>
 </template>
 
