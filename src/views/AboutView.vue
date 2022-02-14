@@ -1,7 +1,10 @@
 <template>
-  <div class="flex flex-col h-full gap-4 pt-5 text-center">
+  <div class="flex flex-col h-full gap-4 text-center">
     <img src="@/assets/images/logo-big.png" alt="Nautilus" class="w-30 m-auto" />
-    <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
+    <div>
+      <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
+      <p class="text-sm text-gray-500">v{{ version }}</p>
+    </div>
     <p class="italic text-gray-600">
       Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of
       land-based governments.
@@ -28,3 +31,17 @@
     </p>
   </div>
 </template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+const { version } = require("../../package.json");
+
+export default defineComponent({
+  name: "AboutView",
+  computed: {
+    version(): string {
+      return version;
+    }
+  }
+});
+</script>
