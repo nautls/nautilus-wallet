@@ -13,7 +13,7 @@ import axios from "axios";
 import { chunk, find, Primitive } from "lodash";
 
 import { ExplorerTokenMarket, ITokenRate } from 'ergo-market-lib';
-const explorerTokenMarket = new ExplorerTokenMarket();
+const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 
 class ExplorerService {
   public async getTxHistory(
