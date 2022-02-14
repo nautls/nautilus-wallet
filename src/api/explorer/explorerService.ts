@@ -12,6 +12,9 @@ import {
 import axios from "axios";
 import { chunk, find, Primitive } from "lodash";
 
+import { ExplorerTokenMarket, ITokenRate } from 'ergo-market-lib';
+const explorerTokenMarket = new ExplorerTokenMarket();
+
 class ExplorerService {
   public async getTxHistory(
     address: string,
@@ -129,6 +132,10 @@ class ExplorerService {
   public async sendTx(tx: any): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
     const response = await axios.post(`${API_URL}/api/v1/mempool/transactions/submit`, tx);
     return response.data;
+  }
+
+  public async getTokenMarketRates(): Promise<ITokenRate[]> {
+    return explorerTokenMarket.getTokenRates();
   }
 }
 

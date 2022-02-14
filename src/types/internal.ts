@@ -65,6 +65,7 @@ export type StateAsset = {
   unconfirmedAmount?: BigNumber;
   decimals: number;
   price?: number;
+  valueInErgs?: number;
 };
 
 export type SendTxCommandAsset = {
