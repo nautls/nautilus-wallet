@@ -267,11 +267,14 @@ export default createStore({
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
       rates.forEach((tokenRate) => {
-        state.tokenMarketRates[tokenRate.token.tokenId] = state.tokenMarketRates[
-          tokenRate.token.tokenId
-        ] || { ratesOverTime: [] };
-        state.tokenMarketRates[tokenRate.token.tokenId].latestValueInErgs = tokenRate.ergPerToken;
-        state.tokenMarketRates[tokenRate.token.tokenId].ratesOverTime.push(tokenRate);
+        const currentTokenRates = state.tokenMarketRates[tokenRate.token.tokenId] || {
+          ratesOverTime: []
+        };
+        currentTokenRates.latestValueInErgs = tokenRate.ergPerToken;
+        if (currentTokenRates.ratesOverTime.length > 500)
+          currentTokenRates.ratesOverTime.splice(0, 1);
+        currentTokenRates.ratesOverTime.push(tokenRate);
+        state.tokenMarketRates[tokenRate.token.tokenId] = currentTokenRates;
       });
     }
   },
