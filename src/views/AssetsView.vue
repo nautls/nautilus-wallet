@@ -67,14 +67,6 @@
                         ≈ {{ asset.confirmedAmount.multipliedBy(asset.price).toFormat(2) }} USD
                       </p>
                     </tool-tip>
-                    <tool-tip
-                      :label="`1 ${asset.name} ≈ ${asset.price} ERG`"
-                      v-if="asset.valueInErgs && !asset.confirmedAmount.isZero()"
-                    >
-                      <p class="text-xs text-gray-500">
-                        ≈ {{ asset.confirmedAmount.multipliedBy(asset.valueInErgs).toFormat(2) }} ERG {{ ' ' }}
-                      </p>
-                    </tool-tip>
                   </td>
                 </tr>
               </tbody>

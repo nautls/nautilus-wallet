@@ -109,8 +109,8 @@ export default createStore({
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
           decimals: group[0].decimals,
-          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice :  (group[0].price || 0) * state.ergPrice,
-          valueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 :  group[0].price
+          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice :  (group[0].valueInErgs || 0) * state.ergPrice,
+          valueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 : group[0].price
         };
 
         balance.push(token);
@@ -206,7 +206,8 @@ export default createStore({
               setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
             unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
             decimals: x.decimals,
-            price: state.tokenMarketRates[x.tokenId]?.valueInErgs
+            price: state.ergPrice * state.tokenMarketRates[x.tokenId]?.valueInErgs,
+            valueInErgs: state.tokenMarketRates[x.tokenId]?.valueInErgs
           };
         });
       }
