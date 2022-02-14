@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { ITokenRate } from "ergo-market-lib/dist/interfaces/ITokenRate";
 import { UnsignedTx } from "./connector";
 
 export enum AddressState {
@@ -65,7 +66,14 @@ export type StateAsset = {
   unconfirmedAmount?: BigNumber;
   decimals: number;
   price?: number;
-  valueInErgs?: number;
+  latestValueInErgs?: number;
+};
+
+export type StateTokenMarketRates = {
+  [key: string]: {
+    latestValueInErgs: number,
+    ratesOverTime: ITokenRate[]
+  }
 };
 
 export type SendTxCommandAsset = {

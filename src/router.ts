@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
 import AddView from "@/views/add/AddView.vue";
 import AssetsView from "@/views/AssetsView.vue";
+import ChartsView from "@/views/ChartsView.vue";
 import ReceiveView from "@/views/ReceiveView.vue";
 import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import RestoreView from "@/views/add/RestoreView.vue";
@@ -50,6 +51,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/assets",
     name: "assets-page",
     component: AssetsView
+  },
+  {
+    path: "/charts",
+    name: "charts-page",
+    component: ChartsView
   },
   {
     path: "/receive",

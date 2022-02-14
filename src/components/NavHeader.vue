@@ -15,6 +15,11 @@
         <vue-feather type="send" class="m-3" size="24" />
       </tool-tip>
     </router-link>
+    <router-link to="/charts" active-class="active" class="w-full tab-item">
+      <tool-tip position="bottom" label="Charts">
+        <vue-feather type="bar-chart-2" class="m-3" size="24" />
+      </tool-tip>
+    </router-link>
   </nav>
 </template>
 

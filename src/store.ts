@@ -28,7 +28,7 @@ import {
   UpdateChangeIndexCommand
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
-import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
+import { StateAddress, StateAsset, StateWallet, StateTokenMarketRates } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
@@ -81,7 +81,7 @@ export default createStore({
       balance: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
-    tokenMarketRates: {} as { [key: string]: { valueInErgs: number }}
+    tokenMarketRates: { } as StateTokenMarketRates,
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -109,8 +109,11 @@ export default createStore({
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
           decimals: group[0].decimals,
-          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice :  (group[0].valueInErgs || 0) * state.ergPrice,
-          valueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 : group[0].price
+          price:
+            group[0].tokenId === ERG_TOKEN_ID
+              ? state.ergPrice
+              : (group[0].latestValueInErgs || 0) * state.ergPrice,
+          latestValueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 : group[0].price
         };
 
         balance.push(token);
@@ -129,6 +132,12 @@ export default createStore({
       }
 
       return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.name]);
+    },
+    [GETTERS.MARKET_RATES](state) {
+      return state.tokenMarketRates;
+    },
+    [GETTERS.ERG_PRICE](state) {
+      return state.ergPrice;
     }
   },
   mutations: {
@@ -206,8 +215,8 @@ export default createStore({
               setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
             unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
             decimals: x.decimals,
-            price: state.ergPrice * state.tokenMarketRates[x.tokenId]?.valueInErgs,
-            valueInErgs: state.tokenMarketRates[x.tokenId]?.valueInErgs
+            price: state.ergPrice * state.tokenMarketRates[x.tokenId]?.latestValueInErgs,
+            latestValueInErgs: state.tokenMarketRates[x.tokenId]?.latestValueInErgs
           };
         });
       }
@@ -257,12 +266,13 @@ export default createStore({
       wallet.settings.defaultChangeIndex = command.index;
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
-      const tokenMarketRateDict = rates.reduce((acc: any, rate) => {
-        acc[rate.token.tokenId] = { valueInErgs: rate.ergPerToken };
-        return acc;
-      }, {});
-      
-      state.tokenMarketRates = tokenMarketRateDict;
+      rates.forEach((tokenRate) => {
+        state.tokenMarketRates[tokenRate.token.tokenId] = state.tokenMarketRates[
+          tokenRate.token.tokenId
+        ] || { ratesOverTime: [] };
+        state.tokenMarketRates[tokenRate.token.tokenId].latestValueInErgs = tokenRate.ergPerToken;
+        state.tokenMarketRates[tokenRate.token.tokenId].ratesOverTime.push(tokenRate);
+      });
     }
   },
   actions: {
@@ -516,11 +526,12 @@ export default createStore({
       dispatch(ACTIONS.LOAD_MARKET_RATES);
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
     },
-    async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
+    async [ACTIONS.REFRESH_BALANCES]({ commit, dispatch }, data: { addresses: string[]; walletId: number }) {
       const balances = await explorerService.getAddressesBalance(data.addresses);
       const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
       assestsDbService.sync(assets, data.walletId);
 
+      dispatch(ACTIONS.LOAD_MARKET_RATES);
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
     },
