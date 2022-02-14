@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import LoadingView from "@/views/LoadingView.vue";
 import AddView from "@/views/add/AddView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import ReceiveView from "@/views/ReceiveView.vue";
@@ -18,7 +17,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "loading",
-    component: LoadingView,
+    component: AboutView,
     meta: { fullPage: true }
   },
   {
