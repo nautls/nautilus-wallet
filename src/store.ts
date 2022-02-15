@@ -274,12 +274,12 @@ export default createStore({
         if (currentTokenRates.ratesOverTime.length > 500)
           currentTokenRates.ratesOverTime.splice(0, 1);
         const lastRate = currentTokenRates.ratesOverTime.pop();
+        lastRate && currentTokenRates.ratesOverTime.push(lastRate);
         // Only add new rate (over 10) if it differs from previous rate, charts will distance the points based on timestamps
         if (
           currentTokenRates.ratesOverTime.length < 10 ||
           lastRate?.ergPerToken !== tokenRate.ergPerToken
         ) currentTokenRates.ratesOverTime.push(tokenRate);
-        lastRate && currentTokenRates.ratesOverTime.push(lastRate);
         state.tokenMarketRates[tokenRate.token.tokenId] = currentTokenRates;
       });
     }
