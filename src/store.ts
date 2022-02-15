@@ -597,7 +597,18 @@ export default createStore({
       const addresses = dbAddresses
         .filter((a) => addressesFromBoxes.includes(a.script))
         .map((a) => dbAddressMapper(a));
-      console.log(addresses);
+
+      if (isEmpty(addresses)) {
+        const changeIndex = state.currentWallet.settings.defaultChangeIndex;
+        addresses.push(
+          dbAddressMapper(
+            find(dbAddresses, (a) => a.index === changeIndex) ??
+              find(dbAddresses, (a) => a.index === 0) ??
+              dbAddresses[0]
+          )
+        );
+      }
+
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );

@@ -14,10 +14,10 @@ function inject(code) {
     scriptTag.textContent = code;
     container.insertBefore(scriptTag, container.children[0]);
     container.removeChild(scriptTag);
-    log("code injected");
+    log("Access methods successfully injected.");
     return true;
   } catch (e) {
-    error("injection failed: " + e);
+    error("Injection failed: " + e);
     return false;
   }
 }
@@ -35,7 +35,7 @@ var nauRpcId = 0;
 var nauRpcResolver = new Map();
 window.addEventListener("message", function (event) {
   if (event.data.type === "rpc/connector-response") {
-    console.debug("message from connector: " + JSON.stringify(event.data));
+    console.debug("Message from connector: " + JSON.stringify(event.data));
     const promise = nauRpcResolver.get(event.data.requestId);
     if (promise !== undefined) {
       nauRpcResolver.delete(event.data.requestId);
@@ -94,14 +94,16 @@ const warnDeprecated = function (func) {
   );
 };
 
-window.ergo_request_read_access = function () {
-  warnDeprecated("ergoConnector.nautilus.connect()");
-  return ergoConnector.nautilus.connect();
-};
-window.ergo_check_read_access = function () {
-  warnDeprecated("ergoConnector.nautilus.isConnected()");
-  return ergoConnector.nautilus.isConnected();
-};
+if (!window.ergo_request_read_access && !window.ergo_check_read_access) {
+  window.ergo_request_read_access = function () {
+    warnDeprecated("ergoConnector.nautilus.connect()");
+    return ergoConnector.nautilus.connect();
+  };
+  window.ergo_check_read_access = function () {
+    warnDeprecated("ergoConnector.nautilus.isConnected()");
+    return ergoConnector.nautilus.isConnected();
+  };
+}
 // `;
 
 const ergoApi = `
