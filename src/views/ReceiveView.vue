@@ -2,7 +2,10 @@
   <div class="flex flex-col gap-5">
     <div class="flex flex-row gap-5">
       <div class="flex-grow">
-        <label>Your current address</label>
+        <label
+          ><span v-if="avoidingReuse">Your current address</span>
+          <span v-else>Your default address</span></label
+        >
         <div class="rounded font-mono bg-gray-200 text-sm p-2 break-all">
           <template v-if="loading">
             <div class="skeleton h-3 w-full rounded"></div>
@@ -10,10 +13,10 @@
             <div class="skeleton h-3 w-1/2 rounded"></div>
           </template>
           <template v-else>
-            <a :href="urlFor(lastAddress)" target="_blank">
-              {{ lastAddress }}
+            <a :href="urlFor(mainAddress)" target="_blank">
+              {{ mainAddress }}
             </a>
-            <click-to-copy :content="lastAddress" class="mx-2" size="12" />
+            <click-to-copy :content="mainAddress" class="mx-2" size="12" />
           </template>
         </div>
       </div>
@@ -69,7 +72,7 @@
                           class="text-green-600"
                           size="12"
                         />
-                        <tool-tip v-else label="Set as default<br />change address">
+                        <tool-tip v-else label="Set as default<br />address">
                           <a
                             class="cursor-pointer"
                             @click="updateDefaultChangeIndex(address.index)"
@@ -132,8 +135,15 @@ export default defineComponent({
     loading(): boolean {
       return this.addresses.length === 0 && this.$store.state.loading.addresses;
     },
-    lastAddress(): string | undefined {
-      return last(this.addresses)?.script;
+    avoidingReuse(): boolean {
+      return this.currentWallet.settings.avoidAddressReuse;
+    },
+    mainAddress(): string | undefined {
+      const settings = this.currentWallet.settings;
+
+      return this.avoidingReuse
+        ? last(this.addresses)?.script
+        : find(this.addresses, (a) => a.index === settings.defaultChangeIndex)?.script;
     }
   },
   watch: {
@@ -143,16 +153,16 @@ export default defineComponent({
         this.prevCount = length;
       }
     },
-    lastAddress: {
+    mainAddress: {
       immediate: true,
       handler() {
         this.errorMsg = "";
         this.$nextTick(() => {
-          if (!this.lastAddress) {
+          if (!this.mainAddress) {
             return;
           }
 
-          QRCode.toCanvas(document.getElementById("primary-address-canvas"), this.lastAddress, {
+          QRCode.toCanvas(document.getElementById("primary-address-canvas"), this.mainAddress, {
             errorCorrectionLevel: "low",
             margin: 0,
             scale: 4
