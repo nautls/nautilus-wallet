@@ -10,9 +10,9 @@ import {
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
 import axios from "axios";
-import { chunk, find, Primitive } from "lodash";
+import { chunk, find } from "lodash";
 
-import { ExplorerTokenMarket, ITokenRate } from 'ergo-market-lib';
+import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 
 class ExplorerService {
