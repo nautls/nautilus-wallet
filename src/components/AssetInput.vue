@@ -45,7 +45,9 @@
       </div>
       <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
-          <span class="text-xs text-gray-400" v-if="asset.price">≈ {{ price }} USD</span>
+          <span class="text-xs text-gray-400" v-if="ergPrice && rate(asset.tokenId)"
+            >≈ {{ price }} USD</span
+          >
           <span class="text-xs text-gray-400" v-else>No conversion rate</span>
         </div>
         <div class="flex-grow text-right">
@@ -64,7 +66,6 @@
 </template>
 
 <script lang="ts">
-import { StateAsset } from "@/types/internal";
 import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
@@ -104,10 +105,9 @@ export default defineComponent({
       return this.parseToBigNumber(this.internalValue);
     },
     price(): string {
-      if (!this.asset.price) {
-        return "0.00";
-      }
-      return this.parsedValue?.multipliedBy(this.asset.price).toFormat(2) || "0.00";
+      return (
+        this.parsedValue?.multipliedBy(this.priceFor(this.asset.tokenId)).toFormat(2) || "0.00"
+      );
     },
     minRequired(): BigNumber {
       if (this.reservedAmount && this.minAmount) {
@@ -115,6 +115,9 @@ export default defineComponent({
       }
 
       return this.minAmount || this.reservedAmount || new BigNumber(0);
+    },
+    ergPrice(): number {
+      return this.$store.state.ergPrice;
     }
   },
   mounted() {
@@ -189,6 +192,17 @@ export default defineComponent({
     },
     onRemoveClicked() {
       this.$emit("remove");
+    },
+    priceFor(tokenId: string): number {
+      const rate = this.rate(tokenId);
+      if (!rate || !this.ergPrice) {
+        return 0;
+      }
+
+      return rate * this.ergPrice;
+    },
+    rate(tokenId: string): number {
+      return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;
     }
   }
 });

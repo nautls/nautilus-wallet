@@ -60,11 +60,19 @@
                       {{ $filters.formatBigNumber(asset.confirmedAmount) }}
                     </p>
                     <tool-tip
-                      :label="`1 ${asset.name} ≈ ${asset.price} USD`"
-                      v-if="asset.price && !asset.confirmedAmount.isZero()"
+                      v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
+                      :label="`1 ${asset.name} <br /> ≈ ${price(asset.tokenId).toFixed(5)} USD`"
                     >
                       <p class="text-xs text-gray-500">
-                        ≈ {{ asset.confirmedAmount.multipliedBy(asset.price).toFormat(2) }} USD
+                        ≈
+                        {{
+                          $filters.formatBigNumber(
+                            asset.confirmedAmount
+                              .multipliedBy(price(asset.tokenId))
+                              .decimalPlaces(2)
+                          )
+                        }}
+                        USD
                       </p>
                     </tool-tip>
                   </td>
@@ -84,12 +92,13 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
-import { wasmModule } from "@/utils/wasm-module";
-import JSONBig from "json-bigint";
 
 export default defineComponent({
   name: "AssetsView",
   computed: {
+    ergPrice(): number {
+      return this.$store.state.ergPrice;
+    },
     loading(): boolean {
       if (!this.$store.state.loading.balance) {
         return false;
@@ -129,6 +138,17 @@ export default defineComponent({
     };
   },
   methods: {
+    price(tokenId: string): number {
+      const rate = this.rate(tokenId);
+      if (!rate || !this.ergPrice) {
+        return 0;
+      }
+
+      return rate * this.ergPrice;
+    },
+    rate(tokenId: string): number {
+      return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;
+    },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
     },

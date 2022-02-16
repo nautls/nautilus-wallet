@@ -55,7 +55,6 @@ function dbAddressMapper(a: IDbAddress) {
 
 export default createStore({
   state: {
-    ergPrice: 0,
     wallets: [] as StateWallet[],
     currentWallet: {
       id: 0,
@@ -81,7 +80,10 @@ export default createStore({
       balance: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
-    tokenMarketRates: {} as { [key: string]: { valueInErgs: number } }
+    ergPrice: 0,
+    assetMarketRates: {
+      [ERG_TOKEN_ID]: { erg: 1 }
+    } as { [tokenId: string]: { erg: number } }
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -108,12 +110,7 @@ export default createStore({
           unconfirmedAmount: group
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
-          decimals: group[0].decimals,
-          price:
-            group[0].tokenId === ERG_TOKEN_ID
-              ? state.ergPrice
-              : (group[0].valueInErgs || 0) * state.ergPrice,
-          valueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 : group[0].price
+          decimals: group[0].decimals
         };
 
         balance.push(token);
@@ -124,8 +121,7 @@ export default createStore({
           name: "ERG",
           tokenId: ERG_TOKEN_ID,
           decimals: ERG_DECIMALS,
-          confirmedAmount: new BigNumber(0),
-          price: state.ergPrice
+          confirmedAmount: new BigNumber(0)
         });
 
         return balance;
@@ -208,9 +204,7 @@ export default createStore({
             confirmedAmount:
               setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
             unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
-            decimals: x.decimals,
-            price: state.ergPrice * state.tokenMarketRates[x.tokenId]?.valueInErgs,
-            valueInErgs: state.tokenMarketRates[x.tokenId]?.valueInErgs
+            decimals: x.decimals
           };
         });
       }
@@ -259,12 +253,17 @@ export default createStore({
       wallet.settings.defaultChangeIndex = command.index;
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
-      const tokenMarketRateDict = rates.reduce((acc: any, rate) => {
-        acc[rate.token.tokenId] = { valueInErgs: rate.ergPerToken };
-        return acc;
-      }, {});
+      const assetErgRate = rates.reduce(
+        (acc: { [tokenId: string]: { erg: number } }, rate: ITokenRate) => {
+          rate.token.tokenId;
+          acc[rate.token.tokenId] = { erg: rate.ergPerToken };
+          return acc;
+        },
+        {}
+      );
 
-      state.tokenMarketRates = tokenMarketRateDict;
+      assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
+      state.assetMarketRates = assetErgRate;
     }
   },
   actions: {
@@ -532,9 +531,9 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { price: true });
 
-      await dispatch(ACTIONS.LOAD_MARKET_RATES);
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
+      await dispatch(ACTIONS.LOAD_MARKET_RATES);
 
       commit(MUTATIONS.SET_LOADING, { price: false });
     },

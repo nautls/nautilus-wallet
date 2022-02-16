@@ -137,7 +137,8 @@ export default defineComponent({
   },
   computed: {
     ...mapState({
-      currentWallet: "currentWallet"
+      currentWallet: "currentWallet",
+      ergPrice: "ergPrice"
     }),
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
