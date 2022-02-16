@@ -42,6 +42,7 @@ import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
+import { ITokenRate } from "ergo-market-lib";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -54,7 +55,6 @@ function dbAddressMapper(a: IDbAddress) {
 
 export default createStore({
   state: {
-    ergPrice: 0,
     wallets: [] as StateWallet[],
     currentWallet: {
       id: 0,
@@ -79,7 +79,11 @@ export default createStore({
       addresses: true,
       balance: true
     },
-    connections: Object.freeze([] as IDbDAppConnection[])
+    connections: Object.freeze([] as IDbDAppConnection[]),
+    ergPrice: 0,
+    assetMarketRates: {
+      [ERG_TOKEN_ID]: { erg: 1 }
+    } as { [tokenId: string]: { erg: number } }
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -106,8 +110,7 @@ export default createStore({
           unconfirmedAmount: group
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
-          decimals: group[0].decimals,
-          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice : undefined
+          decimals: group[0].decimals
         };
 
         balance.push(token);
@@ -118,8 +121,7 @@ export default createStore({
           name: "ERG",
           tokenId: ERG_TOKEN_ID,
           decimals: ERG_DECIMALS,
-          confirmedAmount: new BigNumber(0),
-          price: state.ergPrice
+          confirmedAmount: new BigNumber(0)
         });
 
         return balance;
@@ -202,14 +204,12 @@ export default createStore({
             confirmedAmount:
               setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
             unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
-            decimals: x.decimals,
-            price: undefined
+            decimals: x.decimals
           };
         });
       }
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
-      state.loading.price = false;
       state.ergPrice = price;
     },
     [MUTATIONS.SET_LOADING](state, obj) {
@@ -251,6 +251,19 @@ export default createStore({
       }
 
       wallet.settings.defaultChangeIndex = command.index;
+    },
+    [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
+      const assetErgRate = rates.reduce(
+        (acc: { [tokenId: string]: { erg: number } }, rate: ITokenRate) => {
+          rate.token.tokenId;
+          acc[rate.token.tokenId] = { erg: rate.ergPerToken };
+          return acc;
+        },
+        {}
+      );
+
+      assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
+      state.assetMarketRates = assetErgRate;
     }
   },
   actions: {
@@ -272,6 +285,10 @@ export default createStore({
       } else {
         router.push({ name: "add-wallet" });
       }
+    },
+    async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
+      const tokenMarketRates = await explorerService.getTokenMarketRates();
+      commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
       const rawSettings = localStorage.getItem("settings");
@@ -507,14 +524,18 @@ export default createStore({
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
     },
-    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {
+    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
       if (state.loading.price) {
         return;
       }
 
-      state.loading.price = true;
+      commit(MUTATIONS.SET_LOADING, { price: true });
+
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
+      await dispatch(ACTIONS.LOAD_MARKET_RATES);
+
+      commit(MUTATIONS.SET_LOADING, { price: false });
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
       if (state.currentWallet.settings.avoidAddressReuse) {

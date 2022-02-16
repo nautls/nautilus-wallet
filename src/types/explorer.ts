@@ -80,6 +80,7 @@ type ExplorerBalanceItem = {
       amount: number | BigNumber;
       decimals: number;
       name: string;
+      valueInErgs?: number;
     }
   ];
 };

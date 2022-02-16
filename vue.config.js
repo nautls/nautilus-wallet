@@ -1,3 +1,4 @@
+const path = require('path');
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 
@@ -16,6 +17,19 @@ module.exports = {
     background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
   chainWebpack: (config) => {
+    config.module
+      .rule("ergo-market-lib")
+      .test({
+        test: /\.js$/,
+        include: path.join(__dirname, 'node_modules/ergo-market-lib/dist')
+      })
+      .use("babel-loader")
+      .loader("babel-loader")
+      .options({
+        plugins: ["@babel/plugin-proposal-optional-chaining"]
+      })
+      .end();
+
     config.plugin("clean-output").use(
       new CleanWebpackPlugin({
         cleanStaleWebpackAssets: false
