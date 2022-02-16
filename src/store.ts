@@ -216,7 +216,6 @@ export default createStore({
       }
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
-      state.loading.price = false;
       state.ergPrice = price;
     },
     [MUTATIONS.SET_LOADING](state, obj) {
@@ -531,9 +530,13 @@ export default createStore({
         return;
       }
 
-      dispatch(ACTIONS.LOAD_MARKET_RATES);
+      commit(MUTATIONS.SET_LOADING, { price: true });
+
+      await dispatch(ACTIONS.LOAD_MARKET_RATES);
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
+
+      commit(MUTATIONS.SET_LOADING, { price: false });
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
       if (state.currentWallet.settings.avoidAddressReuse) {
