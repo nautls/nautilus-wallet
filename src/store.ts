@@ -109,11 +109,7 @@ export default createStore({
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
           decimals: group[0].decimals,
-          price:
-            group[0].tokenId === ERG_TOKEN_ID
-              ? state.ergPrice
-              : (group[0].latestValueInErgs || 0) * state.ergPrice,
-          latestValueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 : group[0].price
+          price: group[0].price
         };
 
         balance.push(token);
@@ -215,8 +211,7 @@ export default createStore({
               setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
             unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
             decimals: x.decimals,
-            price: state.ergPrice * state.tokenMarketRates[x.tokenId]?.latestValueInErgs,
-            latestValueInErgs: state.tokenMarketRates[x.tokenId]?.latestValueInErgs
+            price: state.ergPrice * (x.tokenId === ERG_TOKEN_ID ? 1 : state.tokenMarketRates[x.tokenId]?.latestValueInErgs),
           };
         });
       }

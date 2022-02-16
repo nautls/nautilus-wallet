@@ -66,7 +66,6 @@ export type StateAsset = {
   unconfirmedAmount?: BigNumber;
   decimals: number;
   price?: number;
-  latestValueInErgs?: number;
 };
 
 export type StateTokenMarketRates = {
