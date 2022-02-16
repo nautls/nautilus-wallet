@@ -81,7 +81,7 @@ export default createStore({
       balance: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
-    tokenMarketRates: {} as { [key: string]: { valueInErgs: number }}
+    tokenMarketRates: {} as { [key: string]: { valueInErgs: number } }
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -109,7 +109,10 @@ export default createStore({
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
           decimals: group[0].decimals,
-          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice :  (group[0].valueInErgs || 0) * state.ergPrice,
+          price:
+            group[0].tokenId === ERG_TOKEN_ID
+              ? state.ergPrice
+              : (group[0].valueInErgs || 0) * state.ergPrice,
           valueInErgs: group[0].tokenId === ERG_TOKEN_ID ? 1 : group[0].price
         };
 
@@ -261,7 +264,7 @@ export default createStore({
         acc[rate.token.tokenId] = { valueInErgs: rate.ergPerToken };
         return acc;
       }, {});
-      
+
       state.tokenMarketRates = tokenMarketRateDict;
     }
   },
@@ -511,9 +514,8 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
+    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
       const assets = await assestsDbService.getByWalletId(walletId);
-      dispatch(ACTIONS.LOAD_MARKET_RATES);
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
     },
     async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
@@ -524,12 +526,12 @@ export default createStore({
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
     },
-    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {
+    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
       if (state.loading.price) {
         return;
       }
 
-      state.loading.price = true;
+      dispatch(ACTIONS.LOAD_MARKET_RATES);
       const responseData = await coinGeckoService.getPrice();
       commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
     },
