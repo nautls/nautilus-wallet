@@ -305,7 +305,7 @@ export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
   id: string;
 };
 
-export type ExplorerGetUnspentBox = {
+export type ExplorerUnspentBox = {
   id: string;
   txId: string;
   value: number | string | BigNumber;

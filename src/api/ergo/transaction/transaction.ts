@@ -1,7 +1,7 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
-import { ExplorerGetUnspentBox } from "@/types/explorer";
+import { ExplorerUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
@@ -27,7 +27,7 @@ export class Transaction {
   private _changeIndex!: number;
   private _fee!: BigNumber;
   private _assets!: SendTxCommandAsset[];
-  private _boxes!: ExplorerGetUnspentBox[];
+  private _boxes!: ExplorerUnspentBox[];
 
   private constructor(from: StateAddress[]) {
     this._from = from;
@@ -57,7 +57,7 @@ export class Transaction {
     return this;
   }
 
-  public fromBoxes(boxes: ExplorerGetUnspentBox[]): Transaction {
+  public fromBoxes(boxes: ExplorerUnspentBox[]): Transaction {
     this._boxes = boxes;
     return this;
   }
