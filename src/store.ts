@@ -71,7 +71,8 @@ export default createStore({
     currentAddresses: [] as StateAddress[],
     settings: {
       lastOpenedWalletId: 0,
-      isKyaAccepted: false
+      isKyaAccepted: false,
+      conversionCurrency: "usd"
     },
     loading: {
       settings: true,
@@ -531,8 +532,8 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { price: true });
 
-      const responseData = await coinGeckoService.getPrice();
-      commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
+      const price = await coinGeckoService.getPrice(state.settings.conversionCurrency);
+      commit(MUTATIONS.SET_ERG_PRICE, price);
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
 
       commit(MUTATIONS.SET_LOADING, { price: false });

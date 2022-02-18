@@ -61,18 +61,18 @@
                     </p>
                     <tool-tip
                       v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                      :label="`1 ${asset.name} <br /> ≈ ${price(asset.tokenId).toFixed(5)} USD`"
+                      :label="`1 ${asset.name} <br /> ≈ ${price(asset.tokenId).toFixed(
+                        5
+                      )} ${$filters.uppercase(conversionCurrency)}`"
                     >
                       <p class="text-xs text-gray-500">
                         ≈
                         {{
                           $filters.formatBigNumber(
-                            asset.confirmedAmount
-                              .multipliedBy(price(asset.tokenId))
-                              .decimalPlaces(2)
+                            asset.confirmedAmount.multipliedBy(price(asset.tokenId))
                           )
                         }}
-                        USD
+                        {{ $filters.uppercase(conversionCurrency) }}
                       </p>
                     </tool-tip>
                   </td>
@@ -98,6 +98,9 @@ export default defineComponent({
   computed: {
     ergPrice(): number {
       return this.$store.state.ergPrice;
+    },
+    conversionCurrency(): string {
+      return this.$store.state.settings.conversionCurrency;
     },
     loading(): boolean {
       if (!this.$store.state.loading.balance) {

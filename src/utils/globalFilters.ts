@@ -1,6 +1,7 @@
 import { logoMapper } from "@/mappers/logoMapper";
 import { WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
+import { VueElement } from "vue";
 
 const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
   notation: "compact",
@@ -9,6 +10,12 @@ const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
 });
 
 export const filters = {
+  uppercase(val: string): string {
+    return val?.toUpperCase() ?? "";
+  },
+  lowercase(val: string): string {
+    return val?.toLowerCase() ?? "";
+  },
   compactString(
     val: string,
     maxLength: number,
