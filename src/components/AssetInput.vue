@@ -46,7 +46,7 @@
       <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
           <span class="text-xs text-gray-400" v-if="ergPrice && rate(asset.tokenId)"
-            >≈ {{ price }} USD</span
+            >≈ {{ price }} {{ $filters.uppercase(conversionCurrency) }}</span
           >
           <span class="text-xs text-gray-400" v-else>No conversion rate</span>
         </div>
@@ -87,6 +87,9 @@ export default defineComponent({
     return { v$: useVuelidate() };
   },
   computed: {
+    conversionCurrency(): string {
+      return this.$store.state.settings.conversionCurrency;
+    },
     confirmedAmount(): BigNumber {
       return this.asset.confirmedAmount;
     },
@@ -105,8 +108,12 @@ export default defineComponent({
       return this.parseToBigNumber(this.internalValue);
     },
     price(): string {
-      return (
-        this.parsedValue?.multipliedBy(this.priceFor(this.asset.tokenId)).toFormat(2) || "0.00"
+      if (!this.parsedValue) {
+        return "0.00";
+      }
+
+      return this.$filters.formatBigNumber(
+        this.parsedValue.multipliedBy(this.priceFor(this.asset.tokenId))
       );
     },
     minRequired(): BigNumber {
@@ -193,13 +200,13 @@ export default defineComponent({
     onRemoveClicked() {
       this.$emit("remove");
     },
-    priceFor(tokenId: string): number {
+    priceFor(tokenId: string): BigNumber {
       const rate = this.rate(tokenId);
       if (!rate || !this.ergPrice) {
-        return 0;
+        return new BigNumber(0);
       }
 
-      return rate * this.ergPrice;
+      return new BigNumber(rate).multipliedBy(this.ergPrice);
     },
     rate(tokenId: string): number {
       return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;

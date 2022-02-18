@@ -61,8 +61,9 @@
                     </p>
                     <tool-tip
                       v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                      :label="`1 ${asset.name} <br /> ≈ ${price(asset.tokenId).toFixed(
-                        5
+                      :label="`1 ${asset.name} <br /> ≈ ${$filters.formatBigNumber(
+                        price(asset.tokenId),
+                        2
                       )} ${$filters.uppercase(conversionCurrency)}`"
                     >
                       <p class="text-xs text-gray-500">
@@ -92,6 +93,7 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
+import BigNumber from "bignumber.js";
 
 export default defineComponent({
   name: "AssetsView",
@@ -141,13 +143,13 @@ export default defineComponent({
     };
   },
   methods: {
-    price(tokenId: string): number {
+    price(tokenId: string): BigNumber {
       const rate = this.rate(tokenId);
       if (!rate || !this.ergPrice) {
-        return 0;
+        return new BigNumber(0);
       }
 
-      return rate * this.ergPrice;
+      return new BigNumber(rate).multipliedBy(this.ergPrice);
     },
     rate(tokenId: string): number {
       return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;

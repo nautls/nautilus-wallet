@@ -41,7 +41,21 @@ export const filters = {
       return defaultBitNumbersFormatter.format(value.toNumber());
     }
 
-    return value.toFormat();
+    return value.isLessThan(0.1)
+      ? this.roundToSignificantFigures(value.toNumber(), 2).toFormat()
+      : value.toFormat(2);
+  },
+  roundToSignificantFigures(num: number, n: number) {
+    if (num === 0) {
+      return new BigNumber(0);
+    }
+
+    let d = Math.ceil(Math.log10(num < 0 ? -num : num));
+    let power = n - d;
+
+    let magnitude = Math.pow(10, power);
+    let shifted = Math.round(num * magnitude);
+    return new BigNumber(shifted / magnitude);
   },
   assetLogo(tokenId: string): string {
     const assetLogo = logoMapper[tokenId];
