@@ -50,8 +50,8 @@ window.addEventListener("message", function (event) {
 });
 
 class NautilusAuthApi {
-  connect() {
-    return this._rpcCall("connect");
+  connect({ injectErgoApi = true } = {}) {
+    return this._rpcCall("connect", [injectErgoApi]);
   }
 
   isConnected() {
@@ -75,13 +75,13 @@ class NautilusAuthApi {
   }
 }
 
-if (ergoConnector !== undefined) {
-  ergoConnector = {
+if (window.ergoConnector !== undefined) {
+  window.ergoConnector = {
     ...ergoConnector,
     nautilus: Object.freeze(new NautilusAuthApi())
   };
 } else {
-  var ergoConnector = {
+  window.ergoConnector = {
     nautilus: Object.freeze(new NautilusAuthApi())
   };
 }
@@ -156,9 +156,10 @@ class NautilusErgoApi {
     });
   }
 }
+`;
 
-const ergo = Object.freeze(new NautilusErgoApi());
-// `;
+const declareErgoConst = `const ergo = Object.freeze(new NautilusErgoApi());`;
+const getErgoObject = `(() => { return Object.freeze(new NautilusErgoApi()); })();`;
 
 let ergoApiInjected = false;
 let nautilusPort;
@@ -187,7 +188,9 @@ if (shouldInject()) {
         message.return.isSuccess &&
         message.return.data === true
       ) {
-        inject(ergoApi);
+        inject(ergoApi + declareErgoConst);
+        const t = eval(ergoApi + getErgoObject);
+        console.log(t);
         ergoApiInjected = true;
       }
 
