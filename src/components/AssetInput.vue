@@ -113,7 +113,8 @@ export default defineComponent({
       }
 
       return this.$filters.formatBigNumber(
-        this.parsedValue.multipliedBy(this.priceFor(this.asset.tokenId))
+        this.parsedValue.multipliedBy(this.priceFor(this.asset.tokenId)),
+        2
       );
     },
     minRequired(): BigNumber {
