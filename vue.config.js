@@ -30,15 +30,16 @@ module.exports = {
       })
       .end();
 
-    config
-      .entry("injector")
-      .add("./src/content-scripts/injector.js")
-      .end()
-      .optimization.splitChunks(false)
-      .end()
-      .output.filename("js/[name].js")
-      .chunkFilename("js/[name].js")
-      .end();
+    config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
+
+    config.plugin("copy").tap(([pathConfigs]) => {
+      pathConfigs.push({
+        from: "src/content-scripts",
+        to: "js"
+      });
+
+      return [pathConfigs];
+    });
 
     config
       .plugin("clean-output")
