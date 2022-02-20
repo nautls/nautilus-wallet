@@ -1,7 +1,6 @@
 import { logoMapper } from "@/mappers/logoMapper";
 import { WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
-import { VueElement } from "vue";
 
 const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
   notation: "compact",
