@@ -70,7 +70,8 @@
                         ≈
                         {{
                           $filters.formatBigNumber(
-                            asset.confirmedAmount.multipliedBy(price(asset.tokenId))
+                            asset.confirmedAmount.multipliedBy(price(asset.tokenId)),
+                            2
                           )
                         }}
                         {{ $filters.uppercase(conversionCurrency) }}

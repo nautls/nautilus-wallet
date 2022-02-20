@@ -36,14 +36,14 @@ export const filters = {
       return `${val.slice(0, maxLength - ellipsis.length + 1)}${ellipsis}`;
     }
   },
-  formatBigNumber(value: BigNumber) {
+  formatBigNumber(value: BigNumber, decimalPlaces?: number) {
     if (value.isGreaterThanOrEqualTo(1_000_000)) {
       return defaultBitNumbersFormatter.format(value.toNumber());
     }
 
     return value.isLessThan(0.1)
-      ? this.roundToSignificantFigures(value.toNumber(), 2).toFormat()
-      : value.toFormat(2);
+      ? this.roundToSignificantFigures(value.toNumber(), decimalPlaces ?? 2).toFormat()
+      : value.toFormat(decimalPlaces);
   },
   roundToSignificantFigures(num: number, n: number) {
     if (num === 0) {
