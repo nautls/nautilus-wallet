@@ -3,7 +3,7 @@ import { UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { ExplorerUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
-import { removeDecimals, toBigNumber } from "@/utils/bigNumbers";
+import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import {
@@ -21,7 +21,7 @@ import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
 
-export class Transaction {
+export class TxBuilder {
   private _from!: StateAddress[];
   private _to!: string;
   private _changeIndex!: number;
@@ -33,31 +33,31 @@ export class Transaction {
     this._from = from;
   }
 
-  public static from(addresses: StateAddress[]): Transaction {
+  public static from(addresses: StateAddress[]): TxBuilder {
     return new this(addresses);
   }
 
-  public to(address: string): Transaction {
+  public to(address: string): TxBuilder {
     this._to = address;
     return this;
   }
 
-  public changeIndex(index: number): Transaction {
+  public changeIndex(index: number): TxBuilder {
     this._changeIndex = index;
     return this;
   }
 
-  public withFee(fee: BigNumber): Transaction {
+  public withFee(fee: BigNumber): TxBuilder {
     this._fee = fee;
     return this;
   }
 
-  public withAssets(assets: SendTxCommandAsset[]): Transaction {
+  public withAssets(assets: SendTxCommandAsset[]): TxBuilder {
     this._assets = assets;
     return this;
   }
 
-  public fromBoxes(boxes: ExplorerUnspentBox[]): Transaction {
+  public fromBoxes(boxes: ExplorerUnspentBox[]): TxBuilder {
     this._boxes = boxes;
     return this;
   }

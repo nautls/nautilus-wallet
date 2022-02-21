@@ -37,7 +37,7 @@ import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
-import { Transaction } from "./api/ergo/transaction/transaction";
+import { TxBuilder } from "././api/ergo/transaction/txBuilder";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
@@ -563,7 +563,7 @@ export default createStore({
       const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
-      const signedtx = Transaction.from(selectedAddresses)
+      const signedtx = TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
@@ -599,7 +599,7 @@ export default createStore({
       command.password = "";
 
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
-      const signedtx = Transaction.from(addresses).signFromConnector(
+      const signedtx = TxBuilder.from(addresses).signFromConnector(
         command.tx,
         SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
       );
