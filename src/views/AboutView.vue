@@ -22,9 +22,13 @@
         ><vue-feather type="send" class="m-auto"
       /></a>
     </div>
-    <p class="text-sm" v-once>
+    <p class="text-sm">
       Support the development by donating to:
-      <a class="font-mono url cursor-pointer" @click="goDonate()">{{
+      <span v-if="readonly">
+        {{ $filters.compactString(donationAddress, 20) }}
+        <click-to-copy :content="donationAddress" size="14" class="align-middle" />
+      </span>
+      <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
         $filters.compactString(donationAddress, 20)
       }}</a>
     </p>
@@ -36,8 +40,8 @@
 </template>
 
 <script lang="ts">
+import { WalletType } from "@/types/internal";
 import { defineComponent } from "vue";
-import ToolTip from "@/components/ToolTip.vue";
 const { version } = require("../../package.json");
 
 export default defineComponent({
@@ -48,13 +52,15 @@ export default defineComponent({
     },
     donationAddress(): string {
       return "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By";
+    },
+    readonly(): boolean {
+      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
     }
   },
   methods: {
     goDonate() {
       this.$router.push({ name: "send-page", query: { recipient: this.donationAddress } });
     }
-  },
-  components: { ToolTip }
+  }
 });
 </script>

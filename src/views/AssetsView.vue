@@ -55,7 +55,7 @@
                       <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
                     </a>
                   </td>
-                  <td class="text-right align-middle">
+                  <td class="text-right align-middle whitespace-nowrap">
                     <p>
                       {{ $filters.formatBigNumber(asset.confirmedAmount) }}
                     </p>
