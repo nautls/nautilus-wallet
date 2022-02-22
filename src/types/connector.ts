@@ -118,3 +118,16 @@ export type UnsignedTx = {
   dataInputs: DataInput[];
   outputs: ErgoBoxCandidate[];
 };
+
+export type Input = {
+  readonly boxId: string;
+  readonly spendingProof: string;
+};
+
+export type ErgoTx = {
+  readonly id: string;
+  readonly inputs: Input[];
+  readonly dataInputs: DataInput[];
+  readonly outputs: ErgoBox[];
+  readonly size: number;
+};
