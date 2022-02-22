@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 
@@ -21,7 +21,7 @@ module.exports = {
       .rule("ergo-market-lib")
       .test({
         test: /\.js$/,
-        include: path.join(__dirname, 'node_modules/ergo-market-lib/dist')
+        include: path.join(__dirname, "node_modules/ergo-market-lib/dist")
       })
       .use("babel-loader")
       .loader("babel-loader")
@@ -30,11 +30,7 @@ module.exports = {
       })
       .end();
 
-    config.plugin("clean-output").use(
-      new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: false
-      })
-    );
+    config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 
     config.plugin("copy").tap(([pathConfigs]) => {
       pathConfigs.push({
@@ -45,6 +41,15 @@ module.exports = {
       return [pathConfigs];
     });
 
-    config.plugin("windicss").use(new WindiCSSWebpackPlugin());
+    config
+      .plugin("clean-output")
+      .use(
+        new CleanWebpackPlugin({
+          cleanStaleWebpackAssets: false
+        })
+      )
+      .end();
+
+    config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
   }
 };

@@ -7,6 +7,7 @@ import RestoreView from "@/views/add/RestoreView.vue";
 import AddStandardView from "@/views/add/AddStandardView.vue";
 import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
+import LoadingView from "@/views/LoadingView.vue";
 import SettingsView from "@/views/SettingsView.vue";
 
 import AuthView from "@/views/connector/AuthView.vue";
@@ -17,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "loading",
-    component: AboutView,
+    component: LoadingView,
     meta: { fullPage: true }
   },
   {

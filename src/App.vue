@@ -46,11 +46,6 @@ export default defineComponent({
     };
   },
   async created() {
-    this.getPriceTimerId = Object.freeze(
-      runSetInterval(() => {
-        this.fetchPrices();
-      }, PRICE_FETCH_INTERVAL)
-    );
     this.syncTimerId = Object.freeze(
       setInterval(() => {
         this.refresh();
@@ -58,6 +53,11 @@ export default defineComponent({
     );
 
     await this.init();
+    this.getPriceTimerId = Object.freeze(
+      runSetInterval(() => {
+        this.fetchPrices();
+      }, PRICE_FETCH_INTERVAL)
+    );
   },
   deactivated() {
     clearInterval(this.getPriceTimerId);

@@ -135,6 +135,11 @@ export default defineComponent({
   setup() {
     return { v$: useVuelidate() };
   },
+  created() {
+    if (this.$route.query.recipient) {
+      this.recipient = this.$route.query.recipient as string;
+    }
+  },
   computed: {
     ...mapState({
       currentWallet: "currentWallet"

@@ -152,7 +152,7 @@ async function handleConnectionRequest(
     data: response.data.walletId !== undefined
   };
 
-  postConnectorResponse(response, message, port);
+  postConnectorResponse(response, message, port, "auth");
 }
 
 function handleCheckConnectionRequest(request: RpcMessage, port: chrome.runtime.Port) {
@@ -165,7 +165,8 @@ function handleCheckConnectionRequest(request: RpcMessage, port: chrome.runtime.
       data: session !== undefined && session.walletId !== undefined
     },
     request,
-    port
+    port,
+    "auth"
   );
 }
 

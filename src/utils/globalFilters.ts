@@ -9,6 +9,12 @@ const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
 });
 
 export const filters = {
+  uppercase(val: string): string {
+    return val?.toUpperCase() ?? "";
+  },
+  lowercase(val: string): string {
+    return val?.toLowerCase() ?? "";
+  },
   compactString(
     val: string,
     maxLength: number,
@@ -29,12 +35,26 @@ export const filters = {
       return `${val.slice(0, maxLength - ellipsis.length + 1)}${ellipsis}`;
     }
   },
-  formatBigNumber(value: BigNumber) {
+  formatBigNumber(value: BigNumber, decimalPlaces?: number) {
     if (value.isGreaterThanOrEqualTo(1_000_000)) {
       return defaultBitNumbersFormatter.format(value.toNumber());
     }
 
-    return value.toFormat();
+    return value.isLessThan(0.1)
+      ? this.roundToSignificantFigures(value.toNumber(), decimalPlaces ?? 2).toFormat()
+      : value.toFormat(decimalPlaces);
+  },
+  roundToSignificantFigures(num: number, n: number) {
+    if (num === 0) {
+      return new BigNumber(0);
+    }
+
+    let d = Math.ceil(Math.log10(num < 0 ? -num : num));
+    let power = n - d;
+
+    let magnitude = Math.pow(10, power);
+    let shifted = Math.round(num * magnitude);
+    return new BigNumber(shifted / magnitude);
   },
   assetLogo(tokenId: string): string {
     const assetLogo = logoMapper[tokenId];
