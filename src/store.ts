@@ -43,6 +43,7 @@ import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService"
 import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
 import { ITokenRate } from "ergo-market-lib";
+import { submitTx } from "./api/ergo/submitTx";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -572,8 +573,7 @@ export default createStore({
         .fromBoxes(boxes.map((a) => a.data).flat())
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      const response = await explorerService.sendTx(signedtx);
-      return response.id;
+      return await submitTx(signedtx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
       const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);

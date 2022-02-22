@@ -9,7 +9,8 @@ import {
   RpcReturn,
   Session,
   ErgoBox,
-  Token
+  Token,
+  ErgoTx
 } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
@@ -18,6 +19,7 @@ import BigNumber from "bignumber.js";
 import { find, findIndex, uniq } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
+import { submitTx } from "@/api/ergo/submitTx";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
@@ -175,7 +177,7 @@ export async function handleGetAddressesRequest(
 export async function handleGetChangeAddressRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -208,7 +210,7 @@ export async function handleGetChangeAddressRequest(
 export async function handleSignTxRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -234,7 +236,7 @@ export async function handleSignTxRequest(
 export async function handleSubmitTxRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -254,13 +256,16 @@ export async function handleSubmitTxRequest(
   }
 
   try {
-    const tx = request.params[0];
-    const txId = await explorerService.sendTx(typeof tx === "string" ? tx : JSONBig.stringify(tx));
+    const tx = request.params[0] as ErgoTx;
+    const txId = await submitTx(
+      typeof tx === "string" ? (JSONBig.parse(tx) as ErgoTx) : tx,
+      session!.walletId!
+    );
 
     postConnectorResponse(
       {
         isSuccess: true,
-        data: txId.id
+        data: txId
       },
       request,
       port
@@ -280,7 +285,7 @@ export async function handleSubmitTxRequest(
 export async function handleNotImplementedRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;

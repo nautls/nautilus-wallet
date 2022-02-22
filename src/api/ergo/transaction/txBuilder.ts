@@ -1,5 +1,5 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { UnsignedTx } from "@/types/connector";
+import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { ExplorerUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
@@ -71,7 +71,7 @@ export class TxBuilder {
     return signed.to_json();
   }
 
-  public sign(context: SignContext): string {
+  public sign(context: SignContext): ErgoTx {
     const sigmaRust = wasmModule.SigmaRust;
 
     const height = this._boxes[0]?.creationHeight || 0;
@@ -101,7 +101,7 @@ export class TxBuilder {
     ).build();
 
     const signed = this._sign(unsigned, unspentBoxes, context);
-    return signed.to_json();
+    return JSONBig.parse(signed.to_json());
   }
 
   private _sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, context: SignContext) {

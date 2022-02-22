@@ -45,9 +45,12 @@ export interface IDbDAppConnection {
   favicon?: string;
 }
 
-export interface IDbBox extends ErgoBox {
+export interface IDbPendingBox {
+  boxId: string;
+  transactionId: string;
   confirmed: boolean;
   locked: boolean;
-  address: string;
+  boxContent?: ErgoBox;
+  address?: string;
   walletId: number;
 }

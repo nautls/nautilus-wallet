@@ -11,8 +11,10 @@ import {
 } from "@/types/explorer";
 import axios from "axios";
 import { chunk, find } from "lodash";
-
+import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
+import { ErgoTx } from "@/types/connector";
+
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 
 class ExplorerService {
@@ -129,8 +131,14 @@ class ExplorerService {
     return response.data;
   }
 
-  public async sendTx(tx: any): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
-    const response = await axios.post(`${API_URL}/api/v1/mempool/transactions/submit`, tx);
+  public async sendTx(
+    signedTx: ErgoTx
+  ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
+    const response = await axios.post(
+      `${API_URL}/api/v1/mempool/transactions/submit`,
+      JSONBig.stringify(signedTx)
+    );
+
     return response.data;
   }
 

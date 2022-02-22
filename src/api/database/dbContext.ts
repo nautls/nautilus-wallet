@@ -1,12 +1,18 @@
 import Dexie, { Table } from "dexie";
-import { IDbDAppConnection, IDbAddress, IDbAsset, IDbWallet, IDbBox } from "@/types/database";
+import {
+  IDbDAppConnection,
+  IDbAddress,
+  IDbAsset,
+  IDbWallet,
+  IDbPendingBox
+} from "@/types/database";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
   addresses!: Table<IDbAddress, string>;
   assets!: Table<IDbAsset, string[]>;
   connectedDApps!: Table<IDbDAppConnection, string>;
-  boxes!: Table<IDbBox, string>;
+  pendingBoxes!: Table<IDbPendingBox, string>;
 
   constructor() {
     super("nautilusDb");
@@ -36,7 +42,7 @@ class NautilusDb extends Dexie {
     });
 
     this.version(5).stores({
-      boxes: "&boxId, transactionId, confirmed, locked, address, walletId"
+      pendingBoxes: "&boxId, transactionId, confirmed, locked, address, walletId"
     });
   }
 }
