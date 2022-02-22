@@ -129,13 +129,21 @@ const AUTH_API_CODE = `
 
 const ERGO_API_CODE = `
 class NautilusErgoApi {
-  resolver = {
+  static instance;
+
+  _resolver = {
     currentId: 0,
     requests: new Map()
   };
 
   constructor() {
-    window.addEventListener("message", this._eventHandler(this.resolver));
+    if (NautilusErgoApi.instance) {
+      return NautilusErgoApi.instance;
+    }
+
+    window.addEventListener("message", this._eventHandler(this._resolver));
+    NautilusErgoApi.instance = this;
+    return this;
   }
 
   get_utxos(amount = undefined, token_id = "ERG", paginate = undefined) {
@@ -178,12 +186,12 @@ class NautilusErgoApi {
     return new Promise((resolve, reject) => {
       window.postMessage({
         type: "rpc/connector-request",
-        requestId: this.resolver.currentId,
+        requestId: this._resolver.currentId,
         function: func,
         params
       });
-      this.resolver.requests.set(this.resolver.currentId, { resolve: resolve, reject: reject });
-      this.resolver.currentId++;
+      this._resolver.requests.set(this._resolver.currentId, { resolve: resolve, reject: reject });
+      this._resolver.currentId++;
     });
   }
 
