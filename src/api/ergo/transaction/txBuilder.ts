@@ -85,14 +85,14 @@ export class TxBuilder {
     const tokens = this.buildTokenList();
     const txOutputs = this.buildOutputBoxes(outputValue, tokens, recipient, height);
     const fee = this.getFee();
-    const box_selector = new sigmaRust.SimpleBoxSelector();
+    const boxSelector = new sigmaRust.SimpleBoxSelector();
     const targetBalance = sigmaRust.BoxValue.from_i64(
       outputValue.as_i64().checked_add(fee.as_i64())
     );
-    const box_selection = box_selector.select(unspentBoxes, targetBalance, tokens);
+    const boxSelection = boxSelector.select(unspentBoxes, targetBalance, tokens);
 
     const unsigned = sigmaRust.TxBuilder.new(
-      box_selection,
+      boxSelection,
       txOutputs,
       height,
       fee,

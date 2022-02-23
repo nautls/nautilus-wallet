@@ -7,7 +7,6 @@ import {
   WalletType
 } from "@/types/internal";
 import { ErgoBox } from "./connector";
-import { ExplorerUnspentBox } from "./explorer";
 
 export interface IDbWallet {
   id?: number;

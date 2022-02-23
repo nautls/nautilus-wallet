@@ -4,7 +4,6 @@ import { ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
-import { stringify } from "crypto-js/enc-utf8";
 
 class PendingBoxesDbService {
   public async getByBoxId(boxId: string): Promise<IDbPendingBox | undefined> {
@@ -13,6 +12,10 @@ class PendingBoxesDbService {
 
   public async getByTxId(txId: string): Promise<IDbPendingBox[]> {
     return await dbContext.pendingBoxes.where({ transactionId: txId }).toArray();
+  }
+
+  public async getByWalletId(walletId: number): Promise<IDbPendingBox[]> {
+    return await dbContext.pendingBoxes.where({ walletId }).toArray();
   }
 
   public async addFromTx(signedTx: ErgoTx, walletId: number) {
@@ -56,7 +59,7 @@ class PendingBoxesDbService {
     await dbContext.pendingBoxes.bulkPut(boxes);
   }
 
-  asString(value?: string | BigInt | BigNumber | number): string {
+  private asString(value?: string | BigInt | BigNumber | number): string {
     if (!value) {
       return "";
     } else if (typeof value == "string") {
@@ -64,10 +67,6 @@ class PendingBoxesDbService {
     } else {
       return value.toString();
     }
-  }
-
-  public async getAll(): Promise<IDbPendingBox[]> {
-    return await dbContext.pendingBoxes.toArray();
   }
 }
 
