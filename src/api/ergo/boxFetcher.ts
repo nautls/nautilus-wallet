@@ -23,6 +23,7 @@ export async function fetchBoxes(
     ? await pendingBoxesDbService.getByWalletId(walletId)
     : [];
   let boxes = await getBoxes(addresses);
+  console.log(boxes);
 
   if (
     options.useAllAddressesAsFallback &&
@@ -31,7 +32,7 @@ export async function fetchBoxes(
   ) {
     boxes = await getBoxes(difference(await getAllAddresses(walletId), addresses));
   }
-
+  console.log(boxes);
   if (!isEmpty(pendingBoxes)) {
     const lockedIds = pendingBoxes.filter((x) => x.locked).map((x) => x.boxId);
     const unconfirmed = pendingBoxes
