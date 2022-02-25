@@ -142,11 +142,15 @@ export default defineComponent({
       this.$emit("update:modelValue", value);
     },
     modelValue(value: BigNumber) {
-      if (!value || value.isNaN() || this.parsedValue?.isEqualTo(value)) {
+      const el = (this.$refs as any)["val-input"];
+      if (!value || value.isNaN()) {
+        el.cleave.setRawValue(undefined);
+        return;
+      } else if (this.parsedValue?.isEqualTo(value)) {
         return;
       }
 
-      (this.$refs as any)["val-input"].cleave.setRawValue(value.toString());
+      el.cleave.setRawValue(value.toString());
     }
   },
   data() {

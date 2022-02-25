@@ -1,5 +1,5 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
+import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { ExplorerUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
@@ -16,7 +16,7 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import { find } from "lodash";
+import { find, maxBy } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
@@ -27,7 +27,7 @@ export class TxBuilder {
   private _changeIndex!: number;
   private _fee!: BigNumber;
   private _assets!: SendTxCommandAsset[];
-  private _boxes!: ExplorerUnspentBox[];
+  private _boxes!: ErgoBox[];
 
   private constructor(from: StateAddress[]) {
     this._from = from;
@@ -57,7 +57,7 @@ export class TxBuilder {
     return this;
   }
 
-  public fromBoxes(boxes: ExplorerUnspentBox[]): TxBuilder {
+  public fromBoxes(boxes: ErgoBox[]): TxBuilder {
     this._boxes = boxes;
     return this;
   }
@@ -73,8 +73,8 @@ export class TxBuilder {
 
   public sign(context: SignContext): ErgoTx {
     const sigmaRust = wasmModule.SigmaRust;
-
-    const height = this._boxes[0]?.creationHeight || 0;
+    const lastBlockHeader = maxBy(context.blockHeaders, (h) => h.height);
+    const height = lastBlockHeader!.height;
     const recipient = sigmaRust.Address.from_mainnet_str(this._to);
     const changeAddress = sigmaRust.Address.from_mainnet_str(
       context.bip32.deriveAddress(this._changeIndex).script

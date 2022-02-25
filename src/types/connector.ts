@@ -107,6 +107,7 @@ export type ErgoBox = {
   value: bigint | string;
   assets: Token[];
   additionalRegisters: Registers;
+  confirmed: boolean;
 };
 
 export type DataInput = {

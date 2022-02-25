@@ -44,6 +44,7 @@ import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
 import { ITokenRate } from "ergo-market-lib";
 import { submitTx } from "./api/ergo/submitTx";
+import { fetchBoxes } from "./api/ergo/boxFetcher";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -562,22 +563,24 @@ export default createStore({
             ?.index ?? state.currentWallet.settings.defaultChangeIndex
         : state.currentWallet.settings.defaultChangeIndex;
 
-      const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
+      const boxes = await fetchBoxes(command.walletId);
+      console.log(boxes);
+      console.log(JSON.stringify(command.assets));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
+      console.log(blockHeaders);
 
       const signedtx = TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
-        .fromBoxes(boxes.map((a) => a.data).flat())
+        .fromBoxes(boxes)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
       return await submitTx(signedtx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
       const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
-      console.log(addressesFromBoxes);
       const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = dbAddresses
         .filter((a) => addressesFromBoxes.includes(a.script))

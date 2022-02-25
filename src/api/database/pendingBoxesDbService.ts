@@ -1,9 +1,10 @@
 import { IDbPendingBox } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
-import { ErgoTx } from "@/types/connector";
+import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
+import { isEmpty } from "lodash";
 
 class PendingBoxesDbService {
   public async getByBoxId(boxId: string): Promise<IDbPendingBox | undefined> {
@@ -38,7 +39,7 @@ class PendingBoxesDbService {
               boxId: output.boxId,
               confirmed: false,
               locked: false,
-              boxContent: output,
+              boxContent: { ...this.stringifyAmounts(output), confirmed: false },
               transactionId: signedTx.id,
               address: addressFromErgoTree(output.ergoTree),
               walletId
@@ -46,17 +47,16 @@ class PendingBoxesDbService {
           })
       );
 
-    for (const box of boxes) {
-      if (!box.boxContent) {
-        return;
-      }
-      box.boxContent.value = this.asString(box.boxContent.value);
-      for (const token of box.boxContent.assets) {
-        token.amount = this.asString(token.amount);
-      }
+    await dbContext.pendingBoxes.bulkPut(boxes);
+  }
+
+  private stringifyAmounts(box: ErgoBox): ErgoBox {
+    box.value = this.asString(box.value);
+    for (const token of box.assets) {
+      token.amount = this.asString(token.amount);
     }
 
-    await dbContext.pendingBoxes.bulkPut(boxes);
+    return box;
   }
 
   private asString(value?: string | BigInt | BigNumber | number): string {

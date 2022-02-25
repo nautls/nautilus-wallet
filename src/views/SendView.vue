@@ -284,7 +284,7 @@ export default defineComponent({
     setErgAsSelected(): void {
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
-        this.selected.push({ asset: erg });
+        this.selected.push({ asset: erg, amount: undefined });
       }
     },
     urlForTransaction(txId: string): string {
