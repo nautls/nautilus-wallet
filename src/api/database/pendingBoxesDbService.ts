@@ -4,7 +4,8 @@ import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
-import { isEmpty } from "lodash";
+import { find, isEmpty } from "lodash";
+import { ExplorerBox, explorerBoxMapper } from "@/types/explorer";
 
 class PendingBoxesDbService {
   public async getByBoxId(boxId: string): Promise<IDbPendingBox | undefined> {
@@ -19,17 +20,19 @@ class PendingBoxesDbService {
     return await dbContext.pendingBoxes.where({ walletId }).toArray();
   }
 
-  public async addFromTx(signedTx: ErgoTx, walletId: number) {
+  public async addFromTx(signedTx: ErgoTx, inputBoxes: ErgoBox[], walletId: number) {
     const addresses = (await addressesDbService.getByWalletId(walletId)).map((a) => a.script);
-    const boxes: IDbPendingBox[] = signedTx.inputs
+
+    const boxes = signedTx.inputs
       .map((input) => {
         return {
           boxId: input.boxId,
           confirmed: true,
           locked: true,
+          content: find(inputBoxes, (b) => b.boxId === input.boxId),
           transactionId: signedTx.id,
           walletId
-        };
+        } as IDbPendingBox;
       })
       .concat(
         signedTx.outputs
@@ -39,11 +42,11 @@ class PendingBoxesDbService {
               boxId: output.boxId,
               confirmed: false,
               locked: false,
-              boxContent: { ...this.stringifyAmounts(output), confirmed: false },
+              content: { ...this.stringifyAmounts(output), confirmed: false },
               transactionId: signedTx.id,
               address: addressFromErgoTree(output.ergoTree),
               walletId
-            };
+            } as IDbPendingBox;
           })
       );
 

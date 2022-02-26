@@ -1,7 +1,6 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
-import { ExplorerUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";

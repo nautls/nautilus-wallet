@@ -49,7 +49,7 @@ export interface IDbPendingBox {
   transactionId: string;
   confirmed: boolean;
   locked: boolean;
-  boxContent?: ErgoBox;
+  content?: ErgoBox;
   address?: string;
   walletId: number;
 }

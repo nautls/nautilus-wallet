@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { ErgoBox, Token } from "./connector";
 
 export type AddressAPIResponse<T> = {
   address: string;
@@ -305,7 +306,7 @@ export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
   id: string;
 };
 
-export type ExplorerUnspentBox = {
+export type ExplorerBox = {
   id: string;
   txId: string;
   value: number | string | BigNumber;
@@ -315,6 +316,27 @@ export type ExplorerUnspentBox = {
   address: string;
   assets: ExplorerToken[];
   additionalRegisters: any;
-  spentTransactionId: string;
+  spentTransactionId?: string;
   mainChain: boolean;
 };
+
+export function explorerBoxMapper(options: { asConfirmed: boolean }) {
+  return (box: ExplorerBox) => {
+    return {
+      boxId: box.id,
+      transactionId: box.txId,
+      index: box.index,
+      ergoTree: box.ergoTree,
+      creationHeight: box.creationHeight,
+      value: box.value.toString(),
+      assets: box.assets.map((t) => {
+        return {
+          tokenId: t.tokenId,
+          amount: t.amount.toString()
+        } as Token;
+      }),
+      additionalRegisters: box.additionalRegisters,
+      confirmed: options.asConfirmed
+    } as ErgoBox;
+  };
+}

@@ -565,9 +565,7 @@ export default createStore({
 
       const boxes = await fetchBoxes(command.walletId);
       console.log(boxes);
-      console.log(JSON.stringify(command.assets));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
-      console.log(blockHeaders);
 
       const signedtx = TxBuilder.from(selectedAddresses)
         .to(command.recipient)

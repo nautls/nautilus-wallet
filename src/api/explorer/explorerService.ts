@@ -2,7 +2,7 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   ExplorerBlockHeaderResponse,
-  ExplorerUnspentBox,
+  ExplorerBox,
   ExplorerGetApiV1BlocksP1Response,
   ExplorerGetApiV1BlocksResponse,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
@@ -95,7 +95,7 @@ class ExplorerService {
 
   private async getAddressUnspentBoxes(
     address: string
-  ): Promise<AddressAPIResponse<ExplorerUnspentBox[]>> {
+  ): Promise<AddressAPIResponse<ExplorerBox[]>> {
     const response = await axios.get(
       `${API_URL}/api/v0/transactions/boxes/byAddress/unspent/${address}`
     );
@@ -103,9 +103,16 @@ class ExplorerService {
     return { address, data: response.data };
   }
 
-  public async getUnspentBoxes(
-    addresses: string[]
-  ): Promise<AddressAPIResponse<ExplorerUnspentBox[]>[]> {
+  public async getBox(boxId: string): Promise<ExplorerBox> {
+    const response = await axios.get(`${API_URL}/api/v0/transactions/boxes/${boxId}`);
+    return response.data;
+  }
+
+  public async getBoxes(boxIds: string[]): Promise<ExplorerBox[]> {
+    return await Promise.all(boxIds.map((id) => this.getBox(id)));
+  }
+
+  public async getUnspentBoxes(addresses: string[]): Promise<AddressAPIResponse<ExplorerBox[]>[]> {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 

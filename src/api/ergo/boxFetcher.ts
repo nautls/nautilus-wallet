@@ -1,7 +1,7 @@
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { ErgoBox, Token } from "@/types/connector";
-import { ExplorerUnspentBox } from "@/types/explorer";
-import { difference, differenceBy, find, isEmpty, sortBy, unionBy } from "lodash";
+import { ErgoBox } from "@/types/connector";
+import { explorerBoxMapper } from "@/types/explorer";
+import { difference, find, isEmpty, sortBy, unionBy } from "lodash";
 import { addressesDbService } from "../database/addressesDbService";
 import { assestsDbService } from "../database/assetsDbService";
 import { pendingBoxesDbService } from "../database/pendingBoxesDbService";
@@ -22,33 +22,24 @@ export async function fetchBoxes(
   const pendingBoxes = options.includeUnconfirmed
     ? await pendingBoxesDbService.getByWalletId(walletId)
     : [];
-  let boxes = await getBoxes(addresses);
-  console.log(boxes);
+
+  let boxes = await fetchBoxesFromExplorer(addresses);
 
   if (
     options.useAllAddressesAsFallback &&
     isEmpty(boxes) &&
-    !find(pendingBoxes, (p) => !p.locked)
+    !find(pendingBoxes, (b) => !b.locked && b.content)
   ) {
-    boxes = await getBoxes(difference(await getAllAddresses(walletId), addresses));
+    boxes = await fetchBoxesFromExplorer(difference(await getAllAddresses(walletId), addresses));
   }
-  console.log(boxes);
   if (!isEmpty(pendingBoxes)) {
     const lockedIds = pendingBoxes.filter((x) => x.locked).map((x) => x.boxId);
-    const unconfirmed = pendingBoxes
-      .filter((x) => !x.locked && x.boxContent)
-      .map((x) => x.boxContent!);
+    const unconfirmed = pendingBoxes.filter((b) => !b.locked && b.content).map((b) => b.content!);
 
     if (!isEmpty(lockedIds)) {
-      console.log("locked", lockedIds);
       boxes = boxes.filter((b) => !lockedIds.includes(b.boxId));
     }
-
     if (!isEmpty(unconfirmed)) {
-      console.log(
-        "unconfirmed",
-        unconfirmed.map((x) => x.boxId)
-      );
       boxes = unionBy(boxes, unconfirmed, (b) => b.boxId);
     }
   }
@@ -56,28 +47,7 @@ export async function fetchBoxes(
   return sortBy(boxes, (x) => x.creationHeight).reverse();
 }
 
-function explorerBoxMapper(options: { asConfirmed: boolean }) {
-  return (box: ExplorerUnspentBox) => {
-    return {
-      boxId: box.id,
-      transactionId: box.txId,
-      index: box.index,
-      ergoTree: box.ergoTree,
-      creationHeight: box.creationHeight,
-      value: box.value.toString(),
-      assets: box.assets.map((t) => {
-        return {
-          tokenId: t.tokenId,
-          amount: t.amount.toString()
-        } as Token;
-      }),
-      additionalRegisters: box.additionalRegisters,
-      confirmed: options.asConfirmed
-    } as ErgoBox;
-  };
-}
-
-async function getBoxes(addresses: string[]): Promise<ErgoBox[]> {
+async function fetchBoxesFromExplorer(addresses: string[]): Promise<ErgoBox[]> {
   if (isEmpty(addresses)) {
     return [];
   }
