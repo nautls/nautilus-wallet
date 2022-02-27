@@ -4,8 +4,7 @@ import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
-import { find, isEmpty } from "lodash";
-import { ExplorerBox, explorerBoxMapper } from "@/types/explorer";
+import { find } from "lodash";
 
 class PendingBoxesDbService {
   public async getByBoxId(boxId: string): Promise<IDbPendingBox | undefined> {
