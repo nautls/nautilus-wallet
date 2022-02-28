@@ -99,9 +99,15 @@ table thead th:last-child {
 .btn {
   @apply bg-blue-600 border border-solid rounded font-bold
     outline-none border-blue-800 text-sm mr-1 mb-1 py-3 
-    px-4 text-blue-800 uppercase default-transition text-light-300
+    px-4 uppercase default-transition text-light-300
     hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
     active:bg-blue-800;
+}
+
+.btn.danger {
+  @apply bg-red-600 border-red-800 text-light-300
+    hover:(bg-red-700) focus:(ring-red-300)
+    active:bg-red-800;
 }
 
 .btn.outlined {
