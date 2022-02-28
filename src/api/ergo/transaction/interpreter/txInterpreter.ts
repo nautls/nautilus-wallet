@@ -1,6 +1,6 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate } from "@/types/connector";
-import { differenceBy, find, isEmpty } from "lodash";
+import { difference, find, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { OutputInterpreter } from "./outputInterpreter";
 
@@ -23,14 +23,15 @@ export class TxInterpreter {
     this._assetInfo = assetInfo;
 
     this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
-    this._changeBox = find(tx.outputs, (b) =>
-      ownAddresses.includes(addressFromErgoTree(b.ergoTree))
-    );
-    this._sendingBoxes = differenceBy(
+    this._changeBox = find(
       tx.outputs,
-      [this._feeBox, this._changeBox],
-      (b) => b?.ergoTree
+      (b) =>
+        isEmpty(b.additionalRegisters) && ownAddresses.includes(addressFromErgoTree(b.ergoTree))
     );
+
+    this._sendingBoxes = difference(tx.outputs, [this._feeBox, this._changeBox]).filter(
+      (b) => b !== undefined
+    ) as ErgoBoxCandidate[];
 
     if (isEmpty(this._sendingBoxes) && this._changeBox) {
       this._sendingBoxes.push(this._changeBox);
