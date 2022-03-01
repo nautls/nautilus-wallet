@@ -77,13 +77,15 @@
       <div class="w-full align-middle flex flex-row items-center gap-5">
         <div class="flex-grow">
           <p class="font-semibold text-sm">Remove Wallet</p>
-          <div class="text-gray-500 text-xs font-normal mt-1">
-            <p>This action can't be undone</p>
-          </div>
         </div>
-        <button class="btn danger !p-2">
-          <vue-feather class="block" type="trash-2" size="16" />
-        </button>
+        <button class="btn danger !px-2 !py-1" @click="remove()">Remove</button>
+      </div>
+      <div class="text-gray-500 text-xs font-normal mt-1">
+        <p>
+          Removing a wallet does not affect the wallet balance. Your wallet can be restored again at
+          any time. Please double-check you still have the means to restore access to this wallet.
+          If you cannot, removing the wallet may result in irreversible loss of funds.
+        </p>
       </div>
     </div>
   </div>
@@ -180,8 +182,14 @@ export default defineComponent({
     ...mapActions({
       updateWalletSettings: ACTIONS.UPDATE_WALLET_SETTINGS,
       saveSettings: ACTIONS.SAVE_SETTINGS,
-      fetchPrices: ACTIONS.FETCH_CURRENT_PRICES
+      fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
+      removeWallet: ACTIONS.REMOVE_WALLET
     }),
+    async remove() {
+      if (confirm(`Are you sure you want to remove '${this.currentWallet.name}'?`)) {
+        this.removeWallet(this.currentWallet.id);
+      }
+    },
     async updateWallet() {
       const isValid = await this.v$.$validate();
       if (!isValid) {

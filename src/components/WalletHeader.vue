@@ -88,11 +88,12 @@ export default defineComponent({
     ...mapState({
       wallet: "currentWallet",
       loading: "loading",
-      connections: "connections"
+      connections: "connections",
+      wallets: "wallets"
     }),
-    unselectedWallets() {
-      const currentId = this.$store.state.currentWallet?.id;
-      return this.$store.state.wallets.filter((w: StateWallet) => w.id !== currentId);
+    unselectedWallets(): StateWallet[] {
+      const currentId = this.wallet?.id;
+      return this.wallets.filter((w: StateWallet) => w.id !== currentId);
     }
   }
 });
