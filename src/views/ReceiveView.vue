@@ -37,69 +37,60 @@
         {{ errorMsg }}
       </p>
     </div>
-    <div class="flex flex-col">
-      <div class="-my-2 -mx-8">
-        <div class="min-w-full py-2 px-8 align-middle inline-block">
-          <div class="border-b rounded-lg border-gray-200 shadow">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Address ({{ addresses.length }})</th>
-                  <th class="text-right">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="loading" v-for="i in prevCount" :key="i">
-                  <td>
-                    <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
-                  </td>
-                  <td class="text-right">
-                    <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
-                  </td>
-                </tr>
-                <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
-                  <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
-                    <a :href="urlFor(address.script)" target="_blank">{{
-                      $filters.compactString(address.script, 10)
-                    }}</a>
-                    <div class="align-middle inline-block">
-                      <click-to-copy :content="address.script" class="mx-2" size="12" />
+    <div class="border-b rounded-lg shadow">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Address ({{ addresses.length }})</th>
+            <th class="text-right">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading" v-for="i in prevCount" :key="i">
+            <td>
+              <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
+            </td>
+            <td class="text-right">
+              <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
+            </td>
+          </tr>
+          <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
+            <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
+              <a :href="urlFor(address.script)" target="_blank">{{
+                $filters.compactString(address.script, 10)
+              }}</a>
+              <div class="align-middle inline-block">
+                <click-to-copy :content="address.script" class="mx-2" size="12" />
 
-                      <template v-if="!currentWallet.settings.avoidAddressReuse">
-                        <vue-feather
-                          v-if="currentWallet.settings.defaultChangeIndex === address.index"
-                          type="check-circle"
-                          class="text-green-600"
-                          size="12"
-                        />
-                        <tool-tip v-else label="Set as default<br />address">
-                          <a
-                            class="cursor-pointer"
-                            @click="updateDefaultChangeIndex(address.index)"
-                          >
-                            <vue-feather type="circle" size="12" />
-                          </a>
-                        </tool-tip>
-                      </template>
-                      <tool-tip
-                        v-if="hasPendingBalance(address)"
-                        label="Pending transaction<br />for this address"
-                        class="pl-2"
-                      >
-                        <loading-indicator class="w-3 h-3" />
-                      </tool-tip>
-                    </div>
-                  </td>
-                  <td class="text-right">
-                    <span class="float-left">Σ</span>
-                    <span> {{ ergBalanceFor(address) }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                <template v-if="!currentWallet.settings.avoidAddressReuse">
+                  <vue-feather
+                    v-if="currentWallet.settings.defaultChangeIndex === address.index"
+                    type="check-circle"
+                    class="text-green-600"
+                    size="12"
+                  />
+                  <tool-tip v-else label="Set as default<br />address">
+                    <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
+                      <vue-feather type="circle" size="12" />
+                    </a>
+                  </tool-tip>
+                </template>
+                <tool-tip
+                  v-if="hasPendingBalance(address)"
+                  label="Pending transaction<br />for this address"
+                  class="pl-2"
+                >
+                  <loading-indicator class="w-3 h-3" />
+                </tool-tip>
+              </div>
+            </td>
+            <td class="text-right">
+              <span class="float-left">Σ</span>
+              <span> {{ ergBalanceFor(address) }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
