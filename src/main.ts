@@ -4,7 +4,6 @@ import router from "./router";
 import store from "./store";
 import VueFeather from "vue-feather";
 import { wasmModule } from "./utils/wasm-module";
-import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
@@ -49,7 +48,6 @@ app
   })
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
-  .component("page-title", PageTitle)
   .component("click-to-copy", ClickToCopy)
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)

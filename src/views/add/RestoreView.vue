@@ -1,7 +1,6 @@
 <template>
-  <div class="flex-col flex gap-3 h-full">
-    <page-title title="Restore wallet" back-button />
-    <div class="flex-col flex gap-3 flex-grow">
+  <div class="flex-col flex gap-4 h-full pt-2">
+    <div class="flex-col flex gap-4 flex-grow">
       <label
         >Wallet name
         <input
@@ -16,7 +15,7 @@
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
-      <label class="mt-3">
+      <label>
         Recovery phrase
         <o-inputitems
           :disabled="loading"
@@ -46,45 +45,49 @@
           {{ v$.selectedWords.$errors[0].$message }}
         </p>
       </label>
-      <label
-        >Spending password
-        <input
-          :disabled="loading"
-          v-model.lazy="password"
-          @blur="v$.password.$touch()"
-          type="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
-        </p></label
-      >
-      <label
-        >Confirm password
-        <input
-          :disabled="loading"
-          v-model.lazy="confirmPassword"
-          @blur="v$.confirmPassword.$touch()"
-          type="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.confirmPassword.$error">
-          {{ v$.confirmPassword.$errors[0].$message }}
-        </p></label
-      >
+      <div class="flex flex-row gap-4">
+        <label
+          >Spending password
+          <input
+            :disabled="loading"
+            v-model.lazy="password"
+            @blur="v$.password.$touch()"
+            type="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
+          </p></label
+        >
+        <label
+          >Confirm password
+          <input
+            :disabled="loading"
+            v-model.lazy="confirmPassword"
+            @blur="v$.confirmPassword.$touch()"
+            type="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.confirmPassword.$error">
+            {{ v$.confirmPassword.$errors[0].$message }}
+          </p></label
+        >
+      </div>
     </div>
-    <button @click="add()" :disabled="loading" type="button" class="w-full btn mt-3">
-      <loading-indicator v-if="loading" class="h-5 w-5" />
-      <span v-else>Confirm</span>
-    </button>
+    <div class="flex flex-row gap-4">
+      <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
+      <button @click="add()" :disabled="loading" type="button" class="w-full btn">
+        <loading-indicator v-if="loading" class="h-5 w-5" />
+        <span v-else>Confirm</span>
+      </button>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import PageTitle from "@/components/PageTitle.vue";
 import { wordlists } from "bip39";
-import { intersection, intersectionBy, isEmpty, join, orderBy, take } from "lodash";
+import { intersection, isEmpty, join, orderBy, take } from "lodash";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";
@@ -96,7 +99,6 @@ const wordlist = wordlists.english;
 
 export default defineComponent({
   name: "RestoreView",
-  components: { PageTitle },
   setup() {
     return { v$: useVuelidate() };
   },

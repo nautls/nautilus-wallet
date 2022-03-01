@@ -5,7 +5,10 @@
       class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100"
     >
       <img src="@/assets/images/logo.png" class="w-11 ml-2" />
-      <h1 class="text-base text-center font-semibold w-full -ml-13">Nautilus Wallet</h1>
+      <h1 class="text-base text-center font-semibold w-full -ml-15">
+        <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
+        <template v-else>Nautilus Wallet</template>
+      </h1>
     </div>
     <template v-else>
       <wallet-header v-show="!$route.meta.fullPage && $route.query.auth !== 'true'" />

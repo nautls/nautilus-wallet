@@ -26,25 +26,25 @@ const routes: Array<RouteRecordRaw> = [
     name: "add-wallet",
     component: AddView,
     props: true,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Add new wallet" }
   },
   {
     path: "/add/read-only",
     name: "add-read-only-wallet",
     component: AddReadOnlyView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Add read-only wallet" }
   },
   {
     path: "/add/restore",
     name: "restore-wallet",
     component: RestoreView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Restore a standard wallet" }
   },
   {
     path: "/add/new",
     name: "add-standard-wallet",
     component: AddStandardView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Add new standard wallet" }
   },
   {
     path: "/assets",
@@ -69,7 +69,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/connector/auth",
     name: "connector-auth",
-    component: AuthView
+    component: AuthView,
+    meta: { title: "Access request" }
   },
   {
     path: "/connector/connections",
@@ -79,7 +80,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/connector/sign/tx",
     name: "connector-sign-tx",
-    component: SignTxConfirmView
+    component: SignTxConfirmView,
+    meta: { title: "Transaction signature" }
   },
   {
     path: "/wallet/settings",

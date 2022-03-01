@@ -1,7 +1,6 @@
 <template>
-  <div class="flex-col flex gap-3 h-full">
-    <page-title title="Add read-only wallet" back-button />
-    <div class="flex flex-col gap-3 flex-grow">
+  <div class="flex-col flex gap-4 h-full pt-2">
+    <div class="flex flex-col gap-4 flex-grow">
       <label
         >Wallet name
         <input
@@ -33,7 +32,8 @@
       </label>
       <p class="input-error" v-if="pkError !== ''">{{ pkError }}</p>
     </div>
-    <div>
+    <div class="flex flex-row gap-4">
+      <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
       <button type="button" :disabled="loading" @click="add()" class="w-full btn">
         <loading-indicator v-if="loading" class="h-5 w-5" />
         <span v-else>Confirm</span>
@@ -47,15 +47,12 @@ import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 import { WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
-import PageTitle from "@/components/PageTitle.vue";
-import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 import { validPublicKey } from "@/validators";
 
 export default defineComponent({
   name: "AddReadOnlyView",
-  components: { PageTitle, LoadingIndicator },
   setup() {
     return { v$: useVuelidate() };
   },
