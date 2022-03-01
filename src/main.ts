@@ -45,7 +45,7 @@ app
     }
   })
   .use(mdiVue, {
-    icons: { mdiIncognitoCircle, mdiIncognito }
+    icons: { mdiIncognito }
   })
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
