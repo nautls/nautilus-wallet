@@ -3,7 +3,7 @@ body {
 }
 
 .app {
-  @apply bg-light-50 overflow-x-hidden flex flex-col min-h-600px h-600px h-screen min-w-365px gap-0 mx-auto md:(max-w-5/12 shadow-lg);
+  @apply bg-light-50 overflow-x-hidden flex flex-col min-h-600px h-600px h-screen min-w-365px gap-0 mx-auto md:(max-w-4/12 shadow-lg);
 }
 
 a {
@@ -48,13 +48,17 @@ label {
 }
 
 .tabs {
-  @apply flex flex-row shadow px-10 mb-0.6 text-sm text-gray-500 justify-center;
+  @apply flex flex-row text-sm text-gray-500 bg-gray-100 p-0;
 }
 
 .tabs .tab-item {
   @apply outline-none text-center block default-transition max-w-20
-     border-b-2 border-transparent
+     border-b-2 border-gray-200
     hover:text-blue-700 focus:outline-none active:(outline-none text-blue-800);
+}
+
+.tabs .tab-item.spacing {
+  @apply flex-grow max-w-full;
 }
 
 .tabs .tab-item.active {

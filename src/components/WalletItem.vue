@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-row gap-3 items-center w-full">
     <div class="flex flex-col gap-0.5 h-auto w-full text-left whitespace-nowrap">
-      <div class="font-semibold text-base w-39 h-full truncate" :class="{ 'text-right': reverse }">
+      <div class="font-semibold text-sm w-39 h-full truncate" :class="{ 'text-right': reverse }">
         {{ wallet.name }}
       </div>
       <div

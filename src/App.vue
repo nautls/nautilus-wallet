@@ -2,10 +2,10 @@
   <div class="app">
     <div
       v-if="$route.meta.fullPage || $route.query.auth === 'true'"
-      class="flex flex-row p-4 gap-3 items-center bg-gray-100"
+      class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100"
     >
-      <img src="@/assets/images/logo.png" class="w-10" />
-      <h1 class="text-xl font-500">Nautilus Wallet</h1>
+      <img src="@/assets/images/logo.png" class="w-11 ml-2" />
+      <h1 class="text-base text-center font-semibold w-full -ml-13">Nautilus Wallet</h1>
     </div>
     <template v-else>
       <wallet-header v-show="!$route.meta.fullPage && $route.query.auth !== 'true'" />

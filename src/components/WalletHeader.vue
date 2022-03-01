@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
     <div class="flex-grow">
-      <img src="@/assets/images/logo.png" class="w-12 ml-2" />
+      <img src="@/assets/images/logo.png" class="w-11 ml-2" />
     </div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'">
@@ -47,6 +47,8 @@
               <vue-feather type="settings" size="16" class="align-middle pr-2" />
               <span class="align-middle">Settings</span></router-link
             >
+          </div>
+          <div class="group">
             <router-link :to="{ name: 'about-nautilus' }" class="group-item narrow">
               <vue-feather type="info" size="16" class="align-middle pr-2" />
               <span class="align-middle">About</span></router-link
