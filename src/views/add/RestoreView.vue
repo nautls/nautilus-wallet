@@ -46,7 +46,7 @@
         </p>
       </label>
       <div class="flex flex-row gap-4">
-        <label
+        <label class="w-1/2"
           >Spending password
           <input
             :disabled="loading"
@@ -59,7 +59,7 @@
             {{ v$.password.$errors[0].$message }}
           </p></label
         >
-        <label
+        <label class="w-1/2"
           >Confirm password
           <input
             :disabled="loading"
