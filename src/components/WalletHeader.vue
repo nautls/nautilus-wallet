@@ -1,19 +1,20 @@
 <template>
   <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
     <div class="flex-grow">
-      <img src="@/assets/images/logo.png" class="w-14 ml-2" />
+      <img src="@/assets/images/logo.png" class="w-12 ml-2" />
     </div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'">
-        <template v-slot:trigger>
+        <template v-slot:trigger="{ active }">
           <wallet-item
             :wallet="wallet"
+            :reverse="!active"
             :loading="loading.addresses || loading.balance"
             :key="wallet.id"
           />
         </template>
         <template v-slot:items>
-          <div class="group" v-if="unselectedWallets.length > 0">
+          <div class="group">
             <a
               v-for="unselected in unselectedWallets"
               @click="setCurrentWallet(unselected)"
@@ -23,11 +24,13 @@
               <wallet-item :wallet="unselected" :key="wallet.id" />
             </a>
           </div>
-          <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
+          <div class="group">
             <router-link :to="{ name: 'add-wallet' }" class="group-item narrow">
               <vue-feather type="plus-circle" size="16" class="align-middle pr-2" />
               <span class="align-middle">Add new wallet</span></router-link
             >
+          </div>
+          <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
             <a @click="expandView()" class="group-item narrow">
               <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
               <span class="align-middle">Expand view</span></a

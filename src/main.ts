@@ -16,6 +16,8 @@ import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
+import mdiVue from "mdi-vue/v3";
+import { mdiIncognitoCircle, mdiIncognito } from "@mdi/js";
 
 import "@/config/axiosConfig";
 
@@ -41,6 +43,9 @@ app
     switch: {
       checkCheckedClass: "bg-blue-600"
     }
+  })
+  .use(mdiVue, {
+    icons: { mdiIncognitoCircle, mdiIncognito }
   })
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
