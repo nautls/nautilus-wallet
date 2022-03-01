@@ -23,7 +23,7 @@
     </div>
 
     <canvas
-      class="rounded w-9 h-9 ring-1 ring-gray-400 ring-offset-1 inline-block"
+      class="rounded w-9 h-9 ring-1 ring-gray-300 ring-offset-1 inline-block"
       :id="canvaId"
     ></canvas>
   </div>
