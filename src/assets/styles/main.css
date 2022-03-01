@@ -85,19 +85,30 @@ label {
   @apply text-sm py-4 align-middle;
 }
 
-table tbody td:first-child,
-table thead th:first-child {
+.table tbody td:first-child,
+.table thead th:first-child {
   @apply pl-4;
 }
 
-table tbody td:last-child,
-table thead th:last-child {
+.table tbody td:last-child,
+.table thead th:last-child {
   @apply pr-4;
 }
 
-.back-btn {
-  @apply bg-transparent cursor-pointer default-transition
-  hover:text-blue-700 focus:outline-none active:text-blue-800;
+.table tr:first-child th:first-child {
+  @apply rounded-tl;
+}
+
+.table tr:first-child th:last-child {
+  @apply rounded-tr;
+}
+
+.table tr:last-child td:first-child {
+  @apply rounded-bl;
+}
+
+.table tr:last-child td:last-child {
+  @apply rounded-br;
 }
 
 .btn {

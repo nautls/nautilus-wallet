@@ -37,7 +37,7 @@
         {{ errorMsg }}
       </p>
     </div>
-    <div class="border-b rounded-lg shadow">
+    <div class="border rounded">
       <table class="table">
         <thead>
           <tr>

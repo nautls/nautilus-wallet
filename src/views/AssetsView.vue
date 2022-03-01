@@ -9,7 +9,7 @@
         class="w-full control block"
       />
     </div>
-    <div class="border-b rounded-lg shadow">
+    <div class="border rounded">
       <table class="table">
         <thead>
           <tr>
@@ -17,7 +17,7 @@
             <th class="text-right">Balance</th>
           </tr>
         </thead>
-        <tbody class="rounded-lg">
+        <tbody>
           <tr v-if="loading" v-for="i in prevCount" :key="i">
             <td class="w-14 align-middle">
               <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
