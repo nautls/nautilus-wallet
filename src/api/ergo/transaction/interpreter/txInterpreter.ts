@@ -1,6 +1,6 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate } from "@/types/connector";
-import { difference, find, isEmpty } from "lodash";
+import { difference, find, findLast, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { OutputInterpreter } from "./outputInterpreter";
 
@@ -21,9 +21,9 @@ export class TxInterpreter {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
-
+    console.log(tx);
     this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
-    this._changeBox = find(
+    this._changeBox = findLast(
       tx.outputs,
       (b) =>
         isEmpty(b.additionalRegisters) && ownAddresses.includes(addressFromErgoTree(b.ergoTree))
