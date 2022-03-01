@@ -45,7 +45,7 @@
       </div>
       <label>
         Recovery phrase
-        <div class="input-wrap !text-lg font-normal leading-relaxed p-2">
+        <div class="input-wrap !text-base bg-gray-100 font-normal leading-relaxed p-2">
           {{ mnemonic }}
         </div>
         <p class="text-xs font-normal p-1">
