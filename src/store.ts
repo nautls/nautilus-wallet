@@ -15,7 +15,9 @@ import {
   maxBy,
   clone,
   findLastIndex,
-  isEmpty
+  isEmpty,
+  remove,
+  indexOf
 } from "lodash";
 import {
   Network,
@@ -267,6 +269,29 @@ export default createStore({
 
       assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
       state.assetMarketRates = assetErgRate;
+    },
+    [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
+      if (state.currentWallet.id === walletId) {
+        state.currentWallet = find(state.wallets, (w) => w.id !== walletId) ?? {
+          id: 0,
+          name: "",
+          type: WalletType.Standard,
+          publicKey: "",
+          extendedPublicKey: "",
+          settings: {
+            avoidAddressReuse: false,
+            hideUsedAddresses: false,
+            defaultChangeIndex: 0
+          }
+        };
+
+        state.currentAddresses = [];
+      }
+
+      const removeIndex = findIndex(state.wallets, (w) => w.id === walletId);
+      if (removeIndex > -1) {
+        state.wallets.splice(removeIndex, 1);
+      }
     }
   },
   actions: {
@@ -518,6 +543,21 @@ export default createStore({
     async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
       const assets = await assestsDbService.getByWalletId(walletId);
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
+    },
+    async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
+      await walletsDbService.delete(walletId);
+
+      if (state.currentWallet.id === walletId) {
+        const wallet = find(state.wallets, (w) => w.id !== walletId);
+        if (wallet) {
+          await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
+          router.push({ name: "assets-page" });
+        } else {
+          router.push({ name: "add-wallet" });
+        }
+      }
+
+      commit(MUTATIONS.REMOVE_WALLET, walletId);
     },
     async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
       const balances = await explorerService.getAddressesBalance(data.addresses);

@@ -16,20 +16,8 @@ module.exports = {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
     background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
+  transpileDependencies: ["ergo-market-lib"],
   chainWebpack: (config) => {
-    config.module
-      .rule("ergo-market-lib")
-      .test({
-        test: /\.js$/,
-        include: path.join(__dirname, "node_modules/ergo-market-lib/dist")
-      })
-      .use("babel-loader")
-      .loader("babel-loader")
-      .options({
-        plugins: ["@babel/plugin-proposal-optional-chaining"]
-      })
-      .end();
-
     config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 
     config.plugin("copy").tap(([pathConfigs]) => {

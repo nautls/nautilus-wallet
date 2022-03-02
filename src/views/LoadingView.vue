@@ -6,7 +6,7 @@
         alt="Nautilus"
         class="w-30 h-30 mx-auto animate-pulse"
       />
-      <h1 class="text-2xl pt-5">Nautilus Wallet</h1>
+      <h1 class="text-xl pt-5">Loading...</h1>
     </div>
   </div>
 </template>

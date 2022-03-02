@@ -9,81 +9,75 @@
         class="w-full control block"
       />
     </div>
-    <div class="flex flex-col">
-      <div class="-my-2 -mx-8">
-        <div class="min-w-full py-2 px-8 align-middle inline-block">
-          <div class="border-b rounded-lg border-gray-200 shadow">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th colspan="2">Asset</th>
-                  <th class="text-right">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="loading" v-for="i in prevCount" :key="i">
-                  <td class="w-14 align-middle">
-                    <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
-                  </td>
-                  <td class="align-middle">
-                    <div class="skeleton h-3 w-2/3 rounded"></div>
-                  </td>
-                  <td class="text-right w-50 align-middle">
-                    <div class="skeleton h-3 w-3/5 rounded"></div>
-                    <template v-if="i === 1">
-                      <br />
-                      <div class="skeleton h-3 w-2/5 rounded"></div>
-                    </template>
-                  </td>
-                </tr>
-                <tr v-else v-for="asset in assets" :key="asset.tokenId">
-                  <td class="w-14 align-middle">
-                    <img
-                      :src="$filters.assetLogo(asset.tokenId)"
-                      class="h-8 w-8 rounded-full"
-                      :alt="asset.name"
-                    />
-                  </td>
-                  <td class="align-middle">
-                    <p v-if="isErg(asset.tokenId)" class="font-semibold">
-                      {{ asset.name }}
-                    </p>
-                    <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-all">
-                      <template v-if="asset.name">{{
-                        $filters.compactString(asset.name, 30, "end")
-                      }}</template>
-                      <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
-                    </a>
-                  </td>
-                  <td class="text-right align-middle whitespace-nowrap">
-                    <p>
-                      {{ $filters.formatBigNumber(asset.confirmedAmount) }}
-                    </p>
-                    <tool-tip
-                      v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                      :label="`1 ${asset.name} <br /> ≈ ${$filters.formatBigNumber(
-                        price(asset.tokenId),
-                        2
-                      )} ${$filters.uppercase(conversionCurrency)}`"
-                    >
-                      <p class="text-xs text-gray-500">
-                        ≈
-                        {{
-                          $filters.formatBigNumber(
-                            asset.confirmedAmount.multipliedBy(price(asset.tokenId)),
-                            2
-                          )
-                        }}
-                        {{ $filters.uppercase(conversionCurrency) }}
-                      </p>
-                    </tool-tip>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <div class="border rounded">
+      <table class="table">
+        <thead>
+          <tr>
+            <th colspan="2">Asset</th>
+            <th class="text-right">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading" v-for="i in prevCount" :key="i">
+            <td class="w-14 align-middle">
+              <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
+            </td>
+            <td class="align-middle">
+              <div class="skeleton h-3 w-2/3 rounded"></div>
+            </td>
+            <td class="text-right w-50 align-middle">
+              <div class="skeleton h-3 w-3/5 rounded"></div>
+              <template v-if="i === 1">
+                <br />
+                <div class="skeleton h-3 w-2/5 rounded"></div>
+              </template>
+            </td>
+          </tr>
+          <tr v-else v-for="asset in assets" :key="asset.tokenId">
+            <td class="w-14 align-middle">
+              <img
+                :src="$filters.assetLogo(asset.tokenId)"
+                class="h-8 w-8 rounded-full"
+                :alt="asset.name"
+              />
+            </td>
+            <td class="align-middle">
+              <p v-if="isErg(asset.tokenId)" class="font-semibold">
+                {{ asset.name }}
+              </p>
+              <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-all">
+                <template v-if="asset.name">{{
+                  $filters.compactString(asset.name, 30, "end")
+                }}</template>
+                <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
+              </a>
+            </td>
+            <td class="text-right align-middle whitespace-nowrap">
+              <p>
+                {{ $filters.formatBigNumber(asset.confirmedAmount) }}
+              </p>
+              <tool-tip
+                v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
+                :label="`1 ${asset.name} <br /> ≈ ${$filters.formatBigNumber(
+                  price(asset.tokenId),
+                  2
+                )} ${$filters.uppercase(conversionCurrency)}`"
+              >
+                <p class="text-xs text-gray-500">
+                  ≈
+                  {{
+                    $filters.formatBigNumber(
+                      asset.confirmedAmount.multipliedBy(price(asset.tokenId)),
+                      2
+                    )
+                  }}
+                  {{ $filters.uppercase(conversionCurrency) }}
+                </p>
+              </tool-tip>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

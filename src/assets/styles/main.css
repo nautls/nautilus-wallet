@@ -3,7 +3,7 @@ body {
 }
 
 .app {
-  @apply bg-light-50 overflow-x-hidden flex flex-col min-h-600px h-600px h-screen min-w-365px gap-0 mx-auto md:(max-w-5/12 shadow-lg);
+  @apply bg-light-50 overflow-x-hidden flex flex-col min-h-600px h-600px h-screen min-w-365px gap-0 mx-auto md:(max-w-4/12 shadow-lg);
 }
 
 a {
@@ -48,13 +48,17 @@ label {
 }
 
 .tabs {
-  @apply flex flex-row shadow px-10 mb-0.6 text-sm text-gray-500 justify-center;
+  @apply flex flex-row text-sm text-gray-500 bg-gray-100 p-0;
 }
 
 .tabs .tab-item {
   @apply outline-none text-center block default-transition max-w-20
-     border-b-2 border-transparent
+     border-b-2 border-gray-200
     hover:text-blue-700 focus:outline-none active:(outline-none text-blue-800);
+}
+
+.tabs .tab-item.spacing {
+  @apply flex-grow max-w-full;
 }
 
 .tabs .tab-item.active {
@@ -81,27 +85,44 @@ label {
   @apply text-sm py-4 align-middle;
 }
 
-table tbody td:first-child,
-table thead th:first-child {
+.table tbody td:first-child,
+.table thead th:first-child {
   @apply pl-4;
 }
 
-table tbody td:last-child,
-table thead th:last-child {
+.table tbody td:last-child,
+.table thead th:last-child {
   @apply pr-4;
 }
 
-.back-btn {
-  @apply bg-transparent cursor-pointer default-transition
-  hover:text-blue-700 focus:outline-none active:text-blue-800;
+.table tr:first-child th:first-child {
+  @apply rounded-tl;
+}
+
+.table tr:first-child th:last-child {
+  @apply rounded-tr;
+}
+
+.table tr:last-child td:first-child {
+  @apply rounded-bl;
+}
+
+.table tr:last-child td:last-child {
+  @apply rounded-br;
 }
 
 .btn {
   @apply bg-blue-600 border border-solid rounded font-bold
     outline-none border-blue-800 text-sm mr-1 mb-1 py-3 
-    px-4 text-blue-800 uppercase default-transition text-light-300
+    px-4 uppercase default-transition text-light-300
     hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
     active:bg-blue-800;
+}
+
+.btn.danger {
+  @apply bg-red-600 border-red-800 text-light-300
+    hover:(bg-red-700) focus:(ring-red-300)
+    active:bg-red-800;
 }
 
 .btn.outlined {

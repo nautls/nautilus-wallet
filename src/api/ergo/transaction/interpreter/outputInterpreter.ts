@@ -1,8 +1,8 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
-import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
+import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, first, isEmpty, min } from "lodash";
+import { find, findIndex, first, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { AssetInfo } from "./txInterpreter";
 
@@ -12,7 +12,7 @@ export type OutputAsset = {
   amount: BigNumber;
   decimals?: number;
   description?: string;
-  isMinting?: boolean;
+  minting?: boolean;
 };
 
 export class OutputInterpreter {
@@ -34,6 +34,10 @@ export class OutputInterpreter {
     return this._addresses?.includes(this.receiver) ?? false;
   }
 
+  public get isMinting(): boolean {
+    return find(this._assets, (a) => a.minting) !== undefined;
+  }
+
   constructor(
     boxCandidate: ErgoBoxCandidate,
     inputs: UnsignedInput[],
@@ -47,7 +51,7 @@ export class OutputInterpreter {
     this._addresses = addresses;
   }
 
-  getSendingAssets(): OutputAsset[] {
+  private getSendingAssets(): OutputAsset[] {
     const assets = [] as OutputAsset[];
     assets.push({
       tokenId: ERG_TOKEN_ID,
@@ -107,7 +111,7 @@ export class OutputInterpreter {
         ? setDecimals(toBigNumber(token.amount)!, decimals)
         : toBigNumber(token.amount)!,
       description: this.parseRegister(this._box.additionalRegisters["R5"]) ?? "",
-      isMinting: true
+      minting: true
     };
   }
 

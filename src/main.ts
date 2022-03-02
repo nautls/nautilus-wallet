@@ -4,7 +4,6 @@ import router from "./router";
 import store from "./store";
 import VueFeather from "vue-feather";
 import { wasmModule } from "./utils/wasm-module";
-import PageTitle from "@/components/PageTitle.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
@@ -16,6 +15,8 @@ import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
+import mdiVue from "mdi-vue/v3";
+import { mdiIncognito } from "@mdi/js";
 
 import "@/config/axiosConfig";
 
@@ -42,9 +43,11 @@ app
       checkCheckedClass: "bg-blue-600"
     }
   })
+  .use(mdiVue, {
+    icons: { mdiIncognito }
+  })
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
-  .component("page-title", PageTitle)
   .component("click-to-copy", ClickToCopy)
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)

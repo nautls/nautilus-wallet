@@ -1,18 +1,29 @@
 <template>
-  <div class="flex flex-row gap-2 items-center w-full">
-    <div class="flex flex-col gap-1 h-auto w-full text-left whitespace-nowrap">
-      <div class="font-semibold text-base w-42 h-full truncate">{{ wallet.name }}</div>
-      <div class="h-full text-xs">
-        <span class="align-middle font-mono font-normal">{{ checksum }}</span>
-        <small class="rounded bg-gray-200 mx-2 p-1 font-normal text-dark-200 uppercase">{{
+  <div class="flex flex-row gap-3 items-center w-full">
+    <div class="flex flex-col gap-0.5 h-auto w-full text-left whitespace-nowrap">
+      <div class="font-semibold text-sm w-39 h-full truncate" :class="{ 'text-right': reverse }">
+        {{ wallet.name }}
+      </div>
+      <div
+        class="h-full text-xs flex items-center flex-row gap-1"
+        :class="{ 'flex-row-reverse': reverse }"
+      >
+        <small class="align-middle font-normal">{{ checksum }}</small>
+        <small class="rounded bg-gray-200 px-1 font-normal text-dark-200 uppercase">{{
           $filters.walletType(wallet.type)
         }}</small>
+        <mdicon
+          class="inline-block align-middle"
+          name="incognito"
+          size="16"
+          v-if="wallet.settings.avoidAddressReuse"
+        />
         <loading-indicator v-if="loading" class="w-4 h-4" />
       </div>
     </div>
 
     <canvas
-      class="rounded w-10 h-10 ring-1 ring-gray-400 ring-offset-1 inline-block"
+      class="rounded w-9 h-9 ring-1 ring-gray-300 ring-offset-1 inline-block"
       :id="canvaId"
     ></canvas>
   </div>
@@ -43,7 +54,7 @@ export default defineComponent({
   props: {
     wallet: { type: Object, required: true },
     loading: { type: Boolean, default: false },
-    uid: { type: String, default: "" }
+    reverse: { type: Boolean, default: false }
   },
   data() {
     return {

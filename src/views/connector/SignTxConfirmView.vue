@@ -36,7 +36,7 @@
                     }}</template>
                     <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
                   </span>
-                  <tool-tip v-if="asset.isMinting" class="align-middle">
+                  <tool-tip v-if="asset.minting" class="align-middle">
                     <template v-slot:label>
                       <div class="block w-38">
                         <span>This asset is being minted by this transaction.</span>
