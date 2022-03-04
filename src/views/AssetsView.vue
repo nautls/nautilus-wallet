@@ -34,7 +34,7 @@
             </td>
           </tr>
           <tr v-else v-for="asset in assets" :key="asset.tokenId">
-            <td class="w-14 align-middle">
+            <td class="w-14 min-w-14 align-middle">
               <img
                 :src="$filters.assetLogo(asset.tokenId)"
                 class="h-8 w-8 rounded-full"
@@ -45,10 +45,8 @@
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
                 {{ asset.name }}
               </p>
-              <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-all">
-                <template v-if="asset.name">{{
-                  $filters.compactString(asset.name, 30, "end")
-                }}</template>
+              <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-anywhere">
+                <template v-if="asset.name">{{ $filters.compactString(asset.name, 40) }}</template>
                 <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
               </a>
             </td>
