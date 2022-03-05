@@ -19,7 +19,7 @@ class PendingBoxesDbService {
     return await dbContext.utxos.where({ walletId }).toArray();
   }
 
-  public async addFromTx(signedTx: ErgoTx, inputBoxes: ErgoBox[], walletId: number) {
+  public async addFromTx(signedTx: ErgoTx, walletId: number) {
     const addresses = (await addressesDbService.getByWalletId(walletId)).map((a) => a.script);
 
     const boxes = signedTx.inputs
@@ -28,7 +28,6 @@ class PendingBoxesDbService {
           id: input.boxId,
           confirmed: true,
           spent: true,
-          content: find(inputBoxes, (b) => b.boxId === input.boxId),
           transactionId: signedTx.id,
           walletId
         } as IDbUtxo;
