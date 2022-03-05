@@ -4,9 +4,8 @@ import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
-import { find } from "lodash";
 
-class PendingBoxesDbService {
+class UTxOsDbService {
   public async getByBoxId(boxId: string): Promise<IDbUtxo | undefined> {
     return await dbContext.utxos.where({ boxId }).first();
   }
@@ -71,4 +70,4 @@ class PendingBoxesDbService {
   }
 }
 
-export const pendingBoxesDbService = new PendingBoxesDbService();
+export const utxosDbService = new UTxOsDbService();

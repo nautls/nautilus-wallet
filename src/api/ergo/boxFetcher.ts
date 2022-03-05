@@ -4,7 +4,7 @@ import { explorerBoxMapper } from "@/types/explorer";
 import { difference, find, isEmpty, sortBy, unionBy } from "lodash";
 import { addressesDbService } from "../database/addressesDbService";
 import { assestsDbService } from "../database/assetsDbService";
-import { pendingBoxesDbService } from "../database/pendingBoxesDbService";
+import { utxosDbService } from "../database/utxosDbService";
 import { explorerService } from "../explorer/explorerService";
 
 export async function fetchBoxes(
@@ -20,7 +20,7 @@ export async function fetchBoxes(
     options.tokenId ?? ERG_TOKEN_ID
   );
   const pendingBoxes = options.includeUnconfirmed
-    ? await pendingBoxesDbService.getByWalletId(walletId)
+    ? await utxosDbService.getByWalletId(walletId)
     : [];
 
   let boxes = await fetchBoxesFromExplorer(addresses);
