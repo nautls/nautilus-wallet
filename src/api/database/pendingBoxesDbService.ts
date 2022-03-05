@@ -1,4 +1,4 @@
-import { IDbPendingBox } from "@/types/database";
+import { IDbUtxo } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
@@ -7,16 +7,16 @@ import BigNumber from "bignumber.js";
 import { find } from "lodash";
 
 class PendingBoxesDbService {
-  public async getByBoxId(boxId: string): Promise<IDbPendingBox | undefined> {
-    return await dbContext.pendingBoxes.where({ boxId }).first();
+  public async getByBoxId(boxId: string): Promise<IDbUtxo | undefined> {
+    return await dbContext.utxos.where({ boxId }).first();
   }
 
-  public async getByTxId(txId: string): Promise<IDbPendingBox[]> {
-    return await dbContext.pendingBoxes.where({ transactionId: txId }).toArray();
+  public async getByTxId(txId: string): Promise<IDbUtxo[]> {
+    return await dbContext.utxos.where({ transactionId: txId }).toArray();
   }
 
-  public async getByWalletId(walletId: number): Promise<IDbPendingBox[]> {
-    return await dbContext.pendingBoxes.where({ walletId }).toArray();
+  public async getByWalletId(walletId: number): Promise<IDbUtxo[]> {
+    return await dbContext.utxos.where({ walletId }).toArray();
   }
 
   public async addFromTx(signedTx: ErgoTx, inputBoxes: ErgoBox[], walletId: number) {
@@ -25,31 +25,31 @@ class PendingBoxesDbService {
     const boxes = signedTx.inputs
       .map((input) => {
         return {
-          boxId: input.boxId,
+          id: input.boxId,
           confirmed: true,
-          locked: true,
+          spent: true,
           content: find(inputBoxes, (b) => b.boxId === input.boxId),
           transactionId: signedTx.id,
           walletId
-        } as IDbPendingBox;
+        } as IDbUtxo;
       })
       .concat(
         signedTx.outputs
           .filter((output) => addresses.includes(addressFromErgoTree(output.ergoTree)))
           .map((output) => {
             return {
-              boxId: output.boxId,
+              id: output.boxId,
               confirmed: false,
-              locked: false,
+              spent: false,
               content: { ...this.stringifyAmounts(output), confirmed: false },
               transactionId: signedTx.id,
               address: addressFromErgoTree(output.ergoTree),
               walletId
-            } as IDbPendingBox;
+            } as IDbUtxo;
           })
       );
 
-    await dbContext.pendingBoxes.bulkPut(boxes);
+    await dbContext.utxos.bulkPut(boxes);
   }
 
   private stringifyAmounts(box: ErgoBox): ErgoBox {

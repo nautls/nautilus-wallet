@@ -44,11 +44,11 @@ export interface IDbDAppConnection {
   favicon?: string;
 }
 
-export interface IDbPendingBox {
-  boxId: string;
+export interface IDbUtxo {
+  id: string;
   transactionId: string;
   confirmed: boolean;
-  locked: boolean;
+  spent: boolean;
   content?: ErgoBox;
   address?: string;
   walletId: number;
