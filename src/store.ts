@@ -15,9 +15,7 @@ import {
   maxBy,
   clone,
   findLastIndex,
-  isEmpty,
-  remove,
-  indexOf
+  isEmpty
 } from "lodash";
 import {
   Network,
