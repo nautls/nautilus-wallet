@@ -2,7 +2,7 @@ import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { differenceBy, find, groupBy, isEmpty, keys, union, unionBy, uniq } from "lodash";
 import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
-import { AssetType } from "@/types/internal";
+import { AssetStandard } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { isZero } from "@/utils/bigNumbers";
 
@@ -35,7 +35,7 @@ class assetsDbService {
           return {
             tokenId: t.tokenId,
             name: t.name,
-            type: AssetType.EIP4,
+            type: AssetStandard.EIP4,
             confirmedAmount: t.amount?.toString() || "0",
             decimals: t.decimals,
             address: balance.address,
@@ -47,7 +47,7 @@ class assetsDbService {
       assets.push({
         tokenId: ERG_TOKEN_ID,
         name: "ERG",
-        type: AssetType.Native,
+        type: AssetStandard.Native,
         confirmedAmount: balance.data.confirmed.nanoErgs?.toString() || "0",
         unconfirmedAmount: balance.data.unconfirmed.nanoErgs?.toString(),
         decimals: ERG_DECIMALS,

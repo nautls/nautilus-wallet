@@ -23,12 +23,12 @@ export enum AddressType {
   P2S
 }
 
-export enum AssetType {
+export enum AssetStandard {
   Native = "Native",
   EIP4 = "EIP-004"
 }
 
-export enum AssetCategory {
+export enum AssetType {
   PictureNFT = "0101",
   AudioNFT = "0102",
   VideoNFT = "0103",

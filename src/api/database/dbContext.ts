@@ -24,7 +24,7 @@ class NautilusDb extends Dexie {
       addresses: "&script, type, state, index, walletId"
     });
 
-    this.version(4).upgrade((t) => {
+    this.version(4).upgrade(async (t) => {
       t.table("wallets").each((obj, k) => {
         t.table("wallets").update(k.primaryKey, {
           "settings.avoidAddressReuse": false,
@@ -33,6 +33,8 @@ class NautilusDb extends Dexie {
         });
       });
     });
+
+    this.version(5).stores({});
   }
 }
 

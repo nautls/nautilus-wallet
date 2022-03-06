@@ -1,11 +1,13 @@
 import {
   AddressState,
   AddressType,
+  AssetStandard,
   AssetType,
   Network,
   WalletSettings,
   WalletType
 } from "@/types/internal";
+import { Registers } from "./connector";
 
 export type IDbWallet = {
   id?: number;
@@ -29,7 +31,7 @@ export type IDbAddress = {
 export type IDbAsset = {
   tokenId: string;
   name: string;
-  type: AssetType;
+  type: AssetStandard;
   confirmedAmount: string;
   unconfirmedAmount?: string;
   decimals: number;
@@ -42,3 +44,16 @@ export type IDbDAppConnection = {
   walletId: number;
   favicon?: string;
 };
+
+export interface IDbAssetInfo {
+  id: string;
+  standard: AssetStandard;
+  decimals?: string;
+  type?: AssetType;
+  name?: string;
+  mintingBoxId?: string;
+  transactionId?: string;
+  emissionAmount?: string;
+  description?: string;
+  additionalRegisters?: Registers;
+}
