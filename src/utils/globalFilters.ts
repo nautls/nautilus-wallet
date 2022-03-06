@@ -30,9 +30,11 @@ export const filters = {
       if (fragmentSize * 2 + ellipsis.length >= val.length) {
         return val;
       }
-      return `${val.slice(0, fragmentSize)}${ellipsis}${val.slice(val.length - fragmentSize)}`;
+      return `${val.slice(0, fragmentSize).trimEnd()}${ellipsis}${val
+        .slice(val.length - fragmentSize)
+        .trimStart()}`;
     } else {
-      return `${val.slice(0, maxLength - ellipsis.length + 1)}${ellipsis}`;
+      return `${val.slice(0, maxLength - ellipsis.length + 1).trimEnd()}${ellipsis}`;
     }
   },
   formatBigNumber(value: BigNumber, decimalPlaces?: number) {

@@ -9,7 +9,7 @@
         <div class="mb-1">
           <p class="font-semibold mb-1">Recipient</p>
 
-          <p class="rounded font-mono bg-gray-200 text-sm py-1 px-2 break-all">
+          <p class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
             {{ $filters.compactString(output.receiver, 60) }}
             <click-to-copy :content="output.receiver" size="12" />
             <span

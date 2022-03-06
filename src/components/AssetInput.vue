@@ -32,9 +32,14 @@
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
-            <span class="flex-grow" v-if="asset.name">{{
-              $filters.compactString(asset.name, 10, "end")
-            }}</span>
+            <span class="flex-grow" v-if="asset.name"
+              ><tool-tip v-if="asset.name.length > 10" tip-class="max-w-35" :label="asset.name">
+                {{ $filters.compactString(asset.name, 10) }}
+              </tool-tip>
+              <template v-else>
+                {{ asset.name }}
+              </template></span
+            >
             <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
             <img
               class="h-5 rounded-full object-scale-down w-5 inline-block flex-shrink"

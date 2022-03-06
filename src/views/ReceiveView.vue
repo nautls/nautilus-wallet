@@ -6,9 +6,7 @@
           ><span v-if="avoidingReuse">Your current address</span>
           <span v-else>Your default address</span></label
         >
-        <div
-          class="rounded font-mono bg-gray-100 text-sm p-2 break-all border border-gray-200 border"
-        >
+        <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
           <template v-if="loading">
             <div class="skeleton h-3 w-full rounded"></div>
             <div class="skeleton h-3 w-full rounded"></div>

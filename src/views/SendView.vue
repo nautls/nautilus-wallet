@@ -45,7 +45,7 @@
                   />
                   <div class="flex-grow">
                     <template v-if="asset.name">{{
-                      $filters.compactString(asset.name, 20, "end")
+                      $filters.compactString(asset.name, 26)
                     }}</template>
                     <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
                   </div>
