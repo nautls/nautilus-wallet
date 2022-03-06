@@ -48,7 +48,7 @@ export interface IDbUtxo {
   id: string;
   transactionId: string;
   confirmed: boolean;
-  spent: boolean;
+  locked: boolean;
   content?: ErgoBox;
   address?: string;
   walletId: number;

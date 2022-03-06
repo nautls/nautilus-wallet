@@ -28,13 +28,13 @@ export async function fetchBoxes(
   if (
     options.useAllAddressesAsFallback &&
     isEmpty(boxes) &&
-    !find(pendingBoxes, (b) => !b.spent && b.content)
+    !find(pendingBoxes, (b) => !b.locked && b.content)
   ) {
     boxes = await fetchBoxesFromExplorer(difference(await getAllAddresses(walletId), addresses));
   }
   if (!isEmpty(pendingBoxes)) {
-    const lockedIds = pendingBoxes.filter((x) => x.spent).map((x) => x.id);
-    const unconfirmed = pendingBoxes.filter((b) => !b.spent && b.content).map((b) => b.content!);
+    const lockedIds = pendingBoxes.filter((x) => x.locked).map((x) => x.id);
+    const unconfirmed = pendingBoxes.filter((b) => !b.locked && b.content).map((b) => b.content!);
 
     if (!isEmpty(lockedIds)) {
       boxes = boxes.filter((b) => !lockedIds.includes(b.boxId));

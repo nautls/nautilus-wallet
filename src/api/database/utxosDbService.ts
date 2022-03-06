@@ -26,7 +26,7 @@ class UTxOsDbService {
         return {
           id: input.boxId,
           confirmed: true,
-          spent: true,
+          locked: true,
           transactionId: signedTx.id,
           walletId
         } as IDbUtxo;
@@ -38,7 +38,7 @@ class UTxOsDbService {
             return {
               id: output.boxId,
               confirmed: false,
-              spent: false,
+              locked: false,
               content: { ...this.stringifyAmounts(output), confirmed: false },
               transactionId: signedTx.id,
               address: addressFromErgoTree(output.ergoTree),
