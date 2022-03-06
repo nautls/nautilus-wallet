@@ -115,9 +115,13 @@ export default defineComponent({
       return this.$store.state.currentAddresses;
     },
     addresses(): StateAddress[] {
-      if (this.currentWallet.settings.hideUsedAddresses) {
+      const settings = this.currentWallet.settings;
+      if (settings.hideUsedAddresses) {
         return this.stateAddresses.filter(
-          (a) => a.state === AddressState.Unused || (a.state === AddressState.Used && a.balance)
+          (a) =>
+            a.state === AddressState.Unused ||
+            (a.state === AddressState.Used && a.balance) ||
+            (!settings.avoidAddressReuse && a.index === settings.defaultChangeIndex)
         );
       }
 

@@ -21,14 +21,10 @@ export class TxInterpreter {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
-    console.log(tx);
     this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
-    this._changeBox = findLast(
-      tx.outputs,
-      (b) =>
-        isEmpty(b.additionalRegisters) && ownAddresses.includes(addressFromErgoTree(b.ergoTree))
+    this._changeBox = findLast(tx.outputs, (b) =>
+      ownAddresses.includes(addressFromErgoTree(b.ergoTree))
     );
-
     this._sendingBoxes = difference(tx.outputs, [this._feeBox, this._changeBox]).filter(
       (b) => b !== undefined
     ) as ErgoBoxCandidate[];
