@@ -10,12 +10,14 @@ import {
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
 import axios from "axios";
+import axiosRetry from "axios-retry";
 import { chunk, find } from "lodash";
 import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
+axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class ExplorerService {
   public async getTxHistory(
@@ -143,7 +145,28 @@ class ExplorerService {
   ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
     const response = await axios.post(
       `${API_URL}/api/v1/mempool/transactions/submit`,
-      JSONBig.stringify(signedTx)
+      JSONBig.stringify(signedTx),
+      {
+        "axios-retry": {
+          retries: 15,
+          shouldResetTimeout: true,
+          retryDelay: axiosRetry.exponentialDelay,
+          retryCondition: (error) => {
+            console.log("dsdf", error);
+            if (!error.response?.data) {
+              return true;
+            }
+
+            const data = error.response.data;
+            // retries until pending box gets accepted by the mempool
+            if (data.status === 400 && data.reason.match(/.*[iI]nput.*not found$/gm)) {
+              return true;
+            }
+
+            return false;
+          }
+        }
+      }
     );
 
     return response.data;

@@ -17,6 +17,7 @@
     "@vuelidate/core": "2.0.0-alpha.34",
     "@vuelidate/validators": "^2.0.0-alpha.26",
     "axios": "^0.26.0",
+    "axios-retry": "^3.2.4",
     "bignumber.js": "^9.0.2",
     "bip32": "^3.0.1",
     "bip39": "^3.0.4",
