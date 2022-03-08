@@ -11,13 +11,17 @@ import {
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { chunk, find } from "lodash";
+import { chunk, find, Primitive } from "lodash";
 import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
+
+function asDict<T>(array: T[]) {
+  return Object.assign({}, ...array);
+}
 
 class ExplorerService {
   public async getTxHistory(
@@ -152,24 +156,42 @@ class ExplorerService {
           shouldResetTimeout: true,
           retryDelay: axiosRetry.exponentialDelay,
           retryCondition: (error) => {
-            console.log("dsdf", error);
-            if (!error.response?.data) {
+            const data = error.response?.data;
+            if (!data) {
               return true;
             }
-
-            const data = error.response.data;
             // retries until pending box gets accepted by the mempool
-            if (data.status === 400 && data.reason.match(/.*[iI]nput.*not found$/gm)) {
-              return true;
-            }
-
-            return false;
+            return data.status === 400 && data.reason.match(/.*[iI]nput.*not found$/gm);
           }
         }
       }
     );
 
     return response.data;
+  }
+
+  public async isTransactionUnconfirmed(txId: string): Promise<boolean | undefined> {
+    try {
+      const response = await axios.get(`${API_URL}/api/v0/transactions/unconfirmed/${txId}`);
+      return response.data != undefined;
+    } catch (e: any) {
+      const data = e?.response?.data;
+      if (data && data.status === 404) {
+        return false;
+      }
+
+      return undefined;
+    }
+  }
+
+  public async areTransactionsUnconfirmed(
+    txIds: string[]
+  ): Promise<{ [txId: string]: boolean | undefined }> {
+    return asDict(
+      await Promise.all(
+        txIds.map(async (txId) => ({ [txId]: await this.isTransactionUnconfirmed(txId) }))
+      )
+    );
   }
 
   public async getTokenMarketRates(): Promise<ITokenRate[]> {

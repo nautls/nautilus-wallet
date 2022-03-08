@@ -15,7 +15,8 @@ import {
   maxBy,
   clone,
   findLastIndex,
-  isEmpty
+  isEmpty,
+  uniq
 } from "lodash";
 import {
   Network,
@@ -45,6 +46,7 @@ import { extractAddressesFromInputs } from "./api/ergo/addresses";
 import { ITokenRate } from "ergo-market-lib";
 import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
+import { utxosDbService } from "./api/database/utxosDbService";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -557,13 +559,24 @@ export default createStore({
 
       commit(MUTATIONS.REMOVE_WALLET, walletId);
     },
-    async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
+    async [ACTIONS.REFRESH_BALANCES](
+      { commit, dispatch },
+      data: { addresses: string[]; walletId: number }
+    ) {
       const balances = await explorerService.getAddressesBalance(data.addresses);
       const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
       assestsDbService.sync(assets, data.walletId);
 
+      dispatch(ACTIONS.CHECK_PENDING_BOXES, data.walletId);
+
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
+    },
+    async [ACTIONS.CHECK_PENDING_BOXES]({}, walletId: number) {
+      const boxes = await utxosDbService.getByWalletId(walletId);
+      const txIds = uniq(boxes.map((b) => b.transactionId));
+
+      console.log(await explorerService.areTransactionsUnconfirmed(txIds));
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
       if (state.loading.price) {
