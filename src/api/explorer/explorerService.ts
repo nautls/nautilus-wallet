@@ -2,7 +2,7 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   ExplorerBlockHeaderResponse,
-  ExplorerGetUnspentBox,
+  ExplorerBox,
   ExplorerGetApiV1BlocksP1Response,
   ExplorerGetApiV1BlocksResponse,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
@@ -10,10 +10,18 @@ import {
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
 import axios from "axios";
-import { chunk, find } from "lodash";
-
+import axiosRetry from "axios-retry";
+import { chunk, find, Primitive } from "lodash";
+import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
+import { ErgoTx } from "@/types/connector";
+
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
+axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
+
+function asDict<T>(array: T[]) {
+  return Object.assign({}, ...array);
+}
 
 class ExplorerService {
   public async getTxHistory(
@@ -93,7 +101,7 @@ class ExplorerService {
 
   private async getAddressUnspentBoxes(
     address: string
-  ): Promise<AddressAPIResponse<ExplorerGetUnspentBox[]>> {
+  ): Promise<AddressAPIResponse<ExplorerBox[]>> {
     const response = await axios.get(
       `${API_URL}/api/v0/transactions/boxes/byAddress/unspent/${address}`
     );
@@ -101,9 +109,16 @@ class ExplorerService {
     return { address, data: response.data };
   }
 
-  public async getUnspentBoxes(
-    addresses: string[]
-  ): Promise<AddressAPIResponse<ExplorerGetUnspentBox[]>[]> {
+  public async getBox(boxId: string): Promise<ExplorerBox> {
+    const response = await axios.get(`${API_URL}/api/v0/transactions/boxes/${boxId}`);
+    return response.data;
+  }
+
+  public async getBoxes(boxIds: string[]): Promise<ExplorerBox[]> {
+    return await Promise.all(boxIds.map((id) => this.getBox(id)));
+  }
+
+  public async getUnspentBoxes(addresses: string[]): Promise<AddressAPIResponse<ExplorerBox[]>[]> {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 
@@ -129,9 +144,66 @@ class ExplorerService {
     return response.data;
   }
 
-  public async sendTx(tx: any): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
-    const response = await axios.post(`${API_URL}/api/v1/mempool/transactions/submit`, tx);
+  public async sendTx(
+    signedTx: ErgoTx
+  ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
+    const response = await axios.post(
+      `${API_URL}/api/v1/mempool/transactions/submit`,
+      JSONBig.stringify(signedTx),
+      {
+        "axios-retry": {
+          retries: 15,
+          shouldResetTimeout: true,
+          retryDelay: axiosRetry.exponentialDelay,
+          retryCondition: (error) => {
+            const data = error.response?.data;
+            if (!data) {
+              return true;
+            }
+            // retries until pending box gets accepted by the mempool
+            return data.status === 400 && data.reason.match(/.*[iI]nput.*not found$/gm);
+          }
+        }
+      }
+    );
+
     return response.data;
+  }
+
+  public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
+    try {
+      const response = await axios.get(`${API_URL}/api/v0/transactions/unconfirmed/${txId}`, {
+        "axios-retry": {
+          retries: 5,
+          shouldResetTimeout: true,
+          retryDelay: axiosRetry.exponentialDelay,
+          retryCondition: (error) => {
+            const data = error.response?.data;
+            return !data || data.status === 404;
+          }
+        }
+      });
+      return response.data != undefined;
+    } catch (e: any) {
+      const data = e?.response?.data;
+      if (data && data.status === 404) {
+        return false;
+      }
+
+      return undefined;
+    }
+  }
+
+  public async areTransactionsInMempool(
+    txIds: string[]
+  ): Promise<{ [txId: string]: boolean | undefined }> {
+    return asDict(
+      await Promise.all(
+        txIds.map(async (txId) => ({
+          [txId]: await this.isTransactionInMempool(txId)
+        }))
+      )
+    );
   }
 
   public async getTokenMarketRates(): Promise<ITokenRate[]> {

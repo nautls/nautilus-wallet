@@ -1,9 +1,8 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { UnsignedTx } from "@/types/connector";
+import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
-import { ExplorerGetUnspentBox } from "@/types/explorer";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
-import { removeDecimals, toBigNumber } from "@/utils/bigNumbers";
+import { removeDecimals } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import {
@@ -16,48 +15,48 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import { find } from "lodash";
+import { find, maxBy } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
 
-export class Transaction {
+export class TxBuilder {
   private _from!: StateAddress[];
   private _to!: string;
   private _changeIndex!: number;
   private _fee!: BigNumber;
   private _assets!: SendTxCommandAsset[];
-  private _boxes!: ExplorerGetUnspentBox[];
+  private _boxes!: ErgoBox[];
 
   private constructor(from: StateAddress[]) {
     this._from = from;
   }
 
-  public static from(addresses: StateAddress[]): Transaction {
+  public static from(addresses: StateAddress[]): TxBuilder {
     return new this(addresses);
   }
 
-  public to(address: string): Transaction {
+  public to(address: string): TxBuilder {
     this._to = address;
     return this;
   }
 
-  public changeIndex(index: number): Transaction {
+  public changeIndex(index: number): TxBuilder {
     this._changeIndex = index;
     return this;
   }
 
-  public withFee(fee: BigNumber): Transaction {
+  public withFee(fee: BigNumber): TxBuilder {
     this._fee = fee;
     return this;
   }
 
-  public withAssets(assets: SendTxCommandAsset[]): Transaction {
+  public withAssets(assets: SendTxCommandAsset[]): TxBuilder {
     this._assets = assets;
     return this;
   }
 
-  public fromBoxes(boxes: ExplorerGetUnspentBox[]): Transaction {
+  public fromBoxes(boxes: ErgoBox[]): TxBuilder {
     this._boxes = boxes;
     return this;
   }
@@ -71,10 +70,10 @@ export class Transaction {
     return signed.to_json();
   }
 
-  public sign(context: SignContext): string {
+  public sign(context: SignContext): ErgoTx {
     const sigmaRust = wasmModule.SigmaRust;
-
-    const height = this._boxes[0]?.creationHeight || 0;
+    const lastBlockHeader = maxBy(context.blockHeaders, (h) => h.height);
+    const height = lastBlockHeader!.height;
     const recipient = sigmaRust.Address.from_mainnet_str(this._to);
     const changeAddress = sigmaRust.Address.from_mainnet_str(
       context.bip32.deriveAddress(this._changeIndex).script
@@ -85,14 +84,14 @@ export class Transaction {
     const tokens = this.buildTokenList();
     const txOutputs = this.buildOutputBoxes(outputValue, tokens, recipient, height);
     const fee = this.getFee();
-    const box_selector = new sigmaRust.SimpleBoxSelector();
+    const boxSelector = new sigmaRust.SimpleBoxSelector();
     const targetBalance = sigmaRust.BoxValue.from_i64(
       outputValue.as_i64().checked_add(fee.as_i64())
     );
-    const box_selection = box_selector.select(unspentBoxes, targetBalance, tokens);
+    const boxSelection = boxSelector.select(unspentBoxes, targetBalance, tokens);
 
     const unsigned = sigmaRust.TxBuilder.new(
-      box_selection,
+      boxSelection,
       txOutputs,
       height,
       fee,
@@ -101,7 +100,7 @@ export class Transaction {
     ).build();
 
     const signed = this._sign(unsigned, unspentBoxes, context);
-    return signed.to_json();
+    return JSONBig.parse(signed.to_json());
   }
 
   private _sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, context: SignContext) {

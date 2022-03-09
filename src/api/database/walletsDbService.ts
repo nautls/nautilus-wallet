@@ -3,7 +3,7 @@ import { dbContext } from "@/api/database/dbContext";
 import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash";
-import { AddressState, UpdateWalletSettingsCommand, WalletSettings } from "@/types/internal";
+import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
 import { PasswordError } from "@/types/errors";
 import { assestsDbService } from "./assetsDbService";
 
