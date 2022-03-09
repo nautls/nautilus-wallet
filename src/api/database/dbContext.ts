@@ -36,7 +36,7 @@ class NautilusDb extends Dexie {
     });
 
     this.version(5).stores({
-      utxos: "&id, transactionId, confirmed, spent, address, walletId"
+      utxos: "&id, spentTxId, address, walletId"
     });
   }
 }

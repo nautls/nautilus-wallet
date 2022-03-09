@@ -4,18 +4,31 @@ import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
+import { isEmpty } from "lodash";
 
 class UTxOsDbService {
+  public async getAllPending(): Promise<IDbUtxo[]> {
+    return await dbContext.utxos.where("spentTxId").notEqual("").toArray();
+  }
+
   public async getByBoxId(boxId: string): Promise<IDbUtxo | undefined> {
     return await dbContext.utxos.where({ boxId }).first();
   }
 
   public async getByTxId(txId: string): Promise<IDbUtxo[]> {
-    return await dbContext.utxos.where({ transactionId: txId }).toArray();
+    return await dbContext.utxos.where({ spentTxId: txId }).toArray();
   }
 
   public async getByWalletId(walletId: number): Promise<IDbUtxo[]> {
     return await dbContext.utxos.where({ walletId }).toArray();
+  }
+
+  public async removeByTxId(txIds: string[]): Promise<void> {
+    if (isEmpty(txIds)) {
+      return;
+    }
+
+    await dbContext.utxos.where("spentTxId").anyOf(txIds).delete();
   }
 
   public async addFromTx(signedTx: ErgoTx, walletId: number) {
@@ -27,7 +40,8 @@ class UTxOsDbService {
           id: input.boxId,
           confirmed: true,
           locked: true,
-          transactionId: signedTx.id,
+          spentTxId: signedTx.id,
+          spentTimestamp: Date.now(),
           walletId
         } as IDbUtxo;
       })
@@ -40,7 +54,8 @@ class UTxOsDbService {
               confirmed: false,
               locked: false,
               content: { ...this.stringifyAmounts(output), confirmed: false },
-              transactionId: signedTx.id,
+              spentTxId: signedTx.id,
+              spentTimestamp: Date.now(),
               address: addressFromErgoTree(output.ergoTree),
               walletId
             } as IDbUtxo;

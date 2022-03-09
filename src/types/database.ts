@@ -46,9 +46,10 @@ export interface IDbDAppConnection {
 
 export interface IDbUtxo {
   id: string;
-  transactionId: string;
   confirmed: boolean;
   locked: boolean;
+  spentTxId: string;
+  spentTimestamp?: number;
   content?: ErgoBox;
   address?: string;
   walletId: number;

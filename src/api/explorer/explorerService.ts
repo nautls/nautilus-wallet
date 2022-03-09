@@ -170,9 +170,19 @@ class ExplorerService {
     return response.data;
   }
 
-  public async isTransactionUnconfirmed(txId: string): Promise<boolean | undefined> {
+  public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
     try {
-      const response = await axios.get(`${API_URL}/api/v0/transactions/unconfirmed/${txId}`);
+      const response = await axios.get(`${API_URL}/api/v0/transactions/unconfirmed/${txId}`, {
+        "axios-retry": {
+          retries: 5,
+          shouldResetTimeout: true,
+          retryDelay: axiosRetry.exponentialDelay,
+          retryCondition: (error) => {
+            const data = error.response?.data;
+            return !data || data.status === 404;
+          }
+        }
+      });
       return response.data != undefined;
     } catch (e: any) {
       const data = e?.response?.data;
@@ -184,12 +194,14 @@ class ExplorerService {
     }
   }
 
-  public async areTransactionsUnconfirmed(
+  public async areTransactionsInMempool(
     txIds: string[]
   ): Promise<{ [txId: string]: boolean | undefined }> {
     return asDict(
       await Promise.all(
-        txIds.map(async (txId) => ({ [txId]: await this.isTransactionUnconfirmed(txId) }))
+        txIds.map(async (txId) => ({
+          [txId]: await this.isTransactionInMempool(txId)
+        }))
       )
     );
   }

@@ -47,6 +47,7 @@ import { ITokenRate } from "ergo-market-lib";
 import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -567,16 +568,24 @@ export default createStore({
       const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
       assestsDbService.sync(assets, data.walletId);
 
-      dispatch(ACTIONS.CHECK_PENDING_BOXES, data.walletId);
+      dispatch(ACTIONS.CHECK_PENDING_BOXES);
 
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
     },
-    async [ACTIONS.CHECK_PENDING_BOXES]({}, walletId: number) {
-      const boxes = await utxosDbService.getByWalletId(walletId);
-      const txIds = uniq(boxes.map((b) => b.transactionId));
+    async [ACTIONS.CHECK_PENDING_BOXES]() {
+      const now = Date.now();
+      const boxes = (await utxosDbService.getAllPending()).filter(
+        (b) => b.spentTimestamp && now - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
+      );
 
-      console.log(await explorerService.areTransactionsUnconfirmed(txIds));
+      if (isEmpty(boxes)) {
+        return;
+      }
+
+      const txIds = uniq(boxes.map((b) => b.spentTxId));
+      const mempoolResult = await explorerService.areTransactionsInMempool(txIds);
+      await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
       if (state.loading.price) {
@@ -587,9 +596,9 @@ export default createStore({
 
       const price = await coinGeckoService.getPrice(state.settings.conversionCurrency);
       commit(MUTATIONS.SET_ERG_PRICE, price);
-      await dispatch(ACTIONS.LOAD_MARKET_RATES);
 
       commit(MUTATIONS.SET_LOADING, { price: false });
+      await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
       if (state.currentWallet.settings.avoidAddressReuse) {
@@ -615,7 +624,7 @@ export default createStore({
         : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await fetchBoxes(command.walletId);
-      console.log(boxes);
+      console.log(boxes.map((b) => `${b.boxId} ${b.creationHeight}`));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
       const signedtx = TxBuilder.from(selectedAddresses)
