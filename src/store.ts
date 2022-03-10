@@ -26,7 +26,8 @@ import {
   SendTxCommand,
   SignTxFromConnectorCommand,
   UpdateWalletSettingsCommand,
-  UpdateChangeIndexCommand
+  UpdateChangeIndexCommand,
+  UpdateUsedAddressesFilterCommand
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -250,13 +251,21 @@ export default createStore({
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
     },
-    [MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
+    [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
       const wallet = find(state.wallets, (w) => w.id === command.walletId);
       if (!wallet) {
         return;
       }
 
       wallet.settings.defaultChangeIndex = command.index;
+    },
+    [MUTATIONS.SET_USED_ADDRESSES_FILTER](state, command: UpdateUsedAddressesFilterCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.settings.hideUsedAddresses = command.filter;
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
       const assetErgRate = rates.reduce(
@@ -684,7 +693,14 @@ export default createStore({
     },
     async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
       await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
-      commit(MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX, commad);
+      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, commad);
+    },
+    async [ACTIONS.UPDATE_USED_ADDRESSES_FILTER](
+      { commit },
+      commad: UpdateUsedAddressesFilterCommand
+    ) {
+      await walletsDbService.updateUsedAddressFilter(commad.walletId, commad.filter);
+      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, commad);
     }
   }
 });

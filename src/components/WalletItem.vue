@@ -12,8 +12,8 @@
         <small class="rounded bg-gray-200 px-1 font-normal text-dark-200 uppercase">{{
           $filters.walletType(wallet.type)
         }}</small>
-        <mdicon
-          class="inline-block align-middle"
+        <mdi-icon
+          class="align-middle"
           name="incognito"
           size="16"
           v-if="wallet.settings.avoidAddressReuse"

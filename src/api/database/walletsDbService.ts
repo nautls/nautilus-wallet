@@ -72,6 +72,12 @@ class WalletsDbService {
     });
   }
 
+  public async updateUsedAddressFilter(walletId: number, hide: boolean) {
+    return await dbContext.wallets.update(walletId, {
+      "settings.hideUsedAddresses": hide
+    });
+  }
+
   public async getAll(): Promise<IDbWallet[]> {
     return await dbContext.wallets.toArray();
   }
