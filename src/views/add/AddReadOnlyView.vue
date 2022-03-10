@@ -17,7 +17,7 @@
       </label>
 
       <label class="mt-3">
-        Public Key
+        Extended public key
         <textarea
           @blur="v$.publicKey.$touch()"
           maxlength="156"
@@ -68,7 +68,7 @@ export default defineComponent({
     return {
       walletName: { required: helpers.withMessage("Wallet name is required.", required) },
       publicKey: {
-        required: helpers.withMessage("Public key is required.", required),
+        required: helpers.withMessage("Extended public key is required.", required),
         validPublicKey
       }
     };
