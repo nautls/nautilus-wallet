@@ -1,6 +1,6 @@
 import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
-import { differenceBy, find, groupBy, isEmpty, keys, union, unionBy, uniq } from "lodash";
+import { differenceBy, find, groupBy, isEmpty, keys, union } from "lodash";
 import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
 import { AssetStandard } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
@@ -9,6 +9,10 @@ import { isZero } from "@/utils/bigNumbers";
 class assetsDbService {
   public async getByTokenId(walletId: number, tokenId: string): Promise<IDbAsset[]> {
     return await dbContext.assets.where({ walletId, tokenId }).toArray();
+  }
+
+  public async getAddressesByTokenId(walletId: number, tokenId: string): Promise<string[]> {
+    return (await this.getByTokenId(walletId, tokenId)).map((a) => a.address);
   }
 
   public async getByAddress(address: string): Promise<IDbAsset[]> {

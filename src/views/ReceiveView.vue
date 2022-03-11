@@ -41,7 +41,24 @@
       <table class="table">
         <thead>
           <tr>
-            <th>Address ({{ addresses.length }})</th>
+            <th>
+              Address ({{ addresses.length
+              }}<template v-if="hideUsed">/{{ stateAddresses.length }}</template
+              >)
+              <tool-tip
+                :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
+                tip-class="normal-case"
+                class="pl-1"
+              >
+                <a class="cursor-pointer" @click="updateUsedAddressesFilter()">
+                  <mdi-icon
+                    class="align-middle"
+                    :name="hideUsed ? 'filter-off' : 'filter'"
+                    size="16"
+                  />
+                </a>
+              </tool-tip>
+            </th>
             <th class="text-right">Balance</th>
           </tr>
         </thead>
@@ -99,7 +116,12 @@
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
 import { find, last } from "lodash";
-import { StateAddress, StateWallet, UpdateChangeIndexCommand } from "@/types/internal";
+import {
+  StateAddress,
+  StateWallet,
+  UpdateChangeIndexCommand,
+  UpdateUsedAddressesFilterCommand
+} from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
@@ -126,6 +148,9 @@ export default defineComponent({
       }
 
       return this.stateAddresses;
+    },
+    hideUsed(): boolean {
+      return this.currentWallet.settings.hideUsedAddresses;
     },
     loading(): boolean {
       return this.addresses.length === 0 && this.$store.state.loading.addresses;
@@ -178,6 +203,12 @@ export default defineComponent({
         walletId: this.currentWallet.id,
         index
       } as UpdateChangeIndexCommand);
+    },
+    updateUsedAddressesFilter() {
+      this.$store.dispatch(ACTIONS.UPDATE_USED_ADDRESSES_FILTER, {
+        walletId: this.currentWallet.id,
+        filter: !this.hideUsed
+      } as UpdateUsedAddressesFilterCommand);
     },
     async newAddress() {
       try {

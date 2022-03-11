@@ -78,7 +78,7 @@
         <div class="flex-grow">
           <p class="font-semibold text-sm">Remove Wallet</p>
         </div>
-        <button class="btn danger !px-2 !py-1" @click="remove()">Remove</button>
+        <button class="btn danger !p-2 !text-xs" @click="remove()">Remove</button>
       </div>
       <div class="text-gray-500 text-xs font-normal mt-1">
         <p>

@@ -3,7 +3,7 @@ import { dbContext } from "@/api/database/dbContext";
 import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash";
-import { AddressState, UpdateWalletSettingsCommand, WalletSettings } from "@/types/internal";
+import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
 import { PasswordError } from "@/types/errors";
 import { assestsDbService } from "./assetsDbService";
 
@@ -69,6 +69,12 @@ class WalletsDbService {
   public async updateChangeIndex(walletId: number, index: number) {
     return await dbContext.wallets.update(walletId, {
       "settings.defaultChangeIndex": index
+    });
+  }
+
+  public async updateUsedAddressFilter(walletId: number, hide: boolean) {
+    return await dbContext.wallets.update(walletId, {
+      "settings.hideUsedAddresses": hide
     });
   }
 

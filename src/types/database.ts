@@ -7,9 +7,9 @@ import {
   WalletSettings,
   WalletType
 } from "@/types/internal";
-import { Registers } from "./connector";
+import { Registers, ErgoBox } from "./connector";
 
-export type IDbWallet = {
+export interface IDbWallet {
   id?: number;
   name: string;
   network: Network;
@@ -18,17 +18,17 @@ export type IDbWallet = {
   chainCode: string;
   mnemonic?: string;
   settings: WalletSettings;
-};
+}
 
-export type IDbAddress = {
+export interface IDbAddress {
   type: AddressType;
   state: AddressState;
   script: string;
   index: number;
   walletId: number;
-};
+}
 
-export type IDbAsset = {
+export interface IDbAsset {
   tokenId: string;
   name: string;
   type: AssetStandard;
@@ -37,13 +37,13 @@ export type IDbAsset = {
   decimals: number;
   address: string;
   walletId: number;
-};
+}
 
-export type IDbDAppConnection = {
+export interface IDbDAppConnection {
   origin: string;
   walletId: number;
   favicon?: string;
-};
+}
 
 export interface IDbAssetInfo {
   id: string;
@@ -56,4 +56,15 @@ export interface IDbAssetInfo {
   emissionAmount?: string;
   description?: string;
   additionalRegisters?: Registers;
+}
+
+export interface IDbUtxo {
+  id: string;
+  confirmed: boolean;
+  locked: boolean;
+  spentTxId: string;
+  spentTimestamp?: number;
+  content?: ErgoBox;
+  address?: string;
+  walletId: number;
 }

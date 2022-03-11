@@ -11,12 +11,13 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import DAppPlate from "@/components/DappPlate.vue";
+import MdiIcon from "@/components/MdiIcon.vue";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
 import mdiVue from "mdi-vue/v3";
-import { mdiIncognito } from "@mdi/js";
+import { mdiIncognito, mdiFilter, mdiFilterOff } from "@mdi/js";
 
 import "@/config/axiosConfig";
 
@@ -31,6 +32,20 @@ wasmModule.loadAsync();
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
 
+const mdiSettings = {
+  icons: {
+    mdiIncognito,
+    mdiFilter,
+    mdiFilterOff
+  }
+};
+
+const orugaSettings = {
+  switch: {
+    checkCheckedClass: "bg-blue-600"
+  }
+};
+
 app
   .use(store)
   .use(router)
@@ -38,14 +53,8 @@ app
   .use(Modal)
   .use(Slider)
   .use(Switch)
-  .use(Config, {
-    switch: {
-      checkCheckedClass: "bg-blue-600"
-    }
-  })
-  .use(mdiVue, {
-    icons: { mdiIncognito }
-  })
+  .use(Config, orugaSettings)
+  .use(mdiVue, mdiSettings)
   .directive("cleave", vueCleave)
   .component("vue-feather", VueFeather)
   .component("click-to-copy", ClickToCopy)
@@ -55,4 +64,5 @@ app
   .component("loading-indicator", LoadingIndicator)
   .component("wallet-item", WalletItem)
   .component("dapp-plate", DAppPlate)
+  .component("mdi-icon", MdiIcon)
   .mount("#app");

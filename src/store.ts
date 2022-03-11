@@ -16,8 +16,7 @@ import {
   clone,
   findLastIndex,
   isEmpty,
-  remove,
-  indexOf
+  uniq
 } from "lodash";
 import {
   Network,
@@ -27,7 +26,8 @@ import {
   SendTxCommand,
   SignTxFromConnectorCommand,
   UpdateWalletSettingsCommand,
-  UpdateChangeIndexCommand
+  UpdateChangeIndexCommand,
+  UpdateUsedAddressesFilterCommand
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -39,12 +39,16 @@ import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
-import { Transaction } from "./api/ergo/transaction/transaction";
+import { TxBuilder } from "././api/ergo/transaction/txBuilder";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
 import { ITokenRate } from "ergo-market-lib";
+import { submitTx } from "./api/ergo/submitTx";
+import { fetchBoxes } from "./api/ergo/boxFetcher";
+import { utxosDbService } from "./api/database/utxosDbService";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -247,13 +251,21 @@ export default createStore({
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
     },
-    [MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
+    [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
       const wallet = find(state.wallets, (w) => w.id === command.walletId);
       if (!wallet) {
         return;
       }
 
       wallet.settings.defaultChangeIndex = command.index;
+    },
+    [MUTATIONS.SET_USED_ADDRESSES_FILTER](state, command: UpdateUsedAddressesFilterCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.settings.hideUsedAddresses = command.filter;
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
       const assetErgRate = rates.reduce(
@@ -557,13 +569,32 @@ export default createStore({
 
       commit(MUTATIONS.REMOVE_WALLET, walletId);
     },
-    async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
+    async [ACTIONS.REFRESH_BALANCES](
+      { commit, dispatch },
+      data: { addresses: string[]; walletId: number }
+    ) {
       const balances = await explorerService.getAddressesBalance(data.addresses);
       const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
       assestsDbService.sync(assets, data.walletId);
 
+      dispatch(ACTIONS.CHECK_PENDING_BOXES);
+
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
+    },
+    async [ACTIONS.CHECK_PENDING_BOXES]() {
+      const now = Date.now();
+      const boxes = (await utxosDbService.getAllPending()).filter(
+        (b) => b.spentTimestamp && now - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
+      );
+
+      if (isEmpty(boxes)) {
+        return;
+      }
+
+      const txIds = uniq(boxes.map((b) => b.spentTxId));
+      const mempoolResult = await explorerService.areTransactionsInMempool(txIds);
+      await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
       if (state.loading.price) {
@@ -574,9 +605,9 @@ export default createStore({
 
       const price = await coinGeckoService.getPrice(state.settings.conversionCurrency);
       commit(MUTATIONS.SET_ERG_PRICE, price);
-      await dispatch(ACTIONS.LOAD_MARKET_RATES);
 
       commit(MUTATIONS.SET_LOADING, { price: false });
+      await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
       if (state.currentWallet.settings.avoidAddressReuse) {
@@ -601,23 +632,22 @@ export default createStore({
             ?.index ?? state.currentWallet.settings.defaultChangeIndex
         : state.currentWallet.settings.defaultChangeIndex;
 
-      const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
+      const boxes = await fetchBoxes(command.walletId);
+      console.log(boxes.map((b) => `${b.boxId} ${b.creationHeight}`));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
-      const signedtx = Transaction.from(selectedAddresses)
+      const signedtx = TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
-        .fromBoxes(boxes.map((a) => a.data).flat())
+        .fromBoxes(boxes)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      const response = await explorerService.sendTx(signedtx);
-      return response.id;
+      return await submitTx(signedtx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
       const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
-      console.log(addressesFromBoxes);
       const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = dbAddresses
         .filter((a) => addressesFromBoxes.includes(a.script))
@@ -640,7 +670,7 @@ export default createStore({
       command.password = "";
 
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
-      const signedtx = Transaction.from(addresses).signFromConnector(
+      const signedtx = TxBuilder.from(addresses).signFromConnector(
         command.tx,
         SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
       );
@@ -663,7 +693,14 @@ export default createStore({
     },
     async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
       await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
-      commit(MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX, commad);
+      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, commad);
+    },
+    async [ACTIONS.UPDATE_USED_ADDRESSES_FILTER](
+      { commit },
+      commad: UpdateUsedAddressesFilterCommand
+    ) {
+      await walletsDbService.updateUsedAddressFilter(commad.walletId, commad.filter);
+      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, commad);
     }
   }
 });

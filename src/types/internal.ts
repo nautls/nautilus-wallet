@@ -96,3 +96,8 @@ export type UpdateChangeIndexCommand = {
   walletId: number;
   index: number;
 };
+
+export type UpdateUsedAddressesFilterCommand = {
+  walletId: number;
+  filter: boolean;
+};
