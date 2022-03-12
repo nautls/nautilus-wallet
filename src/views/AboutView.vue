@@ -1,11 +1,15 @@
 <template>
   <div class="flex flex-col h-full gap-4 text-center text-sm">
-    <img src="@/assets/images/logo-big.png" alt="Nautilus" class="w-25 m-auto" />
+    <img src="@/assets/images/logo-big.png" alt="Nautilus" class="w-23 m-auto" />
     <div>
       <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
-      <p class="text-gray-500" v-once>v{{ version }}</p>
+
+      <p v-once>
+        v{{ version }}, Commit:
+        <a :href="commitUrl" target="_blank" class="url">{{ shortGitHash }}</a>
+      </p>
     </div>
-    <p class="italic text-gray-600">
+    <p class="italic text-gray-600 text-base">
       Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of
       land-based governments.
     </p>
@@ -49,6 +53,15 @@ export default defineComponent({
   computed: {
     version(): string {
       return version;
+    },
+    gitHash(): string | undefined {
+      return process.env.VUE_APP_GIT_HASH as any;
+    },
+    shortGitHash(): string {
+      return this.gitHash?.slice(0, 7) ?? "";
+    },
+    commitUrl(): string {
+      return `https://github.com/capt-nemo429/nautilus-wallet/commit/${this.gitHash}`;
     },
     donationAddress(): string {
       return "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By";
