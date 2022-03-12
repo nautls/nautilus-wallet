@@ -1,6 +1,8 @@
-const path = require("path");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
+
+let commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
+process.env.VUE_APP_GIT_HASH = commitHash;
 
 module.exports = {
   publicPath: "/",
