@@ -25,7 +25,8 @@ export enum AddressType {
 
 export enum AssetStandard {
   Native = "Native",
-  EIP4 = "EIP-004"
+  EIP4 = "EIP-004",
+  Unstandardized = "Unstandardized"
 }
 
 export enum AssetType {

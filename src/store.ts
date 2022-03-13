@@ -633,7 +633,6 @@ export default createStore({
         : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await fetchBoxes(command.walletId);
-      console.log(boxes.map((b) => `${b.boxId} ${b.creationHeight}`));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
       const signedtx = TxBuilder.from(selectedAddresses)

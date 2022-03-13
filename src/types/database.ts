@@ -47,11 +47,11 @@ export interface IDbDAppConnection {
 
 export interface IDbAssetInfo {
   id: string;
-  standard: AssetStandard;
-  decimals?: string;
-  type?: AssetType;
+  mintingBoxId: string;
   name?: string;
-  mintingBoxId?: string;
+  decimals?: number;
+  standard?: AssetStandard;
+  type?: AssetType;
   transactionId?: string;
   emissionAmount?: string;
   description?: string;

@@ -1,5 +1,15 @@
 import Dexie, { Table } from "dexie";
-import { IDbDAppConnection, IDbAddress, IDbAsset, IDbWallet, IDbUtxo } from "@/types/database";
+import {
+  IDbDAppConnection,
+  IDbAddress,
+  IDbAsset,
+  IDbWallet,
+  IDbUtxo,
+  IDbAssetInfo
+} from "@/types/database";
+import { find, uniqBy } from "lodash";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { AssetStandard } from "@/types/internal";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
@@ -7,6 +17,7 @@ class NautilusDb extends Dexie {
   assets!: Table<IDbAsset, string[]>;
   connectedDApps!: Table<IDbDAppConnection, string>;
   utxos!: Table<IDbUtxo, string>;
+  assetInfo!: Table<IDbAssetInfo, string>;
 
   constructor() {
     super("nautilusDb");
@@ -38,6 +49,40 @@ class NautilusDb extends Dexie {
     this.version(5).stores({
       utxos: "&id, spentTxId, address, walletId"
     });
+
+    this.version(6)
+      .stores({
+        assetInfo: "&id, mintingBoxId"
+      })
+      .upgrade(async (t) => {
+        const assets = await t.table<IDbAsset, string[]>("assets").toArray();
+        const assetInfo =
+          assets.length === 0
+            ? []
+            : uniqBy(
+                assets
+                  .filter((a) => a.tokenId !== ERG_TOKEN_ID)
+                  .map((a) => {
+                    return {
+                      id: a.tokenId,
+                      mintingBoxId: "",
+                      decimals: a.decimals,
+                      name: a.name
+                    } as IDbAssetInfo;
+                  }),
+                (a) => a.id
+              );
+
+        assetInfo.push({
+          id: ERG_TOKEN_ID,
+          mintingBoxId: "",
+          name: "ERG",
+          decimals: ERG_DECIMALS,
+          standard: AssetStandard.Native
+        });
+
+        await t.table("assetInfo").bulkAdd(assetInfo);
+      });
   }
 }
 
