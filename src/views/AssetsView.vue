@@ -38,15 +38,17 @@
               <img
                 :src="$filters.assetLogo(asset.tokenId)"
                 class="h-8 w-8 rounded-full"
-                :alt="asset.name"
+                :alt="asset.info?.name"
               />
             </td>
             <td class="align-middle">
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
-                {{ asset.name }}
+                {{ asset.info?.name }}
               </p>
               <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-anywhere">
-                <template v-if="asset.name">{{ $filters.compactString(asset.name, 40) }}</template>
+                <template v-if="asset.info?.name">{{
+                  $filters.compactString(asset.info?.name, 40)
+                }}</template>
                 <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
               </a>
             </td>
@@ -56,7 +58,7 @@
               </p>
               <tool-tip
                 v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                :label="`1 ${asset.name} <br /> ≈ ${$filters.formatBigNumber(
+                :label="`1 ${asset.info?.name} <br /> ≈ ${$filters.formatBigNumber(
                   price(asset.tokenId),
                   2
                 )} ${$filters.uppercase(conversionCurrency)}`"
@@ -114,7 +116,7 @@ export default defineComponent({
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>
-          a.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
+          a.info?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
         );
       }
 

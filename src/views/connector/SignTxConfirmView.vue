@@ -190,7 +190,7 @@ export default defineComponent({
         Object.assign(
           {},
           ...this.assets.map((a) => {
-            return { [a.tokenId]: { name: a.name, decimals: a.decimals } };
+            return { [a.tokenId]: { name: a.info?.name, decimals: a.info?.decimals } };
           })
         )
       );

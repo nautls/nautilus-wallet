@@ -164,7 +164,7 @@ export class TxBuilder {
         new sigmaRust.Token(
           sigmaRust.TokenId.from_str(asset.asset.tokenId),
           sigmaRust.TokenAmount.from_i64(
-            this.toI64(removeDecimals(asset.amount, asset.asset.decimals))
+            this.toI64(removeDecimals(asset.amount, asset.asset.info?.decimals ?? 0))
           )
         )
       );
@@ -178,13 +178,13 @@ export class TxBuilder {
     if (
       !erg ||
       !erg.amount ||
-      removeDecimals(erg.amount, erg.asset.decimals).isLessThan(MIN_BOX_VALUE)
+      removeDecimals(erg.amount, erg.asset.info?.decimals ?? 0).isLessThan(MIN_BOX_VALUE)
     ) {
       throw new TxSignError("not enought ERG to make a transaction");
     }
 
     return wasmModule.SigmaRust.BoxValue.from_i64(
-      this.toI64(removeDecimals(erg.amount, erg.asset.decimals))
+      this.toI64(removeDecimals(erg.amount, erg.asset.info?.decimals ?? 0))
     );
   }
 

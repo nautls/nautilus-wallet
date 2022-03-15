@@ -15,13 +15,10 @@ import { chunk, find, Primitive } from "lodash";
 import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
+import { asDict } from "@/utils/serializer";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
-
-function asDict<T>(array: T[]) {
-  return Object.assign({}, ...array);
-}
 
 class ExplorerService {
   public async getTxHistory(

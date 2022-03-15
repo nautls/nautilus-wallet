@@ -11,6 +11,10 @@ class AssetInfoDbService {
     console.log("uncommited ids", uncommited);
     await dbContext.assetInfo.bulkAdd(assetInfo.filter((x) => uncommited.includes(x.id)));
   }
+
+  public async getAllExcept(ids: string[]): Promise<IDbAssetInfo[]> {
+    return await dbContext.assetInfo.where("id").noneOf(ids).toArray();
+  }
 }
 
 export const assetInfoDbService = new AssetInfoDbService();

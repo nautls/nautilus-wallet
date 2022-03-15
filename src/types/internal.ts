@@ -61,10 +61,15 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
-  name: string;
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
+  info?: StateAssetInfo;
+};
+
+export type StateAssetInfo = {
+  name: string;
   decimals: number;
+  type?: AssetType;
 };
 
 export type SendTxCommandAsset = {

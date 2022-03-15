@@ -27,14 +27,15 @@ import {
   SignTxFromConnectorCommand,
   UpdateWalletSettingsCommand,
   UpdateChangeIndexCommand,
-  UpdateUsedAddressesFilterCommand
+  UpdateUsedAddressesFilterCommand,
+  StateAssetInfo
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IDbAddress, IDbAsset, IDbAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
@@ -49,6 +50,8 @@ import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
+import { assetInfoDbService } from "./api/database/assetInfoDbService";
+import { asDict } from "./utils/serializer";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -87,6 +90,9 @@ export default createStore({
       balance: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
+    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as {
+      [tokenId: string]: StateAssetInfo;
+    },
     ergPrice: 0,
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
@@ -112,12 +118,11 @@ export default createStore({
 
         const token: StateAsset = {
           tokenId: group[0].tokenId,
-          name: group[0].name,
           confirmedAmount: group.map((a) => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
           unconfirmedAmount: group
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
-          decimals: group[0].decimals
+          info: group[0].info
         };
 
         balance.push(token);
@@ -125,16 +130,15 @@ export default createStore({
 
       if (isEmpty(balance)) {
         balance.push({
-          name: "ERG",
           tokenId: ERG_TOKEN_ID,
-          decimals: ERG_DECIMALS,
-          confirmedAmount: new BigNumber(0)
+          confirmedAmount: new BigNumber(0),
+          info: state.assetInfo[ERG_TOKEN_ID]
         });
 
         return balance;
       }
 
-      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.name]);
+      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
     }
   },
   mutations: {
@@ -207,11 +211,10 @@ export default createStore({
         address.balance = group.map((x) => {
           return {
             tokenId: x.tokenId,
-            name: x.name,
             confirmedAmount:
               setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
             unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
-            decimals: x.decimals
+            info: state.assetInfo[x.tokenId]
           };
         });
       }
@@ -268,17 +271,23 @@ export default createStore({
       wallet.settings.hideUsedAddresses = command.filter;
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
-      const assetErgRate = rates.reduce(
-        (acc: { [tokenId: string]: { erg: number } }, rate: ITokenRate) => {
-          rate.token.tokenId;
-          acc[rate.token.tokenId] = { erg: rate.ergPerToken };
-          return acc;
-        },
-        {}
+      const assetErgRate = asDict(
+        rates.map((r) => {
+          return { [r.token.tokenId]: { erg: r.ergPerToken } };
+        })
       );
 
       assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
       state.assetMarketRates = assetErgRate;
+    },
+    [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IDbAssetInfo[]) {
+      for (let info of assetsInfo) {
+        state.assetInfo[info.id] = {
+          name: info.name,
+          decimals: info.decimals,
+          type: info.type
+        } as StateAssetInfo;
+      }
     },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
       if (state.currentWallet.id === walletId) {
@@ -307,6 +316,7 @@ export default createStore({
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
+      await dispatch(ACTIONS.LOAD_ASSETS_INFO);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
       if (state.wallets.length > 0) {
@@ -327,6 +337,10 @@ export default createStore({
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
       const tokenMarketRates = await explorerService.getTokenMarketRates();
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
+    },
+    async [ACTIONS.LOAD_ASSETS_INFO]({ state, commit }) {
+      const info = await assetInfoDbService.getAllExcept(Object.keys(state.assetInfo));
+      commit(MUTATIONS.SET_ASSETS_INFO, info);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
       const rawSettings = localStorage.getItem("settings");

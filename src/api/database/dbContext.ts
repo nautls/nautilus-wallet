@@ -56,31 +56,23 @@ class NautilusDb extends Dexie {
       })
       .upgrade(async (t) => {
         const assets = await t.table<IDbAsset, string[]>("assets").toArray();
-        const assetInfo =
-          assets.length === 0
-            ? []
-            : uniqBy(
-                assets
-                  .filter((a) => a.tokenId !== ERG_TOKEN_ID)
-                  .map((a) => {
-                    return {
-                      id: a.tokenId,
-                      mintingBoxId: "",
-                      decimals: a.decimals,
-                      name: a.name
-                    } as IDbAssetInfo;
-                  }),
-                (a) => a.id
-              );
+        if (assets.length === 0) {
+          return;
+        }
 
-        assetInfo.push({
-          id: ERG_TOKEN_ID,
-          mintingBoxId: "",
-          name: "ERG",
-          decimals: ERG_DECIMALS,
-          standard: AssetStandard.Native
-        });
-
+        const assetInfo = uniqBy(
+          assets
+            .filter((a) => a.tokenId !== ERG_TOKEN_ID)
+            .map((a) => {
+              return {
+                id: a.tokenId,
+                mintingBoxId: "",
+                decimals: a.decimals,
+                name: a.name
+              } as IDbAssetInfo;
+            }),
+          (a) => a.id
+        );
         await t.table("assetInfo").bulkAdd(assetInfo);
       });
   }
