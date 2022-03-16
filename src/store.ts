@@ -315,21 +315,22 @@ export default createStore({
     }
   },
   actions: {
-    async [ACTIONS.INIT]({ state, dispatch, commit }) {
+    async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
       await Promise.all([dispatch(ACTIONS.LOAD_ASSETS_INFO), dispatch(ACTIONS.LOAD_WALLETS)]);
 
-      if (state.wallets.length > 0) {
-        dispatch(ACTIONS.LOAD_CONNECTIONS);
+      if (router.currentRoute.value.query.popup === "true") {
+        return;
+      }
 
-        if (router.currentRoute.value.query.popup != "true") {
-          let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
-          if (!current) {
-            current = first(state.wallets);
-          }
-          dispatch(ACTIONS.SET_CURRENT_WALLET, current);
-          router.push({ name: "assets-page" });
+      if (state.wallets.length > 0) {
+        let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
+        if (!current) {
+          current = first(state.wallets);
         }
+        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
+        dispatch(ACTIONS.LOAD_CONNECTIONS);
+        router.push({ name: "assets-page" });
       } else {
         router.push({ name: "add-wallet" });
       }
@@ -419,7 +420,6 @@ export default createStore({
       };
 
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
-      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
       const walletId = typeof wallet === "number" ? wallet : wallet.id;
@@ -593,7 +593,6 @@ export default createStore({
       assestsDbService.sync(assets, data.walletId);
 
       dispatch(ACTIONS.CHECK_PENDING_BOXES);
-
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
     },
