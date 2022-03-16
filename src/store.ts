@@ -87,7 +87,8 @@ export default createStore({
       settings: true,
       price: false,
       addresses: true,
-      balance: true
+      balance: true,
+      wallets: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
     assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as {
@@ -314,20 +315,19 @@ export default createStore({
     }
   },
   actions: {
-    async [ACTIONS.INIT]({ state, dispatch }) {
+    async [ACTIONS.INIT]({ state, dispatch, commit }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
-      await dispatch(ACTIONS.LOAD_ASSETS_INFO);
-      await dispatch(ACTIONS.LOAD_WALLETS);
+      await Promise.all([dispatch(ACTIONS.LOAD_ASSETS_INFO), dispatch(ACTIONS.LOAD_WALLETS)]);
 
       if (state.wallets.length > 0) {
         dispatch(ACTIONS.LOAD_CONNECTIONS);
-        let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
-        if (!current) {
-          current = first(state.wallets);
-        }
-        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
 
         if (router.currentRoute.value.query.popup != "true") {
+          let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
+          if (!current) {
+            current = first(state.wallets);
+          }
+          dispatch(ACTIONS.SET_CURRENT_WALLET, current);
           router.push({ name: "assets-page" });
         }
       } else {
@@ -339,7 +339,7 @@ export default createStore({
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     async [ACTIONS.LOAD_ASSETS_INFO]({ state, commit }) {
-      const info = await assetInfoDbService.getAllExcept(Object.keys(state.assetInfo));
+      const info = await assetInfoDbService.getAll();
       commit(MUTATIONS.SET_ASSETS_INFO, info);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
@@ -369,6 +369,7 @@ export default createStore({
       }
 
       commit(MUTATIONS.SET_WALLETS, wallets);
+      commit(MUTATIONS.SET_LOADING, { wallets: false });
     },
     async [ACTIONS.PUT_WALLET](
       { dispatch },

@@ -137,9 +137,8 @@ export default defineComponent({
       return;
     }
 
-    window.addEventListener("beforeunload", this.onWindowClosing);
-    this.setCurrentWallet(connection.walletId);
     this.currentWalletId = connection.walletId;
+    window.addEventListener("beforeunload", this.onWindowClosing);
   },
   data() {
     return {
@@ -162,14 +161,21 @@ export default defineComponent({
     };
   },
   watch: {
-    ["addresses.length"](newLength: number) {
-      if (newLength === 0) {
-        return;
+    ["loading.wallets"]: {
+      immediate: true,
+      async handler(loading: boolean) {
+        this.setWallet(loading, this.currentWalletId);
+      }
+    },
+    currentWalletId: {
+      immediate: true,
+      async handler(walletId: number) {
+        this.setWallet(this.loading.wallets, walletId);
       }
     }
   },
   computed: {
-    ...mapState({ wallets: "wallets" }),
+    ...mapState({ wallets: "wallets", loading: "loading" }),
     isReadonly() {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
     },
@@ -197,7 +203,12 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
+    async setWallet(loading: boolean, walletId: number) {
+      if (loading || walletId === 0) {
+        return;
+      }
+      this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+    },
     async sign() {
       const isValid = await this.v$.$validate();
       if (!isValid) {

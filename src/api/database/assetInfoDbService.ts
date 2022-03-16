@@ -15,6 +15,10 @@ class AssetInfoDbService {
   public async getAllExcept(ids: string[]): Promise<IDbAssetInfo[]> {
     return await dbContext.assetInfo.where("id").noneOf(ids).toArray();
   }
+
+  public async getAll(): Promise<IDbAssetInfo[]> {
+    return await dbContext.assetInfo.toArray();
+  }
 }
 
 export const assetInfoDbService = new AssetInfoDbService();
