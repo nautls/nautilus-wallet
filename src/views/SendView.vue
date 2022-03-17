@@ -41,11 +41,11 @@
                   <img
                     :src="$filters.assetLogo(asset.tokenId)"
                     class="h-8 w-8 rounded-full"
-                    :alt="asset.name"
+                    :alt="asset.info?.name"
                   />
                   <div class="flex-grow">
-                    <template v-if="asset.name">{{
-                      $filters.compactString(asset.name, 26)
+                    <template v-if="asset.info?.name">{{
+                      $filters.compactString(asset.info?.name, 26)
                     }}</template>
                     <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
                   </div>
