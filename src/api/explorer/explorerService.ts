@@ -82,7 +82,7 @@ class ExplorerService {
             tokenId: t.tokenId,
             name: t.name,
             decimals: t.decimals,
-            standard: t.tokenType === undefined ? AssetStandard.Unstandardized : AssetStandard.EIP4,
+            standard: t.tokenType === "EIP-004" ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
             confirmedAmount: t.amount?.toString() || "0",
             address: balance.address
           };
