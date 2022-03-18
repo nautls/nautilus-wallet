@@ -16,7 +16,8 @@ import {
   clone,
   findLastIndex,
   isEmpty,
-  uniq
+  uniq,
+  difference
 } from "lodash";
 import {
   Network,
@@ -52,6 +53,7 @@ import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { asDict } from "./utils/serializer";
+import { Token } from "./types/connector";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -213,8 +215,14 @@ export default createStore({
           return {
             tokenId: x.tokenId,
             confirmedAmount:
-              setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
-            unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
+              setDecimals(
+                toBigNumber(x.confirmedAmount),
+                state.assetInfo[x.tokenId]?.decimals ?? 0
+              ) || new BigNumber(0),
+            unconfirmedAmount: setDecimals(
+              toBigNumber(x.unconfirmedAmount),
+              state.assetInfo[x.tokenId]?.decimals ?? 0
+            ),
             info: state.assetInfo[x.tokenId]
           };
         });
@@ -317,7 +325,7 @@ export default createStore({
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
-      await Promise.all([dispatch(ACTIONS.LOAD_ASSETS_INFO), dispatch(ACTIONS.LOAD_WALLETS)]);
+      await dispatch(ACTIONS.LOAD_WALLETS);
 
       if (router.currentRoute.value.query.popup === "true") {
         return;
@@ -338,10 +346,6 @@ export default createStore({
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
       const tokenMarketRates = await explorerService.getTokenMarketRates();
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
-    },
-    async [ACTIONS.LOAD_ASSETS_INFO]({ state, commit }) {
-      const info = await assetInfoDbService.getAll();
-      commit(MUTATIONS.SET_ASSETS_INFO, info);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
       const rawSettings = localStorage.getItem("settings");
@@ -557,7 +561,7 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
 
       if (lastUsed !== null) {
-        dispatch(ACTIONS.REFRESH_BALANCES, {
+        dispatch(ACTIONS.FETCH_BALANCES, {
           addresses: active.map((a) => a.script),
           walletId
         });
@@ -565,9 +569,41 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
+    async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
       const assets = await assestsDbService.getByWalletId(walletId);
-      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
+
+      await dispatch(
+        ACTIONS.LOAD_ASSETS_INFO,
+        assets.map((x) => x.tokenId)
+      );
+      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId });
+    },
+    async [ACTIONS.LOAD_ASSETS_INFO]({ state, commit }, params: string[] | { assetInfo: Token[] }) {
+      const tokenIds = uniq(
+        Array.isArray(params) ? params : params.assetInfo.map((x) => x.tokenId)
+      );
+      const unloaded = difference(tokenIds, Object.keys(state.assetInfo));
+      if (!isEmpty(unloaded) && !Array.isArray(params)) {
+        await assetInfoDbService.addIfNotExists(
+          params.assetInfo
+            .filter((x) => unloaded.includes(x.tokenId))
+            .map((x) => {
+              return {
+                id: x.tokenId,
+                mintingBoxId: "",
+                name: x.name,
+                decimals: x.decimals
+              };
+            })
+        );
+      }
+
+      const assetsInfo = await assetInfoDbService.getAnyOf(unloaded);
+      if (isEmpty(assetsInfo)) {
+        return;
+      }
+
+      commit(MUTATIONS.SET_ASSETS_INFO, assetsInfo);
     },
     async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
       await walletsDbService.delete(walletId);
@@ -584,17 +620,34 @@ export default createStore({
 
       commit(MUTATIONS.REMOVE_WALLET, walletId);
     },
-    async [ACTIONS.REFRESH_BALANCES](
+    async [ACTIONS.FETCH_BALANCES](
       { commit, dispatch },
       data: { addresses: string[]; walletId: number }
     ) {
       const balances = await explorerService.getAddressesBalance(data.addresses);
-      const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
+      const assets = balances.map((x) => {
+        return {
+          tokenId: x.tokenId,
+          confirmedAmount: x.confirmedAmount,
+          unconfirmedAmount: x.unconfirmedAmount,
+          address: x.address,
+          walletId: data.walletId
+        } as IDbAsset;
+      });
       assestsDbService.sync(assets, data.walletId);
 
-      dispatch(ACTIONS.CHECK_PENDING_BOXES);
+      await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
+        assetInfo: balances.map((x) => {
+          return {
+            tokenId: x.tokenId,
+            name: x.name,
+            decimals: x.decimals
+          } as Token;
+        })
+      });
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
+      dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },
     async [ACTIONS.CHECK_PENDING_BOXES]() {
       const now = Date.now();

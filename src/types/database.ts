@@ -30,11 +30,8 @@ export interface IDbAddress {
 
 export interface IDbAsset {
   tokenId: string;
-  name: string;
-  type: AssetStandard;
   confirmedAmount: string;
   unconfirmedAmount?: string;
-  decimals: number;
   address: string;
   walletId: number;
 }

@@ -55,7 +55,7 @@ class NautilusDb extends Dexie {
         assetInfo: "&id, mintingBoxId"
       })
       .upgrade(async (t) => {
-        const assets = await t.table<IDbAsset, string[]>("assets").toArray();
+        const assets = await t.table("assets").toArray();
         if (assets.length === 0) {
           return;
         }

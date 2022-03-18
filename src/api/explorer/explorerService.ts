@@ -1,6 +1,7 @@
 import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
+  AssetBalance,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
   ExplorerGetApiV1BlocksP1Response,
@@ -11,11 +12,15 @@ import {
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { chunk, find, Primitive } from "lodash";
+import { chunk, find, isEmpty } from "lodash";
 import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
+import { IDbAsset } from "@/types/database";
+import { isZero } from "@/utils/bigNumbers";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { AssetStandard } from "@/types/internal";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
@@ -46,9 +51,10 @@ class ExplorerService {
   public async getAddressesBalance(
     addresses: string[],
     options = { chunkBy: 20 }
-  ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
+  ): Promise<AssetBalance[]> {
     if (options.chunkBy <= 0 || options.chunkBy >= addresses.length) {
-      return await this.getAddressesBalanceFromChunk(addresses);
+      const raw = await this.getAddressesBalanceFromChunk(addresses);
+      return this._parseAddressesBalanceResponse(raw);
     }
 
     const chunks = chunk(addresses, options.chunkBy);
@@ -57,7 +63,53 @@ class ExplorerService {
       balances = balances.concat(await this.getAddressesBalanceFromChunk(c));
     }
 
-    return balances;
+    return this._parseAddressesBalanceResponse(balances);
+  }
+
+  private _parseAddressesBalanceResponse(
+    apiResponse: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]
+  ): AssetBalance[] {
+    let assets: AssetBalance[] = [];
+
+    for (const balance of apiResponse.filter((r) => !this._isEmptyBalance(r.data))) {
+      if (!balance.data) {
+        continue;
+      }
+
+      assets = assets.concat(
+        balance.data.confirmed.tokens.map((t) => {
+          return {
+            tokenId: t.tokenId,
+            name: t.name,
+            decimals: t.decimals,
+            standard: t.tokenType === undefined ? AssetStandard.Unstandardized : AssetStandard.EIP4,
+            confirmedAmount: t.amount?.toString() || "0",
+            address: balance.address
+          };
+        })
+      );
+
+      assets.push({
+        tokenId: ERG_TOKEN_ID,
+        name: "ERG",
+        decimals: ERG_DECIMALS,
+        standard: AssetStandard.Native,
+        confirmedAmount: balance.data.confirmed.nanoErgs?.toString() || "0",
+        unconfirmedAmount: balance.data.unconfirmed.nanoErgs?.toString(),
+        address: balance.address
+      });
+    }
+
+    return assets;
+  }
+
+  private _isEmptyBalance(balance: ExplorerV1AddressBalanceResponse): boolean {
+    return (
+      isZero(balance.confirmed.nanoErgs) &&
+      isZero(balance.unconfirmed.nanoErgs) &&
+      isEmpty(balance.confirmed.tokens) &&
+      isEmpty(balance.unconfirmed.tokens)
+    );
   }
 
   public async getAddressesBalanceFromChunk(
