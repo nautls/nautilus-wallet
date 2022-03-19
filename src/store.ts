@@ -34,7 +34,7 @@ import {
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
-import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
 import { IDbAddress, IDbAsset, IDbAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
@@ -215,11 +215,11 @@ export default createStore({
           return {
             tokenId: x.tokenId,
             confirmedAmount:
-              setDecimals(
+              decimalize(
                 toBigNumber(x.confirmedAmount),
                 state.assetInfo[x.tokenId]?.decimals ?? 0
               ) || new BigNumber(0),
-            unconfirmedAmount: setDecimals(
+            unconfirmedAmount: decimalize(
               toBigNumber(x.unconfirmedAmount),
               state.assetInfo[x.tokenId]?.decimals ?? 0
             ),

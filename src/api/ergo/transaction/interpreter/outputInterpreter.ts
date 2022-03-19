@@ -1,9 +1,10 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
-import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash";
-import { addressFromErgoTree } from "../../addresses";
+import { addressFromErgoTree } from "@/api/ergo/addresses";
+import { parseRegister } from "@/api/ergo/serialize";
 import { AssetInfo } from "./txInterpreter";
 
 export type OutputAsset = {
@@ -56,7 +57,7 @@ export class OutputInterpreter {
     assets.push({
       tokenId: ERG_TOKEN_ID,
       name: "ERG",
-      amount: setDecimals(toBigNumber(this._box.value)!, ERG_DECIMALS)
+      amount: decimalize(toBigNumber(this._box.value)!, ERG_DECIMALS)
     });
 
     if (isEmpty(this._box.assets)) {
@@ -68,7 +69,7 @@ export class OutputInterpreter {
         tokenId: t.tokenId,
         name: this._assetInfo[t.tokenId]?.name,
         amount: this._assetInfo[t.tokenId]?.decimals
-          ? setDecimals(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals)
+          ? decimalize(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals)
           : toBigNumber(t.amount)
       } as OutputAsset;
     });
@@ -102,41 +103,16 @@ export class OutputInterpreter {
       };
     }
 
-    const decimals = parseInt(this.parseRegister(this._box.additionalRegisters["R6"]) ?? "");
+    const decimals = parseInt(parseRegister(this._box.additionalRegisters["R6"]) ?? "");
     return {
       tokenId: token.tokenId,
-      name: this.parseRegister(this._box.additionalRegisters["R4"]) ?? "",
+      name: parseRegister(this._box.additionalRegisters["R4"]) ?? "",
       decimals,
       amount: decimals
-        ? setDecimals(toBigNumber(token.amount)!, decimals)
+        ? decimalize(toBigNumber(token.amount)!, decimals)
         : toBigNumber(token.amount)!,
-      description: this.parseRegister(this._box.additionalRegisters["R5"]) ?? "",
+      description: parseRegister(this._box.additionalRegisters["R5"]) ?? "",
       minting: true
     };
-  }
-
-  private parseRegister(input: any): string | undefined {
-    if (!input || typeof input !== "string" || !input.startsWith("0e") || input.length < 4) {
-      return;
-    }
-
-    let body = input.slice(2);
-    let len = 0;
-    let readNext = true;
-    do {
-      const lenChunk = parseInt(body.slice(0, 2), 16);
-      body = body.slice(2);
-      if (isNaN(lenChunk)) {
-        return;
-      }
-      readNext = (lenChunk & 0x80) !== 0;
-      len = 128 * len + (lenChunk & 0x7f);
-    } while (readNext);
-
-    if (2 * len < body.length) {
-      return;
-    }
-
-    return Buffer.from(body.slice(0, 2 * len), "hex").toString("utf8");
   }
 }

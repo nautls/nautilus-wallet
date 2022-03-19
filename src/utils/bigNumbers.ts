@@ -1,15 +1,15 @@
 import BigNumber from "bignumber.js";
 
-export function setDecimals(value: BigNumber, decimals: number): BigNumber;
-export function setDecimals(value: BigNumber | undefined, decimals: number): BigNumber | undefined;
-export function setDecimals(value: BigNumber | undefined, decimals: number): BigNumber | undefined {
+export function decimalize(value: BigNumber, decimals: number): BigNumber;
+export function decimalize(value: BigNumber | undefined, decimals: number): BigNumber | undefined;
+export function decimalize(value: BigNumber | undefined, decimals: number): BigNumber | undefined {
   if (!decimals || value === undefined) {
     return value;
   }
   return value.multipliedBy(Math.pow(10, decimals * -1));
 }
 
-export function removeDecimals(value: BigNumber, decimals: number): BigNumber {
+export function undecimalize(value: BigNumber, decimals: number): BigNumber {
   if (!decimals) {
     return value;
   }
