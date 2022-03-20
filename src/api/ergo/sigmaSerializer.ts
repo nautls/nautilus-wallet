@@ -1,5 +1,5 @@
 const COLL_PREFIX = "0e";
-const TUPLE_PREFIX = "3c0e0e";
+const TUPLE_PREFIX = "3c";
 
 export function decodeColl(input: string): string | undefined {
   if (!input || !input.startsWith(COLL_PREFIX) || input.length < 4) {
@@ -34,6 +34,15 @@ export function decodeCollTuple(input: string): (string | undefined)[] {
 
   const indexes: number[] = [];
   let cursor = TUPLE_PREFIX.length;
+  let readNext = true;
+
+  do {
+    readNext = input.startsWith(COLL_PREFIX, cursor);
+    if (readNext) {
+      cursor += COLL_PREFIX.length;
+    }
+  } while (readNext);
+
   let index, length!: number | undefined;
   do {
     [index, length] = getCollSpan(input, cursor);
