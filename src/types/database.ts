@@ -2,12 +2,13 @@ import {
   AddressState,
   AddressType,
   AssetStandard,
+  AssetSubtype,
   AssetType,
   Network,
   WalletSettings,
   WalletType
 } from "@/types/internal";
-import { Registers, ErgoBox } from "./connector";
+import { ErgoBox } from "./connector";
 
 export interface IDbWallet {
   id?: number;
@@ -45,14 +46,18 @@ export interface IDbDAppConnection {
 export interface IDbAssetInfo {
   id: string;
   mintingBoxId: string;
+  mintingTransactionId?: string;
   name?: string;
   decimals?: number;
   standard?: AssetStandard;
   type?: AssetType;
+  subtype?: AssetSubtype;
   transactionId?: string;
   emissionAmount?: string;
   description?: string;
-  additionalRegisters?: Registers;
+  artworkUrl?: string;
+  artworkCover?: string;
+  artworkHash?: string;
 }
 
 export interface IDbUtxo {

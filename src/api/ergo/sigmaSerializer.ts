@@ -4,7 +4,7 @@ import {
   MIN_TUPLE_LENGTH,
   TUPLE_PREFIX
 } from "@/constants/ergo";
-import { isEmpty } from "lodash";
+import { endsWith, isEmpty } from "lodash";
 
 export function isColl(input: string): boolean {
   return !isEmpty(input) && input.startsWith(COLL_BYTE_PREFIX) && input.length >= MIN_COLL_LENGTH;
@@ -14,28 +14,35 @@ export function isTuple(input: string): boolean {
   return !isEmpty(input) && input.startsWith(TUPLE_PREFIX) && input.length >= MIN_TUPLE_LENGTH;
 }
 
-export function decodeColl(input: string): string | undefined {
+export function decodeColl(input: string, encoding: BufferEncoding = "utf8"): string | undefined {
   if (!isColl(input)) {
     return;
   }
 
-  return decodeString(input, COLL_BYTE_PREFIX.length);
+  return decodeConst(input, COLL_BYTE_PREFIX.length, encoding);
 }
 
-function decodeString(input: string, position: number): string | undefined {
+function decodeConst(
+  input: string,
+  position: number,
+  encoding: BufferEncoding
+): string | undefined {
   const [start, length] = getCollSpan(input, position);
   if (!length) {
     return;
   }
 
-  return Buffer.from(input.slice(start, start + length), "hex").toString("utf8");
+  return Buffer.from(input.slice(start, start + length), "hex").toString(encoding);
 }
 
 function getCollSpan(input: string, start: number): [start: number, length: number | undefined] {
   return decodeVlq(input, start);
 }
 
-export function decodeCollTuple(input: string): (string | undefined)[] {
+export function decodeCollTuple(
+  input: string,
+  encoding: BufferEncoding = "utf8"
+): (string | undefined)[] {
   if (!isTuple(input)) {
     return [];
   }
@@ -60,7 +67,7 @@ export function decodeCollTuple(input: string): (string | undefined)[] {
     }
   } while (length);
 
-  return indexes.map((index) => decodeString(input, index));
+  return indexes.map((index) => decodeConst(input, index, encoding));
 }
 
 function decodeVlq(input: string, position: number): [cursor: number, value: number | undefined] {

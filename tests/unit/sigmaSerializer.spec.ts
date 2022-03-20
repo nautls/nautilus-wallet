@@ -30,4 +30,11 @@ describe("sigma serializer", () => {
       "ipfs://bafkreigzktykbpkbpknofphvmae2z2bwzqdg3artn26nnxr7akal7lnm2m"
     ]);
   });
+
+  it("decode Coll[Byte] as hex string", () => {
+    expect(decodeColl("0e020101", "hex")).toEqual("0101");
+    expect(decodeColl("0e020102", "hex")).toEqual("0102");
+    expect(decodeColl("0e020103", "hex")).toEqual("0103");
+    expect(decodeColl("0e020201", "hex")).toEqual("0201");
+  });
 });

@@ -97,6 +97,7 @@ export type ExplorerAssetInfo = {
   subtype?: AssetSubtype;
   artworkUrl?: string;
   artworkCover?: string;
+  artworkHash?: string;
 };
 
 type ExplorerBalanceItem = {
