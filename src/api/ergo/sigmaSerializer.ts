@@ -1,8 +1,16 @@
-const COLL_PREFIX = "0e";
-const TUPLE_PREFIX = "3c";
+import { COLL_PREFIX, MIN_COLL_LENGTH, MIN_TUPLE_LENGTH, TUPLE_PREFIX } from "@/constants/ergo";
+import { isEmpty } from "lodash";
+
+export function isColl(input: string): boolean {
+  return !isEmpty(input) && input.startsWith(COLL_PREFIX) && input.length >= MIN_COLL_LENGTH;
+}
+
+export function isTuple(input: string): boolean {
+  return !isEmpty(input) && input.startsWith(TUPLE_PREFIX) && input.length >= MIN_TUPLE_LENGTH;
+}
 
 export function decodeColl(input: string): string | undefined {
-  if (!input || !input.startsWith(COLL_PREFIX) || input.length < 4) {
+  if (!isColl(input)) {
     return;
   }
 
@@ -28,7 +36,7 @@ function getCollSpan(input: string, start: number): [start: number, length: numb
 }
 
 export function decodeCollTuple(input: string): (string | undefined)[] {
-  if (!input || !input.startsWith(TUPLE_PREFIX) || input.length < 4) {
+  if (!isTuple(input)) {
     return [];
   }
 
