@@ -1,8 +1,13 @@
-import { COLL_PREFIX, MIN_COLL_LENGTH, MIN_TUPLE_LENGTH, TUPLE_PREFIX } from "@/constants/ergo";
+import {
+  COLL_BYTE_PREFIX,
+  MIN_COLL_LENGTH,
+  MIN_TUPLE_LENGTH,
+  TUPLE_PREFIX
+} from "@/constants/ergo";
 import { isEmpty } from "lodash";
 
 export function isColl(input: string): boolean {
-  return !isEmpty(input) && input.startsWith(COLL_PREFIX) && input.length >= MIN_COLL_LENGTH;
+  return !isEmpty(input) && input.startsWith(COLL_BYTE_PREFIX) && input.length >= MIN_COLL_LENGTH;
 }
 
 export function isTuple(input: string): boolean {
@@ -14,7 +19,7 @@ export function decodeColl(input: string): string | undefined {
     return;
   }
 
-  return decodeString(input, COLL_PREFIX.length);
+  return decodeString(input, COLL_BYTE_PREFIX.length);
 }
 
 function decodeString(input: string, position: number): string | undefined {
@@ -40,9 +45,9 @@ export function decodeCollTuple(input: string): (string | undefined)[] {
   let readNext = true;
 
   do {
-    readNext = input.startsWith(COLL_PREFIX, cursor);
+    readNext = input.startsWith(COLL_BYTE_PREFIX, cursor);
     if (readNext) {
-      cursor += COLL_PREFIX.length;
+      cursor += COLL_BYTE_PREFIX.length;
     }
   } while (readNext);
 
