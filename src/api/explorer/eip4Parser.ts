@@ -26,6 +26,8 @@ export function parseEIP4Asset(tokenId: string, box: ExplorerBox): ExplorerAsset
   };
 
   if (assetInfo.type === AssetType.NFT) {
+    assetInfo.artworkHash = decodeColl(box.additionalRegisters.R8);
+
     if (isColl(box.additionalRegisters.R9)) {
       assetInfo.artworkUrl = decodeColl(box.additionalRegisters.R9);
     } else if (isTuple(box.additionalRegisters.R9)) {
