@@ -20,7 +20,8 @@ import { ErgoTx } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
-import { AssetStandard, AssetType } from "@/types/internal";
+import { AssetStandard } from "@/types/internal";
+import { parseEIP4Asset } from "./eip4Parser";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
@@ -181,21 +182,7 @@ class ExplorerService {
 
   public async getAssetInfo(tokenId: string): Promise<ExplorerAssetInfo | undefined> {
     const box = await this.getMintingBox(tokenId);
-    const boxAsset = find(box.assets, (a) => a.tokenId === tokenId);
-    if (!boxAsset) {
-      return;
-    }
-
-    return {
-      tokenId: tokenId,
-      mintingBoxId: box.id,
-      mintingTransactionId: box.txId,
-      emissionAmount: boxAsset.amount.toString(),
-      name: boxAsset.name,
-      decimals: boxAsset.decimals,
-      standard:
-        boxAsset.type === AssetStandard.EIP4 ? AssetStandard.EIP4 : AssetStandard.Unstandardized
-    };
+    return parseEIP4Asset(tokenId, box);
   }
 
   public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {

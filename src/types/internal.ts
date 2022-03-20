@@ -30,10 +30,15 @@ export enum AssetStandard {
 }
 
 export enum AssetType {
-  PictureNFT = "0101",
-  AudioNFT = "0102",
-  VideoNFT = "0103",
-  MembershipThresholdSignToken = "0201"
+  NFT = "01",
+  MembershipToken = "02"
+}
+
+export enum AssetSubtype {
+  PictureArtwork = "0101",
+  AudioArtwork = "0102",
+  VideoArtwork = "0103",
+  ThresholdSignature = "0201"
 }
 
 export type StateAddress = {

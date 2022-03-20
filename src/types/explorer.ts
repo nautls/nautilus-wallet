@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { ErgoBox, Registers, Token } from "./connector";
-import { AssetStandard, AssetType } from "./internal";
+import { AssetStandard, AssetSubtype, AssetType } from "./internal";
 
 export type AddressAPIResponse<T> = {
   address: string;
@@ -94,6 +94,7 @@ export type ExplorerAssetInfo = {
   decimals?: number;
   standard?: AssetStandard;
   type?: AssetType;
+  subtype?: AssetSubtype;
   artworkUrl?: string;
   artworkCover?: string;
 };
