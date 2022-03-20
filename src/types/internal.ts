@@ -30,6 +30,7 @@ export enum AssetStandard {
 }
 
 export enum AssetType {
+  Unknown = "00",
   NFT = "01",
   MembershipToken = "02"
 }

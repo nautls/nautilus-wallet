@@ -2,7 +2,6 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   AssetBalance,
-  ExplorerAssetInfo,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
   ExplorerGetApiV1BlocksP1Response,
@@ -22,6 +21,7 @@ import { isZero } from "@/utils/bigNumbers";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
+import { IAssetInfo } from "@/types/database";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
@@ -169,7 +169,7 @@ class ExplorerService {
 
   public async getMintingBox(tokenId: string): Promise<ExplorerBox> {
     const response = await axios.get(`${API_URL}/api/v0/assets/${tokenId}/issuingBox`);
-    return response.data;
+    return response.data[0];
   }
 
   public async getBoxes(boxIds: string[]): Promise<ExplorerBox[]> {
@@ -180,9 +180,18 @@ class ExplorerService {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 
-  public async getAssetInfo(tokenId: string): Promise<ExplorerAssetInfo | undefined> {
-    const box = await this.getMintingBox(tokenId);
-    return parseEIP4Asset(tokenId, box);
+  public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
+    try {
+      const box = await this.getMintingBox(tokenId);
+      return parseEIP4Asset(tokenId, box);
+    } catch {
+      return;
+    }
+  }
+
+  public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[]> {
+    const info = await Promise.all(tokenIds.map((a) => this.getAssetInfo(a)));
+    return info.filter((i) => i) as IAssetInfo[];
   }
 
   public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {

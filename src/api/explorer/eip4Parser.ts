@@ -1,18 +1,19 @@
-import { ExplorerAssetInfo, ExplorerBox } from "@/types/explorer";
+import { IAssetInfo } from "@/types/database";
+import { ExplorerBox } from "@/types/explorer";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { find, isEmpty } from "lodash";
 import { decodeColl, decodeCollTuple, isColl, isTuple } from "../ergo/sigmaSerializer";
 
-export function parseEIP4Asset(tokenId: string, box: ExplorerBox): ExplorerAssetInfo | undefined {
+export function parseEIP4Asset(tokenId: string, box: ExplorerBox): IAssetInfo | undefined {
   const boxAsset = find(box.assets, (a) => a.tokenId === tokenId);
   if (!boxAsset) {
     return;
   }
 
   const r5 = decodeColl(box.additionalRegisters.R5);
-  const r7 = decodeColl(box.additionalRegisters.R7);
-  const assetInfo: ExplorerAssetInfo = {
-    tokenId: tokenId,
+  const r7 = decodeColl(box.additionalRegisters.R7, "hex");
+  const assetInfo: IAssetInfo = {
+    id: tokenId,
     mintingBoxId: box.id,
     mintingTransactionId: box.txId,
     emissionAmount: boxAsset.amount.toString(),
@@ -26,7 +27,7 @@ export function parseEIP4Asset(tokenId: string, box: ExplorerBox): ExplorerAsset
   };
 
   if (assetInfo.type === AssetType.NFT) {
-    assetInfo.artworkHash = decodeColl(box.additionalRegisters.R8);
+    assetInfo.artworkHash = decodeColl(box.additionalRegisters.R8, "hex");
 
     if (isColl(box.additionalRegisters.R9)) {
       assetInfo.artworkUrl = decodeColl(box.additionalRegisters.R9);
@@ -48,9 +49,9 @@ function parseAssetSubtype(r7Register?: string): AssetSubtype | undefined {
   return r7Register as AssetSubtype;
 }
 
-function parseAssetType(r7Register?: string): AssetType | undefined {
+function parseAssetType(r7Register?: string): AssetType {
   if (!r7Register || isEmpty(r7Register)) {
-    return;
+    return AssetType.Unknown;
   }
 
   if (r7Register.startsWith(AssetType.NFT)) {
@@ -58,4 +59,6 @@ function parseAssetType(r7Register?: string): AssetType | undefined {
   } else if (r7Register.startsWith(AssetType.MembershipToken)) {
     return AssetType.MembershipToken;
   }
+
+  return AssetType.Unknown;
 }

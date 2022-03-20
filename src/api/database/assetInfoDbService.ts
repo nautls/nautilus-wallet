@@ -1,9 +1,10 @@
-import { IDbAssetInfo } from "@/types/database";
+import { IAssetInfo } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { difference, isEmpty, uniqBy } from "lodash";
+import { UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class AssetInfoDbService {
-  public async addIfNotExists(assets: IDbAssetInfo[]) {
+  public async addIfNotExists(assets: IAssetInfo[]) {
     if (isEmpty(assets)) {
       return;
     }
@@ -18,7 +19,15 @@ class AssetInfoDbService {
     }
   }
 
-  public async getAnyOf(ids: string[]): Promise<IDbAssetInfo[]> {
+  public async getIncompleteInfoIds(): Promise<string[]> {
+    return await dbContext.assetInfo.where({ mintingBoxId: UNKNOWN_MINTING_BOX_ID }).primaryKeys();
+  }
+
+  public async bulkPut(infos: IAssetInfo[]) {
+    await dbContext.assetInfo.bulkPut(infos);
+  }
+
+  public async getAnyOf(ids: string[]): Promise<IAssetInfo[]> {
     if (isEmpty(ids)) {
       return [];
     }
@@ -26,11 +35,11 @@ class AssetInfoDbService {
     return await dbContext.assetInfo.where("id").anyOf(ids).toArray();
   }
 
-  public async getAllExcept(ids: string[]): Promise<IDbAssetInfo[]> {
+  public async getAllExcept(ids: string[]): Promise<IAssetInfo[]> {
     return await dbContext.assetInfo.where("id").noneOf(ids).toArray();
   }
 
-  public async getAll(): Promise<IDbAssetInfo[]> {
+  public async getAll(): Promise<IAssetInfo[]> {
     return await dbContext.assetInfo.toArray();
   }
 }

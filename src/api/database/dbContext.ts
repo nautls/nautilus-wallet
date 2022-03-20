@@ -5,10 +5,10 @@ import {
   IDbAsset,
   IDbWallet,
   IDbUtxo,
-  IDbAssetInfo
+  IAssetInfo
 } from "@/types/database";
 import { find, uniqBy } from "lodash";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
 
 class NautilusDb extends Dexie {
@@ -17,7 +17,7 @@ class NautilusDb extends Dexie {
   assets!: Table<IDbAsset, string[]>;
   connectedDApps!: Table<IDbDAppConnection, string>;
   utxos!: Table<IDbUtxo, string>;
-  assetInfo!: Table<IDbAssetInfo, string>;
+  assetInfo!: Table<IAssetInfo, string>;
 
   constructor() {
     super("nautilusDb");
@@ -52,7 +52,7 @@ class NautilusDb extends Dexie {
 
     this.version(6)
       .stores({
-        assetInfo: "&id, mintingBoxId"
+        assetInfo: "&id, mintingBoxId, type"
       })
       .upgrade(async (t) => {
         const assets = await t.table("assets").toArray();
@@ -66,10 +66,10 @@ class NautilusDb extends Dexie {
             .map((a) => {
               return {
                 id: a.tokenId,
-                mintingBoxId: "",
+                mintingBoxId: UNKNOWN_MINTING_BOX_ID,
                 decimals: a.decimals,
                 name: a.name
-              } as IDbAssetInfo;
+              } as IAssetInfo;
             }),
           (a) => a.id
         );

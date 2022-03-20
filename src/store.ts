@@ -29,14 +29,20 @@ import {
   UpdateWalletSettingsCommand,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
-  StateAssetInfo
+  StateAssetInfo,
+  AssetType
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
-import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IDbAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
+import {
+  ERG_TOKEN_ID,
+  CHUNK_DERIVE_LENGTH,
+  ERG_DECIMALS,
+  UNKNOWN_MINTING_BOX_ID
+} from "@/constants/ergo";
+import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
@@ -289,7 +295,7 @@ export default createStore({
       assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
       state.assetMarketRates = assetErgRate;
     },
-    [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IDbAssetInfo[]) {
+    [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
       for (let info of assetsInfo) {
         state.assetInfo[info.id] = {
           name: info.name,
@@ -325,6 +331,7 @@ export default createStore({
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
+      dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
       if (router.currentRoute.value.query.popup === "true") {
@@ -425,13 +432,13 @@ export default createStore({
 
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
     },
-    [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
+    async [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
       const walletId = typeof wallet === "number" ? wallet : wallet.id;
 
       commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
-      dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
+      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
       dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: walletId });
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
@@ -578,7 +585,10 @@ export default createStore({
       );
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId });
     },
-    async [ACTIONS.LOAD_ASSETS_INFO]({ state, commit }, params: string[] | { assetInfo: Token[] }) {
+    async [ACTIONS.LOAD_ASSETS_INFO](
+      { state, commit, dispatch },
+      params: string[] | { assetInfo: Token[] }
+    ) {
       const tokenIds = uniq(
         Array.isArray(params) ? params : params.assetInfo.map((x) => x.tokenId)
       );
@@ -590,9 +600,10 @@ export default createStore({
             .map((x) => {
               return {
                 id: x.tokenId,
-                mintingBoxId: "",
+                mintingBoxId: UNKNOWN_MINTING_BOX_ID,
                 name: x.name,
-                decimals: x.decimals
+                decimals: x.decimals,
+                type: AssetType.Unknown
               };
             })
         );
@@ -604,6 +615,21 @@ export default createStore({
       }
 
       commit(MUTATIONS.SET_ASSETS_INFO, assetsInfo);
+      dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
+    },
+    async [ACTIONS.FETCH_FULL_ASSETS_INFO]({ commit }) {
+      const incompleteIds = await assetInfoDbService.getIncompleteInfoIds();
+      if (isEmpty(incompleteIds)) {
+        return;
+      }
+
+      const info = await explorerService.getAssetsInfo(incompleteIds);
+      if (isEmpty(info)) {
+        return;
+      }
+
+      await assetInfoDbService.bulkPut(info);
+      commit(MUTATIONS.SET_ASSETS_INFO, info);
     },
     async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
       await walletsDbService.delete(walletId);

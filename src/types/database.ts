@@ -43,16 +43,15 @@ export interface IDbDAppConnection {
   favicon?: string;
 }
 
-export interface IDbAssetInfo {
+export interface IAssetInfo {
   id: string;
   mintingBoxId: string;
   mintingTransactionId?: string;
   name?: string;
   decimals?: number;
   standard?: AssetStandard;
-  type?: AssetType;
+  type: AssetType;
   subtype?: AssetSubtype;
-  transactionId?: string;
   emissionAmount?: string;
   description?: string;
   artworkUrl?: string;

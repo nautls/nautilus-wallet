@@ -13,3 +13,4 @@ export const COLL_BYTE_PREFIX = "0e";
 export const TUPLE_PREFIX = "3c";
 export const MIN_COLL_LENGTH = 4;
 export const MIN_TUPLE_LENGTH = 6;
+export const UNKNOWN_MINTING_BOX_ID = "";
