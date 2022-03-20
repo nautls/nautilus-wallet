@@ -1,5 +1,6 @@
 import { COLL_PREFIX, MIN_COLL_LENGTH, MIN_TUPLE_LENGTH, TUPLE_PREFIX } from "@/constants/ergo";
 import { isEmpty } from "lodash";
+import { popScopeId } from "vue";
 
 export function isColl(input: string): boolean {
   return !isEmpty(input) && input.startsWith(COLL_PREFIX) && input.length >= MIN_COLL_LENGTH;
@@ -27,12 +28,7 @@ function decodeString(input: string, position: number): string | undefined {
 }
 
 function getCollSpan(input: string, start: number): [start: number, length: number | undefined] {
-  let len = parseInt(input.slice(start, (start += 2)), 16);
-  if (isNaN(len) || !len) {
-    return [start, undefined];
-  }
-
-  return [start, len * 2];
+  return decodeVlq(input, start);
 }
 
 export function decodeCollTuple(input: string): (string | undefined)[] {
@@ -61,4 +57,20 @@ export function decodeCollTuple(input: string): (string | undefined)[] {
   } while (length);
 
   return indexes.map((index) => decodeString(input, index));
+}
+
+function decodeVlq(input: string, position: number): [cursor: number, value: number | undefined] {
+  let len = 0;
+  let readNext = true;
+  do {
+    const lenChunk = parseInt(input.slice(position, (position += 2)), 16);
+    if (isNaN(lenChunk)) {
+      return [position, undefined];
+    }
+
+    readNext = (lenChunk & 0x80) !== 0;
+    len = 128 * len + (lenChunk & 0x7f);
+  } while (readNext);
+
+  return [position, len * 2];
 }
