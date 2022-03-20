@@ -1,6 +1,5 @@
 import { COLL_PREFIX, MIN_COLL_LENGTH, MIN_TUPLE_LENGTH, TUPLE_PREFIX } from "@/constants/ergo";
 import { isEmpty } from "lodash";
-import { popScopeId } from "vue";
 
 export function isColl(input: string): boolean {
   return !isEmpty(input) && input.startsWith(COLL_PREFIX) && input.length >= MIN_COLL_LENGTH;
