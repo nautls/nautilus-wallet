@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
-import { ErgoBox, Token } from "./connector";
-import { AssetStandard } from "./internal";
+import { ErgoBox, Registers, Token } from "./connector";
+import { AssetStandard, AssetType } from "./internal";
 
 export type AddressAPIResponse<T> = {
   address: string;
@@ -82,6 +82,19 @@ export type AssetBalance = {
   confirmedAmount: string;
   unconfirmedAmount?: string;
   address: string;
+};
+
+export type ExplorerAssetInfo = {
+  tokenId: string;
+  mintingBoxId: string;
+  mintingTransactionId: string;
+  emissionAmount: string;
+  name?: string;
+  description?: string;
+  decimals?: number;
+  standard?: AssetStandard;
+  type?: AssetType;
+  artworkUrl?: string;
 };
 
 type ExplorerBalanceItem = {

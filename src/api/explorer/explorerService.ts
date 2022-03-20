@@ -2,6 +2,7 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   AssetBalance,
+  ExplorerAssetInfo,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
   ExplorerGetApiV1BlocksP1Response,
@@ -17,10 +18,9 @@ import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
-import { IDbAsset } from "@/types/database";
 import { isZero } from "@/utils/bigNumbers";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
-import { AssetStandard } from "@/types/internal";
+import { AssetStandard, AssetType } from "@/types/internal";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
@@ -82,7 +82,10 @@ class ExplorerService {
             tokenId: t.tokenId,
             name: t.name,
             decimals: t.decimals,
-            standard: t.tokenType === "EIP-004" ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
+            standard:
+              t.tokenType === AssetStandard.EIP4
+                ? AssetStandard.EIP4
+                : AssetStandard.Unstandardized,
             confirmedAmount: t.amount?.toString() || "0",
             address: balance.address
           };
@@ -163,12 +166,36 @@ class ExplorerService {
     return response.data;
   }
 
+  public async getMintingBox(tokenId: string): Promise<ExplorerBox> {
+    const response = await axios.get(`${API_URL}/api/v0/assets/${tokenId}/issuingBox`);
+    return response.data;
+  }
+
   public async getBoxes(boxIds: string[]): Promise<ExplorerBox[]> {
     return await Promise.all(boxIds.map((id) => this.getBox(id)));
   }
 
   public async getUnspentBoxes(addresses: string[]): Promise<AddressAPIResponse<ExplorerBox[]>[]> {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
+  }
+
+  public async getAssetInfo(tokenId: string): Promise<ExplorerAssetInfo | undefined> {
+    const box = await this.getMintingBox(tokenId);
+    const boxAsset = find(box.assets, (a) => a.tokenId === tokenId);
+    if (!boxAsset) {
+      return;
+    }
+
+    return {
+      tokenId: tokenId,
+      mintingBoxId: box.id,
+      mintingTransactionId: box.txId,
+      emissionAmount: boxAsset.amount.toString(),
+      name: boxAsset.name,
+      decimals: boxAsset.decimals,
+      standard:
+        boxAsset.type === AssetStandard.EIP4 ? AssetStandard.EIP4 : AssetStandard.Unstandardized
+    };
   }
 
   public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {

@@ -4,7 +4,7 @@ import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash";
 import { addressFromErgoTree } from "@/api/ergo/addresses";
-import { parseRegister } from "@/api/ergo/serialize";
+import { decodeColl } from "@/api/ergo/sigmaSerializer";
 import { AssetInfo } from "./txInterpreter";
 
 export type OutputAsset = {
@@ -103,15 +103,15 @@ export class OutputInterpreter {
       };
     }
 
-    const decimals = parseInt(parseRegister(this._box.additionalRegisters["R6"]) ?? "");
+    const decimals = parseInt(decodeColl(this._box.additionalRegisters["R6"]) ?? "");
     return {
       tokenId: token.tokenId,
-      name: parseRegister(this._box.additionalRegisters["R4"]) ?? "",
+      name: decodeColl(this._box.additionalRegisters["R4"]) ?? "",
       decimals,
       amount: decimals
         ? decimalize(toBigNumber(token.amount)!, decimals)
         : toBigNumber(token.amount)!,
-      description: parseRegister(this._box.additionalRegisters["R5"]) ?? "",
+      description: decodeColl(this._box.additionalRegisters["R5"]) ?? "",
       minting: true
     };
   }
