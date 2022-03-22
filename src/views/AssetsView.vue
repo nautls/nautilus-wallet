@@ -37,7 +37,7 @@
             <td class="w-14 min-w-14 align-middle">
               <img
                 :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
-                class="h-8 w-8 rounded-full fill-blue-700 stroke-blue-400"
+                class="h-8 w-8 rounded-full"
                 :alt="asset.info?.name"
               />
             </td>
