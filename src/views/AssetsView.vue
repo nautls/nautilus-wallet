@@ -20,7 +20,7 @@
         <tbody>
           <tr v-if="loading" v-for="i in prevCount" :key="i">
             <td class="w-14 align-middle">
-              <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
+              <img src="@/assets/images/emptyAssetLogo.svg" class="h-8 w-8 animate-pulse" />
             </td>
             <td class="align-middle">
               <div class="skeleton h-3 w-2/3 rounded"></div>
@@ -36,8 +36,8 @@
           <tr v-else v-for="asset in assets" :key="asset.tokenId">
             <td class="w-14 min-w-14 align-middle">
               <img
-                :src="$filters.assetLogo(asset.tokenId)"
-                class="h-8 w-8 rounded-full"
+                :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
+                class="h-8 w-8 rounded-full fill-blue-700 stroke-blue-400"
                 :alt="asset.info?.name"
               />
             </td>

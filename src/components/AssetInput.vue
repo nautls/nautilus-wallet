@@ -46,7 +46,7 @@
             <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
             <img
               class="h-5 rounded-full object-scale-down w-5 inline-block flex-shrink"
-              :src="$filters.assetLogo(asset.tokenId)"
+              :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
             />
           </div>
         </div>

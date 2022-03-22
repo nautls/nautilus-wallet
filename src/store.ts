@@ -300,7 +300,7 @@ export default createStore({
         state.assetInfo[info.id] = {
           name: info.name,
           decimals: info.decimals,
-          type: info.type
+          type: info.subtype
         } as StateAssetInfo;
       }
     },

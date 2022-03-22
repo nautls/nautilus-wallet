@@ -39,7 +39,7 @@
               >
                 <div class="flex flex-row items-center gap-2">
                   <img
-                    :src="$filters.assetLogo(asset.tokenId)"
+                    :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
                     class="h-8 w-8 rounded-full"
                     :alt="asset.info?.name"
                   />

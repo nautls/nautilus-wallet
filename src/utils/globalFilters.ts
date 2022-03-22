@@ -1,5 +1,5 @@
 import { logoMapper } from "@/mappers/logoMapper";
-import { WalletType } from "@/types/internal";
+import { AssetSubtype, WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
 const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
@@ -58,9 +58,26 @@ export const filters = {
     let shifted = Math.round(num * magnitude);
     return new BigNumber(shifted / magnitude);
   },
-  assetLogo(tokenId: string): string {
-    const assetLogo = logoMapper[tokenId];
-    return `/icons/assets/${assetLogo ?? "default.svg"}`;
+  assetLogo(tokenId: string, subType?: AssetSubtype): string {
+    let assetLogo = logoMapper[tokenId];
+    if (!assetLogo) {
+      switch (subType) {
+        case AssetSubtype.PictureArtwork:
+          assetLogo = "nft-picture.svg";
+          break;
+        case AssetSubtype.AudioArtwork:
+          assetLogo = "nft-audio.svg";
+          break;
+        case AssetSubtype.VideoArtwork:
+          assetLogo = "nft-video.svg";
+          break;
+        default:
+          assetLogo = "empty.svg";
+          break;
+      }
+    }
+
+    return `/icons/assets/${assetLogo}`;
   },
   walletType(type: WalletType): string {
     switch (type) {

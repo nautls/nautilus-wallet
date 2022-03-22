@@ -75,7 +75,7 @@ export type StateAsset = {
 export type StateAssetInfo = {
   name: string;
   decimals: number;
-  type?: AssetType;
+  type?: AssetSubtype;
 };
 
 export type SendTxCommandAsset = {
