@@ -24,11 +24,7 @@
           <ul class="px-1">
             <li v-for="asset in output.assets" class="py-1">
               <div class="flex flex-row items-center gap-2">
-                <img
-                  :src="$filters.assetLogo(asset.tokenId)"
-                  class="h-8 w-8 rounded-full"
-                  :alt="asset.name"
-                />
+                <asset-icon class="h-8 w-8" :token-id="asset.tokenId" />
                 <div class="flex-grow items-center align-middle">
                   <span class="align-middle">
                     <template v-if="asset.name">{{
