@@ -343,6 +343,7 @@ export default createStore({
         if (!current) {
           current = first(state.wallets);
         }
+
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
         dispatch(ACTIONS.LOAD_CONNECTIONS);
         router.push({ name: "assets-page" });
@@ -434,12 +435,11 @@ export default createStore({
     },
     async [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
       const walletId = typeof wallet === "number" ? wallet : wallet.id;
-
       commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
-      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
       dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: walletId });
+      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
       const lastUsedIndex = findLastIndex(
