@@ -72,7 +72,7 @@ export default defineComponent({
   },
   methods: {
     calculateColor(tokenId: string) {
-      const brightness = 0.6;
+      const brightness = 0.7;
       let r = parseInt(tokenId.substring(0, 2), 16);
       let g = parseInt(tokenId.substring(2, 4), 16);
       let b = parseInt(tokenId.substring(4, 6), 16);
