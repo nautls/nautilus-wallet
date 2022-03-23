@@ -58,27 +58,6 @@ export const filters = {
     let shifted = Math.round(num * magnitude);
     return new BigNumber(shifted / magnitude);
   },
-  assetLogo(tokenId: string, subType?: AssetSubtype): string {
-    let assetLogo = logoMapper[tokenId];
-    if (!assetLogo) {
-      switch (subType) {
-        case AssetSubtype.PictureArtwork:
-          assetLogo = "nft-picture.svg";
-          break;
-        case AssetSubtype.AudioArtwork:
-          assetLogo = "nft-audio.svg";
-          break;
-        case AssetSubtype.VideoArtwork:
-          assetLogo = "nft-video.svg";
-          break;
-        default:
-          assetLogo = "empty.svg";
-          break;
-      }
-    }
-
-    return `/icons/assets/${assetLogo}`;
-  },
   walletType(type: WalletType): string {
     switch (type) {
       case WalletType.Standard:
