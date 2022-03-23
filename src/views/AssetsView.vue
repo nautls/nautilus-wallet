@@ -20,7 +20,7 @@
         <tbody>
           <tr v-if="loading" v-for="i in prevCount" :key="i">
             <td class="w-14 align-middle">
-              <img src="@/assets/images/emptyAssetLogo.svg" class="h-8 w-8 animate-pulse" />
+              <empty-logo class="h-8 w-8 animate-pulse fill-gray-300" />
             </td>
             <td class="align-middle">
               <div class="skeleton h-3 w-2/3 rounded"></div>
@@ -35,11 +35,7 @@
           </tr>
           <tr v-else v-for="asset in assets" :key="asset.tokenId">
             <td class="w-14 min-w-14 align-middle">
-              <img
-                :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
-                class="h-8 w-8 rounded-full"
-                :alt="asset.info?.name"
-              />
+              <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
             </td>
             <td class="align-middle">
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
@@ -89,9 +85,13 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
+import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
 
 export default defineComponent({
   name: "AssetsView",
+  components: {
+    EmptyLogo
+  },
   computed: {
     ergPrice(): number {
       return this.$store.state.ergPrice;

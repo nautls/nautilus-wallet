@@ -38,11 +38,7 @@
                 :key="asset.tokenId"
               >
                 <div class="flex flex-row items-center gap-2">
-                  <img
-                    :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
-                    class="h-8 w-8 rounded-full"
-                    :alt="asset.info?.name"
-                  />
+                  <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
                   <div class="flex-grow">
                     <template v-if="asset.info?.name">{{
                       $filters.compactString(asset.info?.name, 26)

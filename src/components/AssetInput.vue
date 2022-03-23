@@ -31,7 +31,7 @@
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
-            <span class="flex-grow" v-if="asset.info?.name"
+            <span class="flex-grow text-sm" v-if="asset.info?.name"
               ><tool-tip
                 v-if="asset.info?.name.length > 10"
                 tip-class="max-w-35"
@@ -44,10 +44,7 @@
               </template></span
             >
             <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
-            <img
-              class="h-5 rounded-full object-scale-down w-5 inline-block flex-shrink"
-              :src="$filters.assetLogo(asset.tokenId, asset.info?.type)"
-            />
+            <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.info?.type" />
           </div>
         </div>
       </div>
