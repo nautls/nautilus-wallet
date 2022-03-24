@@ -25,26 +25,26 @@
         <div class="flex flex-row gap-4 mt-4">
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Emission Amount</small>
-            <p class="text-sm">{{ asset?.emissionAmount }}</p>
+            <p class="text-sm font-bold">{{ emissionAmount }}</p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Decimal Places</small>
-            <p class="text-sm">{{ asset?.decimals ?? 0 }}</p>
+            <p class="text-sm font-bold">{{ asset?.decimals ?? 0 }}</p>
           </div>
         </div>
         <div class="flex flex-row gap-4">
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Token Id</small>
-            <p class="text-sm">
+            <p class="text-sm font-bold">
               {{ $filters.compactString(asset?.id, 12) }}
-              <click-to-copy class="pl-1" :value="asset?.id" size="12" />
+              <click-to-copy class="pl-1" :content="asset?.id" size="12" />
             </p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Minting Transaction</small>
-            <p class="text-sm">
+            <p class="text-sm font-bold">
               {{ $filters.compactString(asset?.mintingTransactionId, 12) }}
-              <click-to-copy class="pl-1" :value="asset?.id" size="12" />
+              <click-to-copy class="pl-1" :content="asset?.mintingTransactionId" size="12" />
             </p>
           </div>
         </div>
@@ -59,11 +59,26 @@ import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/api/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { isEmpty } from "lodash";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 
 export default defineComponent({
   name: "AssetInfoModal",
   props: {
     tokenId: { type: String, required: true }
+  },
+  computed: {
+    emissionAmount(): string {
+      if (!this.asset?.emissionAmount) {
+        return "";
+      }
+
+      let n = toBigNumber(this.asset.emissionAmount);
+      if (this.asset.decimals) {
+        n = decimalize(n, this.asset.decimals);
+      }
+
+      return this.$filters.formatBigNumber(n, undefined, Number.MAX_SAFE_INTEGER);
+    }
   },
   data() {
     return {

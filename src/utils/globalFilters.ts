@@ -1,7 +1,7 @@
 import { WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
-const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
+const defaultBigNumbersFormatter = Intl.NumberFormat("en", {
   notation: "compact",
   compactDisplay: "short",
   maximumFractionDigits: 2
@@ -36,9 +36,9 @@ export const filters = {
       return `${val.slice(0, maxLength - ellipsis.length + 1).trimEnd()}${ellipsis}`;
     }
   },
-  formatBigNumber(value: BigNumber, decimalPlaces?: number) {
-    if (value.isGreaterThanOrEqualTo(1_000_000)) {
-      return defaultBitNumbersFormatter.format(value.toNumber());
+  formatBigNumber(value: BigNumber, decimalPlaces?: number, shortThreshold = 1_000_000) {
+    if (value.isGreaterThanOrEqualTo(shortThreshold)) {
+      return defaultBigNumbersFormatter.format(value.toNumber());
     }
 
     return value.isLessThan(0.1)
