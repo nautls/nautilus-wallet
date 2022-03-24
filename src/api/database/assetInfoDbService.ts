@@ -42,6 +42,10 @@ class AssetInfoDbService {
   public async getAll(): Promise<IAssetInfo[]> {
     return await dbContext.assetInfo.toArray();
   }
+
+  public async get(tokenId: string): Promise<IAssetInfo | undefined> {
+    return await dbContext.assetInfo.get(tokenId);
+  }
 }
 
 export const assetInfoDbService = new AssetInfoDbService();

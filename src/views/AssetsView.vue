@@ -41,7 +41,11 @@
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
                 {{ asset.info?.name }}
               </p>
-              <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-anywhere">
+              <a
+                v-else
+                @click="selectedTokenId = asset.tokenId"
+                class="break-anywhere cursor-pointer"
+              >
                 <template v-if="asset.info?.name">{{
                   $filters.compactString(asset.info?.name, 40)
                 }}</template>
@@ -75,6 +79,7 @@
         </tbody>
       </table>
     </div>
+    <asset-info-modal @close="selectedTokenId = ''" :token-id="selectedTokenId" />
   </div>
 </template>
 
@@ -86,11 +91,13 @@ import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
 import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
+import AssetInfoModal from "@/components/AssetInfoModal.vue";
 
 export default defineComponent({
   name: "AssetsView",
   components: {
-    EmptyLogo
+    EmptyLogo,
+    AssetInfoModal
   },
   computed: {
     ergPrice(): number {
@@ -134,7 +141,8 @@ export default defineComponent({
   data() {
     return {
       filter: "",
-      prevCount: 1
+      prevCount: 1,
+      selectedTokenId: ""
     };
   },
   methods: {

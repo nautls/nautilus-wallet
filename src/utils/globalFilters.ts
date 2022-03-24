@@ -1,5 +1,4 @@
-import { logoMapper } from "@/mappers/logoMapper";
-import { AssetSubtype, WalletType } from "@/types/internal";
+import { WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
 const defaultBitNumbersFormatter = Intl.NumberFormat("en", {

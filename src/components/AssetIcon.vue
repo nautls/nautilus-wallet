@@ -36,6 +36,7 @@ import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
 import { logoMapper } from "@/mappers/logoMapper";
 import { AssetSubtype } from "@/types/internal";
+import { isEmpty } from "lodash";
 
 export default defineComponent({
   name: "AssetIcon",
@@ -72,6 +73,10 @@ export default defineComponent({
   },
   methods: {
     calculateColor(tokenId: string) {
+      if (isEmpty(tokenId)) {
+        return;
+      }
+
       const brightness = 0.7;
       let r = parseInt(tokenId.substring(0, 2), 16);
       let g = parseInt(tokenId.substring(2, 4), 16);
