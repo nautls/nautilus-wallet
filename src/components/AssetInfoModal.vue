@@ -5,50 +5,50 @@
     :can-cancel="true"
     @onClose="emitOnClose()"
     scroll="clip"
-    content-class="max-h-10/12 bg-transparent !w-11/12"
+    content-class="max-h-90vh bg-transparent overflow-hidden !w-90vw"
     overlay-class="opacity-40"
   >
-    <div
-      class="p-4 pt-14 mt-10 text-xs flex flex-col gap-4 tracking-normal rounded overflow-x-hidden bg-light-50"
-    >
+    <div class="h-10"></div>
+    <div class="pt-10 text-xs tracking-normal rounded bg-light-50">
       <asset-icon
-        class="mx-auto w-20 left-0 right-0 absolute top-0"
+        class="w-20 h-20 mx-auto absolute left-0 right-0 top-0"
         :token-id="asset?.id"
         :type="asset?.subtype"
       />
-      <div>
-        <h1 class="font-bold text-lg">
-          {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
-        </h1>
-        <p v-if="asset?.description">{{ asset?.description }}</p>
+      <div class="p-4 flex flex-col gap-4 overflow-x-hidden overflow-y-auto max-h-70vh">
+        <div>
+          <h1 class="font-bold text-lg">
+            {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
+          </h1>
+          <p v-if="asset?.description">{{ asset?.description }}</p>
+        </div>
+        <div class="flex flex-row gap-4 mt-4">
+          <div class="w-1/2">
+            <small class="uppercase text-gray-500">Emission Amount</small>
+            <p class="text-sm">{{ asset?.emissionAmount }}</p>
+          </div>
+          <div class="w-1/2">
+            <small class="uppercase text-gray-500">Decimal Places</small>
+            <p class="text-sm">{{ asset?.decimals ?? 0 }}</p>
+          </div>
+        </div>
+        <div class="flex flex-row gap-4">
+          <div class="w-1/2">
+            <small class="uppercase text-gray-500">Token Id</small>
+            <p class="text-sm">
+              {{ $filters.compactString(asset?.id, 12) }}
+              <click-to-copy class="pl-1" :value="asset?.id" size="12" />
+            </p>
+          </div>
+          <div class="w-1/2">
+            <small class="uppercase text-gray-500">Minting Transaction</small>
+            <p class="text-sm">
+              {{ $filters.compactString(asset?.mintingTransactionId, 12) }}
+              <click-to-copy class="pl-1" :value="asset?.id" size="12" />
+            </p>
+          </div>
+        </div>
       </div>
-      <div class="flex flex-row gap-4">
-        <div class="w-1/2">
-          <small class="uppercase text-gray-500">Emission Amount</small>
-          <p class="text-sm">{{ asset?.emissionAmount }}</p>
-        </div>
-        <div class="w-1/2">
-          <small class="uppercase text-gray-500">Decimals</small>
-          <p class="text-sm">{{ asset?.decimals ?? 0 }}</p>
-        </div>
-      </div>
-      <div class="flex flex-row gap-4">
-        <div class="w-1/2">
-          <small class="uppercase text-gray-500">Id</small>
-          <p class="text-sm">
-            {{ $filters.compactString(asset?.id, 12) }}
-            <click-to-copy class="pl-1" :value="asset?.id" size="12" />
-          </p>
-        </div>
-        <div class="w-1/2">
-          <small class="uppercase text-gray-500">Minting Transaction</small>
-          <p class="text-sm">
-            {{ $filters.compactString(asset?.mintingTransactionId, 12) }}
-            <click-to-copy class="pl-1" :value="asset?.id" size="12" />
-          </p>
-        </div>
-      </div>
-      <div></div>
     </div>
   </o-modal>
 </template>
@@ -69,7 +69,6 @@ export default defineComponent({
     return {
       active: false,
       internalTokenId: "",
-      tet: "",
       asset: Object.freeze({} as IAssetInfo | undefined)
     };
   },
