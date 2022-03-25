@@ -116,7 +116,7 @@ export type DataInput = {
 
 export type UnsignedTx = {
   inputs: UnsignedInput[];
-  dataInputs: DataInput[];
+  dataInputs: DataInput[] | UnsignedInput[];
   outputs: ErgoBoxCandidate[];
 };
 
