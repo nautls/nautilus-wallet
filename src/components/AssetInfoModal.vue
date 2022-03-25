@@ -71,21 +71,26 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { isEmpty } from "lodash";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import { AssetSubtype } from "@/types/internal";
+import {
+  CONTENT_SANDBOX_URL,
+  IPFS_GENERAL_GATEWAY,
+  IPFS_PROTOCOL_PREFIX,
+  IPFS_VIDEO_GATEWAY
+} from "@/constants/assets";
 
-const CONTENT_SANDBOX_URL = "https://localhost:7059";
 function resolveIpfs(url?: string, isVideo = false): string {
   if (!url) {
     return "";
   }
 
-  const ipfsPrefix = "ipfs://";
-  if (!url.startsWith(ipfsPrefix)) {
+  if (!url.startsWith(IPFS_PROTOCOL_PREFIX)) {
     return url;
   } else {
     if (isVideo) {
-      return url.replace(ipfsPrefix, "https://ipfs.blockfrost.dev/ipfs/");
+      return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_VIDEO_GATEWAY);
     }
-    return url.replace(ipfsPrefix, "https://cloudflare-ipfs.com/ipfs/");
+
+    return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_GENERAL_GATEWAY);
   }
 }
 
