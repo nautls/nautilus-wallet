@@ -1,5 +1,5 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { ErgoBox, ErgoTx, UnsignedInput, UnsignedTx } from "@/types/connector";
+import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals } from "@/utils/bigNumbers";
