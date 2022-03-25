@@ -132,7 +132,7 @@ class NautilusErgoApi {
   static instance;
 
   _resolver = {
-    currentId: 0,
+    currentId: 1,
     requests: new Map()
   };
 
