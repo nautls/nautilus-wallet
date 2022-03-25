@@ -99,9 +99,7 @@ export default createStore({
       wallets: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
-    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as {
-      [tokenId: string]: StateAssetInfo;
-    },
+    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetInfo,
     ergPrice: 0,
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
@@ -301,7 +299,7 @@ export default createStore({
           name: info.name,
           decimals: info.decimals,
           type: info.subtype
-        } as StateAssetInfo;
+        };
       }
     },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {

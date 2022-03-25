@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash";
 import { addressFromErgoTree } from "@/api/ergo/addresses";
 import { decodeColl } from "@/api/ergo/sigmaSerializer";
-import { AssetInfo } from "./txInterpreter";
+import { StateAssetInfo } from "@/types/internal";
 
 export type OutputAsset = {
   tokenId: string;
@@ -20,7 +20,7 @@ export class OutputInterpreter {
   private _box!: ErgoBoxCandidate;
   private _inputs!: UnsignedInput[];
   private _assets!: OutputAsset[];
-  private _assetInfo!: AssetInfo;
+  private _assetInfo!: StateAssetInfo;
   private _addresses?: string[];
 
   public get receiver(): string {
@@ -42,7 +42,7 @@ export class OutputInterpreter {
   constructor(
     boxCandidate: ErgoBoxCandidate,
     inputs: UnsignedInput[],
-    assetInfo: AssetInfo,
+    assetInfo: StateAssetInfo,
     addresses?: string[]
   ) {
     this._box = boxCandidate;
@@ -69,7 +69,7 @@ export class OutputInterpreter {
         tokenId: t.tokenId,
         name: this._assetInfo[t.tokenId]?.name,
         amount: this._assetInfo[t.tokenId]?.decimals
-          ? decimalize(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals)
+          ? decimalize(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals ?? 0)
           : toBigNumber(t.amount)
       } as OutputAsset;
     });

@@ -101,7 +101,13 @@ import { find } from "lodash";
 import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
-import { SignTxFromConnectorCommand, StateAddress, StateAsset, WalletType } from "@/types/internal";
+import {
+  SignTxFromConnectorCommand,
+  StateAddress,
+  StateAsset,
+  StateAssetInfo,
+  WalletType
+} from "@/types/internal";
 import { ACTIONS, GETTERS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
@@ -109,6 +115,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
+import { IAssetInfo } from "@/types/database";
 
 export default defineComponent({
   name: "SignTxConfirmView",
@@ -178,8 +185,8 @@ export default defineComponent({
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
     },
-    assets(): StateAsset[] {
-      return this.$store.getters[GETTERS.BALANCE];
+    assets(): StateAssetInfo {
+      return this.$store.state.assetInfo;
     },
     tx(): TxInterpreter | undefined {
       if (this.addresses.length === 0) {
@@ -189,12 +196,7 @@ export default defineComponent({
       return new TxInterpreter(
         this.rawTx as UnsignedTx,
         this.addresses.map((a) => a.script),
-        Object.assign(
-          {},
-          ...this.assets.map((a) => {
-            return { [a.tokenId]: { name: a.info?.name, decimals: a.info?.decimals } };
-          })
-        )
+        this.assets
       );
     }
   },

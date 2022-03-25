@@ -69,13 +69,17 @@ export type StateAsset = {
   tokenId: string;
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
-  info?: StateAssetInfo;
+  info?: BasicAssetInfo;
+};
+
+export type BasicAssetInfo = {
+  name?: string;
+  decimals?: number;
+  type?: AssetSubtype;
 };
 
 export type StateAssetInfo = {
-  name: string;
-  decimals: number;
-  type?: AssetSubtype;
+  [tokenId: string]: BasicAssetInfo;
 };
 
 export type SendTxCommandAsset = {
