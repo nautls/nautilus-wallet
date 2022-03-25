@@ -1,5 +1,5 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
+import { ErgoBox, ErgoTx, UnsignedInput, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
 import { removeDecimals } from "@/utils/bigNumbers";
@@ -15,7 +15,7 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import { find, maxBy } from "lodash";
+import { find, isEmpty, maxBy } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
@@ -64,8 +64,14 @@ export class TxBuilder {
   public signFromConnector(unsignedTx: UnsignedTx, context: SignContext): string {
     const sigmaRust = wasmModule.SigmaRust;
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
+    const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
+    if (!isEmpty(unsignedTx.dataInputs)) {
+      unsignedTx.dataInputs = unsignedTx.dataInputs.map((b) => {
+        return { boxId: b.boxId };
+      });
+    }
     const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
-    const signed = this._sign(tx, unspentBoxes, context);
+    const signed = this._sign(tx, unspentBoxes, dataInputBoxes, context);
 
     return signed.to_json();
   }
@@ -89,7 +95,6 @@ export class TxBuilder {
       outputValue.as_i64().checked_add(fee.as_i64())
     );
     const boxSelection = boxSelector.select(unspentBoxes, targetBalance, tokens);
-
     const unsigned = sigmaRust.TxBuilder.new(
       boxSelection,
       txOutputs,
@@ -99,23 +104,29 @@ export class TxBuilder {
       sigmaRust.BoxValue.SAFE_USER_MIN()
     ).build();
 
-    const signed = this._sign(unsigned, unspentBoxes, context);
+    const signed = this._sign(
+      unsigned,
+      unspentBoxes,
+      sigmaRust.ErgoBoxes.from_boxes_json([]),
+      context
+    );
+
     return JSONBig.parse(signed.to_json());
   }
 
-  private _sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, context: SignContext) {
+  private _sign(
+    unsigned: UnsignedTransaction,
+    unspentBoxes: ErgoBoxes,
+    dataInputBoxes: ErgoBoxes,
+    context: SignContext
+  ) {
     const sigmaRust = wasmModule.SigmaRust;
 
     const wallet = this.buildWallet(this._from, context.bip32);
     const blockHeaders = sigmaRust.BlockHeaders.from_json(context.blockHeaders);
     const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
     const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
-    const signed = wallet.sign_transaction(
-      signContext,
-      unsigned,
-      unspentBoxes,
-      sigmaRust.ErgoBoxes.from_boxes_json([])
-    );
+    const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
     return signed;
   }
 
