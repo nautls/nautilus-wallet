@@ -65,11 +65,6 @@ export class TxBuilder {
     const sigmaRust = wasmModule.SigmaRust;
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
     const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    if (!isEmpty(unsignedTx.dataInputs)) {
-      unsignedTx.dataInputs = unsignedTx.dataInputs.map((b) => {
-        return { boxId: b.boxId };
-      });
-    }
     const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
     const signed = this._sign(tx, unspentBoxes, dataInputBoxes, context);
 
