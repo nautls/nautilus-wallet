@@ -2,8 +2,7 @@ import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { differenceBy, find, groupBy, isEmpty, keys, union } from "lodash";
 import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
-import { AssetType } from "@/types/internal";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { isZero } from "@/utils/bigNumbers";
 
 class assetsDbService {
@@ -21,55 +20,6 @@ class assetsDbService {
 
   public async getByWalletId(walletId: number): Promise<IDbAsset[]> {
     return await dbContext.assets.where({ walletId }).toArray();
-  }
-
-  public parseAddressBalanceAPIResponse(
-    apiResponse: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[],
-    walletId: number
-  ): IDbAsset[] {
-    let assets: IDbAsset[] = [];
-
-    for (const balance of apiResponse.filter((r) => !this.isEmptyBalance(r.data))) {
-      if (!balance.data) {
-        continue;
-      }
-
-      assets = assets.concat(
-        balance.data.confirmed.tokens.map((t) => {
-          return {
-            tokenId: t.tokenId,
-            name: t.name,
-            type: AssetType.EIP4,
-            confirmedAmount: t.amount?.toString() || "0",
-            decimals: t.decimals,
-            address: balance.address,
-            walletId
-          };
-        })
-      );
-
-      assets.push({
-        tokenId: ERG_TOKEN_ID,
-        name: "ERG",
-        type: AssetType.Native,
-        confirmedAmount: balance.data.confirmed.nanoErgs?.toString() || "0",
-        unconfirmedAmount: balance.data.unconfirmed.nanoErgs?.toString(),
-        decimals: ERG_DECIMALS,
-        address: balance.address,
-        walletId
-      });
-    }
-
-    return assets;
-  }
-
-  public isEmptyBalance(balance: ExplorerV1AddressBalanceResponse): boolean {
-    return (
-      isZero(balance.confirmed.nanoErgs) &&
-      isZero(balance.unconfirmed.nanoErgs) &&
-      isEmpty(balance.confirmed.tokens) &&
-      isEmpty(balance.unconfirmed.tokens)
-    );
   }
 
   public async sync(assets: IDbAsset[], walletId: number): Promise<void> {

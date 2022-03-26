@@ -16,7 +16,9 @@ import {
   clone,
   findLastIndex,
   isEmpty,
-  uniq
+  uniq,
+  difference,
+  union
 } from "lodash";
 import {
   Network,
@@ -27,14 +29,21 @@ import {
   SignTxFromConnectorCommand,
   UpdateWalletSettingsCommand,
   UpdateChangeIndexCommand,
-  UpdateUsedAddressesFilterCommand
+  UpdateUsedAddressesFilterCommand,
+  StateAssetInfo,
+  AssetType
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
-import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
-import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
+import {
+  ERG_TOKEN_ID,
+  CHUNK_DERIVE_LENGTH,
+  ERG_DECIMALS,
+  UNKNOWN_MINTING_BOX_ID
+} from "@/constants/ergo";
+import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
@@ -49,6 +58,9 @@ import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
+import { assetInfoDbService } from "./api/database/assetInfoDbService";
+import { asDict } from "./utils/serializer";
+import { Token } from "./types/connector";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -84,9 +96,11 @@ export default createStore({
       settings: true,
       price: false,
       addresses: true,
-      balance: true
+      balance: true,
+      wallets: true
     },
     connections: Object.freeze([] as IDbDAppConnection[]),
+    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetInfo,
     ergPrice: 0,
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
@@ -112,12 +126,11 @@ export default createStore({
 
         const token: StateAsset = {
           tokenId: group[0].tokenId,
-          name: group[0].name,
           confirmedAmount: group.map((a) => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
           unconfirmedAmount: group
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
-          decimals: group[0].decimals
+          info: group[0].info
         };
 
         balance.push(token);
@@ -125,16 +138,15 @@ export default createStore({
 
       if (isEmpty(balance)) {
         balance.push({
-          name: "ERG",
           tokenId: ERG_TOKEN_ID,
-          decimals: ERG_DECIMALS,
-          confirmedAmount: new BigNumber(0)
+          confirmedAmount: new BigNumber(0),
+          info: state.assetInfo[ERG_TOKEN_ID]
         });
 
         return balance;
       }
 
-      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.name]);
+      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
     }
   },
   mutations: {
@@ -207,11 +219,16 @@ export default createStore({
         address.balance = group.map((x) => {
           return {
             tokenId: x.tokenId,
-            name: x.name,
             confirmedAmount:
-              setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
-            unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
-            decimals: x.decimals
+              decimalize(
+                toBigNumber(x.confirmedAmount),
+                state.assetInfo[x.tokenId]?.decimals ?? 0
+              ) || new BigNumber(0),
+            unconfirmedAmount: decimalize(
+              toBigNumber(x.unconfirmedAmount),
+              state.assetInfo[x.tokenId]?.decimals ?? 0
+            ),
+            info: state.assetInfo[x.tokenId]
           };
         });
       }
@@ -268,17 +285,27 @@ export default createStore({
       wallet.settings.hideUsedAddresses = command.filter;
     },
     [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
-      const assetErgRate = rates.reduce(
-        (acc: { [tokenId: string]: { erg: number } }, rate: ITokenRate) => {
-          rate.token.tokenId;
-          acc[rate.token.tokenId] = { erg: rate.ergPerToken };
-          return acc;
-        },
-        {}
+      const assetErgRate = asDict(
+        rates.map((r) => {
+          return { [r.token.tokenId]: { erg: r.ergPerToken } };
+        })
       );
 
       assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
       state.assetMarketRates = assetErgRate;
+    },
+    [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
+      if (isEmpty(assetsInfo)) {
+        return;
+      }
+
+      for (let info of assetsInfo) {
+        state.assetInfo[info.id] = {
+          name: info.name,
+          decimals: info.decimals,
+          type: info.subtype
+        };
+      }
     },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
       if (state.currentWallet.id === walletId) {
@@ -307,19 +334,22 @@ export default createStore({
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
+      dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
+      if (router.currentRoute.value.query.popup === "true") {
+        return;
+      }
+
       if (state.wallets.length > 0) {
-        dispatch(ACTIONS.LOAD_CONNECTIONS);
         let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
         }
-        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
 
-        if (router.currentRoute.value.query.popup != "true") {
-          router.push({ name: "assets-page" });
-        }
+        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
+        dispatch(ACTIONS.LOAD_CONNECTIONS);
+        router.push({ name: "assets-page" });
       } else {
         router.push({ name: "add-wallet" });
       }
@@ -355,6 +385,7 @@ export default createStore({
       }
 
       commit(MUTATIONS.SET_WALLETS, wallets);
+      commit(MUTATIONS.SET_LOADING, { wallets: false });
     },
     async [ACTIONS.PUT_WALLET](
       { dispatch },
@@ -404,16 +435,14 @@ export default createStore({
       };
 
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
-      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
-    [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
+    async [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
       const walletId = typeof wallet === "number" ? wallet : wallet.id;
-
       commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
-      dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
       dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: walletId });
+      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
       const lastUsedIndex = findLastIndex(
@@ -542,7 +571,7 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
 
       if (lastUsed !== null) {
-        dispatch(ACTIONS.REFRESH_BALANCES, {
+        dispatch(ACTIONS.FETCH_BALANCES, {
           addresses: active.map((a) => a.script),
           walletId
         });
@@ -550,9 +579,64 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
+    async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
       const assets = await assestsDbService.getByWalletId(walletId);
-      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
+
+      await dispatch(
+        ACTIONS.LOAD_ASSETS_INFO,
+        assets.map((x) => x.tokenId)
+      );
+      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId });
+    },
+    async [ACTIONS.LOAD_ASSETS_INFO](
+      { state, commit, dispatch },
+      params: string[] | { assetInfo: Token[] }
+    ) {
+      const tokenIds = uniq(
+        Array.isArray(params) ? params : params.assetInfo.map((x) => x.tokenId)
+      );
+      const unloaded = difference(tokenIds, Object.keys(state.assetInfo));
+
+      if (!isEmpty(unloaded) && !Array.isArray(params)) {
+        await assetInfoDbService.addIfNotExists(
+          params.assetInfo
+            .filter((x) => unloaded.includes(x.tokenId))
+            .map((x) => {
+              return {
+                id: x.tokenId,
+                mintingBoxId: UNKNOWN_MINTING_BOX_ID,
+                name: x.name,
+                decimals: x.decimals,
+                type: AssetType.Unknown
+              };
+            })
+        );
+      }
+
+      const assetsInfo = await assetInfoDbService.getAnyOf(unloaded);
+
+      commit(MUTATIONS.SET_ASSETS_INFO, assetsInfo);
+      dispatch(
+        ACTIONS.FETCH_FULL_ASSETS_INFO,
+        difference(
+          unloaded,
+          assetsInfo.map((x) => x.id)
+        )
+      );
+    },
+    async [ACTIONS.FETCH_FULL_ASSETS_INFO]({ commit }, assetIds: string[]) {
+      const incompleteIds = union(assetIds, await assetInfoDbService.getIncompleteInfoIds());
+      if (isEmpty(incompleteIds)) {
+        return;
+      }
+
+      let info = await explorerService.getAssetsInfo(incompleteIds);
+      if (isEmpty(info)) {
+        return;
+      }
+
+      await assetInfoDbService.bulkPut(info);
+      commit(MUTATIONS.SET_ASSETS_INFO, info);
     },
     async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
       await walletsDbService.delete(walletId);
@@ -569,18 +653,34 @@ export default createStore({
 
       commit(MUTATIONS.REMOVE_WALLET, walletId);
     },
-    async [ACTIONS.REFRESH_BALANCES](
+    async [ACTIONS.FETCH_BALANCES](
       { commit, dispatch },
       data: { addresses: string[]; walletId: number }
     ) {
       const balances = await explorerService.getAddressesBalance(data.addresses);
-      const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
+      const assets = balances.map((x) => {
+        return {
+          tokenId: x.tokenId,
+          confirmedAmount: x.confirmedAmount,
+          unconfirmedAmount: x.unconfirmedAmount,
+          address: x.address,
+          walletId: data.walletId
+        } as IDbAsset;
+      });
       assestsDbService.sync(assets, data.walletId);
 
-      dispatch(ACTIONS.CHECK_PENDING_BOXES);
-
+      await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
+        assetInfo: balances.map((x) => {
+          return {
+            tokenId: x.tokenId,
+            name: x.name,
+            decimals: x.decimals
+          } as Token;
+        })
+      });
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
+      dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },
     async [ACTIONS.CHECK_PENDING_BOXES]() {
       const now = Date.now();
@@ -633,7 +733,6 @@ export default createStore({
         : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await fetchBoxes(command.walletId);
-      console.log(boxes.map((b) => `${b.boxId} ${b.creationHeight}`));
       const blockHeaders = await explorerService.getLastTenBlockHeaders();
 
       const signedtx = TxBuilder.from(selectedAddresses)

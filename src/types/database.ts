@@ -1,6 +1,8 @@
 import {
   AddressState,
   AddressType,
+  AssetStandard,
+  AssetSubtype,
   AssetType,
   Network,
   WalletSettings,
@@ -29,11 +31,8 @@ export interface IDbAddress {
 
 export interface IDbAsset {
   tokenId: string;
-  name: string;
-  type: AssetType;
   confirmedAmount: string;
   unconfirmedAmount?: string;
-  decimals: number;
   address: string;
   walletId: number;
 }
@@ -42,6 +41,22 @@ export interface IDbDAppConnection {
   origin: string;
   walletId: number;
   favicon?: string;
+}
+
+export interface IAssetInfo {
+  id: string;
+  mintingBoxId: string;
+  mintingTransactionId?: string;
+  name?: string;
+  decimals?: number;
+  standard?: AssetStandard;
+  type: AssetType;
+  subtype?: AssetSubtype;
+  emissionAmount?: string;
+  description?: string;
+  artworkUrl?: string;
+  artworkCover?: string;
+  artworkHash?: string;
 }
 
 export interface IDbUtxo {

@@ -23,16 +23,23 @@ export enum AddressType {
   P2S
 }
 
-export enum AssetType {
+export enum AssetStandard {
   Native = "Native",
-  EIP4 = "EIP-004"
+  EIP4 = "EIP-004",
+  Unstandardized = "Unstandardized"
 }
 
-export enum AssetCategory {
-  PictureNFT = "0101",
-  AudioNFT = "0102",
-  VideoNFT = "0103",
-  MembershipThresholdSignToken = "0201"
+export enum AssetType {
+  Unknown = "00",
+  NFT = "01",
+  MembershipToken = "02"
+}
+
+export enum AssetSubtype {
+  PictureArtwork = "0101",
+  AudioArtwork = "0102",
+  VideoArtwork = "0103",
+  ThresholdSignature = "0201"
 }
 
 export type StateAddress = {
@@ -60,10 +67,19 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
-  name: string;
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
-  decimals: number;
+  info?: BasicAssetInfo;
+};
+
+export type BasicAssetInfo = {
+  name?: string;
+  decimals?: number;
+  type?: AssetSubtype;
+};
+
+export type StateAssetInfo = {
+  [tokenId: string]: BasicAssetInfo;
 };
 
 export type SendTxCommandAsset = {

@@ -20,7 +20,7 @@
         <tbody>
           <tr v-if="loading" v-for="i in prevCount" :key="i">
             <td class="w-14 align-middle">
-              <img src="@/assets/images/defaultAssetLogo.svg" class="h-8 w-8 animate-pulse" />
+              <empty-logo class="h-8 w-8 animate-pulse fill-gray-300" />
             </td>
             <td class="align-middle">
               <div class="skeleton h-3 w-2/3 rounded"></div>
@@ -35,18 +35,20 @@
           </tr>
           <tr v-else v-for="asset in assets" :key="asset.tokenId">
             <td class="w-14 min-w-14 align-middle">
-              <img
-                :src="$filters.assetLogo(asset.tokenId)"
-                class="h-8 w-8 rounded-full"
-                :alt="asset.name"
-              />
+              <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
             </td>
             <td class="align-middle">
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
-                {{ asset.name }}
+                {{ asset.info?.name }}
               </p>
-              <a v-else :href="urlFor(asset.tokenId)" target="_blank" class="break-anywhere">
-                <template v-if="asset.name">{{ $filters.compactString(asset.name, 40) }}</template>
+              <a
+                v-else
+                @click="selectedTokenId = asset.tokenId"
+                class="break-anywhere cursor-pointer"
+              >
+                <template v-if="asset.info?.name">{{
+                  $filters.compactString(asset.info?.name, 40)
+                }}</template>
                 <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
               </a>
             </td>
@@ -56,7 +58,7 @@
               </p>
               <tool-tip
                 v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                :label="`1 ${asset.name} <br /> ≈ ${$filters.formatBigNumber(
+                :label="`1 ${asset.info?.name} <br /> ≈ ${$filters.formatBigNumber(
                   price(asset.tokenId),
                   2
                 )} ${$filters.uppercase(conversionCurrency)}`"
@@ -77,6 +79,7 @@
         </tbody>
       </table>
     </div>
+    <asset-info-modal @close="selectedTokenId = ''" :token-id="selectedTokenId" />
   </div>
 </template>
 
@@ -87,9 +90,15 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import { TOKEN_INFO_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
+import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
+import AssetInfoModal from "@/components/AssetInfoModal.vue";
 
 export default defineComponent({
   name: "AssetsView",
+  components: {
+    EmptyLogo,
+    AssetInfoModal
+  },
   computed: {
     ergPrice(): number {
       return this.$store.state.ergPrice;
@@ -114,7 +123,7 @@ export default defineComponent({
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>
-          a.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
+          a.info?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
         );
       }
 
@@ -132,7 +141,8 @@ export default defineComponent({
   data() {
     return {
       filter: "",
-      prevCount: 1
+      prevCount: 1,
+      selectedTokenId: ""
     };
   },
   methods: {

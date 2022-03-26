@@ -17,13 +17,12 @@
       </button>
       <div class="flex flex-row gap-2 text-base">
         <div class="w-7/12">
-          <!-- parsedValue. -->
           <input
             ref="val-input"
             @blur="v$.$touch()"
             v-cleave="{
               numeral: true,
-              numeralDecimalScale: asset.decimals,
+              numeralDecimalScale: asset.info?.decimals ?? 0,
               onValueChanged
             }"
             class="w-full outline-none"
@@ -32,19 +31,20 @@
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
-            <span class="flex-grow" v-if="asset.name"
-              ><tool-tip v-if="asset.name.length > 10" tip-class="max-w-35" :label="asset.name">
-                {{ $filters.compactString(asset.name, 10) }}
+            <span class="flex-grow text-sm" v-if="asset.info?.name"
+              ><tool-tip
+                v-if="asset.info?.name.length > 10"
+                tip-class="max-w-35"
+                :label="asset.info?.name"
+              >
+                {{ $filters.compactString(asset.info?.name, 10) }}
               </tool-tip>
               <template v-else>
-                {{ asset.name }}
+                {{ asset.info?.name }}
               </template></span
             >
             <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
-            <img
-              class="h-5 rounded-full object-scale-down w-5 inline-block flex-shrink"
-              :src="$filters.assetLogo(asset.tokenId)"
-            />
+            <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.info?.type" />
           </div>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (!this.asset.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
+    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
       this.$emit("update:modelValue", this.asset.confirmedAmount);
     }
   },
@@ -169,7 +169,7 @@ export default defineComponent({
       confirmedAmount: {
         minValue: helpers.withMessage(
           ({ $params }: any) =>
-            `You need at least ${$params.min} ${this.asset.name} to send this transaction`,
+            `You need at least ${$params.min} ${this.asset.info?.name} to send this transaction`,
           bigNumberMinValue(this.minRequired)
         )
       },

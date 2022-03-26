@@ -2,7 +2,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
-import { removeDecimals } from "@/utils/bigNumbers";
+import { undecimalize } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import {
@@ -170,7 +170,7 @@ export class TxBuilder {
         new sigmaRust.Token(
           sigmaRust.TokenId.from_str(asset.asset.tokenId),
           sigmaRust.TokenAmount.from_i64(
-            this.toI64(removeDecimals(asset.amount, asset.asset.decimals))
+            this.toI64(undecimalize(asset.amount, asset.asset.info?.decimals ?? 0))
           )
         )
       );
@@ -184,13 +184,13 @@ export class TxBuilder {
     if (
       !erg ||
       !erg.amount ||
-      removeDecimals(erg.amount, erg.asset.decimals).isLessThan(MIN_BOX_VALUE)
+      undecimalize(erg.amount, erg.asset.info?.decimals ?? 0).isLessThan(MIN_BOX_VALUE)
     ) {
       throw new TxSignError("not enought ERG to make a transaction");
     }
 
     return wasmModule.SigmaRust.BoxValue.from_i64(
-      this.toI64(removeDecimals(erg.amount, erg.asset.decimals))
+      this.toI64(undecimalize(erg.amount, erg.asset.info?.decimals ?? 0))
     );
   }
 
@@ -198,7 +198,7 @@ export class TxBuilder {
     const sigmaRust = wasmModule.SigmaRust;
     return !this._fee || this._fee.isZero()
       ? sigmaRust.TxBuilder.SUGGESTED_TX_FEE()
-      : sigmaRust.BoxValue.from_i64(this.toI64(removeDecimals(this._fee, ERG_DECIMALS)));
+      : sigmaRust.BoxValue.from_i64(this.toI64(undecimalize(this._fee, ERG_DECIMALS)));
   }
 
   private toI64(value: BigNumber): I64 {

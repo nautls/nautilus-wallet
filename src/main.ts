@@ -12,6 +12,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import DAppPlate from "@/components/DappPlate.vue";
 import MdiIcon from "@/components/MdiIcon.vue";
+import AssetIcon from "@/components/AssetIcon.vue";
 import { filters } from "@/utils/globalFilters";
 import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next";
 import { vueCleave } from "@/directives/cleave";
@@ -65,4 +66,5 @@ app
   .component("wallet-item", WalletItem)
   .component("dapp-plate", DAppPlate)
   .component("mdi-icon", MdiIcon)
+  .component("asset-icon", AssetIcon)
   .mount("#app");

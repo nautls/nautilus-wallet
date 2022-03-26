@@ -24,11 +24,7 @@
           <ul class="px-1">
             <li v-for="asset in output.assets" class="py-1">
               <div class="flex flex-row items-center gap-2">
-                <img
-                  :src="$filters.assetLogo(asset.tokenId)"
-                  class="h-8 w-8 rounded-full"
-                  :alt="asset.name"
-                />
+                <asset-icon class="h-8 w-8" :token-id="asset.tokenId" />
                 <div class="flex-grow items-center align-middle">
                   <span class="align-middle">
                     <template v-if="asset.name">{{
@@ -99,14 +95,19 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find } from "lodash";
+import { find, isEmpty } from "lodash";
 import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
-import { SignTxFromConnectorCommand, StateAddress, StateAsset, WalletType } from "@/types/internal";
-import { ACTIONS, GETTERS } from "@/constants/store";
+import {
+  SignTxFromConnectorCommand,
+  StateAddress,
+  StateAssetInfo,
+  WalletType
+} from "@/types/internal";
+import { ACTIONS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
@@ -137,9 +138,8 @@ export default defineComponent({
       return;
     }
 
-    window.addEventListener("beforeunload", this.onWindowClosing);
-    this.setCurrentWallet(connection.walletId);
     this.currentWalletId = connection.walletId;
+    window.addEventListener("beforeunload", this.onWindowClosing);
   },
   data() {
     return {
@@ -162,22 +162,37 @@ export default defineComponent({
     };
   },
   watch: {
-    ["addresses.length"](newLength: number) {
-      if (newLength === 0) {
-        return;
+    ["loading.wallets"]: {
+      immediate: true,
+      async handler(loading: boolean) {
+        this.setWallet(loading, this.currentWalletId);
       }
+    },
+    currentWalletId: {
+      immediate: true,
+      async handler(walletId: number) {
+        this.setWallet(this.loading.wallets, walletId);
+      }
+    },
+    rawTx() {
+      this.loadAssetInfo(
+        this.rawTx.outputs
+          .map((x) => x.assets)
+          .flat()
+          .map((x) => x.tokenId)
+      );
     }
   },
   computed: {
-    ...mapState({ wallets: "wallets" }),
+    ...mapState({ wallets: "wallets", loading: "loading" }),
     isReadonly() {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
     },
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
     },
-    assets(): StateAsset[] {
-      return this.$store.getters[GETTERS.BALANCE];
+    assets(): StateAssetInfo {
+      return this.$store.state.assetInfo;
     },
     tx(): TxInterpreter | undefined {
       if (this.addresses.length === 0) {
@@ -187,17 +202,24 @@ export default defineComponent({
       return new TxInterpreter(
         this.rawTx as UnsignedTx,
         this.addresses.map((a) => a.script),
-        Object.assign(
-          {},
-          ...this.assets.map((a) => {
-            return { [a.tokenId]: { name: a.name, decimals: a.decimals } };
-          })
-        )
+        this.assets
       );
     }
   },
   methods: {
-    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
+    async setWallet(loading: boolean, walletId: number) {
+      if (loading || walletId === 0) {
+        return;
+      }
+      this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+    },
+    async loadAssetInfo(tokenIds: string[]) {
+      if (isEmpty(tokenIds)) {
+        return;
+      }
+
+      this.$store.dispatch(ACTIONS.LOAD_ASSETS_INFO, tokenIds);
+    },
     async sign() {
       const isValid = await this.v$.$validate();
       if (!isValid) {
@@ -213,6 +235,7 @@ export default defineComponent({
           walletId: this.currentWalletId,
           password: this.password
         } as SignTxFromConnectorCommand);
+
         rpcHandler.sendMessage({
           type: "rpc/nautilus-response",
           function: "signTx",

@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
 import { ErgoBox, Token } from "./connector";
+import { AssetStandard } from "./internal";
 
 export type AddressAPIResponse<T> = {
   address: string;
@@ -73,6 +74,16 @@ export type ExplorerV0TransactionsPerAddressResponse = {
   total: number;
 };
 
+export type AssetBalance = {
+  tokenId: string;
+  name?: string;
+  decimals?: number;
+  standard?: AssetStandard;
+  confirmedAmount: string;
+  unconfirmedAmount?: string;
+  address: string;
+};
+
 type ExplorerBalanceItem = {
   nanoErgs: number | BigNumber;
   tokens: [
@@ -81,7 +92,7 @@ type ExplorerBalanceItem = {
       amount: number | BigNumber;
       decimals: number;
       name: string;
-      valueInErgs?: number;
+      tokenType?: string;
     }
   ];
 };

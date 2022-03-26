@@ -1,12 +1,10 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate } from "@/types/connector";
+import { IAssetInfo } from "@/types/database";
+import { StateAssetInfo } from "@/types/internal";
 import { difference, find, findLast, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { OutputInterpreter } from "./outputInterpreter";
-
-export type AssetInfo = {
-  [tokenId: string]: { decimals: number; name: string };
-};
 
 export class TxInterpreter {
   private _tx!: UnsignedTx;
@@ -14,10 +12,10 @@ export class TxInterpreter {
   private _changeBox?: ErgoBoxCandidate;
   private _feeBox?: ErgoBoxCandidate;
   private _sendingBoxes!: ErgoBoxCandidate[];
-  private _assetInfo!: AssetInfo;
+  private _assetInfo!: StateAssetInfo;
   private _addresses!: string[];
 
-  constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: AssetInfo) {
+  constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: StateAssetInfo) {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;

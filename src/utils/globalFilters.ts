@@ -1,8 +1,7 @@
-import { logoMapper } from "@/mappers/logoMapper";
 import { WalletType } from "@/types/internal";
 import BigNumber from "bignumber.js";
 
-const defaultBitNumbersFormatter = Intl.NumberFormat("en", {
+const defaultBigNumbersFormatter = Intl.NumberFormat("en", {
   notation: "compact",
   compactDisplay: "short",
   maximumFractionDigits: 2
@@ -37,9 +36,9 @@ export const filters = {
       return `${val.slice(0, maxLength - ellipsis.length + 1).trimEnd()}${ellipsis}`;
     }
   },
-  formatBigNumber(value: BigNumber, decimalPlaces?: number) {
-    if (value.isGreaterThanOrEqualTo(1_000_000)) {
-      return defaultBitNumbersFormatter.format(value.toNumber());
+  formatBigNumber(value: BigNumber, decimalPlaces?: number, shortThreshold = 1_000_000) {
+    if (value.isGreaterThanOrEqualTo(shortThreshold)) {
+      return defaultBigNumbersFormatter.format(value.toNumber());
     }
 
     return value.isLessThan(0.1)
@@ -57,10 +56,6 @@ export const filters = {
     let magnitude = Math.pow(10, power);
     let shifted = Math.round(num * magnitude);
     return new BigNumber(shifted / magnitude);
-  },
-  assetLogo(tokenId: string): string {
-    const assetLogo = logoMapper[tokenId];
-    return `/icons/assets/${assetLogo ?? "default.svg"}`;
   },
   walletType(type: WalletType): string {
     switch (type) {

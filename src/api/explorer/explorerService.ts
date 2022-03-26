@@ -1,6 +1,7 @@
 import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
+  AssetBalance,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
   ExplorerGetApiV1BlocksP1Response,
@@ -11,17 +12,19 @@ import {
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { chunk, find, Primitive } from "lodash";
+import { chunk, find, isEmpty } from "lodash";
 import JSONBig from "json-bigint";
 import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
+import { asDict } from "@/utils/serializer";
+import { isZero } from "@/utils/bigNumbers";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { AssetStandard } from "@/types/internal";
+import { parseEIP4Asset } from "./eip4Parser";
+import { IAssetInfo } from "@/types/database";
 
 const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
-
-function asDict<T>(array: T[]) {
-  return Object.assign({}, ...array);
-}
 
 class ExplorerService {
   public async getTxHistory(
@@ -49,9 +52,10 @@ class ExplorerService {
   public async getAddressesBalance(
     addresses: string[],
     options = { chunkBy: 20 }
-  ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
+  ): Promise<AssetBalance[]> {
     if (options.chunkBy <= 0 || options.chunkBy >= addresses.length) {
-      return await this.getAddressesBalanceFromChunk(addresses);
+      const raw = await this.getAddressesBalanceFromChunk(addresses);
+      return this._parseAddressesBalanceResponse(raw);
     }
 
     const chunks = chunk(addresses, options.chunkBy);
@@ -60,7 +64,56 @@ class ExplorerService {
       balances = balances.concat(await this.getAddressesBalanceFromChunk(c));
     }
 
-    return balances;
+    return this._parseAddressesBalanceResponse(balances);
+  }
+
+  private _parseAddressesBalanceResponse(
+    apiResponse: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]
+  ): AssetBalance[] {
+    let assets: AssetBalance[] = [];
+
+    for (const balance of apiResponse.filter((r) => !this._isEmptyBalance(r.data))) {
+      if (!balance.data) {
+        continue;
+      }
+
+      assets = assets.concat(
+        balance.data.confirmed.tokens.map((t) => {
+          return {
+            tokenId: t.tokenId,
+            name: t.name,
+            decimals: t.decimals,
+            standard:
+              t.tokenType === AssetStandard.EIP4
+                ? AssetStandard.EIP4
+                : AssetStandard.Unstandardized,
+            confirmedAmount: t.amount?.toString() || "0",
+            address: balance.address
+          };
+        })
+      );
+
+      assets.push({
+        tokenId: ERG_TOKEN_ID,
+        name: "ERG",
+        decimals: ERG_DECIMALS,
+        standard: AssetStandard.Native,
+        confirmedAmount: balance.data.confirmed.nanoErgs?.toString() || "0",
+        unconfirmedAmount: balance.data.unconfirmed.nanoErgs?.toString(),
+        address: balance.address
+      });
+    }
+
+    return assets;
+  }
+
+  private _isEmptyBalance(balance: ExplorerV1AddressBalanceResponse): boolean {
+    return (
+      isZero(balance.confirmed.nanoErgs) &&
+      isZero(balance.unconfirmed.nanoErgs) &&
+      isEmpty(balance.confirmed.tokens) &&
+      isEmpty(balance.unconfirmed.tokens)
+    );
   }
 
   public async getAddressesBalanceFromChunk(
@@ -114,12 +167,31 @@ class ExplorerService {
     return response.data;
   }
 
+  public async getMintingBox(tokenId: string): Promise<ExplorerBox> {
+    const response = await axios.get(`${API_URL}/api/v0/assets/${tokenId}/issuingBox`);
+    return response.data[0];
+  }
+
   public async getBoxes(boxIds: string[]): Promise<ExplorerBox[]> {
     return await Promise.all(boxIds.map((id) => this.getBox(id)));
   }
 
   public async getUnspentBoxes(addresses: string[]): Promise<AddressAPIResponse<ExplorerBox[]>[]> {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
+  }
+
+  public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
+    try {
+      const box = await this.getMintingBox(tokenId);
+      return parseEIP4Asset(tokenId, box);
+    } catch {
+      return;
+    }
+  }
+
+  public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[]> {
+    const info = await Promise.all(tokenIds.map((a) => this.getAssetInfo(a)));
+    return info.filter((i) => i) as IAssetInfo[];
   }
 
   public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {
