@@ -1,7 +1,7 @@
 <template>
   <o-modal
     v-model:active="active"
-    :auto-focus="true"
+    :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
     content-class="max-h-95vh bg-transparent overflow-hidden !max-w-100 !w-90vw"
