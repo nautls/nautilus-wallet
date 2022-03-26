@@ -4,7 +4,7 @@
     :auto-focus="true"
     :can-cancel="true"
     scroll="clip"
-    content-class="max-h-90vh bg-transparent overflow-hidden !max-w-110 !w-90vw"
+    content-class="max-h-95vh bg-transparent overflow-hidden !max-w-100 !w-90vw"
     overlay-class="opacity-40"
   >
     <div class="h-10" v-if="!isImageNft" @click="active = false"></div>
@@ -12,7 +12,7 @@
       <iframe
         v-if="isImageNft"
         sandbox=""
-        class="h-80 w-full rounded-t m-0 p-0"
+        class="h-83.1 w-full rounded-t m-0 p-0"
         :src="contentUrl"
         frameborder="0"
       ></iframe>
@@ -24,7 +24,7 @@
       />
       <div
         class="p-4 gap-4 flex flex-col overflow-x-hidden overflow-y-auto"
-        :class="isImageNft ? 'max-h-50' : 'max-h-100'"
+        :class="isImageNft ? 'max-h-52' : 'max-h-100'"
       >
         <div>
           <h1 class="font-bold text-lg">
@@ -32,7 +32,7 @@
           </h1>
           <p v-if="asset?.description">{{ asset?.description }}</p>
         </div>
-        <div class="flex flex-row gap-4 mt-4">
+        <div class="flex flex-row gap-4 mt-2">
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Emission Amount</small>
             <p class="text-sm font-bold">{{ emissionAmount }}</p>
