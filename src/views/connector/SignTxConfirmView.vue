@@ -95,27 +95,25 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapActions, mapState } from "vuex";
+import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find } from "lodash";
+import { find, isEmpty } from "lodash";
 import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
   SignTxFromConnectorCommand,
   StateAddress,
-  StateAsset,
   StateAssetInfo,
   WalletType
 } from "@/types/internal";
-import { ACTIONS, GETTERS } from "@/constants/store";
+import { ACTIONS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
-import { IAssetInfo } from "@/types/database";
 
 export default defineComponent({
   name: "SignTxConfirmView",
@@ -175,6 +173,14 @@ export default defineComponent({
       async handler(walletId: number) {
         this.setWallet(this.loading.wallets, walletId);
       }
+    },
+    rawTx() {
+      this.loadAssetInfo(
+        this.rawTx.outputs
+          .map((x) => x.assets)
+          .flat()
+          .map((x) => x.tokenId)
+      );
     }
   },
   computed: {
@@ -207,6 +213,13 @@ export default defineComponent({
       }
       this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
     },
+    async loadAssetInfo(tokenIds: string[]) {
+      if (isEmpty(tokenIds)) {
+        return;
+      }
+
+      this.$store.dispatch(ACTIONS.LOAD_ASSETS_INFO, tokenIds);
+    },
     async sign() {
       const isValid = await this.v$.$validate();
       if (!isValid) {
@@ -222,6 +235,7 @@ export default defineComponent({
           walletId: this.currentWalletId,
           password: this.password
         } as SignTxFromConnectorCommand);
+
         rpcHandler.sendMessage({
           type: "rpc/nautilus-response",
           function: "signTx",

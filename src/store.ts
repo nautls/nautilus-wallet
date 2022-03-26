@@ -17,7 +17,8 @@ import {
   findLastIndex,
   isEmpty,
   uniq,
-  difference
+  difference,
+  union
 } from "lodash";
 import {
   Network,
@@ -294,6 +295,10 @@ export default createStore({
       state.assetMarketRates = assetErgRate;
     },
     [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
+      if (isEmpty(assetsInfo)) {
+        return;
+      }
+
       for (let info of assetsInfo) {
         state.assetInfo[info.id] = {
           name: info.name,
@@ -591,6 +596,7 @@ export default createStore({
         Array.isArray(params) ? params : params.assetInfo.map((x) => x.tokenId)
       );
       const unloaded = difference(tokenIds, Object.keys(state.assetInfo));
+
       if (!isEmpty(unloaded) && !Array.isArray(params)) {
         await assetInfoDbService.addIfNotExists(
           params.assetInfo
@@ -608,20 +614,23 @@ export default createStore({
       }
 
       const assetsInfo = await assetInfoDbService.getAnyOf(unloaded);
-      if (isEmpty(assetsInfo)) {
-        return;
-      }
 
       commit(MUTATIONS.SET_ASSETS_INFO, assetsInfo);
-      dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
+      dispatch(
+        ACTIONS.FETCH_FULL_ASSETS_INFO,
+        difference(
+          unloaded,
+          assetsInfo.map((x) => x.id)
+        )
+      );
     },
-    async [ACTIONS.FETCH_FULL_ASSETS_INFO]({ commit }) {
-      const incompleteIds = await assetInfoDbService.getIncompleteInfoIds();
+    async [ACTIONS.FETCH_FULL_ASSETS_INFO]({ commit }, assetIds: string[]) {
+      const incompleteIds = union(assetIds, await assetInfoDbService.getIncompleteInfoIds());
       if (isEmpty(incompleteIds)) {
         return;
       }
 
-      const info = await explorerService.getAssetsInfo(incompleteIds);
+      let info = await explorerService.getAssetsInfo(incompleteIds);
       if (isEmpty(info)) {
         return;
       }
