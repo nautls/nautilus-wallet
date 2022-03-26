@@ -1,3 +1,5 @@
+import { decimalize } from "@/utils/bigNumbers";
+import BigNumber from "bignumber.js";
 import { decodeColl, decodeCollTuple } from "../../src/api/ergo/sigmaSerializer";
 
 describe("sigma serializer", () => {

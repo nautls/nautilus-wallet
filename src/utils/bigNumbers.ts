@@ -6,7 +6,8 @@ export function decimalize(value: BigNumber | undefined, decimals: number): BigN
   if (!decimals || value === undefined) {
     return value;
   }
-  return value.multipliedBy(Math.pow(10, decimals * -1));
+
+  return value.multipliedBy(Math.pow(10, decimals * -1).toFixed(decimals));
 }
 
 export function undecimalize(value: BigNumber, decimals: number): BigNumber {
