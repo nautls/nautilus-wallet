@@ -45,6 +45,19 @@
         <p>Hide empty used addresses from Receive page.</p>
       </div>
     </div>
+    <div>
+      <div class="w-full align-middle flex flex-row items-center gap-5">
+        <div class="flex-grow">
+          <p class="font-semibold text-sm">Export wallet</p>
+        </div>
+        <button class="btn outlined !m-0 !p-2 !py-1.5 !text-xs" @click="xpkModalActive = true">
+          Export
+        </button>
+      </div>
+      <div class="text-gray-500 text-xs font-normal mt-1">
+        <p>Use this option to explort your Extended Public Key.</p>
+      </div>
+    </div>
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
       Global settings
     </div>
@@ -78,7 +91,7 @@
         <div class="flex-grow">
           <p class="font-semibold text-sm">Remove Wallet</p>
         </div>
-        <button class="btn danger !p-2 !text-xs" @click="remove()">Remove</button>
+        <button class="btn danger !m-0 !p-2 !py-1.5 !text-xs" @click="remove()">Remove</button>
       </div>
       <div class="text-gray-500 text-xs font-normal mt-1">
         <p>
@@ -88,6 +101,7 @@
         </p>
       </div>
     </div>
+    <extended-public-key-modal :active="xpkModalActive" @close="xpkModalActive = false" />
   </div>
 </template>
 
@@ -99,9 +113,11 @@ import { mapActions, mapState } from "vuex";
 import { StateWallet, UpdateWalletSettingsCommand } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/api/coinGeckoService";
+import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 
 export default defineComponent({
   name: "SettingsView",
+  components: { ExtendedPublicKeyModal },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -119,7 +135,6 @@ export default defineComponent({
           this.walletChanged = false;
           return;
         }
-
         this.updateWallet();
       }
     },
@@ -130,7 +145,6 @@ export default defineComponent({
           this.walletChanged = false;
           return;
         }
-
         this.updateGlobal();
       }
     },
@@ -166,7 +180,8 @@ export default defineComponent({
       },
       walletChanged: true,
       loading: true,
-      currencies: [] as string[]
+      currencies: [] as string[],
+      xpkModalActive: false
     };
   },
   validations() {
@@ -195,7 +210,6 @@ export default defineComponent({
       if (!isValid) {
         return;
       }
-
       const command = {
         walletId: this.currentWallet.id,
         ...this.walletSettings
