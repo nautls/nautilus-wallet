@@ -13,44 +13,55 @@ import {
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
-
+import { Browser } from "@/utils/browserApi";
 import "@/config/axiosConfig";
 
 const sessions = new Map<number, Session>();
+const ORIGIN_MATCHER = /^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i;
 
-chrome.runtime.onConnect.addListener((port) => {
-  console.log(`connected with ${port.sender?.origin}`);
+function getOrigin(url?: string) {
+  if (!url) {
+    return;
+  }
+
+  const matches = url.match(ORIGIN_MATCHER);
+  if (matches) {
+    return matches[1];
+  }
+}
+
+Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
+  console.log(`connected with ${getOrigin(port.sender?.url)}`);
 
   if (port.name === "nautilus-ui") {
-    port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port) => {
-      if (message.type === "rpc/nautilus-event") {
-        switch (message.name) {
-          case "loaded":
-            sendRequestsToUI(port);
-            break;
-          case "disconnected":
-            handleOriginDisconnect(message);
-            break;
+    port.onMessage.addListener(
+      async (message: RpcMessage | RpcEvent, port: chrome.runtime.Port) => {
+        if (message.type === "rpc/nautilus-event") {
+          switch (message.name) {
+            case "loaded":
+              sendRequestsToUI(port);
+              break;
+            case "disconnected":
+              handleOriginDisconnect(message);
+              break;
+          }
+        } else if (message.type === "rpc/nautilus-response") {
+          handleNautilusResponse(message);
         }
-      } else if (message.type === "rpc/nautilus-response") {
-        handleNautilusResponse(message);
       }
-    });
+    );
   } else {
-    port.onMessage.addListener(async (message: RpcMessage, port) => {
-      if (message.type !== "rpc/connector-request" || !port.sender || !port.sender.origin) {
-        return;
-      }
-
+    port.onMessage.addListener(async (message: RpcMessage, port: chrome.runtime.Port) => {
+      const origin = getOrigin(port.sender?.url);
       const tabId = port.sender?.tab?.id;
-      if (!tabId || !port.sender?.origin) {
+      if (message.type !== "rpc/connector-request" || !port.sender || !origin || !tabId) {
         return;
       }
 
       const session = sessions.get(tabId);
       switch (message.function) {
         case "connect":
-          await handleConnectionRequest(message, port, port.sender.origin);
+          await handleConnectionRequest(message, port, origin);
           break;
         case "checkConnection":
           handleCheckConnectionRequest(message, port);
@@ -131,7 +142,7 @@ async function handleConnectionRequest(
   const connection = await connectedDAppsDbService.getByOrigin(origin);
   if (connection) {
     const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.origin) {
+    if (!tabId || !port.sender?.url) {
       return;
     }
 
@@ -208,15 +219,16 @@ async function showConnectionWindow(
 ): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.origin) {
+    const origin = getOrigin(port.sender?.url);
+    if (!tabId || !origin) {
       reject("invalid port");
       return;
     }
 
     sessions.set(tabId, {
       port,
-      origin: port.sender.origin,
-      favicon: port.sender.tab?.favIconUrl,
+      origin: origin,
+      favicon: port.sender?.tab?.favIconUrl,
       requestQueue: [{ handled: false, message, resolve }]
     });
 
