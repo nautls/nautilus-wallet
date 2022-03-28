@@ -24,13 +24,15 @@ export function getBoundsForTabWindow(
 ): Promise<{ width: number; positionX: number; positionY: number }> {
   return new Promise((resolve) => {
     Browser.tabs.get(targetTabId, (tab: chrome.tabs.Tab) => {
-      if (tab == null) {
+      if (!tab) {
         return resolve(getDefaultBounds());
       }
+
       Browser.windows.get(tab.windowId, (targetWindow: chrome.windows.Window) => {
-        if (targetWindow == null) {
+        if (!targetWindow) {
           return resolve(getDefaultBounds());
         }
+
         resolve(getBoundsForWindow(targetWindow));
       });
     });
