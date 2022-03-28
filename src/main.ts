@@ -19,7 +19,7 @@ import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
 import mdiVue from "mdi-vue/v3";
 import { mdiIncognito, mdiFilter, mdiFilterOff } from "@mdi/js";
-import { Browser } from "./utils/browserApi";
+import { hasBrowserContext } from "./utils/browserApi";
 
 import "@/config/axiosConfig";
 
@@ -28,7 +28,7 @@ import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
-if (typeof Browser !== "undefined") {
+if (hasBrowserContext()) {
   rpcHandler.start();
 }
 wasmModule.loadAsync();

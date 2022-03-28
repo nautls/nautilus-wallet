@@ -1,5 +1,5 @@
 <template>
-  <div class="app">
+  <div class="app" :class="maxWitdh">
     <div
       v-if="$route.meta.fullPage || $route.query.auth === 'true'"
       class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100"
@@ -29,10 +29,19 @@ import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/inte
 import { mapActions, mapState } from "vuex";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
+import { hasBrowserContext, Browser } from "./utils/browserApi";
 
 function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
   callback();
   return setInterval(callback, ms);
+}
+
+function isPopup() {
+  if (!hasBrowserContext() || !Browser.extension) {
+    return false;
+  }
+
+  return Browser.extension.getViews({ type: "popup" })[0] === self;
 }
 
 export default defineComponent({
@@ -66,7 +75,14 @@ export default defineComponent({
     clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
   },
-  computed: mapState(["loading", "settings"]),
+  computed: {
+    ...mapState(["loading", "settings"]),
+    maxWitdh() {
+      if (isPopup()) {
+        return "max-w-365px";
+      }
+    }
+  },
   methods: {
     ...mapActions({
       fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,

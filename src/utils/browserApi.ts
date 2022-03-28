@@ -9,3 +9,7 @@ function getApiInstance() {
 }
 
 export const Browser = getApiInstance();
+
+export function hasBrowserContext(): boolean {
+  return typeof Browser !== "undefined";
+}
