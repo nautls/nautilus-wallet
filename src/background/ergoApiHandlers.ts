@@ -105,7 +105,10 @@ export async function handleGetBalanceRequest(
   postConnectorResponse(
     {
       isSuccess: true,
-      data: assets.map((a) => toBigNumber(a.confirmedAmount)!).reduce((acc, val) => acc.plus(val))
+      data: assets
+        .map((a) => toBigNumber(a.confirmedAmount)!)
+        .reduce((acc, val) => acc.plus(val))
+        .toString()
     },
     request,
     port
@@ -280,7 +283,7 @@ async function showSignTxWindow(
 ): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.origin) {
+    if (!tabId || !port.sender?.url) {
       reject("invalid port");
       return;
     }

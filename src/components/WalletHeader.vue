@@ -66,6 +66,7 @@ import { mapActions, mapState } from "vuex";
 import NavHeader from "@/components/NavHeader.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
+import { Browser } from "@/utils/browserApi";
 
 export default defineComponent({
   name: "WalletHeader",
@@ -78,12 +79,12 @@ export default defineComponent({
   methods: {
     ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
     async expandView() {
-      if (!chrome.tabs) {
+      if (!Browser.tabs) {
         return;
       }
 
-      chrome.tabs.create({
-        url: chrome.extension.getURL("index.html"),
+      Browser.tabs.create({
+        url: Browser.extension.getURL("index.html"),
         active: true
       });
       window.close();

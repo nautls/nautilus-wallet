@@ -10,6 +10,10 @@ a {
   @apply hover:underline underline-current;
 }
 
+input {
+  @apply !outline-none;
+}
+
 .break-anywhere {
   overflow-wrap: anywhere;
 }
