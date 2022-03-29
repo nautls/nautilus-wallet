@@ -8,13 +8,7 @@
   >
     <div class="h-10" v-if="!isImageNft" @click="active = false"></div>
     <div class="text-xs tracking-normal rounded bg-light-50" :class="{ 'pt-10': !isImageNft }">
-      <iframe
-        v-if="isImageNft"
-        sandbox=""
-        class="h-83.1 w-full rounded-t m-0 p-0"
-        :src="contentUrl"
-        frameborder="0"
-      ></iframe>
+      <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-83.1 w-full rounded-t m-0 p-0" />
       <asset-icon
         v-else
         class="w-20 h-20 mx-auto absolute left-0 right-0 top-0"
@@ -76,6 +70,7 @@ import {
   IPFS_PROTOCOL_PREFIX,
   IPFS_VIDEO_GATEWAY
 } from "@/constants/assets";
+import ImageSandbox from "./ImageSandbox.vue";
 
 function resolveIpfs(url?: string, isVideo = false): string {
   if (!url) {
@@ -103,12 +98,10 @@ export default defineComponent({
       if (!this.asset?.emissionAmount) {
         return "";
       }
-
       let n = toBigNumber(this.asset.emissionAmount);
       if (this.asset.decimals) {
         n = decimalize(n, this.asset.decimals);
       }
-
       return this.$filters.formatBigNumber(n, undefined, Number.MAX_SAFE_INTEGER);
     },
     isImageNft(): boolean {
@@ -118,7 +111,6 @@ export default defineComponent({
       if (!this.asset?.artworkUrl && !this.asset?.artworkCover) {
         return;
       }
-
       const url = this.asset.artworkUrl ?? this.asset.artworkCover;
       return `${CONTENT_SANDBOX_URL}/?url=${resolveIpfs(url)}`;
     }
@@ -135,7 +127,6 @@ export default defineComponent({
       if (isEmpty(newVal) || newVal === ERG_TOKEN_ID) {
         return;
       }
-
       this.getAssetInfo();
       this.active = true;
     },
@@ -143,7 +134,6 @@ export default defineComponent({
       if (newVal) {
         return;
       }
-
       this.emitOnClose();
     }
   },
@@ -153,7 +143,11 @@ export default defineComponent({
     },
     emitOnClose(): void {
       this.$emit("close");
+    },
+    test() {
+      alert("ok");
     }
-  }
+  },
+  components: { ImageSandbox }
 });
 </script>
