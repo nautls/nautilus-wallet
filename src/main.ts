@@ -47,6 +47,9 @@ const mdiSettings = {
 const orugaSettings = {
   switch: {
     checkCheckedClass: "bg-blue-600"
+  },
+  modal: {
+    overlayClass: "opacity-40"
   }
 };
 

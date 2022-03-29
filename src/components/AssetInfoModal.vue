@@ -5,7 +5,6 @@
     :can-cancel="true"
     scroll="clip"
     content-class="max-h-95vh bg-transparent overflow-hidden !max-w-100 !w-90vw"
-    overlay-class="opacity-40"
   >
     <div class="h-10" v-if="!isImageNft" @click="active = false"></div>
     <div class="text-xs tracking-normal rounded bg-light-50" :class="{ 'pt-10': !isImageNft }">
