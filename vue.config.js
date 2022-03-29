@@ -41,9 +41,7 @@ module.exports = {
       .end();
 
     const svgRule = config.module.rule("svg");
-
     svgRule.uses.clear();
-
     svgRule
       .use("vue-loader")
       .loader("vue-loader-v16")
