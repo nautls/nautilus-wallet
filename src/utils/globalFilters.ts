@@ -15,12 +15,12 @@ export const filters = {
     return val?.toLowerCase() ?? "";
   },
   compactString(
-    val: string,
+    val: string | undefined,
     maxLength: number,
     ellipsisPosition: "middle" | "end" = "middle"
   ): string {
     if (!val || maxLength >= val.length) {
-      return val;
+      return val ?? "";
     }
 
     const ellipsis = "…";

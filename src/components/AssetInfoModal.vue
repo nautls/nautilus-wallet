@@ -71,6 +71,7 @@ import {
   IPFS_VIDEO_GATEWAY
 } from "@/constants/assets";
 import ImageSandbox from "./ImageSandbox.vue";
+import BigNumber from "bignumber.js";
 
 function resolveIpfs(url?: string, isVideo = false): string {
   if (!url) {
@@ -98,11 +99,17 @@ export default defineComponent({
       if (!this.asset?.emissionAmount) {
         return "";
       }
-      let n = toBigNumber(this.asset.emissionAmount);
+
+      let amount = toBigNumber(this.asset.emissionAmount);
       if (this.asset.decimals) {
-        n = decimalize(n, this.asset.decimals);
+        amount = decimalize(amount, this.asset.decimals);
       }
-      return this.$filters.formatBigNumber(n, undefined, Number.MAX_SAFE_INTEGER);
+
+      return this.$filters.formatBigNumber(
+        amount ?? new BigNumber(0),
+        undefined,
+        Number.MAX_SAFE_INTEGER
+      );
     },
     isImageNft(): boolean {
       return this.asset?.subtype === AssetSubtype.PictureArtwork;
