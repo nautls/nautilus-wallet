@@ -121,7 +121,7 @@ label {
 
 .btn {
   @apply bg-blue-600 border border-solid rounded font-bold
-    outline-none border-blue-800 text-sm mr-1 mb-1 py-3 
+    outline-none border-blue-800 text-sm mb-1 py-3 
     px-4 uppercase default-transition text-light-300
     hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
     active:bg-blue-800;
