@@ -20,6 +20,7 @@
       </div>
       <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
         {{ $store.state.currentWallet.extendedPublicKey }}
+        <click-to-copy :content="$store.state.currentWallet.extendedPublicKey" size="12" />
       </div>
       <button @click="accept()" class="btn !p-2 mt-2">Done</button>
     </div>
