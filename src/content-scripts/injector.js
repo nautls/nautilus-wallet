@@ -220,12 +220,14 @@ const ERGO_CONST_CODE = `const ergo = Object.freeze(new NautilusErgoApi());`;
 let ergoApiInjected = false;
 let nautilusPort;
 
+const Browser = typeof browser === "undefined" ? chrome : browser;
+
 function createPort() {
   if (nautilusPort !== undefined) {
     return;
   }
 
-  nautilusPort = chrome.runtime.connect();
+  nautilusPort = Browser.runtime.connect();
 }
 
 if (shouldInject()) {
@@ -233,7 +235,7 @@ if (shouldInject()) {
     log("Access methods injected.");
   }
 
-  nautilusPort = chrome.runtime.connect();
+  nautilusPort = Browser.runtime.connect();
   nautilusPort.onMessage.addListener((message) => {
     if (
       !message.type.startsWith("rpc/connector-response") &&

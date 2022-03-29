@@ -7,9 +7,8 @@ import {
   IDbUtxo,
   IAssetInfo
 } from "@/types/database";
-import { find, uniqBy } from "lodash";
-import { ERG_DECIMALS, ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
-import { AssetStandard } from "@/types/internal";
+import { uniqBy } from "lodash";
+import { ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
@@ -52,7 +51,7 @@ class NautilusDb extends Dexie {
 
     this.version(6)
       .stores({
-        assetInfo: "&id, mintingBoxId, type"
+        assetInfo: "&id, mintingBoxId, type, subtype"
       })
       .upgrade(async (t) => {
         const assets = await t.table("assets").toArray();
