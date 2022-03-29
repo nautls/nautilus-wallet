@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
     <div class="flex-grow">
-      <nautilus-logo class="w-11 ml-2" />
+      <img src="/icons/app/logo.svg" class="w-11 ml-2" />
     </div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'">

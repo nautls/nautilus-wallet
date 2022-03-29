@@ -19,7 +19,6 @@ import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
 import mdiVue from "mdi-vue/v3";
 import { mdiIncognito, mdiFilter, mdiFilterOff } from "@mdi/js";
-import NautilusLogo from "@/assets/images/nautilus-logo.svg";
 import { hasBrowserContext } from "./utils/browserApi";
 
 import "@/config/axiosConfig";
@@ -71,5 +70,4 @@ app
   .component("dapp-plate", DAppPlate)
   .component("mdi-icon", MdiIcon)
   .component("asset-icon", AssetIcon)
-  .component("nautilus-logo", NautilusLogo)
   .mount("#app");

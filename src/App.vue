@@ -4,7 +4,7 @@
       v-if="$route.meta.fullPage || $route.query.auth === 'true'"
       class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100"
     >
-      <nautilus-logo class="w-11 ml-2" />
+      <img src="/icons/app/logo.svg" class="w-11 ml-2" />
       <h1 class="text-base text-center font-semibold w-full -ml-15">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>

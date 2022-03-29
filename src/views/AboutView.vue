@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full gap-4 text-center text-sm">
-    <nautilus-logo class="w-23 m-auto" />
+    <img src="/icons/app/logo.svg" class="w-23 m-auto" />
     <div>
       <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
 
