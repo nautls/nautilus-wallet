@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full gap-4 text-center text-sm">
-    <img src="/icons/app/logo.svg" class="w-23 m-auto" />
+    <img src="/icons/app/logo.svg" class="w-23 m-auto pt-2" />
     <div>
       <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
 
@@ -29,11 +29,11 @@
     <p class="text-sm">
       Support the development by donating to:
       <span v-if="readonly">
-        {{ $filters.compactString(donationAddress, 20) }}
+        {{ $filters.compactString(donationAddress, 18) }}
         <click-to-copy :content="donationAddress" size="14" class="align-middle" />
       </span>
       <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
-        $filters.compactString(donationAddress, 20)
+        $filters.compactString(donationAddress, 18)
       }}</a>
     </p>
     <p class="text-sm text-gray-500">
