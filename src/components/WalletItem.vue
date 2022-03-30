@@ -1,6 +1,6 @@
 <template>
-  <div class="flex flex-row gap-3 items-center w-full">
-    <div class="flex flex-col gap-0.5 h-auto w-full text-left whitespace-nowrap">
+  <div class="flex flex-row gap-3 items-center w-full h-9.5">
+    <div class="flex flex-col gap-0.5 h-full w-full text-left whitespace-nowrap">
       <div class="font-semibold text-sm w-40 h-full truncate" :class="{ 'text-right': reverse }">
         {{ wallet.name }}
       </div>
