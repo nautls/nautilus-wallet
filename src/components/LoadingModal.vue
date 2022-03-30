@@ -11,7 +11,7 @@
       <div :class="stateClass" class="w-full h-26">
         <vue-feather type="check-circle" v-if="state === 'success'" class="w-25 h-25" />
         <vue-feather type="alert-circle" v-else-if="state === 'error'" class="w-25 h-25" />
-        <loading-indicator v-else type="circular" class="w-25 h-25" />
+        <loading-indicator v-else type="circular" class="w-25 h-25 stroke-gray-500" />
       </div>
       <h1 class="pt-4 font-semibold text-xl" :class="stateClass">{{ titleText }}</h1>
       <p class="pt-1 font-normal text-sm" v-html="message" v-if="message"></p>
