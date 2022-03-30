@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading" :class="class" class="text-center flex">
-    <loading-indicator type="circular" class="w-1/3 h-1/3 m-auto stroke-gray-500" />
+    <loading-indicator type="circular" class="w-1/3 h-1/3 m-auto !stroke-gray-500" />
   </div>
   <iframe
     v-show="!loading"
