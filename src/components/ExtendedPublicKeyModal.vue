@@ -8,13 +8,11 @@
     content-class="!max-w-11/12 rounded !w-110 max-h-11/12"
   >
     <div class="p-4 text-xs flex flex-col gap-4 tracking-normal">
-      <div>
-        <h1 class="font-bold text-lg">Extended Public Key</h1>
-        <p>
-          Extended Public Keys allow seeing your transactions history and create new addresses, but
-          does not allow to spend or move the funds in any way.
-        </p>
-      </div>
+      <h1 class="font-bold text-lg">Extended Public Key</h1>
+      <p>
+        Extended Public Keys allow seeing your transactions history and create new addresses, but
+        does not allow to spend or move the funds in any way.
+      </p>
       <div class="text-center">
         <canvas class="inline-block w-70 h-70 rounded" id="xpk-canvas"></canvas>
       </div>
