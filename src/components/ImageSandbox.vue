@@ -21,6 +21,11 @@ export default defineComponent({
     src: { type: String },
     class: { type: String }
   },
+  watch: {
+    src() {
+      this.loading = true;
+    }
+  },
   data() {
     return {
       loading: true
