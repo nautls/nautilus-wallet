@@ -15,6 +15,18 @@
     </p>
 
     <div class="flex-grow"></div>
+
+    <p class="text-sm">
+      Support the development by donating to:
+      <span v-if="readonly">
+        {{ $filters.compactString(donationAddress, 20) }}
+        <click-to-copy :content="donationAddress" size="14" class="align-middle" />
+      </span>
+      <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
+        $filters.compactString(donationAddress, 20)
+      }}</a>
+    </p>
+
     <div class="flex flex-row mx-20 gap-1 items-center">
       <a class="m-auto" target="_blank" href="https://github.com/capt-nemo429/nautilus-wallet"
         ><vue-feather type="github" class="m-auto"
@@ -26,16 +38,7 @@
         ><vue-feather type="send" class="m-auto"
       /></a>
     </div>
-    <p class="text-sm">
-      Support the development by donating to:
-      <span v-if="readonly">
-        {{ $filters.compactString(donationAddress, 18) }}
-        <click-to-copy :content="donationAddress" size="14" class="align-middle" />
-      </span>
-      <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
-        $filters.compactString(donationAddress, 18)
-      }}</a>
-    </p>
+
     <p class="text-sm text-gray-500">
       Pricing rates powered by
       <a class="url" target="_blank" href="https://www.coingecko.com/en/api">CoinGecko API</a>
