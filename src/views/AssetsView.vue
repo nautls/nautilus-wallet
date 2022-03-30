@@ -35,7 +35,11 @@
           </tr>
           <tr v-else v-for="asset in assets" :key="asset.tokenId">
             <td class="w-14 min-w-14 align-middle">
-              <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
+              <asset-icon
+                class="h-8 w-8 align-middle"
+                :token-id="asset.tokenId"
+                :type="asset.info?.type"
+              />
             </td>
             <td class="align-middle">
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
