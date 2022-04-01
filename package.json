@@ -12,7 +12,7 @@
     "@coinbarn/ergo-ts": "github:capt-nemo429/ergo-ts",
     "@download/blockies": "^1.0.3",
     "@emurgo/cip4-js": "^1.0.7",
-    "@mdi/js": "^6.5.95",
+    "@mdi/js": "^6.6.96",
     "@oruga-ui/oruga-next": "^0.5.4",
     "@vuelidate/core": "2.0.0-alpha.34",
     "@vuelidate/validators": "^2.0.0-alpha.26",
