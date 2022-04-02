@@ -10,13 +10,17 @@
         v-for="nft in nfts"
         :key="nft.tokenId"
       >
-        <image-sandbox
-          :src="nft.info?.artworkUrl"
-          class="w-full rounded-t h-39"
-          height="9.6rem"
-          object-fit="contain"
-          overflow="hidden"
-        />
+        <div class="relative">
+          <image-sandbox
+            :src="nft.info?.artworkUrl"
+            class="w-full rounded-t h-39"
+            height="9.6rem"
+            object-fit="contain"
+            overflow="hidden"
+          />
+          <!-- clickable overlay -->
+          <div class="h-39 w-full bg-transparent absolute top-0 left-0"></div>
+        </div>
         <p class="text-sm p-2">
           {{ $filters.compactString(nft.info?.name ?? nft.tokenId, 30) }}
         </p>
