@@ -76,6 +76,7 @@ export type BasicAssetInfo = {
   name?: string;
   decimals?: number;
   type?: AssetSubtype;
+  artworkUrl?: string;
 };
 
 export type StateAssetInfo = {

@@ -31,7 +31,8 @@ import {
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
   StateAssetInfo,
-  AssetType
+  AssetType,
+  AssetSubtype
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -147,6 +148,10 @@ export default createStore({
       }
 
       return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
+    },
+    [GETTERS.PICTURE_NFT](state, getters) {
+      const balance: StateAsset[] = getters[GETTERS.BALANCE];
+      return balance.filter((b) => b.info && b.info.type === AssetSubtype.PictureArtwork);
     }
   },
   mutations: {
@@ -303,7 +308,8 @@ export default createStore({
         state.assetInfo[info.id] = {
           name: info.name,
           decimals: info.decimals,
-          type: info.subtype
+          type: info.subtype,
+          artworkUrl: info.artworkCover ?? info.artworkUrl
         };
       }
     },
