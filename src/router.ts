@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import AddView from "@/views/add/AddView.vue";
 import AssetsView from "@/views/AssetsView.vue";
+import NftGalleryView from "@/views/NftGalleryView.vue";
 import ReceiveView from "@/views/ReceiveView.vue";
 import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
 import RestoreView from "@/views/add/RestoreView.vue";
@@ -9,9 +10,8 @@ import SendView from "@/views/SendView.vue";
 import AboutView from "@/views/AboutView.vue";
 import LoadingView from "@/views/LoadingView.vue";
 import SettingsView from "@/views/SettingsView.vue";
-
-import AuthView from "@/views/connector/AuthView.vue";
 import ConnectionsView from "@/views/connector/ConnectionsView.vue";
+import AuthView from "@/views/connector/AuthView.vue";
 import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -50,6 +50,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/assets",
     name: "assets-page",
     component: AssetsView
+  },
+  {
+    path: "/assets/nft",
+    name: "nft-gallery",
+    component: NftGalleryView
   },
   {
     path: "/receive",

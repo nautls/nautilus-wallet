@@ -7,23 +7,69 @@
     @load="loading = false"
     sandbox=""
     :class="class"
-    :src="src"
+    :src="contentUrl"
+    class="m-0 p-0"
     frameborder="0"
   ></iframe>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import {
+  CONTENT_SANDBOX_URL,
+  IPFS_GENERAL_GATEWAY,
+  IPFS_PROTOCOL_PREFIX,
+  IPFS_VIDEO_GATEWAY
+} from "@/constants/assets";
+
+function resolveIpfs(url?: string, isVideo = false): string {
+  if (!url) {
+    return "";
+  }
+
+  if (!url.startsWith(IPFS_PROTOCOL_PREFIX)) {
+    return url;
+  } else {
+    if (isVideo) {
+      return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_VIDEO_GATEWAY);
+    }
+
+    return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_GENERAL_GATEWAY);
+  }
+}
 
 export default defineComponent({
   name: "ImageSandbox",
   props: {
     src: { type: String },
-    class: { type: String }
+    class: { type: String },
+    height: { type: String },
+    objectFit: { type: String },
+    overflow: { type: String }
   },
   watch: {
     src() {
       this.loading = true;
+    }
+  },
+  computed: {
+    contentUrl() {
+      if (!this.src) {
+        return;
+      }
+
+      let query = "";
+      if (this.height) {
+        query += `&height=${this.height}`;
+      }
+      if (this.objectFit) {
+        query += `&fit=${this.objectFit}`;
+      }
+      if (this.overflow) {
+        query += `&overflow=${this.overflow}`;
+      }
+
+      return `${CONTENT_SANDBOX_URL}/?url=${resolveIpfs(this.src)}${query}`;
     }
   },
   data() {

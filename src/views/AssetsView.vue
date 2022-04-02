@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col gap-4">
     <div>
       <input
         type="text"
@@ -92,7 +92,6 @@ import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
-import { TOKEN_INFO_URL } from "@/constants/explorer";
 import BigNumber from "bignumber.js";
 import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
@@ -115,7 +114,7 @@ export default defineComponent({
         return false;
       }
 
-      const assetList: StateAsset[] = this.$store.getters[GETTERS.BALANCE];
+      const assetList: StateAsset[] = this.$store.getters[GETTERS.NON_PICTURE_NFT_BALANCE];
       if (assetList.length === 0) {
         return true;
       }
@@ -123,7 +122,7 @@ export default defineComponent({
       return false;
     },
     assets(): StateAsset[] {
-      const assetList = this.$store.getters[GETTERS.BALANCE];
+      const assetList = this.$store.getters[GETTERS.NON_PICTURE_NFT_BALANCE];
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>
@@ -163,9 +162,6 @@ export default defineComponent({
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
-    },
-    urlFor(tokenId: string): string {
-      return `${TOKEN_INFO_URL}${tokenId}`;
     }
   }
 });

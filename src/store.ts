@@ -149,9 +149,13 @@ export default createStore({
 
       return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
     },
-    [GETTERS.PICTURE_NFT](state, getters) {
+    [GETTERS.PICTURE_NFT_BALANCE](state, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter((b) => b.info && b.info.type === AssetSubtype.PictureArtwork);
+    },
+    [GETTERS.NON_PICTURE_NFT_BALANCE](state, getters) {
+      const balance: StateAsset[] = getters[GETTERS.BALANCE];
+      return balance.filter((b) => !b.info || b.info.type !== AssetSubtype.PictureArtwork);
     }
   },
   mutations: {

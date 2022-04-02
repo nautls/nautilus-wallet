@@ -8,7 +8,7 @@
   >
     <div class="h-10" v-if="!isImageNft" @click="active = false"></div>
     <div class="text-xs tracking-normal rounded bg-light-50" :class="{ 'pt-10': !isImageNft }">
-      <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-83.1 w-full rounded-t m-0 p-0" />
+      <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-83.1 w-full rounded-t" />
       <asset-icon
         v-else
         class="w-20 h-20 mx-auto absolute left-0 right-0 top-0"
@@ -64,33 +64,14 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { isEmpty } from "lodash";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import { AssetSubtype } from "@/types/internal";
-import {
-  CONTENT_SANDBOX_URL,
-  IPFS_GENERAL_GATEWAY,
-  IPFS_PROTOCOL_PREFIX,
-  IPFS_VIDEO_GATEWAY
-} from "@/constants/assets";
 import ImageSandbox from "./ImageSandbox.vue";
 import BigNumber from "bignumber.js";
 
-function resolveIpfs(url?: string, isVideo = false): string {
-  if (!url) {
-    return "";
-  }
-
-  if (!url.startsWith(IPFS_PROTOCOL_PREFIX)) {
-    return url;
-  } else {
-    if (isVideo) {
-      return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_VIDEO_GATEWAY);
-    }
-
-    return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_GENERAL_GATEWAY);
-  }
-}
-
 export default defineComponent({
   name: "AssetInfoModal",
+  components: {
+    ImageSandbox
+  },
   props: {
     tokenId: { type: String, required: true }
   },
@@ -118,8 +99,8 @@ export default defineComponent({
       if (!this.asset?.artworkUrl && !this.asset?.artworkCover) {
         return;
       }
-      const url = this.asset.artworkUrl ?? this.asset.artworkCover;
-      return `${CONTENT_SANDBOX_URL}/?url=${resolveIpfs(url)}`;
+
+      return this.asset.artworkUrl ?? this.asset.artworkCover;
     }
   },
   data() {
@@ -150,11 +131,7 @@ export default defineComponent({
     },
     emitOnClose(): void {
       this.$emit("close");
-    },
-    test() {
-      alert("ok");
     }
-  },
-  components: { ImageSandbox }
+  }
 });
 </script>
