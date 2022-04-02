@@ -2,8 +2,11 @@
   <div v-if="loading" :class="class" class="text-center flex">
     <loading-indicator type="circular" class="w-1/3 h-1/3 m-auto !stroke-gray-500" />
   </div>
+  <div v-else-if="!contentUrl" :class="class" class="text-center flex">
+    <mdi-icon class="m-auto text-orange-400" name="alert-circle-outline" size="48" />
+  </div>
   <iframe
-    v-show="!loading"
+    v-show="!loading && contentUrl"
     @load="loading = false"
     sandbox=""
     :class="class"
