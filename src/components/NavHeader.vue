@@ -6,7 +6,7 @@
         <vue-feather type="pie-chart" class="m-3" size="22" />
       </tool-tip>
     </router-link>
-    <router-link to="/assets/nft" active-class="active" class="w-full tab-item">
+    <router-link to="/assets/nft" v-if="hasNft" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="NFT gallery">
         <vue-feather type="image" class="m-3" size="22" />
       </tool-tip>
@@ -28,12 +28,16 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { WalletType } from "@/types/internal";
+import { GETTERS } from "@/constants/store";
 
 export default defineComponent({
   name: "NavHeader",
   computed: {
     readonly(): boolean {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
+    hasNft(): boolean {
+      return this.$store.getters[GETTERS.PICTURE_NFT_BALANCE].length > 0;
     }
   }
 });

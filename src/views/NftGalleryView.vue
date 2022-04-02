@@ -36,6 +36,7 @@ import { GETTERS } from "@/constants/store/getters";
 import { StateAsset } from "@/types/internal";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
+import { mapState } from "vuex";
 
 export default defineComponent({
   name: "NftGalleryView",
@@ -44,6 +45,9 @@ export default defineComponent({
     ImageSandbox
   },
   computed: {
+    ...mapState({
+      currentWallet: "currentWallet"
+    }),
     nfts(): StateAsset[] {
       const assetList = this.$store.getters[GETTERS.PICTURE_NFT_BALANCE];
 
@@ -54,6 +58,11 @@ export default defineComponent({
       }
 
       return assetList;
+    }
+  },
+  watch: {
+    currentWallet() {
+      this.$router.push({ name: "assets-page" });
     }
   },
   data() {
