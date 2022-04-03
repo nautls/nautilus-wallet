@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
 import AssetsView from "@/views/AssetsView.vue";
+import AuthView from "@/views/connector/AuthView.vue";
+import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
 
 const AddView = () => import("@/views/add/AddView.vue");
 const NftGalleryView = () => import("@/views/NftGalleryView.vue");
@@ -12,8 +14,6 @@ const SendView = () => import("@/views/SendView.vue");
 const AboutView = () => import("@/views/AboutView.vue");
 const SettingsView = () => import("@/views/SettingsView.vue");
 const ConnectionsView = () => import("@/views/connector/ConnectionsView.vue");
-const AuthView = () => import("@/views/connector/AuthView.vue");
-const SignTxConfirmView = () => import("@/views/connector/SignTxConfirmView.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
