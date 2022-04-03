@@ -4,8 +4,6 @@ import {
   AssetBalance,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
-  ExplorerGetApiV1BlocksP1Response,
-  ExplorerGetApiV1BlocksResponse,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
   ExplorerV0TransactionsPerAddressResponse,
   ExplorerV1AddressBalanceResponse
@@ -194,26 +192,14 @@ class ExplorerService {
     return info.filter((i) => i) as IAssetInfo[];
   }
 
-  public async getLastTenBlockHeaders(): Promise<ExplorerBlockHeaderResponse[]> {
-    const blocks = await this.getBlocks({ limit: 10 });
-    return (await Promise.all(blocks.items.map((b: any) => this.getBlock(b.id)))).map(
-      (b: any) => b.block.header
-    );
-  }
-
-  public async getBlock(blockId: string): Promise<ExplorerGetApiV1BlocksP1Response> {
-    const response = await axios.get(`${API_URL}/api/v1/blocks/${blockId}`);
-    return response.data;
-  }
-
-  public async getBlocks(params?: {
+  public async getBlockHeaders(params?: {
     offset?: number;
     limit?: number;
     sortBy?: string;
     sortDirection?: string;
-  }): Promise<ExplorerGetApiV1BlocksResponse> {
-    const response = await axios.get(`${API_URL}/api/v1/blocks/`, { params });
-    return response.data;
+  }): Promise<ExplorerBlockHeaderResponse[]> {
+    const response = await axios.get(`${API_URL}/api/v1/blocks/headers`, { params });
+    return response.data.items;
   }
 
   public async sendTx(
