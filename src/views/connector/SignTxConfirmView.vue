@@ -114,9 +114,15 @@ import { helpers, required } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
+import LoadingModal from "@/components/LoadingModal.vue";
 
 export default defineComponent({
   name: "SignTxConfirmView",
+  components: {
+    DappPlate,
+    ToolTip,
+    LoadingModal
+  },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -289,7 +295,6 @@ export default defineComponent({
     onWindowClosing() {
       this.refuse("unauthorized");
     }
-  },
-  components: { DappPlate, ToolTip }
+  }
 });
 </script>

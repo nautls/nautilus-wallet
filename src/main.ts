@@ -7,7 +7,6 @@ import { wasmModule } from "./utils/wasm-module";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import DropDown from "@/components/DropDown.vue";
-import LoadingModal from "@/components/LoadingModal.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import DAppPlate from "@/components/DappPlate.vue";
@@ -68,7 +67,6 @@ app
   .component("click-to-copy", ClickToCopy)
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)
-  .component("loading-modal", LoadingModal)
   .component("loading-indicator", LoadingIndicator)
   .component("wallet-item", WalletItem)
   .component("dapp-plate", DAppPlate)

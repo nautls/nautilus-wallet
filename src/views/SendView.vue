@@ -127,7 +127,10 @@ import { mapState } from "vuex";
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal },
+  components: {
+    AssetInput,
+    LoadingModal
+  },
   setup() {
     return { v$: useVuelidate() };
   },

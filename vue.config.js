@@ -13,7 +13,12 @@ module.exports = {
   },
   lintOnSave: false,
   configureWebpack: {
-    devtool: "none"
+    devtool: "none",
+    optimization: {
+      splitChunks: {
+        chunks: "all"
+      }
+    }
   },
   pages: {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },

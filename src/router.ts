@@ -1,18 +1,19 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import AddView from "@/views/add/AddView.vue";
-import AssetsView from "@/views/AssetsView.vue";
-import NftGalleryView from "@/views/NftGalleryView.vue";
-import ReceiveView from "@/views/ReceiveView.vue";
-import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
-import RestoreView from "@/views/add/RestoreView.vue";
-import AddStandardView from "@/views/add/AddStandardView.vue";
-import SendView from "@/views/SendView.vue";
-import AboutView from "@/views/AboutView.vue";
 import LoadingView from "@/views/LoadingView.vue";
-import SettingsView from "@/views/SettingsView.vue";
-import ConnectionsView from "@/views/connector/ConnectionsView.vue";
-import AuthView from "@/views/connector/AuthView.vue";
-import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
+import AssetsView from "@/views/AssetsView.vue";
+
+const AddView = () => import("@/views/add/AddView.vue");
+const NftGalleryView = () => import("@/views/NftGalleryView.vue");
+const ReceiveView = () => import("@/views/ReceiveView.vue");
+const AddReadOnlyView = () => import("@/views/add/AddReadOnlyView.vue");
+const RestoreView = () => import("@/views/add/RestoreView.vue");
+const AddStandardView = () => import("@/views/add/AddStandardView.vue");
+const SendView = () => import("@/views/SendView.vue");
+const AboutView = () => import("@/views/AboutView.vue");
+const SettingsView = () => import("@/views/SettingsView.vue");
+const ConnectionsView = () => import("@/views/connector/ConnectionsView.vue");
+const AuthView = () => import("@/views/connector/AuthView.vue");
+const SignTxConfirmView = () => import("@/views/connector/SignTxConfirmView.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
