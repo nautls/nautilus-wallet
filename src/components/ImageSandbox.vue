@@ -9,6 +9,7 @@
     v-show="!loading && contentUrl"
     @load="loading = false"
     sandbox=""
+    :key="contentUrl"
     :class="class"
     :src="contentUrl"
     class="m-0 p-0"
