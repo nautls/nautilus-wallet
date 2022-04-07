@@ -31,7 +31,7 @@ function extractAddressesFromInput(input: UnsignedInput): string[] {
   }
 
   if (isEmpty(pks)) {
-    throw new Error(`Input ${input.boxId} is a P2S, but no address is found!`);
+    return [];
   }
 
   const addresses: string[] = [];

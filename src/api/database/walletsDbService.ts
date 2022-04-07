@@ -3,8 +3,9 @@ import { dbContext } from "@/api/database/dbContext";
 import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash";
-import { AddressState, UpdateWalletSettingsCommand, WalletSettings } from "@/types/internal";
+import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
 import { PasswordError } from "@/types/errors";
+import { assestsDbService } from "./assetsDbService";
 
 class WalletsDbService {
   public async getById(id: number): Promise<IDbWallet | undefined> {
@@ -71,8 +72,21 @@ class WalletsDbService {
     });
   }
 
+  public async updateUsedAddressFilter(walletId: number, hide: boolean) {
+    return await dbContext.wallets.update(walletId, {
+      "settings.hideUsedAddresses": hide
+    });
+  }
+
   public async getAll(): Promise<IDbWallet[]> {
     return await dbContext.wallets.toArray();
+  }
+
+  public async delete(walletId: number): Promise<void> {
+    await dbContext.addresses.where({ walletId }).delete();
+    await dbContext.assets.where({ walletId }).delete();
+    await dbContext.connectedDApps.where({ walletId }).delete();
+    await dbContext.wallets.delete(walletId);
   }
 }
 

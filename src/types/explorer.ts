@@ -1,4 +1,6 @@
 import BigNumber from "bignumber.js";
+import { ErgoBox, Token } from "./connector";
+import { AssetStandard } from "./internal";
 
 export type AddressAPIResponse<T> = {
   address: string;
@@ -72,6 +74,16 @@ export type ExplorerV0TransactionsPerAddressResponse = {
   total: number;
 };
 
+export type AssetBalance = {
+  tokenId: string;
+  name?: string;
+  decimals?: number;
+  standard?: AssetStandard;
+  confirmedAmount: string;
+  unconfirmedAmount?: string;
+  address: string;
+};
+
 type ExplorerBalanceItem = {
   nanoErgs: number | BigNumber;
   tokens: [
@@ -80,6 +92,7 @@ type ExplorerBalanceItem = {
       amount: number | BigNumber;
       decimals: number;
       name: string;
+      tokenType?: string;
     }
   ];
 };
@@ -90,108 +103,6 @@ type ExplorerBalanceItem = {
 export type ExplorerV1AddressBalanceResponse = {
   confirmed: ExplorerBalanceItem;
   unconfirmed: ExplorerBalanceItem;
-};
-
-export type ExplorerGetApiV1BlocksResponse = {
-  items: [
-    {
-      id: string;
-      blockId: string;
-      inclusionHeight: number;
-      timestamp: number;
-      index: number;
-      globalIndex: number;
-      numConfirmations: number;
-      inputs: [
-        {
-          boxId: string;
-          value: number;
-          index: number;
-          spendingProof: string;
-          outputBlockId: string;
-          outputTransactionId: string;
-          outputIndex: number;
-          outputGlobalIndex: number;
-          outputCreatedAt: number;
-          outputSettledAt: number;
-          ergoTree: string;
-          address: string;
-          assets: [
-            {
-              tokenId: string;
-              index: number;
-              amount: number;
-              name: string;
-              decimals: number;
-              type: string;
-            }
-          ];
-          additionalRegisters: {
-            property1: string;
-            property2: string;
-          };
-        }
-      ];
-      dataInputs: [
-        {
-          boxId: string;
-          value: number;
-          index: number;
-          outputBlockId: string;
-          outputTransactionId: string;
-          outputIndex: number;
-          ergoTree: string;
-          address: string;
-          assets: [
-            {
-              tokenId: string;
-              index: number;
-              amount: number;
-              name: string;
-              decimals: number;
-              type: string;
-            }
-          ];
-          additionalRegisters: {
-            property1: string;
-            property2: string;
-          };
-        }
-      ];
-      outputs: [
-        {
-          boxId: string;
-          transactionId: string;
-          blockId: string;
-          value: number;
-          index: number;
-          globalIndex: number;
-          creationHeight: number;
-          settlementHeight: number;
-          ergoTree: string;
-          address: string;
-          assets: [
-            {
-              tokenId: string;
-              index: number;
-              amount: number;
-              name: string;
-              decimals: number;
-              type: string;
-            }
-          ];
-          additionalRegisters: {
-            property1: string;
-            property2: string;
-          };
-          spentTransactionId: string;
-          mainChain: boolean;
-        }
-      ];
-      size: number;
-    }
-  ];
-  total: number;
 };
 
 export type ExplorerBlockHeaderResponse = {
@@ -304,7 +215,7 @@ export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
   id: string;
 };
 
-export type ExplorerGetUnspentBox = {
+export type ExplorerBox = {
   id: string;
   txId: string;
   value: number | string | BigNumber;
@@ -314,6 +225,27 @@ export type ExplorerGetUnspentBox = {
   address: string;
   assets: ExplorerToken[];
   additionalRegisters: any;
-  spentTransactionId: string;
+  spentTransactionId?: string;
   mainChain: boolean;
 };
+
+export function explorerBoxMapper(options: { asConfirmed: boolean }) {
+  return (box: ExplorerBox) => {
+    return {
+      boxId: box.id,
+      transactionId: box.txId,
+      index: box.index,
+      ergoTree: box.ergoTree,
+      creationHeight: box.creationHeight,
+      value: box.value.toString(),
+      assets: box.assets.map((t) => {
+        return {
+          tokenId: t.tokenId,
+          amount: t.amount.toString()
+        } as Token;
+      }),
+      additionalRegisters: box.additionalRegisters,
+      confirmed: options.asConfirmed
+    } as ErgoBox;
+  };
+}

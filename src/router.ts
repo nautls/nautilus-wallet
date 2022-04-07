@@ -1,19 +1,20 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
-import AddView from "@/views/add/AddView.vue";
 import AssetsView from "@/views/AssetsView.vue";
-import ReceiveView from "@/views/ReceiveView.vue";
-import AddReadOnlyView from "@/views/add/AddReadOnlyView.vue";
-import RestoreView from "@/views/add/RestoreView.vue";
-import AddStandardView from "@/views/add/AddStandardView.vue";
-import SendView from "@/views/SendView.vue";
-import AboutView from "@/views/AboutView.vue";
-import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
-import SettingsView from "@/views/SettingsView.vue";
-
 import AuthView from "@/views/connector/AuthView.vue";
-import ConnectionsView from "@/views/connector/ConnectionsView.vue";
 import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
+
+const AddView = () => import("@/views/add/AddView.vue");
+const NftGalleryView = () => import("@/views/NftGalleryView.vue");
+const ReceiveView = () => import("@/views/ReceiveView.vue");
+const ConnectLedgerView = () => "@/views/add/ConnectLedgerView.vue";
+const AddReadOnlyView = () => import("@/views/add/AddReadOnlyView.vue");
+const RestoreView = () => import("@/views/add/RestoreView.vue");
+const AddStandardView = () => import("@/views/add/AddStandardView.vue");
+const SendView = () => import("@/views/SendView.vue");
+const AboutView = () => import("@/views/AboutView.vue");
+const SettingsView = () => import("@/views/SettingsView.vue");
+const ConnectionsView = () => import("@/views/connector/ConnectionsView.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -27,25 +28,25 @@ const routes: Array<RouteRecordRaw> = [
     name: "add-wallet",
     component: AddView,
     props: true,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Add new wallet" }
   },
   {
     path: "/add/read-only",
     name: "add-read-only-wallet",
     component: AddReadOnlyView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Add read-only wallet" }
   },
   {
     path: "/add/restore",
     name: "restore-wallet",
     component: RestoreView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Restore a standard wallet" }
   },
   {
     path: "/add/new",
     name: "add-standard-wallet",
     component: AddStandardView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Add new standard wallet" }
   },
   {
     path: "/add/hw/ledger",
@@ -57,6 +58,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/assets",
     name: "assets-page",
     component: AssetsView
+  },
+  {
+    path: "/assets/nft",
+    name: "nft-gallery",
+    component: NftGalleryView
   },
   {
     path: "/receive",
@@ -76,7 +82,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/connector/auth",
     name: "connector-auth",
-    component: AuthView
+    component: AuthView,
+    meta: { title: "Access request" }
   },
   {
     path: "/connector/connections",
@@ -86,7 +93,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/connector/sign/tx",
     name: "connector-sign-tx",
-    component: SignTxConfirmView
+    component: SignTxConfirmView,
+    meta: { title: "Transaction signature" }
   },
   {
     path: "/wallet/settings",

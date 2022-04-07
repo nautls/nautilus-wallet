@@ -1,7 +1,6 @@
 <template>
-  <div class="flex-col flex gap-3 h-full">
-    <page-title title="Add new wallet" back-button />
-    <div class="flex-col flex gap-3 flex-grow">
+  <div class="flex-col flex gap-4 h-full pt-2">
+    <div class="flex-col flex gap-4 flex-grow">
       <label
         >Wallet name
         <input
@@ -16,9 +15,37 @@
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
-      <label class="mt-3">
+      <div class="flex flex-row gap-4">
+        <label class="w-1/2"
+          >Spending password
+          <input
+            :disabled="loading"
+            v-model.lazy="password"
+            @blur="v$.password.$touch()"
+            type="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
+          </p></label
+        >
+        <label class="w-1/2"
+          >Confirm password
+          <input
+            :disabled="loading"
+            v-model.lazy="confirmPassword"
+            @blur="v$.confirmPassword.$touch()"
+            type="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.confirmPassword.$error">
+            {{ v$.confirmPassword.$errors[0].$message }}
+          </p></label
+        >
+      </div>
+      <label>
         Recovery phrase
-        <div class="input-wrap !text-lg font-normal leading-relaxed p-2">
+        <div class="input-wrap !text-base bg-gray-100 font-normal leading-relaxed p-2">
           {{ mnemonic }}
         </div>
         <p class="text-xs font-normal p-1">
@@ -26,54 +53,32 @@
           will need this phrase to use and restore your wallet.
         </p>
       </label>
-      <label
-        >Spending password
-        <input
-          :disabled="loading"
-          v-model.lazy="password"
-          @blur="v$.password.$touch()"
-          type="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
-        </p></label
-      >
-      <label
-        >Confirm password
-        <input
-          :disabled="loading"
-          v-model.lazy="confirmPassword"
-          @blur="v$.confirmPassword.$touch()"
-          type="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.confirmPassword.$error">
-          {{ v$.confirmPassword.$errors[0].$message }}
-        </p></label
-      >
-    </div>
-    <div class="pt-5">
       <label class="inline-block font-normal cursor-pointer">
         <input class="checkbox" type="checkbox" v-model="mnemonicStoreAgreement" />
-        <span class="align-middle">I've stored the secret phrase in a secure place.</span>
+        <span class="align-middle font-semibold"
+          >I've stored the secret phrase in a secure place.</span
+        >
       </label>
-      <button
-        @click="add()"
-        :disabled="loading || !mnemonicStoreAgreement"
-        type="button"
-        class="w-full btn mt-3"
-      >
-        <loading-indicator v-if="loading" class="h-5 w-5" />
-        <span v-else>Confirm</span>
-      </button>
+    </div>
+    <div>
+      <div class="flex flex-row gap-4">
+        <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
+        <button
+          @click="add()"
+          :disabled="loading || !mnemonicStoreAgreement"
+          type="button"
+          class="w-full btn"
+        >
+          <loading-indicator v-if="loading" class="h-5 w-5" />
+          <span v-else>Confirm</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import PageTitle from "@/components/PageTitle.vue";
 import { generateMnemonic, wordlists } from "bip39";
 import { orderBy, take } from "lodash";
 import { mapActions } from "vuex";
@@ -87,7 +92,6 @@ const words = wordlists.english;
 
 export default defineComponent({
   name: "AddStandardView",
-  components: { PageTitle },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -155,12 +159,12 @@ export default defineComponent({
       const lowerText = text.toLowerCase();
       const filtered = orderBy(
         take(
-          words.filter(w => {
+          words.filter((w) => {
             return w.includes(lowerText);
           }),
           10
         ),
-        w => !w.startsWith(lowerText)
+        (w) => !w.startsWith(lowerText)
       );
 
       this.filteredWords = Object.freeze(filtered);

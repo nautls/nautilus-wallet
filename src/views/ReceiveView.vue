@@ -2,18 +2,21 @@
   <div class="flex flex-col gap-5">
     <div class="flex flex-row gap-5">
       <div class="flex-grow">
-        <label>Your current address</label>
-        <div class="rounded font-mono bg-gray-200 text-sm p-2 break-all">
+        <label
+          ><span v-if="avoidingReuse">Your current address</span>
+          <span v-else>Your default address</span></label
+        >
+        <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
           <template v-if="loading">
             <div class="skeleton h-3 w-full rounded"></div>
             <div class="skeleton h-3 w-full rounded"></div>
             <div class="skeleton h-3 w-1/2 rounded"></div>
           </template>
           <template v-else>
-            <a :href="urlFor(lastAddress)" target="_blank">
-              {{ lastAddress }}
+            <a :href="urlFor(mainAddress)" target="_blank">
+              {{ mainAddress }}
             </a>
-            <click-to-copy :content="lastAddress" class="mx-2" size="12" />
+            <click-to-copy :content="mainAddress" class="mx-2" size="12" />
           </template>
         </div>
       </div>
@@ -34,69 +37,77 @@
         {{ errorMsg }}
       </p>
     </div>
-    <div class="flex flex-col">
-      <div class="-my-2 -mx-8">
-        <div class="min-w-full py-2 px-8 align-middle inline-block">
-          <div class="border-b rounded-lg border-gray-200 shadow">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Address ({{ addresses.length }})</th>
-                  <th class="text-right">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="loading" v-for="i in prevCount" :key="i">
-                  <td>
-                    <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
-                  </td>
-                  <td class="text-right">
-                    <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
-                  </td>
-                </tr>
-                <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
-                  <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
-                    <a :href="urlFor(address.script)" target="_blank">{{
-                      $filters.compactString(address.script, 10)
-                    }}</a>
-                    <div class="align-middle inline-block">
-                      <click-to-copy :content="address.script" class="mx-2" size="12" />
+    <div class="border rounded">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>
+              Address ({{ addresses.length
+              }}<template v-if="hideUsed">/{{ stateAddresses.length }}</template
+              >)
+              <tool-tip
+                :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
+                tip-class="normal-case"
+                class="pl-1"
+              >
+                <a class="cursor-pointer" @click="updateUsedAddressesFilter()">
+                  <mdi-icon
+                    class="align-middle"
+                    :name="hideUsed ? 'filter-off' : 'filter'"
+                    size="16"
+                  />
+                </a>
+              </tool-tip>
+            </th>
+            <th class="text-right">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading" v-for="i in prevCount" :key="i">
+            <td>
+              <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
+            </td>
+            <td class="text-right">
+              <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
+            </td>
+          </tr>
+          <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
+            <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
+              <a :href="urlFor(address.script)" target="_blank">{{
+                $filters.compactString(address.script, 10)
+              }}</a>
+              <div class="align-middle inline-block">
+                <click-to-copy :content="address.script" class="mx-2" size="12" />
 
-                      <template v-if="!currentWallet.settings.avoidAddressReuse">
-                        <vue-feather
-                          v-if="currentWallet.settings.defaultChangeIndex === address.index"
-                          type="check-circle"
-                          class="text-green-600"
-                          size="12"
-                        />
-                        <tool-tip v-else label="Set as default<br />change address">
-                          <a
-                            class="cursor-pointer"
-                            @click="updateDefaultChangeIndex(address.index)"
-                          >
-                            <vue-feather type="circle" size="12" />
-                          </a>
-                        </tool-tip>
-                      </template>
-                      <tool-tip
-                        v-if="hasPendingBalance(address)"
-                        label="Pending transaction<br />for this address"
-                        class="pl-2"
-                      >
-                        <loading-indicator class="w-3 h-3" />
-                      </tool-tip>
-                    </div>
-                  </td>
-                  <td class="text-right">
-                    <span class="float-left">Σ</span>
-                    <span> {{ ergBalanceFor(address) }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                <template v-if="!currentWallet.settings.avoidAddressReuse">
+                  <vue-feather
+                    v-if="currentWallet.settings.defaultChangeIndex === address.index"
+                    type="check-circle"
+                    class="text-green-600"
+                    size="12"
+                  />
+                  <tool-tip v-else label="Set as default<br />address">
+                    <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
+                      <vue-feather type="circle" size="12" />
+                    </a>
+                  </tool-tip>
+                </template>
+                <tool-tip
+                  v-if="hasPendingBalance(address)"
+                  label="Pending transaction<br />for this address"
+                  class="pl-2"
+                >
+                  <loading-indicator class="w-3 h-3" />
+                </tool-tip>
+              </div>
+            </td>
+            <td class="text-right">
+              <span class="float-left">Σ</span>
+              <span> {{ ergBalanceFor(address) }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -105,7 +116,12 @@
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
 import { find, last } from "lodash";
-import { StateAddress, StateWallet, UpdateChangeIndexCommand } from "@/types/internal";
+import {
+  StateAddress,
+  StateWallet,
+  UpdateChangeIndexCommand,
+  UpdateUsedAddressesFilterCommand
+} from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
@@ -121,19 +137,33 @@ export default defineComponent({
       return this.$store.state.currentAddresses;
     },
     addresses(): StateAddress[] {
-      if (this.currentWallet.settings.hideUsedAddresses) {
+      const settings = this.currentWallet.settings;
+      if (settings.hideUsedAddresses) {
         return this.stateAddresses.filter(
-          (a) => a.state === AddressState.Unused || (a.state === AddressState.Used && a.balance)
+          (a) =>
+            a.state === AddressState.Unused ||
+            (a.state === AddressState.Used && a.balance) ||
+            (!settings.avoidAddressReuse && a.index === settings.defaultChangeIndex)
         );
       }
 
       return this.stateAddresses;
     },
+    hideUsed(): boolean {
+      return this.currentWallet.settings.hideUsedAddresses;
+    },
     loading(): boolean {
       return this.addresses.length === 0 && this.$store.state.loading.addresses;
     },
-    lastAddress(): string | undefined {
-      return last(this.addresses)?.script;
+    avoidingReuse(): boolean {
+      return this.currentWallet.settings.avoidAddressReuse;
+    },
+    mainAddress(): string | undefined {
+      const settings = this.currentWallet.settings;
+
+      return this.avoidingReuse
+        ? last(this.addresses)?.script
+        : find(this.addresses, (a) => a.index === settings.defaultChangeIndex)?.script;
     }
   },
   watch: {
@@ -143,16 +173,16 @@ export default defineComponent({
         this.prevCount = length;
       }
     },
-    lastAddress: {
+    mainAddress: {
       immediate: true,
       handler() {
         this.errorMsg = "";
         this.$nextTick(() => {
-          if (!this.lastAddress) {
+          if (!this.mainAddress) {
             return;
           }
 
-          QRCode.toCanvas(document.getElementById("primary-address-canvas"), this.lastAddress, {
+          QRCode.toCanvas(document.getElementById("primary-address-canvas"), this.mainAddress, {
             errorCorrectionLevel: "low",
             margin: 0,
             scale: 4
@@ -173,6 +203,12 @@ export default defineComponent({
         walletId: this.currentWallet.id,
         index
       } as UpdateChangeIndexCommand);
+    },
+    updateUsedAddressesFilter() {
+      this.$store.dispatch(ACTIONS.UPDATE_USED_ADDRESSES_FILTER, {
+        walletId: this.currentWallet.id,
+        filter: !this.hideUsed
+      } as UpdateUsedAddressesFilterCommand);
     },
     async newAddress() {
       try {
