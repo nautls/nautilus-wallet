@@ -125,3 +125,8 @@ export type SigningState = {
   state: string;
   appId: number;
 };
+
+export type UpdateUsedAddressesFilterCommand = {
+  walletId: number;
+  filter: boolean;
+};
