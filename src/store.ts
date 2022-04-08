@@ -753,7 +753,7 @@ export default createStore({
       const boxes = await fetchBoxes(command.walletId);
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
 
-      const signedtx = TxBuilder.from(selectedAddresses)
+      const signedtx = await TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
@@ -789,7 +789,7 @@ export default createStore({
       command.password = "";
 
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedtx = TxBuilder.from(addresses).signFromConnector(
+      const signedtx = await TxBuilder.from(addresses).signFromConnector(
         command.tx,
         SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
       );
