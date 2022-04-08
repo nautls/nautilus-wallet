@@ -15,7 +15,10 @@ import {
   maxBy,
   clone,
   findLastIndex,
-  isEmpty
+  isEmpty,
+  uniq,
+  difference,
+  union
 } from "lodash";
 import {
   Network,
@@ -25,24 +28,40 @@ import {
   SendTxCommand,
   SignTxFromConnectorCommand,
   UpdateWalletSettingsCommand,
-  UpdateChangeIndexCommand
+  UpdateChangeIndexCommand,
+  UpdateUsedAddressesFilterCommand,
+  StateAssetInfo,
+  AssetType,
+  AssetSubtype
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
-import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
-import { ERG_TOKEN_ID, CHUNK_DERIVE_LENGTH, ERG_DECIMALS } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
+import {
+  ERG_TOKEN_ID,
+  CHUNK_DERIVE_LENGTH,
+  ERG_DECIMALS,
+  UNKNOWN_MINTING_BOX_ID
+} from "@/constants/ergo";
+import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
-import { ErgoTransaction } from "./api/ergo/transaction/ergoTransaction";
+import { TxBuilder } from "././api/ergo/transaction/txBuilder";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
-import { sign } from "@coinbarn/ergo-ts";
+import { ITokenRate } from "ergo-market-lib";
+import { submitTx } from "./api/ergo/submitTx";
+import { fetchBoxes } from "./api/ergo/boxFetcher";
+import { utxosDbService } from "./api/database/utxosDbService";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
+import { assetInfoDbService } from "./api/database/assetInfoDbService";
+import { asDict } from "./utils/serializer";
+import { Token } from "./types/connector";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -55,7 +74,6 @@ function dbAddressMapper(a: IDbAddress) {
 
 export default createStore({
   state: {
-    ergPrice: 0,
     wallets: [] as StateWallet[],
     currentWallet: {
       id: 0,
@@ -72,15 +90,22 @@ export default createStore({
     currentAddresses: [] as StateAddress[],
     settings: {
       lastOpenedWalletId: 0,
-      isKyaAccepted: false
+      isKyaAccepted: false,
+      conversionCurrency: "usd"
     },
     loading: {
       settings: true,
       price: false,
       addresses: true,
-      balance: true
+      balance: true,
+      wallets: true
     },
-    connections: Object.freeze([] as IDbDAppConnection[])
+    connections: Object.freeze([] as IDbDAppConnection[]),
+    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetInfo,
+    ergPrice: 0,
+    assetMarketRates: {
+      [ERG_TOKEN_ID]: { erg: 1 }
+    } as { [tokenId: string]: { erg: number } }
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -102,13 +127,11 @@ export default createStore({
 
         const token: StateAsset = {
           tokenId: group[0].tokenId,
-          name: group[0].name,
           confirmedAmount: group.map((a) => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
           unconfirmedAmount: group
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
-          decimals: group[0].decimals,
-          price: group[0].tokenId === ERG_TOKEN_ID ? state.ergPrice : undefined
+          info: group[0].info
         };
 
         balance.push(token);
@@ -116,17 +139,23 @@ export default createStore({
 
       if (isEmpty(balance)) {
         balance.push({
-          name: "ERG",
           tokenId: ERG_TOKEN_ID,
-          decimals: ERG_DECIMALS,
           confirmedAmount: new BigNumber(0),
-          price: state.ergPrice
+          info: state.assetInfo[ERG_TOKEN_ID]
         });
 
         return balance;
       }
 
-      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.name]);
+      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
+    },
+    [GETTERS.PICTURE_NFT_BALANCE](state, getters) {
+      const balance: StateAsset[] = getters[GETTERS.BALANCE];
+      return balance.filter((b) => b.info && b.info.type === AssetSubtype.PictureArtwork);
+    },
+    [GETTERS.NON_PICTURE_NFT_BALANCE](state, getters) {
+      const balance: StateAsset[] = getters[GETTERS.BALANCE];
+      return balance.filter((b) => !b.info || b.info.type !== AssetSubtype.PictureArtwork);
     }
   },
   mutations: {
@@ -199,18 +228,21 @@ export default createStore({
         address.balance = group.map((x) => {
           return {
             tokenId: x.tokenId,
-            name: x.name,
             confirmedAmount:
-              setDecimals(toBigNumber(x.confirmedAmount), x.decimals) || new BigNumber(0),
-            unconfirmedAmount: setDecimals(toBigNumber(x.unconfirmedAmount), x.decimals),
-            decimals: x.decimals,
-            price: undefined
+              decimalize(
+                toBigNumber(x.confirmedAmount),
+                state.assetInfo[x.tokenId]?.decimals ?? 0
+              ) || new BigNumber(0),
+            unconfirmedAmount: decimalize(
+              toBigNumber(x.unconfirmedAmount),
+              state.assetInfo[x.tokenId]?.decimals ?? 0
+            ),
+            info: state.assetInfo[x.tokenId]
           };
         });
       }
     },
     [MUTATIONS.SET_ERG_PRICE](state, price) {
-      state.loading.price = false;
       state.ergPrice = price;
     },
     [MUTATIONS.SET_LOADING](state, obj) {
@@ -245,34 +277,96 @@ export default createStore({
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
     },
-    [MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
+    [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
       const wallet = find(state.wallets, (w) => w.id === command.walletId);
       if (!wallet) {
         return;
       }
 
       wallet.settings.defaultChangeIndex = command.index;
+    },
+    [MUTATIONS.SET_USED_ADDRESSES_FILTER](state, command: UpdateUsedAddressesFilterCommand) {
+      const wallet = find(state.wallets, (w) => w.id === command.walletId);
+      if (!wallet) {
+        return;
+      }
+
+      wallet.settings.hideUsedAddresses = command.filter;
+    },
+    [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
+      const assetErgRate = asDict(
+        rates.map((r) => {
+          return { [r.token.tokenId]: { erg: r.ergPerToken } };
+        })
+      );
+
+      assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
+      state.assetMarketRates = assetErgRate;
+    },
+    [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
+      if (isEmpty(assetsInfo)) {
+        return;
+      }
+
+      for (let info of assetsInfo) {
+        state.assetInfo[info.id] = {
+          name: info.name,
+          decimals: info.decimals,
+          type: info.subtype,
+          artworkUrl: info.artworkCover ?? info.artworkUrl
+        };
+      }
+    },
+    [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
+      if (state.currentWallet.id === walletId) {
+        state.currentWallet = find(state.wallets, (w) => w.id !== walletId) ?? {
+          id: 0,
+          name: "",
+          type: WalletType.Standard,
+          publicKey: "",
+          extendedPublicKey: "",
+          settings: {
+            avoidAddressReuse: false,
+            hideUsedAddresses: false,
+            defaultChangeIndex: 0
+          }
+        };
+
+        state.currentAddresses = [];
+      }
+
+      const removeIndex = findIndex(state.wallets, (w) => w.id === walletId);
+      if (removeIndex > -1) {
+        state.wallets.splice(removeIndex, 1);
+      }
     }
   },
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
       dispatch(ACTIONS.LOAD_SETTINGS);
+      dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
+      if (router.currentRoute.value.query.popup === "true") {
+        return;
+      }
+
       if (state.wallets.length > 0) {
-        dispatch(ACTIONS.LOAD_CONNECTIONS);
         let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
         }
-        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
 
-        if (router.currentRoute.value.query.popup != "true") {
-          router.push({ name: "assets-page" });
-        }
+        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
+        dispatch(ACTIONS.LOAD_CONNECTIONS);
+        router.push({ name: "assets-page" });
       } else {
         router.push({ name: "add-wallet" });
       }
+    },
+    async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
+      const tokenMarketRates = await explorerService.getTokenMarketRates();
+      commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
       const rawSettings = localStorage.getItem("settings");
@@ -301,6 +395,7 @@ export default createStore({
       }
 
       commit(MUTATIONS.SET_WALLETS, wallets);
+      commit(MUTATIONS.SET_LOADING, { wallets: false });
     },
     async [ACTIONS.PUT_WALLET](
       { dispatch },
@@ -350,16 +445,14 @@ export default createStore({
       };
 
       await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
-      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
-    [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
+    async [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
       const walletId = typeof wallet === "number" ? wallet : wallet.id;
-
       commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
-      dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
       dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: walletId });
+      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
       const lastUsedIndex = findLastIndex(
@@ -488,7 +581,7 @@ export default createStore({
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
 
       if (lastUsed !== null) {
-        dispatch(ACTIONS.REFRESH_BALANCES, {
+        dispatch(ACTIONS.FETCH_BALANCES, {
           addresses: active.map((a) => a.script),
           walletId
         });
@@ -496,26 +589,135 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
+    async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
       const assets = await assestsDbService.getByWalletId(walletId);
-      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: walletId });
+
+      await dispatch(
+        ACTIONS.LOAD_ASSETS_INFO,
+        assets.map((x) => x.tokenId)
+      );
+      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId });
     },
-    async [ACTIONS.REFRESH_BALANCES]({ commit }, data: { addresses: string[]; walletId: number }) {
+    async [ACTIONS.LOAD_ASSETS_INFO](
+      { state, commit, dispatch },
+      params: string[] | { assetInfo: Token[] }
+    ) {
+      const tokenIds = uniq(
+        Array.isArray(params) ? params : params.assetInfo.map((x) => x.tokenId)
+      );
+      const unloaded = difference(tokenIds, Object.keys(state.assetInfo));
+
+      if (!isEmpty(unloaded) && !Array.isArray(params)) {
+        await assetInfoDbService.addIfNotExists(
+          params.assetInfo
+            .filter((x) => unloaded.includes(x.tokenId))
+            .map((x) => {
+              return {
+                id: x.tokenId,
+                mintingBoxId: UNKNOWN_MINTING_BOX_ID,
+                name: x.name,
+                decimals: x.decimals,
+                type: AssetType.Unknown
+              };
+            })
+        );
+      }
+
+      const assetsInfo = await assetInfoDbService.getAnyOf(unloaded);
+
+      commit(MUTATIONS.SET_ASSETS_INFO, assetsInfo);
+      dispatch(
+        ACTIONS.FETCH_FULL_ASSETS_INFO,
+        difference(
+          unloaded,
+          assetsInfo.map((x) => x.id)
+        )
+      );
+    },
+    async [ACTIONS.FETCH_FULL_ASSETS_INFO]({ commit }, assetIds: string[]) {
+      const incompleteIds = union(assetIds, await assetInfoDbService.getIncompleteInfoIds());
+      if (isEmpty(incompleteIds)) {
+        return;
+      }
+
+      let info = await explorerService.getAssetsInfo(incompleteIds);
+      if (isEmpty(info)) {
+        return;
+      }
+
+      await assetInfoDbService.bulkPut(info);
+      commit(MUTATIONS.SET_ASSETS_INFO, info);
+    },
+    async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
+      await walletsDbService.delete(walletId);
+
+      if (state.currentWallet.id === walletId) {
+        const wallet = find(state.wallets, (w) => w.id !== walletId);
+        if (wallet) {
+          await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
+          router.push({ name: "assets-page" });
+        } else {
+          router.push({ name: "add-wallet" });
+        }
+      }
+
+      commit(MUTATIONS.REMOVE_WALLET, walletId);
+    },
+    async [ACTIONS.FETCH_BALANCES](
+      { commit, dispatch },
+      data: { addresses: string[]; walletId: number }
+    ) {
       const balances = await explorerService.getAddressesBalance(data.addresses);
-      const assets = assestsDbService.parseAddressBalanceAPIResponse(balances, data.walletId);
+      const assets = balances.map((x) => {
+        return {
+          tokenId: x.tokenId,
+          confirmedAmount: x.confirmedAmount,
+          unconfirmedAmount: x.unconfirmedAmount,
+          address: x.address,
+          walletId: data.walletId
+        } as IDbAsset;
+      });
       assestsDbService.sync(assets, data.walletId);
 
+      await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
+        assetInfo: balances.map((x) => {
+          return {
+            tokenId: x.tokenId,
+            name: x.name,
+            decimals: x.decimals
+          } as Token;
+        })
+      });
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
+      dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },
-    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, state }) {
+    async [ACTIONS.CHECK_PENDING_BOXES]() {
+      const now = Date.now();
+      const boxes = (await utxosDbService.getAllPending()).filter(
+        (b) => b.spentTimestamp && now - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
+      );
+
+      if (isEmpty(boxes)) {
+        return;
+      }
+
+      const txIds = uniq(boxes.map((b) => b.spentTxId));
+      const mempoolResult = await explorerService.areTransactionsInMempool(txIds);
+      await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
+    },
+    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
       if (state.loading.price) {
         return;
       }
 
-      state.loading.price = true;
-      const responseData = await coinGeckoService.getPrice();
-      commit(MUTATIONS.SET_ERG_PRICE, responseData.ergo.usd);
+      commit(MUTATIONS.SET_LOADING, { price: true });
+
+      const price = await coinGeckoService.getPrice(state.settings.conversionCurrency);
+      commit(MUTATIONS.SET_ERG_PRICE, price);
+
+      commit(MUTATIONS.SET_LOADING, { price: false });
+      await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
     async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
       if (state.currentWallet.settings.avoidAddressReuse) {
@@ -548,38 +750,46 @@ export default createStore({
             ?.index ?? state.currentWallet.settings.defaultChangeIndex
         : state.currentWallet.settings.defaultChangeIndex;
 
-      const boxes = await explorerService.getUnspentBoxes(selectedAddresses.map((a) => a.script));
-      const blockHeaders = await explorerService.getLastTenBlockHeaders();
+      const boxes = await fetchBoxes(command.walletId);
+      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
 
-      const signedtx = await ErgoTransaction.from(selectedAddresses)
+      const signedtx = TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
-        .fromBoxes(boxes.map((a) => a.data).flat())
+        .fromBoxes(boxes)
         .useLedger(walletType === WalletType.Ledger)
         .setCallback(command.callback)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      console.log(signedtx);
-      const response = await explorerService.sendTx(signedtx);
-      return response.id;
+      return await submitTx(signedtx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
       const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
-      console.log(addressesFromBoxes);
       const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = dbAddresses
         .filter((a) => addressesFromBoxes.includes(a.script))
         .map((a) => dbAddressMapper(a));
-      console.log(addresses);
+
+      if (isEmpty(addresses)) {
+        const changeIndex = state.currentWallet.settings.defaultChangeIndex;
+        addresses.push(
+          dbAddressMapper(
+            find(dbAddresses, (a) => a.index === changeIndex) ??
+              find(dbAddresses, (a) => a.index === 0) ??
+              dbAddresses[0]
+          )
+        );
+      }
+
       const bip32 = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
       command.password = "";
 
-      const blockHeaders = await explorerService.getLastTenBlockHeaders();
-      const signedtx = await ErgoTransaction.from(addresses).signFromConnector(
+      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
+      const signedtx = TxBuilder.from(addresses).signFromConnector(
         command.tx,
         SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
       );
@@ -602,7 +812,14 @@ export default createStore({
     },
     async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
       await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
-      commit(MUTATIONS.UPDATE_DEFAULT_CHANGE_INDEX, commad);
+      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, commad);
+    },
+    async [ACTIONS.UPDATE_USED_ADDRESSES_FILTER](
+      { commit },
+      commad: UpdateUsedAddressesFilterCommand
+    ) {
+      await walletsDbService.updateUsedAddressFilter(commad.walletId, commad.filter);
+      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, commad);
     }
   }
 });

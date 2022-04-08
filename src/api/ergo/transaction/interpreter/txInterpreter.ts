@@ -1,12 +1,10 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate } from "@/types/connector";
-import { differenceBy, find, isEmpty } from "lodash";
+import { IAssetInfo } from "@/types/database";
+import { StateAssetInfo } from "@/types/internal";
+import { difference, find, findLast, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { OutputInterpreter } from "./outputInterpreter";
-
-export type AssetInfo = {
-  [tokenId: string]: { decimals: number; name: string };
-};
 
 export class TxInterpreter {
   private _tx!: UnsignedTx;
@@ -14,23 +12,20 @@ export class TxInterpreter {
   private _changeBox?: ErgoBoxCandidate;
   private _feeBox?: ErgoBoxCandidate;
   private _sendingBoxes!: ErgoBoxCandidate[];
-  private _assetInfo!: AssetInfo;
+  private _assetInfo!: StateAssetInfo;
   private _addresses!: string[];
 
-  constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: AssetInfo) {
+  constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: StateAssetInfo) {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
-
     this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
-    this._changeBox = find(tx.outputs, (b) =>
+    this._changeBox = findLast(tx.outputs, (b) =>
       ownAddresses.includes(addressFromErgoTree(b.ergoTree))
     );
-    this._sendingBoxes = differenceBy(
-      tx.outputs,
-      [this._feeBox, this._changeBox],
-      (b) => b?.ergoTree
-    );
+    this._sendingBoxes = difference(tx.outputs, [this._feeBox, this._changeBox]).filter(
+      (b) => b !== undefined
+    ) as ErgoBoxCandidate[];
 
     if (isEmpty(this._sendingBoxes) && this._changeBox) {
       this._sendingBoxes.push(this._changeBox);

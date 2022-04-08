@@ -38,14 +38,10 @@
                 :key="asset.tokenId"
               >
                 <div class="flex flex-row items-center gap-2">
-                  <img
-                    :src="$filters.assetLogo(asset.tokenId)"
-                    class="h-8 w-8 rounded-full"
-                    :alt="asset.name"
-                  />
+                  <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
                   <div class="flex-grow">
-                    <template v-if="asset.name">{{
-                      $filters.compactString(asset.name, 20, "end")
+                    <template v-if="asset.info?.name">{{
+                      $filters.compactString(asset.info?.name, 26)
                     }}</template>
                     <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
                   </div>
@@ -126,8 +122,8 @@ import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import BigNumber from "bignumber.js";
-import { setDecimals } from "@/utils/bigNumbers";
 import { required, helpers, requiredUnless } from "@vuelidate/validators";
+import { decimalize } from "@/utils/bigNumbers";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { PasswordError, TxSignError } from "@/types/errors";
@@ -143,6 +139,11 @@ export default defineComponent({
   components: { AssetInput, LoadingModal, LedgerSigningModal },
   setup() {
     return { v$: useVuelidate() };
+  },
+  created() {
+    if (this.$route.query.recipient) {
+      this.recipient = this.$route.query.recipient as string;
+    }
   },
   computed: {
     ...mapState({
@@ -197,7 +198,7 @@ export default defineComponent({
       return this.minBoxValue;
     },
     minBoxValue(): BigNumber {
-      return setDecimals(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
+      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
     }
   },
   watch: {
@@ -230,7 +231,7 @@ export default defineComponent({
         state: "unknown",
         appId: 0
       } as SigningState,
-      minFee: Object.freeze(setDecimals(new BigNumber(FEE_VALUE), ERG_DECIMALS))
+      minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
   },
   validations() {
@@ -306,7 +307,7 @@ export default defineComponent({
     setErgAsSelected(): void {
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
-        this.selected.push({ asset: erg });
+        this.selected.push({ asset: erg, amount: undefined });
       }
     },
     urlForTransaction(txId: string): string {

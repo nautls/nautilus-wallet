@@ -1,23 +1,16 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
-import { explorerService } from "@/api/explorer/explorerService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import {
-  APIError,
-  APIErrorCode,
-  RpcMessage,
-  RpcReturn,
-  Session,
-  ErgoBox,
-  Token
-} from "@/types/connector";
+import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session, ErgoTx } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, uniq } from "lodash";
+import { find, findIndex } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
+import { submitTx } from "@/api/ergo/submitTx";
+import { fetchBoxes } from "@/api/ergo/boxFetcher";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
@@ -54,10 +47,7 @@ export async function handleGetBoxesRequest(
     }
   }
 
-  const assets = await assestsDbService.getByTokenId(session!.walletId!, tokenId);
-  const addresses = uniq(assets.map((a) => a.address));
-  const boxes = await explorerService.getUnspentBoxes(addresses);
-  let selected = boxes.map((b) => b.data).flat();
+  let selected = await fetchBoxes(session!.walletId!);
 
   if (tokenId != ERG_TOKEN_ID) {
     selected = selected.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
@@ -90,23 +80,7 @@ export async function handleGetBoxesRequest(
   postConnectorResponse(
     {
       isSuccess: true,
-      data: selected.map((b) => {
-        return {
-          boxId: b.id,
-          transactionId: b.txId,
-          index: b.index,
-          ergoTree: b.ergoTree,
-          creationHeight: b.creationHeight,
-          value: b.value.toString(),
-          assets: b.assets.map((t) => {
-            return {
-              tokenId: t.tokenId,
-              amount: t.amount.toString()
-            } as Token;
-          }),
-          additionalRegisters: b.additionalRegisters
-        } as ErgoBox;
-      })
+      data: selected
     },
     request,
     port
@@ -131,7 +105,10 @@ export async function handleGetBalanceRequest(
   postConnectorResponse(
     {
       isSuccess: true,
-      data: assets.map((a) => toBigNumber(a.confirmedAmount)!).reduce((acc, val) => acc.plus(val))
+      data: assets
+        .map((a) => toBigNumber(a.confirmedAmount)!)
+        .reduce((acc, val) => acc.plus(val))
+        .toString()
     },
     request,
     port
@@ -175,7 +152,7 @@ export async function handleGetAddressesRequest(
 export async function handleGetChangeAddressRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -208,7 +185,7 @@ export async function handleGetChangeAddressRequest(
 export async function handleSignTxRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -234,7 +211,7 @@ export async function handleSignTxRequest(
 export async function handleSubmitTxRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -254,13 +231,16 @@ export async function handleSubmitTxRequest(
   }
 
   try {
-    const tx = request.params[0];
-    const txId = await explorerService.sendTx(typeof tx === "string" ? tx : JSONBig.stringify(tx));
+    const tx = request.params[0] as ErgoTx;
+    const txId = await submitTx(
+      typeof tx === "string" ? (JSONBig.parse(tx) as ErgoTx) : tx,
+      session!.walletId!
+    );
 
     postConnectorResponse(
       {
         isSuccess: true,
-        data: txId.id
+        data: txId
       },
       request,
       port
@@ -280,7 +260,7 @@ export async function handleSubmitTxRequest(
 export async function handleNotImplementedRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
-  session: Session | undefined
+  session?: Session
 ) {
   if (!validateRequest(session, request, port)) {
     return;
@@ -303,7 +283,7 @@ async function showSignTxWindow(
 ): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.origin) {
+    if (!tabId || !port.sender?.url) {
       reject("invalid port");
       return;
     }

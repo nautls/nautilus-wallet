@@ -1,10 +1,11 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
-import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
-import { setDecimals, toBigNumber } from "@/utils/bigNumbers";
+import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, first, isEmpty, min } from "lodash";
-import { addressFromErgoTree } from "../../addresses";
-import { AssetInfo } from "./txInterpreter";
+import { find, findIndex, first, isEmpty } from "lodash";
+import { addressFromErgoTree } from "@/api/ergo/addresses";
+import { decodeColl } from "@/api/ergo/sigmaSerializer";
+import { StateAssetInfo } from "@/types/internal";
 
 export type OutputAsset = {
   tokenId: string;
@@ -12,14 +13,14 @@ export type OutputAsset = {
   amount: BigNumber;
   decimals?: number;
   description?: string;
-  isMinting?: boolean;
+  minting?: boolean;
 };
 
 export class OutputInterpreter {
   private _box!: ErgoBoxCandidate;
   private _inputs!: UnsignedInput[];
   private _assets!: OutputAsset[];
-  private _assetInfo!: AssetInfo;
+  private _assetInfo!: StateAssetInfo;
   private _addresses?: string[];
 
   public get receiver(): string {
@@ -34,10 +35,14 @@ export class OutputInterpreter {
     return this._addresses?.includes(this.receiver) ?? false;
   }
 
+  public get isMinting(): boolean {
+    return find(this._assets, (a) => a.minting) !== undefined;
+  }
+
   constructor(
     boxCandidate: ErgoBoxCandidate,
     inputs: UnsignedInput[],
-    assetInfo: AssetInfo,
+    assetInfo: StateAssetInfo,
     addresses?: string[]
   ) {
     this._box = boxCandidate;
@@ -47,12 +52,12 @@ export class OutputInterpreter {
     this._addresses = addresses;
   }
 
-  getSendingAssets(): OutputAsset[] {
+  private getSendingAssets(): OutputAsset[] {
     const assets = [] as OutputAsset[];
     assets.push({
       tokenId: ERG_TOKEN_ID,
       name: "ERG",
-      amount: setDecimals(toBigNumber(this._box.value)!, ERG_DECIMALS)
+      amount: decimalize(toBigNumber(this._box.value)!, ERG_DECIMALS)
     });
 
     if (isEmpty(this._box.assets)) {
@@ -64,7 +69,7 @@ export class OutputInterpreter {
         tokenId: t.tokenId,
         name: this._assetInfo[t.tokenId]?.name,
         amount: this._assetInfo[t.tokenId]?.decimals
-          ? setDecimals(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals)
+          ? decimalize(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals ?? 0)
           : toBigNumber(t.amount)
       } as OutputAsset;
     });
@@ -98,41 +103,16 @@ export class OutputInterpreter {
       };
     }
 
-    const decimals = parseInt(this.parseRegister(this._box.additionalRegisters["R6"]) ?? "");
+    const decimals = parseInt(decodeColl(this._box.additionalRegisters["R6"]) ?? "");
     return {
       tokenId: token.tokenId,
-      name: this.parseRegister(this._box.additionalRegisters["R4"]) ?? "",
+      name: decodeColl(this._box.additionalRegisters["R4"]) ?? "",
       decimals,
       amount: decimals
-        ? setDecimals(toBigNumber(token.amount)!, decimals)
+        ? decimalize(toBigNumber(token.amount)!, decimals)
         : toBigNumber(token.amount)!,
-      description: this.parseRegister(this._box.additionalRegisters["R5"]) ?? "",
-      isMinting: true
+      description: decodeColl(this._box.additionalRegisters["R5"]) ?? "",
+      minting: true
     };
-  }
-
-  private parseRegister(input: any): string | undefined {
-    if (!input || typeof input !== "string" || !input.startsWith("0e") || input.length < 4) {
-      return;
-    }
-
-    let body = input.slice(2);
-    let len = 0;
-    let readNext = true;
-    do {
-      const lenChunk = parseInt(body.slice(0, 2), 16);
-      body = body.slice(2);
-      if (isNaN(lenChunk)) {
-        return;
-      }
-      readNext = (lenChunk & 0x80) !== 0;
-      len = 128 * len + (lenChunk & 0x7f);
-    } while (readNext);
-
-    if (2 * len < body.length) {
-      return;
-    }
-
-    return Buffer.from(body.slice(0, 2 * len), "hex").toString("utf8");
   }
 }

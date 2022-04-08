@@ -2,11 +2,11 @@
   <span class="inline-flex group justify-center relative">
     <slot />
     <span
-      class="rounded font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-95"
+      class="w-max rounded font-normal font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-95"
       :class="customClass"
     >
       <slot name="label" v-if="$slots.label" />
-      <span class="whitespace-nowrap" v-html="label" v-else></span>
+      <span class="break-anywhere" v-html="label" v-else></span>
     </span>
   </span>
 </template>
@@ -29,13 +29,18 @@ export default defineComponent({
           break;
       }
 
+      if (this.tipClass) {
+        cl.push(this.tipClass);
+      }
+
       return cl;
     }
   },
   props: {
     label: { type: String, required: false },
     position: { type: String, default: "top" },
-    type: { type: String, default: "default" }
+    type: { type: String, default: "default" },
+    tipClass: { type: String, requred: false }
   }
 });
 </script>

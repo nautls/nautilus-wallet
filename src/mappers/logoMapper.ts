@@ -9,5 +9,7 @@ export const logoMapper: { [key: string]: string } = {
   ["0cd8c9f416e5b1ca9f986a7f10a84191dfb85941619e49e53c0dc30ebf83324b"]: "comet.png",
   ["472c3d4ecaa08fb7392ff041ee2e6af75f4a558810a74b28600549d5392810e8"]: "neta.svg",
   ["d71693c49a84fbbecd4908c94813b46514b18b67a99952dc1e6e4791556de413"]: "ergopad.svg",
-  ["4f5c05967a2a68d5fe0cdd7a688289f5b1a8aef7d24cab71c20ab8896068e0a8"]: "getblock.svg"
+  ["4f5c05967a2a68d5fe0cdd7a688289f5b1a8aef7d24cab71c20ab8896068e0a8"]: "getblock.svg",
+  ["5a34d53ca483924b9a6aa0c771f11888881b516a8d1a9cdc535d063fe26d065e"]: "lunadog.png",
+  ["0779ec04f2fae64e87418a1ad917639d4668f78484f45df962b0dec14a2591d2"]: "migoreng.svg"
 };

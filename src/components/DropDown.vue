@@ -6,7 +6,7 @@
       class="trigger flex flex-row"
       :class="[{ active: active }, position]"
     >
-      <slot name="trigger" />
+      <slot name="trigger" :active="active" />
     </button>
 
     <div
