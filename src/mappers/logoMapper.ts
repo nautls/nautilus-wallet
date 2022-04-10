@@ -12,4 +12,5 @@ export const logoMapper: { [key: string]: string } = {
   ["4f5c05967a2a68d5fe0cdd7a688289f5b1a8aef7d24cab71c20ab8896068e0a8"]: "getblock.svg",
   ["5a34d53ca483924b9a6aa0c771f11888881b516a8d1a9cdc535d063fe26d065e"]: "lunadog.png",
   ["0779ec04f2fae64e87418a1ad917639d4668f78484f45df962b0dec14a2591d2"]: "migoreng.svg"
+  ["e91cbc48016eb390f8f872aa2962772863e2e840708517d1ab85e57451f91bed"]: "ergold.svg"
 };
