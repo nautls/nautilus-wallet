@@ -1,9 +1,8 @@
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
-var webpack = require("webpack");
+const webpack = require("webpack");
 
-let commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
-process.env.VUE_APP_GIT_HASH = commitHash;
+const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 
 module.exports = {
   publicPath: "/",
@@ -35,6 +34,12 @@ module.exports = {
       });
 
       return [pathConfigs];
+    });
+
+    config.plugin("define").tap((options) => {
+      options[0]["process.env"].GIT_HASH = JSON.stringify(commitHash);
+      options[0]["process.env"].MAINNET = JSON.stringify(!process.argv.includes("--testnet"));
+      return options;
     });
 
     config
