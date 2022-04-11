@@ -13,7 +13,6 @@ export const logoMapper: { [key: string]: string } = {
   ["5a34d53ca483924b9a6aa0c771f11888881b516a8d1a9cdc535d063fe26d065e"]: "lunadog.png",
   ["0779ec04f2fae64e87418a1ad917639d4668f78484f45df962b0dec14a2591d2"]: "migoreng.svg",
   ["e91cbc48016eb390f8f872aa2962772863e2e840708517d1ab85e57451f91bed"]: "ergold.svg",
-  ["fcfca7654fb0da57ecf9a3f489bcbeb1d43b56dce7e73b352f7bc6f2561d2a1b"]: "ergone.svg",
   ["9dbc8dd9d7ea75e38ef43cf3c0ffde2c55fd74d58ac7fc0489ec8ffee082991b"]: "ermoon.svg",
   ["1fd6e032e8476c4aa54c18c1a308dce83940e8f4a28f576440513ed7326ad489"]: "paideia.svg"
 };
