@@ -6,7 +6,7 @@ import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
-import { find, findIndex } from "lodash";
+import { find, findIndex, isEmpty } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -105,10 +105,12 @@ export async function handleGetBalanceRequest(
   postConnectorResponse(
     {
       isSuccess: true,
-      data: assets
-        .map((a) => toBigNumber(a.confirmedAmount)!)
-        .reduce((acc, val) => acc.plus(val))
-        .toString()
+      data: !isEmpty(assets)
+        ? assets
+            .map((a) => toBigNumber(a.confirmedAmount)!)
+            .reduce((acc, val) => acc.plus(val))
+            .toString()
+        : "0"
     },
     request,
     port
