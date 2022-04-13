@@ -16,14 +16,6 @@ module.exports = defineConfig({
   },
   lintOnSave: false,
   configureWebpack: {
-    // module: {
-    //   rules: [
-    //     {
-    //       test: /\.svg/,
-    //       type: "asset/inline"
-    //     }
-    //   ]
-    // },
     devtool: "cheap-source-map",
     optimization: {
       splitChunks: {
@@ -62,9 +54,12 @@ module.exports = defineConfig({
       return [pathConfigs];
     });
 
-    // config
-    //   .plugin("ignore")
-    //   .use(new webpack.IgnorePlugin(/^\.\/wordlists\/(?!english)/, /bip39\\src$/));
+    config.plugin("ignore").use(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/wordlists\/(?!english)/,
+        contextRegExp: /bip39\\src$/
+      })
+    );
 
     config
       .plugin("clean-output")
