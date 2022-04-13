@@ -55,7 +55,7 @@
         </button>
       </div>
       <div class="text-gray-500 text-xs font-normal mt-1">
-        <p>Use this option to explort your Extended Public Key.</p>
+        <p>Use this option to export your Extended Public Key.</p>
       </div>
     </div>
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
