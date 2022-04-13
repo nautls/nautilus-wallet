@@ -75,15 +75,17 @@ module.exports = defineConfig({
       )
       .end();
 
-    // const svgRule = config.module.rule("svg");
-    // svgRule.uses.clear();
-    // svgRule
-    //   .use("vue-loader")
-    //   .loader("vue-loader")
-    //   .end()
-    //   .use("vue-svg-loader")
-    //   .loader("vue-svg-loader")
-    //   .end();
+    const svgRule = config.module.rule("svg");
+    svgRule.uses.clear();
+    svgRule.delete("type");
+    svgRule.delete("generator");
+    svgRule
+      .use("vue-loader")
+      .loader("vue-loader")
+      .end()
+      .use("vue-svg-loader")
+      .loader("vue-svg-loader")
+      .end();
 
     config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
   }
