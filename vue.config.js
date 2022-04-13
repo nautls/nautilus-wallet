@@ -1,24 +1,49 @@
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 var webpack = require("webpack");
+const { defineConfig } = require("@vue/cli-service");
 
 let commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 process.env.VUE_APP_GIT_HASH = commitHash;
 
-module.exports = {
+module.exports = defineConfig({
   publicPath: "/",
   productionSourceMap: false,
   devServer: {
-    writeToDisk: true
+    devMiddleware: {
+      writeToDisk: true
+    }
   },
   lintOnSave: false,
   configureWebpack: {
-    devtool: "none",
+    // module: {
+    //   rules: [
+    //     {
+    //       test: /\.svg/,
+    //       type: "asset/inline"
+    //     }
+    //   ]
+    // },
+    devtool: "cheap-source-map",
     optimization: {
       splitChunks: {
         chunks: "all"
       }
-    }
+    },
+    resolve: {
+      fallback: {
+        stream: require.resolve("stream-browserify")
+      }
+    },
+    experiments: {
+      asyncWebAssembly: true,
+      backCompat: true
+    },
+    plugins: [
+      new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"]
+      })
+    ]
   },
   pages: {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
@@ -29,7 +54,7 @@ module.exports = {
     config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 
     config.plugin("copy").tap(([pathConfigs]) => {
-      pathConfigs.push({
+      pathConfigs.patterns.push({
         from: "src/content-scripts",
         to: "js"
       });
@@ -37,9 +62,9 @@ module.exports = {
       return [pathConfigs];
     });
 
-    config
-      .plugin("ignore")
-      .use(new webpack.IgnorePlugin(/^\.\/wordlists\/(?!english)/, /bip39\\src$/));
+    // config
+    //   .plugin("ignore")
+    //   .use(new webpack.IgnorePlugin(/^\.\/wordlists\/(?!english)/, /bip39\\src$/));
 
     config
       .plugin("clean-output")
@@ -50,16 +75,16 @@ module.exports = {
       )
       .end();
 
-    const svgRule = config.module.rule("svg");
-    svgRule.uses.clear();
-    svgRule
-      .use("vue-loader")
-      .loader("vue-loader-v16")
-      .end()
-      .use("vue-svg-loader")
-      .loader("vue-svg-loader")
-      .end();
+    // const svgRule = config.module.rule("svg");
+    // svgRule.uses.clear();
+    // svgRule
+    //   .use("vue-loader")
+    //   .loader("vue-loader")
+    //   .end()
+    //   .use("vue-svg-loader")
+    //   .loader("vue-svg-loader")
+    //   .end();
 
     config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
   }
-};
+});
