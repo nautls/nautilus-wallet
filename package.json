@@ -33,7 +33,7 @@
     "lodash": "^4.17.21",
     "mdi-vue": "^3.0.12",
     "qrcode": "^1.5.0",
-    "tiny-secp256k1": "2.2.1",
+    "tiny-secp256k1": "1.1.6",
     "vue": "^3.2.32",
     "vue-feather": "^2.0.0-rc.1",
     "vue-router": "^4.0.14",
