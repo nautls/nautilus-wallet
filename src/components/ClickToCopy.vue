@@ -13,7 +13,7 @@ export default defineComponent({
   name: "ClickToCopy",
   props: {
     size: { type: String, default: "16" },
-    content: { type: String, required: true }
+    content: { type: String, required: false }
   },
   data: () => {
     return {
@@ -23,7 +23,7 @@ export default defineComponent({
   },
   methods: {
     copy() {
-      navigator.clipboard.writeText(this.content);
+      navigator.clipboard.writeText(this.content ?? "");
       this.setCopied();
       setTimeout(() => {
         this.setCopied(false);

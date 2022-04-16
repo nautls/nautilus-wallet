@@ -12,7 +12,7 @@
       <asset-icon
         v-else
         class="w-20 h-20 mx-auto absolute left-0 right-0 top-0"
-        :token-id="asset?.id"
+        :token-id="tokenId"
         :type="asset?.subtype"
       />
       <div
@@ -40,7 +40,7 @@
             <small class="uppercase text-gray-500">Token Id</small>
             <p class="text-sm font-bold">
               {{ $filters.compactString(asset?.id, 12) }}
-              <click-to-copy class="pl-1" :content="asset?.id" size="12" />
+              <click-to-copy class="pl-1" :content="tokenId" size="12" />
             </p>
           </div>
           <div class="w-1/2">
