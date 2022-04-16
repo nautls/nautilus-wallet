@@ -7,14 +7,15 @@ export function decimalize(value: BigNumber | undefined, decimals: number): BigN
     return value;
   }
 
-  return value.multipliedBy(Math.pow(10, decimals * -1).toFixed(decimals));
+  return value.shiftedBy(decimals * -1);
 }
 
 export function undecimalize(value: BigNumber, decimals: number): BigNumber {
   if (!decimals) {
     return value;
   }
-  return value.multipliedBy(Math.pow(10, decimals));
+
+  return value.shiftedBy(decimals);
 }
 
 export function toBigNumber(value?: string | number | bigint | BigNumber): BigNumber | undefined {
