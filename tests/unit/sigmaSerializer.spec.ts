@@ -1,5 +1,8 @@
-import { addressFromPk, extractPksFromRegisters } from "@/api/ergo/addresses";
-import { decodeColl, decodeCollTuple } from "../../src/api/ergo/sigmaSerializer";
+import {
+  decodeColl,
+  decodeCollTuple,
+  extractPksFromRegisters
+} from "../../src/api/ergo/sigmaSerializer";
 
 describe("sigma serializer", () => {
   // example from https://github.com/ergoplatform/eips/blob/master/eip-0004.md#ergo-tokens-standard
