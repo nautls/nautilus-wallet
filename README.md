@@ -21,14 +21,30 @@ npm install
 
 ### Compiles and hot-reloads for development
 
+#### Mainnet
+
 ```
 npm run serve
 ```
 
+#### Testnet
+
+```
+npm run serve -- --testnet
+```
+
 ### Compiles and minifies for production
+
+#### Mainnet
 
 ```
 npm run build
+```
+
+#### Testnet
+
+```
+npm run build -- --testnet
 ```
 
 ### Run your unit tests

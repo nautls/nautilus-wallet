@@ -1,23 +1,30 @@
-import { SIGMA_CONSTANT_PK_MATCHER, P2PK_TREE_PREFIX } from "@/constants/ergo";
+import { SIGMA_CONSTANT_PK_MATCHER, P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
 import { Registers, UnsignedInput } from "@/types/connector";
 import { wasmModule } from "@/utils/wasm-module";
-import { Address } from "@coinbarn/ergo-ts";
-import { isEmpty, uniq } from "lodash";
+import { Address, Network } from "@coinbarn/ergo-ts";
+import { add, isEmpty, uniq } from "lodash";
+
+const network = MAINNET ? Network.Mainnet : Network.Testnet;
 
 export function extractAddressesFromInputs(inputs: UnsignedInput[]) {
   return inputs.map((input) => extractAddressesFromInput(input)).flat();
 }
 
 export function addressFromPk(pk: string) {
-  return Address.fromPk(pk).address;
+  return Address.fromPk(pk, network).address;
 }
 
 export function addressFromErgoTree(ergoTree: string) {
-  return Address.fromErgoTree(ergoTree).address;
+  return Address.fromErgoTree(ergoTree, network).address;
 }
 
 export function addressFromSk(sk: string) {
-  return Address.fromSk(sk).address;
+  return Address.fromSk(sk, network).address;
+}
+
+export function validateAddress(address: string) {
+  const addr = new Address(address);
+  return addr.isValid() && addr.getNetwork() === network;
 }
 
 function extractAddressesFromInput(input: UnsignedInput): string[] {
