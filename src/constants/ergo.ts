@@ -1,4 +1,4 @@
-export const MAINNET = process.env.MAINNET;
+export const MAINNET = process.env.MAINNET ?? true;
 export const ERG_TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 export const DEFAULT_WALLET_STRENGTH = 160;
 export const DERIVATION_PATH = "m/44'/429'/0'/0";
