@@ -57,8 +57,8 @@ export default defineComponent({
     version(): string {
       return version;
     },
-    gitHash(): string | undefined {
-      return process.env.VUE_APP_GIT_HASH as any;
+    gitHash(): string {
+      return process.env.GIT_HASH;
     },
     shortGitHash(): string {
       return this.gitHash?.slice(0, 7) ?? "";
