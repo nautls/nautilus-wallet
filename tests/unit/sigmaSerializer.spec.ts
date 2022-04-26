@@ -42,7 +42,7 @@ describe("sigma serializer", () => {
     expect(decodeColl("0e020201", "hex")).toEqual("0201");
   });
 
-  it("extract addresses from registers with two possible pk consts", () => {
+  it("extract public key from registers with two possible pk consts", () => {
     expect(
       extractPksFromRegisters({
         R4: "0580c0fc82aa02",
@@ -55,7 +55,7 @@ describe("sigma serializer", () => {
     ]);
   });
 
-  it("extract addresses from registers with 08cd prefixed pk const", () => {
+  it("extract public key from registers with 08cd prefixed pk const", () => {
     expect(
       extractPksFromRegisters({
         R4: "0580c0fc82aa02",
@@ -64,7 +64,7 @@ describe("sigma serializer", () => {
     ).toEqual(["036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"]);
   });
 
-  it("extract addresses from registers with GroupElement", () => {
+  it("extract public key from registers with GroupElement", () => {
     expect(
       extractPksFromRegisters({
         R4: "0580c0fc82aa02",
