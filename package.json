@@ -31,7 +31,7 @@
     "ergo-market-lib": "^1.0.1",
     "feather-icons": "^4.29.0",
     "json-bigint": "^1.0.0",
-    "ledgerjs-hw-app-ergo": "^0.0.13",
+    "ledgerjs-hw-app-ergo": "^0.0.17",
     "lodash": "^4.17.21",
     "mdi-vue": "^3.0.12",
     "qrcode": "^1.5.0",

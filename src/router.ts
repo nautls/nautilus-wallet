@@ -52,7 +52,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/add/hw/ledger",
     name: "add-hw-ledger",
     component: ConnectLedgerView,
-    meta: { fullPage: true }
+    meta: { fullPage: true, title: "Connect a hardware wallet" }
   },
   {
     path: "/assets",

@@ -21,8 +21,16 @@ import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
-import { BoxCandidate, DeviceError, ErgoLedgerApp, Token, UnsignedBox } from "ledgerjs-hw-app-ergo";
+import {
+  BoxCandidate,
+  DeviceError,
+  ErgoLedgerApp,
+  Network,
+  Token,
+  UnsignedBox
+} from "ledgerjs-hw-app-ergo";
 import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
+import { addressFromErgoTree } from "../addresses";
 
 export class TxBuilder {
   private _from!: StateAddress[];
@@ -168,6 +176,11 @@ export class TxBuilder {
           if (!wasmBox || !box) {
             throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
           }
+          const path = find(this._from, (a) => a.script === addressFromErgoTree(box.ergoTree));
+          if (!path) {
+            throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
+          }
+
           inputs.push({
             txId: box.transactionId,
             index: box.index,
@@ -176,7 +189,8 @@ export class TxBuilder {
             creationHeight: wasmBox.creation_height(),
             tokens: mapTokens(wasmBox.tokens()),
             additionalRegisters: Buffer.from(wasmBox.serialized_additional_registers()),
-            extension: Buffer.from(input.extension().sigma_serialize_bytes())
+            extension: Buffer.from(input.extension().sigma_serialize_bytes()),
+            signPath: `${DERIVATION_PATH}/${path.index}`
           });
         }
 
@@ -188,25 +202,24 @@ export class TxBuilder {
             ergoTree: Buffer.from(wasmOutput.ergo_tree().sigma_serialize_bytes()),
             creationHeight: wasmOutput.creation_height(),
             tokens: mapTokens(wasmOutput.tokens()),
-            registers: Buffer.from([]) // todo: try to find out the right way to do that
+            registers: Buffer.from([]) // todo: try to find out the right way to do this
           });
         }
-
         this.sendCallback({
           statusText: "Waiting for device transaction signing confirmation..."
         });
-        const signatures = await ledgerApp.signTx(
+        const proofs = await ledgerApp.signTx(
           {
             inputs,
             dataInputs: [],
             outputs,
+            distinctTokenIds: unsigned.distinct_token_ids(),
             changeMap: {
               address: context.bip32.deriveAddress(this._changeIndex).script,
               path: `${DERIVATION_PATH}/${this._changeIndex}`
-            },
-            signPaths: this._from.map((a) => `${DERIVATION_PATH}/${a.index}`)
+            }
           },
-          true
+          Network.Mainnet
         );
 
         this.sendCallback({
@@ -214,10 +227,7 @@ export class TxBuilder {
           statusText: "Sending transaction..."
         });
 
-        return wasmModule.SigmaRust.Transaction.from_unsigned_tx(
-          unsigned,
-          signatures.map((s) => Buffer.from(s.signature, "hex"))
-        );
+        return wasmModule.SigmaRust.Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
           const resp = {

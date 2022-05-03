@@ -1,6 +1,5 @@
 <template>
   <div class="flex-col flex gap-4 h-full">
-    <page-title title="Ledger connection" back-button />
     <div>
       <label
         >Wallet name
@@ -50,7 +49,6 @@ import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 import { WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
-import PageTitle from "@/components/PageTitle.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
@@ -63,7 +61,7 @@ import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constant
 
 export default defineComponent({
   name: "ConnectLedgerView",
-  components: { PageTitle, LoadingIndicator },
+  components: { LoadingIndicator },
   setup() {
     return { v$: useVuelidate() };
   },
