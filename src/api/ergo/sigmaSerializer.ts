@@ -2,9 +2,13 @@ import {
   COLL_BYTE_PREFIX,
   MIN_COLL_LENGTH,
   MIN_TUPLE_LENGTH,
+  PK_HEX_LENGTH,
+  SIGMA_CONSTANT_PK_MATCHER,
   TUPLE_PREFIX
 } from "@/constants/ergo";
-import { endsWith, isEmpty } from "lodash";
+import { Registers } from "@/types/connector";
+import { wasmModule } from "@/utils/wasm-module";
+import { isEmpty } from "lodash";
 
 export function isColl(input: string): boolean {
   return !isEmpty(input) && input.startsWith(COLL_BYTE_PREFIX) && input.length >= MIN_COLL_LENGTH;
@@ -84,4 +88,48 @@ function decodeVlq(input: string, position: number): [cursor: number, value: num
   } while (readNext);
 
   return [position, len * 2];
+}
+
+export function extractPksFromRegisters(registers: Registers): string[] {
+  const pks: string[] = [];
+  for (const register of Object.values(registers)) {
+    const pk = extractPkFromSigmaConstant(register);
+    if (pk) {
+      pks.push(pk);
+    }
+  }
+
+  return pks;
+}
+
+export function extractPksFromP2SErgoTree(ergoTree: string): string[] {
+  const pks: string[] = [];
+  const tree = wasmModule.SigmaRust.ErgoTree.from_base16_bytes(ergoTree);
+  const len = tree.constants_len();
+  for (let i = 0; i < len; i++) {
+    const constant = tree.get_constant(i)?.encode_to_base16();
+    const pk = extractPkFromSigmaConstant(constant);
+    if (pk) {
+      pks.push(pk);
+    }
+  }
+
+  return pks;
+}
+
+export function extractPkFromSigmaConstant(constant?: string): string | undefined {
+  if (!constant) {
+    return;
+  }
+
+  const result = SIGMA_CONSTANT_PK_MATCHER.exec(constant);
+  if (!result) {
+    return;
+  }
+
+  for (let i = 0; i < result.length; i++) {
+    if (result[i] && result[i].length === PK_HEX_LENGTH) {
+      return result[i];
+    }
+  }
 }

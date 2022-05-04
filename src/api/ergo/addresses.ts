@@ -1,23 +1,30 @@
-import { SIGMA_CONSTANT_PK_MATCHER, P2PK_TREE_PREFIX } from "@/constants/ergo";
-import { Registers, UnsignedInput } from "@/types/connector";
-import { wasmModule } from "@/utils/wasm-module";
-import { Address } from "@coinbarn/ergo-ts";
+import { P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
+import { UnsignedInput } from "@/types/connector";
+import { Address, Network } from "@coinbarn/ergo-ts";
 import { isEmpty, uniq } from "lodash";
+import { extractPksFromP2SErgoTree, extractPksFromRegisters } from "./sigmaSerializer";
+
+const network = MAINNET ? Network.Mainnet : Network.Testnet;
 
 export function extractAddressesFromInputs(inputs: UnsignedInput[]) {
   return inputs.map((input) => extractAddressesFromInput(input)).flat();
 }
 
 export function addressFromPk(pk: string) {
-  return Address.fromPk(pk).address;
+  return Address.fromPk(pk, network).address;
 }
 
 export function addressFromErgoTree(ergoTree: string) {
-  return Address.fromErgoTree(ergoTree).address;
+  return Address.fromErgoTree(ergoTree, network).address;
 }
 
 export function addressFromSk(sk: string) {
-  return Address.fromSk(sk).address;
+  return Address.fromSk(sk, network).address;
+}
+
+export function validateAddress(address: string) {
+  const addr = new Address(address);
+  return addr.isValid() && addr.getNetwork() === network;
 }
 
 function extractAddressesFromInput(input: UnsignedInput): string[] {
@@ -40,40 +47,4 @@ function extractAddressesFromInput(input: UnsignedInput): string[] {
   }
 
   return addresses;
-}
-
-function extractPksFromRegisters(registers: Registers): string[] {
-  const pks: string[] = [];
-  for (const register of Object.values(registers)) {
-    const pk = extractPkFromSigmaConstant(register);
-    if (pk) {
-      pks.push(pk);
-    }
-  }
-
-  return pks;
-}
-
-function extractPksFromP2SErgoTree(ergoTree: string): string[] {
-  const pks: string[] = [];
-  const tree = wasmModule.SigmaRust.ErgoTree.from_base16_bytes(ergoTree);
-  const constantsLen = tree.constants_len();
-  for (let i = 0; i < constantsLen; i++) {
-    const constant = tree.get_constant(i)?.encode_to_base16();
-    const pk = extractPkFromSigmaConstant(constant);
-    if (pk) {
-      pks.push(pk);
-    }
-  }
-
-  return pks;
-}
-
-function extractPkFromSigmaConstant(constant?: string): string | undefined {
-  if (!constant) {
-    return;
-  }
-
-  const result = SIGMA_CONSTANT_PK_MATCHER.exec(constant);
-  return result ? result[1] : undefined;
 }

@@ -1,4 +1,10 @@
-import { DERIVATION_PATH, ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
+import {
+  DERIVATION_PATH,
+  ERG_DECIMALS,
+  ERG_TOKEN_ID,
+  MIN_BOX_VALUE,
+  MAINNET
+} from "@/constants/ergo";
 import { ErgoBox, ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { SendTxCommandAsset, StateAddress } from "@/types/internal";
@@ -103,10 +109,12 @@ export class TxBuilder {
     const sigmaRust = wasmModule.SigmaRust;
     const lastBlockHeader = maxBy(context.blockHeaders, (h) => h.height);
     const height = lastBlockHeader!.height;
-    const recipient = sigmaRust.Address.from_mainnet_str(this._to);
-    const changeAddress = sigmaRust.Address.from_mainnet_str(
-      context.bip32.deriveAddress(this._changeIndex).script
-    );
+    const recipient = MAINNET
+      ? sigmaRust.Address.from_mainnet_str(this._to)
+      : sigmaRust.Address.from_testnet_str(this._to);
+    const changeAddress = MAINNET
+      ? sigmaRust.Address.from_mainnet_str(context.bip32.deriveAddress(this._changeIndex).script)
+      : sigmaRust.Address.from_testnet_str(context.bip32.deriveAddress(this._changeIndex).script);
 
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(this._boxes);
     const outputValue = this.getErgAmount();

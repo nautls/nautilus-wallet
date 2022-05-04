@@ -18,7 +18,7 @@ import { Inputitems, Modal, Slider, Switch, Config } from "@oruga-ui/oruga-next"
 import { vueCleave } from "@/directives/cleave";
 import { rpcHandler } from "@/background/rpcHandler";
 import mdiVue from "mdi-vue/v3";
-import { mdiIncognito, mdiFilter, mdiFilterOff, mdiAlertCircleOutline } from "@mdi/js";
+import { mdiIncognito, mdiFilter, mdiFilterOff, mdiAlertCircleOutline, mdiClose } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
 
 import "@/config/axiosConfig";
@@ -41,7 +41,8 @@ const mdiSettings = {
     mdiIncognito,
     mdiFilter,
     mdiFilterOff,
-    mdiAlertCircleOutline
+    mdiAlertCircleOutline,
+    mdiClose
   }
 };
 
