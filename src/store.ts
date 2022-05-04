@@ -54,7 +54,6 @@ import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs } from "./api/ergo/addresses";
-import { ITokenRate } from "ergo-market-lib";
 import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
@@ -62,6 +61,7 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { asDict } from "./utils/serializer";
 import { Token } from "./types/connector";
+import { AssetPriceRate } from "./types/explorer";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -105,7 +105,7 @@ export default createStore({
     ergPrice: 0,
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
-    } as { [tokenId: string]: { erg: number } }
+    } as AssetPriceRate
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -293,15 +293,9 @@ export default createStore({
 
       wallet.settings.hideUsedAddresses = command.filter;
     },
-    [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
-      const assetErgRate = asDict(
-        rates.map((r) => {
-          return { [r.token.tokenId]: { erg: r.ergPerToken } };
-        })
-      );
-
-      assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
-      state.assetMarketRates = assetErgRate;
+    [MUTATIONS.SET_MARKET_RATES](state, rates: AssetPriceRate) {
+      rates[ERG_TOKEN_ID] = { erg: 1 };
+      state.assetMarketRates = rates;
     },
     [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
       if (isEmpty(assetsInfo)) {
@@ -365,7 +359,7 @@ export default createStore({
       }
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
-      const tokenMarketRates = await explorerService.getTokenMarketRates();
+      const tokenMarketRates = await explorerService.getTokenRates();
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {

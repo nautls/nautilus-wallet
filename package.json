@@ -27,7 +27,6 @@
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.1",
     "ergo-lib-wasm-browser": "^0.15.0",
-    "ergo-market-lib": "^1.0.1",
     "feather-icons": "^4.29.0",
     "json-bigint": "^1.0.0",
     "lodash": "^4.17.21",
