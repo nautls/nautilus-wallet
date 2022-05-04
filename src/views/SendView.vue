@@ -132,7 +132,7 @@ import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
 import { mapState } from "vuex";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { DeviceError } from "ledgerjs-hw-app-ergo";
+import { DeviceError } from "ledger-ergo-js";
 
 export default defineComponent({
   name: "SendView",

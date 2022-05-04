@@ -28,7 +28,7 @@ import {
   Network,
   Token,
   UnsignedBox
-} from "ledgerjs-hw-app-ergo";
+} from "ledger-ergo-js";
 import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
 import { addressFromErgoTree } from "../addresses";
 
