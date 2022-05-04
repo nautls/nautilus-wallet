@@ -2,6 +2,8 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   AssetBalance,
+  AssetPriceRate,
+  ErgoDexPool,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
@@ -10,9 +12,8 @@ import {
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { chunk, find, isEmpty } from "lodash";
+import { chunk, find, isEmpty, uniqWith } from "lodash";
 import JSONBig from "json-bigint";
-import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
@@ -20,8 +21,8 @@ import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
+import BigNumber from "bignumber.js";
 
-const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class ExplorerService {
@@ -264,8 +265,23 @@ class ExplorerService {
     );
   }
 
-  public async getTokenMarketRates(): Promise<ITokenRate[]> {
-    return explorerTokenMarket.getTokenRates();
+  public async getTokenRates(): Promise<AssetPriceRate> {
+    const { data } = await axios.get<ErgoDexPool[]>("https://api.ergodex.io/v1/amm/markets");
+    const filtered = uniqWith(
+      data.filter((x) => x.baseId === ERG_TOKEN_ID),
+      (a, b) =>
+        a.quoteId === b.quoteId && new BigNumber(a.baseVolume.value).isLessThan(b.baseVolume.value)
+    );
+
+    return asDict(
+      filtered.map((r) => {
+        return {
+          [r.quoteId]: {
+            erg: new BigNumber(1).dividedBy(r.lastPrice).toNumber()
+          }
+        };
+      })
+    );
   }
 }
 

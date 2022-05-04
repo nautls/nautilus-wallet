@@ -249,3 +249,22 @@ export function explorerBoxMapper(options: { asConfirmed: boolean }) {
     } as ErgoBox;
   };
 }
+
+export type ErgoDexPool = {
+  id: string;
+  baseId: string;
+  baseSymbol: string;
+  quoteId: string;
+  quoteSymbol: string;
+  lastPrice: number;
+  baseVolume: ErgoDexPoolVolume;
+  quoteVolume: ErgoDexPoolVolume;
+};
+
+export type ErgoDexPoolVolume = {
+  value: number;
+};
+
+export type AssetPriceRate = {
+  [tokenId: string]: { erg: number };
+};

@@ -23,7 +23,6 @@ module.exports = {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
     background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
-  transpileDependencies: ["ergo-market-lib"],
   chainWebpack: (config) => {
     config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 

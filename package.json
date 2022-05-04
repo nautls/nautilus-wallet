@@ -28,7 +28,6 @@
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.1",
     "ergo-lib-wasm-browser": "^0.15.0",
-    "ergo-market-lib": "github:JimmyHoffa/ergo-market-lib",
     "feather-icons": "^4.29.0",
     "json-bigint": "^1.0.0",
     "ledger-ergo-js": "^0.0.25",
