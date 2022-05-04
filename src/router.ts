@@ -3,11 +3,11 @@ import LoadingView from "@/views/LoadingView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import AuthView from "@/views/connector/AuthView.vue";
 import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
+import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
 
 const AddView = () => import("@/views/add/AddView.vue");
 const NftGalleryView = () => import("@/views/NftGalleryView.vue");
 const ReceiveView = () => import("@/views/ReceiveView.vue");
-const ConnectLedgerView = () => "@/views/add/ConnectLedgerView.vue";
 const AddReadOnlyView = () => import("@/views/add/AddReadOnlyView.vue");
 const RestoreView = () => import("@/views/add/RestoreView.vue");
 const AddStandardView = () => import("@/views/add/AddStandardView.vue");

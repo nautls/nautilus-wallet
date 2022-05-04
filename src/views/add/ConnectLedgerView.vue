@@ -53,7 +53,7 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 
-import { DeviceError, ErgoLedgerApp } from "ledgerjs-hw-app-ergo";
+import { DeviceError, ErgoLedgerApp } from "ledger-ergo-js";
 import HidTransport from "@ledgerhq/hw-transport-webhid";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";

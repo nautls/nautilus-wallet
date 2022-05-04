@@ -284,11 +284,11 @@ export default defineComponent({
         console.error(e);
 
         if (e instanceof TxSignError) {
-          this.state.statusText = `Something went wrong on the signing processs.<br /><br /><code>${e.message}</code>`;
+          this.state.statusText = `Something went wrong in the signing processs.<br /><br /><code>${e.message}</code>`;
         } else if (e instanceof PasswordError) {
           this.state.statusText = e.message;
         } else if (!(e instanceof DeviceError)) {
-          this.state.statusText = `Something went wrong on the signing process. Please try again later.<br /><br /><code>${
+          this.state.statusText = `Something went wrong in the signing process. Please try again later.<br /><br /><code>${
             (e as Error).message
           }</code>`;
         }
