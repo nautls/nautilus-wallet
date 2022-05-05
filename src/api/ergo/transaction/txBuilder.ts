@@ -157,7 +157,7 @@ export class TxBuilder {
       let ledgerApp!: ErgoLedgerApp;
 
       try {
-        ledgerApp = new ErgoLedgerApp(await HidTransport.create());
+        ledgerApp = new ErgoLedgerApp(await HidTransport.create()).useAuthToken().enableDebugMode();
         this.sendCallback({
           connected: true,
           appId: ledgerApp.authToken,

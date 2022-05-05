@@ -98,8 +98,8 @@ export default defineComponent({
       let app!: ErgoLedgerApp;
 
       try {
-        app = new ErgoLedgerApp(await HidTransport.create());
-        this.appId = app.authToken;
+        app = new ErgoLedgerApp(await HidTransport.create()).useAuthToken().enableDebugMode();
+        this.appId = app.authToken ?? 0;
         this.deviceModel = app.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX;
         this.connected = true;
       } catch (e) {
@@ -112,7 +112,7 @@ export default defineComponent({
 
       this.statusText = "Waiting for device extended public key export confirmation...";
       try {
-        const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'", true);
+        const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'");
         const bip32 = Bip32.fromPublicKey(
           { publicKey: ledgerPk.publicKey, chainCode: ledgerPk.chainCode },
           "0"

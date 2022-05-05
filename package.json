@@ -30,7 +30,7 @@
     "ergo-lib-wasm-browser": "^0.15.0",
     "feather-icons": "^4.29.0",
     "json-bigint": "^1.0.0",
-    "ledger-ergo-js": "^0.0.25",
+    "ledger-ergo-js": "^0.1.1",
     "lodash": "^4.17.21",
     "mdi-vue": "^3.0.12",
     "qrcode": "^1.5.0",
