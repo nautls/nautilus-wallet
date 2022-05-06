@@ -62,33 +62,37 @@
     <div v-if="tx?.fee && tx?.fee.assets[0]" class="text-right px-2 -mt-2 text-sm">
       <p>Fee: {{ $filters.formatBigNumber(tx.fee.assets[0].amount) }} ERG</p>
     </div>
-    <div class="text-left" v-if="!isReadonly">
-      <label
-        >Spending password
-        <input
-          type="password"
-          @blur="v$.password.$touch()"
-          v-model.lazy="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
-        </p>
-      </label>
-    </div>
-    <p v-else>
-      <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" />
-      <span class="align-middle"> This wallet cannot sign transactions.</span>
-    </p>
+    <template v-if="!isLedger">
+      <p v-if="isReadonly">
+        <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" />
+        <span class="align-middle"> This wallet cannot sign transactions.</span>
+      </p>
+      <div class="text-left" v-else>
+        <label
+          >Spending password
+          <input
+            type="password"
+            @blur="v$.password.$touch()"
+            v-model.lazy="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
+          </p>
+        </label>
+      </div>
+    </template>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
       <button class="btn w-full" @click="sign()" :disabled="isReadonly">Confirm</button>
     </div>
+    <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
     <loading-modal
+      v-else
       title="Signing"
-      :message="signMessage"
-      :state="signState"
-      @close="signState = 'disabled'"
+      :message="signState.statusText"
+      :state="signState.state"
+      @close="signState.state = 'unknown'"
     />
   </div>
 </template>
@@ -102,6 +106,7 @@ import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
+  SigningState,
   SignTxFromConnectorCommand,
   StateAddress,
   StateAssetInfo,
@@ -110,18 +115,21 @@ import {
 import { ACTIONS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { helpers, required, requiredUnless } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
+import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
+import { LedgerDeviceModelId } from "@/constants/ledger";
 
 export default defineComponent({
   name: "SignTxConfirmView",
   components: {
     DappPlate,
     ToolTip,
-    LoadingModal
+    LoadingModal,
+    LedgerSigningModal
   },
   setup() {
     return { v$: useVuelidate() };
@@ -156,14 +164,24 @@ export default defineComponent({
       password: "",
       origin: "",
       favicon: "",
-      signState: "disabled",
-      signMessage: ""
+      signState: {
+        loading: false,
+        connected: false,
+        deviceModel: LedgerDeviceModelId.nanoS,
+        screenText: "",
+        statusText: "",
+        state: "unknown",
+        appId: 0
+      } as SigningState
     };
   },
   validations() {
     return {
       password: {
-        required: helpers.withMessage("Spending password is required.", required)
+        required: helpers.withMessage(
+          "A spending password is required for transaction signing.",
+          requiredUnless(this.isLedger)
+        )
       }
     };
   },
@@ -193,6 +211,9 @@ export default defineComponent({
     ...mapState({ wallets: "wallets", loading: "loading" }),
     isReadonly() {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
+    isLedger() {
+      return this.$store.state.currentWallet.type === WalletType.Ledger;
     },
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
@@ -232,14 +253,16 @@ export default defineComponent({
         return;
       }
 
-      this.signState = "loading";
-      this.signMessage = "";
+      this.signState.loading = true;
+      this.signState.state = "loading";
+      this.signState.statusText = "";
 
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX_FROM_CONNECTOR, {
           tx: this.rawTx,
           walletId: this.currentWalletId,
-          password: this.password
+          password: this.password,
+          callback: this.setStateCallback
         } as SignTxFromConnectorCommand);
 
         rpcHandler.sendMessage({
@@ -253,19 +276,24 @@ export default defineComponent({
           }
         });
 
+        this.signState.loading = false;
+        this.signState.state = "success";
         window.removeEventListener("beforeunload", this.onWindowClosing);
         window.close();
       } catch (e) {
-        (e as Error).message;
-        this.signState = "error";
+        this.signState.loading = false;
+        this.signState.state = "error";
         console.error(e);
 
         if (e instanceof PasswordError) {
-          this.signMessage = e.message;
+          this.signState.statusText = e.message;
         } else {
           this.fail(typeof e === "string" ? e : (e as Error).message);
         }
       }
+    },
+    setStateCallback(newState: SigningState) {
+      this.signState = Object.assign(this.signState, newState);
     },
     cancel() {
       this.refuse("User rejected");

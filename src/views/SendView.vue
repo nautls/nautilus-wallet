@@ -96,13 +96,13 @@
       </label>
       <button class="btn w-full mt-4" @click="sendTx()">Confirm</button>
     </div>
-    <ledger-signing-modal v-if="isLedger" :state="state" @close="state.state = 'unknown'" />
+    <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
     <loading-modal
       v-else
       title="Signing"
-      :message="state.statusText"
-      :state="state.state"
-      @close="state.state = 'unknown'"
+      :message="signState.statusText"
+      :state="signState.state"
+      @close="signState.state = 'unknown'"
     />
   </div>
 </template>
@@ -222,7 +222,7 @@ export default defineComponent({
       password: "",
       recipient: "",
       feeMultiplicator: 1,
-      state: {
+      signState: {
         loading: false,
         connected: false,
         deviceModel: LedgerDeviceModelId.nanoS,
@@ -255,9 +255,9 @@ export default defineComponent({
         return;
       }
 
-      this.state.loading = true;
-      this.state.state = "loading";
-      this.state.statusText = "";
+      this.signState.loading = true;
+      this.signState.state = "loading";
+      this.signState.statusText = "";
       const currentWalletId = this.$store.state.currentWallet.id;
 
       try {
@@ -272,30 +272,30 @@ export default defineComponent({
 
         this.clear();
 
-        this.state.loading = false;
-        this.state.state = "success";
-        this.state.statusText = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
+        this.signState.loading = false;
+        this.signState.state = "success";
+        this.signState.statusText = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
           txId
         )}' target='_blank'>View on Explorer</a>`;
       } catch (e) {
-        this.state.state = "error";
-        this.state.loading = false;
-        this.state.connected = false;
+        this.signState.state = "error";
+        this.signState.loading = false;
+        this.signState.connected = false;
         console.error(e);
 
         if (e instanceof TxSignError) {
-          this.state.statusText = `Something went wrong in the signing processs.<br /><br /><code>${e.message}</code>`;
+          this.signState.statusText = `Something went wrong in the signing processs.<br /><br /><code>${e.message}</code>`;
         } else if (e instanceof PasswordError) {
-          this.state.statusText = e.message;
+          this.signState.statusText = e.message;
         } else if (!(e instanceof DeviceError)) {
-          this.state.statusText = `Something went wrong in the signing process. Please try again later.<br /><br /><code>${
+          this.signState.statusText = `Something went wrong in the signing process. Please try again later.<br /><br /><code>${
             (e as Error).message
           }</code>`;
         }
       }
     },
     setStateCallback(newState: SigningState) {
-      this.state = Object.assign(this.state, newState);
+      this.signState = Object.assign(this.signState, newState);
     },
     clear(): void {
       this.selected = [];

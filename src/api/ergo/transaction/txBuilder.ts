@@ -20,9 +20,10 @@ import {
   Tokens,
   UnsignedTransaction,
   Wallet,
-  ErgoBox as WasmErgoBox
+  ErgoBox as WasmErgoBox,
+  ErgoBoxCandidate
 } from "ergo-lib-wasm-browser";
-import { find, maxBy } from "lodash";
+import { find, first, maxBy } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
@@ -179,29 +180,32 @@ export class TxBuilder {
 
         for (let i = 0; i < unsigned.inputs().len(); i++) {
           const input = unsigned.inputs().get(i);
-          const wasmBox = findBox(unspentBoxes, input.box_id().to_str());
-          const box = find(this._boxes, (b) => b.boxId === input.box_id().to_str());
-          if (!wasmBox || !box) {
+          const box = findBox(unspentBoxes, input.box_id().to_str());
+          if (!box) {
             throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
           }
-          const path = find(this._from, (a) => a.script === addressFromErgoTree(box.ergoTree));
+
+          const ergoTree = box.ergo_tree().to_base16_bytes().toString();
+          const path =
+            find(this._from, (a) => a.script === addressFromErgoTree(ergoTree)) ??
+            first(this._from);
+
           if (!path) {
             throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
           }
 
           inputs.push({
-            txId: box.transactionId,
-            index: box.index,
-            value: wasmBox.value().as_i64().to_str(),
-            ergoTree: Buffer.from(wasmBox.ergo_tree().sigma_serialize_bytes()),
-            creationHeight: wasmBox.creation_height(),
-            tokens: mapTokens(wasmBox.tokens()),
-            additionalRegisters: Buffer.from(wasmBox.serialized_additional_registers()),
+            txId: box.tx_id().to_str(),
+            index: box.index(),
+            value: box.value().as_i64().to_str(),
+            ergoTree: Buffer.from(box.ergo_tree().sigma_serialize_bytes()),
+            creationHeight: box.creation_height(),
+            tokens: mapTokens(box.tokens()),
+            additionalRegisters: Buffer.from(box.serialized_additional_registers()),
             extension: Buffer.from(input.extension().sigma_serialize_bytes()),
             signPath: `${DERIVATION_PATH}/${path.index}`
           });
         }
-
         for (let i = 0; i < unsigned.output_candidates().len(); i++) {
           const wasmOutput = unsigned.output_candidates().get(i);
 
@@ -210,9 +214,10 @@ export class TxBuilder {
             ergoTree: Buffer.from(wasmOutput.ergo_tree().sigma_serialize_bytes()),
             creationHeight: wasmOutput.creation_height(),
             tokens: mapTokens(wasmOutput.tokens()),
-            registers: Buffer.from([]) // todo: try to find out the right way to do this
+            registers: this.serializeRegisters(wasmOutput)
           });
         }
+
         this.sendCallback({
           statusText: "Waiting for device transaction signing confirmation..."
         });
@@ -223,8 +228,8 @@ export class TxBuilder {
             outputs,
             distinctTokenIds: unsigned.distinct_token_ids(),
             changeMap: {
-              address: context.bip32.deriveAddress(this._changeIndex).script,
-              path: `${DERIVATION_PATH}/${this._changeIndex}`
+              address: context.bip32.deriveAddress(this._changeIndex ?? 0).script,
+              path: `${DERIVATION_PATH}/${this._changeIndex ?? 0}` // todo: detect change box
             }
           },
           Network.Mainnet
@@ -271,6 +276,24 @@ export class TxBuilder {
     const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
     const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
     return signed;
+  }
+
+  private serializeRegisters(box: ErgoBoxCandidate): Buffer {
+    const registerEnum = wasmModule.SigmaRust.NonMandatoryRegisterId;
+    if (!box.register_value(registerEnum.R4)) {
+      return Buffer.from([]);
+    }
+
+    const registers = [
+      Buffer.from(box.register_value(registerEnum.R4)?.sigma_serialize_bytes() ?? []),
+      Buffer.from(box.register_value(registerEnum.R5)?.sigma_serialize_bytes() ?? []),
+      Buffer.from(box.register_value(registerEnum.R6)?.sigma_serialize_bytes() ?? []),
+      Buffer.from(box.register_value(registerEnum.R7)?.sigma_serialize_bytes() ?? []),
+      Buffer.from(box.register_value(registerEnum.R8)?.sigma_serialize_bytes() ?? []),
+      Buffer.from(box.register_value(registerEnum.R9)?.sigma_serialize_bytes() ?? [])
+    ];
+
+    return Buffer.concat(registers.filter((b) => b.length > 0));
   }
 
   private sendCallback(state: any) {

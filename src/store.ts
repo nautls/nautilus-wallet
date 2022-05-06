@@ -777,16 +777,24 @@ export default createStore({
         );
       }
 
-      const bip32 = await Bip32.fromMnemonic(
-        await walletsDbService.getMnemonic(command.walletId, command.password)
-      );
+      if (command.callback) {
+        command.callback({ statusText: "Loading data from the blockchan..." } as any);
+      }
+
+      const walletType = state.currentWallet.type;
+      const bip32 =
+        walletType === WalletType.Ledger
+          ? bip32Pool.get(state.currentWallet.publicKey)
+          : await Bip32.fromMnemonic(
+              await walletsDbService.getMnemonic(command.walletId, command.password)
+            );
       command.password = "";
 
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedtx = await TxBuilder.from(addresses).signFromConnector(
-        command.tx,
-        SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
-      );
+      const signedtx = await TxBuilder.from(addresses)
+        .useLedger(walletType === WalletType.Ledger)
+        .setCallback(command.callback)
+        .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
       return signedtx;
     },

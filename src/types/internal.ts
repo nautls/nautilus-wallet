@@ -102,6 +102,7 @@ export type SignTxFromConnectorCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
+  callback?: (newState: SigningState) => {};
 };
 
 export type UpdateWalletSettingsCommand = {
