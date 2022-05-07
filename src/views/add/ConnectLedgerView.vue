@@ -54,7 +54,7 @@ import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 
 import { DeviceError, ErgoLedgerApp } from "ledger-ergo-js";
-import HidTransport from "@ledgerhq/hw-transport-webhid";
+import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
 import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
@@ -98,7 +98,7 @@ export default defineComponent({
       let app!: ErgoLedgerApp;
 
       try {
-        app = new ErgoLedgerApp(await HidTransport.create()).useAuthToken().enableDebugMode();
+        app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
         this.appId = app.authToken ?? 0;
         this.deviceModel = app.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX;
         this.connected = true;
