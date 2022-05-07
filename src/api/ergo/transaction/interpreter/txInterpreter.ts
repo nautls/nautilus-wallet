@@ -1,6 +1,5 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate } from "@/types/connector";
-import { IAssetInfo } from "@/types/database";
 import { StateAssetInfo } from "@/types/internal";
 import { difference, find, findLast, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";

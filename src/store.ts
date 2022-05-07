@@ -53,7 +53,10 @@ import { TxBuilder } from "././api/ergo/transaction/txBuilder";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
-import { extractAddressesFromInputs } from "./api/ergo/addresses";
+import {
+  extractAddressesFromInputs as extractP2PKAddressesFromInputs,
+  getChangeAddress
+} from "./api/ergo/addresses";
 import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
@@ -760,19 +763,19 @@ export default createStore({
       return await submitTx(signedtx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
-      const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
-      const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const addresses = dbAddresses
-        .filter((a) => addressesFromBoxes.includes(a.script))
+      const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
+      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
+      const addresses = ownAddresses
+        .filter((a) => inputAddresses.includes(a.script))
         .map((a) => dbAddressMapper(a));
 
       if (isEmpty(addresses)) {
         const changeIndex = state.currentWallet.settings.defaultChangeIndex;
         addresses.push(
           dbAddressMapper(
-            find(dbAddresses, (a) => a.index === changeIndex) ??
-              find(dbAddresses, (a) => a.index === 0) ??
-              dbAddresses[0]
+            find(ownAddresses, (a) => a.index === changeIndex) ??
+              find(ownAddresses, (a) => a.index === 0) ??
+              ownAddresses[0]
           )
         );
       }
@@ -790,9 +793,14 @@ export default createStore({
             );
       command.password = "";
 
+      const changeAddress = getChangeAddress(
+        command.tx.outputs,
+        ownAddresses.map((a) => a.script)
+      );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
       const signedtx = await TxBuilder.from(addresses)
         .useLedger(walletType === WalletType.Ledger)
+        .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
         .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
