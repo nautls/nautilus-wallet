@@ -725,7 +725,7 @@ export default createStore({
       }
 
       if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchan..." } as any);
+        command.callback({ statusText: "Loading data from the blockchain..." } as any);
       }
 
       const addresses = state.currentAddresses;
@@ -778,7 +778,7 @@ export default createStore({
       }
 
       if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchan..." } as any);
+        command.callback({ statusText: "Loading data from the blockchain..." } as any);
       }
 
       const walletType = state.currentWallet.type;
