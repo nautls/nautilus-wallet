@@ -13,3 +13,11 @@ export const Browser = getApiInstance();
 export function hasBrowserContext(): boolean {
   return typeof Browser !== "undefined";
 }
+
+export function isPopup() {
+  if (!hasBrowserContext() || !Browser.extension) {
+    return false;
+  }
+
+  return Browser.extension.getViews({ type: "popup" })[0] === self;
+}

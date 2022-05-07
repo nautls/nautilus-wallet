@@ -17,8 +17,13 @@
         >
       </button>
     </router-link>
-    <router-link to="/add/hw/ledger" custom v-slot="{ navigate }">
-      <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+    <router-link to="/add/hw/ledger" custom v-slot="{ navigate, href }">
+      <button
+        type="button"
+        @click="navInTab(navigate, href)"
+        @keypress.enter="navInTab(navigate, href)"
+        class="nav-btn"
+      >
         <span class="title">Connect a hardware wallet</span>
         <span class="subtitle"
           >Create or restore an Ergo wallet using a Ledger hardware wallet.</span
@@ -45,6 +50,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { isEmpty } from "lodash";
+import { Browser, isPopup } from "@/utils/browserApi";
 
 export default defineComponent({
   name: "AddView",
@@ -55,6 +61,19 @@ export default defineComponent({
   },
   props: {
     backButton: { type: String, default: "false" }
+  },
+  methods: {
+    navInTab(navigate: () => {}, href: string) {
+      if (!isPopup() || !Browser.tabs) {
+        navigate();
+      }
+
+      Browser.tabs.create({
+        url: Browser.extension.getURL(`index.html${href}?redirect=false`),
+        active: true
+      });
+      window.close();
+    }
   }
 });
 </script>

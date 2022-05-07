@@ -62,7 +62,6 @@ import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
-import { asDict } from "./utils/serializer";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
 
@@ -73,6 +72,12 @@ function dbAddressMapper(a: IDbAddress) {
     index: a.index,
     balance: undefined
   };
+}
+
+function navigate(routerName: string) {
+  if (router.currentRoute.value.query.redirect !== "false") {
+    router.push({ name: routerName });
+  }
 }
 
 export default createStore({
@@ -356,9 +361,9 @@ export default createStore({
 
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
         dispatch(ACTIONS.LOAD_CONNECTIONS);
-        router.push({ name: "assets-page" });
+        navigate("assets-page");
       } else {
-        router.push({ name: "add-wallet" });
+        navigate("add-wallet");
       }
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
