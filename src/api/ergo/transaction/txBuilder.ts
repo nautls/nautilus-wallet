@@ -33,10 +33,11 @@ import {
   DeviceError,
   ErgoLedgerApp,
   Network,
+  RETURN_CODE,
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
+import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 import { addressFromErgoTree } from "../addresses";
 
 export class TxBuilder {
@@ -252,10 +253,10 @@ export class TxBuilder {
           };
 
           switch (e.code) {
-            case LEDGER_RETURN_CODE.DENIED:
+            case RETURN_CODE.DENIED:
               resp.statusText = "Transaction signing denied.";
               break;
-            case LEDGER_RETURN_CODE.INTERNAL_CRYPTO_ERROR:
+            case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
               resp.statusText =
                 "It looks like your device is locked. Make sure it is unlocked before proceeding.";
               break;

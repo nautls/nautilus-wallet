@@ -52,11 +52,11 @@ import { ACTIONS } from "@/constants/store/actions";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
-import { DeviceError, ErgoLedgerApp } from "ledger-ergo-js";
+import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH } from "@/constants/ergo";
-import { LedgerDeviceModelId, LedgerState, LEDGER_RETURN_CODE } from "@/constants/ledger";
+import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -131,7 +131,7 @@ export default defineComponent({
 
         if (e instanceof DeviceError) {
           switch (e.code) {
-            case LEDGER_RETURN_CODE.DENIED:
+            case RETURN_CODE.DENIED:
               if (this.confirmationAddress) {
                 this.statusText = "Address not confirmed.";
                 this.confirmationAddress = "";
@@ -139,7 +139,7 @@ export default defineComponent({
                 this.statusText = "Extended public key export denied.";
               }
               break;
-            case LEDGER_RETURN_CODE.INTERNAL_CRYPTO_ERROR:
+            case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
               this.statusText =
                 "It looks like your device is locked. Make sure it is unlocked before proceeding.";
               break;
