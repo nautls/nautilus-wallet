@@ -27,7 +27,7 @@ import { find, first, maxBy } from "lodash";
 import Bip32 from "../bip32";
 import { SignContext } from "./signContext";
 import JSONBig from "json-bigint";
-import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
+import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   BoxCandidate,
   DeviceError,
@@ -158,7 +158,7 @@ export class TxBuilder {
       let ledgerApp!: ErgoLedgerApp;
 
       try {
-        ledgerApp = new ErgoLedgerApp(await WebHIDTransport.create())
+        ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create())
           .useAuthToken()
           .enableDebugMode();
         this.sendCallback({
@@ -231,7 +231,7 @@ export class TxBuilder {
             distinctTokenIds: unsigned.distinct_token_ids(),
             changeMap: {
               address: context.bip32.deriveAddress(this._changeIndex ?? 0).script,
-              path: `${DERIVATION_PATH}/${this._changeIndex ?? 0}` // todo: detect change box
+              path: `${DERIVATION_PATH}/${this._changeIndex}`
             }
           },
           MAINNET ? Network.Mainnet : Network.Testnet
