@@ -294,9 +294,9 @@ export class TxBuilder {
       Buffer.from(box.register_value(registerEnum.R7)?.sigma_serialize_bytes() ?? []),
       Buffer.from(box.register_value(registerEnum.R8)?.sigma_serialize_bytes() ?? []),
       Buffer.from(box.register_value(registerEnum.R9)?.sigma_serialize_bytes() ?? [])
-    ];
+    ].filter((b) => b.length > 0);
 
-    return Buffer.concat(registers.filter((b) => b.length > 0));
+    return Buffer.concat([...[Buffer.from([registers.length])], ...registers]);
   }
 
   private sendCallback(state: any) {
