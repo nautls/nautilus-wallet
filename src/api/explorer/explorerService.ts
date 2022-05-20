@@ -273,7 +273,9 @@ class ExplorerService {
   }
 
   public async getTokenRates(): Promise<AssetPriceRate> {
-    const { data } = await axios.get<ErgoDexPool[]>("https://api.ergodex.io/v1/amm/markets");
+    const { data } = await axios.get<ErgoDexPool[]>(
+      `https://api.ergodex.io/v1/amm/markets?from=${new Date().getUTCDate()}`
+    );
     const filtered = uniqWith(
       data.filter((x) => x.baseId === ERG_TOKEN_ID),
       (a, b) =>

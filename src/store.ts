@@ -59,7 +59,6 @@ import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
-import { asDict } from "./utils/serializer";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
 
@@ -360,6 +359,7 @@ export default createStore({
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
       const tokenMarketRates = await explorerService.getTokenRates();
+      console.log(tokenMarketRates);
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
