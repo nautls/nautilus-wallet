@@ -272,10 +272,28 @@ class ExplorerService {
     );
   }
 
-  public async getTokenRates(): Promise<AssetPriceRate> {
-    const { data } = await axios.get<ErgoDexPool[]>(
-      `https://api.ergodex.io/v1/amm/markets?from=${new Date().getUTCDate()}`
+  private getUtcTimestamp(date: Date) {
+    return Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds()
     );
+  }
+
+  public async getTokenRates(): Promise<AssetPriceRate> {
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 30);
+
+    const { data } = await axios.get<ErgoDexPool[]>(`https://api.ergodex.io/v1/amm/markets`, {
+      params: {
+        from: this.getUtcTimestamp(fromDate),
+        to: this.getUtcTimestamp(new Date())
+      }
+    });
+
     const filtered = uniqWith(
       data.filter((x) => x.baseId === ERG_TOKEN_ID),
       (a, b) =>
