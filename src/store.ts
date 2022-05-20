@@ -359,7 +359,6 @@ export default createStore({
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
       const tokenMarketRates = await explorerService.getTokenRates();
-      console.log(tokenMarketRates);
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
