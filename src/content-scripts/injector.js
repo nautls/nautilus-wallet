@@ -52,6 +52,8 @@ const AUTH_API_CODE = `
       } else {
         api = Object.freeze(new NautilusErgoApi());
       }
+    } else if (event.data.function === "disconnect" && ret.data === true) {
+      api = undefined;
     }
 
     if (ret.isSuccess) {
@@ -64,6 +66,13 @@ const AUTH_API_CODE = `
   class NautilusAuthApi {
     connect({ createErgoObject = true } = {}) {
       return this._rpcCall("connect", [createErgoObject]);
+    }
+
+    disconnect() {
+      if (api) {
+        return this._rpcCall("disconnect");
+      }
+      return Promise.resolve(false);
     }
 
     isConnected() {

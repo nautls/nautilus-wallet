@@ -63,6 +63,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
         case "connect":
           await handleConnectionRequest(message, port, origin);
           break;
+        case "disconnect":
+          await handleDisconnectRequest(message, port, origin);
+          break;
         case "checkConnection":
           handleCheckConnectionRequest(message, port);
           break;
@@ -164,6 +167,43 @@ async function handleConnectionRequest(
   };
 
   postConnectorResponse(response, message, port, "auth");
+}
+
+async function handleDisconnectRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  origin?: string
+) {
+  if (!origin) {
+    postConnectorResponse(
+      {
+        isSuccess: true,
+        data: false
+      },
+      request,
+      port,
+      "auth"
+    );
+
+    return;
+  }
+
+  await connectedDAppsDbService.deleteByOrigin(origin);
+  sessions.forEach((value, key) => {
+    if (value.origin === origin) {
+      sessions.delete(key);
+    }
+  });
+
+  postConnectorResponse(
+    {
+      isSuccess: true,
+      data: true
+    },
+    request,
+    port,
+    "auth"
+  );
 }
 
 function handleCheckConnectionRequest(request: RpcMessage, port: chrome.runtime.Port) {
