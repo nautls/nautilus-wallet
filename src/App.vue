@@ -33,20 +33,12 @@ import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/inte
 import { mapActions, mapState } from "vuex";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
-import { hasBrowserContext, Browser } from "./utils/browserApi";
+import { isPopup } from "./utils/browserApi";
 import { MAINNET } from "./constants/ergo";
 
 function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
   callback();
   return setInterval(callback, ms);
-}
-
-function isPopup() {
-  if (!hasBrowserContext() || !Browser.extension) {
-    return false;
-  }
-
-  return Browser.extension.getViews({ type: "popup" })[0] === self;
 }
 
 export default defineComponent({

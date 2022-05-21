@@ -82,27 +82,27 @@
     </div>
 
     <div class="flex-shrink">
-      <div>
-        <label
-          >Spending password
-          <input
-            @blur="v$.password.$touch()"
-            v-model.lazy="password"
-            type="password"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.password.$error">
-            {{ v$.password.$errors[0].$message }}
-          </p>
-        </label>
-      </div>
+      <label v-if="!isLedger"
+        >Spending password
+        <input
+          @blur="v$.password.$touch()"
+          v-model.lazy="password"
+          type="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p>
+      </label>
       <button class="btn w-full mt-4" @click="sendTx()">Confirm</button>
     </div>
+    <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
     <loading-modal
+      v-else
       title="Signing"
-      :message="signMessage"
-      :state="signState"
-      @close="signState = 'disabled'"
+      :message="signState.statusText"
+      :state="signState.state"
+      @close="signState.state = 'unknown'"
     />
   </div>
 </template>
@@ -111,26 +111,32 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { SendTxCommandAsset, StateAsset, StateWallet } from "@/types/internal";
+import {
+  SendTxCommand,
+  SendTxCommandAsset,
+  SigningState,
+  StateAsset,
+  WalletType
+} from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import BigNumber from "bignumber.js";
 import { decimalize } from "@/utils/bigNumbers";
-import { required, helpers } from "@vuelidate/validators";
+import { required, helpers, requiredUnless } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { PasswordError, TxSignError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
+import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
 import { mapState } from "vuex";
+import { LedgerDeviceModelId } from "@/constants/ledger";
+import { DeviceError } from "ledger-ergo-js";
 
 export default defineComponent({
   name: "SendView",
-  components: {
-    AssetInput,
-    LoadingModal
-  },
+  components: { AssetInput, LoadingModal, LedgerSigningModal },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -143,6 +149,9 @@ export default defineComponent({
     ...mapState({
       currentWallet: "currentWallet"
     }),
+    isLedger(): boolean {
+      return this.currentWallet.type === WalletType.Ledger;
+    },
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
     },
@@ -212,9 +221,16 @@ export default defineComponent({
       selected: [] as SendTxCommandAsset[],
       password: "",
       recipient: "",
-      signState: "disabled",
-      signMessage: "",
       feeMultiplicator: 1,
+      signState: {
+        loading: false,
+        connected: false,
+        deviceModel: LedgerDeviceModelId.nanoS,
+        screenText: "",
+        statusText: "",
+        state: "unknown",
+        appId: 0
+      } as SigningState,
       minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
   },
@@ -227,7 +243,7 @@ export default defineComponent({
       password: {
         required: helpers.withMessage(
           "A spending password is required for transaction signing.",
-          required
+          requiredUnless(this.isLedger)
         )
       }
     };
@@ -239,8 +255,9 @@ export default defineComponent({
         return;
       }
 
-      this.signState = "loading";
-      this.signMessage = "";
+      this.signState.loading = true;
+      this.signState.state = "loading";
+      this.signState.statusText = "";
       const currentWalletId = this.$store.state.currentWallet.id;
 
       try {
@@ -249,29 +266,36 @@ export default defineComponent({
           assets: this.selected,
           fee: this.fee,
           walletId: currentWalletId,
-          password: this.password
-        });
+          password: this.password,
+          callback: this.setStateCallback
+        } as SendTxCommand);
 
         this.clear();
 
-        this.signState = "success";
-        this.signMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
+        this.signState.loading = false;
+        this.signState.state = "success";
+        this.signState.statusText = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
           txId
         )}' target='_blank'>View on Explorer</a>`;
       } catch (e) {
-        this.signState = "error";
+        this.signState.state = "error";
+        this.signState.loading = false;
+        this.signState.connected = false;
         console.error(e);
 
         if (e instanceof TxSignError) {
-          this.signMessage = `Something went wrong on signing processs.<br /><br /><code>${e.message}</code>`;
+          this.signState.statusText = `Something went wrong in the signing processs.<br /><br /><code>${e.message}</code>`;
         } else if (e instanceof PasswordError) {
-          this.signMessage = e.message;
-        } else {
-          this.signMessage = `Something went wrong on signing process. Please try again later.<br /><br /><code>${
+          this.signState.statusText = e.message;
+        } else if (!(e instanceof DeviceError)) {
+          this.signState.statusText = `Something went wrong in the signing process. Please try again later.<br /><br /><code>${
             (e as Error).message
           }</code>`;
         }
       }
+    },
+    setStateCallback(newState: SigningState) {
+      this.signState = Object.assign(this.signState, newState);
     },
     clear(): void {
       this.selected = [];

@@ -31,7 +31,7 @@ export default defineComponent({
       type: String,
       required: true,
       validate(value: string) {
-        return ["disabled", "success", "loading", "error"].includes(value);
+        return ["unknown", "success", "loading", "error"].includes(value);
       }
     }
   },
@@ -60,7 +60,7 @@ export default defineComponent({
       }
     },
     active(): boolean {
-      return this.state !== "disabled";
+      return this.state !== "unknown";
     },
     closable(): boolean {
       return ["success", "error"].includes(this.state);

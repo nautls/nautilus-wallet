@@ -1,13 +1,25 @@
 import { P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
-import { UnsignedInput } from "@/types/connector";
+import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
 import { Address, Network } from "@coinbarn/ergo-ts";
-import { isEmpty, uniq } from "lodash";
+import { isEmpty, last, uniq } from "lodash";
 import { extractPksFromP2SErgoTree, extractPksFromRegisters } from "./sigmaSerializer";
 
 const network = MAINNET ? Network.Mainnet : Network.Testnet;
 
 export function extractAddressesFromInputs(inputs: UnsignedInput[]) {
   return inputs.map((input) => extractAddressesFromInput(input)).flat();
+}
+
+export function getChangeAddress(
+  outputs: ErgoBoxCandidate[],
+  ownAddresses: string[]
+): string | undefined {
+  const addresses = outputs
+    .filter((o) => o.ergoTree.startsWith(P2PK_TREE_PREFIX))
+    .map((o) => addressFromPk(o.ergoTree))
+    .filter((a) => ownAddresses.includes(a));
+
+  return last(addresses);
 }
 
 export function addressFromPk(pk: string) {
