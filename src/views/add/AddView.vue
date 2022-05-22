@@ -3,6 +3,9 @@
     <div class="flex-grow"></div>
     <router-link to="/add/new" custom v-slot="{ navigate }">
       <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+        <div class="h-full float-left flex w-8 mr-4">
+          <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" />
+        </div>
         <span class="title">Create wallet</span>
         <span class="subtitle"
           >Generate a 15-word recovery phrase and create a new Ergo wallet.</span
@@ -11,6 +14,9 @@
     </router-link>
     <router-link to="/add/restore" custom v-slot="{ navigate }">
       <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+        <div class="h-full float-left flex w-8 mr-4">
+          <mdi-icon name="backup-restore" size="32" class="m-auto text-gray-500" />
+        </div>
         <span class="title">Restore wallet</span>
         <span class="subtitle"
           >Enter a recovery phrase to restore an already-existing Ergo wallet.</span
@@ -24,6 +30,10 @@
         @keypress.enter="navInTab(navigate, href)"
         class="nav-btn"
       >
+        <div class="h-full float-left flex w-8 mr-4">
+          <ledger-logo class="w-6 h-6 m-auto fill-gray-500" />
+          <!-- <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" /> -->
+        </div>
         <span class="title">Connect a hardware wallet</span>
         <span class="subtitle"
           >Create or restore an Ergo wallet using a Ledger hardware wallet.</span
@@ -38,6 +48,9 @@
         type="button"
         class="nav-btn"
       >
+        <div class="h-full float-left flex w-8 mr-4">
+          <mdi-icon name="wallet-outline" size="32" class="m-auto text-gray-500" />
+        </div>
         <span class="title">Load read-only wallet</span>
         <span class="subtitle">Enter a public key to load an Ergo wallet in read-only mode.</span>
       </button>
@@ -51,9 +64,13 @@
 import { defineComponent } from "vue";
 import { isEmpty } from "lodash";
 import { Browser, isPopup } from "@/utils/browserApi";
+import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 
 export default defineComponent({
   name: "AddView",
+  components: {
+    LedgerLogo
+  },
   computed: {
     hasWallets() {
       return !isEmpty(this.$store.state.wallets);

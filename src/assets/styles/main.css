@@ -146,9 +146,9 @@ input:disabled {
 }
 
 .nav-btn {
-  @apply bg-transparent border border-solid rounded 
-    font-bold  outline-none border-blue-800 text-sm mr-1 mb-1 
-    w-full py-6 px-4 text-blue-800 default-transition
+  @apply bg-transparent border border-solid rounded text-left
+    font-semibold outline-none border-blue-700 text-sm mr-1
+    w-full p-4 text-blue-800 default-transition
     hover:bg-blue-50 focus:outline-none active:bg-blue-100;
 }
 
@@ -157,7 +157,7 @@ input:disabled {
 }
 
 .nav-btn .subtitle {
-  @apply font-normal text-xs pt-2 text-gray-500 block mx-4;
+  @apply font-normal text-xs mt-0.5 text-gray-500 block mx-4;
 }
 
 .dropdown {

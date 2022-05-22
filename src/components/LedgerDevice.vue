@@ -31,7 +31,7 @@
         <vue-feather type="alert-circle" size="64" />
       </p>
       <p class="text-center font-semibold">Ledger device not found!</p>
-      <p class="px-1 pt-2 text-sm text-gray-500">
+      <p class="px-1 pt-4 text-sm text-gray-500">
         Before you try again, please make sure your device is connected and the
         <span class="font-semibold">Ledger Ergo App</span> is installed and opened.
       </p>

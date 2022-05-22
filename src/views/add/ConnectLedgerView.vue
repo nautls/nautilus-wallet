@@ -16,7 +16,7 @@
         </p>
       </label>
     </div>
-    <div class="flex-grow text-gray-600">
+    <div class="text-gray-600">
       <ledger-device
         :bottom-text="statusText"
         :state="state"
@@ -36,11 +36,10 @@
         then hit <span class="font-semibold">Approve</span> to confirm.
       </p>
     </div>
-    <div>
-      <button type="button" v-if="!loading" @click="add()" class="w-full btn">
-        <span>Connect</span>
-      </button>
-    </div>
+    <div class="flex-grow"></div>
+    <button type="button" v-if="!loading" @click="add()" class="w-full btn">
+      <span>Connect</span>
+    </button>
   </div>
 </template>
 
@@ -100,6 +99,15 @@ export default defineComponent({
         app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
         this.appId = app.authToken ?? 0;
         this.deviceModel = app.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX;
+
+        if ((await app.getAppName()).name !== "Ergo") {
+          this.state = LedgerState.error;
+          this.loading = false;
+          this.statusText = "Ergo App is not opened.";
+          app.transport.close();
+          return;
+        }
+
         this.connected = true;
       } catch (e) {
         this.state = LedgerState.deviceNotFound;
