@@ -1,3 +1,5 @@
+import BigNumber from "bignumber.js";
+
 export type RequestQueueItem = {
   message: RpcMessage;
   handled: boolean;
@@ -69,7 +71,7 @@ export type TxSignError = {
 
 export type Token = {
   tokenId: string;
-  amount: bigint | string;
+  amount: bigint | string | BigNumber;
   name?: string;
   decimals?: number;
 };

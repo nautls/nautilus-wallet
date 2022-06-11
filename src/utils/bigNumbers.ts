@@ -18,6 +18,7 @@ export function undecimalize(value: BigNumber, decimals: number): BigNumber {
   return value.shiftedBy(decimals);
 }
 
+export function toBigNumber(value: string | number | bigint | BigNumber): BigNumber;
 export function toBigNumber(value?: string | number | bigint | BigNumber): BigNumber | undefined {
   if (value === undefined) {
     return value;
