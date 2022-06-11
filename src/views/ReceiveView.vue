@@ -31,7 +31,7 @@
     </div>
     <div
       v-if="isLedger"
-      class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm p-4"
+      class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
     >
       <strong>Never send more than ten distinct tokens</strong> in a single transaction to a Ledger
       wallet. Due to device's memory limitations your assets can get stuck in your wallet.

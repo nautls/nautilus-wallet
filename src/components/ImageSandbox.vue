@@ -51,6 +51,11 @@ export default defineComponent({
     objectFit: { type: String },
     overflow: { type: String }
   },
+  data() {
+    return {
+      loading: true
+    };
+  },
   watch: {
     src() {
       this.loading = true;
@@ -75,11 +80,6 @@ export default defineComponent({
 
       return `${CONTENT_SANDBOX_URL}/?url=${resolveIpfs(this.src)}${query}`;
     }
-  },
-  data() {
-    return {
-      loading: true
-    };
   }
 });
 </script>

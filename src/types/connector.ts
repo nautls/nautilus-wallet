@@ -71,7 +71,7 @@ export type TxSignError = {
 
 export type Token = {
   tokenId: string;
-  amount: bigint | string | BigNumber;
+  amount: bigint | string;
   name?: string;
   decimals?: number;
 };

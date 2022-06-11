@@ -2,7 +2,7 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import AuthView from "@/views/connector/AuthView.vue";
-import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
+import SignTxConfirmView from "@/views/connector/TxConfirm/SignTxConfirmView.vue";
 import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
 
 const AddView = () => import("@/views/add/AddView.vue");

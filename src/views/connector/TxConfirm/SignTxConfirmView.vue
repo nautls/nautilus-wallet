@@ -1,90 +1,90 @@
 <template>
-  <div class="flex flex-col h-full gap-4 text-center">
+  <div class="flex flex-col h-full gap-4">
     <dapp-plate :origin="origin" :favicon="favicon" compact />
-    <h1 class="text-xl m-auto">Wants to sign a transaction</h1>
+    <h1 class="text-xl m-auto ext-center">Wants to sign a transaction</h1>
     <div
-      class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto border-gray-300 border-1 rounded text-left px-2 py-1"
+      class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto pt-0.5 px-4 -mx-4"
     >
-      <div class="flex flex-col gap-2" v-for="(output, index) in tx?.sending" :key="index">
-        <div class="mb-1">
-          <p class="font-semibold mb-1">Recipient</p>
+      <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger"
+        ><div class="flex flex-row gap-1 items-center align-middle">
+          <mdi-icon name="alert-circle-outline" size="18" />
+          <span class="align-middle">Burning</span>
+        </div>
 
-          <p class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
-            {{ $filters.compactString(output.receiver, 60) }}
-            <click-to-copy :content="output.receiver" size="12" />
-            <span
-              class="rounded bg-blue-500 mx-2 px-1 font-normal text-xs text-light-200 uppercase font-sans"
-              v-if="output.isIntrawallet"
-              >Your address</span
-            >
-          </p>
-        </div>
-        <div class="my-1">
-          <p class="font-semibold mb-1">Assets</p>
-          <ul class="px-1">
-            <li v-for="asset in output.assets" class="py-1">
-              <div class="flex flex-row items-center gap-2">
-                <asset-icon class="h-8 w-8" :token-id="asset.tokenId" />
-                <div class="flex-grow items-center align-middle">
-                  <span class="align-middle">
-                    <template v-if="asset.name">{{
-                      $filters.compactString(asset.name, 20, "end")
-                    }}</template>
-                    <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
-                  </span>
-                  <tool-tip v-if="asset.minting" class="align-middle">
-                    <template v-slot:label>
-                      <div class="block w-38">
-                        <span>This asset is being minted by this transaction.</span>
-                        <div class="text-left pt-2">
-                          <p v-if="asset.description">
-                            <span class="font-bold">Description</span>:
-                            {{ $filters.compactString(asset.description, 50, "end") }}
-                          </p>
-                          <p v-if="asset.decimals">
-                            <span class="font-bold">Decimals</span>: {{ asset.decimals }}
-                          </p>
-                        </div>
-                      </div>
-                    </template>
-                    <vue-feather type="git-commit" class="align-middle pl-2" />
-                  </tool-tip>
-                </div>
-                <div>
-                  {{ $filters.formatBigNumber(asset.amount) }}
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
+        <template v-slot:subheader
+          ><span>
+            The assets listed below will be lost. Only continue if you know exactly what are you
+            doing.
+          </span></template
+        >
+      </tx-spending-details>
+
+      <tx-spending-details
+        v-for="(output, index) in tx?.sending"
+        :assets="output.assets"
+        :key="index"
+        :type="output.isIntrawallet ? 'info' : 'normal'"
+      >
+        <p class="font-normal">
+          <span class="font-semibold">Recipient: </span>
+          <span class="font-mono text-sm break-all"
+            >{{ $filters.compactString(output.receiver, 60) }}
+            <click-to-copy :content="output.receiver" size="12"
+          /></span>
+        </p>
+
+        <template v-slot:subheader v-if="output.isIntrawallet">
+          <span>This address belongs to you.</span>
+        </template>
+      </tx-spending-details>
+
+      <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
+        >Transaction fee</tx-spending-details
+      >
     </div>
-    <div v-if="tx?.fee && tx?.fee.assets[0]" class="text-right px-2 -mt-2 text-sm">
-      <p>Fee: {{ $filters.formatBigNumber(tx.fee.assets[0].amount) }} ERG</p>
+
+    <div>
+      <template v-if="!isLedger">
+        <p v-if="isReadonly" class="text-sm text-center">
+          <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
+          <span class="align-middle"> This wallet cannot sign transactions.</span>
+        </p>
+        <div class="text-left" v-else>
+          <label
+            >Spending password
+            <input
+              type="password"
+              @blur="v$.password.$touch()"
+              v-model.lazy="password"
+              class="w-full control block"
+            />
+            <p class="input-error" v-if="v$.password.$error">
+              {{ v$.password.$errors[0].$message }}
+            </p>
+          </label>
+        </div>
+      </template>
+
+      <label
+        v-if="tx?.burning"
+        class="inline-block font-normal cursor-pointer bg-red-100 border-1 border-red-200 mt-2 py-1 px-2 rounded w-full"
+      >
+        <input class="checkbox" type="checkbox" v-model="burnAgreement" />
+        <span class="align-middle font-semibold text-red-900"
+          >I understand that I'm burning my token(s).</span
+        >
+      </label>
     </div>
-    <template v-if="!isLedger">
-      <p v-if="isReadonly">
-        <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" />
-        <span class="align-middle"> This wallet cannot sign transactions.</span>
-      </p>
-      <div class="text-left" v-else>
-        <label
-          >Spending password
-          <input
-            type="password"
-            @blur="v$.password.$touch()"
-            v-model.lazy="password"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.password.$error">
-            {{ v$.password.$errors[0].$message }}
-          </p>
-        </label>
-      </div>
-    </template>
+
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" @click="sign()" :disabled="isReadonly">Confirm</button>
+      <button
+        class="btn w-full"
+        @click="sign()"
+        :disabled="isReadonly || (tx?.burning && !burnAgreement)"
+      >
+        Confirm
+      </button>
     </div>
     <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
     <loading-modal
@@ -121,6 +121,7 @@ import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
+import TxSpendingDetails from "./Components/TxSpendingDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 
 export default defineComponent({
@@ -129,7 +130,8 @@ export default defineComponent({
     DappPlate,
     ToolTip,
     LoadingModal,
-    LedgerSigningModal
+    LedgerSigningModal,
+    TxSpendingDetails
   },
   setup() {
     return { v$: useVuelidate() };
@@ -158,6 +160,7 @@ export default defineComponent({
   data() {
     return {
       rawTx: Object.freeze({} as UnsignedTx),
+      burnAgreement: false,
       currentWalletId: 0,
       requestId: 0,
       sessionId: 0,
