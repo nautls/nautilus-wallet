@@ -1,7 +1,7 @@
 import { MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate, Token } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
-import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
+import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { asDict } from "@/utils/serializer";
 import BigNumber from "bignumber.js";
 import { difference, find, findLast, groupBy, isEmpty } from "lodash";
@@ -90,7 +90,13 @@ export class TxInterpreter {
     }
 
     this._burningBalance = Object.keys(inputTotals).map((key) => {
-      return { tokenId: key, amount: inputTotals[key] };
+      return {
+        tokenId: key,
+        name: this._assetInfo[key]?.name,
+        amount: this._assetInfo[key]?.decimals
+          ? decimalize(inputTotals[key], this._assetInfo[key].decimals ?? 0)
+          : inputTotals[key]
+      };
     });
   }
 

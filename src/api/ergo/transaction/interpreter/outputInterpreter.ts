@@ -69,7 +69,7 @@ export class OutputInterpreter {
         tokenId: t.tokenId,
         name: this._assetInfo[t.tokenId]?.name,
         amount: this._assetInfo[t.tokenId]?.decimals
-          ? decimalize(toBigNumber(t.amount)!, this._assetInfo[t.tokenId].decimals ?? 0)
+          ? decimalize(toBigNumber(t.amount), this._assetInfo[t.tokenId].decimals ?? 0)
           : toBigNumber(t.amount)
       } as OutputAsset;
     });
