@@ -5,7 +5,7 @@
     </div>
     <div
       v-if="$route.meta.fullPage || $route.query.auth === 'true'"
-      class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100"
+      class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100 border-b-1 border-gray-200"
     >
       <img src="/icons/app/logo.svg" class="w-11 ml-2" />
       <h1 class="text-base font-semibold w-full">

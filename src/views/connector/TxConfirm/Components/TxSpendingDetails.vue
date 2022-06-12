@@ -1,16 +1,16 @@
 <template>
-  <div class="flex flex-col gap-2 border rounded" :class="boxStyles">
-    <div class="border-b-1 p-2 font-semibold" :class="headerStyles">
+  <div class="flex flex-col border rounded" :class="boxStyles">
+    <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none" :class="headerStyles">
       <slot />
 
-      <div class="text-xs font-normal text-dark-400 pt-1" v-if="$slots.subheader">
+      <div class="text-xs font-normal text-gray-600 pt-1" v-if="$slots.subheader">
         <slot name="subheader" />
       </div>
     </div>
 
-    <ul class="px-2">
-      <li v-for="asset in assets" class="pb-2">
-        <div class="flex flex-row items-center gap-2">
+    <ul class="px-3 py-1">
+      <li v-for="asset in assets">
+        <div class="flex flex-row items-center gap-2 py-1">
           <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />
           <div class="flex-grow items-center align-middle">
             <span class="align-middle">
@@ -63,31 +63,31 @@ export default defineComponent({
     boxStyles() {
       switch (this.type) {
         case "danger":
-          return "border-red-200 bg-red-50";
+          return "border-red-300 bg-red-50";
         case "warning":
-          return "border-yellow-200";
+          return "border-yellow-300";
         case "info":
-          return "border-blue-200";
+          return "border-blue-300";
         case "success":
-          return "border-green-200";
+          return "border-green-300";
         case "normal":
         default:
-          return "border-gray-200";
+          return "border-gray-300";
       }
     },
     headerStyles() {
       switch (this.type) {
         case "danger":
-          return "bg-red-100 border-red-200 text-red-900";
+          return "bg-red-100 border-red-300 text-red-900";
         case "warning":
-          return "bg-yellow-100 border-yellow-200 text-yellow-900";
+          return "bg-yellow-100 border-yellow-300 text-yellow-900";
         case "info":
-          return "bg-blue-100 border-blue-200 text-blue-900";
+          return "bg-blue-100 border-blue-300 text-blue-900";
         case "success":
-          return "bg-green-100 border-green-200 text-green-900";
+          return "bg-green-100 border-green-300 text-green-900";
         case "normal":
         default:
-          return "bg-gray-100 border-gray-200";
+          return "bg-gray-100 border-gray-300";
       }
     }
   }

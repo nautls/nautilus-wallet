@@ -2,15 +2,9 @@
   <div class="flex flex-col h-full gap-4">
     <dapp-plate :origin="origin" :favicon="favicon" compact />
     <h1 class="text-xl m-auto ext-center">Wants to sign a transaction</h1>
-    <div
-      class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto pt-0.5 px-4 -mx-4"
-    >
-      <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger"
-        ><div class="flex flex-row gap-1 items-center align-middle">
-          <mdi-icon name="alert-circle-outline" size="18" />
-          <span class="align-middle">Burning</span>
-        </div>
-
+    <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4">
+      <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
+        <p>Burning</p>
         <template v-slot:subheader
           ><span>
             The assets listed below will be lost. Only continue if you know exactly what are you
@@ -25,21 +19,19 @@
         :key="index"
         :type="output.isIntrawallet ? 'info' : 'normal'"
       >
-        <p class="font-normal">
-          <span class="font-semibold">Recipient: </span>
-          <span class="font-mono text-sm break-all"
-            >{{ $filters.compactString(output.receiver, 60) }}
-            <click-to-copy :content="output.receiver" size="12"
-          /></span>
+        <p>
+          {{ mountTitleForOutput(output) }}
         </p>
 
-        <template v-slot:subheader v-if="output.isIntrawallet">
-          <span>This address belongs to you.</span>
+        <template v-slot:subheader>
+          <p class="font-mono text-sm break-all">
+            {{ $filters.compactString(output.receiver, 60) }}
+            <click-to-copy :content="output.receiver" size="11" />
+          </p>
         </template>
       </tx-spending-details>
-
       <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
-        >Transaction fee</tx-spending-details
+        ><p>Transaction fee</p></tx-spending-details
       >
     </div>
 
@@ -50,29 +42,25 @@
           <span class="align-middle"> This wallet cannot sign transactions.</span>
         </p>
         <div class="text-left" v-else>
-          <label
-            >Spending password
-            <input
-              type="password"
-              @blur="v$.password.$touch()"
-              v-model.lazy="password"
-              class="w-full control block"
-            />
-            <p class="input-error" v-if="v$.password.$error">
-              {{ v$.password.$errors[0].$message }}
-            </p>
-          </label>
+          <input
+            placeholder="Spending password"
+            type="password"
+            @blur="v$.password.$touch()"
+            v-model.lazy="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
+          </p>
         </div>
       </template>
 
       <label
         v-if="tx?.burning"
-        class="inline-block font-normal cursor-pointer bg-red-100 border-1 border-red-200 mt-2 py-1 px-2 rounded w-full"
+        class="inline-block font-normal cursor-pointer bg-red-100 border-1 border-red-300 mt-2 py-2 px-3 rounded w-full"
       >
         <input class="checkbox" type="checkbox" v-model="burnAgreement" />
-        <span class="align-middle font-semibold text-red-900"
-          >I understand that I'm burning my token(s).</span
-        >
+        <span class="align-middle text-red-900">I understand that I'm burning my token(s).</span>
       </label>
     </div>
 
@@ -115,7 +103,7 @@ import {
 import { ACTIONS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
-import { helpers, required, requiredUnless } from "@vuelidate/validators";
+import { helpers, requiredUnless } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
@@ -123,6 +111,8 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import TxSpendingDetails from "./Components/TxSpendingDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
+import { MAINNET } from "@/constants/ergo";
+import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
 
 export default defineComponent({
   name: "SignTxConfirmView",
@@ -308,6 +298,26 @@ export default defineComponent({
     fail(info: string) {
       this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
       window.close();
+    },
+    mountTitleForOutput(output: OutputInterpreter) {
+      if (output.isIntrawallet) {
+        return "Sending to your address";
+      } else if (!this.isP2PK(output.receiver)) {
+        return "Sending to contract";
+      }
+
+      return "Sending to external address";
+    },
+    isP2PK(address: string) {
+      if (address.length !== 51) {
+        return false;
+      }
+
+      if (MAINNET) {
+        return address.startsWith("9");
+      }
+
+      return address.startsWith("3");
     },
     sendError(error: TxSignError) {
       window.removeEventListener("beforeunload", this.onWindowClosing);
