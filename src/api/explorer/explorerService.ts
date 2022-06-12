@@ -222,7 +222,7 @@ class ExplorerService {
           shouldResetTimeout: true,
           retryDelay: axiosRetry.exponentialDelay,
           retryCondition: (error) => {
-            const data = error.response?.data;
+            const data = error.response?.data as any;
             if (!data) {
               return true;
             }
@@ -244,7 +244,7 @@ class ExplorerService {
           shouldResetTimeout: true,
           retryDelay: axiosRetry.exponentialDelay,
           retryCondition: (error) => {
-            const data = error.response?.data;
+            const data = error.response?.data as any;
             return !data || data.status === 404;
           }
         }
