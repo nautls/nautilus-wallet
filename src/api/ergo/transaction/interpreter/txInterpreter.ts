@@ -1,4 +1,4 @@
-import { MINER_FEE_TREE } from "@/constants/ergo";
+import { MAINNET_MINER_FEE_TREE, TESTNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate, Token } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
@@ -6,6 +6,10 @@ import BigNumber from "bignumber.js";
 import { difference, find, findLast, groupBy, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
+
+function isMinerFeeTree(ergoTree: string) {
+  return ergoTree === MAINNET_MINER_FEE_TREE || ergoTree === TESTNET_MINER_FEE_TREE;
+}
 
 export class TxInterpreter {
   private _tx!: UnsignedTx;
@@ -21,10 +25,14 @@ export class TxInterpreter {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
-    this._feeBox = find(tx.outputs, (b) => b.ergoTree === MINER_FEE_TREE);
-    this._changeBox = findLast(tx.outputs, (b) =>
-      ownAddresses.includes(addressFromErgoTree(b.ergoTree))
-    );
+    this._feeBox = find(tx.outputs, (b) => isMinerFeeTree(b.ergoTree));
+
+    if (find(tx.inputs, (i) => ownAddresses.includes(addressFromErgoTree(i.ergoTree)))) {
+      this._changeBox = findLast(tx.outputs, (o) =>
+        ownAddresses.includes(addressFromErgoTree(o.ergoTree))
+      );
+    }
+
     this._sendingBoxes = difference(tx.outputs, [this._feeBox, this._changeBox]).filter(
       (b) => b !== undefined
     ) as ErgoBoxCandidate[];
