@@ -755,7 +755,7 @@ export default createStore({
       const boxes = await fetchBoxes(command.walletId);
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
 
-      const signedtx = await TxBuilder.from(selectedAddresses)
+      const signedTx = await TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
@@ -765,7 +765,7 @@ export default createStore({
         .setCallback(command.callback)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      return await submitTx(signedtx, command.walletId);
+      return await submitTx(signedTx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
       const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);

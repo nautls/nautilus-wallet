@@ -17,7 +17,7 @@
         v-for="(output, index) in tx?.sending"
         :assets="output.assets"
         :key="index"
-        :type="output.isIntrawallet ? 'info' : 'normal'"
+        :type="output.isIntrawallet ? 'success' : 'normal'"
       >
         <p>
           {{ mountTitleForOutput(output) }}
