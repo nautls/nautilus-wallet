@@ -84,6 +84,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
         case "getChangeAddress":
           await handleGetChangeAddressRequest(message, port, session);
           break;
+        case "auth":
+          // await handleSignTxRequest(message, port, session);
+          break;
         case "signTx":
           await handleSignTxRequest(message, port, session);
           break;

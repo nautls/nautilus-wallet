@@ -29,7 +29,7 @@ import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 
 export default defineComponent({
-  name: "AuthView",
+  name: "ConnectView",
   created() {
     const message = find(rpcHandler.messages, (m) => m.function === "connect");
     if (!message || !message.params) {

@@ -187,6 +187,10 @@ class NautilusErgoApi {
     return this._rpcCall("signData", [addr, message]);
   }
 
+  auth(addr, message) {
+    return this._rpcCall("auth", [addr, message]);
+  }
+
   submit_tx(tx) {
     return this._rpcCall("submitTx", [tx]);
   }
