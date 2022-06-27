@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import ConnectView from "@/views/connector/ConnectView.vue";
+import AuthView from "@/views/connector/AuthView.vue";
 import SignTxConfirmView from "@/views/connector/TxConfirm/SignTxConfirmView.vue";
 import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
 
@@ -95,6 +96,12 @@ const routes: Array<RouteRecordRaw> = [
     name: "connector-sign-tx",
     component: SignTxConfirmView,
     meta: { title: "Transaction signature" }
+  },
+  {
+    path: "/connector/auth",
+    name: "connector-auth",
+    component: AuthView,
+    meta: { title: "Authorization" }
   },
   {
     path: "/wallet/settings",

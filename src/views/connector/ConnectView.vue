@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full gap-4 text-center pt-2">
+  <div class="flex text-sm flex-col h-full gap-4 text-center pt-2">
     <dapp-plate :origin="origin" :favicon="favicon" />
 
     <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>

@@ -7,7 +7,7 @@
       <img v-if="favicon" :src="favicon" class="rounded-full" :class="faviconClass" />
       <vue-feather v-else type="help-circle" class="text-gray-500" :class="faviconClass" />
     </div>
-    <p class="text-gray-600">{{ stripProtocol(origin) }}</p>
+    <p v-if="origin" class="text-gray-600">{{ stripProtocol(origin) }}</p>
   </div>
 </template>
 

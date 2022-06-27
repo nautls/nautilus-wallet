@@ -206,7 +206,35 @@ export async function handleSignTxRequest(
     return;
   }
 
-  const response = await showSignTxWindow(session!, request, port);
+  const response = await openPopup(session!, request, port);
+  postConnectorResponse(response, request, port);
+}
+
+export async function handleAuthRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session?: Session
+) {
+  if (!validateRequest(session, request, port)) {
+    return;
+  }
+
+  console.log(request);
+
+  if (!request.params || !request.params[0] || !request.params[1]) {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InvalidRequest,
+        info: "bad params"
+      },
+      request,
+      port
+    );
+
+    return;
+  }
+
+  const response = await openPopup(session!, request, port);
   postConnectorResponse(response, request, port);
 }
 
@@ -278,7 +306,7 @@ export async function handleNotImplementedRequest(
   );
 }
 
-async function showSignTxWindow(
+async function openPopup(
   session: Session,
   message: RpcMessage,
   port: chrome.runtime.Port

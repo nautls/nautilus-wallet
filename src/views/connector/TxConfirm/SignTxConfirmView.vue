@@ -90,7 +90,7 @@ import { defineComponent } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
 import { find, isEmpty } from "lodash";
-import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
+import { SignError, SignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
@@ -293,10 +293,10 @@ export default defineComponent({
       window.close();
     },
     refuse(info: string) {
-      this.sendError({ code: TxSignErrorCode.UserDeclined, info });
+      this.sendError({ code: SignErrorCode.UserDeclined, info });
     },
     fail(info: string) {
-      this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
+      this.sendError({ code: SignErrorCode.ProofGeneration, info });
       window.close();
     },
     mountTitleForOutput(output: OutputInterpreter) {
@@ -319,7 +319,7 @@ export default defineComponent({
 
       return address.startsWith("3");
     },
-    sendError(error: TxSignError) {
+    sendError(error: SignError) {
       window.removeEventListener("beforeunload", this.onWindowClosing);
 
       rpcHandler.sendMessage({
