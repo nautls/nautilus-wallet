@@ -6,7 +6,7 @@ import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, isEmpty } from "lodash";
+import { add, find, findIndex, isEmpty } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -222,15 +222,22 @@ export async function handleAuthRequest(
   console.log(request);
 
   if (!request.params || !request.params[0] || !request.params[1]) {
+    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "bad params" }, request, port);
+    return;
+  }
+
+  const address = request.params[0];
+  console.log("address", address);
+  const addressEntity = await addressesDbService.getByScript(address);
+  if (!addressEntity || addressEntity.walletId !== session?.walletId) {
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "bad params"
+        info: `address '${address}' does not belong to the connected wallet.`
       },
       request,
       port
     );
-
     return;
   }
 

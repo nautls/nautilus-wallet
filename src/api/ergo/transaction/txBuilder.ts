@@ -39,7 +39,6 @@ import {
 } from "ledger-ergo-js";
 import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 import { addressFromErgoTree } from "../addresses";
-import { stringify } from "crypto-js/enc-utf8";
 
 export class TxBuilder {
   private _from!: StateAddress[];

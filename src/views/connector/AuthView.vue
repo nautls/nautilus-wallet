@@ -12,7 +12,6 @@
     >
       {{ address }}
     </div>
-
     <div class="flex-grow"></div>
     <p v-if="isReadonly || isLedger" class="text-sm text-center">
       <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
@@ -34,6 +33,13 @@
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
       <button class="btn w-full" @click="authenticate()">Authenticate</button>
     </div>
+
+    <loading-modal
+      title="Signing"
+      :message="errorMessage"
+      :state="errorMessage ? 'error' : 'unknown'"
+      @close="errorMessage = ''"
+    />
   </div>
 </template>
 
@@ -48,9 +54,12 @@ import useVuelidate from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { SignError, SignErrorCode } from "@/types/connector";
+import LoadingModal from "@/components/LoadingModal.vue";
+import { PasswordError } from "@/types/errors";
 
 export default defineComponent({
   name: "AuthView",
+  components: { LoadingModal },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -86,7 +95,8 @@ export default defineComponent({
       favicon: "",
       address: "",
       message: "",
-      password: ""
+      password: "",
+      errorMessage: ""
     };
   },
   validations() {
@@ -135,23 +145,32 @@ export default defineComponent({
         return;
       }
 
-      const signResult = await this.$store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
-        address: this.address,
-        message: this.message,
-        walletId: this.currentWalletId,
-        password: this.password
-      } as SignEip28MessageCommand);
+      try {
+        const signResult = await this.$store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
+          address: this.address,
+          message: this.message,
+          walletId: this.currentWalletId,
+          password: this.password
+        } as SignEip28MessageCommand);
 
-      rpcHandler.sendMessage({
-        type: "rpc/nautilus-response",
-        function: "auth",
-        sessionId: this.sessionId,
-        requestId: this.requestId,
-        return: { isSuccess: true, data: signResult }
-      });
+        rpcHandler.sendMessage({
+          type: "rpc/nautilus-response",
+          function: "auth",
+          sessionId: this.sessionId,
+          requestId: this.requestId,
+          return: { isSuccess: true, data: signResult }
+        });
 
-      window.removeEventListener("beforeunload", this.refuse);
-      window.close();
+        window.removeEventListener("beforeunload", this.refuse);
+        window.close();
+      } catch (e) {
+        console.error(e);
+        if (e instanceof PasswordError) {
+          this.errorMessage = e.message;
+        } else {
+          this.fail(typeof e === "string" ? e : (e as Error).message);
+        }
+      }
     },
     cancel() {
       this.refuse();
@@ -170,6 +189,9 @@ export default defineComponent({
           data: error
         }
       });
+    },
+    fail(info: string) {
+      this.sendError({ code: SignErrorCode.ProofGeneration, info });
     },
     refuse() {
       this.sendError({ code: SignErrorCode.UserDeclined, info: "User rejected" });
