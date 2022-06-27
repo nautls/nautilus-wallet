@@ -32,7 +32,9 @@ import {
   UpdateUsedAddressesFilterCommand,
   StateAssetInfo,
   AssetType,
-  AssetSubtype
+  AssetSubtype,
+  SignEip28MessageCommand,
+  Eip28SignedMessage
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -796,22 +798,41 @@ export default createStore({
           : await Bip32.fromMnemonic(
               await walletsDbService.getMnemonic(command.walletId, command.password)
             );
-      command.password = "";
 
       const changeAddress = getChangeAddress(
         command.tx.outputs,
         ownAddresses.map((a) => a.script)
       );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedtx = await TxBuilder.from(addresses)
+      const signedTx = await TxBuilder.from(addresses)
         .useLedger(walletType === WalletType.Ledger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
         .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      return signedtx;
+      return signedTx;
     },
+    async [ACTIONS.SIGN_EIP28_MESSAGE](
+      {},
+      command: SignEip28MessageCommand
+    ): Promise<Eip28SignedMessage> {
+      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
+      const bip32 = await Bip32.fromMnemonic(
+        await walletsDbService.getMnemonic(command.walletId, command.password)
+      );
 
+      const randomNumbers = new Uint8Array(10);
+      crypto.getRandomValues(randomNumbers);
+      const saltedMessage = `${command.message}-${randomNumbers.join("")}`;
+
+      const signingAddress = ownAddresses.filter((x) => x.script === command.address);
+      const proofBytes = TxBuilder.from(signingAddress).signMessage(saltedMessage, bip32);
+
+      return {
+        signedMessage: saltedMessage,
+        proof: Buffer.from(proofBytes).toString("hex")
+      };
+    },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();
       commit(MUTATIONS.SET_CONNECTIONS, connections);

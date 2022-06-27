@@ -105,6 +105,18 @@ export type SignTxFromConnectorCommand = {
   callback?: (newState: SigningState) => {};
 };
 
+export type SignEip28MessageCommand = {
+  message: string;
+  address: string;
+  walletId: number;
+  password: string;
+};
+
+export type Eip28SignedMessage = {
+  signedMessage: string;
+  proof: string;
+};
+
 export type UpdateWalletSettingsCommand = {
   walletId: number;
   name: string;

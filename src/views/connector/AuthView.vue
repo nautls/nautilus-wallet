@@ -32,7 +32,7 @@
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" @click="authenticate()" :disabled="!selected">Authenticate</button>
+      <button class="btn w-full" @click="authenticate()">Authenticate</button>
     </div>
   </div>
 </template>
@@ -41,12 +41,12 @@
 import { defineComponent } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find, isEmpty } from "lodash";
+import { find } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { ACTIONS } from "@/constants/store/actions";
 import useVuelidate from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
-import { WalletType } from "@/types/internal";
+import { SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { SignError, SignErrorCode } from "@/types/connector";
 
 export default defineComponent({
@@ -130,13 +130,26 @@ export default defineComponent({
       this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
     },
     async authenticate() {
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
+        return;
+      }
+
+      const signResult = await this.$store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
+        address: this.address,
+        message: this.message,
+        walletId: this.currentWalletId,
+        password: this.password
+      } as SignEip28MessageCommand);
+
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
         function: "auth",
         sessionId: this.sessionId,
         requestId: this.requestId,
-        return: { isSuccess: true, data: { signedMessage: "", proof: "" } }
+        return: { isSuccess: true, data: signResult }
       });
+
       window.removeEventListener("beforeunload", this.refuse);
       window.close();
     },

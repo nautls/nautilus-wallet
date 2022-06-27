@@ -39,6 +39,7 @@ import {
 } from "ledger-ergo-js";
 import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 import { addressFromErgoTree } from "../addresses";
+import { stringify } from "crypto-js/enc-utf8";
 
 export class TxBuilder {
   private _from!: StateAddress[];
@@ -279,6 +280,13 @@ export class TxBuilder {
     const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
     const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
     return signed;
+  }
+
+  public signMessage(message: string, keys: Bip32) {
+    const wallet = this.buildWallet(this._from, keys);
+    const address = wasmModule.SigmaRust.Address.from_mainnet_str(this._from[0].script);
+
+    return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
   }
 
   private serializeRegisters(box: ErgoBoxCandidate): Buffer {
