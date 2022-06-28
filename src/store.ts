@@ -821,9 +821,7 @@ export default createStore({
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
 
-      const randomNumbers = new Uint8Array(10);
-      crypto.getRandomValues(randomNumbers);
-      const saltedMessage = `${command.message}-${randomNumbers.join("")}`;
+      const saltedMessage = `${command.message}_${crypto.randomUUID()}`;
 
       const signingAddress = ownAddresses.filter((x) => x.script === command.address);
       const proofBytes = TxBuilder.from(signingAddress).signMessage(saltedMessage, bip32);
