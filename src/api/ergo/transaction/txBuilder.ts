@@ -283,7 +283,9 @@ export class TxBuilder {
 
   public signMessage(message: string, keys: Bip32) {
     const wallet = this.buildWallet(this._from, keys);
-    const address = wasmModule.SigmaRust.Address.from_mainnet_str(this._from[0].script);
+    const address = MAINNET
+      ? wasmModule.SigmaRust.Address.from_mainnet_str(this._from[0].script)
+      : wasmModule.SigmaRust.Address.from_testnet_str(this._from[0].script);
 
     return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
   }
