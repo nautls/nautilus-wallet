@@ -1,5 +1,8 @@
 <template>
-  <div class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100">
+  <div
+    class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100"
+    :class="$route.query.popup === 'true' ? 'border-b-1 border-gray-200' : ''"
+  >
     <div class="flex-grow">
       <img src="/icons/app/logo.svg" class="w-11 ml-2" />
     </div>

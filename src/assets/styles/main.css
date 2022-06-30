@@ -146,9 +146,9 @@ input:disabled {
 }
 
 .nav-btn {
-  @apply bg-transparent border border-solid rounded 
-    font-bold  outline-none border-blue-800 text-sm mr-1 mb-1 
-    w-full py-6 px-4 text-blue-800 default-transition
+  @apply bg-transparent border border-solid rounded text-left
+    font-semibold outline-none border-blue-800 text-sm mr-1
+    w-full p-4 text-blue-800 default-transition
     hover:bg-blue-50 focus:outline-none active:bg-blue-100;
 }
 
@@ -157,7 +157,7 @@ input:disabled {
 }
 
 .nav-btn .subtitle {
-  @apply font-normal text-xs pt-2 text-gray-500 block mx-4;
+  @apply font-normal text-xs mt-0.5 text-gray-500 block mx-4;
 }
 
 .dropdown {
@@ -289,8 +289,8 @@ input:disabled {
 }
 
 .checkbox {
-  @apply block h-4 w-4 border border-gray-300 rounded-sm bg-white 
-  checked:bg-blue-600 checked:border-blue-600 focus:outline-none 
+  @apply block h-4 w-4 border-gray-300 rounded-sm bg-white 
+  focus:outline-none checked:(bg-blue-600 border-blue-600)
   default-transition mt-1 align-top bg-no-repeat bg-center bg-contain 
   float-left mr-2 cursor-pointer outline-none;
 }

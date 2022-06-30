@@ -53,15 +53,17 @@ import { TxBuilder } from "././api/ergo/transaction/txBuilder";
 import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
-import { extractAddressesFromInputs } from "./api/ergo/addresses";
-import { ITokenRate } from "ergo-market-lib";
+import {
+  extractAddressesFromInputs as extractP2PKAddressesFromInputs,
+  getChangeAddress
+} from "./api/ergo/addresses";
 import { submitTx } from "./api/ergo/submitTx";
 import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
-import { asDict } from "./utils/serializer";
 import { Token } from "./types/connector";
+import { AssetPriceRate } from "./types/explorer";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -70,6 +72,12 @@ function dbAddressMapper(a: IDbAddress) {
     index: a.index,
     balance: undefined
   };
+}
+
+function navigate(routerName: string) {
+  if (router.currentRoute.value.query.redirect !== "false") {
+    router.push({ name: routerName });
+  }
 }
 
 export default createStore({
@@ -105,7 +113,7 @@ export default createStore({
     ergPrice: 0,
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
-    } as { [tokenId: string]: { erg: number } }
+    } as AssetPriceRate
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -293,15 +301,9 @@ export default createStore({
 
       wallet.settings.hideUsedAddresses = command.filter;
     },
-    [MUTATIONS.SET_MARKET_RATES](state, rates: ITokenRate[]) {
-      const assetErgRate = asDict(
-        rates.map((r) => {
-          return { [r.token.tokenId]: { erg: r.ergPerToken } };
-        })
-      );
-
-      assetErgRate[ERG_TOKEN_ID] = { erg: 1 };
-      state.assetMarketRates = assetErgRate;
+    [MUTATIONS.SET_MARKET_RATES](state, rates: AssetPriceRate) {
+      rates[ERG_TOKEN_ID] = { erg: 1 };
+      state.assetMarketRates = rates;
     },
     [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
       if (isEmpty(assetsInfo)) {
@@ -359,13 +361,13 @@ export default createStore({
 
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
         dispatch(ACTIONS.LOAD_CONNECTIONS);
-        router.push({ name: "assets-page" });
+        navigate("assets-page");
       } else {
-        router.push({ name: "add-wallet" });
+        navigate("add-wallet");
       }
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
-      const tokenMarketRates = await explorerService.getTokenMarketRates();
+      const tokenMarketRates = await explorerService.getTokenRates();
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
@@ -400,13 +402,13 @@ export default createStore({
     async [ACTIONS.PUT_WALLET](
       { dispatch },
       wallet:
-        | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly }
+        | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly | WalletType.Ledger }
         | { mnemonic: string; password: string; name: string; type: WalletType.Standard }
     ) {
       const bip32 =
-        wallet.type === WalletType.ReadOnly
-          ? Bip32.fromPublicKey(wallet.extendedPublicKey)
-          : await Bip32.fromMnemonic(wallet.mnemonic);
+        wallet.type === WalletType.Standard
+          ? await Bip32.fromMnemonic(wallet.mnemonic)
+          : Bip32.fromPublicKey(wallet.extendedPublicKey);
 
       bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
@@ -730,11 +732,19 @@ export default createStore({
         }
       }
 
+      if (command.callback) {
+        command.callback({ statusText: "Loading data from the blockchain..." } as any);
+      }
+
       const addresses = state.currentAddresses;
+      const walletType = state.currentWallet.type;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
-      const bip32 = await Bip32.fromMnemonic(
-        await walletsDbService.getMnemonic(command.walletId, command.password)
-      );
+      const bip32 =
+        walletType === WalletType.Ledger
+          ? bip32Pool.get(state.currentWallet.publicKey)
+          : await Bip32.fromMnemonic(
+              await walletsDbService.getMnemonic(command.walletId, command.password)
+            );
       command.password = "";
 
       const changeAddress = state.currentWallet.settings.avoidAddressReuse
@@ -745,44 +755,59 @@ export default createStore({
       const boxes = await fetchBoxes(command.walletId);
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
 
-      const signedtx = TxBuilder.from(selectedAddresses)
+      const signedTx = await TxBuilder.from(selectedAddresses)
         .to(command.recipient)
         .changeIndex(changeAddress ?? 0)
         .withAssets(command.assets)
         .withFee(command.fee)
         .fromBoxes(boxes)
+        .useLedger(walletType === WalletType.Ledger)
+        .setCallback(command.callback)
         .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      return await submitTx(signedtx, command.walletId);
+      return await submitTx(signedTx, command.walletId);
     },
     async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
-      const addressesFromBoxes = extractAddressesFromInputs(command.tx.inputs);
-      const dbAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const addresses = dbAddresses
-        .filter((a) => addressesFromBoxes.includes(a.script))
+      const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
+      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
+      const addresses = ownAddresses
+        .filter((a) => inputAddresses.includes(a.script))
         .map((a) => dbAddressMapper(a));
 
       if (isEmpty(addresses)) {
         const changeIndex = state.currentWallet.settings.defaultChangeIndex;
         addresses.push(
           dbAddressMapper(
-            find(dbAddresses, (a) => a.index === changeIndex) ??
-              find(dbAddresses, (a) => a.index === 0) ??
-              dbAddresses[0]
+            find(ownAddresses, (a) => a.index === changeIndex) ??
+              find(ownAddresses, (a) => a.index === 0) ??
+              ownAddresses[0]
           )
         );
       }
 
-      const bip32 = await Bip32.fromMnemonic(
-        await walletsDbService.getMnemonic(command.walletId, command.password)
-      );
+      if (command.callback) {
+        command.callback({ statusText: "Loading data from the blockchain..." } as any);
+      }
+
+      const walletType = state.currentWallet.type;
+      const bip32 =
+        walletType === WalletType.Ledger
+          ? bip32Pool.get(state.currentWallet.publicKey)
+          : await Bip32.fromMnemonic(
+              await walletsDbService.getMnemonic(command.walletId, command.password)
+            );
       command.password = "";
 
-      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedtx = TxBuilder.from(addresses).signFromConnector(
-        command.tx,
-        SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32)
+      const changeAddress = getChangeAddress(
+        command.tx.outputs,
+        ownAddresses.map((a) => a.script)
       );
+      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
+      const signedtx = await TxBuilder.from(addresses)
+        .useLedger(walletType === WalletType.Ledger)
+        .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+        .setCallback(command.callback)
+        .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
       return signedtx;
     },

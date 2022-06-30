@@ -77,7 +77,7 @@
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
       <button @click="add()" :disabled="loading" type="button" class="w-full btn">
-        <loading-indicator v-if="loading" class="h-5 w-5" />
+        <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />
         <span v-else>Confirm</span>
       </button>
     </div>

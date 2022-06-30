@@ -1,3 +1,4 @@
+import { LedgerDeviceModelId } from "@/constants/ledger";
 import BigNumber from "bignumber.js";
 import { UnsignedTx } from "./connector";
 
@@ -94,12 +95,14 @@ export type SendTxCommand = {
   fee: BigNumber;
   recipient: string;
   password: string;
+  callback?: (newState: SigningState) => {};
 };
 
 export type SignTxFromConnectorCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
+  callback?: (newState: SigningState) => {};
 };
 
 export type UpdateWalletSettingsCommand = {
@@ -112,6 +115,16 @@ export type UpdateWalletSettingsCommand = {
 export type UpdateChangeIndexCommand = {
   walletId: number;
   index: number;
+};
+
+export type SigningState = {
+  loading: boolean;
+  connected: boolean;
+  statusText: string;
+  screenText: string;
+  deviceModel: LedgerDeviceModelId;
+  state: string;
+  appId: number;
 };
 
 export type UpdateUsedAddressesFilterCommand = {

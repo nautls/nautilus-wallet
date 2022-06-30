@@ -1,94 +1,86 @@
 <template>
-  <div class="flex flex-col h-full gap-4 text-center">
+  <div class="flex flex-col h-full gap-4">
     <dapp-plate :origin="origin" :favicon="favicon" compact />
-    <h1 class="text-xl m-auto">Wants to sign a transaction</h1>
-    <div
-      class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto border-gray-300 border-1 rounded text-left px-2 py-1"
-    >
-      <div class="flex flex-col gap-2" v-for="(output, index) in tx?.sending" :key="index">
-        <div class="mb-1">
-          <p class="font-semibold mb-1">Recipient</p>
+    <h1 class="text-xl m-auto ext-center">Wants to sign a transaction</h1>
+    <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4">
+      <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
+        <p>Burning</p>
+        <template v-slot:subheader
+          ><span>
+            The assets listed below will be lost. Only continue if you know exactly what are you
+            doing.
+          </span></template
+        >
+      </tx-spending-details>
 
-          <p class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
+      <tx-spending-details
+        v-for="(output, index) in tx?.sending"
+        :assets="output.assets"
+        :key="index"
+        :type="output.isIntrawallet ? 'success' : 'normal'"
+      >
+        <p>
+          {{ mountTitleForOutput(output) }}
+        </p>
+
+        <template v-slot:subheader>
+          <p class="font-mono text-sm break-all">
             {{ $filters.compactString(output.receiver, 60) }}
-            <click-to-copy :content="output.receiver" size="12" />
-            <span
-              class="rounded bg-blue-500 mx-2 px-1 font-normal text-xs text-light-200 uppercase font-sans"
-              v-if="output.isIntrawallet"
-              >Your address</span
-            >
+            <click-to-copy :content="output.receiver" size="11" />
+          </p>
+        </template>
+      </tx-spending-details>
+      <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
+        ><p>Transaction fee</p></tx-spending-details
+      >
+    </div>
+
+    <div>
+      <template v-if="!isLedger">
+        <p v-if="isReadonly" class="text-sm text-center">
+          <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
+          <span class="align-middle"> This wallet cannot sign transactions.</span>
+        </p>
+        <div class="text-left" v-else>
+          <input
+            placeholder="Spending password"
+            type="password"
+            @blur="v$.password.$touch()"
+            v-model.lazy="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
           </p>
         </div>
-        <div class="my-1">
-          <p class="font-semibold mb-1">Assets</p>
-          <ul class="px-1">
-            <li v-for="asset in output.assets" class="py-1">
-              <div class="flex flex-row items-center gap-2">
-                <asset-icon class="h-8 w-8" :token-id="asset.tokenId" />
-                <div class="flex-grow items-center align-middle">
-                  <span class="align-middle">
-                    <template v-if="asset.name">{{
-                      $filters.compactString(asset.name, 20, "end")
-                    }}</template>
-                    <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
-                  </span>
-                  <tool-tip v-if="asset.minting" class="align-middle">
-                    <template v-slot:label>
-                      <div class="block w-38">
-                        <span>This asset is being minted by this transaction.</span>
-                        <div class="text-left pt-2">
-                          <p v-if="asset.description">
-                            <span class="font-bold">Description</span>:
-                            {{ $filters.compactString(asset.description, 50, "end") }}
-                          </p>
-                          <p v-if="asset.decimals">
-                            <span class="font-bold">Decimals</span>: {{ asset.decimals }}
-                          </p>
-                        </div>
-                      </div>
-                    </template>
-                    <vue-feather type="git-commit" class="align-middle pl-2" />
-                  </tool-tip>
-                </div>
-                <div>
-                  {{ $filters.formatBigNumber(asset.amount) }}
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div v-if="tx?.fee && tx?.fee.assets[0]" class="text-right px-2 -mt-2 text-sm">
-      <p>Fee: {{ $filters.formatBigNumber(tx.fee.assets[0].amount) }} ERG</p>
-    </div>
-    <div class="text-left" v-if="!isReadonly">
+      </template>
+
       <label
-        >Spending password
-        <input
-          type="password"
-          @blur="v$.password.$touch()"
-          v-model.lazy="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
-        </p>
+        v-if="tx?.burning"
+        class="inline-block font-normal cursor-pointer bg-red-100 border-1 border-red-300 mt-2 py-2 px-3 rounded w-full"
+      >
+        <input class="checkbox" type="checkbox" v-model="burnAgreement" />
+        <span class="align-middle text-red-900">I understand that I'm burning my token(s).</span>
       </label>
     </div>
-    <p v-else>
-      <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" />
-      <span class="align-middle"> This wallet cannot sign transactions.</span>
-    </p>
+
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" @click="sign()" :disabled="isReadonly">Confirm</button>
+      <button
+        class="btn w-full"
+        @click="sign()"
+        :disabled="isReadonly || (tx?.burning && !burnAgreement)"
+      >
+        Confirm
+      </button>
     </div>
+    <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
     <loading-modal
+      v-else
       title="Signing"
-      :message="signMessage"
-      :state="signState"
-      @close="signState = 'disabled'"
+      :message="signState.statusText"
+      :state="signState.state"
+      @close="signState.state = 'unknown'"
     />
   </div>
 </template>
@@ -102,6 +94,7 @@ import { TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
+  SigningState,
   SignTxFromConnectorCommand,
   StateAddress,
   StateAssetInfo,
@@ -110,18 +103,25 @@ import {
 import { ACTIONS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { helpers, requiredUnless } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
 import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
+import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
+import TxSpendingDetails from "./Components/TxSpendingDetails.vue";
+import { LedgerDeviceModelId } from "@/constants/ledger";
+import { MAINNET } from "@/constants/ergo";
+import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
 
 export default defineComponent({
   name: "SignTxConfirmView",
   components: {
     DappPlate,
     ToolTip,
-    LoadingModal
+    LoadingModal,
+    LedgerSigningModal,
+    TxSpendingDetails
   },
   setup() {
     return { v$: useVuelidate() };
@@ -150,20 +150,31 @@ export default defineComponent({
   data() {
     return {
       rawTx: Object.freeze({} as UnsignedTx),
+      burnAgreement: false,
       currentWalletId: 0,
       requestId: 0,
       sessionId: 0,
       password: "",
       origin: "",
       favicon: "",
-      signState: "disabled",
-      signMessage: ""
+      signState: {
+        loading: false,
+        connected: false,
+        deviceModel: LedgerDeviceModelId.nanoS,
+        screenText: "",
+        statusText: "",
+        state: "unknown",
+        appId: 0
+      } as SigningState
     };
   },
   validations() {
     return {
       password: {
-        required: helpers.withMessage("Spending password is required.", required)
+        required: helpers.withMessage(
+          "A spending password is required for transaction signing.",
+          requiredUnless(this.isLedger)
+        )
       }
     };
   },
@@ -193,6 +204,9 @@ export default defineComponent({
     ...mapState({ wallets: "wallets", loading: "loading" }),
     isReadonly() {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
+    isLedger() {
+      return this.$store.state.currentWallet.type === WalletType.Ledger;
     },
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
@@ -232,14 +246,16 @@ export default defineComponent({
         return;
       }
 
-      this.signState = "loading";
-      this.signMessage = "";
+      this.signState.loading = true;
+      this.signState.state = "loading";
+      this.signState.statusText = "";
 
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX_FROM_CONNECTOR, {
           tx: this.rawTx,
           walletId: this.currentWalletId,
-          password: this.password
+          password: this.password,
+          callback: this.setStateCallback
         } as SignTxFromConnectorCommand);
 
         rpcHandler.sendMessage({
@@ -253,19 +269,24 @@ export default defineComponent({
           }
         });
 
+        this.signState.loading = false;
+        this.signState.state = "success";
         window.removeEventListener("beforeunload", this.onWindowClosing);
         window.close();
       } catch (e) {
-        (e as Error).message;
-        this.signState = "error";
+        this.signState.loading = false;
+        this.signState.state = "error";
         console.error(e);
 
         if (e instanceof PasswordError) {
-          this.signMessage = e.message;
+          this.signState.statusText = e.message;
         } else {
           this.fail(typeof e === "string" ? e : (e as Error).message);
         }
       }
+    },
+    setStateCallback(newState: SigningState) {
+      this.signState = Object.assign(this.signState, newState);
     },
     cancel() {
       this.refuse("User rejected");
@@ -277,6 +298,26 @@ export default defineComponent({
     fail(info: string) {
       this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
       window.close();
+    },
+    mountTitleForOutput(output: OutputInterpreter) {
+      if (output.isIntrawallet) {
+        return "Sending to your address";
+      } else if (!this.isP2PK(output.receiver)) {
+        return "Sending to contract";
+      }
+
+      return "Sending to external address";
+    },
+    isP2PK(address: string) {
+      if (address.length !== 51) {
+        return false;
+      }
+
+      if (MAINNET) {
+        return address.startsWith("9");
+      }
+
+      return address.startsWith("3");
     },
     sendError(error: TxSignError) {
       window.removeEventListener("beforeunload", this.onWindowClosing);

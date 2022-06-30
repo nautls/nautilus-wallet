@@ -29,6 +29,13 @@
         ></canvas>
       </div>
     </div>
+    <div
+      v-if="isLedger"
+      class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
+    >
+      <strong>Never send more than ten distinct tokens</strong> in a single transaction to a Ledger
+      wallet. Due to device's memory limitations your assets can get stuck in your wallet.
+    </div>
     <div>
       <button class="w-full btn" @click="newAddress()" :disabled="loading || errorMsg != ''">
         New address
@@ -120,18 +127,23 @@ import {
   StateAddress,
   StateWallet,
   UpdateChangeIndexCommand,
-  UpdateUsedAddressesFilterCommand
+  UpdateUsedAddressesFilterCommand,
+  WalletType
 } from "@/types/internal";
 import { ADDRESS_URL } from "@/constants/explorer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
+import MdiIcon from "@/components/MdiIcon.vue";
 
 export default defineComponent({
   name: "ReceiveView",
   computed: {
     currentWallet(): StateWallet {
       return this.$store.state.currentWallet;
+    },
+    isLedger(): boolean {
+      return this.currentWallet.type === WalletType.Ledger;
     },
     stateAddresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
@@ -146,7 +158,6 @@ export default defineComponent({
             (!settings.avoidAddressReuse && a.index === settings.defaultChangeIndex)
         );
       }
-
       return this.stateAddresses;
     },
     hideUsed(): boolean {
@@ -160,7 +171,6 @@ export default defineComponent({
     },
     mainAddress(): string | undefined {
       const settings = this.currentWallet.settings;
-
       return this.avoidingReuse
         ? last(this.addresses)?.script
         : find(this.addresses, (a) => a.index === settings.defaultChangeIndex)?.script;
@@ -181,7 +191,6 @@ export default defineComponent({
           if (!this.mainAddress) {
             return;
           }
-
           QRCode.toCanvas(document.getElementById("primary-address-canvas"), this.mainAddress, {
             errorCorrectionLevel: "low",
             margin: 0,
@@ -231,6 +240,7 @@ export default defineComponent({
     urlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;
     }
-  }
+  },
+  components: { MdiIcon }
 });
 </script>

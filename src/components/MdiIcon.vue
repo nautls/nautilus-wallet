@@ -1,3 +1,3 @@
 <template>
-  <mdicon class="inline-block" v-bind="$.attrs" />
+  <mdicon class="inline-flex" v-bind="$.attrs" />
 </template>

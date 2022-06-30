@@ -1,6 +1,8 @@
-import { decimalize } from "@/utils/bigNumbers";
-import BigNumber from "bignumber.js";
-import { decodeColl, decodeCollTuple } from "../../src/api/ergo/sigmaSerializer";
+import {
+  decodeColl,
+  decodeCollTuple,
+  extractPksFromRegisters
+} from "../../src/api/ergo/sigmaSerializer";
 
 describe("sigma serializer", () => {
   // example from https://github.com/ergoplatform/eips/blob/master/eip-0004.md#ergo-tokens-standard
@@ -38,5 +40,36 @@ describe("sigma serializer", () => {
     expect(decodeColl("0e020102", "hex")).toEqual("0102");
     expect(decodeColl("0e020103", "hex")).toEqual("0103");
     expect(decodeColl("0e020201", "hex")).toEqual("0201");
+  });
+
+  it("extract public key from registers with two possible pk consts", () => {
+    expect(
+      extractPksFromRegisters({
+        R4: "0580c0fc82aa02",
+        R5: "0e240008cd036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17",
+        R7: "07036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"
+      })
+    ).toEqual([
+      "036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17",
+      "036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"
+    ]);
+  });
+
+  it("extract public key from registers with 08cd prefixed pk const", () => {
+    expect(
+      extractPksFromRegisters({
+        R4: "0580c0fc82aa02",
+        R5: "0e240008cd036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"
+      })
+    ).toEqual(["036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"]);
+  });
+
+  it("extract public key from registers with GroupElement", () => {
+    expect(
+      extractPksFromRegisters({
+        R4: "0580c0fc82aa02",
+        R7: "07036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"
+      })
+    ).toEqual(["036b84756b351ee1c57fd8c302e66a1bb927e5d8b6e1a8e085935de3971f84ae17"]);
   });
 });

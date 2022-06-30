@@ -2,7 +2,8 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import LoadingView from "@/views/LoadingView.vue";
 import AssetsView from "@/views/AssetsView.vue";
 import AuthView from "@/views/connector/AuthView.vue";
-import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
+import SignTxConfirmView from "@/views/connector/TxConfirm/SignTxConfirmView.vue";
+import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
 
 const AddView = () => import("@/views/add/AddView.vue");
 const NftGalleryView = () => import("@/views/NftGalleryView.vue");
@@ -46,6 +47,12 @@ const routes: Array<RouteRecordRaw> = [
     name: "add-standard-wallet",
     component: AddStandardView,
     meta: { fullPage: true, title: "Add new standard wallet" }
+  },
+  {
+    path: "/add/hw/ledger",
+    name: "add-hw-ledger",
+    component: ConnectLedgerView,
+    meta: { fullPage: true, title: "Connect a hardware wallet" }
   },
   {
     path: "/assets",

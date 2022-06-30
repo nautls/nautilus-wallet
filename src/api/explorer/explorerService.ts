@@ -2,6 +2,8 @@ import { API_URL } from "@/constants/explorer";
 import {
   AddressAPIResponse,
   AssetBalance,
+  AssetPriceRate,
+  ErgoDexPool,
   ExplorerBlockHeaderResponse,
   ExplorerBox,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
@@ -10,18 +12,17 @@ import {
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { chunk, find, isEmpty } from "lodash";
+import { chunk, find, isEmpty, uniqWith } from "lodash";
 import JSONBig from "json-bigint";
-import { ExplorerTokenMarket, ITokenRate } from "ergo-market-lib";
 import { ErgoTx } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
+import BigNumber from "bignumber.js";
 
-const explorerTokenMarket = new ExplorerTokenMarket({ explorerUri: API_URL });
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class ExplorerService {
@@ -206,15 +207,21 @@ class ExplorerService {
     signedTx: ErgoTx
   ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
     const response = await axios.post(
-      `${API_URL}/api/v1/mempool/transactions/submit`,
+      MAINNET
+        ? `${API_URL}/api/v1/mempool/transactions/submit`
+        : `http://213.239.193.208:9052/transactions`,
       JSONBig.stringify(signedTx),
       {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
         "axios-retry": {
           retries: 15,
           shouldResetTimeout: true,
           retryDelay: axiosRetry.exponentialDelay,
           retryCondition: (error) => {
-            const data = error.response?.data;
+            const data = error.response?.data as any;
             if (!data) {
               return true;
             }
@@ -225,7 +232,7 @@ class ExplorerService {
       }
     );
 
-    return response.data;
+    return MAINNET ? response.data : { id: response.data };
   }
 
   public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
@@ -236,7 +243,7 @@ class ExplorerService {
           shouldResetTimeout: true,
           retryDelay: axiosRetry.exponentialDelay,
           retryCondition: (error) => {
-            const data = error.response?.data;
+            const data = error.response?.data as any;
             return !data || data.status === 404;
           }
         }
@@ -264,8 +271,43 @@ class ExplorerService {
     );
   }
 
-  public async getTokenMarketRates(): Promise<ITokenRate[]> {
-    return explorerTokenMarket.getTokenRates();
+  private getUtcTimestamp(date: Date) {
+    return Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds()
+    );
+  }
+
+  public async getTokenRates(): Promise<AssetPriceRate> {
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 30);
+
+    const { data } = await axios.get<ErgoDexPool[]>(`https://api.ergodex.io/v1/amm/markets`, {
+      params: {
+        from: this.getUtcTimestamp(fromDate),
+        to: this.getUtcTimestamp(new Date())
+      }
+    });
+
+    const filtered = uniqWith(
+      data.filter((x) => x.baseId === ERG_TOKEN_ID),
+      (a, b) =>
+        a.quoteId === b.quoteId && new BigNumber(a.baseVolume.value).isLessThan(b.baseVolume.value)
+    );
+
+    return asDict(
+      filtered.map((r) => {
+        return {
+          [r.quoteId]: {
+            erg: new BigNumber(1).dividedBy(r.lastPrice).toNumber()
+          }
+        };
+      })
+    );
   }
 }
 

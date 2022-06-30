@@ -1,4 +1,4 @@
-import { wasmModule } from "@/utils/wasm-module";
+import { validateAddress } from "@/api/ergo/addresses";
 import { isEmpty } from "lodash";
 
 function validator(value: string) {
@@ -6,13 +6,7 @@ function validator(value: string) {
     return false;
   }
 
-  try {
-    wasmModule.SigmaRust.Address.from_mainnet_str(value);
-  } catch (e) {
-    return false;
-  }
-
-  return true;
+  return validateAddress(value);
 }
 
 export default {

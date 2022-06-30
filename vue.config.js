@@ -3,8 +3,7 @@ const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 var webpack = require("webpack");
 const { defineConfig } = require("@vue/cli-service");
 
-let commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
-process.env.VUE_APP_GIT_HASH = commitHash;
+const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 
 module.exports = defineConfig({
   publicPath: "/",
@@ -41,7 +40,6 @@ module.exports = defineConfig({
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
     background: { entry: "src/background/background.ts", template: "public/background.html" }
   },
-  transpileDependencies: ["ergo-market-lib"],
   chainWebpack: (config) => {
     config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 
@@ -60,6 +58,12 @@ module.exports = defineConfig({
         contextRegExp: /bip39\\src$/
       })
     );
+
+    config.plugin("define").tap((options) => {
+      options[0]["process.env"].GIT_HASH = JSON.stringify(commitHash);
+      options[0]["process.env"].MAINNET = JSON.stringify(!process.argv.includes("--testnet"));
+      return options;
+    });
 
     config
       .plugin("clean-output")
