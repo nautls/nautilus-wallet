@@ -27,8 +27,7 @@ module.exports = defineConfig({
       }
     },
     experiments: {
-      asyncWebAssembly: true,
-      backCompat: true
+      asyncWebAssembly: true
     },
     plugins: [
       new webpack.ProvidePlugin({
