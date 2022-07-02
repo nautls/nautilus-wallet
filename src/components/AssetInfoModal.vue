@@ -77,7 +77,7 @@ export default defineComponent({
     ImageSandbox
   },
   props: {
-    tokenId: { type: String, required: true }
+    tokenId: { type: String, required: false }
   },
   computed: {
     emissionAmount(): string {
@@ -131,6 +131,10 @@ export default defineComponent({
   },
   methods: {
     async getAssetInfo() {
+      if (!this.tokenId) {
+        return;
+      }
+
       this.asset = Object.freeze(await assetInfoDbService.get(this.tokenId));
     },
     emitOnClose(): void {
