@@ -75,9 +75,9 @@ module.exports = defineConfig({
 
     const svgRule = config.module.rule("svg");
     svgRule.uses.clear();
-    svgRule.delete("type");
-    svgRule.delete("generator");
     svgRule
+      .delete("type")
+      .delete("generator")
       .use("vue-loader")
       .loader("vue-loader")
       .end()
