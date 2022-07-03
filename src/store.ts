@@ -66,7 +66,7 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
-import { buildEip28ResponseMessage } from "./api/eip28";
+import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
