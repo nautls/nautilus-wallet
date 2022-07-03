@@ -1,23 +1,39 @@
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
-const webpack = require("webpack");
+var webpack = require("webpack");
+const { defineConfig } = require("@vue/cli-service");
 
 const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 
-module.exports = {
+module.exports = defineConfig({
   publicPath: "/",
   productionSourceMap: false,
   devServer: {
-    writeToDisk: true
+    devMiddleware: {
+      writeToDisk: true
+    }
   },
   lintOnSave: false,
   configureWebpack: {
-    devtool: "none",
+    devtool: "cheap-source-map",
     optimization: {
       splitChunks: {
         chunks: "all"
       }
-    }
+    },
+    resolve: {
+      fallback: {
+        stream: require.resolve("stream-browserify")
+      }
+    },
+    experiments: {
+      asyncWebAssembly: true
+    },
+    plugins: [
+      new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"]
+      })
+    ]
   },
   pages: {
     index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
@@ -27,7 +43,7 @@ module.exports = {
     config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 
     config.plugin("copy").tap(([pathConfigs]) => {
-      pathConfigs.push({
+      pathConfigs.patterns.push({
         from: "src/content-scripts",
         to: "js"
       });
@@ -35,15 +51,18 @@ module.exports = {
       return [pathConfigs];
     });
 
+    config.plugin("ignore").use(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/wordlists\/(?!english)/,
+        contextRegExp: /bip39\\src$/
+      })
+    );
+
     config.plugin("define").tap((options) => {
       options[0]["process.env"].GIT_HASH = JSON.stringify(commitHash);
       options[0]["process.env"].MAINNET = JSON.stringify(!process.argv.includes("--testnet"));
       return options;
     });
-
-    config
-      .plugin("ignore")
-      .use(new webpack.IgnorePlugin(/^\.\/wordlists\/(?!english)/, /bip39\\src$/));
 
     config
       .plugin("clean-output")
@@ -57,8 +76,10 @@ module.exports = {
     const svgRule = config.module.rule("svg");
     svgRule.uses.clear();
     svgRule
+      .delete("type")
+      .delete("generator")
       .use("vue-loader")
-      .loader("vue-loader-v16")
+      .loader("vue-loader")
       .end()
       .use("vue-svg-loader")
       .loader("vue-svg-loader")
@@ -66,4 +87,4 @@ module.exports = {
 
     config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
   }
-};
+});
