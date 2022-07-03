@@ -31,7 +31,9 @@
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" @click="authenticate()">Authenticate</button>
+      <button class="btn w-full" :disabled="isReadonly || isLedger" @click="authenticate()">
+        Authenticate
+      </button>
     </div>
 
     <loading-modal
