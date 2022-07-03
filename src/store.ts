@@ -66,6 +66,7 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
+import { buildEip28ResponseMessage } from "./api/eip28";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -821,13 +822,12 @@ export default createStore({
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
 
-      const saltedMessage = `${command.message}_${crypto.randomUUID()}`;
-
       const signingAddress = ownAddresses.filter((x) => x.script === command.address);
-      const proofBytes = TxBuilder.from(signingAddress).signMessage(saltedMessage, bip32);
+      const message = buildEip28ResponseMessage(command.message, command.origin);
+      const proofBytes = TxBuilder.from(signingAddress).signMessage(message, bip32);
 
       return {
-        signedMessage: saltedMessage,
+        signedMessage: message,
         proof: Buffer.from(proofBytes).toString("hex")
       };
     },

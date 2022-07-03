@@ -149,6 +149,7 @@ export default defineComponent({
         const signResult = await this.$store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
           address: this.address,
           message: this.message,
+          origin: this.origin,
           walletId: this.currentWalletId,
           password: this.password
         } as SignEip28MessageCommand);

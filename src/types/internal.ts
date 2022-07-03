@@ -108,6 +108,7 @@ export type SignTxFromConnectorCommand = {
 export type SignEip28MessageCommand = {
   message: string;
   address: string;
+  origin: string;
   walletId: number;
   password: string;
 };
