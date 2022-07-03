@@ -16,5 +16,6 @@ export const logoMapper: { [key: string]: string } = {
   ["9dbc8dd9d7ea75e38ef43cf3c0ffde2c55fd74d58ac7fc0489ec8ffee082991b"]: "ermoon.svg",
   ["1fd6e032e8476c4aa54c18c1a308dce83940e8f4a28f576440513ed7326ad489"]: "paideia.svg",
   ["00b1e236b60b95c2c6f8007a9d89bc460fc9e78f98b09faec9449007b40bccf3"]: "egio.svg",
-  ["007fd64d1ee54d78dd269c8930a38286caa28d3f29d27cadcb796418ab15c283"]: "exle.svg"
+  ["007fd64d1ee54d78dd269c8930a38286caa28d3f29d27cadcb796418ab15c283"]: "exle.svg",
+  ["02f31739e2e4937bb9afb552943753d1e3e9cdd1a5e5661949cb0cef93f907ea"]: "terahertz.svg"
 };
