@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/api/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -78,7 +78,7 @@ export default defineComponent({
   },
   props: {
     tokenId: { type: String, required: false },
-    confirmedBalance: { type: BigNumber, required: false }
+    confirmedBalance: { type: BigNumber as PropType<BigNumber.Value>, required: false }
   },
   computed: {
     emissionAmount(): string {

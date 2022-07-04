@@ -82,7 +82,7 @@
     <asset-info-modal
       @close="selectedAsset = undefined"
       :token-id="selectedAsset?.tokenId"
-      :confirmed-balance="selectedAsset?.confirmedAmount.absoluteValue()"
+      :confirmed-balance="selectedAsset?.confirmedAmount"
     />
   </div>
 </template>
