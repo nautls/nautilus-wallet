@@ -79,7 +79,11 @@
         </tbody>
       </table>
     </div>
-    <asset-info-modal @close="selectedAsset = undefined" :token-id="selectedAsset?.tokenId" />
+    <asset-info-modal
+      @close="selectedAsset = undefined"
+      :token-id="selectedAsset?.tokenId"
+      :confirmed-balance="selectedAsset?.confirmedAmount.absoluteValue()"
+    />
   </div>
 </template>
 

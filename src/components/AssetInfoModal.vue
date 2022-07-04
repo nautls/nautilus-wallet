@@ -35,8 +35,8 @@
             <p class="text-sm font-bold">{{ emissionAmount }}</p>
           </div>
           <div class="w-1/2">
-            <small class="uppercase text-gray-500">Decimal Places</small>
-            <p class="text-sm font-bold">{{ asset?.decimals ?? 0 }}</p>
+            <small class="uppercase text-gray-500">Balance</small>
+            <p class="text-sm font-bold">{{ confirmedBalance ?? 0 }}</p>
           </div>
         </div>
         <div class="flex flex-row gap-4">
@@ -77,7 +77,8 @@ export default defineComponent({
     ImageSandbox
   },
   props: {
-    tokenId: { type: String, required: false }
+    tokenId: { type: String, required: false },
+    confirmedBalance: { type: BigNumber, required: false }
   },
   computed: {
     emissionAmount(): string {
