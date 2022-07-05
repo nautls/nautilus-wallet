@@ -5,7 +5,7 @@
     </div>
     <div class="flex flex-wrap gap-4 items-cente justify-between">
       <div
-        @click.native="selectedTokenId = nft.tokenId"
+        @click.native="selectedAsset = nft"
         class="border cursor-pointer border-gray-300 rounded w-39"
         v-for="nft in nfts"
         :key="nft.tokenId"
@@ -26,7 +26,11 @@
         </p>
       </div>
     </div>
-    <asset-info-modal @close="selectedTokenId = ''" :token-id="selectedTokenId" />
+    <asset-info-modal
+      @close="selectedAsset = undefined"
+      :token-id="selectedAsset?.tokenId"
+      :confirmed-balance="selectedAsset?.confirmedAmount"
+    />
   </div>
 </template>
 
@@ -68,7 +72,7 @@ export default defineComponent({
   data() {
     return {
       filter: "",
-      selectedTokenId: ""
+      selectedAsset: undefined as StateAsset | undefined
     };
   }
 });

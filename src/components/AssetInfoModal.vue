@@ -35,8 +35,8 @@
             <p class="text-sm font-bold">{{ emissionAmount }}</p>
           </div>
           <div class="w-1/2">
-            <small class="uppercase text-gray-500">Decimal Places</small>
-            <p class="text-sm font-bold">{{ asset?.decimals ?? 0 }}</p>
+            <small class="uppercase text-gray-500">Balance</small>
+            <p class="text-sm font-bold">{{ $filters.formatBigNumber(confirmedBalance) ?? 0 }}</p>
           </div>
         </div>
         <div class="flex flex-row gap-4">
@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/api/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -77,7 +77,8 @@ export default defineComponent({
     ImageSandbox
   },
   props: {
-    tokenId: { type: String, required: true }
+    tokenId: { type: String, required: false },
+    confirmedBalance: { type: BigNumber as PropType<BigNumber.Value>, required: false }
   },
   computed: {
     emissionAmount(): string {
@@ -131,6 +132,10 @@ export default defineComponent({
   },
   methods: {
     async getAssetInfo() {
+      if (!this.tokenId) {
+        return;
+      }
+
       this.asset = Object.freeze(await assetInfoDbService.get(this.tokenId));
     },
     emitOnClose(): void {

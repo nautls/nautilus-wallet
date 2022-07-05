@@ -45,11 +45,7 @@
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
                 {{ asset.info?.name }}
               </p>
-              <a
-                v-else
-                @click="selectedTokenId = asset.tokenId"
-                class="break-anywhere cursor-pointer"
-              >
+              <a v-else @click="selectedAsset = asset" class="break-anywhere cursor-pointer">
                 <template v-if="asset.info?.name">{{
                   $filters.compactString(asset.info?.name, 40)
                 }}</template>
@@ -83,7 +79,11 @@
         </tbody>
       </table>
     </div>
-    <asset-info-modal @close="selectedTokenId = ''" :token-id="selectedTokenId" />
+    <asset-info-modal
+      @close="selectedAsset = undefined"
+      :token-id="selectedAsset?.tokenId"
+      :confirmed-balance="selectedAsset?.confirmedAmount"
+    />
   </div>
 </template>
 
@@ -145,7 +145,7 @@ export default defineComponent({
     return {
       filter: "",
       prevCount: 1,
-      selectedTokenId: ""
+      selectedAsset: undefined as StateAsset | undefined
     };
   },
   methods: {
