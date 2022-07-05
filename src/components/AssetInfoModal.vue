@@ -36,7 +36,7 @@
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Balance</small>
-            <p class="text-sm font-bold">{{ confirmedBalance ?? 0 }}</p>
+            <p class="text-sm font-bold">{{ $filters.formatBigNumber(confirmedBalance) ?? 0 }}</p>
           </div>
         </div>
         <div class="flex flex-row gap-4">
