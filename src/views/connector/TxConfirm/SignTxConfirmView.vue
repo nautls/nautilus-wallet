@@ -193,7 +193,8 @@ export default defineComponent({
     },
     rawTx() {
       this.loadAssetInfo(
-        this.rawTx.outputs
+        this.rawTx.inputs
+          .filter((x) => x.assets)
           .map((x) => x.assets)
           .flat()
           .map((x) => x.tokenId)
