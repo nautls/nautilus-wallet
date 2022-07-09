@@ -86,7 +86,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, Ref } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
 import { find, isEmpty } from "lodash";
@@ -102,7 +102,7 @@ import {
 } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import ToolTip from "@/components/ToolTip.vue";
-import { useVuelidate } from "@vuelidate/core";
+import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import JSONBig from "json-bigint";
@@ -124,7 +124,9 @@ export default defineComponent({
     TxSpendingDetails
   },
   setup() {
-    return { v$: useVuelidate() };
+    return {
+      v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>>
+    };
   },
   async created() {
     const message = find(rpcHandler.messages, (m) => m.function === "signTx");

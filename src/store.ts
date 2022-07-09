@@ -803,13 +803,13 @@ export default createStore({
         ownAddresses.map((a) => a.script)
       );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedtx = await TxBuilder.from(addresses)
+      const signedTx = await TxBuilder.from(addresses)
         .useLedger(walletType === WalletType.Ledger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
         .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
 
-      return signedtx;
+      return signedTx;
     },
 
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
