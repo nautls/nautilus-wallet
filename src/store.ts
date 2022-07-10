@@ -50,7 +50,6 @@ import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { TxBuilder } from "././api/ergo/transaction/txBuilder";
-import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import {
@@ -64,6 +63,8 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
+import { TxInterpreter } from "./api/ergo/transaction/interpreter/txInterpreter";
+import { Prover } from "./api/ergo/transaction/prover";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -739,7 +740,7 @@ export default createStore({
       const addresses = state.currentAddresses;
       const walletType = state.currentWallet.type;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
-      const bip32 =
+      const deriver =
         walletType === WalletType.Ledger
           ? bip32Pool.get(state.currentWallet.publicKey)
           : await Bip32.fromMnemonic(
@@ -747,23 +748,45 @@ export default createStore({
             );
       command.password = "";
 
-      const changeAddress = state.currentWallet.settings.avoidAddressReuse
+      const changeIndex = state.currentWallet.settings.avoidAddressReuse
         ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
             ?.index ?? state.currentWallet.settings.defaultChangeIndex
         : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await fetchBoxes(command.walletId);
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
+      const lastBlockHeader = maxBy(blockHeaders, (h) => h.height);
+      if (!lastBlockHeader) {
+        throw Error("Unable to fetch current height, please check your connection.");
+      }
 
-      const signedTx = await TxBuilder.from(selectedAddresses)
+      const unsignedTx = new TxBuilder(deriver)
         .to(command.recipient)
-        .changeIndex(changeAddress ?? 0)
-        .withAssets(command.assets)
-        .withFee(command.fee)
-        .fromBoxes(boxes)
+        .inputs(boxes)
+        .assets(command.assets)
+        .fee(command.fee)
+        .height(lastBlockHeader.height)
+        .changeIndex(changeIndex ?? 0)
+        .build();
+
+      const parsedTx = new TxInterpreter(
+        unsignedTx,
+        state.currentAddresses.map((a) => a.script),
+        state.assetInfo
+      );
+
+      if (!isEmpty(parsedTx.burning)) {
+        throw Error(
+          "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way."
+        );
+      }
+
+      const signedTx = await new Prover(deriver)
+        .from(selectedAddresses)
         .useLedger(walletType === WalletType.Ledger)
+        .changeIndex(changeIndex ?? 0)
         .setCallback(command.callback)
-        .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
+        .sign(unsignedTx, blockHeaders);
 
       return await submitTx(signedTx, command.walletId);
     },
@@ -790,7 +813,7 @@ export default createStore({
       }
 
       const walletType = state.currentWallet.type;
-      const bip32 =
+      const deriver =
         walletType === WalletType.Ledger
           ? bip32Pool.get(state.currentWallet.publicKey)
           : await Bip32.fromMnemonic(
@@ -803,15 +826,16 @@ export default createStore({
         ownAddresses.map((a) => a.script)
       );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedtx = await TxBuilder.from(addresses)
+
+      const signedTx = await new Prover(deriver)
+        .from(addresses)
         .useLedger(walletType === WalletType.Ledger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
-        .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
+        .sign(command.tx, blockHeaders);
 
-      return signedtx;
+      return signedTx;
     },
-
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();
       commit(MUTATIONS.SET_CONNECTIONS, connections);
