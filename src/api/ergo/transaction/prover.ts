@@ -1,5 +1,5 @@
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { UnsignedTx } from "@/types/connector";
+import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { StateAddress } from "@/types/internal";
 import { wasmModule } from "@/utils/wasm-module";
 import {
@@ -62,14 +62,14 @@ export class Prover {
     return this;
   }
 
-  public async sign(unsignedTx: UnsignedTx, headers: ExplorerBlockHeader[]): Promise<string> {
+  public async sign(unsignedTx: UnsignedTx, headers: ExplorerBlockHeader[]): Promise<ErgoTx> {
     const sigmaRust = wasmModule.SigmaRust;
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
     const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
     const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
     const signed = await this._sign(tx, unspentBoxes, dataInputBoxes, headers);
 
-    return signed.to_json();
+    return JSONBig.parse(signed.to_json());
   }
 
   private async _sign(

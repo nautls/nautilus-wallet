@@ -1,13 +1,12 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, MAINNET } from "@/constants/ergo";
-import { ErgoBox, Input, DataInput, UnsignedTx, UnsignedInput, ErgoTx } from "@/types/connector";
+import { ErgoBox, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
 import { SendTxCommandAsset } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import { Address, BoxValue, ErgoBoxCandidates, I64, Tokens } from "ergo-lib-wasm-browser";
-import { find, maxBy } from "lodash";
-import { SignContext } from "./signContext";
+import { find } from "lodash";
 import JSONBig from "json-bigint";
 import Bip32 from "../bip32";
 

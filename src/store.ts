@@ -4,7 +4,6 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
-import JSONBig from "json-bigint";
 import {
   groupBy,
   sortBy,
@@ -51,7 +50,6 @@ import { addressesDbService } from "@/api/database/addressesDbService";
 import { assestsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { TxBuilder } from "././api/ergo/transaction/txBuilder";
-import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import {
@@ -742,7 +740,7 @@ export default createStore({
       const addresses = state.currentAddresses;
       const walletType = state.currentWallet.type;
       const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
-      const bip32 =
+      const deriver =
         walletType === WalletType.Ledger
           ? bip32Pool.get(state.currentWallet.publicKey)
           : await Bip32.fromMnemonic(
@@ -762,7 +760,7 @@ export default createStore({
         throw Error("Unable to fetch current height, please check your connection.");
       }
 
-      const unsignedTx = new TxBuilder(bip32)
+      const unsignedTx = new TxBuilder(deriver)
         .to(command.recipient)
         .inputs(boxes)
         .assets(command.assets)
@@ -779,18 +777,16 @@ export default createStore({
 
       if (!isEmpty(parsedTx.burning)) {
         throw Error(
-          "Malformed transaction. This is happening due to a known issue in transaction building library, a patch is on the way."
+          "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way."
         );
       }
 
-      const signedTx = JSONBig.parse(
-        await new Prover(bip32)
-          .from(addresses)
-          .useLedger(walletType === WalletType.Ledger)
-          .changeIndex(changeIndex ?? 0)
-          .setCallback(command.callback)
-          .sign(unsignedTx, blockHeaders)
-      );
+      const signedTx = await new Prover(deriver)
+        .from(selectedAddresses)
+        .useLedger(walletType === WalletType.Ledger)
+        .changeIndex(changeIndex ?? 0)
+        .setCallback(command.callback)
+        .sign(unsignedTx, blockHeaders);
 
       return await submitTx(signedTx, command.walletId);
     },
@@ -817,7 +813,7 @@ export default createStore({
       }
 
       const walletType = state.currentWallet.type;
-      const bip32 =
+      const deriver =
         walletType === WalletType.Ledger
           ? bip32Pool.get(state.currentWallet.publicKey)
           : await Bip32.fromMnemonic(
@@ -831,7 +827,7 @@ export default createStore({
       );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
 
-      const signedTx = await new Prover(bip32)
+      const signedTx = await new Prover(deriver)
         .from(addresses)
         .useLedger(walletType === WalletType.Ledger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
@@ -840,7 +836,6 @@ export default createStore({
 
       return signedTx;
     },
-
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();
       commit(MUTATIONS.SET_CONNECTIONS, connections);

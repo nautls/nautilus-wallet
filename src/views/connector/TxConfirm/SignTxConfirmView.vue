@@ -268,7 +268,7 @@ export default defineComponent({
           requestId: this.requestId,
           return: {
             isSuccess: true,
-            data: JSONBig.parse(signedTx)
+            data: signedTx
           }
         });
 
