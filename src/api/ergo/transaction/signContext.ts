@@ -1,15 +1,15 @@
-import { ExplorerBlockHeaderResponse } from "@/types/explorer";
+import { ExplorerBlockHeader } from "@/types/explorer";
 import Bip32 from "../bip32";
 
 export class SignContext {
   private _bip32!: Bip32;
-  private _headers!: ExplorerBlockHeaderResponse[];
+  private _headers!: ExplorerBlockHeader[];
 
-  private constructor(blockHeaders: ExplorerBlockHeaderResponse[]) {
+  private constructor(blockHeaders: ExplorerBlockHeader[]) {
     this._headers = blockHeaders;
   }
 
-  public static fromBlockHeaders(blockHeaders: ExplorerBlockHeaderResponse[]): SignContext {
+  public static fromBlockHeaders(blockHeaders: ExplorerBlockHeader[]): SignContext {
     return new this(blockHeaders);
   }
 
@@ -22,7 +22,7 @@ export class SignContext {
     return this._bip32;
   }
 
-  public get blockHeaders(): ExplorerBlockHeaderResponse[] {
+  public get blockHeaders(): ExplorerBlockHeader[] {
     return this._headers;
   }
 }

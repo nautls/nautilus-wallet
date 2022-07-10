@@ -4,6 +4,7 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
+import JSONBig from "json-bigint";
 import {
   groupBy,
   sortBy,
@@ -64,6 +65,8 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
+import { TxInterpreter } from "./api/ergo/transaction/interpreter/txInterpreter";
+import { Prover } from "./api/ergo/transaction/prover";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -747,23 +750,47 @@ export default createStore({
             );
       command.password = "";
 
-      const changeAddress = state.currentWallet.settings.avoidAddressReuse
+      const changeIndex = state.currentWallet.settings.avoidAddressReuse
         ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
             ?.index ?? state.currentWallet.settings.defaultChangeIndex
         : state.currentWallet.settings.defaultChangeIndex;
 
       const boxes = await fetchBoxes(command.walletId);
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
+      const lastBlockHeader = maxBy(blockHeaders, (h) => h.height);
+      if (!lastBlockHeader) {
+        throw Error("Unable to fetch current height, please check your connection.");
+      }
 
-      const signedTx = await TxBuilder.from(selectedAddresses)
+      const unsignedTx = new TxBuilder(bip32)
         .to(command.recipient)
-        .changeIndex(changeAddress ?? 0)
-        .withAssets(command.assets)
-        .withFee(command.fee)
-        .fromBoxes(boxes)
-        .useLedger(walletType === WalletType.Ledger)
-        .setCallback(command.callback)
-        .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
+        .inputs(boxes)
+        .assets(command.assets)
+        .fee(command.fee)
+        .height(lastBlockHeader.height)
+        .changeIndex(changeIndex ?? 0)
+        .build();
+
+      const parsedTx = new TxInterpreter(
+        unsignedTx,
+        state.currentAddresses.map((a) => a.script),
+        state.assetInfo
+      );
+
+      if (!isEmpty(parsedTx.burning)) {
+        throw Error(
+          "Malformed transaction. This is happening due to a known issue in transaction building library, a patch is on the way."
+        );
+      }
+
+      const signedTx = JSONBig.parse(
+        await new Prover(bip32)
+          .from(addresses)
+          .useLedger(walletType === WalletType.Ledger)
+          .changeIndex(changeIndex ?? 0)
+          .setCallback(command.callback)
+          .sign(unsignedTx, blockHeaders)
+      );
 
       return await submitTx(signedTx, command.walletId);
     },
@@ -803,11 +830,13 @@ export default createStore({
         ownAddresses.map((a) => a.script)
       );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedTx = await TxBuilder.from(addresses)
+
+      const signedTx = await new Prover(bip32)
+        .from(addresses)
         .useLedger(walletType === WalletType.Ledger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
-        .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
+        .sign(command.tx, blockHeaders);
 
       return signedTx;
     },

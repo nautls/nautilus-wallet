@@ -4,7 +4,7 @@ import {
   AssetBalance,
   AssetPriceRate,
   ErgoDexPool,
-  ExplorerBlockHeaderResponse,
+  ExplorerBlockHeader,
   ExplorerBox,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
   ExplorerV0TransactionsPerAddressResponse,
@@ -198,7 +198,7 @@ class ExplorerService {
     limit?: number;
     sortBy?: string;
     sortDirection?: string;
-  }): Promise<ExplorerBlockHeaderResponse[]> {
+  }): Promise<ExplorerBlockHeader[]> {
     const response = await axios.get(`${API_URL}/api/v1/blocks/headers`, { params });
     return response.data.items;
   }

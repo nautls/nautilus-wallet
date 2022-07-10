@@ -105,7 +105,7 @@ export type ExplorerV1AddressBalanceResponse = {
   unconfirmed: ExplorerBalanceItem;
 };
 
-export type ExplorerBlockHeaderResponse = {
+export type ExplorerBlockHeader = {
   id: string;
   parentId: string;
   version: number;
@@ -134,7 +134,7 @@ export type ExplorerBlockHeaderResponse = {
 
 export type ExplorerGetApiV1BlocksP1Response = {
   block: {
-    header: ExplorerBlockHeaderResponse;
+    header: ExplorerBlockHeader;
     blockTransactions: [
       {
         id: string;
