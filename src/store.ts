@@ -26,7 +26,7 @@ import {
   AddressState,
   AddressType,
   SendTxCommand,
-  SignTxFromConnectorCommand,
+  SignTxCommand,
   UpdateWalletSettingsCommand,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
@@ -790,7 +790,7 @@ export default createStore({
 
       return await submitTx(signedTx, command.walletId);
     },
-    async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
+    async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxCommand) {
       const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = ownAddresses

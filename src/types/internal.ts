@@ -98,7 +98,7 @@ export type SendTxCommand = {
   callback?: (newState: SigningState) => {};
 };
 
-export type SignTxFromConnectorCommand = {
+export type SignTxCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
