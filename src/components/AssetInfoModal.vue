@@ -78,7 +78,7 @@ export default defineComponent({
   },
   props: {
     tokenId: { type: String, required: false },
-    confirmedBalance: { type: BigNumber as PropType<BigNumber.Value>, required: false }
+    confirmedBalance: { type: Object as PropType<BigNumber.Instance>, required: false }
   },
   computed: {
     emissionAmount(): string {
