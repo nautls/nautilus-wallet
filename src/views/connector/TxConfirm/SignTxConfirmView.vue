@@ -95,7 +95,7 @@ import DappPlate from "@/components/DappPlate.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
   SigningState,
-  SignTxFromConnectorCommand,
+  SignTxCommand,
   StateAddress,
   StateAssetInfo,
   WalletType
@@ -259,7 +259,7 @@ export default defineComponent({
           walletId: this.currentWalletId,
           password: this.password,
           callback: this.setStateCallback
-        } as SignTxFromConnectorCommand);
+        } as SignTxCommand);
 
         rpcHandler.sendMessage({
           type: "rpc/nautilus-response",

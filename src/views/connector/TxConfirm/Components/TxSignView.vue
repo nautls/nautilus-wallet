@@ -90,7 +90,7 @@ import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
   SigningState,
-  SignTxFromConnectorCommand,
+  SignTxCommand,
   StateAddress,
   StateAssetInfo,
   WalletType
@@ -192,7 +192,7 @@ export default defineComponent({
           walletId: this.currentWalletId,
           password: this.password,
           callback: this.setStateCallback
-        } as SignTxFromConnectorCommand);
+        } as SignTxCommand);
 
         this.setState("success", { loading: false });
 
