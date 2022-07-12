@@ -1,86 +1,80 @@
 <template>
-  <div class="flex flex-col h-full gap-4">
-    <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4">
-      <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
-        <p>Burning</p>
-        <template v-slot:subheader
-          ><span>
-            The assets listed below will be lost. Only continue if you know exactly what are you
-            doing.
-          </span></template
-        >
-      </tx-spending-details>
-
-      <tx-spending-details
-        v-for="(output, index) in tx?.sending"
-        :assets="output.assets"
-        :key="index"
-        :type="output.isIntrawallet ? 'success' : 'normal'"
+  <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4">
+    <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
+      <p>Burning</p>
+      <template v-slot:subheader
+        ><span>
+          The assets listed below will be lost. Only continue if you know exactly what are you
+          doing.
+        </span></template
       >
-        <p>
-          {{ mountTitleForOutput(output) }}
-        </p>
+    </tx-spending-details>
 
-        <template v-slot:subheader>
-          <p class="font-mono text-sm break-all">
-            {{ $filters.compactString(output.receiver, 60) }}
-            <click-to-copy :content="output.receiver" size="11" />
-          </p>
-        </template>
-      </tx-spending-details>
-      <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
-        ><p>Transaction fee</p></tx-spending-details
-      >
-    </div>
+    <tx-spending-details
+      v-for="(output, index) in tx?.sending"
+      :assets="output.assets"
+      :key="index"
+      :type="output.isIntrawallet ? 'success' : 'normal'"
+    >
+      <p>
+        {{ mountTitleForOutput(output) }}
+      </p>
 
-    <div>
-      <template v-if="!isLedger">
-        <p v-if="isReadonly" class="text-sm text-center">
-          <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
-          <span class="align-middle"> This wallet cannot sign transactions.</span>
+      <template v-slot:subheader>
+        <p class="font-mono text-sm break-all">
+          {{ $filters.compactString(output.receiver, 60) }}
+          <click-to-copy :content="output.receiver" size="11" />
         </p>
-        <div class="text-left" v-else>
-          <input
-            placeholder="Spending password"
-            type="password"
-            @blur="v$.password.$touch()"
-            v-model.lazy="password"
-            class="w-full control block"
-          />
-          <p class="input-error" v-if="v$.password.$error">
-            {{ v$.password.$errors[0].$message }}
-          </p>
-        </div>
       </template>
-
-      <label
-        v-if="tx?.burning"
-        class="inline-block font-normal cursor-pointer bg-red-100 border-1 border-red-300 mt-2 py-2 px-3 rounded w-full"
-      >
-        <input class="checkbox" type="checkbox" v-model="burnAgreement" />
-        <span class="align-middle text-red-900">I understand that I'm burning my token(s).</span>
-      </label>
-    </div>
-
-    <div class="flex flex-row gap-4">
-      <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button
-        class="btn w-full"
-        @click="sign()"
-        :disabled="isReadonly || (tx?.burning && !burnAgreement)"
-      >
-        Confirm
-      </button>
-    </div>
-    <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
-    <loading-modal
-      v-else
-      title="Signing"
-      :message="signState.statusText"
-      :state="signState.state"
-      @close="signState.state = 'unknown'"
-    />
+    </tx-spending-details>
+    <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
+      ><p>Transaction fee</p></tx-spending-details
+    >
   </div>
+
+  <div>
+    <label
+      v-if="tx?.burning"
+      class="inline-flex items-center font-normal cursor-pointer bg-red-100 border-1 border-red-300 mb-2 py-1 px-3 rounded w-full"
+    >
+      <input class="checkbox" type="checkbox" v-model="burnAgreement" />
+      <span class="text-red-900">I understand that I'm burning my token(s).</span>
+    </label>
+
+    <template v-if="!isLedger">
+      <p v-if="isReadonly" class="text-sm text-center">
+        <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
+        <span class="align-middle"> This wallet cannot sign transactions.</span>
+      </p>
+      <div class="text-left" v-else>
+        <input
+          placeholder="Spending password"
+          type="password"
+          @blur="v$.password.$touch()"
+          @keypress.enter="sign()"
+          :disabled="!canSign"
+          v-model.lazy="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p>
+      </div>
+    </template>
+  </div>
+
+  <div class="flex flex-row gap-4">
+    <button class="btn outlined w-full" @click="cancel()">Cancel</button>
+    <button class="btn w-full" @click="sign()" :disabled="!canSign">Confirm</button>
+  </div>
+  <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
+  <loading-modal
+    v-else
+    title="Signing"
+    :message="signState.statusText"
+    :state="signState.state"
+    @close="signState.state = 'unknown'"
+  />
 </template>
 
 <script lang="ts">
@@ -102,13 +96,13 @@ import { helpers, requiredUnless } from "@vuelidate/validators";
 import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
-import TxSpendingDetails from "./Components/TxSpendingDetails.vue";
+import TxSpendingDetails from "./TxSpendingDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { MAINNET } from "@/constants/ergo";
 import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
 
 export default defineComponent({
-  name: "SignTxConfirmView",
+  name: "TxSignView",
   components: {
     ToolTip,
     LoadingModal,
@@ -165,6 +159,12 @@ export default defineComponent({
     assets(): StateAssetInfo {
       return this.$store.state.assetInfo;
     },
+    canSign(): boolean {
+      return (
+        !this.isReadonly &&
+        (this.tx?.burning === undefined || (this.tx?.burning !== undefined && this.burnAgreement))
+      );
+    },
     tx(): TxInterpreter | undefined {
       if (this.addresses.length === 0) {
         return;
@@ -179,6 +179,10 @@ export default defineComponent({
   },
   methods: {
     async sign() {
+      if (!this.canSign) {
+        return;
+      }
+
       const isValid = await this.v$.$validate();
       if (!isValid) {
         return;

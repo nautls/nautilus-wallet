@@ -289,10 +289,9 @@ input:disabled {
 }
 
 .checkbox {
-  @apply block h-4 w-4 border-gray-300 rounded-sm bg-white 
+  @apply h-4 w-4 border-gray-300 rounded-sm bg-white
   focus:outline-none checked:(bg-blue-600 border-blue-600)
-  default-transition mt-1 align-top bg-no-repeat bg-center bg-contain 
-  float-left mr-2 cursor-pointer outline-none;
+  mr-2 cursor-pointer outline-none my-auto;
 }
 
 .url {
