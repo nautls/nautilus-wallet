@@ -102,7 +102,7 @@ export type SignTxCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
-  callback?: (newState: SigningState) => {};
+  callback?: (newState: Partial<SigningState>) => {};
 };
 
 export type UpdateWalletSettingsCommand = {

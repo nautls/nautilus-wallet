@@ -809,7 +809,7 @@ export default createStore({
       }
 
       if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchain..." } as any);
+        command.callback({ statusText: "Loading data from the blockchain..." });
       }
 
       const walletType = state.currentWallet.type;
@@ -845,20 +845,20 @@ export default createStore({
       dispatch(ACTIONS.LOAD_CONNECTIONS);
       rpcHandler.sendEvent("disconnected", origin);
     },
-    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, commad: UpdateWalletSettingsCommand) {
-      await walletsDbService.updateSettings(commad.walletId, commad.name, commad);
-      commit(MUTATIONS.SET_WALLET_SETTINGS, commad);
+    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
+      await walletsDbService.updateSettings(command.walletId, command.name, command);
+      commit(MUTATIONS.SET_WALLET_SETTINGS, command);
     },
-    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
-      await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
-      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, commad);
+    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, command: UpdateChangeIndexCommand) {
+      await walletsDbService.updateChangeIndex(command.walletId, command.index);
+      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, command);
     },
     async [ACTIONS.UPDATE_USED_ADDRESSES_FILTER](
       { commit },
-      commad: UpdateUsedAddressesFilterCommand
+      command: UpdateUsedAddressesFilterCommand
     ) {
-      await walletsDbService.updateUsedAddressFilter(commad.walletId, commad.filter);
-      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, commad);
+      await walletsDbService.updateUsedAddressFilter(command.walletId, command.filter);
+      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, command);
     }
   }
 });
