@@ -414,7 +414,7 @@ export default createStore({
       bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
         name: wallet.name.trim(),
-        network: Network.ErgoMainet,
+        network: Network.ErgoMainnet,
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
         chainCode: bip32.chainCode.toString("hex"),
@@ -734,7 +734,7 @@ export default createStore({
       }
 
       if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchain..." } as any);
+        command.callback({ statusText: "Loading context data..." } as any);
       }
 
       const addresses = state.currentAddresses;

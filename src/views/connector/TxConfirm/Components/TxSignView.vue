@@ -109,6 +109,7 @@ export default defineComponent({
     LedgerSigningModal,
     TxSpendingDetails
   },
+  emits: ["success", "fail", "refused"],
   props: {
     transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: true }
   },

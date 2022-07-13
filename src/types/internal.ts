@@ -14,7 +14,7 @@ export enum WalletType {
 }
 
 export enum Network {
-  ErgoMainet,
+  ErgoMainnet,
   ErgoTestnet
 }
 

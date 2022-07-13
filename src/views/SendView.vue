@@ -63,7 +63,7 @@
               <template v-slot:items>
                 <div class="group">
                   <o-slider
-                    v-model="feeMultiplicator"
+                    v-model="feeMultiplier"
                     @click.prevent.stop
                     :min="1"
                     :max="5"
@@ -80,65 +80,54 @@
         </div>
       </div>
     </div>
-
-    <div class="flex-shrink">
-      <label v-if="!isLedger"
-        >Spending password
-        <input
-          @blur="v$.password.$touch()"
-          v-model.lazy="password"
-          type="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
-        </p>
-      </label>
-      <button class="btn w-full mt-4" @click="sendTx()">Confirm</button>
-    </div>
-    <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
+    <button class="btn w-full mt-4" @click="buildTx()">Confirm</button>
     <loading-modal
-      v-else
-      title="Signing"
-      :message="signState.statusText"
-      :state="signState.state"
-      @close="signState.state = 'unknown'"
+      title="Loading"
+      :message="stateMessage"
+      :state="state"
+      @close="state = 'unknown'"
+    />
+
+    <tx-sign-modal
+      @close="onClose"
+      @fail="onFail"
+      @refused="onRefused"
+      @success="onSuccess"
+      :active="transaction !== undefined"
+      :transaction="transaction"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, Ref } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import {
-  SendTxCommand,
-  SendTxCommandAsset,
-  SigningState,
-  StateAsset,
-  WalletType
-} from "@/types/internal";
+import { AddressState, SendTxCommandAsset, StateAsset, WalletType } from "@/types/internal";
 import AssetInput from "@/components/AssetInput.vue";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import BigNumber from "bignumber.js";
 import { decimalize } from "@/utils/bigNumbers";
-import { required, helpers, requiredUnless } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
+import { required, helpers } from "@vuelidate/validators";
+import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
-import { PasswordError, TxSignError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
-import { mapState } from "vuex";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { DeviceError } from "ledger-ergo-js";
+import TxSignModal from "./connector/TxConfirm/Components/TxSignModal.vue";
+import { ErgoTx, UnsignedTx } from "@/types/connector";
+import { bip32Pool } from "@/utils/objectPool";
+import { fetchBoxes } from "@/api/ergo/boxFetcher";
+import { explorerService } from "@/api/explorer/explorerService";
+import { TxBuilder } from "@/api/ergo/transaction/txBuilder";
+import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, LedgerSigningModal },
+  components: { AssetInput, LoadingModal, LedgerSigningModal, TxSignModal },
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
   },
   created() {
     if (this.$route.query.recipient) {
@@ -146,9 +135,9 @@ export default defineComponent({
     }
   },
   computed: {
-    ...mapState({
-      currentWallet: "currentWallet"
-    }),
+    currentWallet() {
+      return this.$store.state.currentWallet;
+    },
     isLedger(): boolean {
       return this.currentWallet.type === WalletType.Ledger;
     },
@@ -188,7 +177,7 @@ export default defineComponent({
       return this.fee.plus(this.changeValue);
     },
     fee(): BigNumber {
-      return this.minFee.multipliedBy(this.feeMultiplicator);
+      return this.minFee.multipliedBy(this.feeMultiplier);
     },
     changeValue(): BigNumber | undefined {
       if (!this.hasChange) {
@@ -219,18 +208,13 @@ export default defineComponent({
   data() {
     return {
       selected: [] as SendTxCommandAsset[],
+      transaction: undefined as Readonly<UnsignedTx> | undefined,
+      sendModalActive: false,
       password: "",
       recipient: "",
-      feeMultiplicator: 1,
-      signState: {
-        loading: false,
-        connected: false,
-        deviceModel: LedgerDeviceModelId.nanoS,
-        screenText: "",
-        statusText: "",
-        state: "unknown",
-        appId: 0
-      } as SigningState,
+      feeMultiplier: 1,
+      stateMessage: "",
+      state: "unknown",
       minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
   },
@@ -239,63 +223,71 @@ export default defineComponent({
       recipient: {
         required: helpers.withMessage("Receiver address is required.", required),
         validErgoAddress
-      },
-      password: {
-        required: helpers.withMessage(
-          "A spending password is required for transaction signing.",
-          requiredUnless(this.isLedger)
-        )
       }
     };
   },
   methods: {
-    async sendTx() {
+    async buildTx() {
       const isValid = await this.v$.$validate();
       if (!isValid) {
         return;
       }
 
-      this.signState.loading = true;
-      this.signState.state = "loading";
-      this.signState.statusText = "";
-      const currentWalletId = this.$store.state.currentWallet.id;
+      this.transaction = undefined;
+      this.state = "loading";
+      this.stateMessage = "Loading context data...";
 
-      try {
-        const txId = await this.$store.dispatch(ACTIONS.SEND_TX, {
-          recipient: this.recipient,
-          assets: this.selected,
-          fee: this.fee,
-          walletId: currentWalletId,
-          password: this.password,
-          callback: this.setStateCallback
-        } as SendTxCommand);
-
-        this.clear();
-
-        this.signState.loading = false;
-        this.signState.state = "success";
-        this.signState.statusText = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
-          txId
-        )}' target='_blank'>View on Explorer</a>`;
-      } catch (e) {
-        this.signState.state = "error";
-        this.signState.loading = false;
-        this.signState.connected = false;
-        console.error(e);
-
-        if (e instanceof TxSignError) {
-          this.signState.statusText = `Something went wrong in the signing processs.<br /><br /><code>${e.message}</code>`;
-        } else if (e instanceof PasswordError) {
-          this.signState.statusText = e.message;
-        } else if (!(e instanceof DeviceError)) {
-          this.signState.statusText = `Something went wrong in the signing process. Please try again later.<br /><br /><code>${
-            (e as Error).message
-          }</code>`;
+      if (this.currentWallet.settings.avoidAddressReuse) {
+        const unused = find(
+          this.$store.state.currentAddresses,
+          (a) => a.state === AddressState.Unused && a.script !== this.recipient
+        );
+        if (!unused) {
+          await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
         }
       }
-    },
-    setStateCallback(newState: SigningState) {
-      this.signState = Object.assign(this.signState, newState);
+
+      const addresses = this.$store.state.currentAddresses;
+      const deriver = bip32Pool.get(this.currentWallet.publicKey);
+      const changeIndex = this.currentWallet.settings.avoidAddressReuse
+        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== this.recipient)
+            ?.index ?? this.currentWallet.settings.defaultChangeIndex
+        : this.currentWallet.settings.defaultChangeIndex;
+
+      try {
+        const boxes = await fetchBoxes(this.currentWallet.id);
+        const [bestBlock] = await explorerService.getBlockHeaders({ limit: 1 });
+        if (!bestBlock) {
+          throw Error("Unable to fetch current height, please check your connection.");
+        }
+
+        const unsignedTx = new TxBuilder(deriver)
+          .to(this.recipient)
+          .inputs(boxes)
+          .assets(this.selected as SendTxCommandAsset[])
+          .fee(this.fee)
+          .height(bestBlock.height)
+          .changeIndex(changeIndex ?? 0)
+          .build();
+
+        const parsedTx = new TxInterpreter(
+          unsignedTx,
+          addresses.map((a) => a.script),
+          this.$store.state.assetInfo
+        );
+
+        if (!isEmpty(parsedTx.burning)) {
+          this.state = "error";
+          this.stateMessage =
+            "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way.";
+          return;
+        }
+
+        this.transaction = Object.freeze(unsignedTx);
+      } catch (e) {
+        this.state = "error";
+        this.stateMessage = typeof e === "string" ? e : (e as Error).message;
+      }
     },
     clear(): void {
       this.selected = [];
@@ -303,6 +295,28 @@ export default defineComponent({
       this.recipient = "";
       this.password = "";
       this.v$.$reset();
+    },
+    onSuccess(signedTx: ErgoTx) {
+      this.state = "success";
+      this.stateMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
+        signedTx.id
+      )}' target='_blank'>View on Explorer</a>`;
+      this.transaction = undefined;
+    },
+    onRefused() {
+      this.state = "unknown";
+      this.stateMessage = "";
+      this.transaction = undefined;
+    },
+    onFail(info: string) {
+      this.state = "error";
+      this.stateMessage = info;
+      this.transaction = undefined;
+    },
+    onClose() {
+      this.state = "unknown";
+      this.stateMessage = "";
+      this.transaction = undefined;
     },
     setErgAsSelected(): void {
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);

@@ -119,9 +119,42 @@ label {
   @apply rounded-br;
 }
 
+.zoom-out-enter-active,
+.zoom-out-leave-active {
+  @apply transition duration-250;
+}
+
+.zoom-out-enter,
+.zoom-out-enter-from,
+.zoom-out-leave-active {
+  @apply opacity-0 transform scale-110;
+}
+
+.fade-slide-up-enter-active,
+.fade-slide-up-leave-active {
+  @apply transition duration-350;
+}
+
+.fade-slide-up-enter-active .animation-content,
+.fade-slide-up-leave-active .animation-content {
+  @apply transition duration-350;
+}
+
+.fade-slide-up-enter,
+.fade-slide-up-enter-from,
+.fade-slide-up-leave-active {
+  @apply opacity-0;
+}
+
+.fade-slide-up-enter .animation-content,
+.fade-slide-up-enter-from .animation-content,
+.fade-slide-up-leave-active .animation-content {
+  @apply transform translate-y-6;
+}
+
 .btn {
   @apply bg-blue-600 border border-solid rounded font-bold
-    outline-none border-blue-800 text-sm mb-1 py-3 
+    outline-none border-blue-800 text-sm mb-1 py-2 
     px-4 uppercase default-transition text-light-300
     hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
     active:bg-blue-800;
