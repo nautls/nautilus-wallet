@@ -68,7 +68,6 @@
     <button class="btn w-full" @click="sign()" :disabled="!canSign">Confirm</button>
   </div>
   <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
-  <!-- :transparent-overlay="isModal" -->
   <loading-modal
     v-else
     title="Signing"
