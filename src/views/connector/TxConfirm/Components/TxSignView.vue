@@ -67,18 +67,13 @@
     <button class="btn outlined w-full" @click="cancel()">Cancel</button>
     <button class="btn w-full" @click="sign()" :disabled="!canSign">Confirm</button>
   </div>
-  <ledger-signing-modal
-    v-if="isLedger"
-    :state="signState"
-    :transparent-overlay="isModal"
-    @close="signState.state = 'unknown'"
-  />
+  <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
+  <!-- :transparent-overlay="isModal" -->
   <loading-modal
     v-else
     title="Signing"
     :message="signState.statusText"
     :state="signState.state"
-    :transparent-overlay="isModal"
     @close="signState.state = 'unknown'"
   />
 </template>
@@ -211,10 +206,11 @@ export default defineComponent({
           this.succeed(signedTx);
         } else {
           this.setState("unknown", { loading: false });
+
           // wait for loading modal animation to finish
           setTimeout(() => {
             this.succeed(signedTx);
-          }, 250);
+          }, 300);
         }
       } catch (e) {
         this.setState("error", {
@@ -224,7 +220,16 @@ export default defineComponent({
 
         if (!(e instanceof PasswordError)) {
           console.error(e);
-          this.fail(this.signState.statusText);
+          if (!this.isModal) {
+            this.fail(this.signState.statusText);
+          } else {
+            this.setState("unknown", { loading: false });
+
+            // wait for loading modal animation to finish
+            setTimeout(() => {
+              this.fail(this.signState.statusText);
+            }, 300);
+          }
         }
       }
     },
