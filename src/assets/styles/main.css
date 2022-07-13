@@ -132,12 +132,12 @@ label {
 
 .fade-slide-up-enter-active,
 .fade-slide-up-leave-active {
-  @apply transition duration-350;
+  @apply transition duration-250;
 }
 
 .fade-slide-up-enter-active .animation-content,
 .fade-slide-up-leave-active .animation-content {
-  @apply transition duration-350;
+  @apply transition duration-250;
 }
 
 .fade-slide-up-enter,
@@ -149,7 +149,7 @@ label {
 .fade-slide-up-enter .animation-content,
 .fade-slide-up-enter-from .animation-content,
 .fade-slide-up-leave-active .animation-content {
-  @apply transform translate-y-6;
+  @apply transform translate-y-10;
 }
 
 .btn {
