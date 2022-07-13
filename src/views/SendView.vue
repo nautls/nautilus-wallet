@@ -93,7 +93,7 @@
       @fail="onFail"
       @refused="onRefused"
       @success="onSuccess"
-      :active="transaction !== undefined"
+      :active="signModalActive"
       :transaction="transaction"
     />
   </div>
@@ -209,7 +209,7 @@ export default defineComponent({
     return {
       selected: [] as SendTxCommandAsset[],
       transaction: undefined as Readonly<UnsignedTx> | undefined,
-      sendModalActive: false,
+      signModalActive: false,
       password: "",
       recipient: "",
       feeMultiplier: 1,
@@ -228,12 +228,13 @@ export default defineComponent({
   },
   methods: {
     async buildTx() {
+      this.transaction = undefined;
+
       const isValid = await this.v$.$validate();
       if (!isValid) {
         return;
       }
 
-      this.transaction = undefined;
       this.state = "loading";
       this.stateMessage = "Loading context data...";
 
@@ -284,9 +285,11 @@ export default defineComponent({
         }
 
         this.transaction = Object.freeze(unsignedTx);
+        this.signModalActive = true;
       } catch (e) {
         this.state = "error";
         this.stateMessage = typeof e === "string" ? e : (e as Error).message;
+        this.signModalActive = false;
       }
     },
     clear(): void {
@@ -294,6 +297,7 @@ export default defineComponent({
       this.setErgAsSelected();
       this.recipient = "";
       this.password = "";
+      this.transaction = undefined;
       this.v$.$reset();
     },
     onSuccess(signedTx: ErgoTx) {
@@ -301,22 +305,22 @@ export default defineComponent({
       this.stateMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
         signedTx.id
       )}' target='_blank'>View on Explorer</a>`;
-      this.transaction = undefined;
+      this.signModalActive = false;
     },
     onRefused() {
       this.state = "unknown";
       this.stateMessage = "";
-      this.transaction = undefined;
+      this.signModalActive = false;
     },
     onFail(info: string) {
       this.state = "error";
       this.stateMessage = info;
-      this.transaction = undefined;
+      this.signModalActive = false;
     },
     onClose() {
       this.state = "unknown";
       this.stateMessage = "";
-      this.transaction = undefined;
+      this.signModalActive = false;
     },
     setErgAsSelected(): void {
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);

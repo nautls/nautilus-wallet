@@ -107,6 +107,7 @@ export default defineComponent({
       });
 
       window.removeEventListener("beforeunload", this.onWindowClosing);
+      window.close();
     },
     onRefused(info: string) {
       this.sendError({ code: TxSignErrorCode.UserDeclined, info });

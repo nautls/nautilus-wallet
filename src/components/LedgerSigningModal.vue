@@ -3,9 +3,10 @@
     :active="active"
     :auto-focus="true"
     :can-cancel="closable"
+    :content-class="contentClass"
+    :overlay-class="overlayClass"
     @onClose="emitOnClose()"
     scroll="clip"
-    content-class="!w-auto rounded min-h-50"
   >
     <div class="h-max mb-5 text-gray-600">
       <ledger-device
@@ -29,7 +30,8 @@ export default defineComponent({
   name: "ConnectLedgerView",
   components: { LoadingIndicator },
   props: {
-    state: { type: Object, required: true }
+    state: { type: Object, required: true },
+    transparentOverlay: { type: Boolean, default: false }
   },
   computed: {
     active(): boolean {
@@ -37,6 +39,13 @@ export default defineComponent({
     },
     closable(): boolean {
       return ["error", "success", "deviceNotFound"].includes(this.state.state);
+    },
+    contentClass(): string {
+      const defaultClass = "!w-auto rounded min-h-50";
+      return this.transparentOverlay ? `shadow-2xl ${defaultClass}` : defaultClass;
+    },
+    overlayClass(): string {
+      return this.transparentOverlay ? "bg-transparent" : "";
     }
   },
   methods: {

@@ -67,12 +67,18 @@
     <button class="btn outlined w-full" @click="cancel()">Cancel</button>
     <button class="btn w-full" @click="sign()" :disabled="!canSign">Confirm</button>
   </div>
-  <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
+  <ledger-signing-modal
+    v-if="isLedger"
+    :state="signState"
+    :transparent-overlay="isModal"
+    @close="signState.state = 'unknown'"
+  />
   <loading-modal
     v-else
     title="Signing"
     :message="signState.statusText"
     :state="signState.state"
+    :transparent-overlay="isModal"
     @close="signState.state = 'unknown'"
   />
 </template>
@@ -111,7 +117,8 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: true }
+    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: true },
+    isModal: { type: Boolean, default: false }
   },
   setup() {
     return {
@@ -199,9 +206,16 @@ export default defineComponent({
           callback: this.setStateCallback
         } as SignTxCommand);
 
-        this.setState("success", { loading: false });
-
-        this.succeed(signedTx);
+        if (!this.isModal) {
+          this.setState("success", { loading: false });
+          this.succeed(signedTx);
+        } else {
+          this.setState("unknown", { loading: false });
+          // wait for loading modal animation to finish
+          setTimeout(() => {
+            this.succeed(signedTx);
+          }, 250);
+        }
       } catch (e) {
         this.setState("error", {
           loading: false,

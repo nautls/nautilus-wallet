@@ -17,6 +17,7 @@
       <tx-sign-view
         v-if="transaction"
         :transaction="transaction"
+        :is-modal="true"
         @fail="fail"
         @refused="refused"
         @success="success"
@@ -40,7 +41,7 @@ export default defineComponent({
     active: { type: Boolean, required: true }
   },
   computed: {
-    isPopUp() {
+    isPopUp(): boolean {
       return isPopup();
     }
   },
@@ -53,13 +54,6 @@ export default defineComponent({
     active(newVal: boolean) {
       this.internalActive = newVal;
     }
-    // internalActive(newVal: boolean) {
-    //   if (newVal) {
-    //     return;
-    //   }
-
-    //   this.emitOnClose();
-    // }
   },
   methods: {
     fail(info: string) {
