@@ -53,7 +53,7 @@
           @blur="v$.password.$touch()"
           @keypress.enter="sign()"
           :disabled="!canSign"
-          v-model.lazy="password"
+          v-model="password"
           class="w-full control block"
         />
         <p class="input-error" v-if="v$.password.$error">
