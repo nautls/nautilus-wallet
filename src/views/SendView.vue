@@ -122,6 +122,8 @@ import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { explorerService } from "@/api/explorer/explorerService";
 import { TxBuilder } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
+import { submitTx } from "@/api/ergo/submitTx";
+import { AxiosError } from "axios";
 
 export default defineComponent({
   name: "SendView",
@@ -300,12 +302,24 @@ export default defineComponent({
       this.transaction = undefined;
       this.v$.$reset();
     },
-    onSuccess(signedTx: ErgoTx) {
-      this.state = "success";
-      this.stateMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
-        signedTx.id
-      )}' target='_blank'>View on Explorer</a>`;
+    async onSuccess(signedTx: ErgoTx) {
       this.signModalActive = false;
+
+      try {
+        const txId = await submitTx(signedTx, this.currentWallet.id);
+        this.state = "success";
+        this.stateMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
+          txId
+        )}' target='_blank'>View on Explorer</a>`;
+      } catch (e) {
+        this.state = "error";
+
+        if (e instanceof AxiosError) {
+          this.stateMessage = e.message;
+        } else {
+          this.stateMessage = typeof e === "string" ? e : (e as Error).message;
+        }
+      }
     },
     onRefused() {
       this.state = "unknown";
