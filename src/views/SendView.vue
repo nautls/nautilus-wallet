@@ -104,27 +104,27 @@
 import { defineComponent, Ref } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { AddressState, SendTxCommandAsset, StateAsset, WalletType } from "@/types/internal";
-import AssetInput from "@/components/AssetInput.vue";
+import { AddressState, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
-import BigNumber from "bignumber.js";
 import { decimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
-import LoadingModal from "@/components/LoadingModal.vue";
-import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import { TRANSACTION_URL } from "@/constants/explorer";
-import TxSignModal from "./connector/TxConfirm/Components/TxSignModal.vue";
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { bip32Pool } from "@/utils/objectPool";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { explorerService } from "@/api/explorer/explorerService";
-import { TxBuilder } from "@/api/ergo/transaction/txBuilder";
+import { TxAssetAmount, TxBuilder } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { submitTx } from "@/api/ergo/submitTx";
 import { AxiosError } from "axios";
+import BigNumber from "bignumber.js";
+import AssetInput from "@/components/AssetInput.vue";
+import LoadingModal from "@/components/LoadingModal.vue";
+import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
+import TxSignModal from "./connector/TxConfirm/Components/TxSignModal.vue";
 
 export default defineComponent({
   name: "SendView",
@@ -210,7 +210,7 @@ export default defineComponent({
   },
   data() {
     return {
-      selected: [] as SendTxCommandAsset[],
+      selected: [] as TxAssetAmount[],
       transaction: undefined as Readonly<UnsignedTx> | undefined,
       signModalActive: false,
       password: "",
@@ -268,7 +268,7 @@ export default defineComponent({
         const unsignedTx = new TxBuilder(deriver)
           .to(this.recipient)
           .inputs(boxes)
-          .assets(this.selected as SendTxCommandAsset[])
+          .assets(this.selected as TxAssetAmount[])
           .fee(this.fee)
           .height(bestBlock.height)
           .changeIndex(changeIndex ?? 0)

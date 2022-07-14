@@ -25,7 +25,6 @@ import {
   WalletType,
   AddressState,
   AddressType,
-  SendTxCommand,
   SignTxCommand,
   UpdateWalletSettingsCommand,
   UpdateChangeIndexCommand,
@@ -47,23 +46,19 @@ import {
 import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
-import { assestsDbService } from "@/api/database/assetsDbService";
+import { assetsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
-import { TxBuilder } from "././api/ergo/transaction/txBuilder";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import {
   extractAddressesFromInputs as extractP2PKAddressesFromInputs,
   getChangeAddress
 } from "./api/ergo/addresses";
-import { submitTx } from "./api/ergo/submitTx";
-import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
-import { TxInterpreter } from "./api/ergo/transaction/interpreter/txInterpreter";
 import { Prover } from "./api/ergo/transaction/prover";
 
 function dbAddressMapper(a: IDbAddress) {
@@ -593,7 +588,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
     async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
-      const assets = await assestsDbService.getByWalletId(walletId);
+      const assets = await assetsDbService.getByWalletId(walletId);
 
       await dispatch(
         ACTIONS.LOAD_ASSETS_INFO,
@@ -680,7 +675,7 @@ export default createStore({
           walletId: data.walletId
         } as IDbAsset;
       });
-      assestsDbService.sync(assets, data.walletId);
+      assetsDbService.sync(assets, data.walletId);
 
       await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
         assetInfo: balances.map((x) => {
@@ -741,7 +736,7 @@ export default createStore({
       }
 
       if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchain..." });
+        command.callback({ statusText: "Loading context data..." });
       }
 
       const walletType = state.currentWallet.type;

@@ -5,7 +5,7 @@ import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash";
 import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
 import { PasswordError } from "@/types/errors";
-import { assestsDbService } from "./assetsDbService";
+import { assetsDbService } from "./assetsDbService";
 
 class WalletsDbService {
   public async getById(id: number): Promise<IDbWallet | undefined> {

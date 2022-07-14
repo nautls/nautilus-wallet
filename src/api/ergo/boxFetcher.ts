@@ -3,7 +3,7 @@ import { ErgoBox } from "@/types/connector";
 import { explorerBoxMapper } from "@/types/explorer";
 import { difference, find, isEmpty, sortBy, unionBy } from "lodash";
 import { addressesDbService } from "../database/addressesDbService";
-import { assestsDbService } from "../database/assetsDbService";
+import { assetsDbService } from "../database/assetsDbService";
 import { utxosDbService } from "../database/utxosDbService";
 import { explorerService } from "../explorer/explorerService";
 
@@ -15,7 +15,7 @@ export async function fetchBoxes(
     includeUnconfirmed: true
   }
 ): Promise<ErgoBox[]> {
-  const addresses = await assestsDbService.getAddressesByTokenId(
+  const addresses = await assetsDbService.getAddressesByTokenId(
     walletId,
     options.tokenId ?? ERG_TOKEN_ID
   );
