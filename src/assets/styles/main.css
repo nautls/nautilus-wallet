@@ -120,7 +120,7 @@ label {
 }
 
 .shadow-scroll {
-  --rad: radial-gradient(100% 0.8rem, rgba(0, 0, 0, 0.2), transparent);
+  --rad: radial-gradient(100% 0.8rem, rgba(0, 0, 0, 0.1), transparent);
   background: linear-gradient(
         white 0.4rem,
         transparent 2rem calc(100% - 2rem),
