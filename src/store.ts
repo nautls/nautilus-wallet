@@ -722,75 +722,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { price: false });
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
-    async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
-      if (state.currentWallet.settings.avoidAddressReuse) {
-        let unused = find(
-          state.currentAddresses,
-          (a) => a.state === AddressState.Unused && a.script !== command.recipient
-        );
-        if (!unused) {
-          await dispatch(ACTIONS.NEW_ADDRESS);
-        }
-      }
-
-      if (command.callback) {
-        command.callback({ statusText: "Loading context data..." } as any);
-      }
-
-      const addresses = state.currentAddresses;
-      const walletType = state.currentWallet.type;
-      const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
-      const deriver =
-        walletType === WalletType.Ledger
-          ? bip32Pool.get(state.currentWallet.publicKey)
-          : await Bip32.fromMnemonic(
-              await walletsDbService.getMnemonic(command.walletId, command.password)
-            );
-      command.password = "";
-
-      const changeIndex = state.currentWallet.settings.avoidAddressReuse
-        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
-            ?.index ?? state.currentWallet.settings.defaultChangeIndex
-        : state.currentWallet.settings.defaultChangeIndex;
-
-      const boxes = await fetchBoxes(command.walletId);
-      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const lastBlockHeader = maxBy(blockHeaders, (h) => h.height);
-      if (!lastBlockHeader) {
-        throw Error("Unable to fetch current height, please check your connection.");
-      }
-
-      const unsignedTx = new TxBuilder(deriver)
-        .to(command.recipient)
-        .inputs(boxes)
-        .assets(command.assets)
-        .fee(command.fee)
-        .height(lastBlockHeader.height)
-        .changeIndex(changeIndex ?? 0)
-        .build();
-
-      const parsedTx = new TxInterpreter(
-        unsignedTx,
-        state.currentAddresses.map((a) => a.script),
-        state.assetInfo
-      );
-
-      if (!isEmpty(parsedTx.burning)) {
-        throw Error(
-          "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way."
-        );
-      }
-
-      const signedTx = await new Prover(deriver)
-        .from(selectedAddresses)
-        .useLedger(walletType === WalletType.Ledger)
-        .changeIndex(changeIndex ?? 0)
-        .setCallback(command.callback)
-        .sign(unsignedTx, blockHeaders);
-
-      return await submitTx(signedTx, command.walletId);
-    },
-    async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxCommand) {
+    async [ACTIONS.SIGN_TX]({ state }, command: SignTxCommand) {
       const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = ownAddresses

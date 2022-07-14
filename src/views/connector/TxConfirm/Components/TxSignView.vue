@@ -193,7 +193,7 @@ export default defineComponent({
       this.setState("loading", { loading: true, statusText: "" });
 
       try {
-        const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX_FROM_CONNECTOR, {
+        const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX, {
           tx: this.transaction,
           walletId: this.currentWalletId,
           password: this.password,
