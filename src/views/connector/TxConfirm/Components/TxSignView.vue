@@ -1,5 +1,5 @@
 <template>
-  <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4">
+  <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1">
     <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
       <p>Burning</p>
       <template v-slot:subheader
