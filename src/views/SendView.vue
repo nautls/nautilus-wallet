@@ -311,6 +311,8 @@ export default defineComponent({
         this.stateMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
           txId
         )}' target='_blank'>View on Explorer</a>`;
+
+        this.clear();
       } catch (e) {
         this.state = "error";
 
