@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border rounded" :class="boxStyles">
+  <div class="flex shadow-sm flex-col border rounded" :class="boxStyles">
     <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none" :class="headerStyles">
       <slot />
 
@@ -87,7 +87,7 @@ export default defineComponent({
           return "bg-green-100 border-b-green-200 text-green-900";
         case "normal":
         default:
-          return "bg-gray-100 border-b-gray-200";
+          return "bg-gray-100 border-b-gray-200 text-gray-900";
       }
     }
   }
