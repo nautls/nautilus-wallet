@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-5 h-full">
+  <div class="flex flex-col gap-4 min-h-full">
     <label>
       Receiver
       <input
@@ -11,7 +11,7 @@
       />
       <p class="input-error" v-if="v$.recipient.$error">{{ v$.recipient.$errors[0].$message }}</p>
     </label>
-    <div class="flex-grow">
+    <div>
       <div class="flex flex-col gap-2">
         <asset-input
           :label="index === 0 ? 'Assets' : ''"
@@ -80,7 +80,8 @@
         </div>
       </div>
     </div>
-    <button class="btn w-full mt-4" @click="buildTx()">Confirm</button>
+    <div class="flex-grow"></div>
+    <button class="btn w-full" @click="buildTx()">Confirm</button>
     <loading-modal
       title="Loading"
       :message="stateMessage"

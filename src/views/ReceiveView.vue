@@ -1,6 +1,6 @@
 <template>
-  <div class="flex flex-col gap-5">
-    <div class="flex flex-row gap-5">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-row gap-4">
       <div class="flex-grow">
         <label
           ><span v-if="avoidingReuse">Your current address</span>

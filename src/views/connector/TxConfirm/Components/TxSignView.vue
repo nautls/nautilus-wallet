@@ -1,5 +1,7 @@
 <template>
-  <div class="text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1">
+  <div
+    class="shadow-scroll text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1"
+  >
     <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
       <p>Burning</p>
       <template v-slot:subheader
@@ -14,7 +16,7 @@
       v-for="(output, index) in tx?.sending"
       :assets="output.assets"
       :key="index"
-      :type="output.isIntrawallet ? 'success' : 'normal'"
+      :type="output.isIntrawallet ? 'info' : 'normal'"
     >
       <p>
         {{ mountTitleForOutput(output) }}
@@ -28,7 +30,7 @@
       </template>
     </tx-spending-details>
     <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
-      ><p>Transaction fee</p></tx-spending-details
+      ><p>Network fee</p></tx-spending-details
     >
   </div>
 

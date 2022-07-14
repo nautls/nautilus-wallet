@@ -119,6 +119,17 @@ label {
   @apply rounded-br;
 }
 
+.shadow-scroll {
+  --rad: radial-gradient(100% 0.8rem, rgba(0, 0, 0, 0.1), transparent);
+  background: linear-gradient(
+        white 0.4rem,
+        transparent 2rem calc(100% - 2rem),
+        white calc(100% - 0.4rem)
+      )
+      local,
+    var(--rad) top / 100% 200%, var(--rad) bottom / 100% 200%;
+}
+
 .zoom-out-enter-active,
 .zoom-out-leave-active {
   @apply transition duration-250;
