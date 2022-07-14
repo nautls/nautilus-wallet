@@ -52,7 +52,7 @@
           type="password"
           @blur="v$.password.$touch()"
           @keypress.enter="sign()"
-          :disabled="!canSign"
+          :disabled="!canSign || isMnemonicSigning"
           v-model="password"
           class="w-full control block"
         />
@@ -64,8 +64,14 @@
   </div>
 
   <div class="flex flex-row gap-4">
-    <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-    <button class="btn w-full" @click="sign()" :disabled="!canSign">Confirm</button>
+    <button class="btn outlined w-full" @click="cancel()" :disabled="isMnemonicSigning">
+      Cancel
+    </button>
+
+    <button class="btn w-full" @click="sign()" :disabled="!canSign">
+      <loading-indicator v-if="isMnemonicSigning" type="circular" class="h-4 w-4 align-middle" />
+      <span v-else>Sign</span>
+    </button>
   </div>
   <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
   <loading-modal
@@ -152,6 +158,9 @@ export default defineComponent({
     isLedger() {
       return this.$store.state.currentWallet.type === WalletType.Ledger;
     },
+    isMnemonicSigning() {
+      return this.isModal && this.signState.loading && !this.isLedger;
+    },
     currentWalletId() {
       return this.$store.state.currentWallet.id;
     },
@@ -200,7 +209,7 @@ export default defineComponent({
           callback: this.setStateCallback
         } as SignTxCommand);
 
-        if (!this.isModal) {
+        if (!this.isModal || this.isMnemonicSigning) {
           this.setState("success", { loading: false });
           this.succeed(signedTx);
         } else {
@@ -219,7 +228,7 @@ export default defineComponent({
 
         if (!(e instanceof PasswordError)) {
           console.error(e);
-          if (!this.isModal) {
+          if (!this.isModal || this.isMnemonicSigning) {
             this.fail(this.signState.statusText);
           } else {
             this.setState("unknown", { loading: false });
@@ -236,7 +245,10 @@ export default defineComponent({
       state: "success" | "error" | "loading" | "unknown",
       newState: Omit<Partial<SigningState>, "state">
     ) {
-      this.signState.state = state;
+      if (state === "error" || !this.isModal || (this.isModal && this.isLedger)) {
+        this.signState.state = state;
+      }
+
       this.signState = Object.assign(this.signState, newState);
     },
     setStateCallback(newState: SigningState) {

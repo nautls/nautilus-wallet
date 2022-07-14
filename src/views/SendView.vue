@@ -304,6 +304,7 @@ export default defineComponent({
     },
     async onSuccess(signedTx: ErgoTx) {
       this.signModalActive = false;
+      this.stateMessage = "Signed. Submitting transaction...";
 
       try {
         const txId = await submitTx(signedTx, this.currentWallet.id);
