@@ -7,7 +7,7 @@
     @cancel="emitOnClose"
     scroll="clip"
     root-class="outline-none <sm:justify-end"
-    content-class="animation-content max-h-90vh p-4 rounded !max-w-100 !w-90vw <sm:(rounded-t-xl rounded-none !w-100vw h-90vh)"
+    content-class="animation-content max-h-90vh p-4 rounded !max-w-100 !w-90vw <sm:rounded-t-xl <sm:rounded-none <sm:h-90vh !<sm:w-100vw"
   >
     <div class="flex flex-col h-full gap-4">
       <div class="mb-4 text-center">
