@@ -124,7 +124,7 @@ import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
-import TxSignModal from "./connector/TxConfirm/Components/TxSignModal.vue";
+import TxSignModal from "@/components/TxSignModal.vue";
 
 export default defineComponent({
   name: "SendView",

@@ -15,7 +15,7 @@ import { ErgoTx, TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connec
 import DappPlate from "@/components/DappPlate.vue";
 import { ACTIONS } from "@/constants/store";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import TxSignView from "./Components/TxSignView.vue";
+import TxSignView from "@/components/TxSignView.vue";
 
 export default defineComponent({
   name: "SignTxConfirmView",
