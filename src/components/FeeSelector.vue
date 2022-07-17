@@ -25,7 +25,7 @@
             fill-class="bg-blue-600 rounded-l"
             root-class="p-4"
             track-class="rounded-r"
-            thumb-class="rounded"
+            thumb-class="rounded-md"
           />
         </div>
       </template>

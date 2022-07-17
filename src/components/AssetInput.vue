@@ -82,7 +82,7 @@ export default defineComponent({
   name: "AssetInput",
   props: {
     label: { type: String, required: false },
-    disposable: { type: Boolean, defaul: false },
+    disposable: { type: Boolean, default: false },
     asset: { type: Object, required: true },
     modelValue: { type: Object, required: false },
     reservedAmount: { type: BigNumber, required: false },
