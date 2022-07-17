@@ -24,9 +24,13 @@
           :disposable="!isErg(item.asset.tokenId)"
           @remove="remove(item.asset.tokenId)"
         />
-        <drop-down :disabled="unselected.length === 0">
+        <drop-down
+          :disabled="unselected.length === 0"
+          list-class="max-h-50"
+          trigger-class="px-2 py-3 text-sm uppercase "
+        >
           <template v-slot:trigger>
-            <div class="text-sm w-full uppercase py-1 pl-6 text-center font-bold">Add asset</div>
+            <div class="flex-grow pl-6 text-center font-bold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />
           </template>
           <template v-slot:items>
@@ -51,35 +55,9 @@
             </div>
           </template>
         </drop-down>
-        <div class="w-full">
-          <div class="w-auto float-right">
-            <drop-down discrete>
-              <template v-slot:trigger>
-                <div class="text-sm w-full text-right py-1 text-center">
-                  <span>Fee: {{ fee }} ERG</span>
-                </div>
-                <vue-feather type="chevron-down" size="18" />
-              </template>
-              <template v-slot:items>
-                <div class="group">
-                  <o-slider
-                    v-model="feeMultiplier"
-                    @click.prevent.stop
-                    :min="1"
-                    :max="5"
-                    :tooltip="false"
-                    fill-class="bg-blue-600 rounded-l"
-                    root-class="p-4"
-                    track-class="rounded-r"
-                    thumb-class="rounded"
-                  />
-                </div>
-              </template>
-            </drop-down>
-          </div>
-        </div>
       </div>
     </div>
+    <fee-selector />
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
     <loading-modal
@@ -125,10 +103,11 @@ import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
+import FeeSelector from "@/components/FeeSelector.vue";
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, LedgerSigningModal, TxSignModal },
+  components: { AssetInput, LoadingModal, LedgerSigningModal, TxSignModal, FeeSelector },
   setup() {
     return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
   },
@@ -180,7 +159,7 @@ export default defineComponent({
       return this.fee.plus(this.changeValue);
     },
     fee(): BigNumber {
-      return this.minFee.multipliedBy(this.feeMultiplier);
+      return new BigNumber(0); // this.minFee.multipliedBy(this.feeMultiplier);
     },
     changeValue(): BigNumber | undefined {
       if (!this.hasChange) {
@@ -215,10 +194,10 @@ export default defineComponent({
       signModalActive: false,
       password: "",
       recipient: "",
-      feeMultiplier: 1,
+      // feeMultiplier: 1,
       stateMessage: "",
-      state: "unknown",
-      minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
+      state: "unknown"
+      // minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
   },
   validations() {

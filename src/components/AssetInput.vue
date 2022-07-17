@@ -1,8 +1,8 @@
 <template>
   <label
     @click.prevent.stop="setInputFocus()"
-    @mouseover="troggleHover(true)"
-    @mouseout="troggleHover(false)"
+    @mouseover="toggleHover(true)"
+    @mouseout="toggleHover(false)"
   >
     <span v-if="label && label !== ''">{{ label }}</span>
     <div class="asset-input relative">
@@ -194,7 +194,7 @@ export default defineComponent({
         return n;
       }
     },
-    troggleHover(val: boolean) {
+    toggleHover(val: boolean) {
       if (val === this.hovered) {
         return;
       }
