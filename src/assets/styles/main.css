@@ -285,12 +285,12 @@ input:disabled {
   @apply py-1;
 }
 
-.dropdown .items-list.top .group:first-child {
-  @apply pb-0;
+.dropdown .items-list .group:first-child {
+  @apply pt-0;
 }
 
-.dropdown .items-list.bottom .group:first-child {
-  @apply pt-0;
+.dropdown .items-list .group:last-child {
+  @apply pb-0;
 }
 
 .dropdown .items-list .group .group-item {

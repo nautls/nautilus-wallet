@@ -81,7 +81,7 @@
 <script lang="ts">
 import { defineComponent, Ref } from "vue";
 import { GETTERS } from "@/constants/store/getters";
-import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { AddressState, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
