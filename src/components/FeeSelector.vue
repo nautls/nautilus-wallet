@@ -6,9 +6,14 @@
     >
       <template v-slot:trigger>
         <span class="flex-grow font-bold pl-1">Fee</span>
-        <div class="text-right flex flex-col h-full">
-          <span class="flex-grow">{{ fee }}</span>
-          <small class="text-gray-400"
+        <div
+          class="text-right flex flex-col h-full"
+          :class="ergPrice ? 'justify-between' : 'justify-center'"
+        >
+          <div class="items-center">
+            <span>{{ fee }}</span>
+          </div>
+          <small v-if="ergPrice" class="text-gray-400"
             >≈ {{ price }} {{ $filters.uppercase(conversionCurrency) }}</small
           >
         </div>
