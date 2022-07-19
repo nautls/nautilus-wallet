@@ -8,17 +8,17 @@ import { Address, BoxValue, ErgoBoxCandidates, I64, Tokens } from "ergo-lib-wasm
 import { find } from "lodash";
 import JSONBig from "json-bigint";
 import Bip32 from "../bip32";
-import { StateAsset } from "@/types/internal";
+import { BigNumberType, StateAsset } from "@/types/internal";
 
 export type TxAssetAmount = {
   asset: StateAsset;
-  amount?: BigNumber;
+  amount?: BigNumberType;
 };
 
 export class TxBuilder {
   private _to!: string;
   private _changeIndex!: number;
-  private _fee!: BigNumber;
+  private _fee!: BigNumberType;
   private _assets!: TxAssetAmount[];
   private _inputs!: ErgoBox[];
   private _deriver!: Bip32;
@@ -38,7 +38,7 @@ export class TxBuilder {
     return this;
   }
 
-  public fee(fee: BigNumber): TxBuilder {
+  public fee(fee: BigNumberType): TxBuilder {
     this._fee = fee;
     return this;
   }

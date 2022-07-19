@@ -71,12 +71,13 @@
 </template>
 
 <script lang="ts">
+import { BigNumberType } from "@/types/internal";
 import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "AssetInput",
@@ -85,8 +86,8 @@ export default defineComponent({
     disposable: { type: Boolean, default: false },
     asset: { type: Object, required: true },
     modelValue: { type: Object, required: false },
-    reservedAmount: { type: BigNumber, required: false },
-    minAmount: { type: BigNumber, required: false }
+    reservedAmount: { type: Object as PropType<BigNumberType>, required: false },
+    minAmount: { type: Object as PropType<BigNumberType>, required: false }
   },
   setup() {
     return { v$: useVuelidate() };
@@ -122,7 +123,7 @@ export default defineComponent({
         2
       );
     },
-    minRequired(): BigNumber {
+    minRequired(): BigNumberType {
       if (this.reservedAmount && this.minAmount) {
         return this.reservedAmount.plus(this.minAmount);
       }

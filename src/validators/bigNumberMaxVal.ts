@@ -1,8 +1,8 @@
+import { BigNumberType } from "@/types/internal";
 import { filters } from "@/utils/globalFilters";
-import BigNumber from "bignumber.js";
 
-function validator(max: BigNumber) {
-  return (value?: BigNumber) => {
+function validator(max: BigNumberType) {
+  return (value?: BigNumberType) => {
     if (!value) {
       return true;
     }
@@ -11,7 +11,7 @@ function validator(max: BigNumber) {
   };
 }
 
-export default function (max: BigNumber) {
+export default function (max: BigNumberType) {
   return {
     $validator: validator(max),
     $message: ({ $params }: any) =>

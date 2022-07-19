@@ -57,7 +57,9 @@
         </drop-down>
       </div>
     </div>
-    <fee-selector />
+
+    <fee-selector v-model:selected="babelFee" />
+
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
     <loading-modal
@@ -81,8 +83,8 @@
 <script lang="ts">
 import { defineComponent, Ref } from "vue";
 import { GETTERS } from "@/constants/store/getters";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
-import { AddressState, StateAsset, WalletType } from "@/types/internal";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import { decimalize } from "@/utils/bigNumbers";
@@ -146,7 +148,7 @@ export default defineComponent({
 
       return false;
     },
-    reservedErgAmount(): BigNumber {
+    reservedErgAmount(): BigNumberType {
       const erg = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
       if (!erg || erg.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
@@ -158,17 +160,17 @@ export default defineComponent({
 
       return this.fee.plus(this.changeValue);
     },
-    fee(): BigNumber {
-      return new BigNumber(0); // this.minFee.multipliedBy(this.feeMultiplier);
+    fee(): BigNumberType {
+      return this.babelFee.value;
     },
-    changeValue(): BigNumber | undefined {
+    changeValue(): BigNumberType | undefined {
       if (!this.hasChange) {
         return;
       }
 
       return this.minBoxValue;
     },
-    minBoxValue(): BigNumber {
+    minBoxValue(): BigNumberType {
       return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
     }
   },
@@ -191,13 +193,15 @@ export default defineComponent({
     return {
       selected: [] as TxAssetAmount[],
       transaction: undefined as Readonly<UnsignedTx> | undefined,
+      babelFee: {
+        tokenId: ERG_TOKEN_ID,
+        value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+      } as FeeSettings,
       signModalActive: false,
       password: "",
       recipient: "",
-      // feeMultiplier: 1,
       stateMessage: "",
       state: "unknown"
-      // minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
     };
   },
   validations() {

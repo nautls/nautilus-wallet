@@ -68,8 +68,8 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
-  confirmedAmount: BigNumber;
-  unconfirmedAmount?: BigNumber;
+  confirmedAmount: BigNumberType;
+  unconfirmedAmount?: BigNumberType;
   info?: BasicAssetInfo;
 };
 
@@ -82,6 +82,14 @@ export type BasicAssetInfo = {
 
 export type StateAssetInfo = {
   [tokenId: string]: BasicAssetInfo;
+};
+
+export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
+
+export type FeeSettings = {
+  tokenId: string;
+  readonly value: BigNumberType;
+  readonly nanoergsPerToken?: BigNumberType;
 };
 
 export type SignTxCommand = {
