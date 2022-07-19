@@ -11,7 +11,7 @@ import { defineComponent } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
 import { find, isEmpty } from "lodash";
-import { ErgoTx, TxSignError, TxSignErrorCode, UnsignedTx } from "@/types/connector";
+import { ErgoTx, SignError, SignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { ACTIONS } from "@/constants/store";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
@@ -110,12 +110,12 @@ export default defineComponent({
       window.close();
     },
     onRefused(info: string) {
-      this.sendError({ code: TxSignErrorCode.UserDeclined, info });
+      this.sendError({ code: SignErrorCode.UserDeclined, info });
     },
     onFail(info: string) {
-      this.sendError({ code: TxSignErrorCode.ProofGeneration, info });
+      this.sendError({ code: SignErrorCode.ProofGeneration, info });
     },
-    sendError(error: TxSignError) {
+    sendError(error: SignError) {
       window.removeEventListener("beforeunload", this.onWindowClosing);
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",

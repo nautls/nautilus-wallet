@@ -770,13 +770,13 @@ export default createStore({
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const bip32 = await Bip32.fromMnemonic(
+      const deriver = await Bip32.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
 
       const signingAddress = ownAddresses.filter((x) => x.script === command.address);
       const message = buildEip28ResponseMessage(command.message, command.origin);
-      const proofBytes = ""; // TxBuilder.from(signingAddress).signMessage(message, bip32);
+      const proofBytes = new Prover(deriver).from(signingAddress).signMessage(message);
 
       return {
         signedMessage: message,
