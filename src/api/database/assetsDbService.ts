@@ -1,11 +1,8 @@
 import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { differenceBy, find, groupBy, isEmpty, keys, union } from "lodash";
-import { AddressAPIResponse, ExplorerV1AddressBalanceResponse } from "@/types/explorer";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { isZero } from "@/utils/bigNumbers";
 
-class assetsDbService {
+class AssetsDbService {
   public async getByTokenId(walletId: number, tokenId: string): Promise<IDbAsset[]> {
     return await dbContext.assets.where({ walletId, tokenId }).toArray();
   }
@@ -79,4 +76,4 @@ class assetsDbService {
   }
 }
 
-export const assestsDbService = new assetsDbService();
+export const assetsDbService = new AssetsDbService();

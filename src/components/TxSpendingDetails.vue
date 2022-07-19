@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border rounded" :class="boxStyles">
+  <div class="flex shadow-sm flex-col border rounded" :class="boxStyles">
     <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none" :class="headerStyles">
       <slot />
 
@@ -63,31 +63,31 @@ export default defineComponent({
     boxStyles() {
       switch (this.type) {
         case "danger":
-          return "border-red-300 bg-red-50";
+          return "border-red-200 bg-red-50";
         case "warning":
-          return "border-yellow-300";
+          return "border-yellow-200";
         case "info":
-          return "border-blue-300";
+          return "border-blue-200";
         case "success":
-          return "border-green-300";
+          return "border-green-200";
         case "normal":
         default:
-          return "border-gray-300";
+          return "border-gray-200";
       }
     },
     headerStyles() {
       switch (this.type) {
         case "danger":
-          return "bg-red-100 border-red-300 text-red-900";
+          return "bg-red-100 border-b-red-200 text-red-900";
         case "warning":
-          return "bg-yellow-100 border-yellow-300 text-yellow-900";
+          return "bg-yellow-100 border-b-yellow-200 text-yellow-900";
         case "info":
-          return "bg-blue-100 border-blue-300 text-blue-900";
+          return "bg-blue-100 border-b-blue-200 text-blue-900";
         case "success":
-          return "bg-green-100 border-green-300 text-green-900";
+          return "bg-green-100 border-b-green-200 text-green-900";
         case "normal":
         default:
-          return "bg-gray-100 border-gray-300";
+          return "bg-gray-100 border-b-gray-200 text-gray-900";
       }
     }
   }

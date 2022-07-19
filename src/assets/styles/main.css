@@ -29,7 +29,7 @@ input {
 
 /* scrollbar handle */
 ::-webkit-scrollbar-thumb {
-  @apply rounded bg-gray-300;
+  @apply rounded-sm bg-gray-300;
 }
 
 /* scrollbar handle on hover */
@@ -119,9 +119,53 @@ label {
   @apply rounded-br;
 }
 
+.shadow-scroll {
+  --rad: radial-gradient(100% 0.8rem, rgba(0, 0, 0, 0.1), transparent);
+  background: linear-gradient(
+        white 0.4rem,
+        transparent 2rem calc(100% - 2rem),
+        white calc(100% - 0.4rem)
+      )
+      local,
+    var(--rad) top / 100% 200%, var(--rad) bottom / 100% 200%;
+}
+
+.zoom-out-enter-active,
+.zoom-out-leave-active {
+  @apply transition duration-250;
+}
+
+.zoom-out-enter,
+.zoom-out-enter-from,
+.zoom-out-leave-active {
+  @apply opacity-0 transform scale-110;
+}
+
+.fade-slide-up-enter-active,
+.fade-slide-up-leave-active {
+  @apply transition duration-250;
+}
+
+.fade-slide-up-enter-active .animation-content,
+.fade-slide-up-leave-active .animation-content {
+  @apply transition duration-250;
+}
+
+.fade-slide-up-enter,
+.fade-slide-up-enter-from,
+.fade-slide-up-leave-active {
+  @apply opacity-0;
+}
+
+.fade-slide-up-enter .animation-content,
+.fade-slide-up-enter-from .animation-content,
+.fade-slide-up-leave-active .animation-content {
+  @apply transform translate-y-10;
+}
+
 .btn {
   @apply bg-blue-600 border border-solid rounded font-bold
-    outline-none border-blue-800 text-sm mb-1 py-3 
+    outline-none border-blue-800 text-sm mb-1 py-2 
     px-4 uppercase default-transition text-light-300
     hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
     active:bg-blue-800;
@@ -289,10 +333,9 @@ input:disabled {
 }
 
 .checkbox {
-  @apply block h-4 w-4 border-gray-300 rounded-sm bg-white 
+  @apply h-4 w-4 border-gray-300 rounded-sm bg-white
   focus:outline-none checked:(bg-blue-600 border-blue-600)
-  default-transition mt-1 align-top bg-no-repeat bg-center bg-contain 
-  float-left mr-2 cursor-pointer outline-none;
+  mr-2 cursor-pointer outline-none my-auto;
 }
 
 .url {

@@ -1,5 +1,5 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
-import { assestsDbService } from "@/api/database/assetsDbService";
+import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session, ErgoTx } from "@/types/connector";
 import { AddressState } from "@/types/internal";
@@ -101,7 +101,7 @@ export async function handleGetBalanceRequest(
     tokenId = request.params[0];
   }
 
-  const assets = await assestsDbService.getByTokenId(session!.walletId!, tokenId);
+  const assets = await assetsDbService.getByTokenId(session!.walletId!, tokenId);
   postConnectorResponse(
     {
       isSuccess: true,
