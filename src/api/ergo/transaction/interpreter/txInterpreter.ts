@@ -80,13 +80,23 @@ export class TxInterpreter {
   }
 
   private _calcBurningBalance() {
-    const inputTotals = this._sumTokens(this._tx.inputs.map((x) => x.assets).flat());
+    const inputTotals = this._sumTokens(
+      this._tx.inputs
+        .filter((x) => x.assets)
+        .map((x) => x.assets)
+        .flat()
+    );
     if (!inputTotals) {
       this._burningBalance = [];
       return;
     }
 
-    const outputTotals = this._sumTokens(this._tx.outputs.map((x) => x.assets).flat());
+    const outputTotals = this._sumTokens(
+      this._tx.outputs
+        .filter((x) => x.assets)
+        .map((x) => x.assets)
+        .flat()
+    );
     if (outputTotals) {
       for (const key in outputTotals) {
         if (!inputTotals[key]) {

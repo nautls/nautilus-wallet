@@ -3,9 +3,10 @@
     :active="active"
     :auto-focus="true"
     :can-cancel="closable"
+    :overlay-class="overlayClass"
+    :content-class="contentClass"
     @onClose="emitOnClose()"
     scroll="clip"
-    content-class="!w-auto rounded"
   >
     <div class="p-5 w-60 text-center">
       <div :class="stateClass" class="w-full h-26">
@@ -27,6 +28,7 @@ export default defineComponent({
   props: {
     title: { type: String, required: true },
     message: { type: String, required: false },
+    transparentOverlay: { type: Boolean, default: false },
     state: {
       type: String,
       required: true,
@@ -49,6 +51,13 @@ export default defineComponent({
       } else {
         return "text-gray-600";
       }
+    },
+    contentClass(): string {
+      const defaultClass = "!w-auto rounded";
+      return this.transparentOverlay ? `shadow-2xl ${defaultClass}` : defaultClass;
+    },
+    overlayClass(): string {
+      return this.transparentOverlay ? "bg-transparent" : "";
     },
     titleText(): string {
       if (this.state === "success") {

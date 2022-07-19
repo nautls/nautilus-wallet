@@ -36,7 +36,15 @@ export const filters = {
       return `${val.slice(0, maxLength - ellipsis.length + 1).trimEnd()}${ellipsis}`;
     }
   },
-  formatBigNumber(value: BigNumber, decimalPlaces?: number, shortThreshold = 1_000_000) {
+  formatBigNumber(
+    value?: BigNumber | BigNumber.Instance,
+    decimalPlaces?: number,
+    shortThreshold = 1_000_000
+  ) {
+    if (!value) {
+      return "";
+    }
+
     if (value.isGreaterThanOrEqualTo(shortThreshold)) {
       return defaultBigNumbersFormatter.format(value.toNumber());
     }

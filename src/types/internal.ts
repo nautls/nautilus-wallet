@@ -14,7 +14,7 @@ export enum WalletType {
 }
 
 export enum Network {
-  ErgoMainet,
+  ErgoMainnet,
   ErgoTestnet
 }
 
@@ -84,25 +84,11 @@ export type StateAssetInfo = {
   [tokenId: string]: BasicAssetInfo;
 };
 
-export type SendTxCommandAsset = {
-  asset: StateAsset;
-  amount?: BigNumber;
-};
-
-export type SendTxCommand = {
-  walletId: number;
-  assets: SendTxCommandAsset[];
-  fee: BigNumber;
-  recipient: string;
-  password: string;
-  callback?: (newState: SigningState) => {};
-};
-
-export type SignTxFromConnectorCommand = {
+export type SignTxCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
-  callback?: (newState: SigningState) => {};
+  callback?: (newState: Partial<SigningState>) => {};
 };
 
 export type SignEip28MessageCommand = {

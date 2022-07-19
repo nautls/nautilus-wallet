@@ -25,8 +25,7 @@ import {
   WalletType,
   AddressState,
   AddressType,
-  SendTxCommand,
-  SignTxFromConnectorCommand,
+  SignTxCommand,
   UpdateWalletSettingsCommand,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
@@ -49,24 +48,21 @@ import {
 import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
-import { assestsDbService } from "@/api/database/assetsDbService";
+import { assetsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
-import { TxBuilder } from "././api/ergo/transaction/txBuilder";
-import { SignContext } from "./api/ergo/transaction/signContext";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
 import {
   extractAddressesFromInputs as extractP2PKAddressesFromInputs,
   getChangeAddress
 } from "./api/ergo/addresses";
-import { submitTx } from "./api/ergo/submitTx";
-import { fetchBoxes } from "./api/ergo/boxFetcher";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
 import { buildEip28ResponseMessage } from "./api/ergo/eip28";
+import { Prover } from "./api/ergo/transaction/prover";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -416,7 +412,7 @@ export default createStore({
       bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
       const walletId = await walletsDbService.put({
         name: wallet.name.trim(),
-        network: Network.ErgoMainet,
+        network: Network.ErgoMainnet,
         type: wallet.type,
         publicKey: bip32.publicKey.toString("hex"),
         chainCode: bip32.chainCode.toString("hex"),
@@ -595,7 +591,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
     async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
-      const assets = await assestsDbService.getByWalletId(walletId);
+      const assets = await assetsDbService.getByWalletId(walletId);
 
       await dispatch(
         ACTIONS.LOAD_ASSETS_INFO,
@@ -682,7 +678,7 @@ export default createStore({
           walletId: data.walletId
         } as IDbAsset;
       });
-      assestsDbService.sync(assets, data.walletId);
+      assetsDbService.sync(assets, data.walletId);
 
       await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
         assetInfo: balances.map((x) => {
@@ -724,53 +720,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { price: false });
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
-    async [ACTIONS.SEND_TX]({ dispatch, state }, command: SendTxCommand) {
-      if (state.currentWallet.settings.avoidAddressReuse) {
-        let unused = find(
-          state.currentAddresses,
-          (a) => a.state === AddressState.Unused && a.script !== command.recipient
-        );
-        if (!unused) {
-          await dispatch(ACTIONS.NEW_ADDRESS);
-        }
-      }
-
-      if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchain..." } as any);
-      }
-
-      const addresses = state.currentAddresses;
-      const walletType = state.currentWallet.type;
-      const selectedAddresses = addresses.filter((a) => a.state === AddressState.Used && a.balance);
-      const bip32 =
-        walletType === WalletType.Ledger
-          ? bip32Pool.get(state.currentWallet.publicKey)
-          : await Bip32.fromMnemonic(
-              await walletsDbService.getMnemonic(command.walletId, command.password)
-            );
-      command.password = "";
-
-      const changeAddress = state.currentWallet.settings.avoidAddressReuse
-        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== command.recipient)
-            ?.index ?? state.currentWallet.settings.defaultChangeIndex
-        : state.currentWallet.settings.defaultChangeIndex;
-
-      const boxes = await fetchBoxes(command.walletId);
-      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-
-      const signedTx = await TxBuilder.from(selectedAddresses)
-        .to(command.recipient)
-        .changeIndex(changeAddress ?? 0)
-        .withAssets(command.assets)
-        .withFee(command.fee)
-        .fromBoxes(boxes)
-        .useLedger(walletType === WalletType.Ledger)
-        .setCallback(command.callback)
-        .sign(SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
-
-      return await submitTx(signedTx, command.walletId);
-    },
-    async [ACTIONS.SIGN_TX_FROM_CONNECTOR]({ state }, command: SignTxFromConnectorCommand) {
+    async [ACTIONS.SIGN_TX]({ state }, command: SignTxCommand) {
       const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = ownAddresses
@@ -789,11 +739,11 @@ export default createStore({
       }
 
       if (command.callback) {
-        command.callback({ statusText: "Loading data from the blockchain..." } as any);
+        command.callback({ statusText: "Loading context data..." });
       }
 
       const walletType = state.currentWallet.type;
-      const bip32 =
+      const deriver =
         walletType === WalletType.Ledger
           ? bip32Pool.get(state.currentWallet.publicKey)
           : await Bip32.fromMnemonic(
@@ -805,11 +755,13 @@ export default createStore({
         ownAddresses.map((a) => a.script)
       );
       const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
-      const signedTx = await TxBuilder.from(addresses)
+
+      const signedTx = await new Prover(deriver)
+        .from(addresses)
         .useLedger(walletType === WalletType.Ledger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
-        .signFromConnector(command.tx, SignContext.fromBlockHeaders(blockHeaders).withBip32(bip32));
+        .sign(command.tx, blockHeaders);
 
       return signedTx;
     },
@@ -824,7 +776,7 @@ export default createStore({
 
       const signingAddress = ownAddresses.filter((x) => x.script === command.address);
       const message = buildEip28ResponseMessage(command.message, command.origin);
-      const proofBytes = TxBuilder.from(signingAddress).signMessage(message, bip32);
+      const proofBytes = ""; // TxBuilder.from(signingAddress).signMessage(message, bip32);
 
       return {
         signedMessage: message,
@@ -840,20 +792,20 @@ export default createStore({
       dispatch(ACTIONS.LOAD_CONNECTIONS);
       rpcHandler.sendEvent("disconnected", origin);
     },
-    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, commad: UpdateWalletSettingsCommand) {
-      await walletsDbService.updateSettings(commad.walletId, commad.name, commad);
-      commit(MUTATIONS.SET_WALLET_SETTINGS, commad);
+    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
+      await walletsDbService.updateSettings(command.walletId, command.name, command);
+      commit(MUTATIONS.SET_WALLET_SETTINGS, command);
     },
-    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, commad: UpdateChangeIndexCommand) {
-      await walletsDbService.updateChangeIndex(commad.walletId, commad.index);
-      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, commad);
+    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, command: UpdateChangeIndexCommand) {
+      await walletsDbService.updateChangeIndex(command.walletId, command.index);
+      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, command);
     },
     async [ACTIONS.UPDATE_USED_ADDRESSES_FILTER](
       { commit },
-      commad: UpdateUsedAddressesFilterCommand
+      command: UpdateUsedAddressesFilterCommand
     ) {
-      await walletsDbService.updateUsedAddressFilter(commad.walletId, commad.filter);
-      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, commad);
+      await walletsDbService.updateUsedAddressFilter(command.walletId, command.filter);
+      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, command);
     }
   }
 });
