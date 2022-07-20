@@ -31,7 +31,9 @@ import {
   UpdateUsedAddressesFilterCommand,
   StateAssetInfo,
   AssetType,
-  AssetSubtype
+  AssetSubtype,
+  SignEip28MessageCommand,
+  Eip28SignedMessage
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
@@ -59,6 +61,7 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
+import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
 
 function dbAddressMapper(a: IDbAddress) {
@@ -746,7 +749,6 @@ export default createStore({
           : await Bip32.fromMnemonic(
               await walletsDbService.getMnemonic(command.walletId, command.password)
             );
-      command.password = "";
 
       const changeAddress = getChangeAddress(
         command.tx.outputs,
@@ -762,6 +764,24 @@ export default createStore({
         .sign(command.tx, blockHeaders);
 
       return signedTx;
+    },
+    async [ACTIONS.SIGN_EIP28_MESSAGE](
+      {},
+      command: SignEip28MessageCommand
+    ): Promise<Eip28SignedMessage> {
+      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
+      const deriver = await Bip32.fromMnemonic(
+        await walletsDbService.getMnemonic(command.walletId, command.password)
+      );
+
+      const signingAddress = ownAddresses.filter((x) => x.script === command.address);
+      const message = buildEip28ResponseMessage(command.message, command.origin);
+      const proofBytes = new Prover(deriver).from(signingAddress).signMessage(message);
+
+      return {
+        signedMessage: message,
+        proof: Buffer.from(proofBytes).toString("hex")
+      };
     },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();

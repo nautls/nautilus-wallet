@@ -10,7 +10,8 @@ import {
   handleGetAddressesRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
-  handleSubmitTxRequest
+  handleSubmitTxRequest,
+  handleAuthRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 import { Browser } from "@/utils/browserApi";
@@ -84,6 +85,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
         case "getChangeAddress":
           await handleGetChangeAddressRequest(message, port, session);
           break;
+        case "auth":
+          await handleAuthRequest(message, port, session);
+          break;
         case "signTx":
           await handleSignTxRequest(message, port, session);
           break;
@@ -125,6 +129,16 @@ function sendRequestsToUI(port: chrome.runtime.Port) {
             value.favicon,
             request.message.params ? request.message.params[0] : undefined
           ]
+        } as RpcMessage);
+      } else if (request.message.function === "auth") {
+        port.postMessage({
+          type: "rpc/nautilus-request",
+          sessionId: key,
+          requestId: request.message.requestId,
+          function: request.message.function,
+          params: [value.origin, value.favicon].concat(
+            request.message.params ? request.message.params : undefined
+          )
         } as RpcMessage);
       } else {
         continue;

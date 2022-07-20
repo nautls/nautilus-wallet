@@ -6,7 +6,7 @@ import { AddressState } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, isEmpty } from "lodash";
+import { add, find, findIndex, isEmpty } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -206,7 +206,42 @@ export async function handleSignTxRequest(
     return;
   }
 
-  const response = await showSignTxWindow(session!, request, port);
+  const response = await openPopup(session!, request, port);
+  postConnectorResponse(response, request, port);
+}
+
+export async function handleAuthRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session?: Session
+) {
+  if (!validateRequest(session, request, port)) {
+    return;
+  }
+
+  console.log(request);
+
+  if (!request.params || !request.params[0] || !request.params[1]) {
+    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "bad params" }, request, port);
+    return;
+  }
+
+  const address = request.params[0];
+  console.log("address", address);
+  const addressEntity = await addressesDbService.getByScript(address);
+  if (!addressEntity || addressEntity.walletId !== session?.walletId) {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InvalidRequest,
+        info: `address '${address}' does not belong to the connected wallet.`
+      },
+      request,
+      port
+    );
+    return;
+  }
+
+  const response = await openPopup(session!, request, port);
   postConnectorResponse(response, request, port);
 }
 
@@ -278,7 +313,7 @@ export async function handleNotImplementedRequest(
   );
 }
 
-async function showSignTxWindow(
+async function openPopup(
   session: Session,
   message: RpcMessage,
   port: chrome.runtime.Port
