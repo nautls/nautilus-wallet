@@ -46,13 +46,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, Ref } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
 import { find } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { ACTIONS } from "@/constants/store/actions";
-import useVuelidate from "@vuelidate/core";
+import useVuelidate, { Validation, ValidationArgs } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { SignError, SignErrorCode } from "@/types/connector";
@@ -63,7 +63,7 @@ export default defineComponent({
   name: "AuthView",
   components: { LoadingModal },
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
   },
   async created() {
     const message = find(rpcHandler.messages, (m) => m.function === "auth");
