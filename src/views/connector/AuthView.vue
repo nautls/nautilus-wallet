@@ -18,16 +18,18 @@
       <span class="align-middle"> This wallet cannot sign messages.</span>
     </p>
     <div class="text-left" v-else>
-      <input
-        placeholder="Spending password"
-        type="password"
-        @blur="v$.password.$touch()"
-        v-model.lazy="password"
-        class="w-full control block"
-      />
-      <p class="input-error" v-if="v$.password.$error">
-        {{ v$.password.$errors[0].$message }}
-      </p>
+      <form @submit.prevent="authenticate()">
+        <input
+          placeholder="Spending password"
+          type="password"
+          @blur="v$.password.$touch()"
+          v-model.lazy="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p>
+      </form>
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
@@ -142,6 +144,10 @@ export default defineComponent({
       this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
     },
     async authenticate() {
+      if (this.isReadonly || this.isLedger) {
+        return;
+      }
+
       const isValid = await this.v$.$validate();
       if (!isValid) {
         return;
