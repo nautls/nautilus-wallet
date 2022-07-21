@@ -62,6 +62,15 @@ export class Prover {
     return this;
   }
 
+  public signMessage(message: string) {
+    const wallet = this.buildWallet(this._from, this._deriver);
+    const address = MAINNET
+      ? wasmModule.SigmaRust.Address.from_mainnet_str(this._from[0].script)
+      : wasmModule.SigmaRust.Address.from_testnet_str(this._from[0].script);
+
+    return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
+  }
+
   public async sign(unsignedTx: UnsignedTx, headers: ExplorerBlockHeader[]): Promise<ErgoTx> {
     const sigmaRust = wasmModule.SigmaRust;
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);

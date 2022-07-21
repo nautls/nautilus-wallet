@@ -49,18 +49,19 @@
         <span class="align-middle"> This wallet cannot sign transactions.</span>
       </p>
       <div class="text-left" v-else>
-        <input
-          placeholder="Spending password"
-          type="password"
-          @blur="v$.password.$touch()"
-          @keypress.enter="sign()"
-          :disabled="!canSign || isMnemonicSigning"
-          v-model="password"
-          class="w-full control block"
-        />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
-        </p>
+        <form @submit.prevent="sign()" :disabled="!canSign || isMnemonicSigning">
+          <input
+            placeholder="Spending password"
+            type="password"
+            @blur="v$.password.$touch()"
+            :disabled="!canSign || isMnemonicSigning"
+            v-model="password"
+            class="w-full control block"
+          />
+          <p class="input-error" v-if="v$.password.$error">
+            {{ v$.password.$errors[0].$message }}
+          </p>
+        </form>
       </div>
     </template>
   </div>

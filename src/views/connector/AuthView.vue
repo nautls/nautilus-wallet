@@ -1,37 +1,74 @@
 <template>
-  <div class="flex flex-col h-full gap-4 text-center pt-2">
-    <dapp-plate :origin="origin" :favicon="favicon" />
+  <div class="flex flex-col h-full text-sm gap-4 pt-2">
+    <h1 class="text-xl m-auto text-center pb-8">Authentication</h1>
 
-    <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>
-    <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
-      <label
-        class="p-4 flex gap-4 items-center block cursor-pointer hover:bg-gray-100 active:bg-gray-300"
-        :class="wallet.id === selected ? 'bg-gray-100 hover:bg-gray-200' : ''"
-        v-for="wallet in wallets"
-        :key="wallet.id"
-      >
-        <input :value="wallet.id" v-model="selected" type="radio" class="inline-block" />
-        <wallet-item class="inline-block" :wallet="wallet" :key="wallet.id" />
-      </label>
+    <dapp-plate :favicon="favicon" />
+    <p class="text-center">
+      <span class="font-semibold">{{ origin }}</span> wants to make sure the following address
+      belongs to you.
+    </p>
+    <div
+      class="text-left font-mono border-1 px-3 py-2 text-sm break-all rounded bg-gray-100 border-gray-300"
+    >
+      {{ address }}
+    </div>
+    <div class="flex-grow"></div>
+    <p v-if="isReadonly || isLedger" class="text-sm text-center">
+      <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
+      <span class="align-middle"> This wallet cannot sign messages.</span>
+    </p>
+    <div class="text-left" v-else>
+      <form @submit.prevent="authenticate()">
+        <input
+          placeholder="Spending password"
+          type="password"
+          @blur="v$.password.$touch()"
+          v-model.lazy="password"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="v$.password.$error">
+          {{ v$.password.$errors[0].$message }}
+        </p>
+      </form>
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" @click="connect()" :disabled="!selected">Connect</button>
+      <button class="btn w-full" :disabled="isReadonly || isLedger" @click="authenticate()">
+        Authenticate
+      </button>
     </div>
+
+    <loading-modal
+      title="Signing"
+      :message="errorMessage"
+      :state="errorMessage ? 'error' : 'unknown'"
+      @close="errorMessage = ''"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, Ref } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find, isEmpty } from "lodash";
+import { find } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { ACTIONS } from "@/constants/store/actions";
+import useVuelidate, { Validation, ValidationArgs } from "@vuelidate/core";
+import { helpers, requiredUnless } from "@vuelidate/validators";
+import { SignEip28MessageCommand, WalletType } from "@/types/internal";
+import { SignError, SignErrorCode } from "@/types/connector";
+import LoadingModal from "@/components/LoadingModal.vue";
+import { PasswordError } from "@/types/errors";
 
 export default defineComponent({
   name: "AuthView",
-  created() {
-    const message = find(rpcHandler.messages, (m) => m.function === "connect");
+  components: { LoadingModal },
+  setup() {
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
+  },
+  async created() {
+    const message = find(rpcHandler.messages, (m) => m.function === "auth");
     if (!message || !message.params) {
       return;
     }
@@ -41,51 +78,132 @@ export default defineComponent({
     this.origin = message.params[0];
     this.favicon = message.params[1];
 
+    this.address = message.params[2];
+    this.message = message.params[3];
+
+    const connection = await connectedDAppsDbService.getByOrigin(this.origin);
+    if (!connection) {
+      window.close();
+      return;
+    }
+    this.currentWalletId = connection.walletId;
+
     window.addEventListener("beforeunload", this.refuse);
   },
   data() {
     return {
-      selected: 0,
       requestId: 0,
       sessionId: 0,
+      currentWalletId: 0,
       origin: "",
-      favicon: ""
+      favicon: "",
+      address: "",
+      message: "",
+      password: "",
+      errorMessage: ""
+    };
+  },
+  validations() {
+    return {
+      password: {
+        required: helpers.withMessage(
+          "A spending password is required for transaction signing.",
+          requiredUnless(this.isLedger)
+        )
+      }
     };
   },
   computed: {
-    ...mapState({ wallets: "wallets" })
+    ...mapState({ wallets: "wallets", loading: "loading" }),
+    isReadonly() {
+      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
+    isLedger() {
+      return this.$store.state.currentWallet.type === WalletType.Ledger;
+    }
+  },
+  watch: {
+    ["loading.wallets"]: {
+      immediate: true,
+      async handler(loading: boolean) {
+        this.setWallet(loading, this.currentWalletId);
+      }
+    },
+    currentWalletId: {
+      immediate: true,
+      async handler(walletId: number) {
+        this.setWallet(this.loading.wallets, walletId);
+      }
+    }
   },
   methods: {
-    async connect() {
-      await connectedDAppsDbService.put({
-        origin: this.origin,
-        walletId: this.selected,
-        favicon: !isEmpty(this.favicon) ? this.favicon : undefined
-      });
+    async setWallet(loading: boolean, walletId: number) {
+      if (loading || walletId === 0) {
+        return;
+      }
+      this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+    },
+    async authenticate() {
+      if (this.isReadonly || this.isLedger) {
+        return;
+      }
 
-      rpcHandler.sendMessage({
-        type: "rpc/nautilus-response",
-        function: "connect",
-        sessionId: this.sessionId,
-        requestId: this.requestId,
-        return: { isSuccess: true, data: { walletId: this.selected } }
-      });
-      window.removeEventListener("beforeunload", this.refuse);
-      window.close();
+      const isValid = await this.v$.$validate();
+      if (!isValid) {
+        return;
+      }
+
+      try {
+        const signResult = await this.$store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
+          address: this.address,
+          message: this.message,
+          origin: this.origin,
+          walletId: this.currentWalletId,
+          password: this.password
+        } as SignEip28MessageCommand);
+
+        rpcHandler.sendMessage({
+          type: "rpc/nautilus-response",
+          function: "auth",
+          sessionId: this.sessionId,
+          requestId: this.requestId,
+          return: { isSuccess: true, data: signResult }
+        });
+
+        window.removeEventListener("beforeunload", this.refuse);
+        window.close();
+      } catch (e) {
+        console.error(e);
+        if (e instanceof PasswordError) {
+          this.errorMessage = e.message;
+        } else {
+          this.fail(typeof e === "string" ? e : (e as Error).message);
+        }
+      }
     },
     cancel() {
       this.refuse();
-      window.removeEventListener("beforeunload", this.refuse);
       window.close();
     },
-    refuse() {
+    sendError(error: SignError) {
+      window.removeEventListener("beforeunload", this.refuse);
+
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
-        function: "connect",
+        function: "auth",
         sessionId: this.sessionId,
         requestId: this.requestId,
-        return: { isSuccess: true, data: { walletId: undefined } }
+        return: {
+          isSuccess: false,
+          data: error
+        }
       });
+    },
+    fail(info: string) {
+      this.sendError({ code: SignErrorCode.ProofGeneration, info });
+    },
+    refuse() {
+      this.sendError({ code: SignErrorCode.UserDeclined, info: "User rejected" });
     }
   }
 });

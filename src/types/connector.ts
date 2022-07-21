@@ -59,13 +59,13 @@ export type TxSendError = {
   info: String;
 };
 
-export enum TxSignErrorCode {
+export enum SignErrorCode {
   ProofGeneration = 1,
   UserDeclined = 2
 }
 
-export type TxSignError = {
-  code: TxSignErrorCode;
+export type SignError = {
+  code: SignErrorCode;
   info: String;
 };
 
