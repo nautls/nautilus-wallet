@@ -168,8 +168,8 @@ export default defineComponent({
       return this.minErgFee.multipliedBy(this.multiplier);
     },
     tokenUnitsFee(): BigNumber {
-      const nanoErgs = this.internalSelected.nanoErgsPerToken.multipliedBy(this.tokenUnitsFee);
-      if (nanoErgs.minus(this.minRequiredForBoxes).isGreaterThanOrEqualTo(this.nanoErgsFee)) {
+      const tokenNanoErgs = this.internalSelected.nanoErgsPerToken.multipliedBy(this.minTokenFee);
+      if (tokenNanoErgs.isGreaterThan(this.nanoErgsFee.plus(this.minRequiredForBoxes))) {
         return this.minTokenFee.multipliedBy(this.multiplier);
       }
 
