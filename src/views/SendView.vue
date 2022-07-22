@@ -55,10 +55,11 @@
             </div>
           </template>
         </drop-down>
+        <p class="input-error" v-if="v$.selected.$error">{{ v$.selected.$errors[0].$message }}</p>
       </div>
     </div>
 
-    <fee-selector v-model:selected="babelFee" :include-min-amount-per-box="1" />
+    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="hasChange ? 1 : 0" />
 
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
@@ -88,7 +89,7 @@ import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
 import { decimalize } from "@/utils/bigNumbers";
-import { required, helpers } from "@vuelidate/validators";
+import { required, helpers, minLength } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { TRANSACTION_URL } from "@/constants/explorer";
@@ -149,22 +150,26 @@ export default defineComponent({
       return false;
     },
     reservedFeeAssetAmount(): BigNumberType {
-      const feeAsset = find(this.selected, (a) => a.asset.tokenId === this.babelFee.tokenId);
+      const feeAsset = find(this.selected, (a) => a.asset.tokenId === this.feeSettings.tokenId);
       if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
 
-      // if (!this.changeValue) {
-      return this.fee;
-      // }
+      if (!this.changeValue) {
+        return this.fee;
+      }
 
-      // return this.fee.plus(this.changeValue);
+      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
+        return this.fee.plus(this.changeValue);
+      }
+
+      return this.fee;
     },
     fee(): BigNumberType {
-      return this.babelFee.value;
+      return this.feeSettings.value;
     },
     isFeeInErg() {
-      return this.isErg(this.babelFee.tokenId);
+      return this.isErg(this.feeSettings.tokenId);
     },
     changeValue(): BigNumberType | undefined {
       if (!this.hasChange) {
@@ -190,13 +195,21 @@ export default defineComponent({
 
         this.setErgAsSelected();
       }
+    },
+    feeSettings(newVal: FeeSettings) {
+      if (this.isErg(newVal.tokenId)) {
+        this.setErgAsSelected();
+      }
+    },
+    ["selected.length"]() {
+      this.v$.selected.$touch();
     }
   },
   data() {
     return {
       selected: [] as TxAssetAmount[],
       transaction: undefined as Readonly<UnsignedTx> | undefined,
-      babelFee: {
+      feeSettings: {
         tokenId: ERG_TOKEN_ID,
         value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
       } as FeeSettings,
@@ -212,6 +225,12 @@ export default defineComponent({
       recipient: {
         required: helpers.withMessage("Receiver address is required.", required),
         validErgoAddress
+      },
+      selected: {
+        required: helpers.withMessage(
+          "At least one asset should be selected in order to send a transaction.",
+          required
+        )
       }
     };
   },
@@ -331,9 +350,14 @@ export default defineComponent({
         return;
       }
 
+      const selected = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
+      if (selected) {
+        return;
+      }
+
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
-        this.selected.push({ asset: erg, amount: undefined });
+        this.selected.unshift({ asset: erg, amount: undefined });
       }
     },
     urlForTransaction(txId: string): string {
@@ -362,7 +386,7 @@ export default defineComponent({
       }
     },
     isFeeAsset(tokenId: string): boolean {
-      return tokenId === this.babelFee.tokenId;
+      return tokenId === this.feeSettings.tokenId;
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
