@@ -58,7 +58,7 @@
       </div>
     </div>
 
-    <fee-selector v-model:selected="babelFee" :include-min-amount-per-box="10" />
+    <fee-selector v-model:selected="babelFee" :include-min-amount-per-box="1" />
 
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
