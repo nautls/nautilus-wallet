@@ -1,14 +1,14 @@
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, MAINNET } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET, MIN_BOX_VALUE } from "@/constants/ergo";
 import { ErgoBox, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
+import { BigNumberType, StateAsset } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import { Address, BoxValue, ErgoBoxCandidates, I64, Tokens } from "ergo-lib-wasm-browser";
-import { find } from "lodash";
 import JSONBig from "json-bigint";
+import { find } from "lodash";
 import Bip32 from "../bip32";
-import { BigNumberType, StateAsset } from "@/types/internal";
 
 export type TxAssetAmount = {
   asset: StateAsset;

@@ -86,7 +86,8 @@ import {
   SAFE_MIN_FEE_VALUE,
   ERG_TOKEN_ID,
   ERG_DECIMALS,
-  BABEL_FEE_TEMPLATE
+  BABEL_FEE_TEMPLATE,
+  MIN_BOX_VALUE
 } from "@/constants/ergo";
 import { GETTERS } from "@/constants/store/getters";
 import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
@@ -98,20 +99,21 @@ import { defineComponent, PropType } from "vue";
 
 type FeeAsset = {
   tokenId: string;
-  nanoergsPerToken: BigNumberType;
+  nanoErgsPerToken: BigNumberType;
   info?: BasicAssetInfo;
 };
 
 export default defineComponent({
   name: "FeeSelector",
   props: {
-    selected: { type: Object as PropType<FeeSettings>, required: true }
+    selected: { type: Object as PropType<FeeSettings>, required: true },
+    includeMinAmountPerBox: { type: Number, default: 0 }
   },
   emits: ["update:selected"],
   async created() {
     const erg: FeeAsset = {
       tokenId: ERG_TOKEN_ID,
-      nanoergsPerToken: new BigNumber(1),
+      nanoErgsPerToken: new BigNumber(1),
       info: this.$store.state.assetInfo[ERG_TOKEN_ID]
     };
     this.assets = [erg];
@@ -128,7 +130,7 @@ export default defineComponent({
         return {
           tokenId,
           info: this.$store.state.assetInfo[tokenId],
-          nanoergsPerToken: maxBy(
+          nanoErgsPerToken: maxBy(
             x.data
               .filter((b) => b.additionalRegisters.R5)
               .map(
@@ -156,40 +158,41 @@ export default defineComponent({
     minErgFee(): BigNumber {
       return new BigNumber(SAFE_MIN_FEE_VALUE);
     },
-    minTokenUnits(): number {
-      let minTokenUnits = 1;
-      while (this.internalSelected.nanoergsPerToken.multipliedBy(minTokenUnits) <= this.minErgFee) {
-        minTokenUnits++;
+    minTokenFee(): BigNumberType {
+      return this.getTokenUnitsFor(this.minErgFee);
+    },
+    minRequiredForBoxes(): BigNumber {
+      return new BigNumber(MIN_BOX_VALUE).multipliedBy(this.includeMinAmountPerBox);
+    },
+    nanoErgsFee(): BigNumber {
+      return this.minErgFee.multipliedBy(this.multiplier);
+    },
+    tokenUnitsFee(): BigNumber {
+      const nanoErgs = this.internalSelected.nanoErgsPerToken.multipliedBy(this.tokenUnitsFee);
+      if (nanoErgs.minus(this.minRequiredForBoxes).isGreaterThanOrEqualTo(this.nanoErgsFee)) {
+        return this.minTokenFee.multipliedBy(this.multiplier);
       }
 
-      return minTokenUnits;
+      return this.minTokenFee
+        .multipliedBy(this.multiplier)
+        .plus(this.getTokenUnitsFor(this.minRequiredForBoxes));
     },
     fee(): BigNumberType {
       if (this.internalSelected.tokenId === ERG_TOKEN_ID) {
-        return decimalize(
-          this.minErgFee.multipliedBy(this.multiplier),
-          this.internalSelected.info?.decimals || 0
-        );
+        return decimalize(this.nanoErgsFee, this.internalSelected.info?.decimals || 0);
       }
 
-      return decimalize(
-        new BigNumber(this.minTokenUnits).multipliedBy(this.multiplier),
-        this.internalSelected.info?.decimals || 0
-      );
+      return decimalize(this.tokenUnitsFee, this.internalSelected.info?.decimals || 0);
     },
     price() {
       if (this.internalSelected.tokenId === ERG_TOKEN_ID) {
-        return decimalize(this.minErgFee, ERG_DECIMALS)
-          .multipliedBy(this.multiplier)
-          .multipliedBy(this.ergPrice);
+        return decimalize(this.nanoErgsFee, ERG_DECIMALS).multipliedBy(this.ergPrice);
       }
 
       return decimalize(
-        this.internalSelected.nanoergsPerToken.multipliedBy(this.minTokenUnits),
+        this.internalSelected.nanoErgsPerToken.multipliedBy(this.tokenUnitsFee),
         ERG_DECIMALS
-      )
-        .multipliedBy(this.multiplier)
-        .multipliedBy(this.ergPrice);
+      ).multipliedBy(this.ergPrice);
     },
     nonNftAssets(): StateAsset[] {
       return this.$store.getters[GETTERS.NON_NFT_BALANCE];
@@ -228,13 +231,21 @@ export default defineComponent({
     };
   },
   methods: {
+    getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
+      let units = new BigNumber(1);
+      while (this.internalSelected.nanoErgsPerToken.multipliedBy(units).isLessThan(nanoErgs)) {
+        units = units.plus(1);
+      }
+
+      return units;
+    },
     select(asset: FeeAsset) {
       this.internalSelected = asset;
     },
     emitSelectedUpdate() {
       this.$emit("update:selected", {
         tokenId: this.internalSelected.tokenId,
-        nanoergsPerToken: this.internalSelected.nanoergsPerToken,
+        nanoergsPerToken: this.internalSelected.nanoErgsPerToken,
         value: this.fee
       } as FeeSettings);
     }

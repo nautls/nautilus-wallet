@@ -14,15 +14,15 @@
     <div>
       <div class="flex flex-col gap-2">
         <asset-input
-          :label="index === 0 ? 'Assets' : ''"
           v-for="(item, index) in selected"
           :key="item.asset.tokenId"
-          v-model="item.amount"
+          :label="index === 0 ? 'Assets' : ''"
           :asset="item.asset"
-          :reserved-amount="isErg(item.asset.tokenId) ? reservedErgAmount : undefined"
+          :reserved-amount="isFeeAsset(item.asset.tokenId) ? reservedFeeAssetAmount : undefined"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
-          :disposable="!isErg(item.asset.tokenId)"
+          :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
+          v-model="item.amount"
         />
         <drop-down
           :disabled="unselected.length === 0"
@@ -58,7 +58,7 @@
       </div>
     </div>
 
-    <fee-selector v-model:selected="babelFee" />
+    <fee-selector v-model:selected="babelFee" :include-min-amount-per-box="10" />
 
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
@@ -148,20 +148,23 @@ export default defineComponent({
 
       return false;
     },
-    reservedErgAmount(): BigNumberType {
-      const erg = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
-      if (!erg || erg.asset.confirmedAmount.isZero()) {
+    reservedFeeAssetAmount(): BigNumberType {
+      const feeAsset = find(this.selected, (a) => a.asset.tokenId === this.babelFee.tokenId);
+      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
 
-      if (!this.changeValue) {
-        return this.fee;
-      }
+      // if (!this.changeValue) {
+      return this.fee;
+      // }
 
-      return this.fee.plus(this.changeValue);
+      // return this.fee.plus(this.changeValue);
     },
     fee(): BigNumberType {
       return this.babelFee.value;
+    },
+    isFeeInErg() {
+      return this.isErg(this.babelFee.tokenId);
     },
     changeValue(): BigNumberType | undefined {
       if (!this.hasChange) {
@@ -324,6 +327,10 @@ export default defineComponent({
       this.signModalActive = false;
     },
     setErgAsSelected(): void {
+      if (!this.isFeeInErg) {
+        return;
+      }
+
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
         this.selected.push({ asset: erg, amount: undefined });
@@ -345,7 +352,7 @@ export default defineComponent({
         return;
       }
 
-      const erg = find(this.selected, (a) => this.isErg(a.asset.tokenId));
+      const erg = find(this.selected, (a) => this.isFeeAsset(a.asset.tokenId));
       if (!erg) {
         return;
       }
@@ -353,6 +360,9 @@ export default defineComponent({
       if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
         erg.amount = new BigNumber(this.minBoxValue);
       }
+    },
+    isFeeAsset(tokenId: string): boolean {
+      return tokenId === this.babelFee.tokenId;
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
