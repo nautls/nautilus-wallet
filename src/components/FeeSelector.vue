@@ -81,19 +81,20 @@
 
 <script lang="ts">
 import { addressFromErgoTree } from "@/api/ergo/addresses";
-import { explorerService } from "@/api/explorer/explorerService";
 import {
-  SAFE_MIN_FEE_VALUE,
-  ERG_TOKEN_ID,
-  ERG_DECIMALS,
-  BABEL_FEE_TEMPLATE,
-  MIN_BOX_VALUE
-} from "@/constants/ergo";
+  buildBabelErgoTreeFor,
+  extractTokenIdFromBabelErgoTree,
+  getNanoErgsPerTokenRate,
+  isValidBabelBox
+} from "@/api/ergo/babelFees";
+import { explorerService } from "@/api/explorer/explorerService";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { GETTERS } from "@/constants/store/getters";
 import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
 import { decimalize } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
+import { info } from "console";
 import { isEmpty, maxBy, sortBy } from "lodash";
 import { defineComponent, PropType } from "vue";
 
@@ -121,32 +122,28 @@ export default defineComponent({
 
     const addresses = this.nonNftAssets
       .filter((x) => x.tokenId !== ERG_TOKEN_ID)
-      .map((x) => addressFromErgoTree(BABEL_FEE_TEMPLATE.replace("[$tokenId]", x.tokenId)));
+      .map((x) => addressFromErgoTree(buildBabelErgoTreeFor(x.tokenId)));
+
     let assets = (await explorerService.getUnspentBoxes(addresses))
       .filter((x) => !isEmpty(x.data))
       .map((x): FeeAsset => {
-        const tokenId = x.data[0].ergoTree.slice(16, 16 + 64);
-
+        const tokenId = extractTokenIdFromBabelErgoTree(x.data[0].ergoTree);
         return {
           tokenId,
           info: this.$store.state.assetInfo[tokenId],
           nanoErgsPerToken: maxBy(
-            x.data
-              .filter((b) => b.additionalRegisters.R5)
-              .map(
-                (x) =>
-                  new BigNumber(
-                    wasmModule.SigmaRust.Constant.decode_from_base16(x.additionalRegisters.R5)
-                      .to_i64()
-                      .to_str()
-                  )
-              ),
+            x.data.filter((box) => isValidBabelBox(box)).map((box) => getNanoErgsPerTokenRate(box)),
             (p) => p.toNumber()
           )!
         };
       });
 
-    this.assets = this.assets.concat(sortBy(assets, (x) => x.tokenId));
+    this.assets = this.assets.concat(
+      sortBy(
+        assets.filter((x) => x.nanoErgsPerToken),
+        (x) => x.tokenId
+      )
+    );
   },
   computed: {
     ergPrice(): number {
@@ -249,7 +246,8 @@ export default defineComponent({
       this.$emit("update:selected", {
         tokenId: this.internalSelected.tokenId,
         nanoergsPerToken: this.internalSelected.nanoErgsPerToken,
-        value: this.fee
+        value: this.fee,
+        assetInfo: this.internalSelected.info
       } as FeeSettings);
     }
   }

@@ -1,6 +1,7 @@
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import BigNumber from "bignumber.js";
 import { UnsignedTx } from "./connector";
+import { ExplorerBox } from "./explorer";
 
 export enum AddressState {
   Used,
@@ -89,7 +90,9 @@ export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
 export type FeeSettings = {
   tokenId: string;
   readonly value: BigNumberType;
-  readonly nanoergsPerToken?: BigNumberType;
+  readonly nanoErgsPerToken?: BigNumberType;
+  readonly assetInfo?: BasicAssetInfo;
+  box?: ExplorerBox;
 };
 
 export type SignTxCommand = {

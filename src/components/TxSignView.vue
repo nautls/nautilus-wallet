@@ -29,6 +29,7 @@
         </p>
       </template>
     </tx-spending-details>
+
     <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
       ><p>Network fee</p></tx-spending-details
     >

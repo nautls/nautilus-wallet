@@ -88,8 +88,8 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { ACTIONS } from "@/constants/store";
-import { decimalize } from "@/utils/bigNumbers";
-import { required, helpers, minLength } from "@vuelidate/validators";
+import { decimalize, undecimalize } from "@/utils/bigNumbers";
+import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { TRANSACTION_URL } from "@/constants/explorer";
@@ -107,6 +107,7 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { fetchBabelBoxes, selectOneBoxFrom } from "@/api/ergo/babelFees";
 
 export default defineComponent({
   name: "SendView",
@@ -264,21 +265,34 @@ export default defineComponent({
         : this.currentWallet.settings.defaultChangeIndex;
 
       try {
-        const boxes = await fetchBoxes(this.currentWallet.id);
-        const [bestBlock] = await explorerService.getBlockHeaders({ limit: 1 });
+        const [boxes, [bestBlock]] = await Promise.all([
+          await fetchBoxes(this.currentWallet.id),
+          await explorerService.getBlockHeaders({ limit: 1 })
+        ]);
+
         if (!bestBlock) {
           throw Error("Unable to fetch current height, please check your connection.");
+        }
+
+        if (this.feeSettings.tokenId !== ERG_TOKEN_ID) {
+          const babelBoxes = await fetchBabelBoxes(this.feeSettings.tokenId);
+          this.feeSettings.box = selectOneBoxFrom(
+            babelBoxes,
+            this.feeSettings.tokenId,
+            undecimalize(this.feeSettings.value, this.feeSettings.assetInfo?.decimals || 0)
+          );
         }
 
         const unsignedTx = new TxBuilder(deriver)
           .to(this.recipient)
           .inputs(boxes)
           .assets(this.selected as TxAssetAmount[])
-          .fee(this.fee)
+          .fee(this.feeSettings)
           .height(bestBlock.height)
           .changeIndex(changeIndex ?? 0)
           .build();
 
+        console.log(unsignedTx);
         const parsedTx = new TxInterpreter(
           unsignedTx,
           addresses.map((a) => a.script),
@@ -364,8 +378,12 @@ export default defineComponent({
       return `${TRANSACTION_URL}${txId}`;
     },
     add(asset: StateAsset) {
+      this.removeFeeAssetIfDisposable();
       this.selected.push({ asset });
-      this.setMinBoxValue();
+
+      if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
+        this.setMinBoxValue();
+      }
     },
     remove(tokenId: string) {
       remove(this.selected, (a) => a.asset.tokenId === tokenId);
@@ -383,6 +401,20 @@ export default defineComponent({
 
       if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
         erg.amount = new BigNumber(this.minBoxValue);
+      }
+    },
+    removeFeeAssetIfDisposable() {
+      if (this.selected.length > 1 || this.feeSettings.tokenId === ERG_TOKEN_ID) {
+        return;
+      }
+
+      const item = this.selected[0];
+      if (!item) {
+        return;
+      }
+
+      if (!item.amount || item.amount.isZero()) {
+        this.remove(item.asset.tokenId);
       }
     },
     isFeeAsset(tokenId: string): boolean {

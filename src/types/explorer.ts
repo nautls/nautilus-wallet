@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { ErgoBox, Token } from "./connector";
-import { AssetStandard } from "./internal";
+import { AssetStandard, BigNumberType } from "./internal";
 
 export type AddressAPIResponse<T> = {
   address: string;
@@ -31,7 +31,7 @@ type ExplorerDataInputBox = {
 export type ExplorerToken = {
   tokenId: string;
   index: number;
-  amount: number | string | BigNumber;
+  amount: BigNumber.Value;
   name: string;
   decimals: number;
   type: string;
@@ -218,7 +218,7 @@ export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
 export type ExplorerBox = {
   id: string;
   txId: string;
-  value: number | string | BigNumber;
+  value: BigNumber.Value;
   index: number;
   creationHeight: number;
   ergoTree: string;
