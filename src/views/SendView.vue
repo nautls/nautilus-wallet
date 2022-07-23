@@ -276,9 +276,9 @@ export default defineComponent({
 
         if (this.feeSettings.tokenId !== ERG_TOKEN_ID) {
           const babelBoxes = await fetchBabelBoxes(this.feeSettings.tokenId);
+          console.log(babelBoxes);
           this.feeSettings.box = selectOneBoxFrom(
             babelBoxes,
-            this.feeSettings.tokenId,
             undecimalize(this.feeSettings.value, this.feeSettings.assetInfo?.decimals || 0)
           );
         }

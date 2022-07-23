@@ -55,21 +55,16 @@ export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promi
 }
 
 /**
- * select a box with enough balance
+ * select a box with enough ERG balance
  *
  * @param boxes Unspent babel boxes
- * @param tokenId Hex Token Id
  * @param amount Undecimalized amount
  * @returns
  */
 export function selectOneBoxFrom(
   boxes: ExplorerBox[],
-  tokenId: string,
   amount: BigNumberType
 ): ExplorerBox | undefined {
-  return boxes.find((box) =>
-    box.assets.findIndex(
-      (asset) => asset.tokenId === tokenId && amount.isLessThanOrEqualTo(asset.amount)
-    )
-  );
+  // TODO: verify if ERG balance is enough
+  return first(boxes);
 }
