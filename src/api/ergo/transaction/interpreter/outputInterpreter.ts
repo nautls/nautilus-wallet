@@ -6,6 +6,7 @@ import { find, findIndex, first, isEmpty } from "lodash";
 import { addressFromErgoTree } from "@/api/ergo/addresses";
 import { decodeColl } from "@/api/ergo/sigmaSerializer";
 import { StateAssetInfo } from "@/types/internal";
+import { isBabelErgoTree } from "../../babelFees";
 
 export type OutputAsset = {
   tokenId: string;
@@ -37,6 +38,10 @@ export class OutputInterpreter {
 
   public get isMinting(): boolean {
     return find(this._assets, (a) => a.minting) !== undefined;
+  }
+
+  public get isBabelBox(): boolean {
+    return isBabelErgoTree(this._box.ergoTree);
   }
 
   constructor(
