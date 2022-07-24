@@ -15,7 +15,7 @@ import BigNumber from "bignumber.js";
 import { Address, BoxValue, ErgoBoxCandidate, ErgoTree, I64, Tokens } from "ergo-lib-wasm-browser";
 import JSONBig from "json-bigint";
 import { find, isEmpty } from "lodash";
-import { getNanoErgsPerTokenRate } from "../babelFees";
+import { getNanoErgsPerTokenRate, isBabelErgoTree } from "../babelFees";
 import Bip32 from "../bip32";
 
 export type TxAssetAmount = {
@@ -51,7 +51,7 @@ export class TxBuilder {
   public fee(fee: FeeSettings): TxBuilder {
     this._fee = fee;
     if (this.hasBabelFee && this._fee?.box) {
-      this._inputs.unshift(explorerBoxMapper({ asConfirmed: true })(this._fee.box));
+      this._inputs.push(explorerBoxMapper({ asConfirmed: true })(this._fee.box));
     }
     return this;
   }
@@ -62,11 +62,12 @@ export class TxBuilder {
   }
 
   public inputs(inputs: ErgoBox[]): TxBuilder {
+    this._inputs = inputs;
+
     if (this.hasBabelFee && this._fee?.box) {
-      this._inputs = [explorerBoxMapper({ asConfirmed: true })(this._fee.box)].concat(inputs);
+      this._inputs.push(explorerBoxMapper({ asConfirmed: true })(this._fee.box));
     }
 
-    this._inputs = inputs;
     return this;
   }
 
@@ -167,13 +168,23 @@ export class TxBuilder {
 
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;
     if (this.hasBabelFee) {
-      const newIndex = unsigned.outputs.length - 2;
-      unsigned.outputs.splice(newIndex, 0, unsigned.outputs.splice(1, 1)[0]);
-      unsigned.outputs.splice;
+      if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.id)) {
+        console.log(unsigned);
+        throw new Error("Malformed transaction. Babel box is not included in the inputs.");
+      }
+
+      const penultimateIndex = unsigned.outputs.length - 2;
+      const babelIndex = unsigned.outputs.findIndex((output) => isBabelErgoTree(output.ergoTree));
+      if (babelIndex === -1) {
+        throw new Error("Malformed transaction. Babel output is not included in the outputs.");
+      }
+
+      unsigned.outputs.splice(penultimateIndex, 0, unsigned.outputs.splice(babelIndex, 1)[0]);
     }
+
     unsigned.inputs = this.hydrateInputs(unsigned.inputs) as UnsignedInput[];
     unsigned.dataInputs = this.hydrateInputs(unsigned.dataInputs);
-
+    console.log(unsigned);
     return unsigned;
   }
 

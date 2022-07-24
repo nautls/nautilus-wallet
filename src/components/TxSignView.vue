@@ -22,7 +22,7 @@
         {{ mountTitleForOutput(output) }}
       </p>
 
-      <template v-slot:subheader>
+      <template v-slot:subheader v-if="!output.isBabelBox">
         <p class="font-mono text-sm break-all">
           {{ $filters.compactString(output.receiver, 60) }}
           <click-to-copy :content="output.receiver" size="11" />
@@ -271,7 +271,9 @@ export default defineComponent({
       this.$emit("success", signedTx);
     },
     mountTitleForOutput(output: OutputInterpreter) {
-      if (output.isIntrawallet) {
+      if (output.isBabelBox) {
+        return "Babel fee";
+      } else if (output.isIntrawallet) {
         return "Sending to your address";
       } else if (!this.isP2PK(output.receiver)) {
         return "Sending to contract";
