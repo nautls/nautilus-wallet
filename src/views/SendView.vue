@@ -276,10 +276,18 @@ export default defineComponent({
 
         if (this.feeSettings.tokenId !== ERG_TOKEN_ID) {
           const babelBoxes = await fetchBabelBoxes(this.feeSettings.tokenId);
-          this.feeSettings.box = selectOneBoxFrom(
+          const selectedBox = selectOneBoxFrom(
             babelBoxes,
             undecimalize(this.feeSettings.value, this.feeSettings.assetInfo?.decimals || 0)
           );
+
+          if (!selectedBox) {
+            throw Error(
+              "There is not enough liquidity in the Babel Boxes for the selected fee asset."
+            );
+          }
+
+          this.feeSettings.box = selectedBox;
         }
 
         const unsignedTx = new TxBuilder(deriver)

@@ -1,12 +1,11 @@
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
-import { ExplorerBox, ExplorerToken } from "@/types/explorer";
-import { BigNumberType, FeeSettings } from "@/types/internal";
+import { ExplorerBox } from "@/types/explorer";
+import { BigNumberType } from "@/types/internal";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import { find, first, sortBy } from "lodash";
 import { explorerService } from "../explorer/explorerService";
 import { addressFromErgoTree } from "./addresses";
-import { fetchBoxes } from "./boxFetcher";
 
 const BABEL_ERGOTREE_PREFIX = "1008040404000e20";
 const BABEL_ERGOTREE_SUFFIX =
@@ -65,6 +64,7 @@ export function selectOneBoxFrom(
   boxes: ExplorerBox[],
   amount: BigNumberType
 ): ExplorerBox | undefined {
-  // TODO: verify if ERG balance is enough
-  return first(boxes);
+  return boxes.find((box) =>
+    amount.multipliedBy(getNanoErgsPerTokenRate(box)).isLessThanOrEqualTo(box.value)
+  );
 }
