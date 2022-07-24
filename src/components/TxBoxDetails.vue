@@ -51,7 +51,7 @@ import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterprete
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
-  name: "ImageSandbox",
+  name: "TxBoxDetails",
   props: {
     assets: { type: Array as PropType<Array<OutputAsset>> },
     type: {

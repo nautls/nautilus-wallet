@@ -1,5 +1,5 @@
 import { MAINNET_MINER_FEE_TREE, TESTNET_MINER_FEE_TREE } from "@/constants/ergo";
-import { UnsignedTx, ErgoBoxCandidate, Token } from "@/types/connector";
+import { ErgoBoxCandidate, Token, UnsignedTx } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
