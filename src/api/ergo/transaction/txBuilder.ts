@@ -32,8 +32,6 @@ export class TxBuilder {
   private _deriver!: Bip32;
   private _height!: number;
 
-  // private readonly hasBabelFee = this._fee?.tokenId !== ERG_TOKEN_ID;
-
   private get hasBabelFee(): boolean {
     return this._fee?.tokenId !== ERG_TOKEN_ID;
   }
@@ -242,34 +240,10 @@ export class TxBuilder {
       );
     }
 
-    // if (this.hasBabelFee && this._fee.box) {
-    //   const token = this._fee.box.assets.find((asset) => asset.tokenId === this._fee.tokenId);
-
-    //   tokens.add(
-    //     new sigmaRust.Token(
-    //       sigmaRust.TokenId.from_str(this._fee.tokenId),
-    //       sigmaRust.TokenAmount.from_i64(
-    //         this.toI64(
-    //           undecimalize(this._fee.value, this._fee.assetInfo?.decimals ?? 0).plus(
-    //             token?.amount || 0
-    //           )
-    //         )
-    //       )
-    //     )
-    //   );
-    // }
-
     return tokens;
   }
 
   private getNanoErgsAmount(): BigNumber {
-    // if (this.hasBabelFee && this._fee.box) {
-    //   const nanoErgs = new BigNumber(this._fee.box?.value)
-    //     // .plus(selectedNanoErs)
-    //     .minus(this.getNanoErgFee());
-
-    //   return wasmModule.SigmaRust.BoxValue.from_i64(I64.from_str(nanoErgs.toString()));
-    // }
     const erg = find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID);
     const nanoErgs = erg && erg.amount ? undecimalize(erg.amount, ERG_DECIMALS) : undefined;
     const sigmaRust = wasmModule.SigmaRust;
