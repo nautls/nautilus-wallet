@@ -94,7 +94,7 @@ export class TxBuilder {
 
     const outputs = new sigmaRust.ErgoBoxCandidates(userOutput);
 
-    let target = this.getNanoErgsAmount().plus(this.getNanoErgFee());
+    let target = this.getNanoErgsAmount().plus(this.getNanoErgsFee());
     if (this.hasBabelFee && this._fee.box) {
       const box = this._fee.box;
       const rate = getNanoErgsPerTokenRate(box);
@@ -152,7 +152,7 @@ export class TxBuilder {
       outputs.add(builder.build());
     }
 
-    const fee = sigmaRust.BoxValue.from_i64(this.toI64(this.getNanoErgFee()));
+    const fee = sigmaRust.BoxValue.from_i64(this.toI64(this.getNanoErgsFee()));
     const boxSelection = new sigmaRust.SimpleBoxSelector().select(
       unspentBoxes,
       sigmaRust.BoxValue.from_i64(this.toI64(target)),
@@ -169,7 +169,7 @@ export class TxBuilder {
     ).build();
 
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;
-    console.log(this.hasBabelFee, this._fee);
+
     if (this.hasBabelFee) {
       if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.id)) {
         throw new Error("Malformed transaction. Babel box is not included in the inputs.");
@@ -243,10 +243,13 @@ export class TxBuilder {
     return tokens;
   }
 
-  private getNanoErgsAmount(): BigNumber {
+  private getSendingNanoErgs(): BigNumber | undefined {
     const erg = find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID);
-    const nanoErgs = erg && erg.amount ? undecimalize(erg.amount, ERG_DECIMALS) : undefined;
-    const sigmaRust = wasmModule.SigmaRust;
+    return erg && erg.amount ? undecimalize(erg.amount, ERG_DECIMALS) : undefined;
+  }
+
+  private getNanoErgsAmount(): BigNumber {
+    const nanoErgs = this.getSendingNanoErgs();
 
     if (!nanoErgs || nanoErgs.isLessThan(MIN_BOX_VALUE)) {
       if (this.hasBabelFee) {
@@ -259,12 +262,18 @@ export class TxBuilder {
     return nanoErgs;
   }
 
-  private getNanoErgFee(): BigNumber {
+  private getNanoErgsFee(): BigNumber {
     if (this.hasBabelFee && this._fee.box) {
       const rate = getNanoErgsPerTokenRate(this._fee.box);
-      const nanoErgs = undecimalize(this._fee.value, this._fee.assetInfo?.decimals || 0)
-        .multipliedBy(rate)
-        .minus(MIN_BOX_VALUE);
+      const nanoErgs = undecimalize(
+        this._fee.value,
+        this._fee.assetInfo?.decimals || 0
+      ).multipliedBy(rate);
+
+      const sendingNanoErgs = this.getSendingNanoErgs();
+      if (!sendingNanoErgs || sendingNanoErgs.isLessThan(MIN_BOX_VALUE)) {
+        return nanoErgs.minus(MIN_BOX_VALUE);
+      }
 
       return nanoErgs;
     }
