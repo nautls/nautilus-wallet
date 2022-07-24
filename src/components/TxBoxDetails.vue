@@ -9,7 +9,10 @@
     </div>
 
     <ul class="px-3 py-1">
-      <li v-for="asset in assets">
+      <li v-for="(asset, index) in output.assets" :key="index">
+        <div v-if="index === 1 && output.isBabelBoxSwap" class="text-center">
+          <mdi-icon name="swap-vertical" size="24" class="align-middle text-gray-500" />
+        </div>
         <div class="flex flex-row items-center gap-2 py-1">
           <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />
           <div class="flex-grow items-center align-middle">
@@ -47,13 +50,13 @@
 </template>
 
 <script lang="ts">
-import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
+import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "TxBoxDetails",
   props: {
-    assets: { type: Array as PropType<Array<OutputAsset>> },
+    output: { type: Object as PropType<OutputInterpreter>, required: true },
     type: {
       type: String as PropType<"normal" | "danger" | "warning" | "info" | "success">,
       default: "normal"

@@ -40,8 +40,11 @@ export class OutputInterpreter {
     return find(this._assets, (a) => a.minting) !== undefined;
   }
 
-  public get isBabelBox(): boolean {
-    return isBabelErgoTree(this._box.ergoTree);
+  public get isBabelBoxSwap(): boolean {
+    return (
+      isBabelErgoTree(this._box.ergoTree) &&
+      this._inputs.find((input) => input.ergoTree === this._box.ergoTree) !== undefined
+    );
   }
 
   constructor(
@@ -53,16 +56,47 @@ export class OutputInterpreter {
     this._box = boxCandidate;
     this._inputs = inputs;
     this._assetInfo = assetInfo;
-    this._assets = this.getSendingAssets();
     this._addresses = addresses;
+    this._assets = this.isBabelBoxSwap
+      ? this.buildBabelSwapAssetsList()
+      : this.buildSendingAssetsList();
   }
 
-  private getSendingAssets(): OutputAsset[] {
+  private buildBabelSwapAssetsList(): OutputAsset[] {
+    const input = this._inputs.find((input) => input.ergoTree === this._box.ergoTree);
+    if (!input) {
+      return this.buildSendingAssetsList();
+    }
+
+    const assets = this._box.assets.map((token) => {
+      const inputValue = input.assets.find((asset) => asset.tokenId === token.tokenId)?.amount || 0;
+      return {
+        tokenId: token.tokenId,
+        name: this._assetInfo[token.tokenId]?.name,
+        amount: this._assetInfo[token.tokenId]?.decimals
+          ? decimalize(
+              toBigNumber(token.amount).minus(inputValue),
+              this._assetInfo[token.tokenId].decimals || 0
+            )
+          : toBigNumber(token.amount)
+      } as OutputAsset;
+    });
+
+    assets.push({
+      tokenId: ERG_TOKEN_ID,
+      name: "ERG",
+      amount: decimalize(toBigNumber(input.value).minus(this._box.value), ERG_DECIMALS)
+    });
+
+    return assets;
+  }
+
+  private buildSendingAssetsList(): OutputAsset[] {
     const assets = [] as OutputAsset[];
     assets.push({
       tokenId: ERG_TOKEN_ID,
       name: "ERG",
-      amount: decimalize(toBigNumber(this._box.value)!, ERG_DECIMALS)
+      amount: decimalize(toBigNumber(this._box.value), ERG_DECIMALS)
     });
 
     if (isEmpty(this._box.assets)) {
@@ -74,7 +108,7 @@ export class OutputInterpreter {
         tokenId: t.tokenId,
         name: this._assetInfo[t.tokenId]?.name,
         amount: this._assetInfo[t.tokenId]?.decimals
-          ? decimalize(toBigNumber(t.amount), this._assetInfo[t.tokenId].decimals ?? 0)
+          ? decimalize(toBigNumber(t.amount), this._assetInfo[t.tokenId].decimals || 0)
           : toBigNumber(t.amount)
       } as OutputAsset;
     });

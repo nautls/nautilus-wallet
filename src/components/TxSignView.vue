@@ -14,7 +14,7 @@
 
     <tx-box-details
       v-for="(output, index) in tx?.sending"
-      :assets="output.assets"
+      :output="output"
       :key="index"
       :type="output.isIntrawallet ? 'info' : 'normal'"
     >
@@ -22,7 +22,7 @@
         {{ mountTitleForOutput(output) }}
       </p>
 
-      <template v-slot:subheader v-if="!output.isBabelBox">
+      <template v-slot:subheader v-if="!output.isBabelBoxSwap">
         <p class="font-mono text-sm break-all">
           {{ $filters.compactString(output.receiver, 60) }}
           <click-to-copy :content="output.receiver" size="11" />
@@ -30,7 +30,9 @@
       </template>
     </tx-box-details>
 
-    <tx-box-details v-if="tx?.fee" :assets="tx?.fee?.assets"> Network fee </tx-box-details>
+    <tx-box-details v-if="tx?.fee" :output="tx.fee">
+      <p>Network fee</p>
+    </tx-box-details>
   </div>
 
   <div>
@@ -269,8 +271,8 @@ export default defineComponent({
       this.$emit("success", signedTx);
     },
     mountTitleForOutput(output: OutputInterpreter) {
-      if (output.isBabelBox) {
-        return "Babel fee";
+      if (output.isBabelBoxSwap) {
+        return "Babel fee swap";
       } else if (output.isIntrawallet) {
         return "Sending to your address";
       } else if (!this.isP2PK(output.receiver)) {

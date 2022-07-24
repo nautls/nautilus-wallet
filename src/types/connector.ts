@@ -71,7 +71,7 @@ export type SignError = {
 
 export type Token = {
   tokenId: string;
-  amount: bigint | string;
+  amount: string;
   name?: string;
   decimals?: number;
 };
@@ -106,7 +106,7 @@ export type ErgoBox = {
   index: number;
   ergoTree: string;
   creationHeight: number;
-  value: bigint | string;
+  value: string;
   assets: Token[];
   additionalRegisters: Registers;
   confirmed: boolean;
