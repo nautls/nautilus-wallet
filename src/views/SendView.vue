@@ -276,7 +276,6 @@ export default defineComponent({
 
         if (this.feeSettings.tokenId !== ERG_TOKEN_ID) {
           const babelBoxes = await fetchBabelBoxes(this.feeSettings.tokenId);
-          console.log(babelBoxes);
           this.feeSettings.box = selectOneBoxFrom(
             babelBoxes,
             undecimalize(this.feeSettings.value, this.feeSettings.assetInfo?.decimals || 0)
@@ -292,7 +291,6 @@ export default defineComponent({
           .changeIndex(changeIndex ?? 0)
           .build();
 
-        console.log(unsignedTx);
         const parsedTx = new TxInterpreter(
           unsignedTx,
           addresses.map((a) => a.script),

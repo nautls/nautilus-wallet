@@ -169,7 +169,6 @@ export class TxBuilder {
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;
     if (this.hasBabelFee) {
       if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.id)) {
-        console.log(unsigned);
         throw new Error("Malformed transaction. Babel box is not included in the inputs.");
       }
 
@@ -184,7 +183,6 @@ export class TxBuilder {
 
     unsigned.inputs = this.hydrateInputs(unsigned.inputs) as UnsignedInput[];
     unsigned.dataInputs = this.hydrateInputs(unsigned.dataInputs);
-    console.log(unsigned);
     return unsigned;
   }
 
