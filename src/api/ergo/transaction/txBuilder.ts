@@ -32,7 +32,11 @@ export class TxBuilder {
   private _deriver!: Bip32;
   private _height!: number;
 
-  private readonly hasBabelFee = this._fee?.tokenId !== ERG_TOKEN_ID;
+  // private readonly hasBabelFee = this._fee?.tokenId !== ERG_TOKEN_ID;
+
+  private get hasBabelFee(): boolean {
+    return this._fee?.tokenId !== ERG_TOKEN_ID;
+  }
 
   public constructor(deriver: Bip32) {
     this._deriver = deriver;
@@ -167,6 +171,7 @@ export class TxBuilder {
     ).build();
 
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;
+    console.log(this.hasBabelFee, this._fee);
     if (this.hasBabelFee) {
       if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.id)) {
         throw new Error("Malformed transaction. Babel box is not included in the inputs.");
