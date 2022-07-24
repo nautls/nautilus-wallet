@@ -1,9 +1,10 @@
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
-import { ExplorerBox } from "@/types/explorer";
+import { ErgoBox } from "@/types/connector";
+import { ExplorerBox, explorerBoxMapper } from "@/types/explorer";
 import { BigNumberType } from "@/types/internal";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { find, first, sortBy } from "lodash";
+import { sortBy } from "lodash";
 import { explorerService } from "../explorer/explorerService";
 import { addressFromErgoTree } from "./addresses";
 
@@ -30,13 +31,13 @@ export function extractTokenIdFromBabelErgoTree(ergoTree: string): string {
   );
 }
 
-export function getNanoErgsPerTokenRate(box: ExplorerBox): BigNumber {
+export function getNanoErgsPerTokenRate(box: ErgoBox | ExplorerBox): BigNumber {
   return new BigNumber(
     wasmModule.SigmaRust.Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str()
   );
 }
 
-export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ExplorerBox[]> {
+export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
   const response = await explorerService.getUnspentBoxes([
     addressFromErgoTree(buildBabelErgoTreeFor(tokenId))
   ]);
@@ -44,7 +45,8 @@ export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promi
   const boxes = response
     .filter((x) => x.data)
     .flatMap((x) => x.data)
-    .filter((box) => isValidBabelBox(box));
+    .filter((box) => isValidBabelBox(box))
+    .map(explorerBoxMapper({ asConfirmed: true }));
 
   if (price) {
     return boxes.filter((box) => getNanoErgsPerTokenRate(box).isGreaterThanOrEqualTo(price));
@@ -60,10 +62,7 @@ export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promi
  * @param amount Undecimalized amount
  * @returns
  */
-export function selectOneBoxFrom(
-  boxes: ExplorerBox[],
-  amount: BigNumberType
-): ExplorerBox | undefined {
+export function selectOneBoxFrom(boxes: ErgoBox[], amount: BigNumberType): ErgoBox | undefined {
   return boxes.find((box) =>
     amount.multipliedBy(getNanoErgsPerTokenRate(box)).isLessThanOrEqualTo(box.value)
   );

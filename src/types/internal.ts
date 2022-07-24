@@ -1,6 +1,6 @@
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import BigNumber from "bignumber.js";
-import { UnsignedTx } from "./connector";
+import { ErgoBox, UnsignedTx } from "./connector";
 import { ExplorerBox } from "./explorer";
 
 export enum AddressState {
@@ -92,7 +92,7 @@ export type FeeSettings = {
   readonly value: BigNumberType;
   readonly nanoErgsPerToken?: BigNumberType;
   readonly assetInfo?: BasicAssetInfo;
-  box?: ExplorerBox;
+  box?: ErgoBox;
 };
 
 export type SignTxCommand = {

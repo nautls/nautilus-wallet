@@ -7,12 +7,20 @@ import {
 } from "@/constants/ergo";
 import { ErgoBox, UnsignedInput, UnsignedTx } from "@/types/connector";
 import { TxSignError } from "@/types/errors";
-import { explorerBoxMapper } from "@/types/explorer";
 import { BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { Address, BoxValue, ErgoBoxCandidate, ErgoTree, I64, Tokens } from "ergo-lib-wasm-browser";
+import {
+  Address,
+  BoxValue,
+  ErgoBoxAssetsDataList,
+  ErgoBoxCandidate,
+  ErgoBoxes,
+  ErgoTree,
+  I64,
+  Tokens
+} from "ergo-lib-wasm-browser";
 import JSONBig from "json-bigint";
 import { find, isEmpty } from "lodash";
 import { getNanoErgsPerTokenRate, isBabelErgoTree } from "../babelFees";
@@ -52,9 +60,6 @@ export class TxBuilder {
 
   public fee(fee: FeeSettings): TxBuilder {
     this._fee = fee;
-    if (this.hasBabelFee && this._fee?.box) {
-      this._inputs.push(explorerBoxMapper({ asConfirmed: true })(this._fee.box));
-    }
     return this;
   }
 
@@ -65,11 +70,6 @@ export class TxBuilder {
 
   public inputs(inputs: ErgoBox[]): TxBuilder {
     this._inputs = inputs;
-
-    if (this.hasBabelFee && this._fee?.box) {
-      this._inputs.push(explorerBoxMapper({ asConfirmed: true })(this._fee.box));
-    }
-
     return this;
   }
 
@@ -88,13 +88,32 @@ export class TxBuilder {
       : sigmaRust.Address.from_testnet_str(this._deriver.deriveAddress(this._changeIndex).script);
 
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(this._inputs);
-    const userOutputValue = sigmaRust.BoxValue.from_i64(this.toI64(this.getNanoErgsAmount()));
+    const userOutputValue = sigmaRust.BoxValue.from_i64(
+      this.toI64(this.getNanoErgsSendingAmount())
+    );
     const userOutputTokens = this.buildTokenList();
     const userOutput = this.buildOutput(userOutputValue, userOutputTokens, recipient, this._height);
 
     const outputs = new sigmaRust.ErgoBoxCandidates(userOutput);
 
-    let target = this.getNanoErgsAmount().plus(this.getNanoErgsFee());
+    let target = this.getNanoErgsSendingAmount();
+    if (!this.hasBabelFee) {
+      target = target.plus(this.getNanoErgsFee());
+    } else {
+      userOutputTokens.add(
+        new sigmaRust.Token(
+          sigmaRust.TokenId.from_str(this._fee.tokenId),
+          sigmaRust.TokenAmount.from_i64(this.toI64(this.getTokenUnitsFeeValue()!))
+        )
+      );
+    }
+
+    let boxSelection = new sigmaRust.SimpleBoxSelector().select(
+      unspentBoxes,
+      sigmaRust.BoxValue.from_i64(this.toI64(target)),
+      userOutputTokens
+    );
+
     if (this.hasBabelFee && this._fee.box) {
       const box = this._fee.box;
       const rate = getNanoErgsPerTokenRate(box);
@@ -150,15 +169,13 @@ export class TxBuilder {
       );
 
       outputs.add(builder.build());
+
+      const inputs = this.addArbitraryBox(boxSelection.boxes(), this._fee.box);
+      const change = this.recalculateChange(boxSelection.change());
+      boxSelection = new sigmaRust.BoxSelection(inputs, change);
     }
 
     const fee = sigmaRust.BoxValue.from_i64(this.toI64(this.getNanoErgsFee()));
-    const boxSelection = new sigmaRust.SimpleBoxSelector().select(
-      unspentBoxes,
-      sigmaRust.BoxValue.from_i64(this.toI64(target)),
-      userOutputTokens
-    );
-
     const wasmUnsigned = sigmaRust.TxBuilder.new(
       boxSelection,
       outputs,
@@ -171,7 +188,7 @@ export class TxBuilder {
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;
 
     if (this.hasBabelFee) {
-      if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.id)) {
+      if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.boxId)) {
         throw new Error("Malformed transaction. Babel box is not included in the inputs.");
       }
 
@@ -189,12 +206,56 @@ export class TxBuilder {
     return unsigned;
   }
 
+  private hasErgSelected(): boolean {
+    return find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID) != undefined;
+  }
+
+  private recalculateChange(changeBoxes: ErgoBoxAssetsDataList) {
+    if (!changeBoxes || changeBoxes.len() === 0 || this.hasErgSelected()) {
+      return changeBoxes;
+    }
+
+    const sigmaRust = wasmModule.SigmaRust;
+    const newChangeBoxes = new sigmaRust.ErgoBoxAssetsDataList();
+    for (let i = 0; i < changeBoxes.len(); i++) {
+      if (i === 0) {
+        const value = sigmaRust.BoxValue.from_i64(
+          changeBoxes
+            .get(i)
+            .value()
+            .as_i64()
+            .checked_add(sigmaRust.I64.from_str(MIN_BOX_VALUE.toString()))
+        );
+
+        newChangeBoxes.add(new sigmaRust.ErgoBoxAssetsData(value, changeBoxes.get(i).tokens()));
+      } else {
+        newChangeBoxes.add(changeBoxes.get(i));
+      }
+    }
+
+    return newChangeBoxes;
+  }
+
+  private addArbitraryBox(inputs: ErgoBoxes, box: ErgoBox): ErgoBoxes {
+    inputs.add(wasmModule.SigmaRust.ErgoBox.from_json(JSONBig.stringify(box)));
+    return inputs;
+  }
+
   /**
    * @param inputs Merge full box info with inputs
    */
   private hydrateInputs(inputs: { boxId: string }[]) {
+    if (isEmpty(inputs)) {
+      return [];
+    }
+
+    const unspentBoxes = this._inputs;
+    if (this.hasBabelFee && this._fee.box) {
+      unspentBoxes.push(this._fee.box);
+    }
+
     return inputs.map((x) => {
-      let box = this._inputs.find((b) => b.boxId === x.boxId);
+      let box = unspentBoxes.find((b) => b.boxId === x.boxId);
       return { ...x, ...box };
     });
   }
@@ -243,13 +304,21 @@ export class TxBuilder {
     return tokens;
   }
 
-  private getSendingNanoErgs(): BigNumber | undefined {
+  private getSelectedNanoErgs(): BigNumber | undefined {
     const erg = find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID);
     return erg && erg.amount ? undecimalize(erg.amount, ERG_DECIMALS) : undefined;
   }
 
-  private getNanoErgsAmount(): BigNumber {
-    const nanoErgs = this.getSendingNanoErgs();
+  private getTokenUnitsFeeValue(): BigNumber | undefined {
+    if (!this.hasBabelFee) {
+      return;
+    }
+
+    return undecimalize(this._fee.value, this._fee.assetInfo?.decimals || 0);
+  }
+
+  private getNanoErgsSendingAmount(): BigNumber {
+    const nanoErgs = this.getSelectedNanoErgs();
 
     if (!nanoErgs || nanoErgs.isLessThan(MIN_BOX_VALUE)) {
       if (this.hasBabelFee) {
@@ -270,7 +339,7 @@ export class TxBuilder {
         this._fee.assetInfo?.decimals || 0
       ).multipliedBy(rate);
 
-      const sendingNanoErgs = this.getSendingNanoErgs();
+      const sendingNanoErgs = this.getSelectedNanoErgs();
       if (!sendingNanoErgs || sendingNanoErgs.isLessThan(MIN_BOX_VALUE)) {
         return nanoErgs.minus(MIN_BOX_VALUE);
       }

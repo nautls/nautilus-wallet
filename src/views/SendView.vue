@@ -366,7 +366,7 @@ export default defineComponent({
       this.signModalActive = false;
     },
     setErgAsSelected(): void {
-      if (!this.isFeeInErg) {
+      if (!this.isFeeInErg && !isEmpty(this.selected)) {
         return;
       }
 
