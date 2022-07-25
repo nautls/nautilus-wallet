@@ -18,7 +18,7 @@
           :key="item.asset.tokenId"
           :label="index === 0 ? 'Assets' : ''"
           :asset="item.asset"
-          :reserved-amount="isFeeAsset(item.asset.tokenId) ? reservedFeeAssetAmount : undefined"
+          :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
           :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
@@ -142,8 +142,14 @@ export default defineComponent({
         return true;
       }
 
-      for (const asset of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
-        if (!asset.amount || !asset.amount.isEqualTo(asset.asset.confirmedAmount)) {
+      for (const item of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
+        if (
+          !item.amount ||
+          (!this.isFeeAsset(item.asset.tokenId) &&
+            !item.amount.isEqualTo(item.asset.confirmedAmount)) ||
+          (this.isFeeAsset(item.asset.tokenId) &&
+            !item.amount.isEqualTo(item.asset.confirmedAmount.minus(this.fee)))
+        ) {
           return true;
         }
       }
@@ -236,6 +242,13 @@ export default defineComponent({
     };
   },
   methods: {
+    getReserveAmountFor(tokenId: string): BigNumberType | undefined {
+      if (this.isFeeAsset(tokenId)) {
+        return this.reservedFeeAssetAmount;
+      } else if (this.isErg(tokenId) && this.hasChange) {
+        return this.changeValue;
+      }
+    },
     async buildTx() {
       this.transaction = undefined;
 
