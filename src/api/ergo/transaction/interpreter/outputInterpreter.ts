@@ -70,15 +70,14 @@ export class OutputInterpreter {
 
     const assets = this._box.assets.map((token) => {
       const inputValue = input.assets.find((asset) => asset.tokenId === token.tokenId)?.amount || 0;
+
       return {
         tokenId: token.tokenId,
         name: this._assetInfo[token.tokenId]?.name,
-        amount: this._assetInfo[token.tokenId]?.decimals
-          ? decimalize(
-              toBigNumber(token.amount).minus(inputValue),
-              this._assetInfo[token.tokenId].decimals || 0
-            )
-          : toBigNumber(token.amount)
+        amount: decimalize(
+          toBigNumber(token.amount).minus(inputValue),
+          this._assetInfo[token.tokenId].decimals || 0
+        )
       } as OutputAsset;
     });
 
