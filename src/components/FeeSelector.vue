@@ -92,9 +92,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { GETTERS } from "@/constants/store/getters";
 import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
 import { decimalize } from "@/utils/bigNumbers";
-import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { info } from "console";
 import { isEmpty, maxBy, sortBy } from "lodash";
 import { defineComponent, PropType } from "vue";
 
@@ -141,7 +139,7 @@ export default defineComponent({
     this.assets = this.assets.concat(
       sortBy(
         assets.filter((x) => x.nanoErgsPerToken),
-        (x) => x.tokenId
+        (x) => x.nanoErgsPerToken.toNumber()
       )
     );
   },
