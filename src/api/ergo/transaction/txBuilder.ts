@@ -60,6 +60,10 @@ export class TxBuilder {
 
   public fee(fee: FeeSettings): TxBuilder {
     this._fee = fee;
+
+    if (this.hasBabelFee && this._fee?.box) {
+      this._inputs.push(this._fee.box);
+    }
     return this;
   }
 
@@ -70,6 +74,10 @@ export class TxBuilder {
 
   public inputs(inputs: ErgoBox[]): TxBuilder {
     this._inputs = inputs;
+
+    if (this.hasBabelFee && this._fee?.box) {
+      this._inputs.push(this._fee.box);
+    }
     return this;
   }
 
@@ -91,7 +99,7 @@ export class TxBuilder {
     const userOutputValue = sigmaRust.BoxValue.from_i64(
       this.toI64(this.getNanoErgsSendingAmount())
     );
-    const userOutputTokens = this.buildTokenList();
+    let userOutputTokens = this.buildTokenList();
     const userOutput = this.buildOutput(userOutputValue, userOutputTokens, recipient, this._height);
 
     const outputs = new sigmaRust.ErgoBoxCandidates(userOutput);
@@ -108,22 +116,17 @@ export class TxBuilder {
       );
     }
 
-    let boxSelection = new sigmaRust.SimpleBoxSelector().select(
-      unspentBoxes,
-      sigmaRust.BoxValue.from_i64(this.toI64(target)),
-      userOutputTokens
-    );
-
     if (this.hasBabelFee && this._fee.box) {
       const box = this._fee.box;
       const rate = getNanoErgsPerTokenRate(box);
-      const nanoErgs = undecimalize(
-        this._fee.value,
-        this._fee.assetInfo?.decimals || 0
-      ).multipliedBy(rate);
-
+      const tokenUnitsAmount = undecimalize(this._fee.value, this._fee.assetInfo?.decimals ?? 0);
+      const nanoErgs = tokenUnitsAmount.multipliedBy(rate);
       const newBoxValue = new BigNumber(box.value).minus(nanoErgs);
-      target = target.plus(newBoxValue);
+
+      target = target.plus(box.value);
+      if (!this.hasErgSelected()) {
+        target = target.minus(MIN_BOX_VALUE);
+      }
 
       const builder = new wasmModule.SigmaRust.ErgoBoxCandidateBuilder(
         sigmaRust.BoxValue.from_i64(this.toI64(newBoxValue)),
@@ -131,7 +134,6 @@ export class TxBuilder {
         this._height
       );
 
-      let tokenUnitsAmount = undecimalize(this._fee.value, this._fee.assetInfo?.decimals ?? 0);
       if (isEmpty(box.assets)) {
         builder.add_token(
           sigmaRust.TokenId.from_str(this._fee.tokenId),
@@ -139,24 +141,25 @@ export class TxBuilder {
         );
       } else {
         for (const asset of box.assets) {
-          tokenUnitsAmount =
-            asset.tokenId === this._fee.tokenId
-              ? new BigNumber(asset.amount).plus(tokenUnitsAmount)
-              : new BigNumber(asset.amount);
-
           builder.add_token(
             sigmaRust.TokenId.from_str(asset.tokenId),
-            sigmaRust.TokenAmount.from_i64(this.toI64(tokenUnitsAmount))
+            sigmaRust.TokenAmount.from_i64(
+              this.toI64(
+                asset.tokenId === this._fee.tokenId
+                  ? new BigNumber(asset.amount).plus(tokenUnitsAmount)
+                  : new BigNumber(asset.amount)
+              )
+            )
+          );
+
+          userOutputTokens.add(
+            new sigmaRust.Token(
+              sigmaRust.TokenId.from_str(this._fee.tokenId),
+              sigmaRust.TokenAmount.from_i64(this.toI64(new BigNumber(asset.amount)))
+            )
           );
         }
       }
-
-      userOutputTokens.add(
-        new sigmaRust.Token(
-          sigmaRust.TokenId.from_str(this._fee.tokenId),
-          sigmaRust.TokenAmount.from_i64(this.toI64(tokenUnitsAmount))
-        )
-      );
 
       builder.set_register_value(
         sigmaRust.NonMandatoryRegisterId.R4,
@@ -169,9 +172,17 @@ export class TxBuilder {
       );
 
       outputs.add(builder.build());
+    }
 
+    let boxSelection = new sigmaRust.SimpleBoxSelector().select(
+      unspentBoxes,
+      sigmaRust.BoxValue.from_i64(this.toI64(target)),
+      userOutputTokens
+    );
+
+    if (this.hasBabelFee && !this.isBabelBoxIncluded(boxSelection.boxes()) && this._fee?.box) {
       const inputs = this.addArbitraryBox(boxSelection.boxes(), this._fee.box);
-      const change = this.recalculateChange(boxSelection.change());
+      const change = this.recalculateChange(boxSelection.change(), this._fee.box);
       boxSelection = new sigmaRust.BoxSelection(inputs, change);
     }
 
@@ -203,37 +214,68 @@ export class TxBuilder {
 
     unsigned.inputs = this.hydrateInputs(unsigned.inputs) as UnsignedInput[];
     unsigned.dataInputs = this.hydrateInputs(unsigned.dataInputs);
+    console.log(unsigned);
     return unsigned;
+  }
+
+  private isBabelBoxIncluded(boxes: ErgoBoxes): boolean {
+    if (!this._fee?.box) {
+      return false;
+    }
+
+    const boxId = this._fee.box.boxId;
+    for (let i = 0; i < boxes.len(); i++) {
+      if (boxes.get(i).box_id().to_str() === boxId) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private hasErgSelected(): boolean {
     return find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID) != undefined;
   }
 
-  private recalculateChange(changeBoxes: ErgoBoxAssetsDataList) {
-    if (!changeBoxes || changeBoxes.len() === 0 || this.hasErgSelected()) {
-      return changeBoxes;
+  private sumBoxesValue(boxes: ErgoBoxes) {
+    let acc = new BigNumber(0);
+    for (let i = 0; i < boxes.len(); i++) {
+      acc = acc.plus(boxes.get(i).value().as_i64().to_str());
+    }
+
+    return acc;
+  }
+
+  private recalculateChange(change: ErgoBoxAssetsDataList, box: ErgoBox) {
+    if (change.len() === 0) {
+      return change;
     }
 
     const sigmaRust = wasmModule.SigmaRust;
-    const newChangeBoxes = new sigmaRust.ErgoBoxAssetsDataList();
-    for (let i = 0; i < changeBoxes.len(); i++) {
-      if (i === 0) {
-        const value = sigmaRust.BoxValue.from_i64(
-          changeBoxes
-            .get(i)
-            .value()
-            .as_i64()
-            .checked_add(sigmaRust.I64.from_str(MIN_BOX_VALUE.toString()))
-        );
-
-        newChangeBoxes.add(new sigmaRust.ErgoBoxAssetsData(value, changeBoxes.get(i).tokens()));
-      } else {
-        newChangeBoxes.add(changeBoxes.get(i));
+    const newChange = new sigmaRust.ErgoBoxAssetsDataList();
+    for (let i = 0; i < change.len(); i++) {
+      if (i > 0) {
+        newChange.add(change.get(i));
+        continue;
       }
+
+      const value = sigmaRust.BoxValue.from_i64(
+        change.get(i).value().as_i64().checked_add(sigmaRust.I64.from_str(box.value))
+      );
+
+      const tokens = change.get(i).tokens();
+      for (const asset of box.assets) {
+        tokens.add(
+          new sigmaRust.Token(
+            sigmaRust.TokenId.from_str(asset.tokenId),
+            sigmaRust.TokenAmount.from_i64(sigmaRust.I64.from_str(asset.amount.toString()))
+          )
+        );
+      }
+      newChange.add(new sigmaRust.ErgoBoxAssetsData(value, tokens));
     }
 
-    return newChangeBoxes;
+    return newChange;
   }
 
   private addArbitraryBox(inputs: ErgoBoxes, box: ErgoBox): ErgoBoxes {
@@ -249,13 +291,8 @@ export class TxBuilder {
       return [];
     }
 
-    const unspentBoxes = this._inputs;
-    if (this.hasBabelFee && this._fee.box) {
-      unspentBoxes.push(this._fee.box);
-    }
-
     return inputs.map((x) => {
-      let box = unspentBoxes.find((b) => b.boxId === x.boxId);
+      let box = this._inputs.find((b) => b.boxId === x.boxId);
       return { ...x, ...box };
     });
   }
