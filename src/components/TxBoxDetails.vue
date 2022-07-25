@@ -9,8 +9,8 @@
     </div>
 
     <ul class="px-3 py-1">
-      <li v-for="(asset, index) in output.assets" :key="index">
-        <div v-if="index === 1 && output.isBabelBoxSwap" class="text-center">
+      <li v-for="(asset, index) in assets" :key="index">
+        <div v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1" class="text-center">
           <mdi-icon name="swap-vertical" size="24" class="align-middle text-gray-500" />
         </div>
         <div class="flex flex-row items-center gap-2 py-1">
@@ -50,13 +50,15 @@
 </template>
 
 <script lang="ts">
-import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
+import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "TxBoxDetails",
   props: {
-    output: { type: Object as PropType<OutputInterpreter>, required: true },
+    assets: { type: Array as PropType<Array<OutputAsset>>, required: true },
+    babelSwap: { type: Boolean, default: false },
     type: {
       type: String as PropType<"normal" | "danger" | "warning" | "info" | "success">,
       default: "normal"
@@ -92,6 +94,11 @@ export default defineComponent({
         default:
           return "bg-gray-100 border-b-gray-200 text-gray-900";
       }
+    }
+  },
+  methods: {
+    isErg(tokenId: string): boolean {
+      return tokenId === ERG_TOKEN_ID;
     }
   }
 });

@@ -14,7 +14,8 @@
 
     <tx-box-details
       v-for="(output, index) in tx?.sending"
-      :output="output"
+      :assets="output.assets"
+      :babel-swap="output.isBabelBoxSwap"
       :key="index"
       :type="output.isIntrawallet ? 'info' : 'normal'"
     >
@@ -30,7 +31,7 @@
       </template>
     </tx-box-details>
 
-    <tx-box-details v-if="tx?.fee" :output="tx.fee">
+    <tx-box-details v-if="tx?.fee" :assets="tx.fee.assets">
       <p>Network fee</p>
     </tx-box-details>
   </div>
