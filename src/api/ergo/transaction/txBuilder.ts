@@ -22,7 +22,7 @@ import {
   Tokens
 } from "ergo-lib-wasm-browser";
 import JSONBig from "json-bigint";
-import { find, isEmpty } from "lodash";
+import { find, isEmpty, sortBy } from "lodash";
 import { getNanoErgsPerTokenRate, isBabelErgoTree } from "../babelFees";
 import Bip32 from "../bip32";
 
@@ -199,17 +199,22 @@ export class TxBuilder {
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;
 
     if (this.hasBabelFee) {
-      if (!find(unsigned.inputs, (x) => x.boxId === this._fee.box?.boxId)) {
+      let index = unsigned.inputs.findIndex((x) => x.boxId === this._fee.box?.boxId);
+      if (index === -1) {
         throw new Error("Malformed transaction. Babel box is not included in the inputs.");
       }
 
+      if (index !== unsigned.inputs.length - 1) {
+        unsigned.inputs.splice(unsigned.inputs.length - 1, 0, unsigned.inputs.splice(index, 1)[0]);
+      }
+
       const penultimateIndex = unsigned.outputs.length - 2;
-      const babelIndex = unsigned.outputs.findIndex((output) => isBabelErgoTree(output.ergoTree));
-      if (babelIndex === -1) {
+      index = unsigned.outputs.findIndex((output) => isBabelErgoTree(output.ergoTree));
+      if (index === -1) {
         throw new Error("Malformed transaction. Babel output is not included in the outputs.");
       }
 
-      unsigned.outputs.splice(penultimateIndex, 0, unsigned.outputs.splice(babelIndex, 1)[0]);
+      unsigned.outputs.splice(penultimateIndex, 0, unsigned.outputs.splice(index, 1)[0]);
     }
 
     unsigned.inputs = this.hydrateInputs(unsigned.inputs) as UnsignedInput[];
@@ -235,15 +240,6 @@ export class TxBuilder {
 
   private hasErgSelected(): boolean {
     return find(this._assets, (a) => a.asset.tokenId === ERG_TOKEN_ID) != undefined;
-  }
-
-  private sumBoxesValue(boxes: ErgoBoxes) {
-    let acc = new BigNumber(0);
-    for (let i = 0; i < boxes.len(); i++) {
-      acc = acc.plus(boxes.get(i).value().as_i64().to_str());
-    }
-
-    return acc;
   }
 
   private recalculateChange(change: ErgoBoxAssetsDataList, box: ErgoBox) {
