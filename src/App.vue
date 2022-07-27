@@ -1,13 +1,12 @@
 <template>
-  <div class="app" :class="maxWitdh">
-    <div class="bg-blue-500 text-light-50 font-mono text-sm text-center p-1" v-if="testnet">
-      Network: Testnet
-    </div>
+  <div class="app" :class="maxWidth">
     <div
       v-if="$route.meta.fullPage || $route.query.auth === 'true'"
       class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100 border-b-1 border-gray-200"
     >
-      <img src="/icons/app/logo.svg" class="w-11 ml-2" />
+      <img src="/icons/app/logo-testnet.svg" v-if="testnet" class="w-11 ml-2" />
+      <img src="/icons/app/logo-mainnet.svg" v-else class="w-11 ml-2" />
+
       <h1 class="text-base font-semibold w-full">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>
@@ -77,7 +76,7 @@ export default defineComponent({
     testnet() {
       return !MAINNET;
     },
-    maxWitdh() {
+    maxWidth() {
       if (isPopup()) {
         return "max-w-365px";
       }

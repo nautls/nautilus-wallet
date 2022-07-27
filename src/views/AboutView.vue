@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col h-full gap-4 text-center text-sm">
-    <img src="/icons/app/logo.svg" class="w-23 m-auto pt-2" />
+    <img src="/icons/app/logo-testnet.svg" v-if="testnet" class="w-23 m-auto pt-2" />
+    <img src="/icons/app/logo-mainnet.svg" v-else class="w-23 m-auto pt-2" />
     <div>
       <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
 
@@ -47,6 +48,7 @@
 </template>
 
 <script lang="ts">
+import { MAINNET } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
 import { defineComponent } from "vue";
 const { version } = require("../../package.json");
@@ -71,6 +73,9 @@ export default defineComponent({
     },
     readonly(): boolean {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
+    testnet() {
+      return !MAINNET;
     }
   },
   methods: {

@@ -3,8 +3,9 @@
     class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100"
     :class="$route.query.popup === 'true' ? 'border-b-1 border-gray-200' : ''"
   >
-    <div class="flex-grow">
-      <img src="/icons/app/logo.svg" class="w-11 ml-2" />
+    <div class="flex-grow relative">
+      <img src="/icons/app/logo-testnet.svg" v-if="testnet" class="w-11 ml-2" />
+      <img src="/icons/app/logo-mainnet.svg" v-else class="w-11 ml-2" />
     </div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'">
@@ -70,6 +71,7 @@ import NavHeader from "@/components/NavHeader.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { Browser } from "@/utils/browserApi";
+import { MAINNET } from "@/constants/ergo";
 
 export default defineComponent({
   name: "WalletHeader",
@@ -100,6 +102,9 @@ export default defineComponent({
       connections: "connections",
       wallets: "wallets"
     }),
+    testnet() {
+      return !MAINNET;
+    },
     unselectedWallets(): StateWallet[] {
       const currentId = this.wallet?.id;
       return this.wallets.filter((w: StateWallet) => w.id !== currentId);
