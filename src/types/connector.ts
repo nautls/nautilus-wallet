@@ -1,5 +1,3 @@
-import BigNumber from "bignumber.js";
-
 export type RequestQueueItem = {
   message: RpcMessage;
   handled: boolean;
