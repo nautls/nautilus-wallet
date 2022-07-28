@@ -1,12 +1,10 @@
 <template>
   <div
-    class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100"
+    class="flex flex-row px-4 py-2 gap-0 items-center bg-gray-100"
     :class="$route.query.popup === 'true' ? 'border-b-1 border-gray-200' : ''"
   >
-    <div class="flex-grow relative">
-      <img src="/icons/app/logo-testnet.svg" v-if="testnet" class="w-11 ml-2" />
-      <img src="/icons/app/logo-mainnet.svg" v-else class="w-11 ml-2" />
-    </div>
+    <wallet-logo class="ml-2" content-class="w-11 h-11" />
+    <div class="flex-grow"></div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'">
         <template v-slot:trigger="{ active }">
@@ -71,11 +69,11 @@ import NavHeader from "@/components/NavHeader.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { Browser } from "@/utils/browserApi";
-import { MAINNET } from "@/constants/ergo";
+import WalletLogo from "./WalletLogo.vue";
 
 export default defineComponent({
   name: "WalletHeader",
-  components: { NavHeader },
+  components: { NavHeader, WalletLogo },
   data() {
     return {
       checksum: ""
@@ -102,9 +100,6 @@ export default defineComponent({
       connections: "connections",
       wallets: "wallets"
     }),
-    testnet() {
-      return !MAINNET;
-    },
     unselectedWallets(): StateWallet[] {
       const currentId = this.wallet?.id;
       return this.wallets.filter((w: StateWallet) => w.id !== currentId);
