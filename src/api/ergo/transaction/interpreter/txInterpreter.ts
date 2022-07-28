@@ -45,6 +45,10 @@ export class TxInterpreter {
     this._calcBurningBalance();
   }
 
+  public get rawTx(): UnsignedTx {
+    return this._tx;
+  }
+
   public get from(): string[] {
     return this._tx.inputs.map((b) => addressFromErgoTree(b.ergoTree));
   }
