@@ -62,8 +62,7 @@ class WalletsDbService {
     return await dbContext.wallets.update(walletId, {
       name: walletName.trim(),
       "settings.avoidAddressReuse": command.avoidAddressReuse,
-      "settings.hideUsedAddresses": command.hideUsedAddresses,
-      "settings.devMode": command.devMode
+      "settings.hideUsedAddresses": command.hideUsedAddresses
     });
   }
 
@@ -76,12 +75,6 @@ class WalletsDbService {
   public async updateUsedAddressFilter(walletId: number, hide: boolean) {
     return await dbContext.wallets.update(walletId, {
       "settings.hideUsedAddresses": hide
-    });
-  }
-
-  public async setDevMode(walletId: number, devMode: boolean) {
-    return await dbContext.wallets.update(walletId, {
-      "settings.devMode": devMode
     });
   }
 

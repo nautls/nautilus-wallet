@@ -35,19 +35,6 @@
     <div>
       <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
         <div class="flex-grow">
-          <p>Developer mode</p>
-        </div>
-        <div>
-          <o-switch v-model="walletSettings.devMode" class="align-middle float-right" />
-        </div>
-      </label>
-      <div class="text-gray-500 text-xs font-normal mt-1">
-        <p>Enable advanced tools.</p>
-      </div>
-    </div>
-    <div>
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
-        <div class="flex-grow">
           <p>Hide used addresses</p>
         </div>
         <div>
@@ -74,7 +61,7 @@
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
       Global settings
     </div>
-    <div>
+    <div class="flex flex-col gap-5">
       <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
         <div class="flex-grow">
           <p>Currency conversion</p>
@@ -97,6 +84,19 @@
           </div>
         </div>
       </label>
+      <div>
+        <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+          <div class="flex-grow">
+            <p>Developer mode</p>
+          </div>
+          <div>
+            <o-switch v-model="globalSettings.devMode" class="align-middle float-right" />
+          </div>
+        </label>
+        <div class="text-gray-500 text-xs font-normal mt-1">
+          <p>Enable advanced tools.</p>
+        </div>
+      </div>
     </div>
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">Danger zone</div>
     <div>
@@ -128,6 +128,7 @@ import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
+import { clone, isEqual } from "lodash";
 
 export default defineComponent({
   name: "SettingsView",
@@ -159,6 +160,7 @@ export default defineComponent({
           this.walletChanged = false;
           return;
         }
+
         this.updateGlobal();
       }
     },
@@ -176,7 +178,7 @@ export default defineComponent({
   },
   created() {
     this.currencies = [this.settings.conversionCurrency];
-    this.globalSettings.conversionCurrency = this.settings.conversionCurrency;
+    this.globalSettings = clone(this.settings);
   },
   async mounted() {
     this.currencies = await coinGeckoService.getSupportedCurrencyConversion();
@@ -187,11 +189,11 @@ export default defineComponent({
       walletSettings: {
         name: "",
         avoidAddressReuse: false,
-        hideUsedAddresses: true,
-        devMode: !MAINNET
+        hideUsedAddresses: true
       },
       globalSettings: {
-        conversionCurrency: ""
+        conversionCurrency: "",
+        devMode: !MAINNET
       },
       walletChanged: true,
       loading: true,
@@ -232,8 +234,8 @@ export default defineComponent({
       await this.updateWalletSettings(command);
     },
     async updateGlobal() {
-      if (this.settings.conversionCurrency != this.globalSettings.conversionCurrency) {
-        await this.saveSettings({ conversionCurrency: this.globalSettings.conversionCurrency });
+      if (!isEqual(this.settings, this.globalSettings)) {
+        await this.saveSettings(this.globalSettings);
         this.fetchPrices();
       }
     }

@@ -92,15 +92,15 @@ export default createStore({
       settings: {
         avoidAddressReuse: false,
         hideUsedAddresses: false,
-        defaultChangeIndex: 0,
-        devMode: !MAINNET
+        defaultChangeIndex: 0
       }
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
     settings: {
       lastOpenedWalletId: 0,
       isKyaAccepted: false,
-      conversionCurrency: "usd"
+      conversionCurrency: "usd",
+      devMode: !MAINNET
     },
     loading: {
       settings: true,
@@ -289,7 +289,6 @@ export default createStore({
       wallet.name = command.name;
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
-      wallet.settings.devMode = command.devMode;
     },
     [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
       const wallet = find(state.wallets, (w) => w.id === command.walletId);
@@ -336,8 +335,7 @@ export default createStore({
           settings: {
             avoidAddressReuse: false,
             hideUsedAddresses: false,
-            defaultChangeIndex: 0,
-            devMode: !MAINNET
+            defaultChangeIndex: 0
           }
         };
 
@@ -431,8 +429,7 @@ export default createStore({
         settings: {
           avoidAddressReuse: false,
           hideUsedAddresses: false,
-          defaultChangeIndex: 0,
-          devMode: !MAINNET
+          defaultChangeIndex: 0
         }
       });
 
