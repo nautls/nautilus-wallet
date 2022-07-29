@@ -207,15 +207,9 @@ class ExplorerService {
     signedTx: ErgoTx
   ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
     const response = await axios.post(
-      MAINNET
-        ? `${API_URL}/api/v1/mempool/transactions/submit`
-        : `http://213.239.193.208:9052/transactions`,
+      `${API_URL}/api/v1/mempool/transactions/submit`,
       JSONBig.stringify(signedTx),
       {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
         "axios-retry": {
           retries: 15,
           shouldResetTimeout: true,
@@ -232,7 +226,7 @@ class ExplorerService {
       }
     );
 
-    return MAINNET ? response.data : { id: response.data };
+    return response.data;
   }
 
   public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
