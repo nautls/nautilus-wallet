@@ -74,14 +74,6 @@ class NautilusDb extends Dexie {
         );
         await t.table("assetInfo").bulkAdd(assetInfo);
       });
-
-    this.version(7).upgrade(async (t) => {
-      t.table("wallets").each((obj, k) => {
-        t.table("wallets").update(k.primaryKey, {
-          "settings.devMode": !MAINNET
-        });
-      });
-    });
   }
 }
 

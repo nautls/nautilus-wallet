@@ -54,7 +54,6 @@ export type WalletSettings = {
   avoidAddressReuse: boolean;
   hideUsedAddresses: boolean;
   defaultChangeIndex: number;
-  devMode: boolean;
 };
 
 export type StateWallet = {

@@ -207,7 +207,7 @@ export default defineComponent({
       );
     },
     devMode() {
-      return this.$store.state.currentWallet.settings.devMode;
+      return this.$store.state.settings.devMode;
     }
   },
   methods: {
