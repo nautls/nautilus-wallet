@@ -43,7 +43,8 @@ import {
   ERG_TOKEN_ID,
   CHUNK_DERIVE_LENGTH,
   ERG_DECIMALS,
-  UNKNOWN_MINTING_BOX_ID
+  UNKNOWN_MINTING_BOX_ID,
+  MAINNET
 } from "@/constants/ergo";
 import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
@@ -91,7 +92,8 @@ export default createStore({
       settings: {
         avoidAddressReuse: false,
         hideUsedAddresses: false,
-        defaultChangeIndex: 0
+        defaultChangeIndex: 0,
+        devMode: !MAINNET
       }
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
@@ -283,6 +285,7 @@ export default createStore({
       wallet.name = command.name;
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
+      wallet.settings.devMode = command.devMode;
     },
     [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
       const wallet = find(state.wallets, (w) => w.id === command.walletId);
@@ -329,7 +332,8 @@ export default createStore({
           settings: {
             avoidAddressReuse: false,
             hideUsedAddresses: false,
-            defaultChangeIndex: 0
+            defaultChangeIndex: 0,
+            devMode: !MAINNET
           }
         };
 
@@ -423,7 +427,8 @@ export default createStore({
         settings: {
           avoidAddressReuse: false,
           hideUsedAddresses: false,
-          defaultChangeIndex: 0
+          defaultChangeIndex: 0,
+          devMode: !MAINNET
         }
       });
 
