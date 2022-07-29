@@ -1,4 +1,4 @@
-import { MAINNET_MINER_FEE_TREE, TESTNET_MINER_FEE_TREE } from "@/constants/ergo";
+import { MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { UnsignedTx, ErgoBoxCandidate, Token } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
@@ -8,7 +8,7 @@ import { addressFromErgoTree } from "../../addresses";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 
 function isMinerFeeTree(ergoTree: string) {
-  return ergoTree === MAINNET_MINER_FEE_TREE || ergoTree === TESTNET_MINER_FEE_TREE;
+  return ergoTree === MAINNET_MINER_FEE_TREE;
 }
 
 export class TxInterpreter {
