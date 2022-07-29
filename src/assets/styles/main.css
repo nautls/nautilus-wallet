@@ -331,11 +331,17 @@ input:disabled {
 .vjs-tree .vjs-value {
   @apply break-all;
 }
+
+.vjs-tree .vjs-key {
+  @apply mr-1;
+}
+
 .vjs-tree .vjs-tree__node {
   @apply -mx-2 px-2 py-0.5;
 }
+
 .vjs-tree .vjs-tree__node:hover {
-  @apply bg-gray-600;
+  @apply bg-gray-600;\
 }
 
 .items-select .tag {
