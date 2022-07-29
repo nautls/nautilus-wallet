@@ -1,8 +1,11 @@
 <template>
   <div class="flex flex-col h-full gap-4 text-center text-sm">
-    <img src="/icons/app/logo.svg" class="w-23 m-auto pt-2" />
+    <img src="/icons/app/logo-mainnet.svg" class="w-23 m-auto pt-2" />
     <div>
-      <h1 class="text-2xl m-auto">Nautilus Wallet</h1>
+      <h1 class="text-2xl m-auto" v-once>
+        <spam v-if="testnet">Nautilus Testnet Wallet</spam>
+        <spam v-else>Nautilus Wallet</spam>
+      </h1>
 
       <p v-once>
         v{{ version }}, Commit:
@@ -47,6 +50,7 @@
 </template>
 
 <script lang="ts">
+import { MAINNET } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
 import { defineComponent } from "vue";
 const { version } = require("../../package.json");
@@ -71,6 +75,9 @@ export default defineComponent({
     },
     readonly(): boolean {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+    },
+    testnet() {
+      return !MAINNET;
     }
   },
   methods: {

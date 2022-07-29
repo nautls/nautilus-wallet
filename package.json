@@ -37,6 +37,7 @@
     "tiny-secp256k1": "1.1.6",
     "vue": "^3.2.37",
     "vue-feather": "^2.0.0-rc.1",
+    "vue-json-pretty": "^2.1.1",
     "vue-router": "^4.0.16",
     "vuex": "^4.0.2"
   },
@@ -72,6 +73,7 @@
     "typescript": "^4.7.4",
     "vue-svg-loader": "0.17.0-beta.2",
     "webpack": "^5.73.0",
+    "webpack-extension-manifest-plugin": "^0.8.0",
     "windicss-webpack-plugin": "^1.7.4"
   }
 }

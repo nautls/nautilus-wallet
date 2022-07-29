@@ -2,8 +2,10 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 var webpack = require("webpack");
 const { defineConfig } = require("@vue/cli-service");
+const WebpackExtensionManifestPlugin = require("webpack-extension-manifest-plugin");
 
 const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
+const mainnet = !process.argv.includes("--testnet");
 
 module.exports = defineConfig({
   publicPath: "/",
@@ -32,6 +34,21 @@ module.exports = defineConfig({
     plugins: [
       new webpack.ProvidePlugin({
         Buffer: ["buffer", "Buffer"]
+      }),
+      new WebpackExtensionManifestPlugin({
+        config: {
+          base: "./src/manifest.json",
+          extend: {
+            name: mainnet ? "Nautilus Wallet" : "Nautilus Testnet",
+            description: mainnet
+              ? "Privacy Wallet Designed for Ergo Network"
+              : "Testnet version of Nautilus Wallet",
+            icons: mainnet
+              ? { 48: "icons/app/m-48.png", 128: "icons/app/m-128.png", 512: "icons/app/m-512.png" }
+              : { 48: "icons/app/t-48.png", 128: "icons/app/t-128.png", 512: "icons/app/t-512.png" }
+          }
+        },
+        pkgJsonProps: ["version"]
       })
     ]
   },

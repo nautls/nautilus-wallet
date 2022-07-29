@@ -34,6 +34,18 @@
     <tx-box-details v-if="tx?.fee" :assets="tx.fee.assets">
       <p>Network fee</p>
     </tx-box-details>
+
+    <div v-if="devMode" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
+      <vue-json-pretty
+        class="!font-mono text-xs text-white"
+        :highlight-selected-node="false"
+        :show-double-quotes="false"
+        :show-length="true"
+        :show-line="false"
+        :deep="1"
+        :data="tx?.rawTx"
+      ></vue-json-pretty>
+    </div>
   </div>
 
   <div>
@@ -111,6 +123,8 @@ import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { MAINNET } from "@/constants/ergo";
 import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
+import VueJsonPretty from "vue-json-pretty";
+import "vue-json-pretty/lib/styles.css";
 
 export default defineComponent({
   name: "TxSignView",
@@ -118,7 +132,8 @@ export default defineComponent({
     ToolTip,
     LoadingModal,
     LedgerSigningModal,
-    TxBoxDetails
+    TxBoxDetails,
+    VueJsonPretty
   },
   emits: ["success", "fail", "refused"],
   props: {
@@ -191,6 +206,9 @@ export default defineComponent({
         this.addresses.map((a) => a.script),
         this.assets
       );
+    },
+    devMode() {
+      return this.$store.state.currentWallet.settings.devMode;
     }
   },
   methods: {
