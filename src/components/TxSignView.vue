@@ -36,6 +36,8 @@
     <div v-if="devMode" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
       <vue-json-pretty
         class="!font-mono text-xs text-white"
+        :highlight-selected-node="false"
+        :show-double-quotes="false"
         :show-length="true"
         :show-line="false"
         :deep="1"
