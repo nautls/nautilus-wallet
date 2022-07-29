@@ -17,7 +17,7 @@
 
     <spam
       v-if="testnet"
-      class="bg-orange-400 text-white text-xs rounded px-1 py-0 uppercase select-none"
+      class="bg-yellow-300 text-gray-700 text-xs rounded px-1 py-0 uppercase select-none"
     >
       testnet
     </spam>
