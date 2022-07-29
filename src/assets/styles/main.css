@@ -309,6 +309,16 @@ input:disabled {
   @apply border-none gap-2;
 }
 
+.vjs-tree .vjs-value {
+  @apply break-all;
+}
+.vjs-tree .vjs-tree__node {
+  @apply -mx-2 px-2 py-0.5;
+}
+.vjs-tree .vjs-tree__node:hover {
+  @apply bg-gray-600;
+}
+
 .items-select .tag {
   @apply inline-flex rounded bg-gray-200 font-normal text-dark-400 px-1 m-0;
 }

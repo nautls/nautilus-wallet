@@ -8,7 +8,7 @@ import {
   IAssetInfo
 } from "@/types/database";
 import { uniqBy } from "lodash";
-import { ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
+import { ERG_TOKEN_ID, MAINNET, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
@@ -74,6 +74,14 @@ class NautilusDb extends Dexie {
         );
         await t.table("assetInfo").bulkAdd(assetInfo);
       });
+
+    this.version(7).upgrade(async (t) => {
+      t.table("wallets").each((obj, k) => {
+        t.table("wallets").update(k.primaryKey, {
+          "settings.devMode": !MAINNET
+        });
+      });
+    });
   }
 }
 

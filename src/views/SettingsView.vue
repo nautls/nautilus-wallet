@@ -35,6 +35,19 @@
     <div>
       <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
         <div class="flex-grow">
+          <p>Developer mode</p>
+        </div>
+        <div>
+          <o-switch v-model="walletSettings.devMode" class="align-middle float-right" />
+        </div>
+      </label>
+      <div class="text-gray-500 text-xs font-normal mt-1">
+        <p>Enable advanced tools.</p>
+      </div>
+    </div>
+    <div>
+      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+        <div class="flex-grow">
           <p>Hide used addresses</p>
         </div>
         <div>
@@ -106,20 +119,21 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, Ref } from "vue";
 import { helpers, required } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
+import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { mapActions, mapState } from "vuex";
 import { StateWallet, UpdateWalletSettingsCommand } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
+import { MAINNET } from "@/constants/ergo";
 
 export default defineComponent({
   name: "SettingsView",
   components: { ExtendedPublicKeyModal },
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
   },
   computed: {
     ...mapState({
@@ -173,7 +187,8 @@ export default defineComponent({
       walletSettings: {
         name: "",
         avoidAddressReuse: false,
-        hideUsedAddresses: true
+        hideUsedAddresses: true,
+        devMode: !MAINNET
       },
       globalSettings: {
         conversionCurrency: ""

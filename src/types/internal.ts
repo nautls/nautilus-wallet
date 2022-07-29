@@ -54,6 +54,7 @@ export type WalletSettings = {
   avoidAddressReuse: boolean;
   hideUsedAddresses: boolean;
   defaultChangeIndex: number;
+  devMode: boolean;
 };
 
 export type StateWallet = {
@@ -109,6 +110,7 @@ export type UpdateWalletSettingsCommand = {
   name: string;
   avoidAddressReuse: boolean;
   hideUsedAddresses: boolean;
+  devMode: boolean;
 };
 
 export type UpdateChangeIndexCommand = {

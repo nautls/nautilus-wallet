@@ -1,11 +1,10 @@
 <template>
   <div
-    class="flex flex-row px-4 py-2 gap-4 items-center bg-gray-100"
+    class="flex flex-row px-4 py-2 gap-0 items-center bg-gray-100"
     :class="$route.query.popup === 'true' ? 'border-b-1 border-gray-200' : ''"
   >
-    <div class="flex-grow">
-      <img src="/icons/app/logo.svg" class="w-11 ml-2" />
-    </div>
+    <wallet-logo class="ml-2" content-class="w-11 h-11" />
+    <div class="flex-grow"></div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'">
         <template v-slot:trigger="{ active }">
@@ -70,10 +69,11 @@ import NavHeader from "@/components/NavHeader.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { Browser } from "@/utils/browserApi";
+import WalletLogo from "./WalletLogo.vue";
 
 export default defineComponent({
   name: "WalletHeader",
-  components: { NavHeader },
+  components: { NavHeader, WalletLogo },
   data() {
     return {
       checksum: ""
