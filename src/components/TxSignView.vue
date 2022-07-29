@@ -35,7 +35,7 @@
       <p>Network fee</p>
     </tx-box-details>
 
-    <div v-if="devMode" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
+    <div v-if="devMode && tx" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
       <vue-json-pretty
         class="!font-mono text-xs text-white"
         :highlight-selected-node="false"
