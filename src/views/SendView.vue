@@ -44,6 +44,12 @@
                       $filters.compactString(asset.info?.name, 26)
                     }}</template>
                     <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
+                    <p
+                      v-if="devMode && !isErg(asset.tokenId)"
+                      class="text-gray-400 text-xs font-mono"
+                    >
+                      {{ $filters.compactString(asset.tokenId, 16) }}
+                    </p>
                   </div>
                   <div>{{ $filters.formatBigNumber(asset.confirmedAmount) }}</div>
                 </div>
@@ -191,6 +197,9 @@ export default defineComponent({
     },
     minBoxValue(): BigNumber {
       return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
+    },
+    devMode() {
+      return this.$store.state.settings.devMode;
     }
   },
   watch: {
