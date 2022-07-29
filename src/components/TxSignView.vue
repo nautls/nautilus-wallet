@@ -41,7 +41,7 @@
         :highlight-selected-node="false"
         :show-double-quotes="false"
         :show-length="true"
-        :collapse-path="/extension|tokens|assets|additionalRegisters/"
+        :collapse-path="/(extension|tokens|assets|additionalRegisters)$/"
         :show-line="false"
         :deep="1"
         :data="tx?.rawTx"
