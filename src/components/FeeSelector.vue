@@ -2,6 +2,7 @@
   <div class="flex flex-row pt-4 group">
     <drop-down
       trigger-class="px-2 py-1 h-12 text-sm whitespace-nowrap text-left"
+      list-class="max-h-50"
       root-class="flex-grow"
     >
       <template v-slot:trigger>
