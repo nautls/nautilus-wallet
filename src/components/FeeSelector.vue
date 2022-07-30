@@ -42,7 +42,11 @@
       trigger-class="px-2 py-1 h-12 min-w-35 whitespace-nowrap text-sm text-left"
     >
       <template v-slot:trigger>
-        <asset-icon class="h-5 w-5 min-w-5" :token-id="internalSelected.tokenId" />
+        <asset-icon
+          class="h-5 w-5 min-w-5"
+          :token-id="internalSelected.tokenId"
+          :type="internalSelected.info?.type"
+        />
         <div class="whitespace-nowrap flex-grow text-gray-600">
           <template v-if="internalSelected.info?.name">{{
             $filters.compactString(internalSelected.info.name, 10)
