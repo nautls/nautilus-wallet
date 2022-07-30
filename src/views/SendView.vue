@@ -192,7 +192,7 @@ export default defineComponent({
       return this.minBoxValue;
     },
     minBoxValue(): BigNumberType {
-      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
+      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
     },
     devMode() {
       return this.$store.state.settings.devMode;
@@ -205,7 +205,7 @@ export default defineComponent({
     assets: {
       immediate: true,
       handler() {
-        if (!isEmpty(this.selected)) {
+        if (!isEmpty(this.selected) || this.v$.$anyDirty) {
           return;
         }
 
@@ -215,6 +215,10 @@ export default defineComponent({
     feeSettings(newVal: FeeSettings) {
       if (this.isErg(newVal.tokenId)) {
         this.setErgAsSelected();
+      }
+
+      if (this.selected.length > 1) {
+        this.removeDisposableSelections();
       }
     },
     ["selected.length"]() {
@@ -406,7 +410,7 @@ export default defineComponent({
       return `${TRANSACTION_URL}${txId}`;
     },
     add(asset: StateAsset) {
-      this.removeFeeAssetIfDisposable();
+      this.removeDisposableSelections();
       this.selected.push({ asset });
 
       if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
@@ -431,18 +435,24 @@ export default defineComponent({
         erg.amount = new BigNumber(this.minBoxValue);
       }
     },
-    removeFeeAssetIfDisposable() {
-      if (this.selected.length > 1 || this.feeSettings.tokenId === ERG_TOKEN_ID) {
+    removeDisposableSelections() {
+      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
         return;
       }
 
-      const item = this.selected[0];
-      if (!item) {
+      const first = this.selected[0];
+      if (!first) {
         return;
       }
 
-      if (!item.amount || item.amount.isZero()) {
-        this.remove(item.asset.tokenId);
+      if (
+        !first.amount ||
+        (this.selected.length === 1 && first.amount.isZero()) ||
+        (this.selected.length > 1 &&
+          this.isErg(first.asset.tokenId) &&
+          first.amount?.isLessThanOrEqualTo(this.minBoxValue))
+      ) {
+        this.remove(first.asset.tokenId);
       }
     },
     isFeeAsset(tokenId: string): boolean {
