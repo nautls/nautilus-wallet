@@ -131,15 +131,18 @@ export default defineComponent({
       .filter((x) => !isEmpty(x.data))
       .map((x): FeeAsset => {
         const tokenId = extractTokenIdFromBabelErgoTree(x.data[0].ergoTree);
+        const price = maxBy(
+          x.data.filter((box) => isValidBabelBox(box)).map((box) => getNanoErgsPerTokenRate(box)),
+          (p) => p.toNumber()
+        );
+
         return {
           tokenId,
           info: this.$store.state.assetInfo[tokenId],
-          nanoErgsPerToken: maxBy(
-            x.data.filter((box) => isValidBabelBox(box)).map((box) => getNanoErgsPerTokenRate(box)),
-            (p) => p.toNumber()
-          )!
+          nanoErgsPerToken: price || new BigNumber(0)
         };
-      });
+      })
+      .filter((x) => !x.nanoErgsPerToken.isZero());
 
     this.assets = this.assets.concat(
       sortBy(
