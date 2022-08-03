@@ -1,8 +1,8 @@
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
-var webpack = require("webpack");
-const { defineConfig } = require("@vue/cli-service");
 const WebpackExtensionManifestPlugin = require("webpack-extension-manifest-plugin");
+const webpack = require("webpack");
+const { defineConfig } = require("@vue/cli-service");
 
 const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 const mainnet = !process.argv.includes("--testnet");

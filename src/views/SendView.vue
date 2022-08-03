@@ -129,14 +129,20 @@ import { AxiosError } from "axios";
 import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
-import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
+
+const validations = {
+  recipient: {
+    required: helpers.withMessage("Receiver address is required.", required),
+    validErgoAddress
+  }
+};
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, LedgerSigningModal, TxSignModal },
+  components: { AssetInput, LoadingModal, TxSignModal },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
   },
   created() {
     if (this.$route.query.recipient) {
@@ -231,12 +237,7 @@ export default defineComponent({
     };
   },
   validations() {
-    return {
-      recipient: {
-        required: helpers.withMessage("Receiver address is required.", required),
-        validErgoAddress
-      }
-    };
+    return validations;
   },
   methods: {
     async buildTx() {
