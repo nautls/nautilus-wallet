@@ -6,6 +6,7 @@ import { addressesDbService } from "../database/addressesDbService";
 import { assetsDbService } from "../database/assetsDbService";
 import { utxosDbService } from "../database/utxosDbService";
 import { explorerService } from "../explorer/explorerService";
+import { graphQlService } from "../explorer/graphQlService";
 
 export async function fetchBoxes(
   walletId: number,
@@ -52,11 +53,8 @@ async function fetchBoxesFromExplorer(addresses: string[]): Promise<ErgoBox[]> {
     return [];
   }
 
-  const boxes = await explorerService.getUnspentBoxes(addresses);
-  return boxes
-    .map((a) => a.data)
-    .flat()
-    .map(explorerBoxMapper({ asConfirmed: true }));
+  const boxes = await graphQlService.getUnspentBoxes(addresses);
+  return boxes;
 }
 
 async function getAllAddresses(walletId: number): Promise<string[]> {

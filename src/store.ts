@@ -64,6 +64,7 @@ import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
 import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
+import { graphQlService } from "./api/explorer/graphQlService";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -311,7 +312,7 @@ export default createStore({
         return;
       }
 
-      for (let info of assetsInfo) {
+      for (const info of assetsInfo) {
         state.assetInfo[info.id] = {
           name: info.name,
           decimals: info.decimals,
@@ -507,7 +508,7 @@ export default createStore({
       let used: string[] = [];
       let usedChunk: string[] = [];
       let lastUsed: string | undefined;
-      let lastStored = last(active)?.script;
+      const lastStored = last(active)?.script;
       const maxIndex = maxBy(active, (a) => a.index)?.index;
       let offset = maxIndex !== undefined ? maxIndex + 1 : 0;
 
@@ -518,7 +519,7 @@ export default createStore({
         }
 
         used = used.concat(
-          await explorerService.getUsedAddresses(
+          await graphQlService.getUsedAddresses(
             active.map((a) => a.script),
             { chunkBy: CHUNK_DERIVE_LENGTH }
           )
@@ -529,7 +530,7 @@ export default createStore({
       do {
         derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
         offset += derived.length;
-        usedChunk = await explorerService.getUsedAddresses(derived.map((a) => a.script));
+        usedChunk = await graphQlService.getUsedAddresses(derived.map((a) => a.script));
         used = used.concat(usedChunk);
         active = active.concat(
           derived.map((d) => ({
@@ -643,7 +644,7 @@ export default createStore({
         return;
       }
 
-      let info = await explorerService.getAssetsInfo(incompleteIds);
+      const info = await explorerService.getAssetsInfo(incompleteIds);
       if (isEmpty(info)) {
         return;
       }
@@ -670,7 +671,7 @@ export default createStore({
       { commit, dispatch },
       data: { addresses: string[]; walletId: number }
     ) {
-      const balances = await explorerService.getAddressesBalance(data.addresses);
+      const balances = await graphQlService.getAddressesBalance(data.addresses);
       const assets = balances.map((x) => {
         return {
           tokenId: x.tokenId,
@@ -768,7 +769,7 @@ export default createStore({
       return signedTx;
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
-      {},
+      context,
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);

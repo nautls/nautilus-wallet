@@ -7,14 +7,13 @@ import {
   ExplorerBlockHeader,
   ExplorerBox,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse,
-  ExplorerV0TransactionsPerAddressResponse,
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import { chunk, find, isEmpty, uniqWith } from "lodash";
 import JSONBig from "json-bigint";
-import { ErgoTx } from "@/types/connector";
+import { ErgoBox, ErgoTx } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
@@ -22,25 +21,17 @@ import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
+import { gql, createClient } from "@urql/core";
+import { Address, Box, Registers } from "@ergo-graphql/types";
+
+const client = createClient({
+  url: "https://gql.ergoplatform.com/",
+  requestPolicy: "network-only"
+});
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
-class ExplorerService {
-  public async getTxHistory(
-    address: string,
-    params?: {
-      offset?: number;
-      limit?: number;
-      concise?: boolean;
-    }
-  ): Promise<AddressAPIResponse<ExplorerV0TransactionsPerAddressResponse>> {
-    const response = await axios.get(`${API_URL}/api/v0/addresses/${address}/transactions`, {
-      params
-    });
-
-    return { address, data: response.data };
-  }
-
+class GraphQlService {
   public async getAddressBalance(
     address: string
   ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>> {
@@ -54,40 +45,31 @@ class ExplorerService {
   ): Promise<AssetBalance[]> {
     if (options.chunkBy <= 0 || options.chunkBy >= addresses.length) {
       const raw = await this.getAddressesBalanceFromChunk(addresses);
-      return this._parseAddressesBalanceResponse(raw);
+      return this._parseAddressesBalanceResponse(raw || []);
     }
 
     const chunks = chunk(addresses, options.chunkBy);
-    let balances: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[] = [];
-    for (const c of chunks) {
-      balances = balances.concat(await this.getAddressesBalanceFromChunk(c));
+    let balances: Address[] = [];
+    for (const chunk of chunks) {
+      balances = balances.concat((await this.getAddressesBalanceFromChunk(chunk)) || []);
     }
 
     return this._parseAddressesBalanceResponse(balances);
   }
 
-  private _parseAddressesBalanceResponse(
-    apiResponse: AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]
-  ): AssetBalance[] {
+  private _parseAddressesBalanceResponse(addressesInfo: Address[]): AssetBalance[] {
     let assets: AssetBalance[] = [];
 
-    for (const balance of apiResponse.filter((r) => !this._isEmptyBalance(r.data))) {
-      if (!balance.data) {
-        continue;
-      }
-
+    for (const addressInfo of addressesInfo.filter((r) => !isZero(r.balance.nanoErgs))) {
       assets = assets.concat(
-        balance.data.confirmed.tokens.map((t) => {
+        addressInfo.balance.assets.map((t) => {
           return {
             tokenId: t.tokenId,
-            name: t.name,
-            decimals: t.decimals,
-            standard:
-              t.tokenType === AssetStandard.EIP4
-                ? AssetStandard.EIP4
-                : AssetStandard.Unstandardized,
-            confirmedAmount: t.amount?.toString() || "0",
-            address: balance.address
+            name: t.name || undefined,
+            decimals: t.decimals || 0,
+            standard: t.name || t.decimals ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
+            confirmedAmount: t.amount,
+            address: addressInfo.address
           };
         })
       );
@@ -97,28 +79,34 @@ class ExplorerService {
         name: "ERG",
         decimals: ERG_DECIMALS,
         standard: AssetStandard.Native,
-        confirmedAmount: balance.data.confirmed.nanoErgs?.toString() || "0",
-        unconfirmedAmount: balance.data.unconfirmed.nanoErgs?.toString(),
-        address: balance.address
+        confirmedAmount: addressInfo.balance.nanoErgs?.toString() || "0",
+        // unconfirmedAmount: addressInfo.balance.nanoErgs?.toString(),
+        address: addressInfo.address
       });
     }
 
     return assets;
   }
 
-  private _isEmptyBalance(balance: ExplorerV1AddressBalanceResponse): boolean {
-    return (
-      isZero(balance.confirmed.nanoErgs) &&
-      isZero(balance.unconfirmed.nanoErgs) &&
-      isEmpty(balance.confirmed.tokens) &&
-      isEmpty(balance.unconfirmed.tokens)
-    );
-  }
+  public async getAddressesBalanceFromChunk(addresses: string[]): Promise<Address[] | undefined> {
+    const query = gql<{ addresses: Address[] }, { addresses: string[] }>`
+      query Addresses($addresses: [String!]!) {
+        addresses(addresses: $addresses) {
+          address
+          balance {
+            nanoErgs
+            assets {
+              amount
+              tokenId
+              name
+              decimals
+            }
+          }
+        }
+      }
+    `;
 
-  public async getAddressesBalanceFromChunk(
-    addresses: string[]
-  ): Promise<AddressAPIResponse<ExplorerV1AddressBalanceResponse>[]> {
-    return await Promise.all(addresses.map((a) => this.getAddressBalance(a)));
+    return (await client.query(query, { addresses }).toPromise()).data?.addresses;
   }
 
   public async getUsedAddresses(addresses: string[], options = { chunkBy: 20 }): Promise<string[]> {
@@ -136,29 +124,53 @@ class ExplorerService {
   }
 
   private async getUsedAddressesFromChunk(addresses: string[]): Promise<string[]> {
-    const resp = await Promise.all(
-      addresses.map((address) => this.getTxHistory(address, { limit: 1, concise: true }))
-    );
-
-    const usedRaw = resp.filter((r) => r.data.total > 0);
-    const used: string[] = [];
-    for (const addr of addresses) {
-      if (find(usedRaw, (x) => addr === x.address)) {
-        used.push(addr);
+    const query = gql<{ addresses: Address[] }, { addresses: string[] }>`
+      query Addresses($addresses: [String!]!) {
+        addresses(addresses: $addresses) {
+          address
+          transactionsCount
+        }
       }
-    }
+    `;
 
-    return used;
+    const response = await client.query(query, { addresses }).toPromise();
+
+    return (
+      response.data?.addresses.filter((x) => !isZero(x.transactionsCount)).map((x) => x.address) ||
+      []
+    );
   }
 
-  private async getAddressUnspentBoxes(
-    address: string
-  ): Promise<AddressAPIResponse<ExplorerBox[]>> {
-    const response = await axios.get(
-      `${API_URL}/api/v0/transactions/boxes/byAddress/unspent/${address}`
-    );
+  private async getAddressUnspentBoxes(address: string): Promise<ErgoBox[]> {
+    const query = gql<{ boxes: Box[] }, { address: string }>`
+      query Boxes($address: String) {
+        boxes(address: $address, spent: false) {
+          boxId
+          transactionId
+          value
+          creationHeight
+          index
+          ergoTree
+          address
+          additionalRegisters
+          assets {
+            tokenId
+            amount
+          }
+        }
+      }
+    `;
 
-    return { address, data: response.data };
+    const response = await client.query(query, { address }).toPromise();
+    return (
+      response.data?.boxes?.map((box) => {
+        return {
+          ...box,
+          confirmed: true,
+          additionalRegisters: box.additionalRegisters as any
+        };
+      }) || []
+    );
   }
 
   public async getBox(boxId: string): Promise<ExplorerBox> {
@@ -175,8 +187,9 @@ class ExplorerService {
     return await Promise.all(boxIds.map((id) => this.getBox(id)));
   }
 
-  public async getUnspentBoxes(addresses: string[]): Promise<AddressAPIResponse<ExplorerBox[]>[]> {
-    return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
+  public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
+    const responses = await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
+    return responses.flat();
   }
 
   public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
@@ -236,7 +249,7 @@ class ExplorerService {
           retries: 5,
           shouldResetTimeout: true,
           retryDelay: axiosRetry.exponentialDelay,
-          retryCondition: (error: any) => {
+          retryCondition: (error) => {
             const data = error.response?.data as any;
             return !data || data.status === 404;
           }
@@ -305,4 +318,4 @@ class ExplorerService {
   }
 }
 
-export const explorerService = new ExplorerService();
+export const graphQlService = new GraphQlService();
