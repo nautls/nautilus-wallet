@@ -64,7 +64,7 @@ import { Token } from "./types/connector";
 import { AssetPriceRate } from "./types/explorer";
 import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
-import { graphQlService } from "./api/explorer/graphQlService";
+import { graphQLService } from "./api/explorer/graphQLService";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -518,19 +518,14 @@ export default createStore({
           dispatch(ACTIONS.LOAD_BALANCES, walletId);
         }
 
-        used = used.concat(
-          await graphQlService.getUsedAddresses(
-            active.map((a) => a.script),
-            { chunkBy: CHUNK_DERIVE_LENGTH }
-          )
-        );
+        used = used.concat(await graphQLService.getUsedAddresses(active.map((a) => a.script)));
         lastUsed = last(used);
       }
 
       do {
         derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
         offset += derived.length;
-        usedChunk = await graphQlService.getUsedAddresses(derived.map((a) => a.script));
+        usedChunk = await graphQLService.getUsedAddresses(derived.map((a) => a.script));
         used = used.concat(usedChunk);
         active = active.concat(
           derived.map((d) => ({
@@ -671,7 +666,7 @@ export default createStore({
       { commit, dispatch },
       data: { addresses: string[]; walletId: number }
     ) {
-      const balances = await graphQlService.getAddressesBalance(data.addresses);
+      const balances = await graphQLService.getAddressesBalance(data.addresses);
       const assets = balances.map((x) => {
         return {
           tokenId: x.tokenId,

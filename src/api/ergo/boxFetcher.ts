@@ -1,12 +1,10 @@
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
-import { explorerBoxMapper } from "@/types/explorer";
 import { difference, find, isEmpty, sortBy, unionBy } from "lodash";
 import { addressesDbService } from "../database/addressesDbService";
 import { assetsDbService } from "../database/assetsDbService";
 import { utxosDbService } from "../database/utxosDbService";
-import { explorerService } from "../explorer/explorerService";
-import { graphQlService } from "../explorer/graphQlService";
+import { graphQLService } from "../explorer/graphQLService";
 
 export async function fetchBoxes(
   walletId: number,
@@ -53,7 +51,7 @@ async function fetchBoxesFromExplorer(addresses: string[]): Promise<ErgoBox[]> {
     return [];
   }
 
-  const boxes = await graphQlService.getUnspentBoxes(addresses);
+  const boxes = await graphQLService.getUnspentBoxes(addresses);
   return boxes;
 }
 
