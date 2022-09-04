@@ -11,7 +11,7 @@
   "dependencies": {
     "@download/blockies": "^1.0.3",
     "@emurgo/cip4-js": "^1.0.7",
-    "@ergo-graphql/types": "^0.3.0",
+    "@ergo-graphql/types": "^0.3.6",
     "@ledgerhq/hw-transport-webusb": "^6.27.1",
     "@mdi/js": "^6.9.96",
     "@nautilus-wallet/ergo-ts": "^0.3.3",
