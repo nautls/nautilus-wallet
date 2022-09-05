@@ -179,20 +179,6 @@ class ExplorerService {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 
-  public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
-    try {
-      const box = await this.getMintingBox(tokenId);
-      return parseEIP4Asset(tokenId, box);
-    } catch {
-      return;
-    }
-  }
-
-  public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[]> {
-    const info = await Promise.all(tokenIds.map((a) => this.getAssetInfo(a)));
-    return info.filter((i) => i) as IAssetInfo[];
-  }
-
   public async getBlockHeaders(params?: {
     offset?: number;
     limit?: number;

@@ -639,7 +639,7 @@ export default createStore({
         return;
       }
 
-      const info = await explorerService.getAssetsInfo(incompleteIds);
+      const info = await graphQLService.getAssetsInfo(incompleteIds);
       if (isEmpty(info)) {
         return;
       }

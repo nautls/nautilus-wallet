@@ -4,12 +4,11 @@ import {
   AssetPriceRate,
   ErgoDexPool,
   ExplorerBlockHeader,
-  ExplorerBox,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse
 } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
-import { chunk, uniqWith } from "lodash";
+import { chunk, first, uniqWith } from "lodash";
 import JSONBig from "json-bigint";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
@@ -19,17 +18,17 @@ import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
-import { gql, createClient, Client } from "@urql/core";
-import { Address, Box } from "@ergo-graphql/types";
+import { Address, Box, Token } from "@ergo-graphql/types";
+import { Client, createClient, gql } from "urql";
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class GraphQLService {
-  private readonly _gQLClient!: Client;
+  private readonly _graphQLClient!: Client;
 
   constructor() {
-    this._gQLClient = createClient({
-      url: "https://gql.ergoplatform.com/",
+    this._graphQLClient = createClient({
+      url: "https://graphql.erg.zelcore.io/", // "https://gql.ergoplatform.com/",
       requestPolicy: "network-only"
     });
   }
@@ -80,7 +79,7 @@ class GraphQLService {
   }
 
   public async getAddressesBalanceFromChunk(addresses: string[]): Promise<Address[] | undefined> {
-    const query = gql<{ addresses: Address[] }, { addresses: string[] }>`
+    const query = gql<{ addresses: Address[] }>`
       query Addresses($addresses: [String!]!) {
         addresses(addresses: $addresses) {
           address
@@ -97,7 +96,8 @@ class GraphQLService {
       }
     `;
 
-    return (await this._gQLClient.query(query, { addresses }).toPromise()).data?.addresses;
+    const response = await this._graphQLClient.query(query, { addresses }).toPromise();
+    return response.data?.addresses;
   }
 
   public async getUsedAddresses(addresses: string[]): Promise<string[]> {
@@ -115,36 +115,37 @@ class GraphQLService {
   }
 
   private async getUsedAddressesFromChunk(addresses: string[]): Promise<string[]> {
-    const query = gql<{ addresses: Address[] }, { addresses: string[] }>`
+    const query = gql<{ addresses: Address[] }>`
       query Addresses($addresses: [String!]!) {
         addresses(addresses: $addresses) {
           address
-          transactionsCount
+          used
         }
       }
     `;
 
-    const response = await this._gQLClient.query(query, { addresses }).toPromise();
-
-    return (
-      response.data?.addresses.filter((x) => !isZero(x.transactionsCount)).map((x) => x.address) ||
-      []
-    );
+    const response = await this._graphQLClient.query(query, { addresses }).toPromise();
+    return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
   }
 
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
-    const responses = await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
-    return responses.flat();
+    let boxes: ErgoBox[] = [];
+    for (const address of addresses) {
+      boxes = boxes.concat(await this.getAddressUnspentBoxes(address));
+    }
+
+    return boxes;
   }
 
   private async getAddressUnspentBoxes(address: string): Promise<ErgoBox[]> {
-    const query = gql<{ boxes: Box[] }, { address: string }>`
+    const query = gql<{ boxes: Box[] }>`
       query Boxes($address: String) {
         boxes(address: $address, spent: false) {
           boxId
           transactionId
           value
           creationHeight
+          settlementHeight
           index
           ergoTree
           address
@@ -157,9 +158,9 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gQLClient.query(query, { address }).toPromise();
+    const response = await this._graphQLClient.query(query, { address }).toPromise();
     return (
-      response.data?.boxes?.map((box) => {
+      response.data?.boxes.map((box) => {
         return {
           ...box,
           confirmed: true,
@@ -169,23 +170,49 @@ class GraphQLService {
     );
   }
 
-  public async getMintingBox(tokenId: string): Promise<ExplorerBox> {
-    const response = await axios.get(`${API_URL}/api/v0/assets/${tokenId}/issuingBox`);
-    return response.data[0];
+  public async getTokenInfo(tokenId: string): Promise<Token | undefined> {
+    const query = gql<{ tokens: Token[] }>`
+      query Tokens($tokenId: String) {
+        tokens(tokenId: $tokenId) {
+          tokenId
+          type
+          emissionAmount
+          name
+          description
+          decimals
+          boxId
+          box {
+            transactionId
+            additionalRegisters
+          }
+        }
+      }
+    `;
+
+    const response = await this._graphQLClient.query(query, { tokenId }).toPromise();
+    return first(response.data?.tokens);
   }
 
   public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
     try {
-      const box = await this.getMintingBox(tokenId);
-      return parseEIP4Asset(tokenId, box);
+      const tokenInfo = await this.getTokenInfo(tokenId);
+      if (!tokenInfo) {
+        return;
+      }
+
+      return parseEIP4Asset(tokenInfo);
     } catch {
       return;
     }
   }
 
   public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[]> {
-    const info = await Promise.all(tokenIds.map((a) => this.getAssetInfo(a)));
-    return info.filter((i) => i) as IAssetInfo[];
+    const info: (IAssetInfo | undefined)[] = [];
+    for (const tokenId of tokenIds) {
+      info.push(await this.getAssetInfo(tokenId));
+    }
+
+    return info.filter((assetInfo) => assetInfo) as IAssetInfo[];
   }
 
   public async getBlockHeaders(params?: {
