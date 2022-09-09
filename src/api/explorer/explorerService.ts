@@ -179,16 +179,6 @@ class ExplorerService {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 
-  public async getBlockHeaders(params?: {
-    offset?: number;
-    limit?: number;
-    sortBy?: string;
-    sortDirection?: string;
-  }): Promise<ExplorerBlockHeader[]> {
-    const response = await axios.get(`${API_URL}/api/v1/blocks/headers`, { params });
-    return response.data.items;
-  }
-
   public async sendTx(
     signedTx: ErgoTx
   ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {

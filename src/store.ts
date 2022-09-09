@@ -752,7 +752,7 @@ export default createStore({
         command.tx.outputs,
         ownAddresses.map((a) => a.script)
       );
-      const blockHeaders = await explorerService.getBlockHeaders({ limit: 10 });
+      const blockHeaders = await graphQLService.getBlockHeaders({ take: 10 });
 
       const signedTx = await new Prover(deriver)
         .from(addresses)

@@ -18,7 +18,7 @@ import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
-import { Address, Box, Token } from "@ergo-graphql/types";
+import { Address, Box, Header, Token } from "@ergo-graphql/types";
 import { Client, createClient, gql } from "urql";
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
@@ -27,8 +27,15 @@ class GraphQLService {
   private readonly _graphQLClient!: Client;
 
   constructor() {
+    /**
+     * https://graphql.erg.zelcore.io/
+     * https://gql.ergoplatform.com/
+     * https://ergo-explorer.getblok.io/graphql/ - CORS issue
+     * https://explore.sigmaspace.io/api/graphql - address index problem
+     **/
+
     this._graphQLClient = createClient({
-      url: "https://graphql.erg.zelcore.io/", // "https://gql.ergoplatform.com/",
+      url: "https://gql.ergoplatform.com/",
       requestPolicy: "network-only"
     });
   }
@@ -215,14 +222,29 @@ class GraphQLService {
     return info.filter((assetInfo) => assetInfo) as IAssetInfo[];
   }
 
-  public async getBlockHeaders(params?: {
-    offset?: number;
-    limit?: number;
-    sortBy?: string;
-    sortDirection?: string;
-  }): Promise<ExplorerBlockHeader[]> {
-    const response = await axios.get(`${API_URL}/api/v1/blocks/headers`, { params });
-    return response.data.items;
+  public async getBlockHeaders(options: { take: number } = { take: 10 }): Promise<Header[]> {
+    const query = gql<{ blockHeaders: Header[] }>`
+      query Headers($take: Int) {
+        blockHeaders(take: $take) {
+          headerId
+          parentId
+          version
+          height
+          difficulty
+          adProofsRoot
+          stateRoot
+          transactionsRoot
+          timestamp
+          nBits
+          extensionHash
+          powSolutions
+          votes
+        }
+      }
+    `;
+
+    const response = await this._graphQLClient.query(query, options).toPromise();
+    return response.data?.blockHeaders ?? [];
   }
 
   public async sendTx(
