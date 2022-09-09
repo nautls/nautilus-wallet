@@ -3,7 +3,6 @@ import {
   AssetBalance,
   AssetPriceRate,
   ErgoDexPool,
-  ExplorerBlockHeader,
   ExplorerPostApiV1MempoolTransactionsSubmitResponse
 } from "@/types/explorer";
 import axios from "axios";
@@ -19,7 +18,7 @@ import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
 import { Address, Box, Header, Token } from "@ergo-graphql/types";
-import { Client, createClient, gql } from "urql";
+import { Client, createClient, gql } from "@urql/core";
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
