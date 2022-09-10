@@ -37,7 +37,7 @@ class GraphQLService {
 
   constructor() {
     this._graphQLClient = createClient({
-      url: getRandomServer(),
+      url: servers[0],
       requestPolicy: "network-only",
       exchanges: [
         dedupExchange,
