@@ -18,24 +18,46 @@ import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
 import { Address, Box, Header, Token } from "@ergo-graphql/types";
-import { Client, createClient, gql } from "@urql/core";
+import { Client, createClient, gql, fetchExchange, dedupExchange } from "@urql/core";
+import { retryExchange } from "@urql/exchange-retry";
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
+const servers = [
+  "https://gql.ergoplatform.com/",
+  "https://graphql.erg.zelcore.io/",
+  "https://ergo-explorer.getblok.io/graphql/"
+];
+
+function getRandomServer(): string {
+  return servers[Math.floor(Math.random() * servers.length)];
+}
 
 class GraphQLService {
   private readonly _graphQLClient!: Client;
 
   constructor() {
-    /**
-     * https://graphql.erg.zelcore.io/
-     * https://gql.ergoplatform.com/
-     * https://ergo-explorer.getblok.io/graphql/ - CORS issue
-     * https://explore.sigmaspace.io/api/graphql - address index problem
-     **/
-
     this._graphQLClient = createClient({
-      url: "https://gql.ergoplatform.com/",
-      requestPolicy: "network-only"
+      url: getRandomServer(),
+      requestPolicy: "network-only",
+      exchanges: [
+        dedupExchange,
+        retryExchange({
+          initialDelayMs: 100,
+          maxDelayMs: 5000,
+          randomDelay: true,
+          maxNumberAttempts: 3,
+          retryWith(error, operation) {
+            if (error.networkError) {
+              const context = { ...operation.context, url: getRandomServer() };
+
+              return { ...operation, context };
+            }
+
+            return null;
+          }
+        }),
+        fetchExchange
+      ]
     });
   }
 
