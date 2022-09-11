@@ -1,7 +1,6 @@
 import { walletsDbService } from "@/api/database/walletsDbService";
 import { createStore } from "vuex";
 import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
-import { explorerService } from "@/api/explorer/explorerService";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import {
@@ -61,10 +60,10 @@ import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
-import { AssetPriceRate } from "./types/explorer";
 import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
 import { graphQLService } from "./api/explorer/graphQLService";
+import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -369,7 +368,7 @@ export default createStore({
       }
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
-      const tokenMarketRates = await explorerService.getTokenRates();
+      const tokenMarketRates = await ergoDexService.getTokenRates();
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     [ACTIONS.LOAD_SETTINGS]({ commit }) {

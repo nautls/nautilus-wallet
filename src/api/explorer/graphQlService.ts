@@ -1,11 +1,8 @@
-import { AssetBalance, AssetPriceRate, ErgoDexPool } from "@/types/explorer";
-import axios from "axios";
-import axiosRetry from "axios-retry";
-import { chunk, first, uniqWith } from "lodash";
+import { chunk, first } from "lodash";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
-import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
@@ -14,12 +11,23 @@ import { Address, Box, Header, SignedTransaction, Token } from "@ergo-graphql/ty
 import { Client, createClient, gql, fetchExchange, dedupExchange } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 
-axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
-const servers = [
-  "https://gql.ergoplatform.com/",
-  "https://graphql.erg.zelcore.io/",
-  "https://ergo-explorer.getblok.io/graphql/"
-];
+export type AssetBalance = {
+  tokenId: string;
+  name?: string;
+  decimals?: number;
+  standard?: AssetStandard;
+  confirmedAmount: string;
+  unconfirmedAmount?: string;
+  address: string;
+};
+
+const servers = MAINNET
+  ? [
+      "https://gql.ergoplatform.com/",
+      "https://graphql.erg.zelcore.io/",
+      "https://ergo-explorer.getblok.io/graphql/"
+    ]
+  : ["https://gql-testnet.ergoplatform.com/"];
 
 function getRandomServer(): string {
   return servers[Math.floor(Math.random() * servers.length)];
@@ -337,7 +345,7 @@ class GraphQLService {
       if (response.error || !response.data) {
         return undefined;
       }
-      console.log(response.data.mempool.transactions);
+
       return response.data.mempool.transactions.length > 0;
     } catch {
       return undefined;
@@ -392,45 +400,6 @@ class GraphQLService {
     } else {
       return value.toString();
     }
-  }
-
-  private getUtcTimestamp(date: Date) {
-    return Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      date.getUTCHours(),
-      date.getUTCMinutes(),
-      date.getUTCSeconds()
-    );
-  }
-
-  public async getTokenRates(): Promise<AssetPriceRate> {
-    const fromDate = new Date();
-    fromDate.setDate(fromDate.getDate() - 30);
-
-    const { data } = await axios.get<ErgoDexPool[]>(`https://api.ergodex.io/v1/amm/markets`, {
-      params: {
-        from: this.getUtcTimestamp(fromDate),
-        to: this.getUtcTimestamp(new Date())
-      }
-    });
-
-    const filtered = uniqWith(
-      data.filter((x) => x.baseId === ERG_TOKEN_ID),
-      (a, b) =>
-        a.quoteId === b.quoteId && new BigNumber(a.baseVolume.value).isLessThan(b.baseVolume.value)
-    );
-
-    return asDict(
-      filtered.map((r) => {
-        return {
-          [r.quoteId]: {
-            erg: new BigNumber(1).dividedBy(r.lastPrice).toNumber()
-          }
-        };
-      })
-    );
   }
 }
 

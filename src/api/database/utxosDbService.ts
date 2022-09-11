@@ -1,9 +1,7 @@
 import { IDbUtxo } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
-import { ErgoBox, ErgoTx } from "@/types/connector";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
-import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
 import { SignedTransaction } from "@ergo-graphql/types";
 
