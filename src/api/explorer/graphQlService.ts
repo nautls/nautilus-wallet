@@ -1,4 +1,3 @@
-import { API_URL } from "@/constants/explorer";
 import { AssetBalance, AssetPriceRate, ErgoDexPool } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
@@ -322,26 +321,25 @@ class GraphQLService {
     return response.data?.submitTransaction || "";
   }
 
-  public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
+  public async isTransactionInMempool(transactionId: string): Promise<boolean | undefined> {
     try {
-      const response = await axios.get(`${API_URL}/api/v0/transactions/unconfirmed/${txId}`, {
-        "axios-retry": {
-          retries: 5,
-          shouldResetTimeout: true,
-          retryDelay: axiosRetry.exponentialDelay,
-          retryCondition: (error) => {
-            const data = error.response?.data as any;
-            return !data || data.status === 404;
+      const query = gql<{ mempool: { transactions: { transactionId: string }[] } }>`
+        query Mempool($transactionId: String) {
+          mempool {
+            transactions(transactionId: $transactionId) {
+              transactionId
+            }
           }
         }
-      });
-      return response.data != undefined;
-    } catch (e: any) {
-      const data = e?.response?.data;
-      if (data && data.status === 404) {
-        return false;
-      }
+      `;
 
+      const response = await this._sendTxGraphQLClient.query(query, { transactionId }).toPromise();
+      if (response.error || !response.data) {
+        return undefined;
+      }
+      console.log(response.data.mempool.transactions);
+      return response.data.mempool.transactions.length > 0;
+    } catch {
       return undefined;
     }
   }

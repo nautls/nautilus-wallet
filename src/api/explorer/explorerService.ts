@@ -17,8 +17,6 @@ import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
-import { parseEIP4Asset } from "./eip4Parser";
-import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
@@ -175,66 +173,6 @@ class ExplorerService {
 
   public async getUnspentBoxes(addresses: string[]): Promise<AddressAPIResponse<ExplorerBox[]>[]> {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
-  }
-
-  public async sendTx(signedTx: ErgoTx): Promise<{ id: string }> {
-    const response = await axios.post(
-      `${API_URL}/api/v1/mempool/transactions/submit`,
-      JSONBig.stringify(signedTx),
-      {
-        "axios-retry": {
-          retries: 15,
-          shouldResetTimeout: true,
-          retryDelay: axiosRetry.exponentialDelay,
-          retryCondition: (error) => {
-            const data = error.response?.data as any;
-            if (!data) {
-              return true;
-            }
-            // retries until pending box gets accepted by the mempool
-            return data.status === 400 && data.reason.match(/.*[iI]nput.*not found$/gm);
-          }
-        }
-      }
-    );
-
-    return response.data;
-  }
-
-  public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
-    try {
-      const response = await axios.get(`${API_URL}/api/v0/transactions/unconfirmed/${txId}`, {
-        "axios-retry": {
-          retries: 5,
-          shouldResetTimeout: true,
-          retryDelay: axiosRetry.exponentialDelay,
-          retryCondition: (error: any) => {
-            const data = error.response?.data as any;
-            return !data || data.status === 404;
-          }
-        }
-      });
-      return response.data != undefined;
-    } catch (e: any) {
-      const data = e?.response?.data;
-      if (data && data.status === 404) {
-        return false;
-      }
-
-      return undefined;
-    }
-  }
-
-  public async areTransactionsInMempool(
-    txIds: string[]
-  ): Promise<{ [txId: string]: boolean | undefined }> {
-    return asDict(
-      await Promise.all(
-        txIds.map(async (txId) => ({
-          [txId]: await this.isTransactionInMempool(txId)
-        }))
-      )
-    );
   }
 
   private getUtcTimestamp(date: Date) {

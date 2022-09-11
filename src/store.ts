@@ -702,7 +702,7 @@ export default createStore({
       }
 
       const txIds = uniq(boxes.map((b) => b.spentTxId));
-      const mempoolResult = await explorerService.areTransactionsInMempool(txIds);
+      const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
       await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
     },
     async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
