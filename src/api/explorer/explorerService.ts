@@ -4,9 +4,7 @@ import {
   AssetBalance,
   AssetPriceRate,
   ErgoDexPool,
-  ExplorerBlockHeader,
   ExplorerBox,
-  ExplorerPostApiV1MempoolTransactionsSubmitResponse,
   ExplorerV0TransactionsPerAddressResponse,
   ExplorerV1AddressBalanceResponse
 } from "@/types/explorer";
@@ -179,9 +177,7 @@ class ExplorerService {
     return await Promise.all(addresses.map((a) => this.getAddressUnspentBoxes(a)));
   }
 
-  public async sendTx(
-    signedTx: ErgoTx
-  ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
+  public async sendTx(signedTx: ErgoTx): Promise<{ id: string }> {
     const response = await axios.post(
       `${API_URL}/api/v1/mempool/transactions/submit`,
       JSONBig.stringify(signedTx),

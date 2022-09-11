@@ -211,10 +211,6 @@ export type ExplorerGetApiV1BlocksP1Response = {
   };
 };
 
-export type ExplorerPostApiV1MempoolTransactionsSubmitResponse = {
-  id: string;
-};
-
 export type ExplorerBox = {
   id: string;
   txId: string;

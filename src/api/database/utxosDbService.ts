@@ -5,6 +5,7 @@ import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
 import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
+import { SignedTransaction } from "@ergo-graphql/types";
 
 class UTxOsDbService {
   public async getAllPending(): Promise<IDbUtxo[]> {
@@ -31,7 +32,7 @@ class UTxOsDbService {
     await dbContext.utxos.where("spentTxId").anyOf(txIds).delete();
   }
 
-  public async addFromTx(signedTx: ErgoTx, walletId: number) {
+  public async addFromTx(signedTx: SignedTransaction, walletId: number) {
     const addresses = (await addressesDbService.getByWalletId(walletId)).map((a) => a.script);
 
     const boxes = signedTx.inputs
@@ -53,7 +54,7 @@ class UTxOsDbService {
               id: output.boxId,
               confirmed: false,
               locked: false,
-              content: { ...this.stringifyAmounts(output), confirmed: false },
+              content: { ...output, confirmed: false },
               spentTxId: signedTx.id,
               spentTimestamp: Date.now(),
               address: addressFromErgoTree(output.ergoTree),
@@ -63,25 +64,6 @@ class UTxOsDbService {
       );
 
     await dbContext.utxos.bulkPut(boxes);
-  }
-
-  private stringifyAmounts(box: ErgoBox): ErgoBox {
-    box.value = this.asString(box.value);
-    for (const token of box.assets) {
-      token.amount = this.asString(token.amount);
-    }
-
-    return box;
-  }
-
-  private asString(value?: string | BigInt | BigNumber | number): string {
-    if (!value) {
-      return "";
-    } else if (typeof value == "string") {
-      return value;
-    } else {
-      return value.toString();
-    }
   }
 }
 

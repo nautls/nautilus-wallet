@@ -1,14 +1,8 @@
 import { API_URL } from "@/constants/explorer";
-import {
-  AssetBalance,
-  AssetPriceRate,
-  ErgoDexPool,
-  ExplorerPostApiV1MempoolTransactionsSubmitResponse
-} from "@/types/explorer";
+import { AssetBalance, AssetPriceRate, ErgoDexPool } from "@/types/explorer";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import { chunk, first, uniqWith } from "lodash";
-import JSONBig from "json-bigint";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
@@ -17,7 +11,7 @@ import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
-import { Address, Box, Header, Token } from "@ergo-graphql/types";
+import { Address, Box, Header, SignedTransaction, Token } from "@ergo-graphql/types";
 import { Client, createClient, gql, fetchExchange, dedupExchange } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 
@@ -33,23 +27,55 @@ function getRandomServer(): string {
 }
 
 class GraphQLService {
-  private readonly _graphQLClient!: Client;
+  private readonly _gqlClient!: Client;
+  private _sendTxGqlClient?: Client;
+
+  private get _sendTxGraphQLClient(): Client {
+    if (!this._sendTxGqlClient) {
+      this._sendTxGqlClient = createClient({
+        url: servers[0],
+        requestPolicy: "network-only",
+        exchanges: [
+          dedupExchange,
+          retryExchange({
+            initialDelayMs: 100,
+            maxDelayMs: 5000,
+            randomDelay: true,
+            maxNumberAttempts: 3,
+            retryWith(error, operation) {
+              if (error.networkError) {
+                const context = { ...operation.context, url: getRandomServer() };
+                return { ...operation, context };
+              }
+
+              return null;
+            }
+          }),
+          fetchExchange
+        ]
+      });
+    }
+
+    return this._sendTxGqlClient;
+  }
 
   constructor() {
-    this._graphQLClient = createClient({
+    this._gqlClient = createClient({
       url: servers[0],
       requestPolicy: "network-only",
       exchanges: [
         dedupExchange,
         retryExchange({
-          initialDelayMs: 100,
+          initialDelayMs: 1000,
           maxDelayMs: 5000,
           randomDelay: true,
-          maxNumberAttempts: 3,
+          maxNumberAttempts: 10,
+          retryIf(error) {
+            return !!(error.networkError || error.message.match(/.*[iI]nput.*not found$/gm));
+          },
           retryWith(error, operation) {
             if (error.networkError) {
               const context = { ...operation.context, url: getRandomServer() };
-
               return { ...operation, context };
             }
 
@@ -124,7 +150,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._graphQLClient.query(query, { addresses }).toPromise();
+    const response = await this._gqlClient.query(query, { addresses }).toPromise();
     return response.data?.addresses;
   }
 
@@ -152,7 +178,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._graphQLClient.query(query, { addresses }).toPromise();
+    const response = await this._gqlClient.query(query, { addresses }).toPromise();
     return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
   }
 
@@ -186,7 +212,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._graphQLClient.query(query, { address }).toPromise();
+    const response = await this._gqlClient.query(query, { address }).toPromise();
     return (
       response.data?.boxes.map((box) => {
         return {
@@ -217,7 +243,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._graphQLClient.query(query, { tokenId }).toPromise();
+    const response = await this._gqlClient.query(query, { tokenId }).toPromise();
     return first(response.data?.tokens);
   }
 
@@ -264,34 +290,36 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._graphQLClient.query(query, options).toPromise();
+    const response = await this._gqlClient.query(query, options).toPromise();
     return response.data?.blockHeaders ?? [];
   }
 
-  public async sendTx(
-    signedTx: ErgoTx
-  ): Promise<ExplorerPostApiV1MempoolTransactionsSubmitResponse> {
-    const response = await axios.post(
-      `${API_URL}/api/v1/mempool/transactions/submit`,
-      JSONBig.stringify(signedTx),
-      {
-        "axios-retry": {
-          retries: 15,
-          shouldResetTimeout: true,
-          retryDelay: axiosRetry.exponentialDelay,
-          retryCondition: (error) => {
-            const data = error.response?.data as any;
-            if (!data) {
-              return true;
-            }
-            // retries until pending box gets accepted by the mempool
-            return data.status === 400 && data.reason.match(/.*[iI]nput.*not found$/gm);
-          }
-        }
+  public async checkTx(signedTx: SignedTransaction): Promise<string> {
+    const query = gql<{ checkTransaction: string }>`
+      mutation Mutation($signedTransaction: SignedTransaction!) {
+        checkTransaction(signedTransaction: $signedTransaction)
       }
-    );
+    `;
 
-    return response.data;
+    const response = await this._gqlClient
+      .mutation(query, { signedTransaction: signedTx })
+      .toPromise();
+
+    return response.data?.checkTransaction || "";
+  }
+
+  public async sendTx(signedTx: SignedTransaction): Promise<string> {
+    const query = gql<{ submitTransaction: string }>`
+      mutation Mutation($signedTransaction: SignedTransaction!) {
+        submitTransaction(signedTransaction: $signedTransaction)
+      }
+    `;
+
+    const response = await this._sendTxGraphQLClient
+      .mutation(query, { signedTransaction: signedTx })
+      .toPromise();
+
+    return response.data?.submitTransaction || "";
   }
 
   public async isTransactionInMempool(txId: string): Promise<boolean | undefined> {
@@ -328,6 +356,44 @@ class GraphQLService {
         }))
       )
     );
+  }
+
+  public mapTransaction(signedTx: ErgoTx): SignedTransaction {
+    return {
+      id: signedTx.id,
+      size: signedTx.size,
+      inputs: signedTx.inputs.map((input) => {
+        return { boxId: input.boxId, spendingProof: input.spendingProof };
+      }),
+      dataInputs: signedTx.dataInputs,
+      outputs: signedTx.outputs.map((output) => {
+        return {
+          boxId: output.boxId,
+          value: this._asString(output.value),
+          ergoTree: output.ergoTree,
+          creationHeight: output.creationHeight,
+          index: output.index,
+          transactionId: output.transactionId,
+          assets: output.assets.map((a) => {
+            return {
+              tokenId: a.tokenId,
+              amount: this._asString(a.amount.toString())
+            };
+          }),
+          additionalRegisters: output.additionalRegisters
+        };
+      })
+    };
+  }
+
+  private _asString(value?: string | bigint | BigNumber | number): string {
+    if (!value) {
+      return "";
+    } else if (typeof value == "string") {
+      return value;
+    } else {
+      return value.toString();
+    }
   }
 
   private getUtcTimestamp(date: Date) {

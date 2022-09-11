@@ -761,7 +761,7 @@ export default createStore({
         .setCallback(command.callback)
         .sign(command.tx, blockHeaders);
 
-      return signedTx;
+      return graphQLService.mapTransaction(signedTx);
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
       context,

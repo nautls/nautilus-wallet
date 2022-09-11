@@ -130,6 +130,7 @@ import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import { graphQLService } from "@/api/explorer/graphQLService";
+import { SignedTransaction } from "@ergo-graphql/types";
 
 const validations = {
   recipient: {
@@ -313,7 +314,7 @@ export default defineComponent({
       this.transaction = undefined;
       this.v$.$reset();
     },
-    async onSuccess(signedTx: ErgoTx) {
+    async onSuccess(signedTx: SignedTransaction) {
       this.signModalActive = false;
       this.stateMessage = "Signed. Submitting transaction...";
 
