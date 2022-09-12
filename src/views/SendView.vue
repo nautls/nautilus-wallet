@@ -129,7 +129,7 @@ import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
-import { graphQLService } from "@/api/explorer/graphQLService";
+import { graphQLService } from "@/api/explorer/graphQlService";
 import { SignedTransaction } from "@ergo-graphql/types";
 
 const validations = {

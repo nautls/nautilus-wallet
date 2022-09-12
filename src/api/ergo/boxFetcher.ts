@@ -4,7 +4,7 @@ import { difference, find, isEmpty, sortBy, unionBy } from "lodash";
 import { addressesDbService } from "../database/addressesDbService";
 import { assetsDbService } from "../database/assetsDbService";
 import { utxosDbService } from "../database/utxosDbService";
-import { graphQLService } from "../explorer/graphQLService";
+import { graphQLService } from "../explorer/graphQlService";
 
 export async function fetchBoxes(
   walletId: number,

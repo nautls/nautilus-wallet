@@ -1,6 +1,6 @@
 import { SignedTransaction } from "@ergo-graphql/types";
 import { utxosDbService } from "../database/utxosDbService";
-import { graphQLService } from "../explorer/graphQLService";
+import { graphQLService } from "../explorer/graphQlService";
 
 export async function submitTx(signedTx: SignedTransaction, walletId: number): Promise<string> {
   const txId = await graphQLService.sendTx(signedTx);

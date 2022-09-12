@@ -62,7 +62,7 @@ import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
-import { graphQLService } from "./api/explorer/graphQLService";
+import { graphQLService } from "./api/explorer/graphQlService";
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 
 function dbAddressMapper(a: IDbAddress) {

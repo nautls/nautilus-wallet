@@ -11,7 +11,7 @@ import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import { graphQLService } from "@/api/explorer/graphQLService";
+import { graphQLService } from "@/api/explorer/graphQlService";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
