@@ -1,6 +1,6 @@
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 
-export const logoMapper: { [key: string]: string } = {
+export const assetIconMap: { [tokenId: string]: string } = {
   [ERG_TOKEN_ID]: "ergo.svg",
   ["003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0"]: "sigrsv.svg",
   ["03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04"]: "sigusd.svg",
@@ -17,5 +17,7 @@ export const logoMapper: { [key: string]: string } = {
   ["1fd6e032e8476c4aa54c18c1a308dce83940e8f4a28f576440513ed7326ad489"]: "paideia.svg",
   ["00b1e236b60b95c2c6f8007a9d89bc460fc9e78f98b09faec9449007b40bccf3"]: "egio.svg",
   ["007fd64d1ee54d78dd269c8930a38286caa28d3f29d27cadcb796418ab15c283"]: "exle.svg",
-  ["02f31739e2e4937bb9afb552943753d1e3e9cdd1a5e5661949cb0cef93f907ea"]: "terahertz.svg"
+  ["02f31739e2e4937bb9afb552943753d1e3e9cdd1a5e5661949cb0cef93f907ea"]: "terahertz.svg",
+  ["e8b20745ee9d18817305f32eb21015831a48f02d40980de6e849f886dca7f807"]: "flux.svg",
+  ["00bd762484086cf560d3127eb53f0769d76244d9737636b2699d55c56cd470bf"]: "epos.svg"
 };
