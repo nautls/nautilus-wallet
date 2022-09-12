@@ -233,15 +233,8 @@ const ERGO_CONST_CODE = `const ergo = Object.freeze(new NautilusErgoApi());`;
 let ergoApiInjected = false;
 let nautilusPort;
 
+// eslint-disable-next-line no-undef
 const Browser = typeof browser === "undefined" ? chrome : browser;
-
-function createPort() {
-  if (nautilusPort !== undefined) {
-    return;
-  }
-
-  nautilusPort = Browser.runtime.connect();
-}
 
 if (shouldInject()) {
   if (inject(AUTH_API_CODE)) {

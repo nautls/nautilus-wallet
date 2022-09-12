@@ -4,21 +4,21 @@ import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { postConnectorResponse } from "./messagingUtils";
 import {
-  handleGetBalanceRequest,
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
   handleGetAddressesRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest,
-  handleAuthRequest
+  handleAuthRequest,
+  handleGetBalanceRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 import { Browser } from "@/utils/browserApi";
 import "@/config/axiosConfig";
 
 const sessions = new Map<number, Session>();
-const ORIGIN_MATCHER = /^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i;
+const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
 function getOrigin(url?: string) {
   if (!url) {
@@ -32,6 +32,7 @@ function getOrigin(url?: string) {
 }
 
 Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
+  // eslint-disable-next-line no-console
   console.log(`connected with ${getOrigin(port.sender?.url)}`);
 
   if (port.name === "nautilus-ui") {

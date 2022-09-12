@@ -3,10 +3,10 @@ import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { APIError, APIErrorCode, ErgoTx, RpcMessage, RpcReturn, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
-import { toBigNumber } from "@/utils/bigNumbers";
+import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, isEmpty } from "lodash";
+import { find, findIndex, groupBy, isEmpty } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -18,7 +18,7 @@ export async function handleGetBoxesRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -48,7 +48,7 @@ export async function handleGetBoxesRequest(
     }
   }
 
-  let selected = await fetchBoxes(session!.walletId!);
+  let selected = await fetchBoxes(session.walletId);
 
   if (tokenId != ERG_TOKEN_ID) {
     selected = selected.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
@@ -62,7 +62,7 @@ export async function handleGetBoxesRequest(
         if (acc.isGreaterThanOrEqualTo(amount)) {
           return false;
         }
-        acc = acc.plus(toBigNumber(box.value)!);
+        acc = acc.plus(toBigNumber(box.value));
 
         return true;
       });
@@ -71,7 +71,7 @@ export async function handleGetBoxesRequest(
         if (acc.isGreaterThanOrEqualTo(amount)) {
           return false;
         }
-        acc = acc.plus(toBigNumber(find(box.assets, (a) => a.tokenId === tokenId)?.amount ?? 0)!);
+        acc = acc.plus(toBigNumber(find(box.assets, (a) => a.tokenId === tokenId)?.amount ?? 0));
 
         return true;
       });
@@ -93,7 +93,7 @@ export async function handleGetBalanceRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -102,20 +102,39 @@ export async function handleGetBalanceRequest(
     tokenId = request.params[0];
   }
 
-  const assets = await assetsDbService.getByTokenId(session!.walletId!, tokenId);
   postConnectorResponse(
     {
       isSuccess: true,
-      data: !isEmpty(assets)
-        ? assets
-            .map((a) => toBigNumber(a.confirmedAmount)!)
-            .reduce((acc, val) => acc.plus(val))
-            .toString()
-        : "0"
+      data: await _getBalance(session.walletId, tokenId)
     },
     request,
     port
   );
+}
+
+async function _getBalance(walletId: number, tokenId: string) {
+  if (tokenId === "all") {
+    const assets = await assetsDbService.getByWalletId(walletId);
+    const responseData: { tokenId: string; balance: string }[] = [];
+    const groups = groupBy(assets, (x) => x.tokenId);
+    for (const tokenId in groups) {
+      responseData.push({
+        tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
+        balance: sumBigNumberBy(groups[tokenId], (x) => toBigNumber(x.confirmedAmount)).toString()
+      });
+    }
+
+    return responseData;
+  }
+
+  const assets = await assetsDbService.getByTokenId(walletId, tokenId);
+
+  return isEmpty(assets)
+    ? "0"
+    : assets
+        .map((a) => toBigNumber(a.confirmedAmount))
+        .reduce((acc, val) => acc.plus(val))
+        .toString();
 }
 
 export async function handleGetAddressesRequest(
@@ -124,7 +143,7 @@ export async function handleGetAddressesRequest(
   session: Session | undefined,
   addressState: AddressState
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -141,7 +160,7 @@ export async function handleGetAddressesRequest(
     return;
   }
 
-  const addresses = await addressesDbService.getByState(session!.walletId!, addressState);
+  const addresses = await addressesDbService.getByState(session.walletId, addressState);
   postConnectorResponse(
     {
       isSuccess: true,
@@ -157,11 +176,11 @@ export async function handleGetChangeAddressRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
-  const address = await addressesDbService.getChangeAddress(session!.walletId!);
+  const address = await addressesDbService.getChangeAddress(session.walletId);
   if (!address) {
     postErrorMessage(
       {
@@ -190,7 +209,7 @@ export async function handleSignTxRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port)) {
     return;
   }
 
@@ -207,7 +226,7 @@ export async function handleSignTxRequest(
     return;
   }
 
-  const response = await openPopup(session!, request, port);
+  const response = await openPopup(session, request, port);
   postConnectorResponse(response, request, port);
 }
 
@@ -216,11 +235,9 @@ export async function handleAuthRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port)) {
     return;
   }
-
-  console.log(request);
 
   if (!request.params || !request.params[0] || !request.params[1]) {
     postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "bad params" }, request, port);
@@ -228,7 +245,6 @@ export async function handleAuthRequest(
   }
 
   const address = request.params[0];
-  console.log("address", address);
   const addressEntity = await addressesDbService.getByScript(address);
   if (!addressEntity || addressEntity.walletId !== session?.walletId) {
     postErrorMessage(
@@ -242,7 +258,7 @@ export async function handleAuthRequest(
     return;
   }
 
-  const response = await openPopup(session!, request, port);
+  const response = await openPopup(session, request, port);
   postConnectorResponse(response, request, port);
 }
 
@@ -251,7 +267,7 @@ export async function handleSubmitTxRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -272,7 +288,7 @@ export async function handleSubmitTxRequest(
     const tx = request.params[0];
     const txId = await submitTx(
       typeof tx === "string" ? graphQLService.mapTransaction(JSONBig.parse(tx)) : tx,
-      session!.walletId!
+      session.walletId
     );
 
     postConnectorResponse(
@@ -300,7 +316,7 @@ export async function handleNotImplementedRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port)) {
     return;
   }
 
@@ -331,11 +347,11 @@ async function openPopup(
   });
 }
 
-export function validateRequest(
+export function validateSession(
   session: Session | undefined,
   request: RpcMessage,
   port: chrome.runtime.Port
-): boolean {
+): session is Session {
   let error: APIError | undefined;
 
   if (!session) {
