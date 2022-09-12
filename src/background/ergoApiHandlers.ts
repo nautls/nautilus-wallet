@@ -1,7 +1,7 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session, ErgoTx } from "@/types/connector";
+import { APIError, APIErrorCode, ErgoTx, RpcMessage, RpcReturn, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
@@ -11,6 +11,7 @@ import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
+import { graphQLService } from "@/api/explorer/graphQlService";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
@@ -284,9 +285,9 @@ export async function handleSubmitTxRequest(
   }
 
   try {
-    const tx = request.params[0] as ErgoTx;
+    const tx = request.params[0];
     const txId = await submitTx(
-      typeof tx === "string" ? (JSONBig.parse(tx) as ErgoTx) : tx,
+      typeof tx === "string" ? graphQLService.mapTransaction(JSONBig.parse(tx)) : tx,
       session.walletId
     );
 

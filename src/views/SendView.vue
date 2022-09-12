@@ -121,7 +121,6 @@ import { TRANSACTION_URL } from "@/constants/explorer";
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { bip32Pool } from "@/utils/objectPool";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import { explorerService } from "@/api/explorer/explorerService";
 import { TxAssetAmount, TxBuilder } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -130,6 +129,8 @@ import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
+import { graphQLService } from "@/api/explorer/graphQlService";
+import { SignedTransaction } from "@ergo-graphql/types";
 
 const validations = {
   recipient: {
@@ -270,7 +271,7 @@ export default defineComponent({
 
       try {
         const boxes = await fetchBoxes(this.currentWallet.id);
-        const [bestBlock] = await explorerService.getBlockHeaders({ limit: 1 });
+        const [bestBlock] = await graphQLService.getBlockHeaders({ take: 1 });
         if (!bestBlock) {
           throw Error("Unable to fetch current height, please check your connection.");
         }
@@ -313,7 +314,7 @@ export default defineComponent({
       this.transaction = undefined;
       this.v$.$reset();
     },
-    async onSuccess(signedTx: ErgoTx) {
+    async onSuccess(signedTx: SignedTransaction) {
       this.signModalActive = false;
       this.stateMessage = "Signed. Submitting transaction...";
 

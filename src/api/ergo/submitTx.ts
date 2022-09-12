@@ -1,10 +1,15 @@
-import { ErgoTx } from "@/types/connector";
+import { SignedTransaction } from "@ergo-graphql/types";
 import { utxosDbService } from "../database/utxosDbService";
-import { explorerService } from "../explorer/explorerService";
+import { graphQLService } from "../explorer/graphQlService";
 
-export async function submitTx(signedTx: ErgoTx, walletId: number): Promise<string> {
-  const txResponse = await explorerService.sendTx(signedTx);
-
+export async function submitTx(signedTx: SignedTransaction, walletId: number): Promise<string> {
+  const txId = await graphQLService.sendTx(signedTx);
   await utxosDbService.addFromTx(signedTx, walletId);
-  return txResponse.id;
+
+  return txId;
+}
+
+export async function checkTx(signedTx: SignedTransaction): Promise<string> {
+  const txId = await graphQLService.checkTx(signedTx);
+  return txId;
 }

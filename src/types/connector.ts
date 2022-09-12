@@ -1,5 +1,3 @@
-import BigNumber from "bignumber.js";
-
 export type RequestQueueItem = {
   message: RpcMessage;
   handled: boolean;
@@ -56,7 +54,7 @@ export enum TxSendErrorCode {
 
 export type TxSendError = {
   code: TxSendErrorCode;
-  info: String;
+  info: string;
 };
 
 export enum SignErrorCode {
@@ -66,7 +64,7 @@ export enum SignErrorCode {
 
 export type SignError = {
   code: SignErrorCode;
-  info: String;
+  info: string;
 };
 
 export type Token = {
@@ -109,7 +107,7 @@ export type ErgoBox = {
   value: bigint | string;
   assets: Token[];
   additionalRegisters: Registers;
-  confirmed: boolean;
+  confirmed?: boolean;
 };
 
 export type DataInput = {
@@ -122,9 +120,14 @@ export type UnsignedTx = {
   outputs: ErgoBoxCandidate[];
 };
 
+export type InputSpendingProof = {
+  proofBytes: string;
+  extension: unknown;
+};
+
 export type Input = {
   readonly boxId: string;
-  readonly spendingProof: string;
+  readonly spendingProof: InputSpendingProof;
 };
 
 export type ErgoTx = {
