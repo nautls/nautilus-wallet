@@ -390,6 +390,7 @@ export default createStore({
       }
       localStorage.setItem("settings", JSON.stringify(state.settings));
       graphQLService.updateServerUrl(state.settings.graphQLServer);
+      rpcHandler.sendEvent("updated:graphql-url", state.settings.graphQLServer);
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();

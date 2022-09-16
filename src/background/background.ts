@@ -15,6 +15,7 @@ import {
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 import { Browser } from "@/utils/browserApi";
+import { graphQLService } from "@/api/explorer/graphQlService";
 import "@/config/axiosConfig";
 
 const sessions = new Map<number, Session>();
@@ -45,6 +46,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
               break;
             case "disconnected":
               handleOriginDisconnect(message);
+              break;
+            case "updated:graphql-url":
+              graphQLService.updateServerUrl(message.data);
               break;
           }
         } else if (message.type === "rpc/nautilus-response") {
