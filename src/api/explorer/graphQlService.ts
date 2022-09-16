@@ -1,4 +1,4 @@
-import { chunk, first } from "lodash";
+import { chunk, first, isEmpty } from "lodash";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
@@ -21,6 +21,7 @@ export type AssetBalance = {
   address: string;
 };
 
+const MAX_RESULTS_PER_REQUEST = 50;
 const servers = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
@@ -191,17 +192,32 @@ class GraphQLService {
 
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
     let boxes: ErgoBox[] = [];
+
     for (const address of addresses) {
-      boxes = boxes.concat(await this.getAddressUnspentBoxes(address));
+      let chunk: ErgoBox[];
+      let skip = 0;
+
+      do {
+        console.log(skip);
+        chunk = await this.getAddressUnspentBoxes(address, skip, MAX_RESULTS_PER_REQUEST);
+        skip += MAX_RESULTS_PER_REQUEST;
+        if (!isEmpty(chunk)) {
+          boxes = boxes.concat(chunk);
+        }
+      } while (chunk.length === MAX_RESULTS_PER_REQUEST);
     }
 
     return boxes;
   }
 
-  private async getAddressUnspentBoxes(address: string): Promise<ErgoBox[]> {
+  private async getAddressUnspentBoxes(
+    address: string,
+    skip: number,
+    take: number
+  ): Promise<ErgoBox[]> {
     const query = gql<{ boxes: Box[] }>`
-      query Boxes($address: String) {
-        boxes(address: $address, spent: false) {
+      query Boxes($address: String, $skip: Int, $take: Int) {
+        boxes(address: $address, skip: $skip, take: $take, spent: false) {
           boxId
           transactionId
           value
@@ -219,7 +235,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient.query(query, { address }).toPromise();
+    const response = await this._gqlClient.query(query, { address, skip, take }).toPromise();
     return (
       response.data?.boxes.map((box) => {
         return {
