@@ -62,7 +62,7 @@ import { assetInfoDbService } from "./api/database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
-import { graphQLService } from "./api/explorer/graphQlService";
+import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 
 function dbAddressMapper(a: IDbAddress) {
@@ -100,7 +100,8 @@ export default createStore({
       lastOpenedWalletId: 0,
       isKyaAccepted: false,
       conversionCurrency: "usd",
-      devMode: !MAINNET
+      devMode: !MAINNET,
+      graphQLServer: getDefaultServerUrl()
     },
     loading: {
       settings: true,
@@ -374,7 +375,12 @@ export default createStore({
     [ACTIONS.LOAD_SETTINGS]({ commit }) {
       const rawSettings = localStorage.getItem("settings");
       if (rawSettings) {
-        commit(MUTATIONS.SET_SETTINGS, JSON.parse(rawSettings));
+        const parsed = JSON.parse(rawSettings);
+        if (!parsed.graphQLServer) {
+          parsed.graphQLServer = getDefaultServerUrl();
+        }
+
+        commit(MUTATIONS.SET_SETTINGS, parsed);
       }
       commit(MUTATIONS.SET_LOADING, { settings: false });
     },
@@ -383,6 +389,7 @@ export default createStore({
         commit(MUTATIONS.SET_SETTINGS, newSettings);
       }
       localStorage.setItem("settings", JSON.stringify(state.settings));
+      graphQLService.updateServerUrl(state.settings.graphQLServer);
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();

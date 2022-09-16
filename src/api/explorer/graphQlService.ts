@@ -7,7 +7,7 @@ import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
-import { Address, Box, Header, SignedTransaction, Token } from "@ergo-graphql/types";
+import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
 import { Client, createClient, gql, fetchExchange, dedupExchange } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 
@@ -21,8 +21,9 @@ export type AssetBalance = {
   address: string;
 };
 
+export const MIN_SERVER_VERSION = [0, 3, 8];
 const MAX_RESULTS_PER_REQUEST = 50;
-const servers = MAINNET
+const GRAPHQL_SERVERS = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
       "https://graphql.erg.zelcore.io/",
@@ -30,46 +31,76 @@ const servers = MAINNET
     ]
   : ["https://gql-testnet.ergoplatform.com/"];
 
-function getRandomServer(): string {
-  return servers[Math.floor(Math.random() * servers.length)];
+export function getDefaultServerUrl(): string {
+  return GRAPHQL_SERVERS[0];
+}
+
+export function getRandomServerUrl(): string {
+  return GRAPHQL_SERVERS[Math.floor(Math.random() * GRAPHQL_SERVERS.length)];
+}
+
+export async function getServerInfo(url: string): Promise<{ network: string; version: string }> {
+  const client = createClient({ url, exchanges: [fetchExchange] });
+  const query = gql<{ info: Info; state: State }>`
+    query Info {
+      info {
+        version
+      }
+      state {
+        network
+      }
+    }
+  `;
+
+  const response = await client.query(query, {}).toPromise();
+  if (!response.data) {
+    throw new Error(`No data returned from ${url}.`);
+  }
+
+  return {
+    network: response.data.state.network,
+    version: response.data.info.version
+  };
+}
+
+export async function validateServerVersion(url: string): Promise<boolean> {
+  try {
+    const response = await getServerInfo(url);
+    const [major, minor, patch] = response.version.split(".");
+
+    return (
+      Number.parseInt(major, 10) === MIN_SERVER_VERSION[0] &&
+      Number.parseInt(minor, 10) >= MIN_SERVER_VERSION[1] &&
+      Number.parseInt(patch, 10) >= MIN_SERVER_VERSION[2]
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function validateServerNetwork(url: string): Promise<boolean> {
+  try {
+    const response = await getServerInfo(url);
+
+    return MAINNET ? response.network === "mainnet" : response.network === "testnet";
+  } catch (e) {
+    return false;
+  }
 }
 
 class GraphQLService {
-  private readonly _gqlClient!: Client;
-  private _sendTxGqlClient?: Client;
-
-  private get _sendTxGraphQLClient(): Client {
-    if (!this._sendTxGqlClient) {
-      this._sendTxGqlClient = createClient({
-        url: servers[0],
-        requestPolicy: "network-only",
-        exchanges: [
-          dedupExchange,
-          retryExchange({
-            initialDelayMs: 100,
-            maxDelayMs: 5000,
-            randomDelay: true,
-            maxNumberAttempts: 3,
-            retryWith(error, operation) {
-              if (error.networkError) {
-                const context = { ...operation.context, url: getRandomServer() };
-                return { ...operation, context };
-              }
-
-              return null;
-            }
-          }),
-          fetchExchange
-        ]
-      });
-    }
-
-    return this._sendTxGqlClient;
-  }
+  private _queryClient!: Client;
+  private _txBroadcastClient?: Client;
+  private _url!: string;
 
   constructor() {
-    this._gqlClient = createClient({
-      url: servers[0],
+    this._url = this._getCurrentServerUrl();
+    this._queryClient = this._createQueryClient();
+  }
+
+  private _createQueryClient(): Client {
+    return createClient({
+      url: this._url,
       requestPolicy: "network-only",
       exchanges: [
         dedupExchange,
@@ -83,7 +114,7 @@ class GraphQLService {
           },
           retryWith(error, operation) {
             if (error.networkError) {
-              const context = { ...operation.context, url: getRandomServer() };
+              const context = { ...operation.context, url: getRandomServerUrl() };
               return { ...operation, context };
             }
 
@@ -93,6 +124,59 @@ class GraphQLService {
         fetchExchange
       ]
     });
+  }
+
+  private _createTxBroadcastClient(): Client {
+    return createClient({
+      url: this._url,
+      requestPolicy: "network-only",
+      exchanges: [
+        dedupExchange,
+        retryExchange({
+          initialDelayMs: 100,
+          maxDelayMs: 5000,
+          randomDelay: true,
+          maxNumberAttempts: 3,
+          retryWith(error, operation) {
+            if (error.networkError) {
+              const context = { ...operation.context, url: getRandomServerUrl() };
+              return { ...operation, context };
+            }
+
+            return null;
+          }
+        }),
+        fetchExchange
+      ]
+    });
+  }
+
+  private _getCurrentServerUrl() {
+    const rawSettings = localStorage.getItem("settings");
+    if (!rawSettings) {
+      return getDefaultServerUrl();
+    }
+
+    const url = JSON.parse(rawSettings).graphQLServer;
+    return !url ? getDefaultServerUrl() : url;
+  }
+
+  private _getTxBroadcastClient(): Client {
+    if (!this._txBroadcastClient) {
+      this._txBroadcastClient = this._createTxBroadcastClient();
+    }
+
+    return this._txBroadcastClient;
+  }
+
+  public updateServerUrl(url: string) {
+    if (this._url === url) {
+      return;
+    }
+
+    this._url = url;
+    this._queryClient = this._createQueryClient();
+    this._txBroadcastClient = undefined;
   }
 
   public async getAddressesBalance(addresses: string[]): Promise<AssetBalance[]> {
@@ -158,7 +242,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient.query(query, { addresses }).toPromise();
+    const response = await this._queryClient.query(query, { addresses }).toPromise();
     return response.data?.addresses;
   }
 
@@ -186,7 +270,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient.query(query, { addresses }).toPromise();
+    const response = await this._queryClient.query(query, { addresses }).toPromise();
     return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
   }
 
@@ -198,7 +282,6 @@ class GraphQLService {
       let skip = 0;
 
       do {
-        console.log(skip);
         chunk = await this.getAddressUnspentBoxes(address, skip, MAX_RESULTS_PER_REQUEST);
         skip += MAX_RESULTS_PER_REQUEST;
         if (!isEmpty(chunk)) {
@@ -235,7 +318,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient.query(query, { address, skip, take }).toPromise();
+    const response = await this._queryClient.query(query, { address, skip, take }).toPromise();
     return (
       response.data?.boxes.map((box) => {
         return {
@@ -266,7 +349,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient.query(query, { tokenId }).toPromise();
+    const response = await this._queryClient.query(query, { tokenId }).toPromise();
     return first(response.data?.tokens);
   }
 
@@ -313,7 +396,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient.query(query, options).toPromise();
+    const response = await this._queryClient.query(query, options).toPromise();
     return response.data?.blockHeaders ?? [];
   }
 
@@ -324,7 +407,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._gqlClient
+    const response = await this._queryClient
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
@@ -338,7 +421,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._sendTxGraphQLClient
+    const response = await this._getTxBroadcastClient()
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
@@ -357,7 +440,10 @@ class GraphQLService {
         }
       `;
 
-      const response = await this._sendTxGraphQLClient.query(query, { transactionId }).toPromise();
+      const response = await this._getTxBroadcastClient()
+        .query(query, { transactionId })
+        .toPromise();
+
       if (response.error || !response.data) {
         return undefined;
       }
