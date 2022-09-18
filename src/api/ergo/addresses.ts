@@ -1,6 +1,6 @@
 import { P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
-import { Address, Network } from "@coinbarn/ergo-ts";
+import { Address, Network } from "@nautilus-wallet/ergo-ts";
 import { isEmpty, last, uniq } from "lodash";
 import { extractPksFromP2SErgoTree, extractPksFromRegisters } from "./sigmaSerializer";
 

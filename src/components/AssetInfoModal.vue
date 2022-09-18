@@ -4,7 +4,7 @@
     :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
-    content-class="max-h-95vh bg-transparent overflow-hidden !max-w-100 !w-90vw"
+    content-class="max-h-95vh bg-transparent relative overflow-hidden !max-w-100 !w-90vw"
   >
     <button @click="close()" type="button" class="fixed top-0 right-0 m-2 text-light-300">
       <mdi-icon name="close" size="24" />
