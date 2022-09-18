@@ -89,8 +89,8 @@ export default defineComponent({
           extendedPublicKey: this.publicKey,
           type: WalletType.ReadOnly
         });
-      } catch (e: any) {
-        this.pkError = e.message;
+      } catch (e) {
+        this.pkError = e instanceof Error ? e.message : "Unknown error.";
         this.loading = false;
         return;
       }
