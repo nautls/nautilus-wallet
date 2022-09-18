@@ -101,7 +101,8 @@ export default createStore({
       isKyaAccepted: false,
       conversionCurrency: "usd",
       devMode: !MAINNET,
-      graphQLServer: getDefaultServerUrl()
+      graphQLServer: getDefaultServerUrl(),
+      hideBalances: false
     },
     loading: {
       settings: true,
@@ -388,7 +389,9 @@ export default createStore({
       if (newSettings) {
         commit(MUTATIONS.SET_SETTINGS, newSettings);
       }
+
       localStorage.setItem("settings", JSON.stringify(state.settings));
+
       graphQLService.updateServerUrl(state.settings.graphQLServer);
       if (rpcHandler.connected) {
         rpcHandler.sendEvent("updated:graphql-url", state.settings.graphQLServer);
@@ -813,6 +816,9 @@ export default createStore({
     ) {
       await walletsDbService.updateUsedAddressFilter(command.walletId, command.filter);
       commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, command);
+    },
+    async [ACTIONS.TOGGLE_HIDE_BALANCES]({ dispatch, state }) {
+      dispatch(ACTIONS.SAVE_SETTINGS, { hideBalances: !state.settings.hideBalances });
     }
   }
 });

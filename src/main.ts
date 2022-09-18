@@ -26,7 +26,9 @@ import {
   mdiClose,
   mdiWalletPlus,
   mdiWalletOutline,
-  mdiBackupRestore
+  mdiBackupRestore,
+  mdiEye,
+  mdiEyeOff
 } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
 
@@ -54,7 +56,9 @@ const mdiSettings = {
     mdiClose,
     mdiWalletPlus,
     mdiWalletOutline,
-    mdiBackupRestore
+    mdiBackupRestore,
+    mdiEye,
+    mdiEyeOff
   }
 };
 

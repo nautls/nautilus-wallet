@@ -14,26 +14,41 @@
         <thead>
           <tr>
             <th colspan="2">Asset</th>
-            <th class="text-right">Balance</th>
+            <th>
+              <div class="flex-row justify-end flex gap-2 align-middle">
+                <tool-tip
+                  :label="hideBalances ? 'Show' : 'Hide'"
+                  tip-class="normal-case"
+                  class="align-middle"
+                >
+                  <a class="cursor-pointer inline-flex" @click="toggleHideBalance()">
+                    <mdi-icon :name="hideBalances ? 'eye-off' : 'eye'" size="16" />
+                  </a>
+                </tool-tip>
+                Balance
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading" v-for="i in prevCount" :key="i">
-            <td class="w-14 align-middle">
-              <empty-logo class="h-8 w-8 animate-pulse fill-gray-300" />
-            </td>
-            <td class="align-middle">
-              <div class="skeleton h-3 w-2/3 rounded"></div>
-            </td>
-            <td class="text-right w-50 align-middle">
-              <div class="skeleton h-3 w-3/5 rounded"></div>
-              <template v-if="i === 1">
-                <br />
-                <div class="skeleton h-3 w-2/5 rounded"></div>
-              </template>
-            </td>
-          </tr>
-          <tr v-else v-for="asset in assets" :key="asset.tokenId">
+          <template v-if="loading">
+            <tr v-for="i in prevCount" :key="i">
+              <td class="w-14 align-middle">
+                <empty-logo class="h-8 w-8 animate-pulse fill-gray-300" />
+              </td>
+              <td class="align-middle">
+                <div class="skeleton h-3 w-2/3 rounded"></div>
+              </td>
+              <td class="text-right w-50 align-middle">
+                <div class="skeleton h-3 w-3/5 rounded"></div>
+                <template v-if="i === 1">
+                  <br />
+                  <div class="skeleton h-3 w-2/5 rounded"></div>
+                </template>
+              </td>
+            </tr>
+          </template>
+          <tr v-else v-for="asset in assets" :key="asset.tokenId" class="h-19">
             <td class="w-14 min-w-14 align-middle">
               <asset-icon
                 class="h-8 w-8 align-middle"
@@ -53,27 +68,33 @@
               </a>
             </td>
             <td class="text-right align-middle whitespace-nowrap">
-              <p>
-                {{ $filters.formatBigNumber(asset.confirmedAmount) }}
-              </p>
-              <tool-tip
-                v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                :label="`1 ${asset.info?.name} <br /> ≈ ${$filters.formatBigNumber(
-                  price(asset.tokenId),
-                  2
-                )} ${$filters.uppercase(conversionCurrency)}`"
-              >
-                <p class="text-xs text-gray-500">
-                  ≈
-                  {{
-                    $filters.formatBigNumber(
-                      asset.confirmedAmount.multipliedBy(price(asset.tokenId)),
-                      2
-                    )
-                  }}
-                  {{ $filters.uppercase(conversionCurrency) }}
+              <div v-if="hideBalances" class="flex flex-col gap-1 items-end">
+                <div class="skeleton animate-none h-4.5 w-full rounded"></div>
+                <div class="skeleton animate-none h-3 w-3/4 rounded"></div>
+              </div>
+              <template v-else>
+                <p>
+                  {{ $filters.formatBigNumber(asset.confirmedAmount) }}
                 </p>
-              </tool-tip>
+                <tool-tip
+                  v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
+                  :label="`1 ${asset.info?.name} <br /> ≈ ${$filters.formatBigNumber(
+                    price(asset.tokenId),
+                    2
+                  )} ${$filters.uppercase(conversionCurrency)}`"
+                >
+                  <p class="text-xs text-gray-500">
+                    ≈
+                    {{
+                      $filters.formatBigNumber(
+                        asset.confirmedAmount.multipliedBy(price(asset.tokenId)),
+                        2
+                      )
+                    }}
+                    {{ $filters.uppercase(conversionCurrency) }}
+                  </p>
+                </tool-tip>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -95,6 +116,7 @@ import { StateAsset } from "@/types/internal";
 import BigNumber from "bignumber.js";
 import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
+import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({
   name: "AssetsView",
@@ -131,6 +153,9 @@ export default defineComponent({
       }
 
       return assetList;
+    },
+    hideBalances(): boolean {
+      return this.$store.state.settings.hideBalances;
     }
   },
   watch: {
@@ -162,6 +187,9 @@ export default defineComponent({
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
+    },
+    toggleHideBalance(): void {
+      this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
     }
   }
 });
