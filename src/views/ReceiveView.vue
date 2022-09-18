@@ -49,35 +49,47 @@
         <thead>
           <tr>
             <th>
-              Address ({{ addresses.length
-              }}<template v-if="hideUsed">/{{ stateAddresses.length }}</template
-              >)
-              <tool-tip
-                :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
-                tip-class="normal-case"
-                class="pl-1"
-              >
-                <a class="cursor-pointer" @click="updateUsedAddressesFilter()">
-                  <mdi-icon
-                    class="align-middle"
-                    :name="hideUsed ? 'filter-off' : 'filter'"
-                    size="16"
-                  />
-                </a>
-              </tool-tip>
+              <div class="flex-row justify-start flex gap-2 align-middle">
+                Address ({{ addresses.length
+                }}<template v-if="hideUsed">/{{ stateAddresses.length }}</template
+                >)
+                <tool-tip
+                  :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
+                  tip-class="normal-case"
+                >
+                  <a class="cursor-pointer inline-flex" @click="updateUsedAddressesFilter()">
+                    <mdi-icon :name="hideUsed ? 'filter-off' : 'filter'" size="16" />
+                  </a>
+                </tool-tip>
+              </div>
             </th>
-            <th class="text-right">Balance</th>
+            <th>
+              <div class="flex-row justify-end flex gap-2 align-middle">
+                <tool-tip
+                  :label="hideBalances ? 'Show' : 'Hide'"
+                  tip-class="normal-case"
+                  class="align-middle"
+                >
+                  <a class="cursor-pointer inline-flex" @click="toggleHideBalance()">
+                    <mdi-icon :name="hideBalances ? 'eye-off' : 'eye'" size="16" />
+                  </a>
+                </tool-tip>
+                Balance
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading" v-for="i in prevCount" :key="i">
-            <td>
-              <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
-            </td>
-            <td class="text-right">
-              <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
-            </td>
-          </tr>
+          <template v-if="loading">
+            <tr v-for="i in prevCount" :key="i">
+              <td>
+                <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
+              </td>
+              <td class="text-right">
+                <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
+              </td>
+            </tr>
+          </template>
           <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
             <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
               <a :href="urlFor(address.script)" target="_blank">{{
@@ -109,8 +121,14 @@
               </div>
             </td>
             <td class="text-right">
-              <span class="float-left">Σ</span>
-              <span> {{ ergBalanceFor(address) }}</span>
+              <div
+                v-if="hideBalances"
+                class="skeleton animate-none h-4.5 w-2/4 rounded align-middle"
+              ></div>
+              <template v-else>
+                <span class="float-left">Σ</span>
+                <span> {{ ergBalanceFor(address) }}</span>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -174,6 +192,9 @@ export default defineComponent({
       return this.avoidingReuse
         ? last(this.addresses)?.script
         : find(this.addresses, (a) => a.index === settings.defaultChangeIndex)?.script;
+    },
+    hideBalances(): boolean {
+      return this.$store.state.settings.hideBalances;
     }
   },
   watch: {
@@ -239,6 +260,9 @@ export default defineComponent({
     },
     urlFor(address: string | undefined): string {
       return `${ADDRESS_URL}${address}`;
+    },
+    toggleHideBalance(): void {
+      this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
     }
   },
   components: { MdiIcon }
