@@ -9,6 +9,9 @@ module.exports = {
     "@vue/typescript/recommended",
     "@vue/prettier"
   ],
+  globals: {
+    NodeJS: true
+  },
   parserOptions: {
     ecmaVersion: 2020
   },

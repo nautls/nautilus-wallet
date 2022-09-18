@@ -54,7 +54,7 @@ export default defineComponent({
     },
     calcPosition() {
       const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-      let el = this.$refs.its as HTMLElement;
+      const el = this.$refs.its as HTMLElement;
       if (!el) {
         return;
       }

@@ -58,11 +58,11 @@ export const filters = {
       return new BigNumber(0);
     }
 
-    let d = Math.ceil(Math.log10(num < 0 ? -num : num));
-    let power = n - d;
+    const d = Math.ceil(Math.log10(num < 0 ? -num : num));
+    const power = n - d;
 
-    let magnitude = Math.pow(10, power);
-    let shifted = Math.round(num * magnitude);
+    const magnitude = Math.pow(10, power);
+    const shifted = Math.round(num * magnitude);
     return new BigNumber(shifted / magnitude);
   },
   walletType(type: WalletType): string {
