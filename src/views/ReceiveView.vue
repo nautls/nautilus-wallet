@@ -121,7 +121,10 @@
               </div>
             </td>
             <td class="text-right">
-              <span v-if="hideBalances" class="skeleton animate-none h-4.5 w-2/4 rounded"></span>
+              <div
+                v-if="hideBalances"
+                class="skeleton animate-none h-4.5 w-2/4 rounded align-middle"
+              ></div>
               <template v-else>
                 <span class="float-left">Σ</span>
                 <span> {{ ergBalanceFor(address) }}</span>
