@@ -63,8 +63,9 @@ const orugaSettings = {
     checkCheckedClass: "bg-blue-600"
   },
   modal: {
-    overlayClass: "opacity-40 ",
-    rootClass: "outline-none"
+    overlayClass: "opacity-40",
+    rootClass: "outline-none",
+    contentClass: "z-10"
   }
 };
 
