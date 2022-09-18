@@ -27,6 +27,7 @@ import {
   mdiWalletPlus,
   mdiWalletOutline,
   mdiBackupRestore,
+  mdiCheckAll,
   mdiEye,
   mdiEyeOff
 } from "@mdi/js";
@@ -57,6 +58,7 @@ const mdiSettings = {
     mdiWalletPlus,
     mdiWalletOutline,
     mdiBackupRestore,
+    mdiCheckAll,
     mdiEye,
     mdiEyeOff
   }

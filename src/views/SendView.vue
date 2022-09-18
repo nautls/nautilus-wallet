@@ -55,6 +55,19 @@
                 </div>
               </a>
             </div>
+            <div class="group">
+              <a @click="addAll()" class="group-item narrow">
+                <div class="flex flex-row items-center gap-2">
+                  <mdi-icon name="check-all" class="text-yellow-500 w-8 h-8" size="32" />
+                  <div class="flex-grow">
+                    Add all
+                    <p class="text-gray-400 text-xs">
+                      Use this option to include all your assets in the sending list.
+                    </p>
+                  </div>
+                </div>
+              </a>
+            </div>
           </template>
         </drop-down>
         <div class="w-full">
@@ -362,6 +375,13 @@ export default defineComponent({
     },
     add(asset: StateAsset) {
       this.selected.push({ asset });
+      this.setMinBoxValue();
+    },
+    addAll() {
+      this.unselected.forEach((unselected) => {
+        this.selected.push({ asset: unselected });
+      });
+
       this.setMinBoxValue();
     },
     remove(tokenId: string) {
