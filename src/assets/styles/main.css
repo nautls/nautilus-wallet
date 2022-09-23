@@ -317,11 +317,13 @@ input:disabled {
   @apply mr-1;
 }
 
-.vjs-tree .vjs-tree-node {
+.vjs-tree .vjs-tree-node,
+.vjs-tree .vjs-tree__node {
   @apply -mx-2 px-2 py-0.5;
 }
 
-.vjs-tree .vjs-tree-node:hover {
+.vjs-tree .vjs-tree-node:hover,
+.vjs-tree .vjs-tree__node:hover {
   @apply bg-gray-600;
 }
 
