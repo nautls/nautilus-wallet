@@ -98,7 +98,7 @@ class GraphQLService {
     this._queryClient = this._createQueryClient();
   }
 
-  private _createQueryClient(): Client {
+  private _createTxBroadcastClient(): Client {
     return createClient({
       url: this._url,
       requestPolicy: "network-only",
@@ -109,16 +109,9 @@ class GraphQLService {
           maxDelayMs: 5000,
           randomDelay: true,
           maxNumberAttempts: 10,
-          retryIf(error) {
-            return !!(error.networkError || error.message.match(/.*[iI]nput.*not found$/gm));
-          },
           retryWith(error, operation) {
-            if (error.networkError) {
-              const context = { ...operation.context, url: getRandomServerUrl() };
-              return { ...operation, context };
-            }
-
-            return null;
+            const context = { ...operation.context, url: getRandomServerUrl() };
+            return { ...operation, context };
           }
         }),
         fetchExchange
@@ -126,7 +119,7 @@ class GraphQLService {
     });
   }
 
-  private _createTxBroadcastClient(): Client {
+  private _createQueryClient(): Client {
     return createClient({
       url: this._url,
       requestPolicy: "network-only",
@@ -411,6 +404,10 @@ class GraphQLService {
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
+    if (response.error) {
+      throw Error(response.error.message);
+    }
+
     return response.data?.checkTransaction || "";
   }
 
@@ -424,6 +421,10 @@ class GraphQLService {
     const response = await this._getTxBroadcastClient()
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
+
+    if (response.error) {
+      throw Error(response.error.message);
+    }
 
     return response.data?.submitTransaction || "";
   }
