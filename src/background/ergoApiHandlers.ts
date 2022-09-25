@@ -1,17 +1,25 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { APIError, APIErrorCode, ErgoTx, RpcMessage, RpcReturn, Session } from "@/types/connector";
+import {
+  APIError,
+  APIErrorCode,
+  RpcMessage,
+  RpcReturn,
+  SelectionTarget,
+  Session,
+  TokenTargetAmount
+} from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
-import BigNumber from "bignumber.js";
-import { find, findIndex, groupBy, isEmpty } from "lodash";
+import { groupBy, isEmpty } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
+import { BoxSelector } from "@nautilus-js/fleet";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
@@ -22,66 +30,79 @@ export async function handleGetBoxesRequest(
     return;
   }
 
-  let tokenId = ERG_TOKEN_ID;
-  let amount = new BigNumber(0);
-
+  let target: SelectionTarget = { nanoErgs: undefined, tokens: undefined };
   if (request.params) {
-    tokenId = request.params[1] as string;
-    if (!tokenId || tokenId === "ERG") {
-      tokenId = ERG_TOKEN_ID;
-    }
+    const firstParam = request.params[0];
+    if (!firstParam || typeof firstParam === "string") {
+      const amount = request.params[0];
+      const tokenId = request.params[1];
 
-    let error: APIError | undefined = undefined;
+      if (tokenId === "ERG") {
+        target.nanoErgs = amount ? BigInt(amount) : undefined;
+      } else {
+        target.tokens = [{ tokenId, amount: amount ? BigInt(amount) : undefined }];
+      }
+    } else {
+      const keys = Object.keys(firstParam);
+      if (!keys.some((key) => key === "nanoErgs" || key === "tokens")) {
+        postErrorMessage(
+          {
+            code: APIErrorCode.InvalidRequest,
+            info: "Invalid target object type."
+          },
+          request,
+          port
+        );
+      }
 
-    if (request.params[0]) {
-      amount = toBigNumber(request.params[0]) || new BigNumber(0);
-    }
-    if (request.params[2]) {
-      error = {
-        code: APIErrorCode.InvalidRequest,
-        info: "pagination is not implemented"
+      target = {
+        nanoErgs: firstParam.nanoErgs,
+        tokens: firstParam.tokens.map((x: TokenTargetAmount) => {
+          return { tokenId: x.tokenId, amount: x.amount ? BigInt(x.amount) : undefined };
+        })
       };
     }
 
-    if (error) {
-      postErrorMessage(error, request, port);
+    if (request.params[2]) {
+      postErrorMessage(
+        {
+          code: APIErrorCode.InvalidRequest,
+          info: "Pagination is not implemented."
+        },
+        request,
+        port
+      );
     }
   }
 
-  let selected = await fetchBoxes(session.walletId);
+  console.log("target", target);
 
-  if (tokenId != ERG_TOKEN_ID) {
-    selected = selected.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
-  }
-
-  if (!amount.isZero()) {
-    let acc = new BigNumber(0);
-
-    if (tokenId === ERG_TOKEN_ID) {
-      selected = selected.filter((box) => {
-        if (acc.isGreaterThanOrEqualTo(amount)) {
-          return false;
-        }
-        acc = acc.plus(toBigNumber(box.value));
-
-        return true;
-      });
-    } else {
-      selected = selected.filter((box) => {
-        if (acc.isGreaterThanOrEqualTo(amount)) {
-          return false;
-        }
-        acc = acc.plus(toBigNumber(find(box.assets, (a) => a.tokenId === tokenId)?.amount ?? 0));
-
-        return true;
-      });
-    }
-  }
+  const boxes = await fetchBoxes(session.walletId);
+  const selector = new BoxSelector(
+    boxes.map((x) => {
+      return {
+        ...x,
+        value: BigInt(x.value),
+        assets: x.assets.map((a) => {
+          return { tokenId: a.tokenId, amount: BigInt(a.amount) };
+        })
+      };
+    }),
+    target
+  );
 
   postConnectorResponse(
     {
       isSuccess: true,
-      data: selected
+      data: selector.select().map((x) => {
+        return {
+          ...x,
+          value: x.value.toString(),
+          assets: x.assets.map((a) => {
+            return { tokenId: a.tokenId, amount: a.amount.toString() };
+          })
+        };
+      })
     },
     request,
     port
@@ -151,7 +172,7 @@ export async function handleGetAddressesRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "pagination is not implemented"
+        info: "Pagination is not implemented."
       },
       request,
       port
@@ -185,7 +206,7 @@ export async function handleGetChangeAddressRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InternalError,
-        info: "change address not found"
+        info: "Change address not found."
       },
       request,
       port
@@ -217,7 +238,7 @@ export async function handleSignTxRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "tx object is not present"
+        info: "Unsigned transaction object is undefined."
       },
       request,
       port
@@ -240,7 +261,7 @@ export async function handleAuthRequest(
   }
 
   if (!request.params || !request.params[0] || !request.params[1]) {
-    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "bad params" }, request, port);
+    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "Bad params" }, request, port);
     return;
   }
 
@@ -250,7 +271,7 @@ export async function handleAuthRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: `address '${address}' does not belong to the connected wallet.`
+        info: `Address '${address}' does not belong to the connected wallet.`
       },
       request,
       port
@@ -275,7 +296,7 @@ export async function handleSubmitTxRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "empty tx"
+        info: "Signed transaction object is undefined."
       },
       request,
       port
@@ -323,7 +344,7 @@ export async function handleNotImplementedRequest(
   postErrorMessage(
     {
       code: APIErrorCode.InvalidRequest,
-      info: "not implemented"
+      info: "Not implemented."
     },
     request,
     port
@@ -338,7 +359,7 @@ async function openPopup(
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
     if (!tabId || !port.sender?.url) {
-      reject("invalid port");
+      reject("Invalid port.");
       return;
     }
 
@@ -355,9 +376,9 @@ export function validateSession(
   let error: APIError | undefined;
 
   if (!session) {
-    error = { code: APIErrorCode.InvalidRequest, info: "not connected" };
+    error = { code: APIErrorCode.InvalidRequest, info: "Not connected." };
   } else if (session.walletId === undefined) {
-    error = { code: APIErrorCode.Refused, info: "unauthorized" };
+    error = { code: APIErrorCode.Refused, info: "Unauthorized." };
   }
 
   if (error) {

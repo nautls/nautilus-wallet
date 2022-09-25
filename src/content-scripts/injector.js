@@ -155,8 +155,8 @@ class NautilusErgoApi {
     return this;
   }
 
-  get_utxos(amount = undefined, token_id = "ERG", paginate = undefined) {
-    return this._rpcCall("getBoxes", [amount, token_id, paginate]);
+  get_utxos(amountOrTargetObj = undefined, token_id = "ERG", paginate = undefined) {
+    return this._rpcCall("getBoxes", [amountOrTargetObj, token_id, paginate]);
   }
 
   get_balance(token_id = "ERG") {

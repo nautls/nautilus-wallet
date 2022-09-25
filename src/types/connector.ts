@@ -137,3 +137,13 @@ export type ErgoTx = {
   readonly outputs: ErgoBox[];
   readonly size: number;
 };
+
+export type TokenTargetAmount = {
+  tokenId: string;
+  amount?: bigint;
+};
+
+export type SelectionTarget = {
+  nanoErgs?: bigint;
+  tokens?: TokenTargetAmount[];
+};
