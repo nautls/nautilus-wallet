@@ -66,12 +66,11 @@ export async function getServerInfo(url: string): Promise<{ network: string; ver
 export async function validateServerVersion(url: string): Promise<boolean> {
   try {
     const response = await getServerInfo(url);
-    const [major, minor, patch] = response.version.split(".");
+    const [major, minor] = response.version.split(".");
 
     return (
       Number.parseInt(major, 10) === MIN_SERVER_VERSION[0] &&
-      Number.parseInt(minor, 10) >= MIN_SERVER_VERSION[1] &&
-      Number.parseInt(patch, 10) >= MIN_SERVER_VERSION[2]
+      Number.parseInt(minor, 10) >= MIN_SERVER_VERSION[1]
     );
   } catch (e) {
     return false;

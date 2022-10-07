@@ -133,7 +133,7 @@
 
 <script lang="ts">
 import { defineComponent, Ref } from "vue";
-import { helpers, required, url } from "@vuelidate/validators";
+import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { mapActions, mapState } from "vuex";
 import { StateWallet, UpdateWalletSettingsCommand } from "@/types/internal";
@@ -230,7 +230,6 @@ export default defineComponent({
       },
       globalSettings: {
         graphQLServer: {
-          url: helpers.withMessage("Invalid URL.", url),
           network: helpers.withMessage(
             "Wrong server network.",
             helpers.withAsync(async (url: string) => {
@@ -280,7 +279,6 @@ export default defineComponent({
     },
     async updateGlobal() {
       if (!(await this.v$.globalSettings.$validate())) {
-        console.log(this.v$.$errors);
         return;
       }
 
