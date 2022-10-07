@@ -27,7 +27,8 @@ const GRAPHQL_SERVERS = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
       "https://graphql.erg.zelcore.io/",
-      "https://ergo-explorer.getblok.io/graphql/"
+      "https://ergo-explorer.getblok.io/graphql/",
+      "https://explore.sigmaspace.io/api/graphql"
     ]
   : ["https://gql-testnet.ergoplatform.com/"];
 
