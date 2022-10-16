@@ -7,11 +7,11 @@
 </h1>
 
 <p align="center">
-  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/v/gjlmehlldlphhljhpnlddaodbjjcchai" alt="Coverage"></a>
+  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/v/gjlmehlldlphhljhpnlddaodbjjcchai?icon=chrome" alt="Coverage"></a>
   <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/stars/gjlmehlldlphhljhpnlddaodbjjcchai" alt="Coverage"></a>
   <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/users/gjlmehlldlphhljhpnlddaodbjjcchai" alt="Coverage"></a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/v/nautilus" alt="Coverage"></a>
+  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/v/nautilus?icon=firefox" alt="Coverage"></a>
   <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/stars/nautilus" alt="Coverage"></a>
   <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/users/nautilus" alt="Coverage"></a>
 </p>
