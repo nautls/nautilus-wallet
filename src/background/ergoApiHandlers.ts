@@ -19,7 +19,7 @@ import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
-import { BoxSelector } from "@nautilus-js/fleet";
+import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
@@ -78,31 +78,12 @@ export async function handleGetBoxesRequest(
   console.log("target", target);
 
   const boxes = await fetchBoxes(session.walletId);
-  const selector = new BoxSelector(
-    boxes.map((x) => {
-      return {
-        ...x,
-        value: BigInt(x.value),
-        assets: x.assets.map((a) => {
-          return { tokenId: a.tokenId, amount: BigInt(a.amount) };
-        })
-      };
-    }),
-    target
-  );
+  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box)));
 
   postConnectorResponse(
     {
       isSuccess: true,
-      data: selector.select().map((x) => {
-        return {
-          ...x,
-          value: x.value.toString(),
-          assets: x.assets.map((a) => {
-            return { tokenId: a.tokenId, amount: a.amount.toString() };
-          })
-        };
-      })
+      data: selector.select(target).map((box) => box.toObject("EIP-12"))
     },
     request,
     port
