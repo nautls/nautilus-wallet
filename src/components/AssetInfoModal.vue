@@ -27,7 +27,7 @@
           <h1 class="font-bold text-lg">
             {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
           </h1>
-          <p v-if="asset?.description">{{ asset?.description }}</p>
+          <p class="whitespace-pre-wrap" v-if="description">{{ description }}</p>
         </div>
         <div class="flex flex-row gap-4 mt-2">
           <div class="w-1/2">
@@ -109,6 +109,24 @@ export default defineComponent({
       }
 
       return this.asset.artworkUrl ?? this.asset.artworkCover;
+    },
+    description(): string | undefined {
+      if (!this.asset?.description) {
+        return;
+      }
+
+      if (
+        (this.asset.description.startsWith("{") && this.asset.description.endsWith("}")) ||
+        (this.asset.description.startsWith("[") && this.asset.description.endsWith("]"))
+      ) {
+        try {
+          return JSON.stringify(JSON.parse(this.asset.description), null, 2);
+        } catch {
+          return this.asset.description;
+        }
+      }
+
+      return this.asset.description;
     },
     hideBalances(): boolean {
       return this.$store.state.settings.hideBalances;
