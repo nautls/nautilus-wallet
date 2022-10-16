@@ -13,7 +13,7 @@ import {
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
-import { groupBy, isEmpty } from "lodash";
+import { groupBy, isEmpty, isUndefined } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -43,23 +43,13 @@ export async function handleGetBoxesRequest(
         target.tokens = [{ tokenId, amount: amount ? BigInt(amount) : undefined }];
       }
     } else {
-      const keys = Object.keys(firstParam);
-      if (!keys.some((key) => key === "nanoErgs" || key === "tokens")) {
-        postErrorMessage(
-          {
-            code: APIErrorCode.InvalidRequest,
-            info: "Invalid target object type."
-          },
-          request,
-          port
-        );
-      }
-
       target = {
-        nanoErgs: firstParam.nanoErgs,
-        tokens: firstParam.tokens.map((x: TokenTargetAmount) => {
-          return { tokenId: x.tokenId, amount: x.amount ? BigInt(x.amount) : undefined };
-        })
+        nanoErgs: isUndefined(firstParam.nanoErgs) ? undefined : BigInt(firstParam.nanoErgs),
+        tokens: isUndefined(firstParam.tokens)
+          ? undefined
+          : firstParam.tokens.map((x: TokenTargetAmount) => {
+              return { tokenId: x.tokenId, amount: x.amount ? BigInt(x.amount) : undefined };
+            })
       };
     }
 
