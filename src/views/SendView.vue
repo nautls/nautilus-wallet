@@ -130,8 +130,7 @@ import { decimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
-import { TRANSACTION_URL } from "@/constants/explorer";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
+import { UnsignedTx } from "@/types/connector";
 import { bip32Pool } from "@/utils/objectPool";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { TxAssetAmount, TxBuilder } from "@/api/ergo/transaction/txBuilder";
@@ -371,7 +370,7 @@ export default defineComponent({
       }
     },
     urlForTransaction(txId: string): string {
-      return `${TRANSACTION_URL}${txId}`;
+      return new URL(`/transactions/${txId}`, this.$store.state.settings.explorerUrl).toString();
     },
     add(asset: StateAsset) {
       this.selected.push({ asset });

@@ -64,6 +64,7 @@ import { buildEip28ResponseMessage } from "./api/ergo/eip28";
 import { Prover } from "./api/ergo/transaction/prover";
 import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
+import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -102,6 +103,7 @@ export default createStore({
       conversionCurrency: "usd",
       devMode: !MAINNET,
       graphQLServer: getDefaultServerUrl(),
+      explorerUrl: DEFAULT_EXPLORER_URL,
       hideBalances: false
     },
     loading: {
@@ -379,6 +381,9 @@ export default createStore({
         const parsed = JSON.parse(rawSettings);
         if (!parsed.graphQLServer) {
           parsed.graphQLServer = getDefaultServerUrl();
+        }
+        if (!parsed.explorerUrl) {
+          parsed.explorerUrl = DEFAULT_EXPLORER_URL;
         }
 
         commit(MUTATIONS.SET_SETTINGS, parsed);

@@ -148,7 +148,6 @@ import {
   UpdateUsedAddressesFilterCommand,
   WalletType
 } from "@/types/internal";
-import { ADDRESS_URL } from "@/constants/explorer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
@@ -259,7 +258,7 @@ export default defineComponent({
       return !!find(address.balance, (b) => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
     },
     urlFor(address: string | undefined): string {
-      return `${ADDRESS_URL}${address}`;
+      return new URL(`/addresses/${address}`, this.$store.state.settings.explorerUrl).toString();
     },
     toggleHideBalance(): void {
       this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
