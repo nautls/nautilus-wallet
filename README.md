@@ -16,9 +16,9 @@
   <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/users/nautilus" alt="Coverage"></a>
 </p>
 
-<p align="center">
+<blockquote align="center">
   <i>Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.</i>
-</p>
+</blockquote>
 
 &nbsp;
 
@@ -26,9 +26,9 @@
 
 <img width="320" alt="Nautilus UI" align="right" src="https://user-images.githubusercontent.com/96133754/196059869-4639b60a-efa1-4eb3-aa5b-4bd0f38c582d.png">
 
-Nautilus Wallet is a comunity driven wallet designed for Ergo Platform, with focus on privacy, security and user experience.
+## Description
+Nautilus Wallet is a comunity driven wallet designed for Ergo Platform with focus on privacy, security and user experience.
 
-## Features
  - Easy to use
  - Blazing fast
  - Sandboxed NFT Gallery
