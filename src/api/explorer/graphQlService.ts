@@ -99,8 +99,10 @@ class GraphQLService {
   }
 
   private _createTxBroadcastClient(): Client {
+    const defaultUrl = this._url;
+
     return createClient({
-      url: this._url,
+      url: defaultUrl,
       requestPolicy: "network-only",
       exchanges: [
         dedupExchange,
@@ -109,8 +111,22 @@ class GraphQLService {
           maxDelayMs: 5000,
           randomDelay: true,
           maxNumberAttempts: 10,
+          retryIf(error) {
+            return (
+              !!error.networkError ||
+              (!!error.message &&
+                error.message.startsWith("Malformed transaction") &&
+                !error.message.match(/.*[iI]nput.*not found$/gm))
+            );
+          },
           retryWith(error, operation) {
-            const context = { ...operation.context, url: getRandomServerUrl() };
+            const context = {
+              ...operation.context,
+              url:
+                error.message && !!error.message.match(/.*[iI]nput.*not found$/gm)
+                  ? defaultUrl
+                  : getRandomServerUrl()
+            };
             return { ...operation, context };
           }
         }),
