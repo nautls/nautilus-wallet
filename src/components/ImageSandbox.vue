@@ -78,7 +78,7 @@ export default defineComponent({
         query += `&overflow=${this.overflow}`;
       }
 
-      return `${CONTENT_SANDBOX_URL}/?url=${resolveIpfs(this.src)}${query}`;
+      return `${CONTENT_SANDBOX_URL}/?url=${encodeURIComponent(resolveIpfs(this.src))}${query}`;
     }
   }
 });
