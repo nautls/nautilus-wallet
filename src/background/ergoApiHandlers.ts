@@ -65,15 +65,16 @@ export async function handleGetBoxesRequest(
     }
   }
 
-  console.log("target", target);
-
   const boxes = await fetchBoxes(session.walletId);
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box)));
 
   postConnectorResponse(
     {
       isSuccess: true,
-      data: selector.select(target).map((box) => box.toObject("EIP-12"))
+      data: selector.select(target).map((box) => ({
+        ...box.toObject("EIP-12"),
+        confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
+      }))
     },
     request,
     port
