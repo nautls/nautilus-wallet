@@ -110,6 +110,19 @@
           {{ (v$.globalSettings as any).graphQLServer.$errors[0]?.$message }}
         </p>
       </label>
+      <label>
+        Explorer URL
+        <input
+          @blur="(v$.globalSettings as any).explorerUrl.$touch()"
+          v-model.lazy="globalSettings.explorerUrl"
+          type="text"
+          spellcheck="false"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="(v$.globalSettings as any).explorerUrl.$error">
+          {{ (v$.globalSettings as any).explorerUrl.$errors[0]?.$message }}
+        </p>
+      </label>
     </div>
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">Danger zone</div>
     <div>
@@ -141,13 +154,15 @@ import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
-import { clone, isEqual } from "lodash";
+import { clone, isEmpty, isEqual } from "lodash";
 import {
   getDefaultServerUrl,
   validateServerNetwork,
   validateServerVersion,
   MIN_SERVER_VERSION
 } from "@/api/explorer/graphQlService";
+import { validUrl } from "@/validators";
+import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 
 export default defineComponent({
   name: "SettingsView",
@@ -213,7 +228,8 @@ export default defineComponent({
       globalSettings: {
         conversionCurrency: "",
         devMode: !MAINNET,
-        graphQLServer: ""
+        graphQLServer: "",
+        explorerUrl: ""
       },
       walletChanged: true,
       loading: true,
@@ -229,7 +245,11 @@ export default defineComponent({
         }
       },
       globalSettings: {
+        explorerUrl: {
+          validUrl
+        },
         graphQLServer: {
+          validUrl,
           network: helpers.withMessage(
             "Wrong server network.",
             helpers.withAsync(async (url: string) => {
@@ -278,12 +298,16 @@ export default defineComponent({
       await this.updateWalletSettings(command);
     },
     async updateGlobal() {
-      if (!(await this.v$.globalSettings.$validate())) {
-        return;
+      if (isEmpty(this.globalSettings.graphQLServer)) {
+        this.globalSettings.graphQLServer = getDefaultServerUrl();
       }
 
-      if (!this.globalSettings.graphQLServer) {
-        this.globalSettings.graphQLServer = getDefaultServerUrl();
+      if (isEmpty(this.globalSettings.explorerUrl)) {
+        this.globalSettings.explorerUrl = DEFAULT_EXPLORER_URL;
+      }
+
+      if (!(await this.v$.globalSettings.$validate())) {
+        return;
       }
 
       if (!isEqual(this.settings, this.globalSettings)) {
