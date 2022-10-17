@@ -2,14 +2,29 @@
   <div class="flex flex-col gap-4 min-h-full">
     <label>
       Receiver
-      <input
-        type="text"
-        @blur="v$.recipient.$touch()"
-        v-model.lazy="recipient"
-        spellcheck="false"
-        class="w-full control block"
-      />
-      <p class="input-error" v-if="v$.recipient.$error">{{ v$.recipient.$errors[0].$message }}</p>
+      <div class="relative">
+        <input
+          type="text"
+          v-model.lazy="recipient"
+          spellcheck="false"
+          class="w-full control block"
+        />
+        <div
+          v-if="resolving"
+          class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none"
+        >
+          <loading-indicator type="circle" class="w-5 h-5 mr-1" />
+        </div>
+      </div>
+      <p class="input-error" v-if="resolverError || v$.recipientAddress.$error">
+        {{ resolverError || v$.recipientAddress.$errors[0].$message }}
+      </p>
+      <p
+        class="font-mono font-normal text-sm break-all text-gray-500"
+        v-if="recipientAddress && recipient !== recipientAddress"
+      >
+        {{ $filters.compactString(recipientAddress, 60) }}
+      </p>
     </label>
     <div>
       <div class="flex flex-col gap-2">
@@ -100,7 +115,7 @@
       </div>
     </div>
     <div class="flex-grow"></div>
-    <button class="btn w-full" @click="buildTx()">Confirm</button>
+    <button class="btn w-full" @click="buildTx()" :disabled="resolving">Confirm</button>
     <loading-modal
       title="Loading"
       :message="stateMessage"
@@ -143,9 +158,10 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { SignedTransaction } from "@ergo-graphql/types";
+import { resolve_ergoname } from "ergonames";
 
 const validations = {
-  recipient: {
+  recipientAddress: {
     required: helpers.withMessage("Receiver address is required.", required),
     validErgoAddress
   }
@@ -225,6 +241,14 @@ export default defineComponent({
     currentWallet() {
       this.$router.push({ name: "assets-page" });
     },
+    recipient() {
+      this.resolving = false;
+      this.resolverError = "";
+      this.recipientAddress = "";
+      this.v$.recipientAddress.$reset();
+
+      this.resolve();
+    },
     assets: {
       immediate: true,
       handler() {
@@ -243,6 +267,9 @@ export default defineComponent({
       signModalActive: false,
       password: "",
       recipient: "",
+      recipientAddress: "",
+      resolving: false,
+      resolverError: "",
       feeMultiplier: 1,
       stateMessage: "",
       state: "unknown",
@@ -267,7 +294,7 @@ export default defineComponent({
       if (this.currentWallet.settings.avoidAddressReuse) {
         const unused = find(
           this.$store.state.currentAddresses,
-          (a) => a.state === AddressState.Unused && a.script !== this.recipient
+          (a) => a.state === AddressState.Unused && a.script !== this.recipientAddress
         );
         if (!unused) {
           await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
@@ -277,8 +304,10 @@ export default defineComponent({
       const addresses = this.$store.state.currentAddresses;
       const deriver = bip32Pool.get(this.currentWallet.publicKey);
       const changeIndex = this.currentWallet.settings.avoidAddressReuse
-        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== this.recipient)
-            ?.index ?? this.currentWallet.settings.defaultChangeIndex
+        ? find(
+            addresses,
+            (a) => a.state === AddressState.Unused && a.script !== this.recipientAddress
+          )?.index ?? this.currentWallet.settings.defaultChangeIndex
         : this.currentWallet.settings.defaultChangeIndex;
 
       try {
@@ -289,7 +318,7 @@ export default defineComponent({
         }
 
         const unsignedTx = new TxBuilder(deriver)
-          .to(this.recipient)
+          .to(this.recipientAddress)
           .inputs(boxes)
           .assets(this.selected as TxAssetAmount[])
           .fee(this.fee)
@@ -322,6 +351,9 @@ export default defineComponent({
       this.selected = [];
       this.setErgAsSelected();
       this.recipient = "";
+      this.recipientAddress = "";
+      this.resolving = false;
+      this.resolverError = "";
       this.password = "";
       this.transaction = undefined;
       this.v$.$reset();
@@ -403,6 +435,29 @@ export default defineComponent({
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;
+    },
+    async resolve() {
+      if (this.recipient.startsWith("~")) {
+        this.resolving = true;
+
+        try {
+          this.recipientAddress = await resolve_ergoname(this.recipient);
+
+          if (!this.recipientAddress) {
+            this.resolverError = "ergonames handle not found.";
+          }
+        } catch {
+          this.resolverError = "Unknown error while trying to resolve ergonames handle.";
+        }
+
+        this.resolving = false;
+      } else {
+        this.recipientAddress = this.recipient;
+      }
+
+      if (!this.resolverError) {
+        this.v$.recipientAddress.$touch();
+      }
     }
   }
 });
