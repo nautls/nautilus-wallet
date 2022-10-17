@@ -20,7 +20,7 @@
         {{ resolverError || v$.recipientAddress.$errors[0].$message }}
       </p>
       <p
-        class="font-mono font-normal text-sm break-all text-gray-500"
+        class="font-mono font-normal text-sm break-all text-gray-600"
         v-if="recipientAddress && recipient !== recipientAddress"
       >
         {{ $filters.compactString(recipientAddress, 60) }}
