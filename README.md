@@ -7,13 +7,13 @@
 </h1>
 
 <p align="center">
-  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/v/gjlmehlldlphhljhpnlddaodbjjcchai?icon=chrome" alt="Coverage"></a>
-  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/stars/gjlmehlldlphhljhpnlddaodbjjcchai" alt="Coverage"></a>
-  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/users/gjlmehlldlphhljhpnlddaodbjjcchai" alt="Coverage"></a>
+  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/v/gjlmehlldlphhljhpnlddaodbjjcchai?icon=chrome" alt="chrome web store published version"></a>
+  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/stars/gjlmehlldlphhljhpnlddaodbjjcchai" alt="chrome web store rating"></a>
+  <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/users/gjlmehlldlphhljhpnlddaodbjjcchai" alt="chrome web store users"></a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/v/nautilus?icon=firefox" alt="Coverage"></a>
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/stars/nautilus" alt="Coverage"></a>
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/users/nautilus" alt="Coverage"></a>
+  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/v/nautilus?icon=firefox" alt="mozilla add-on published version"></a>
+  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/stars/nautilus" alt="mozilla add-on rating"></a>
+  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/users/nautilus" alt="mozilla add-on users"></a>
 </p>
 
 <blockquote align="center">
