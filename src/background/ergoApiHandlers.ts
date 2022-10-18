@@ -33,13 +33,13 @@ export async function handleGetBoxesRequest(
   let target: SelectionTarget = { nanoErgs: undefined, tokens: undefined };
   if (request.params) {
     const firstParam = request.params[0];
-    if (!firstParam || typeof firstParam === "string") {
-      const amount = request.params[0];
+    if (!firstParam || typeof firstParam === "string" || typeof firstParam === "number") {
+      const amount = firstParam;
       const tokenId = request.params[1];
 
       if (tokenId === "ERG") {
         target.nanoErgs = amount ? BigInt(amount) : undefined;
-      } else {
+      } else if (tokenId) {
         target.tokens = [{ tokenId, amount: amount ? BigInt(amount) : undefined }];
       }
     } else {
@@ -67,11 +67,18 @@ export async function handleGetBoxesRequest(
 
   const boxes = await fetchBoxes(session.walletId);
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box)));
+  let selection!: ErgoUnsignedInput[];
+
+  try {
+    selection = selector.select(target);
+  } catch {
+    selection = [];
+  }
 
   postConnectorResponse(
     {
       isSuccess: true,
-      data: selector.select(target).map((box) => ({
+      data: selection.map((box) => ({
         ...box.toObject("EIP-12"),
         confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
       }))
