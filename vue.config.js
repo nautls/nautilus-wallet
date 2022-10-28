@@ -71,7 +71,7 @@ module.exports = defineConfig({
     config.plugin("ignore").use(
       new webpack.IgnorePlugin({
         resourceRegExp: /^\.\/wordlists\/(?!english)/,
-        contextRegExp: /bip39\\src$/
+        contextRegExp: /bip39\/src$/
       })
     );
 
