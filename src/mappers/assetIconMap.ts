@@ -20,5 +20,6 @@ export const assetIconMap: { [tokenId: string]: string } = {
   ["02f31739e2e4937bb9afb552943753d1e3e9cdd1a5e5661949cb0cef93f907ea"]: "terahertz.svg",
   ["e8b20745ee9d18817305f32eb21015831a48f02d40980de6e849f886dca7f807"]: "flux.svg",
   ["00bd762484086cf560d3127eb53f0769d76244d9737636b2699d55c56cd470bf"]: "epos.svg",
-  ["18c938e1924fc3eadc266e75ec02d81fe73b56e4e9f4e268dffffcb30387c42d"]: "aht.svg"
+  ["18c938e1924fc3eadc266e75ec02d81fe73b56e4e9f4e268dffffcb30387c42d"]: "aht.svg",
+  ["59ee24951ce668f0ed32bdb2e2e5731b6c36128748a3b23c28407c5f8ccbf0f6"]: "walrus.png"
 };
