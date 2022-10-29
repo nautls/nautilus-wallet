@@ -11,7 +11,8 @@ import {
   handleSignTxRequest,
   handleSubmitTxRequest,
   handleAuthRequest,
-  handleGetBalanceRequest
+  handleGetBalanceRequest,
+  handleGetCurrentHeightRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 import { Browser } from "@/utils/browserApi";
@@ -98,6 +99,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
         case "signTxInput":
         case "signData":
           await handleNotImplementedRequest(message, port, session);
+          break;
+        case "getCurrentHeight":
+          await handleGetCurrentHeightRequest(message, port, session);
           break;
         case "submitTx":
           await handleSubmitTxRequest(message, port, sessions.get(tabId));
