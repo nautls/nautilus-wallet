@@ -98,8 +98,8 @@ module.exports = defineConfig({
       .use("vue-loader")
       .loader("vue-loader")
       .end()
-      .use("vue-svg-loader")
-      .loader("vue-svg-loader")
+      .use("inline-svg-loader")
+      .loader("./loaders/svgLoader.js")
       .end();
 
     config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
