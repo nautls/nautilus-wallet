@@ -26,7 +26,9 @@
         />
         <drop-down :disabled="unselected.length === 0">
           <template v-slot:trigger>
-            <div class="text-sm w-full uppercase py-1 pl-6 text-center font-bold">Add asset</div>
+            <div class="text-sm w-full uppercase py-1 pl-6 text-center font-semibold">
+              Add asset
+            </div>
             <vue-feather type="chevron-down" size="18" />
           </template>
           <template v-slot:items>
