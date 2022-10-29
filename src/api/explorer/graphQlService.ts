@@ -283,6 +283,19 @@ class GraphQLService {
     return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
   }
 
+  async getCurrentHeight(): Promise<number | undefined> {
+    const query = gql<{ blockHeaders: Header[] }>`
+      query query {
+        blockHeaders(take: 1) {
+          height
+        }
+      }
+    `;
+
+    const response = await this._queryClient.query(query, {}).toPromise();
+    return first(response.data?.blockHeaders)?.height;
+  }
+
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
     let boxes: ErgoBox[] = [];
 

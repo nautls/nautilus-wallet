@@ -191,6 +191,10 @@ class NautilusErgoApi {
     return this._rpcCall("auth", [addr, message]);
   }
 
+  get_current_height() {
+    return this._rpcCall("getCurrentHeight")
+  }
+
   submit_tx(tx) {
     return this._rpcCall("submitTx", [tx]);
   }
