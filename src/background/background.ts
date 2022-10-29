@@ -16,7 +16,6 @@ import {
 import { AddressState } from "@/types/internal";
 import { Browser } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
-import "@/config/axiosConfig";
 
 const sessions = new Map<number, Session>();
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
