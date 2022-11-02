@@ -1,11 +1,10 @@
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
-import { ExplorerBox, explorerBoxMapper } from "@/types/explorer";
 import { BigNumberType } from "@/types/internal";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { sortBy } from "lodash";
-import { explorerService } from "../explorer/explorerService";
+import { isEmpty, sortBy } from "lodash";
+import { graphQLService } from "../explorer/graphQlService";
 import { addressFromErgoTree } from "./addresses";
 
 const BABEL_ERGOTREE_PREFIX = "1008040404000e20";
@@ -20,33 +19,33 @@ export function isBabelErgoTree(ergoTree: string): boolean {
   return ergoTree.startsWith(BABEL_ERGOTREE_PREFIX) && ergoTree.endsWith(BABEL_ERGOTREE_SUFFIX);
 }
 
-export function isValidBabelBox(box: ExplorerBox): boolean {
-  return box.additionalRegisters?.R4 && box.additionalRegisters?.R5;
+export function isValidBabelBox(box: ErgoBox): boolean {
+  return !isEmpty(box.additionalRegisters?.R4) && !isEmpty(box.additionalRegisters?.R5);
 }
 
-export function extractTokenIdFromBabelErgoTree(ergoTree: string): string {
+export function isBabelContractForTokenId(ergoTree: string, tokenId: string) {
+  return extractTokenIdFromBabelContract(ergoTree) === tokenId;
+}
+
+export function extractTokenIdFromBabelContract(ergoTree: string): string {
   return ergoTree.slice(
     BABEL_ERGOTREE_PREFIX.length,
     BABEL_ERGOTREE_PREFIX.length + TOKEN_ID_LENGTH
   );
 }
 
-export function getNanoErgsPerTokenRate(box: ErgoBox | ExplorerBox): BigNumber {
+export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
   return new BigNumber(
     wasmModule.SigmaRust.Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str()
   );
 }
 
 export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
-  const response = await explorerService.getUnspentBoxes([
+  const response = await graphQLService.getUnspentBoxes([
     addressFromErgoTree(buildBabelErgoTreeFor(tokenId))
   ]);
 
-  const boxes = response
-    .filter((x) => x.data)
-    .flatMap((x) => x.data)
-    .filter((box) => isValidBabelBox(box))
-    .map(explorerBoxMapper({ asConfirmed: true }));
+  const boxes = response.filter((box) => isValidBabelBox(box));
 
   if (price) {
     return boxes.filter((box) => getNanoErgsPerTokenRate(box).isGreaterThanOrEqualTo(price));

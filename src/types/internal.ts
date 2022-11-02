@@ -1,7 +1,6 @@
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import BigNumber from "bignumber.js";
 import { ErgoBox, UnsignedTx } from "./connector";
-import { ExplorerBox } from "./explorer";
 
 export enum AddressState {
   Used,

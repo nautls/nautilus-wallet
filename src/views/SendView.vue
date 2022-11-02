@@ -30,7 +30,7 @@
           trigger-class="px-2 py-3 text-sm uppercase "
         >
           <template v-slot:trigger>
-            <div class="flex-grow pl-6 text-center font-bold">Add asset</div>
+            <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />
           </template>
           <template v-slot:items>
@@ -142,7 +142,7 @@ const validations = {
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, TxSignModal },
+  components: { AssetInput, LoadingModal, TxSignModal, FeeSelector },
   setup() {
     return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
   },

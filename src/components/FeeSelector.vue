@@ -88,17 +88,17 @@
 import { addressFromErgoTree } from "@/api/ergo/addresses";
 import {
   buildBabelErgoTreeFor,
-  extractTokenIdFromBabelErgoTree,
+  extractTokenIdFromBabelContract,
   getNanoErgsPerTokenRate,
   isValidBabelBox
 } from "@/api/ergo/babelFees";
-import { explorerService } from "@/api/explorer/explorerService";
+import { graphQLService } from "@/api/explorer/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { GETTERS } from "@/constants/store/getters";
 import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
 import { decimalize } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { isEmpty, maxBy, sortBy } from "lodash";
+import { groupBy, maxBy, sortBy } from "lodash";
 import { defineComponent, PropType } from "vue";
 
 type FeeAsset = {
@@ -127,12 +127,16 @@ export default defineComponent({
       .filter((x) => x.tokenId !== ERG_TOKEN_ID)
       .map((x) => addressFromErgoTree(buildBabelErgoTreeFor(x.tokenId)));
 
-    let assets = (await explorerService.getUnspentBoxes(addresses))
-      .filter((x) => !isEmpty(x.data))
-      .map((x): FeeAsset => {
-        const tokenId = extractTokenIdFromBabelErgoTree(x.data[0].ergoTree);
+    const allBoxes = await graphQLService.getUnspentBoxes(addresses);
+    const groups = groupBy(
+      allBoxes.filter((box) => isValidBabelBox(box)),
+      (box) => extractTokenIdFromBabelContract(box.ergoTree)
+    );
+
+    const assets = Object.keys(groups)
+      .map((tokenId) => {
         const price = maxBy(
-          x.data.filter((box) => isValidBabelBox(box)).map((box) => getNanoErgsPerTokenRate(box)),
+          groups[tokenId].map((box) => getNanoErgsPerTokenRate(box)),
           (p) => p.toNumber()
         );
 
@@ -142,7 +146,7 @@ export default defineComponent({
           nanoErgsPerToken: price || new BigNumber(0)
         };
       })
-      .filter((x) => !x.nanoErgsPerToken.isZero());
+      .filter((asset) => !asset.nanoErgsPerToken.isZero());
 
     this.assets = this.assets.concat(
       sortBy(
