@@ -27,7 +27,7 @@
         <drop-down
           :disabled="unselected.length === 0"
           list-class="max-h-50"
-          trigger-class="px-2 py-3 text-sm uppercase "
+          trigger-class="px-2 py-3 text-sm uppercase"
         >
           <template v-slot:trigger>
             <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
@@ -306,7 +306,7 @@ export default defineComponent({
 
       try {
         const boxes = await fetchBoxes(this.currentWallet.id);
-        const [bestBlock] = await graphQLService.getBlockHeaders({ take: 1 });
+        const bestBlock = await graphQLService.getCurrentHeight();
         if (!bestBlock) {
           throw Error("Unable to fetch current height, please check your connection.");
         }
@@ -332,7 +332,7 @@ export default defineComponent({
           .inputs(boxes)
           .assets(this.selected as TxAssetAmount[])
           .fee(this.feeSettings)
-          .height(bestBlock.height)
+          .height(bestBlock)
           .changeIndex(changeIndex ?? 0)
           .build();
 

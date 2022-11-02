@@ -327,10 +327,8 @@ class GraphQLService {
           transactionId
           value
           creationHeight
-          settlementHeight
           index
           ergoTree
-          address
           additionalRegisters
           assets {
             tokenId
