@@ -21,8 +21,10 @@ export type AssetBalance = {
   address: string;
 };
 
-export const MIN_SERVER_VERSION = [0, 3, 8];
+export const MIN_SERVER_VERSION = [0, 4, 0];
 const MAX_RESULTS_PER_REQUEST = 50;
+const MAX_PARAMS_PER_REQUEST = 20;
+
 const GRAPHQL_SERVERS = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
@@ -298,31 +300,19 @@ class GraphQLService {
 
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
     let boxes: ErgoBox[] = [];
+    const addressesChunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
 
-    for (const address of addresses) {
-      let chunk: ErgoBox[];
-      let skip = 0;
-
-      do {
-        chunk = await this.getAddressUnspentBoxes(address, skip, MAX_RESULTS_PER_REQUEST);
-        skip += MAX_RESULTS_PER_REQUEST;
-        if (!isEmpty(chunk)) {
-          boxes = boxes.concat(chunk);
-        }
-      } while (chunk.length === MAX_RESULTS_PER_REQUEST);
+    for (const addresses of addressesChunks) {
+      boxes = boxes.concat(await this.getAddressesChunkUnspentBoxes(addresses));
     }
 
     return boxes;
   }
 
-  private async getAddressUnspentBoxes(
-    address: string,
-    skip: number,
-    take: number
-  ): Promise<ErgoBox[]> {
+  private async getAddressesChunkUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
     const query = gql<{ boxes: Box[] }>`
-      query Boxes($address: String, $skip: Int, $take: Int) {
-        boxes(address: $address, skip: $skip, take: $take, spent: false) {
+      query Boxes($addresses: [String!], $skip: Int, $take: Int) {
+        boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
           boxId
           transactionId
           value
@@ -338,9 +328,24 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient.query(query, { address, skip, take }).toPromise();
+    let boxes: Box[] = [];
+    let lastChunkLength = 0;
+    let skip = 0;
+
+    do {
+      const response = await this._queryClient
+        .query(query, { addresses, skip, take: MAX_RESULTS_PER_REQUEST })
+        .toPromise();
+      skip += MAX_RESULTS_PER_REQUEST;
+      lastChunkLength = response.data?.boxes.length || 0;
+
+      if (response.data && !isEmpty(response.data?.boxes)) {
+        boxes = boxes.concat(response.data.boxes);
+      }
+    } while (lastChunkLength === MAX_RESULTS_PER_REQUEST);
+
     return (
-      response.data?.boxes.map((box) => {
+      boxes.map((box) => {
         return {
           ...box,
           confirmed: true,
