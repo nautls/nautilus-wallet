@@ -32,7 +32,6 @@ import { mapActions, mapState } from "vuex";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
 import { isPopup } from "./utils/browserApi";
-import { MAINNET } from "./constants/ergo";
 import WalletLogo from "./components/WalletLogo.vue";
 
 function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
@@ -78,6 +77,8 @@ export default defineComponent({
       if (isPopup()) {
         return "max-w-365px";
       }
+
+      return undefined;
     }
   },
   methods: {

@@ -1,86 +1,87 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session, ErgoTx } from "@/types/connector";
+import {
+  APIError,
+  APIErrorCode,
+  RpcMessage,
+  RpcReturn,
+  SelectionTarget,
+  Session,
+  TokenTargetAmount
+} from "@/types/connector";
 import { AddressState } from "@/types/internal";
-import { toBigNumber } from "@/utils/bigNumbers";
+import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
-import BigNumber from "bignumber.js";
-import { add, find, findIndex, isEmpty } from "lodash";
+import { groupBy, isEmpty, isUndefined } from "lodash";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
+import { graphQLService } from "@/api/explorer/graphQlService";
+import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
-  let tokenId = ERG_TOKEN_ID;
-  let amount = new BigNumber(0);
-
+  let target: SelectionTarget = { nanoErgs: undefined, tokens: undefined };
   if (request.params) {
-    tokenId = request.params[1] as string;
-    if (!tokenId || tokenId === "ERG") {
-      tokenId = ERG_TOKEN_ID;
-    }
+    const firstParam = request.params[0];
+    if (!firstParam || typeof firstParam === "string" || typeof firstParam === "number") {
+      const amount = firstParam;
+      const tokenId = request.params[1];
 
-    let error: APIError | undefined = undefined;
-
-    if (request.params[0]) {
-      amount = toBigNumber(request.params[0]) || new BigNumber(0);
-    }
-    if (request.params[2]) {
-      error = {
-        code: APIErrorCode.InvalidRequest,
-        info: "pagination is not implemented"
+      if (tokenId === "ERG") {
+        target.nanoErgs = amount ? BigInt(amount) : undefined;
+      } else if (tokenId) {
+        target.tokens = [{ tokenId, amount: amount ? BigInt(amount) : undefined }];
+      }
+    } else {
+      target = {
+        nanoErgs: isUndefined(firstParam.nanoErgs) ? undefined : BigInt(firstParam.nanoErgs),
+        tokens: isUndefined(firstParam.tokens)
+          ? undefined
+          : firstParam.tokens.map((x: TokenTargetAmount) => {
+              return { tokenId: x.tokenId, amount: x.amount ? BigInt(x.amount) : undefined };
+            })
       };
     }
 
-    if (error) {
-      postErrorMessage(error, request, port);
+    if (request.params[2]) {
+      postErrorMessage(
+        {
+          code: APIErrorCode.InvalidRequest,
+          info: "Pagination is not implemented."
+        },
+        request,
+        port
+      );
     }
   }
 
-  let selected = await fetchBoxes(session!.walletId!);
+  const boxes = await fetchBoxes(session.walletId);
+  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box)));
+  let selection!: ErgoUnsignedInput[];
 
-  if (tokenId != ERG_TOKEN_ID) {
-    selected = selected.filter((box) => findIndex(box.assets, (a) => a.tokenId === tokenId) > -1);
-  }
-
-  if (!amount.isZero()) {
-    let acc = new BigNumber(0);
-
-    if (tokenId === ERG_TOKEN_ID) {
-      selected = selected.filter((box) => {
-        if (acc.isGreaterThanOrEqualTo(amount)) {
-          return false;
-        }
-        acc = acc.plus(toBigNumber(box.value)!);
-
-        return true;
-      });
-    } else {
-      selected = selected.filter((box) => {
-        if (acc.isGreaterThanOrEqualTo(amount)) {
-          return false;
-        }
-        acc = acc.plus(toBigNumber(find(box.assets, (a) => a.tokenId === tokenId)?.amount ?? 0)!);
-
-        return true;
-      });
-    }
+  try {
+    selection = selector.select(target);
+  } catch {
+    selection = [];
   }
 
   postConnectorResponse(
     {
       isSuccess: true,
-      data: selected
+      data: selection.map((box) => ({
+        ...box.toObject("EIP-12"),
+        confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
+      }))
     },
     request,
     port
@@ -92,7 +93,7 @@ export async function handleGetBalanceRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -101,20 +102,39 @@ export async function handleGetBalanceRequest(
     tokenId = request.params[0];
   }
 
-  const assets = await assetsDbService.getByTokenId(session!.walletId!, tokenId);
   postConnectorResponse(
     {
       isSuccess: true,
-      data: !isEmpty(assets)
-        ? assets
-            .map((a) => toBigNumber(a.confirmedAmount)!)
-            .reduce((acc, val) => acc.plus(val))
-            .toString()
-        : "0"
+      data: await _getBalance(session.walletId, tokenId)
     },
     request,
     port
   );
+}
+
+async function _getBalance(walletId: number, tokenId: string) {
+  if (tokenId === "all") {
+    const assets = await assetsDbService.getByWalletId(walletId);
+    const responseData: { tokenId: string; balance: string }[] = [];
+    const groups = groupBy(assets, (x) => x.tokenId);
+    for (const tokenId in groups) {
+      responseData.push({
+        tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
+        balance: sumBigNumberBy(groups[tokenId], (x) => toBigNumber(x.confirmedAmount)).toString()
+      });
+    }
+
+    return responseData;
+  }
+
+  const assets = await assetsDbService.getByTokenId(walletId, tokenId);
+
+  return isEmpty(assets)
+    ? "0"
+    : assets
+        .map((a) => toBigNumber(a.confirmedAmount))
+        .reduce((acc, val) => acc.plus(val))
+        .toString();
 }
 
 export async function handleGetAddressesRequest(
@@ -123,7 +143,7 @@ export async function handleGetAddressesRequest(
   session: Session | undefined,
   addressState: AddressState
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -131,7 +151,7 @@ export async function handleGetAddressesRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "pagination is not implemented"
+        info: "Pagination is not implemented."
       },
       request,
       port
@@ -140,7 +160,7 @@ export async function handleGetAddressesRequest(
     return;
   }
 
-  const addresses = await addressesDbService.getByState(session!.walletId!, addressState);
+  const addresses = await addressesDbService.getByState(session.walletId, addressState);
   postConnectorResponse(
     {
       isSuccess: true,
@@ -156,16 +176,16 @@ export async function handleGetChangeAddressRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
-  const address = await addressesDbService.getChangeAddress(session!.walletId!);
+  const address = await addressesDbService.getChangeAddress(session.walletId);
   if (!address) {
     postErrorMessage(
       {
         code: APIErrorCode.InternalError,
-        info: "change address not found"
+        info: "Change address not found."
       },
       request,
       port
@@ -189,7 +209,7 @@ export async function handleSignTxRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port)) {
     return;
   }
 
@@ -197,7 +217,7 @@ export async function handleSignTxRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "tx object is not present"
+        info: "Unsigned transaction object is undefined."
       },
       request,
       port
@@ -206,7 +226,7 @@ export async function handleSignTxRequest(
     return;
   }
 
-  const response = await openPopup(session!, request, port);
+  const response = await openPopup(session, request, port);
   postConnectorResponse(response, request, port);
 }
 
@@ -215,25 +235,22 @@ export async function handleAuthRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port)) {
     return;
   }
 
-  console.log(request);
-
   if (!request.params || !request.params[0] || !request.params[1]) {
-    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "bad params" }, request, port);
+    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "Bad params" }, request, port);
     return;
   }
 
   const address = request.params[0];
-  console.log("address", address);
   const addressEntity = await addressesDbService.getByScript(address);
   if (!addressEntity || addressEntity.walletId !== session?.walletId) {
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: `address '${address}' does not belong to the connected wallet.`
+        info: `Address '${address}' does not belong to the connected wallet.`
       },
       request,
       port
@@ -241,8 +258,39 @@ export async function handleAuthRequest(
     return;
   }
 
-  const response = await openPopup(session!, request, port);
+  const response = await openPopup(session, request, port);
   postConnectorResponse(response, request, port);
+}
+
+export async function handleGetCurrentHeightRequest(
+  request: RpcMessage,
+  port: chrome.runtime.Port,
+  session: Session | undefined
+) {
+  if (!validateSession(session, request, port) || !session.walletId) {
+    return;
+  }
+
+  const height = await graphQLService.getCurrentHeight();
+  if (height) {
+    postConnectorResponse(
+      {
+        isSuccess: true,
+        data: height
+      },
+      request,
+      port
+    );
+  } else {
+    postErrorMessage(
+      {
+        code: APIErrorCode.InternalError,
+        info: "Height returned by the backend is invalid."
+      },
+      request,
+      port
+    );
+  }
 }
 
 export async function handleSubmitTxRequest(
@@ -250,7 +298,7 @@ export async function handleSubmitTxRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
 
@@ -258,7 +306,7 @@ export async function handleSubmitTxRequest(
     postErrorMessage(
       {
         code: APIErrorCode.InvalidRequest,
-        info: "empty tx"
+        info: "Signed transaction object is undefined."
       },
       request,
       port
@@ -268,10 +316,10 @@ export async function handleSubmitTxRequest(
   }
 
   try {
-    const tx = request.params[0] as ErgoTx;
+    const tx = request.params[0];
     const txId = await submitTx(
-      typeof tx === "string" ? (JSONBig.parse(tx) as ErgoTx) : tx,
-      session!.walletId!
+      typeof tx === "string" ? graphQLService.mapTransaction(JSONBig.parse(tx)) : tx,
+      session.walletId
     );
 
     postConnectorResponse(
@@ -299,14 +347,14 @@ export async function handleNotImplementedRequest(
   port: chrome.runtime.Port,
   session?: Session
 ) {
-  if (!validateRequest(session, request, port)) {
+  if (!validateSession(session, request, port)) {
     return;
   }
 
   postErrorMessage(
     {
       code: APIErrorCode.InvalidRequest,
-      info: "not implemented"
+      info: "Not implemented."
     },
     request,
     port
@@ -321,7 +369,7 @@ async function openPopup(
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
     if (!tabId || !port.sender?.url) {
-      reject("invalid port");
+      reject("Invalid port.");
       return;
     }
 
@@ -330,17 +378,17 @@ async function openPopup(
   });
 }
 
-export function validateRequest(
+export function validateSession(
   session: Session | undefined,
   request: RpcMessage,
   port: chrome.runtime.Port
-): boolean {
+): session is Session {
   let error: APIError | undefined;
 
   if (!session) {
-    error = { code: APIErrorCode.InvalidRequest, info: "not connected" };
+    error = { code: APIErrorCode.InvalidRequest, info: "Not connected." };
   } else if (session.walletId === undefined) {
-    error = { code: APIErrorCode.Refused, info: "unauthorized" };
+    error = { code: APIErrorCode.Refused, info: "Unauthorized." };
   }
 
   if (error) {

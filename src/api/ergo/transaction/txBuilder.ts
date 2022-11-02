@@ -192,8 +192,7 @@ export class TxBuilder {
       outputs,
       this._height,
       fee,
-      changeAddress,
-      sigmaRust.BoxValue.SAFE_USER_MIN()
+      changeAddress
     ).build();
 
     const unsigned = JSONBig.parse(wasmUnsigned.to_json()) as UnsignedTx;

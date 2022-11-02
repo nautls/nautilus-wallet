@@ -99,7 +99,7 @@ export type SignTxCommand = {
   tx: UnsignedTx;
   walletId: number;
   password: string;
-  callback?: (newState: Partial<SigningState>) => {};
+  callback?: (newState: Partial<SigningState>) => void;
 };
 
 export type SignEip28MessageCommand = {

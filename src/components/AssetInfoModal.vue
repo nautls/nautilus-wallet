@@ -4,7 +4,7 @@
     :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
-    content-class="max-h-95vh bg-transparent overflow-hidden !max-w-100 !w-90vw"
+    content-class="max-h-95vh bg-transparent relative overflow-hidden !max-w-100 !w-90vw"
   >
     <button @click="close()" type="button" class="fixed top-0 right-0 m-2 text-light-300">
       <mdi-icon name="close" size="24" />
@@ -27,7 +27,7 @@
           <h1 class="font-bold text-lg">
             {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
           </h1>
-          <p v-if="asset?.description">{{ asset?.description }}</p>
+          <p class="whitespace-pre-wrap" v-if="description">{{ description }}</p>
         </div>
         <div class="flex flex-row gap-4 mt-2">
           <div class="w-1/2">
@@ -36,7 +36,10 @@
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Balance</small>
-            <p class="text-sm font-bold">{{ $filters.formatBigNumber(confirmedBalance) ?? 0 }}</p>
+            <p v-if="hideBalances" class="skeleton animate-none h-4.5 w-2/4 block rounded"></p>
+            <p v-else class="text-sm font-bold">
+              {{ $filters.formatBigNumber(confirmedBalance) ?? 0 }}
+            </p>
           </div>
         </div>
         <div class="flex flex-row gap-4">
@@ -106,6 +109,27 @@ export default defineComponent({
       }
 
       return this.asset.artworkUrl ?? this.asset.artworkCover;
+    },
+    description(): string | undefined {
+      if (!this.asset?.description) {
+        return;
+      }
+
+      if (
+        (this.asset.description.startsWith("{") && this.asset.description.endsWith("}")) ||
+        (this.asset.description.startsWith("[") && this.asset.description.endsWith("]"))
+      ) {
+        try {
+          return JSON.stringify(JSON.parse(this.asset.description), null, 2);
+        } catch {
+          return this.asset.description;
+        }
+      }
+
+      return this.asset.description;
+    },
+    hideBalances(): boolean {
+      return this.$store.state.settings.hideBalances;
     }
   },
   data() {

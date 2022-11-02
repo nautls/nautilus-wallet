@@ -164,7 +164,7 @@ label {
 }
 
 .btn {
-  @apply bg-blue-600 border border-solid rounded font-bold
+  @apply bg-blue-600 border border-solid rounded font-semibold
     outline-none border-blue-800 text-sm mb-1 py-2 
     px-4 uppercase default-transition text-light-300
     hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
@@ -336,12 +336,14 @@ input:disabled {
   @apply mr-1;
 }
 
+.vjs-tree .vjs-tree-node,
 .vjs-tree .vjs-tree__node {
   @apply -mx-2 px-2 py-0.5;
 }
 
+.vjs-tree .vjs-tree-node:hover,
 .vjs-tree .vjs-tree__node:hover {
-  @apply bg-gray-600;\
+  @apply bg-gray-600;
 }
 
 .items-select .tag {

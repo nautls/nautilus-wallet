@@ -25,14 +25,15 @@ import {
 } from "ledger-ergo-js";
 import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 import { addressFromErgoTree } from "../addresses";
-import { ExplorerBlockHeader } from "@/types/explorer";
+import { Header } from "@ergo-graphql/types";
+import { toBigNumber } from "@/utils/bigNumbers";
 
 export class Prover {
   private _from!: StateAddress[];
   private _useLedger!: boolean;
   private _changeIndex!: number;
   private _deriver!: Bip32;
-  private _callbackFunc?: (newVal: any) => {};
+  private _callbackFunc?: (newVal: unknown) => void;
 
   public constructor(deriver: Bip32) {
     this._deriver = deriver;
@@ -49,9 +50,9 @@ export class Prover {
     return this;
   }
 
-  public setCallback(callback?: (newState: any) => {}): Prover {
+  public setCallback<T>(callback?: (newState: T) => void): Prover {
     if (callback) {
-      this._callbackFunc = callback;
+      this._callbackFunc = callback as (newVal: unknown) => void;
     }
 
     return this;
@@ -71,7 +72,7 @@ export class Prover {
     return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
   }
 
-  public async sign(unsignedTx: UnsignedTx, headers: ExplorerBlockHeader[]): Promise<ErgoTx> {
+  public async sign(unsignedTx: UnsignedTx, headers: Header[]): Promise<ErgoTx> {
     const sigmaRust = wasmModule.SigmaRust;
     const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
     const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
@@ -85,7 +86,7 @@ export class Prover {
     unsigned: UnsignedTransaction,
     unspentBoxes: ErgoBoxes,
     dataInputBoxes: ErgoBoxes,
-    headers: ExplorerBlockHeader[]
+    headers: Header[]
   ) {
     const sigmaRust = wasmModule.SigmaRust;
 
@@ -208,7 +209,18 @@ export class Prover {
     }
 
     const wallet = this.buildWallet(this._from, this._deriver);
-    const blockHeaders = sigmaRust.BlockHeaders.from_json(headers);
+    const blockHeaders = sigmaRust.BlockHeaders.from_json(
+      headers.map((x) => {
+        return {
+          ...x,
+          id: x.headerId,
+          timestamp: toBigNumber(x.timestamp).toNumber(),
+          nBits: toBigNumber(x.nBits).toNumber(),
+          votes: Buffer.from(x.votes).toString("hex")
+        };
+      })
+    );
+
     const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
     const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
     const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
@@ -233,7 +245,7 @@ export class Prover {
     return Buffer.concat([...[Buffer.from([registers.length])], ...registers]);
   }
 
-  private sendCallback(state: any) {
+  private sendCallback(state: unknown) {
     if (!this._callbackFunc) {
       return;
     }

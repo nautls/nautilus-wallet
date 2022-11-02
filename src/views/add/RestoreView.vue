@@ -36,6 +36,7 @@
           :allow-duplicates="true"
           :on-paste-separators="[' ']"
           :confirmKeys="[',', 'Tab', 'Enter', ' ']"
+          @keydown.tab.prevent.stop
           :keep-first="true"
           @typing="filterBy"
           @blur="v$.selectedWords.$touch()"

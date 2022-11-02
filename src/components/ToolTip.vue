@@ -2,7 +2,7 @@
   <span class="inline-flex group justify-center relative">
     <slot />
     <span
-      class="w-max rounded font-normal font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-95"
+      class="w-max rounded select-none font-normal font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-95"
       :class="customClass"
     >
       <slot name="label" v-if="$slots.label" />

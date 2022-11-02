@@ -155,8 +155,8 @@ class NautilusErgoApi {
     return this;
   }
 
-  get_utxos(amount = undefined, token_id = "ERG", paginate = undefined) {
-    return this._rpcCall("getBoxes", [amount, token_id, paginate]);
+  get_utxos(amountOrTargetObj = undefined, token_id = "ERG", paginate = undefined) {
+    return this._rpcCall("getBoxes", [amountOrTargetObj, token_id, paginate]);
   }
 
   get_balance(token_id = "ERG") {
@@ -189,6 +189,10 @@ class NautilusErgoApi {
 
   auth(addr, message) {
     return this._rpcCall("auth", [addr, message]);
+  }
+
+  get_current_height() {
+    return this._rpcCall("getCurrentHeight")
   }
 
   submit_tx(tx) {
@@ -233,15 +237,8 @@ const ERGO_CONST_CODE = `const ergo = Object.freeze(new NautilusErgoApi());`;
 let ergoApiInjected = false;
 let nautilusPort;
 
+// eslint-disable-next-line no-undef
 const Browser = typeof browser === "undefined" ? chrome : browser;
-
-function createPort() {
-  if (nautilusPort !== undefined) {
-    return;
-  }
-
-  nautilusPort = Browser.runtime.connect();
-}
 
 if (shouldInject()) {
   if (inject(AUTH_API_CODE)) {

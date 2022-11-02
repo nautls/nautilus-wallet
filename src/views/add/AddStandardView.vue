@@ -53,11 +53,11 @@
           will need this phrase to use and restore your wallet.
         </p>
       </label>
-      <label class="inline-block font-normal cursor-pointer">
+      <label
+        class="inline-flex items-center font-normal cursor-pointer bg-yellow-100 border-1 border-yellow-300 mb-2 py-1 px-3 rounded w-full"
+      >
         <input class="checkbox" type="checkbox" v-model="mnemonicStoreAgreement" />
-        <span class="align-middle font-semibold"
-          >I've stored the secret phrase in a secure place.</span
-        >
+        <span class="text-yellow-900">I've stored the secret phrase in a secure place.</span>
       </label>
     </div>
     <div>
@@ -143,8 +143,9 @@ export default defineComponent({
           password: this.password,
           type: WalletType.Standard
         });
-      } catch (e: any) {
+      } catch (e) {
         this.loading = false;
+        // eslint-disable-next-line no-console
         console.error(e);
         return;
       }

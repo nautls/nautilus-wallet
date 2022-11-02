@@ -10,6 +10,10 @@ class RpcHandler {
     this._messages = [];
   }
 
+  public get connected(): boolean {
+    return !!this._port;
+  }
+
   public sendMessage(message: RpcMessage): void {
     this._sendMessage(message);
   }

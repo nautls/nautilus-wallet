@@ -54,7 +54,7 @@ export enum TxSendErrorCode {
 
 export type TxSendError = {
   code: TxSendErrorCode;
-  info: String;
+  info: string;
 };
 
 export enum SignErrorCode {
@@ -64,7 +64,7 @@ export enum SignErrorCode {
 
 export type SignError = {
   code: SignErrorCode;
-  info: String;
+  info: string;
 };
 
 export type Token = {
@@ -107,7 +107,7 @@ export type ErgoBox = {
   value: string;
   assets: Token[];
   additionalRegisters: Registers;
-  confirmed: boolean;
+  confirmed?: boolean;
 };
 
 export type DataInput = {
@@ -120,9 +120,14 @@ export type UnsignedTx = {
   outputs: ErgoBoxCandidate[];
 };
 
+export type InputSpendingProof = {
+  proofBytes: string;
+  extension: unknown;
+};
+
 export type Input = {
   readonly boxId: string;
-  readonly spendingProof: string;
+  readonly spendingProof: InputSpendingProof;
 };
 
 export type ErgoTx = {
@@ -131,4 +136,14 @@ export type ErgoTx = {
   readonly dataInputs: DataInput[];
   readonly outputs: ErgoBox[];
   readonly size: number;
+};
+
+export type TokenTargetAmount = {
+  tokenId: string;
+  amount?: bigint;
+};
+
+export type SelectionTarget = {
+  nanoErgs?: bigint;
+  tokens?: TokenTargetAmount[];
 };

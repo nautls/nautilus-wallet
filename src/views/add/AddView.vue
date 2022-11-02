@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4 h-full">
     <div class="flex-grow"></div>
     <router-link to="/add/new" custom v-slot="{ navigate }">
-      <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+      <button type="button" @click="navigate" class="nav-btn">
         <div class="h-full float-left flex w-8 mr-4">
           <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" />
         </div>
@@ -13,7 +13,7 @@
       </button>
     </router-link>
     <router-link to="/add/restore" custom v-slot="{ navigate }">
-      <button type="button" @click="navigate" @keypress.enter="navigate" class="nav-btn">
+      <button type="button" @click="navigate" class="nav-btn">
         <div class="h-full float-left flex w-8 mr-4">
           <mdi-icon name="backup-restore" size="32" class="m-auto text-gray-500" />
         </div>
@@ -41,13 +41,7 @@
       </button>
     </router-link>
     <router-link to="/add/read-only" custom v-slot="{ navigate }">
-      <button
-        @click="navigate"
-        @keypress.enter="navigate"
-        role="button"
-        type="button"
-        class="nav-btn"
-      >
+      <button @click="navigate" role="button" type="button" class="nav-btn">
         <div class="h-full float-left flex w-8 mr-4">
           <mdi-icon name="wallet-outline" size="32" class="m-auto text-gray-500" />
         </div>
@@ -80,7 +74,7 @@ export default defineComponent({
     backButton: { type: String, default: "false" }
   },
   methods: {
-    navInTab(navigate: () => {}, href: string) {
+    navInTab(navigate: () => unknown, href: string) {
       if (!isPopup() || !Browser.tabs) {
         navigate();
       }

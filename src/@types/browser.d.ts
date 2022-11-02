@@ -1,1 +1,1 @@
-declare var browser;
+declare const browser;

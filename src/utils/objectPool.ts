@@ -20,7 +20,7 @@ class ObjectPool<ObjectType, KeyType> {
       item.alive = true;
       item.object = object;
     } else {
-      const index = findIndex(this._pool, item => !item.alive);
+      const index = findIndex(this._pool, (item) => !item.alive);
 
       if (index > -1) {
         this._pool[index].object = object;
@@ -56,7 +56,7 @@ class ObjectPool<ObjectType, KeyType> {
   }
 
   public getPoolItem(key: KeyType): PoolItem<ObjectType, KeyType> | undefined {
-    return find(this._pool, item => item.key === key);
+    return find(this._pool, (item) => item.key === key);
   }
 }
 

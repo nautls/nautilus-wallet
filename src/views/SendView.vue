@@ -59,6 +59,19 @@
                 </div>
               </a>
             </div>
+            <div class="group">
+              <a @click="addAll()" class="group-item narrow">
+                <div class="flex flex-row items-center gap-2">
+                  <mdi-icon name="check-all" class="text-yellow-500 w-8 h-8" size="32" />
+                  <div class="flex-grow">
+                    Add all
+                    <p class="text-gray-400 text-xs">
+                      Use this option to include all your assets in the sending list.
+                    </p>
+                  </div>
+                </div>
+              </a>
+            </div>
           </template>
         </drop-down>
         <p class="input-error" v-if="v$.selected.$error">{{ v$.selected.$errors[0].$message }}</p>
@@ -98,11 +111,9 @@ import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
-import { TRANSACTION_URL } from "@/constants/explorer";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
+import { UnsignedTx } from "@/types/connector";
 import { bip32Pool } from "@/utils/objectPool";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import { explorerService } from "@/api/explorer/explorerService";
 import { TxAssetAmount, TxBuilder } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { submitTx } from "@/api/ergo/submitTx";
@@ -110,16 +121,30 @@ import { AxiosError } from "axios";
 import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
-import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { fetchBabelBoxes, selectOneBoxFrom } from "@/api/ergo/babelFees";
+import { graphQLService } from "@/api/explorer/graphQlService";
+import { SignedTransaction } from "@ergo-graphql/types";
+
+const validations = {
+  recipient: {
+    required: helpers.withMessage("Receiver address is required.", required),
+    validErgoAddress
+  },
+  selected: {
+    required: helpers.withMessage(
+      "At least one asset should be selected in order to send a transaction.",
+      required
+    )
+  }
+};
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, LedgerSigningModal, TxSignModal, FeeSelector },
+  components: { AssetInput, LoadingModal, TxSignModal },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
   },
   created() {
     if (this.$route.query.recipient) {
@@ -241,18 +266,7 @@ export default defineComponent({
     };
   },
   validations() {
-    return {
-      recipient: {
-        required: helpers.withMessage("Receiver address is required.", required),
-        validErgoAddress
-      },
-      selected: {
-        required: helpers.withMessage(
-          "At least one asset should be selected in order to send a transaction.",
-          required
-        )
-      }
-    };
+    return validations;
   },
   methods: {
     getReserveAmountFor(tokenId: string): BigNumberType | undefined {
@@ -291,11 +305,8 @@ export default defineComponent({
         : this.currentWallet.settings.defaultChangeIndex;
 
       try {
-        const [boxes, [bestBlock]] = await Promise.all([
-          await fetchBoxes(this.currentWallet.id),
-          await explorerService.getBlockHeaders({ limit: 1 })
-        ]);
-
+        const boxes = await fetchBoxes(this.currentWallet.id);
+        const [bestBlock] = await graphQLService.getBlockHeaders({ take: 1 });
         if (!bestBlock) {
           throw Error("Unable to fetch current height, please check your connection.");
         }
@@ -354,7 +365,7 @@ export default defineComponent({
       this.transaction = undefined;
       this.v$.$reset();
     },
-    async onSuccess(signedTx: ErgoTx) {
+    async onSuccess(signedTx: SignedTransaction) {
       this.signModalActive = false;
       this.stateMessage = "Signed. Submitting transaction...";
 
@@ -407,7 +418,7 @@ export default defineComponent({
       }
     },
     urlForTransaction(txId: string): string {
-      return `${TRANSACTION_URL}${txId}`;
+      return new URL(`/transactions/${txId}`, this.$store.state.settings.explorerUrl).toString();
     },
     add(asset: StateAsset) {
       this.removeDisposableSelections();
@@ -416,6 +427,13 @@ export default defineComponent({
       if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
         this.setMinBoxValue();
       }
+    },
+    addAll() {
+      this.unselected.forEach((unselected) => {
+        this.selected.push({ asset: unselected });
+      });
+
+      this.setMinBoxValue();
     },
     remove(tokenId: string) {
       remove(this.selected, (a) => a.asset.tokenId === tokenId);

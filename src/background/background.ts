@@ -4,21 +4,22 @@ import { find, isEmpty } from "lodash";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { postConnectorResponse } from "./messagingUtils";
 import {
-  handleGetBalanceRequest,
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
   handleGetAddressesRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest,
-  handleAuthRequest
+  handleAuthRequest,
+  handleGetBalanceRequest,
+  handleGetCurrentHeightRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 import { Browser } from "@/utils/browserApi";
-import "@/config/axiosConfig";
+import { graphQLService } from "@/api/explorer/graphQlService";
 
 const sessions = new Map<number, Session>();
-const ORIGIN_MATCHER = /^https?\:\/\/([^\/?#]+)(?:[\/?#]|$)/i;
+const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
 function getOrigin(url?: string) {
   if (!url) {
@@ -32,6 +33,7 @@ function getOrigin(url?: string) {
 }
 
 Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
+  // eslint-disable-next-line no-console
   console.log(`connected with ${getOrigin(port.sender?.url)}`);
 
   if (port.name === "nautilus-ui") {
@@ -44,6 +46,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
               break;
             case "disconnected":
               handleOriginDisconnect(message);
+              break;
+            case "updated:graphql-url":
+              graphQLService.updateServerUrl(message.data);
               break;
           }
         } else if (message.type === "rpc/nautilus-response") {
@@ -94,6 +99,9 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
         case "signTxInput":
         case "signData":
           await handleNotImplementedRequest(message, port, session);
+          break;
+        case "getCurrentHeight":
+          await handleGetCurrentHeightRequest(message, port, session);
           break;
         case "submitTx":
           await handleSubmitTxRequest(message, port, sessions.get(tabId));

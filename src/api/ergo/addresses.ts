@@ -1,6 +1,6 @@
 import { P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
-import { Address, Network } from "@coinbarn/ergo-ts";
+import { ErgoAddress, Network } from "@fleet-sdk/core";
 import { isEmpty, last, uniq } from "lodash";
 import { extractPksFromP2SErgoTree, extractPksFromRegisters } from "./sigmaSerializer";
 
@@ -23,20 +23,16 @@ export function getChangeAddress(
 }
 
 export function addressFromPk(pk: string) {
-  return Address.fromPk(pk, network).address;
+  return ErgoAddress.fromPublicKey(pk, network).toString();
 }
 
 export function addressFromErgoTree(ergoTree: string) {
-  return Address.fromErgoTree(ergoTree, network).address;
-}
-
-export function addressFromSk(sk: string) {
-  return Address.fromSk(sk, network).address;
+  return ErgoAddress.fromErgoTree(ergoTree, network).toString();
 }
 
 export function validateAddress(address: string) {
-  const addr = new Address(address);
-  return addr.isValid() && addr.getNetwork() === network;
+  const addr = ErgoAddress.fromBase58(address);
+  return addr.isValid() && addr.network === network;
 }
 
 function extractAddressesFromInput(input: UnsignedInput): string[] {

@@ -34,7 +34,7 @@ import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
-import { logoMapper } from "@/mappers/logoMapper";
+import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
 import { isEmpty } from "lodash";
 
@@ -53,10 +53,12 @@ export default defineComponent({
   },
   computed: {
     logo(): string | undefined {
-      const logoFile = logoMapper[this.tokenId];
+      const logoFile = assetIconMap[this.tokenId];
       if (logoFile) {
         return `/icons/assets/${logoFile}`;
       }
+
+      return undefined;
     },
     hasLogo(): boolean {
       return this.logo !== undefined;

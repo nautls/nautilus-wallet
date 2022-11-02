@@ -114,7 +114,6 @@ import {
   WalletType
 } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import ToolTip from "@/components/ToolTip.vue";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { PasswordError } from "@/types/errors";
@@ -130,7 +129,6 @@ import "vue-json-pretty/lib/styles.css";
 export default defineComponent({
   name: "TxSignView",
   components: {
-    ToolTip,
     LoadingModal,
     LedgerSigningModal,
     TxBoxDetails,

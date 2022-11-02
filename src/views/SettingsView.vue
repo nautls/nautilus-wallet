@@ -11,7 +11,7 @@
         class="w-full control block"
       />
       <p class="input-error" v-if="(v$.walletSettings as any).name.$error">
-        {{ (v$.walletSettings as any).name.$errors[0].$message }}
+        {{ (v$.walletSettings as any).name.$errors[0]?.$message }}
       </p>
     </label>
     <div>
@@ -73,7 +73,7 @@
               :disabled="loading"
               class="w-full !py-1 appearance-none control cursor-pointer"
             >
-              <option v-for="currency in currencies" :value="currency">
+              <option v-for="currency in currencies" :value="currency" :key="currency">
                 {{ $filters.uppercase(currency) }}
               </option>
             </select>
@@ -97,6 +97,32 @@
           <p>Enable advanced tools.</p>
         </div>
       </div>
+      <label>
+        GraphQL server
+        <input
+          @blur="(v$.globalSettings as any).graphQLServer.$touch()"
+          v-model.lazy="globalSettings.graphQLServer"
+          type="text"
+          spellcheck="false"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="(v$.globalSettings as any).graphQLServer.$error">
+          {{ (v$.globalSettings as any).graphQLServer.$errors[0]?.$message }}
+        </p>
+      </label>
+      <label>
+        Explorer URL
+        <input
+          @blur="(v$.globalSettings as any).explorerUrl.$touch()"
+          v-model.lazy="globalSettings.explorerUrl"
+          type="text"
+          spellcheck="false"
+          class="w-full control block"
+        />
+        <p class="input-error" v-if="(v$.globalSettings as any).explorerUrl.$error">
+          {{ (v$.globalSettings as any).explorerUrl.$errors[0]?.$message }}
+        </p>
+      </label>
     </div>
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">Danger zone</div>
     <div>
@@ -128,7 +154,15 @@ import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
-import { clone, isEqual } from "lodash";
+import { clone, isEmpty, isEqual } from "lodash";
+import {
+  getDefaultServerUrl,
+  validateServerNetwork,
+  validateServerVersion,
+  MIN_SERVER_VERSION
+} from "@/api/explorer/graphQlService";
+import { validUrl } from "@/validators";
+import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 
 export default defineComponent({
   name: "SettingsView",
@@ -193,7 +227,9 @@ export default defineComponent({
       },
       globalSettings: {
         conversionCurrency: "",
-        devMode: !MAINNET
+        devMode: !MAINNET,
+        graphQLServer: "",
+        explorerUrl: ""
       },
       walletChanged: true,
       loading: true,
@@ -206,6 +242,34 @@ export default defineComponent({
       walletSettings: {
         name: {
           required: helpers.withMessage("Wallet name is required.", required)
+        }
+      },
+      globalSettings: {
+        explorerUrl: {
+          validUrl
+        },
+        graphQLServer: {
+          validUrl,
+          network: helpers.withMessage(
+            "Wrong server network.",
+            helpers.withAsync(async (url: string) => {
+              if (!url) {
+                return true;
+              }
+
+              return await validateServerNetwork(url);
+            })
+          ),
+          version: helpers.withMessage(
+            `Unsupported server version. Minimum required version: ${MIN_SERVER_VERSION.join(".")}`,
+            helpers.withAsync(async (url: string) => {
+              if (!url) {
+                return true;
+              }
+
+              return await validateServerVersion(url);
+            })
+          )
         }
       }
     };
@@ -223,10 +287,10 @@ export default defineComponent({
       }
     },
     async updateWallet() {
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
+      if (!(await this.v$.walletSettings.$validate())) {
         return;
       }
+
       const command = {
         walletId: this.currentWallet.id,
         ...this.walletSettings
@@ -234,6 +298,18 @@ export default defineComponent({
       await this.updateWalletSettings(command);
     },
     async updateGlobal() {
+      if (isEmpty(this.globalSettings.graphQLServer)) {
+        this.globalSettings.graphQLServer = getDefaultServerUrl();
+      }
+
+      if (isEmpty(this.globalSettings.explorerUrl)) {
+        this.globalSettings.explorerUrl = DEFAULT_EXPLORER_URL;
+      }
+
+      if (!(await this.v$.globalSettings.$validate())) {
+        return;
+      }
+
       if (!isEqual(this.settings, this.globalSettings)) {
         await this.saveSettings(this.globalSettings);
         this.fetchPrices();

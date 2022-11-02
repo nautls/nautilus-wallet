@@ -1,8 +1,8 @@
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
-var webpack = require("webpack");
-const { defineConfig } = require("@vue/cli-service");
 const WebpackExtensionManifestPlugin = require("webpack-extension-manifest-plugin");
+const webpack = require("webpack");
+const { defineConfig } = require("@vue/cli-service");
 
 const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 const mainnet = !process.argv.includes("--testnet");
@@ -71,7 +71,7 @@ module.exports = defineConfig({
     config.plugin("ignore").use(
       new webpack.IgnorePlugin({
         resourceRegExp: /^\.\/wordlists\/(?!english)/,
-        contextRegExp: /bip39\\src$/
+        contextRegExp: /bip39\/src$/
       })
     );
 
@@ -98,8 +98,8 @@ module.exports = defineConfig({
       .use("vue-loader")
       .loader("vue-loader")
       .end()
-      .use("vue-svg-loader")
-      .loader("vue-svg-loader")
+      .use("inline-svg-loader")
+      .loader("./loaders/svgLoader.js")
       .end();
 
     config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();

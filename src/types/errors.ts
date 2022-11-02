@@ -6,7 +6,7 @@ export class TxSignError extends Error {
 }
 
 export class PasswordError extends Error {
-  constructor(errorMessage: string = "Wrong password.") {
+  constructor(errorMessage = "Wrong password.") {
     super(errorMessage);
     this.name = this.constructor.name;
   }

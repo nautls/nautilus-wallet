@@ -27,6 +27,9 @@ import {
   mdiWalletPlus,
   mdiWalletOutline,
   mdiBackupRestore,
+  mdiCheckAll,
+  mdiEye,
+  mdiEyeOff,
   mdiSwapVertical
 } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
@@ -56,6 +59,9 @@ const mdiSettings = {
     mdiWalletPlus,
     mdiWalletOutline,
     mdiBackupRestore,
+    mdiCheckAll,
+    mdiEye,
+    mdiEyeOff,
     mdiSwapVertical
   }
 };
@@ -65,8 +71,9 @@ const orugaSettings = {
     checkCheckedClass: "bg-blue-600"
   },
   modal: {
-    overlayClass: "opacity-40 ",
-    rootClass: "outline-none"
+    overlayClass: "opacity-40",
+    rootClass: "outline-none",
+    contentClass: "z-10"
   }
 };
 

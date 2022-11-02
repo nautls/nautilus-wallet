@@ -21,7 +21,7 @@ describe("bigNumber helpers", () => {
   });
 
   it("undecimalize numbers with various decimal places", () => {
-    let base = "1";
+    const base = "1";
     for (let i = 0; i < 20; i++) {
       base.padEnd(i, "0");
       expect(undecimalize(new BigNumber(base), i).toString()).toEqual(
