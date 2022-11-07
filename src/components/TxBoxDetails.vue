@@ -10,8 +10,12 @@
 
     <ul class="px-3 py-1">
       <li v-for="(asset, index) in assets" :key="index">
-        <div v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1" class="text-center">
-          <mdi-icon name="swap-vertical" size="24" class="align-middle text-gray-500" />
+        <div v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1" class="text-center py-2">
+          <mdi-icon
+            name="swap-vertical-variant"
+            size="24"
+            class="align-middle text-gray-600 transform-flip"
+          />
         </div>
         <div class="flex flex-row items-center gap-2 py-1">
           <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />

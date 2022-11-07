@@ -137,7 +137,7 @@ export class OutputInterpreter {
     if (isEmpty(this._box.additionalRegisters)) {
       return {
         tokenId: token.tokenId,
-        amount: toBigNumber(token.amount)!
+        amount: toBigNumber(token.amount)
       };
     }
 
@@ -147,8 +147,8 @@ export class OutputInterpreter {
       name: decodeColl(this._box.additionalRegisters["R4"]) ?? "",
       decimals,
       amount: decimals
-        ? decimalize(toBigNumber(token.amount)!, decimals)
-        : toBigNumber(token.amount)!,
+        ? decimalize(toBigNumber(token.amount), decimals)
+        : toBigNumber(token.amount),
       description: decodeColl(this._box.additionalRegisters["R5"]) ?? "",
       minting: true
     };

@@ -30,7 +30,7 @@ import {
   mdiCheckAll,
   mdiEye,
   mdiEyeOff,
-  mdiSwapVertical
+  mdiSwapVerticalVariant
 } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
 
@@ -62,7 +62,7 @@ const mdiSettings = {
     mdiCheckAll,
     mdiEye,
     mdiEyeOff,
-    mdiSwapVertical
+    mdiSwapVerticalVariant
   }
 };
 

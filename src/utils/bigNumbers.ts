@@ -17,7 +17,7 @@ export function decimalize(
   return value.shiftedBy(decimals * -1);
 }
 
-export function undecimalize(value: BigNumberType, decimals: number): BigNumber {
+export function undecimalize(value: BigNumberType, decimals?: number): BigNumber {
   if (!decimals) {
     return value as BigNumber;
   }

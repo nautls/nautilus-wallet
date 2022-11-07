@@ -104,17 +104,14 @@
 import { defineComponent, Ref } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
+import { BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
-import { ACTIONS } from "@/constants/store";
-import { decimalize, undecimalize } from "@/utils/bigNumbers";
+import { decimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { UnsignedTx } from "@/types/connector";
-import { bip32Pool } from "@/utils/objectPool";
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import { TxAssetAmount, TxBuilder } from "@/api/ergo/transaction/txBuilder";
+import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { submitTx } from "@/api/ergo/submitTx";
 import { AxiosError } from "axios";
@@ -123,9 +120,8 @@ import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { fetchBabelBoxes, selectOneBoxFrom } from "@/api/ergo/babelFees";
-import { graphQLService } from "@/api/explorer/graphQlService";
 import { SignedTransaction } from "@ergo-graphql/types";
+import { ErgoAddress } from "@fleet-sdk/core";
 
 const validations = {
   recipient: {
@@ -147,6 +143,11 @@ export default defineComponent({
     return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
   },
   created() {
+    console.log(
+      ErgoAddress.fromBase58(
+        "5myqJ494arPP7qtYkiSdQ5U1Lurehark4ZBNYNo2vyTAUGhaS5oXiRM3iXvBcqnhJgAfPT7veafwArK8AP43n6Znt7g3ndVyhEuF8qKbXYzmpWVWsLAeCi2qzKQL24dnPyEyFgELoi3oAqqxHdK8KWH7pA911FyFHNEq6tAteNPRUT4DrojC57oDsGdiG86mGXUm589m42bLVR5F1mm3TyjD1drAo1tc57Ffara4CHgTD46BpR27xhV3wx35Gnn23Z3"
+      ).ergoTree
+    );
     if (this.$route.query.recipient) {
       this.recipient = this.$route.query.recipient as string;
     }
@@ -287,66 +288,18 @@ export default defineComponent({
       this.state = "loading";
       this.stateMessage = "Loading context data...";
 
-      if (this.currentWallet.settings.avoidAddressReuse) {
-        const unused = find(
-          this.$store.state.currentAddresses,
-          (a) => a.state === AddressState.Unused && a.script !== this.recipient
-        );
-        if (!unused) {
-          await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
-        }
-      }
-
-      const addresses = this.$store.state.currentAddresses;
-      const deriver = bip32Pool.get(this.currentWallet.publicKey);
-      const changeIndex = this.currentWallet.settings.avoidAddressReuse
-        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== this.recipient)
-            ?.index ?? this.currentWallet.settings.defaultChangeIndex
-        : this.currentWallet.settings.defaultChangeIndex;
-
       try {
-        const boxes = await fetchBoxes(this.currentWallet.id);
-        const bestBlock = await graphQLService.getCurrentHeight();
-        if (!bestBlock) {
-          throw Error("Unable to fetch current height, please check your connection.");
-        }
+        const unsignedTx = await createP2PTransaction({
+          recipientAddress: this.recipient,
+          assets: this.selected,
+          fee: this.feeSettings
+        });
 
-        if (this.feeSettings.tokenId !== ERG_TOKEN_ID) {
-          const babelBoxes = await fetchBabelBoxes(this.feeSettings.tokenId);
-          const selectedBox = selectOneBoxFrom(
-            babelBoxes,
-            undecimalize(this.feeSettings.value, this.feeSettings.assetInfo?.decimals || 0)
+        const burning = new TxInterpreter(unsignedTx, [], this.$store.state.assetInfo).burning;
+        if (!isEmpty(burning)) {
+          throw new Error(
+            "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way."
           );
-
-          if (!selectedBox) {
-            throw Error(
-              "There is not enough liquidity in the Babel Boxes for the selected fee asset."
-            );
-          }
-
-          this.feeSettings.box = selectedBox;
-        }
-
-        const unsignedTx = new TxBuilder(deriver)
-          .to(this.recipient)
-          .inputs(boxes)
-          .assets(this.selected as TxAssetAmount[])
-          .fee(this.feeSettings)
-          .height(bestBlock)
-          .changeIndex(changeIndex ?? 0)
-          .build();
-
-        const parsedTx = new TxInterpreter(
-          unsignedTx,
-          addresses.map((a) => a.script),
-          this.$store.state.assetInfo
-        );
-
-        if (!isEmpty(parsedTx.burning)) {
-          this.state = "error";
-          this.stateMessage =
-            "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way.";
-          return;
         }
 
         this.transaction = Object.freeze(unsignedTx);

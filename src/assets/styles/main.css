@@ -45,6 +45,13 @@ label {
   @apply font-semibold text-sm;
 }
 
+.transform-flip {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
 .default-transition {
   @apply transition-all ease-linear duration-150;
 }

@@ -87,7 +87,7 @@
 <script lang="ts">
 import { addressFromErgoTree } from "@/api/ergo/addresses";
 import {
-  buildBabelErgoTreeFor,
+  buildBabelContractFor,
   extractTokenIdFromBabelContract,
   getNanoErgsPerTokenRate,
   isValidBabelBox
@@ -125,7 +125,7 @@ export default defineComponent({
 
     const addresses = this.nonNftAssets
       .filter((x) => x.tokenId !== ERG_TOKEN_ID)
-      .map((x) => addressFromErgoTree(buildBabelErgoTreeFor(x.tokenId)));
+      .map((x) => addressFromErgoTree(buildBabelContractFor(x.tokenId)));
 
     const allBoxes = await graphQLService.getUnspentBoxes(addresses);
     const groups = groupBy(

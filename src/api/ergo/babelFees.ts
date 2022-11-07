@@ -11,7 +11,7 @@ const BABEL_ERGOTREE_PREFIX = "100604000e20";
 const BABEL_ERGOTREE_SUFFIX =
   "0400040005000500d803d601e30004d602e4c6a70408d603e4c6a7050595e67201d804d604b2a5e4720100d605b2db63087204730000d606db6308a7d60799c1a7c17204d1968302019683050193c27204c2a7938c720501730193e4c672040408720293e4c672040505720393e4c67204060ec5a796830201929c998c7205029591b1720673028cb272067303000273047203720792720773057202";
 
-export function buildBabelErgoTreeFor(tokenId: string): string {
+export function buildBabelContractFor(tokenId: string): string {
   return `${BABEL_ERGOTREE_PREFIX}${tokenId}${BABEL_ERGOTREE_SUFFIX}`;
 }
 
@@ -42,7 +42,7 @@ export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
 
 export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
   const response = await graphQLService.getUnspentBoxes([
-    addressFromErgoTree(buildBabelErgoTreeFor(tokenId))
+    addressFromErgoTree(buildBabelContractFor(tokenId))
   ]);
 
   const boxes = response.filter((box) => isValidBabelBox(box));
@@ -61,7 +61,7 @@ export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promi
  * @param amount Undecimalized amount
  * @returns
  */
-export function selectOneBoxFrom(boxes: ErgoBox[], amount: BigNumberType): ErgoBox | undefined {
+export function selectBestBabelBox(boxes: ErgoBox[], amount: BigNumberType): ErgoBox | undefined {
   return boxes.find((box) =>
     amount.multipliedBy(getNanoErgsPerTokenRate(box)).isLessThanOrEqualTo(box.value)
   );
