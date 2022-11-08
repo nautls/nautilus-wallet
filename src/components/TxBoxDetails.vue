@@ -1,7 +1,12 @@
 <template>
   <div class="flex shadow-sm flex-col border rounded" :class="boxStyles">
     <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none" :class="headerStyles">
-      <slot />
+      <div class="flex flex-row items-center w-full">
+        <div class="flex w-full">
+          <slot />
+        </div>
+        <div v-if="babelSwap" class="flex-shrink"><babel-badge class="h-5 w-5 align-middle" /></div>
+      </div>
 
       <div class="text-xs font-normal text-gray-600 pt-1" v-if="$slots.subheader">
         <slot name="subheader" />
@@ -57,15 +62,19 @@
 import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { defineComponent, PropType } from "vue";
+import BabelBadge from "@/assets/images/babel-badge.svg";
 
 export default defineComponent({
   name: "TxBoxDetails",
+  components: {
+    BabelBadge
+  },
   props: {
     assets: { type: Array as PropType<Array<OutputAsset>>, required: true },
     babelSwap: { type: Boolean, default: false },
     type: {
-      type: String as PropType<"normal" | "danger" | "warning" | "info" | "success">,
-      default: "normal"
+      type: String as PropType<"default" | "danger" | "warning" | "info" | "success">,
+      default: "default"
     }
   },
   computed: {
@@ -79,7 +88,7 @@ export default defineComponent({
           return "border-blue-200";
         case "success":
           return "border-green-200";
-        case "normal":
+        case "default":
         default:
           return "border-gray-200";
       }
@@ -94,7 +103,7 @@ export default defineComponent({
           return "bg-blue-100 border-b-blue-200 text-blue-900";
         case "success":
           return "bg-green-100 border-b-green-200 text-green-900";
-        case "normal":
+        case "default":
         default:
           return "bg-gray-100 border-b-gray-200 text-gray-900";
       }

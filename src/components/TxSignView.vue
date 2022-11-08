@@ -17,7 +17,7 @@
       :assets="output.assets"
       :babel-swap="output.isBabelBoxSwap"
       :key="index"
-      :type="output.isIntrawallet ? 'info' : 'normal'"
+      :type="output.isIntrawallet ? 'info' : 'default'"
     >
       <p>
         {{ mountTitleForOutput(output) }}
@@ -290,7 +290,7 @@ export default defineComponent({
     },
     mountTitleForOutput(output: OutputInterpreter) {
       if (output.isBabelBoxSwap) {
-        return "Babel fee swap";
+        return "Babel Fee swap";
       } else if (output.isIntrawallet) {
         return "Sending to your address";
       } else if (!this.isP2PK(output.receiver)) {
