@@ -78,7 +78,10 @@
       </div>
     </div>
 
-    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="hasChange ? 1 : 0" />
+    <fee-selector
+      v-model:selected="feeSettings"
+      :include-min-amount-per-box="hasMinErgSelected || !hasChange ? 0 : 1"
+    />
 
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
@@ -106,7 +109,7 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
-import { decimalize } from "@/utils/bigNumbers";
+import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
@@ -162,6 +165,14 @@ export default defineComponent({
         this.selected.map((a) => a.asset),
         (a) => a.tokenId
       );
+    },
+    hasMinErgSelected(): boolean {
+      const erg = this.selected.find((x) => this.isErg(x.asset.tokenId));
+      if (!erg || !erg.amount || erg.amount.isZero()) {
+        return false;
+      }
+
+      return undecimalize(erg.amount, ERG_DECIMALS).isGreaterThanOrEqualTo(MIN_BOX_VALUE);
     },
     hasChange(): boolean {
       if (!isEmpty(this.unselected)) {
