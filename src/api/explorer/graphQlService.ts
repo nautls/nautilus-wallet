@@ -310,6 +310,54 @@ class GraphQLService {
     return boxes;
   }
 
+  public async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
+    const query = gql<{ mempool: { boxes: Box[] } }>`
+      query MempoolBoxes($address: String!, $skip: Int, $take: Int) {
+        mempool {
+          boxes(address: $address, skip: $skip, take: $take) {
+            boxId
+            transactionId
+            value
+            creationHeight
+            index
+            ergoTree
+            additionalRegisters
+            assets {
+              tokenId
+              amount
+            }
+          }
+        }
+      }
+    `;
+
+    let boxes: Box[] = [];
+    let lastChunkLength = 0;
+    let skip = 0;
+
+    do {
+      const response = await this._queryClient
+        .query(query, { address, skip, take: MAX_RESULTS_PER_REQUEST })
+        .toPromise();
+      skip += MAX_RESULTS_PER_REQUEST;
+      lastChunkLength = response.data?.mempool.boxes.length || 0;
+
+      if (response.data && !isEmpty(response.data?.mempool.boxes)) {
+        boxes = boxes.concat(response.data.mempool.boxes);
+      }
+    } while (lastChunkLength === MAX_RESULTS_PER_REQUEST);
+
+    return (
+      boxes.map((box) => {
+        return {
+          ...box,
+          confirmed: false,
+          additionalRegisters: box.additionalRegisters as Registers
+        };
+      }) || []
+    );
+  }
+
   private async getAddressesChunkUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
     const query = gql<{ boxes: Box[] }>`
       query Boxes($addresses: [String!], $skip: Int, $take: Int) {

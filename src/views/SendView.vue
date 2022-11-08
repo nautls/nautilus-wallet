@@ -121,7 +121,6 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { SignedTransaction } from "@ergo-graphql/types";
-import { ErgoAddress } from "@fleet-sdk/core";
 
 const validations = {
   recipient: {
@@ -143,11 +142,6 @@ export default defineComponent({
     return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
   },
   created() {
-    console.log(
-      ErgoAddress.fromBase58(
-        "5myqJ494arPP7qtYkiSdQ5U1Lurehark4ZBNYNo2vyTAUGhaS5oXiRM3iXvBcqnhJgAfPT7veafwArK8AP43n6Znt7g3ndVyhEuF8qKbXYzmpWVWsLAeCi2qzKQL24dnPyEyFgELoi3oAqqxHdK8KWH7pA911FyFHNEq6tAteNPRUT4DrojC57oDsGdiG86mGXUm589m42bLVR5F1mm3TyjD1drAo1tc57Ffara4CHgTD46BpR27xhV3wx35Gnn23Z3"
-      ).ergoTree
-    );
     if (this.$route.query.recipient) {
       this.recipient = this.$route.query.recipient as string;
     }

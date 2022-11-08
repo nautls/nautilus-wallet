@@ -20,7 +20,11 @@ export function isBabelErgoTree(ergoTree: string): boolean {
 }
 
 export function isValidBabelBox(box: ErgoBox): boolean {
-  return !isEmpty(box.additionalRegisters?.R4) && !isEmpty(box.additionalRegisters?.R5);
+  return (
+    !isEmpty(box.additionalRegisters?.R4) &&
+    !isEmpty(box.additionalRegisters?.R5) &&
+    !isEmpty(box.additionalRegisters?.R6)
+  );
 }
 
 export function isBabelContractForTokenId(ergoTree: string, tokenId: string) {
@@ -41,17 +45,32 @@ export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
 }
 
 export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
-  const response = await graphQLService.getUnspentBoxes([
-    addressFromErgoTree(buildBabelContractFor(tokenId))
-  ]);
+  const p2sAddress = addressFromErgoTree(buildBabelContractFor(tokenId));
 
-  const boxes = response.filter((box) => isValidBabelBox(box));
+  let boxes = filterValidBabelBoxes(await graphQLService.getMempoolBoxes(p2sAddress));
+  boxes = boxes.filter((box) => !boxes.some((x) => x.additionalRegisters.R6.endsWith(box.boxId)));
+
+  if (isEmpty(boxes)) {
+    boxes = filterValidBabelBoxes(await graphQLService.getUnspentBoxes([p2sAddress]));
+  }
 
   if (price) {
-    return boxes.filter((box) => getNanoErgsPerTokenRate(box).isGreaterThanOrEqualTo(price));
+    boxes = filterByPrice(boxes, price);
   }
 
   return sortBy(boxes, (box) => box.creationHeight);
+}
+
+function filterByPrice(boxes: ErgoBox[], price: BigNumber): ErgoBox[] {
+  return boxes.filter((box) => getNanoErgsPerTokenRate(box).isGreaterThanOrEqualTo(price));
+}
+
+function filterValidBabelBoxes(boxes: ErgoBox[]): ErgoBox[] {
+  if (isEmpty(boxes)) {
+    return boxes;
+  }
+
+  return boxes.filter((box) => isValidBabelBox(box));
 }
 
 /**
