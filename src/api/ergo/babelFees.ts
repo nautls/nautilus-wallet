@@ -15,7 +15,7 @@ export function buildBabelContractFor(tokenId: string): string {
   return `${BABEL_ERGOTREE_PREFIX}${tokenId}${BABEL_ERGOTREE_SUFFIX}`;
 }
 
-export function isBabelErgoTree(ergoTree: string): boolean {
+export function isBabelContract(ergoTree: string): boolean {
   return ergoTree.startsWith(BABEL_ERGOTREE_PREFIX) && ergoTree.endsWith(BABEL_ERGOTREE_SUFFIX);
 }
 

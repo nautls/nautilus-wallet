@@ -6,7 +6,7 @@ import { find, findIndex, first, isEmpty } from "lodash";
 import { addressFromErgoTree } from "@/api/ergo/addresses";
 import { decodeColl } from "@/api/ergo/sigmaSerializer";
 import { StateAssetInfo } from "@/types/internal";
-import { isBabelErgoTree } from "../../babelFees";
+import { isBabelContract } from "../../babelFees";
 
 export type OutputAsset = {
   tokenId: string;
@@ -42,7 +42,7 @@ export class OutputInterpreter {
 
   public get isBabelBoxSwap(): boolean {
     return (
-      isBabelErgoTree(this._box.ergoTree) &&
+      isBabelContract(this._box.ergoTree) &&
       this._inputs.find((input) => input.ergoTree === this._box.ergoTree) !== undefined
     );
   }
