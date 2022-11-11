@@ -110,22 +110,14 @@ class GraphQLService {
           initialDelayMs: 1000,
           maxDelayMs: 5000,
           randomDelay: true,
-          maxNumberAttempts: 10,
-          retryIf(error) {
-            return (
-              !!error.networkError ||
-              (!!error.message &&
-                error.message.startsWith("Malformed transaction") &&
-                !error.message.match(/.*[iI]nput.*not found$/gm))
-            );
-          },
+          maxNumberAttempts: 6,
           retryWith(error, operation) {
             const context = {
               ...operation.context,
               url:
-                error.message && !!error.message.match(/.*[iI]nput.*not found$/gm)
-                  ? defaultUrl
-                  : getRandomServerUrl()
+                error.message && !error.message.match(/.*[iI]nput.*not found$/gm)
+                  ? getRandomServerUrl()
+                  : defaultUrl
             };
             return { ...operation, context };
           }
