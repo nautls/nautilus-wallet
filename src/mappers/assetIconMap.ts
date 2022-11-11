@@ -21,5 +21,6 @@ export const assetIconMap: { [tokenId: string]: string } = {
   ["e8b20745ee9d18817305f32eb21015831a48f02d40980de6e849f886dca7f807"]: "flux.svg",
   ["00bd762484086cf560d3127eb53f0769d76244d9737636b2699d55c56cd470bf"]: "epos.svg",
   ["18c938e1924fc3eadc266e75ec02d81fe73b56e4e9f4e268dffffcb30387c42d"]: "aht.svg",
-  ["59ee24951ce668f0ed32bdb2e2e5731b6c36128748a3b23c28407c5f8ccbf0f6"]: "walrus.png"
+  ["59ee24951ce668f0ed32bdb2e2e5731b6c36128748a3b23c28407c5f8ccbf0f6"]: "walrus.png",
+  ["3405d8f709a19479839597f9a22a7553bdfc1a590a427572787d7c44a88b6386"]: "love.svg"
 };
