@@ -20,11 +20,7 @@ export function isBabelContract(ergoTree: string): boolean {
 }
 
 export function isValidBabelBox(box: ErgoBox): boolean {
-  return (
-    !isEmpty(box.additionalRegisters?.R4) &&
-    !isEmpty(box.additionalRegisters?.R5) &&
-    !isEmpty(box.additionalRegisters?.R6)
-  );
+  return !isEmpty(box.additionalRegisters?.R4) && !isEmpty(box.additionalRegisters?.R5);
 }
 
 export function isBabelContractForTokenId(ergoTree: string, tokenId: string) {
@@ -44,18 +40,22 @@ export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
   );
 }
 
-export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
+export async function fetchBabelBoxes(tokenId: string, price?: BigNumberType): Promise<ErgoBox[]> {
   const p2sAddress = addressFromErgoTree(buildBabelContractFor(tokenId));
 
   let boxes = filterValidBabelBoxes(await graphQLService.getMempoolBoxes(p2sAddress));
   boxes = boxes.filter((box) => !boxes.some((x) => x.additionalRegisters.R6.endsWith(box.boxId)));
 
-  if (isEmpty(boxes)) {
-    boxes = filterValidBabelBoxes(await graphQLService.getUnspentBoxes([p2sAddress]));
+  if (price) {
+    boxes = filterByPrice(boxes, price as BigNumber);
   }
 
-  if (price) {
-    boxes = filterByPrice(boxes, price);
+  if (isEmpty(boxes)) {
+    boxes = filterValidBabelBoxes(await graphQLService.getUnspentBoxes([p2sAddress]));
+
+    if (price) {
+      boxes = filterByPrice(boxes, price as BigNumber);
+    }
   }
 
   return sortBy(boxes, (box) => box.creationHeight);

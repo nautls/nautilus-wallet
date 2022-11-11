@@ -78,10 +78,7 @@
       </div>
     </div>
 
-    <fee-selector
-      v-model:selected="feeSettings"
-      :include-min-amount-per-box="hasMinErgSelected || !hasChange ? 0 : 1"
-    />
+    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
 
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
@@ -104,14 +101,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref } from "vue";
+import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
-import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
+import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { UnsignedTx } from "@/types/connector";
 import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
@@ -142,7 +139,9 @@ export default defineComponent({
   name: "SendView",
   components: { AssetInput, LoadingModal, TxSignModal, FeeSelector },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
+    return {
+      v$: useVuelidate()
+    };
   },
   created() {
     if (this.$route.query.recipient) {
@@ -243,13 +242,9 @@ export default defineComponent({
         this.setErgAsSelected();
       }
     },
-    feeSettings(newVal: FeeSettings) {
-      if (this.isErg(newVal.tokenId)) {
+    ["feeSettings.tokenId"](newVal: string) {
+      if (this.isErg(newVal)) {
         this.setErgAsSelected();
-      }
-
-      if (this.selected.length > 1) {
-        this.removeDisposableSelections();
       }
     },
     ["selected.length"]() {
@@ -421,13 +416,7 @@ export default defineComponent({
         return;
       }
 
-      if (
-        !first.amount ||
-        (this.selected.length === 1 && first.amount.isZero()) ||
-        (this.selected.length > 1 &&
-          this.isErg(first.asset.tokenId) &&
-          first.amount?.isLessThanOrEqualTo(this.minBoxValue))
-      ) {
+      if (!first.amount || first.amount.isZero()) {
         this.remove(first.asset.tokenId);
       }
     },

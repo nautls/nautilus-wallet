@@ -56,7 +56,7 @@ export async function createP2PTransaction({
 
   if (isBabelFeeTransaction) {
     const selectedBox = selectBestBabelBox(
-      await fetchBabelBoxes(fee.tokenId),
+      await fetchBabelBoxes(fee.tokenId, fee.nanoErgsPerToken),
       babelTokenUnitsAmount
     );
 

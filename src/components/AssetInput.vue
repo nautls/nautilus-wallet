@@ -169,7 +169,7 @@ export default defineComponent({
     return {
       confirmedAmount: {
         minValue: helpers.withMessage(
-          ({ $params }: any) =>
+          ({ $params }) =>
             `You need at least ${$params.min} ${this.asset.info?.name} to send this transaction`,
           bigNumberMinValue(this.minRequired)
         )

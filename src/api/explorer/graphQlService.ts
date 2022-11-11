@@ -27,7 +27,7 @@ const MAX_PARAMS_PER_REQUEST = 20;
 
 const GRAPHQL_SERVERS = MAINNET
   ? [
-      "https://gql.ergoplatform.com/",
+      // "https://gql.ergoplatform.com/",
       "https://graphql.erg.zelcore.io/",
       // "https://ergo-explorer.getblok.io/graphql/",
       "https://explore.sigmaspace.io/api/graphql",
