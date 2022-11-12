@@ -230,9 +230,11 @@ export default defineComponent({
         return;
       }
 
-      this.v$.$reset();
-      this.recalculateMinRequired();
+      if (this.multiplier != 1) {
+        this.multiplier = 1;
+      }
 
+      this.recalculateMinRequired();
       this.emitSelectedUpdate();
     },
     fee() {
@@ -291,7 +293,7 @@ export default defineComponent({
           this.internalSelected.info?.decimals || 0
         );
 
-        if (!this.v$.$dirty && this.cachedMinRequired.isGreaterThan(this.fee)) {
+        if (this.cachedMinRequired.isGreaterThan(this.fee)) {
           const m = this.cachedMinRequired.dividedBy(this.fee).integerValue(BigNumber.ROUND_UP);
           if (m.isGreaterThan(10)) {
             this.multiplier = 10;
