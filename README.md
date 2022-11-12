@@ -49,7 +49,7 @@ Nautilus Wallet is a comunity driven wallet designed for Ergo Platform with focu
 npm install
 ```
 
-### Build and hot-reload in development mode
+### Build and start in development mode
 
 ```bash
 # Mainnet
