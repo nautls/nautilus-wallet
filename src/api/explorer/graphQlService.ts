@@ -27,10 +27,10 @@ const GRAPHQL_SERVERS = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
       "https://graphql.erg.zelcore.io/",
-      "https://ergo-explorer.getblok.io/graphql/",
+      "https://ergo-explorer.anetabtc.io/graphql",
       "https://explore.sigmaspace.io/api/graphql"
     ]
-  : ["https://gql-testnet.ergoplatform.com/"];
+  : ["https://gql-testnet.ergoplatform.com/", "https://tn-ergo-explorer.anetabtc.io/graphql"];
 
 export function getDefaultServerUrl(): string {
   return GRAPHQL_SERVERS[0];
