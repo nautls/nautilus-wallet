@@ -27,21 +27,21 @@
 <img width="320" alt="Nautilus UI" align="right" src="https://user-images.githubusercontent.com/96133754/196059869-4639b60a-efa1-4eb3-aa5b-4bd0f38c582d.png">
 
 ## Description
+
 Nautilus Wallet is a comunity driven wallet designed for Ergo Platform with focus on privacy, security and user experience.
 
- - Easy to use
- - Blazing fast
- - Sandboxed NFT Gallery
- - Ledger support
- - Multi-wallet support
- - dApp Connector
-
+- Easy to use
+- Blazing fast
+- Sandboxed NFT Gallery
+- Ledger support
+- Multi-wallet support
+- dApp Connector
 
 ## Download
 
- - [From Chrome Store](https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai)
- - [From Firefox Store](https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/)
- - [From GitHub](https://github.com/capt-nemo429/nautilus-wallet/releases/latest)
+- [From Chrome Store](https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai)
+- [From Firefox Store](https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/)
+- [From GitHub](https://github.com/capt-nemo429/nautilus-wallet/releases/latest)
 
 ## Project setup
 
@@ -49,30 +49,26 @@ Nautilus Wallet is a comunity driven wallet designed for Ergo Platform with focu
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Build and hot-reload in development mode
 
-#### Mainnet
-
-```
-npm run serve
-```
-
-#### Testnet
-
-```
-npm run serve -- --testnet
+```bash
+# Mainnet
+npm run dev:mainnet
 ```
 
-### Compiles and minifies for production
-
-#### Mainnet
-
-```
-npm run build
+```bash
+# Testnet
+npm run dev:testnet
 ```
 
-#### Testnet
+### Build for production
 
+```bash
+# Mainnet
+npm run build:mainnet
 ```
-npm run build -- --testnet
+
+```bash
+# Testnet
+npm run build:testnet
 ```
