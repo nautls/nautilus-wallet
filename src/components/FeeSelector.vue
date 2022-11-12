@@ -26,6 +26,7 @@
             <o-slider
               v-model="multiplier"
               @click.prevent.stop
+              @change="v$.$touch()"
               :min="1"
               :max="10"
               :tooltip="false"
@@ -237,9 +238,6 @@ export default defineComponent({
     fee() {
       this.emitSelectedUpdate();
     },
-    multiplier() {
-      this.v$.$touch();
-    },
     includeMinAmountPerBox() {
       this.recalculateMinRequired();
     }
@@ -293,7 +291,7 @@ export default defineComponent({
           this.internalSelected.info?.decimals || 0
         );
 
-        if (this.cachedMinRequired.isGreaterThan(this.fee)) {
+        if (!this.v$.$dirty && this.cachedMinRequired.isGreaterThan(this.fee)) {
           const m = this.cachedMinRequired.dividedBy(this.fee).integerValue(BigNumber.ROUND_UP);
           if (m.isGreaterThan(10)) {
             this.multiplier = 10;
