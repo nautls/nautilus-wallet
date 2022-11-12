@@ -266,21 +266,18 @@ export default defineComponent({
   },
   methods: {
     getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
-      let units = new BigNumber(0);
       if (
         nanoErgs.isZero() ||
         !this.internalSelected ||
         !this.internalSelected.nanoErgsPerToken ||
         this.internalSelected.nanoErgsPerToken.isZero()
       ) {
-        return units;
+        return new BigNumber(0);
       }
 
-      while (this.internalSelected.nanoErgsPerToken.multipliedBy(units).isLessThan(nanoErgs)) {
-        units = units.plus(1);
-      }
-
-      return units;
+      return nanoErgs
+        .dividedBy(this.internalSelected.nanoErgsPerToken)
+        .integerValue(BigNumber.ROUND_UP);
     },
     recalculateMinRequired() {
       if (this.internalSelected.tokenId === ERG_TOKEN_ID) {
