@@ -230,13 +230,12 @@ export default defineComponent({
       }
 
       this.v$.$reset();
+      this.recalculateMinRequired();
+
       this.emitSelectedUpdate();
     },
     fee() {
       this.emitSelectedUpdate();
-      this.$nextTick(() => {
-        this.recalculateMinRequired();
-      });
     },
     multiplier() {
       this.v$.$touch();
@@ -294,11 +293,12 @@ export default defineComponent({
           this.internalSelected.info?.decimals || 0
         );
 
-        if (!this.v$.$dirty) {
-          if (this.cachedMinRequired.isGreaterThan(this.fee)) {
-            this.multiplier++;
-          } else if (this.cachedMinRequired.isLessThan(this.fee)) {
-            this.multiplier = 1;
+        if (this.cachedMinRequired.isGreaterThan(this.fee)) {
+          const m = this.cachedMinRequired.dividedBy(this.fee).integerValue(BigNumber.ROUND_UP);
+          if (m.isGreaterThan(10)) {
+            this.multiplier = 10;
+          } else {
+            this.multiplier = m.toNumber();
           }
         }
       }
