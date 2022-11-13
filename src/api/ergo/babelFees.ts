@@ -3,7 +3,7 @@ import { ErgoBox } from "@/types/connector";
 import { BigNumberType } from "@/types/internal";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { isEmpty, sortBy } from "lodash";
+import { first, isEmpty, orderBy, sortBy } from "lodash";
 import { graphQLService } from "../explorer/graphQlService";
 import { addressFromErgoTree } from "./addresses";
 
@@ -74,14 +74,19 @@ function filterValidBabelBoxes(boxes: ErgoBox[]): ErgoBox[] {
 }
 
 /**
- * select a box with enough ERG balance
+ * select a box with enough ERG balance and best rate
  *
  * @param boxes Unspent babel boxes
  * @param amount Undecimalized amount
  * @returns
  */
 export function selectBestBabelBox(boxes: ErgoBox[], amount: BigNumberType): ErgoBox | undefined {
-  return boxes.find((box) =>
-    amount.multipliedBy(getNanoErgsPerTokenRate(box)).isLessThanOrEqualTo(box.value)
+  return first(
+    orderBy(
+      boxes.filter((box) =>
+        amount.multipliedBy(getNanoErgsPerTokenRate(box)).isLessThanOrEqualTo(box.value)
+      ),
+      (box) => getNanoErgsPerTokenRate(box)
+    ).reverse()
   );
 }
