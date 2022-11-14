@@ -10,7 +10,7 @@
     </button>
     <div
       ref="its"
-      v-if="active"
+      v-show="active"
       @click="toggle()"
       :class="[position, listClass]"
       class="items-list"
