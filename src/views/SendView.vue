@@ -442,7 +442,6 @@ export default defineComponent({
       if (this.recipient.startsWith("~")) {
         this.resolving = true;
         this.ergonameInformation = await resolveErgoname(this.recipient);
-        console.log(this.ergonameInformation.tokenAddress);
 
         try {
           if (!this.ergonameInformation.registered) {
