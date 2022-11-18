@@ -31,7 +31,7 @@
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.2",
     "ergo-lib-wasm-browser": "^0.20.1",
-    "ergonames": "^0.5.4",
+    "ergonames": "^0.6.5",
     "feather-icons": "^4.29.0",
     "json-bigint": "^1.0.0",
     "ledger-ergo-js": "^0.1.3",

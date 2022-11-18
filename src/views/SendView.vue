@@ -158,7 +158,7 @@ import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { SignedTransaction } from "@ergo-graphql/types";
-import { resolve_ergoname } from "ergonames";
+import { resolveErgoname } from "ergonames";
 
 const validations = {
   recipientAddress: {
@@ -245,6 +245,7 @@ export default defineComponent({
       this.resolving = false;
       this.resolverError = "";
       this.recipientAddress = "";
+      this.ergonameInformation = { registered: false, tokenId: "", tokenAddress: "" };
       this.v$.recipientAddress.$reset();
 
       this.resolve();
@@ -268,6 +269,7 @@ export default defineComponent({
       password: "",
       recipient: "",
       recipientAddress: "",
+      ergonameInformation: { registered: false, tokenId: "", tokenAddress: "" },
       resolving: false,
       resolverError: "",
       feeMultiplier: 1,
@@ -439,12 +441,13 @@ export default defineComponent({
     async resolve() {
       if (this.recipient.startsWith("~")) {
         this.resolving = true;
+        this.ergonameInformation = await resolveErgoname(this.recipient);
 
         try {
-          this.recipientAddress = await resolve_ergoname(this.recipient);
-
-          if (!this.recipientAddress) {
+          if (!this.ergonameInformation.registered) {
             this.resolverError = "ergonames handle not found.";
+          } else {
+            this.recipientAddress = this.ergonameInformation.tokenAddress;
           }
         } catch {
           this.resolverError = "Unknown error while trying to resolve ergonames handle.";
