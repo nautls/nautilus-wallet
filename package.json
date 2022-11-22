@@ -9,7 +9,7 @@
     "build:testnet": "vue-cli-service build --testnet",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
-    "gen-bundle-profile": "webpack --mode production --config ./node_modules/@vue/cli-service/webpack.config.js --profile --json > stats.json"
+    "profile:bundle": "webpack --mode production --config ./node_modules/@vue/cli-service/webpack.config.js --profile --json > stats.json"
   },
   "dependencies": {
     "@download/blockies": "^1.0.3",
