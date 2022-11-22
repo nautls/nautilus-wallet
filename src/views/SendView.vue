@@ -14,21 +14,23 @@
     <div>
       <div class="flex flex-col gap-2">
         <asset-input
-          :label="index === 0 ? 'Assets' : ''"
           v-for="(item, index) in selected"
           :key="item.asset.tokenId"
-          v-model="item.amount"
+          :label="index === 0 ? 'Assets' : ''"
           :asset="item.asset"
-          :reserved-amount="isErg(item.asset.tokenId) ? reservedErgAmount : undefined"
+          :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
-          :disposable="!isErg(item.asset.tokenId)"
+          :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
+          v-model="item.amount"
         />
-        <drop-down :disabled="unselected.length === 0">
+        <drop-down
+          :disabled="unselected.length === 0"
+          list-class="max-h-50"
+          trigger-class="px-2 py-3 text-sm uppercase"
+        >
           <template v-slot:trigger>
-            <div class="text-sm w-full uppercase py-1 pl-6 text-center font-semibold">
-              Add asset
-            </div>
+            <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />
           </template>
           <template v-slot:items>
@@ -72,35 +74,12 @@
             </div>
           </template>
         </drop-down>
-        <div class="w-full">
-          <div class="w-auto float-right">
-            <drop-down discrete>
-              <template v-slot:trigger>
-                <div class="text-sm w-full text-right py-1 text-center">
-                  <span>Fee: {{ fee }} ERG</span>
-                </div>
-                <vue-feather type="chevron-down" size="18" />
-              </template>
-              <template v-slot:items>
-                <div class="group">
-                  <o-slider
-                    v-model="feeMultiplier"
-                    @click.prevent.stop
-                    :min="1"
-                    :max="5"
-                    :tooltip="false"
-                    fill-class="bg-blue-600 rounded-l"
-                    root-class="p-4"
-                    track-class="rounded-r"
-                    thumb-class="rounded"
-                  />
-                </div>
-              </template>
-            </drop-down>
-          </div>
-        </div>
+        <p class="input-error" v-if="v$.selected.$error">{{ v$.selected.$errors[0].$message }}</p>
       </div>
     </div>
+
+    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
+
     <div class="flex-grow"></div>
     <button class="btn w-full" @click="buildTx()">Confirm</button>
     <loading-modal
@@ -122,20 +101,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, Ref } from "vue";
+import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
-import { ERG_DECIMALS, ERG_TOKEN_ID, FEE_VALUE, MIN_BOX_VALUE } from "@/constants/ergo";
-import { AddressState, StateAsset, WalletType } from "@/types/internal";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
-import { ACTIONS } from "@/constants/store";
-import { decimalize } from "@/utils/bigNumbers";
+import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
-import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
+import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { UnsignedTx } from "@/types/connector";
-import { bip32Pool } from "@/utils/objectPool";
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import { TxAssetAmount, TxBuilder } from "@/api/ergo/transaction/txBuilder";
+import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { submitTx } from "@/api/ergo/submitTx";
 import { AxiosError } from "axios";
@@ -143,21 +119,29 @@ import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
-import { graphQLService } from "@/api/explorer/graphQlService";
+import FeeSelector from "@/components/FeeSelector.vue";
 import { SignedTransaction } from "@ergo-graphql/types";
 
 const validations = {
   recipient: {
     required: helpers.withMessage("Receiver address is required.", required),
     validErgoAddress
+  },
+  selected: {
+    required: helpers.withMessage(
+      "At least one asset should be selected in order to send a transaction.",
+      required
+    )
   }
 };
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, TxSignModal },
+  components: { AssetInput, LoadingModal, TxSignModal, FeeSelector },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<typeof validations>, unknown>> };
+    return {
+      v$: useVuelidate()
+    };
   },
   created() {
     if (this.$route.query.recipient) {
@@ -181,22 +165,36 @@ export default defineComponent({
         (a) => a.tokenId
       );
     },
+    hasMinErgSelected(): boolean {
+      const erg = this.selected.find((x) => this.isErg(x.asset.tokenId));
+      if (!erg || !erg.amount || erg.amount.isZero()) {
+        return false;
+      }
+
+      return undecimalize(erg.amount, ERG_DECIMALS).isGreaterThanOrEqualTo(MIN_BOX_VALUE);
+    },
     hasChange(): boolean {
       if (!isEmpty(this.unselected)) {
         return true;
       }
 
-      for (const asset of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
-        if (!asset.amount || !asset.amount.isEqualTo(asset.asset.confirmedAmount)) {
+      for (const item of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
+        if (
+          !item.amount ||
+          (!this.isFeeAsset(item.asset.tokenId) &&
+            !item.amount.isEqualTo(item.asset.confirmedAmount)) ||
+          (this.isFeeAsset(item.asset.tokenId) &&
+            !item.amount.isEqualTo(item.asset.confirmedAmount.minus(this.fee)))
+        ) {
           return true;
         }
       }
 
       return false;
     },
-    reservedErgAmount(): BigNumber {
-      const erg = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
-      if (!erg || erg.asset.confirmedAmount.isZero()) {
+    reservedFeeAssetAmount(): BigNumberType {
+      const feeAsset = find(this.selected, (a) => a.asset.tokenId === this.feeSettings.tokenId);
+      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
 
@@ -204,20 +202,27 @@ export default defineComponent({
         return this.fee;
       }
 
-      return this.fee.plus(this.changeValue);
+      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
+        return this.fee.plus(this.changeValue);
+      }
+
+      return this.fee;
     },
-    fee(): BigNumber {
-      return this.minFee.multipliedBy(this.feeMultiplier);
+    fee(): BigNumberType {
+      return this.feeSettings.value;
     },
-    changeValue(): BigNumber | undefined {
+    isFeeInErg() {
+      return this.isErg(this.feeSettings.tokenId);
+    },
+    changeValue(): BigNumberType | undefined {
       if (!this.hasChange) {
         return;
       }
 
       return this.minBoxValue;
     },
-    minBoxValue(): BigNumber {
-      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS) || new BigNumber(0);
+    minBoxValue(): BigNumberType {
+      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
     },
     devMode() {
       return this.$store.state.settings.devMode;
@@ -230,31 +235,48 @@ export default defineComponent({
     assets: {
       immediate: true,
       handler() {
-        if (!isEmpty(this.selected)) {
+        if (!isEmpty(this.selected) || this.v$.$anyDirty) {
           return;
         }
 
         this.setErgAsSelected();
       }
+    },
+    ["feeSettings.tokenId"](newVal: string) {
+      if (this.isErg(newVal)) {
+        this.setErgAsSelected();
+      }
+    },
+    ["selected.length"]() {
+      this.v$.selected.$touch();
     }
   },
   data() {
     return {
       selected: [] as TxAssetAmount[],
       transaction: undefined as Readonly<UnsignedTx> | undefined,
+      feeSettings: {
+        tokenId: ERG_TOKEN_ID,
+        value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+      } as FeeSettings,
       signModalActive: false,
       password: "",
       recipient: "",
-      feeMultiplier: 1,
       stateMessage: "",
-      state: "unknown",
-      minFee: Object.freeze(decimalize(new BigNumber(FEE_VALUE), ERG_DECIMALS))
+      state: "unknown"
     };
   },
   validations() {
     return validations;
   },
   methods: {
+    getReserveAmountFor(tokenId: string): BigNumberType | undefined {
+      if (this.isFeeAsset(tokenId)) {
+        return this.reservedFeeAssetAmount;
+      } else if (this.isErg(tokenId) && this.hasChange) {
+        return this.changeValue;
+      }
+    },
     async buildTx() {
       this.transaction = undefined;
 
@@ -266,50 +288,18 @@ export default defineComponent({
       this.state = "loading";
       this.stateMessage = "Loading context data...";
 
-      if (this.currentWallet.settings.avoidAddressReuse) {
-        const unused = find(
-          this.$store.state.currentAddresses,
-          (a) => a.state === AddressState.Unused && a.script !== this.recipient
-        );
-        if (!unused) {
-          await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
-        }
-      }
-
-      const addresses = this.$store.state.currentAddresses;
-      const deriver = bip32Pool.get(this.currentWallet.publicKey);
-      const changeIndex = this.currentWallet.settings.avoidAddressReuse
-        ? find(addresses, (a) => a.state === AddressState.Unused && a.script !== this.recipient)
-            ?.index ?? this.currentWallet.settings.defaultChangeIndex
-        : this.currentWallet.settings.defaultChangeIndex;
-
       try {
-        const boxes = await fetchBoxes(this.currentWallet.id);
-        const [bestBlock] = await graphQLService.getBlockHeaders({ take: 1 });
-        if (!bestBlock) {
-          throw Error("Unable to fetch current height, please check your connection.");
-        }
+        const unsignedTx = await createP2PTransaction({
+          recipientAddress: this.recipient,
+          assets: this.selected,
+          fee: this.feeSettings
+        });
 
-        const unsignedTx = new TxBuilder(deriver)
-          .to(this.recipient)
-          .inputs(boxes)
-          .assets(this.selected as TxAssetAmount[])
-          .fee(this.fee)
-          .height(bestBlock.height)
-          .changeIndex(changeIndex ?? 0)
-          .build();
-
-        const parsedTx = new TxInterpreter(
-          unsignedTx,
-          addresses.map((a) => a.script),
-          this.$store.state.assetInfo
-        );
-
-        if (!isEmpty(parsedTx.burning)) {
-          this.state = "error";
-          this.stateMessage =
-            "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way.";
-          return;
+        const burning = new TxInterpreter(unsignedTx, [], this.$store.state.assetInfo).burning;
+        if (!isEmpty(burning)) {
+          throw new Error(
+            "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way."
+          );
         }
 
         this.transaction = Object.freeze(unsignedTx);
@@ -366,17 +356,30 @@ export default defineComponent({
       this.signModalActive = false;
     },
     setErgAsSelected(): void {
+      if (!this.isFeeInErg && !isEmpty(this.selected)) {
+        return;
+      }
+
+      const selected = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
+      if (selected) {
+        return;
+      }
+
       const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
-        this.selected.push({ asset: erg, amount: undefined });
+        this.selected.unshift({ asset: erg, amount: undefined });
       }
     },
     urlForTransaction(txId: string): string {
       return new URL(`/transactions/${txId}`, this.$store.state.settings.explorerUrl).toString();
     },
     add(asset: StateAsset) {
+      this.removeDisposableSelections();
       this.selected.push({ asset });
-      this.setMinBoxValue();
+
+      if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
+        this.setMinBoxValue();
+      }
     },
     addAll() {
       this.unselected.forEach((unselected) => {
@@ -394,7 +397,7 @@ export default defineComponent({
         return;
       }
 
-      const erg = find(this.selected, (a) => this.isErg(a.asset.tokenId));
+      const erg = find(this.selected, (a) => this.isFeeAsset(a.asset.tokenId));
       if (!erg) {
         return;
       }
@@ -402,6 +405,23 @@ export default defineComponent({
       if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
         erg.amount = new BigNumber(this.minBoxValue);
       }
+    },
+    removeDisposableSelections() {
+      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
+        return;
+      }
+
+      const first = this.selected[0];
+      if (!first) {
+        return;
+      }
+
+      if (!first.amount || first.amount.isZero()) {
+        this.remove(first.asset.tokenId);
+      }
+    },
+    isFeeAsset(tokenId: string): boolean {
+      return tokenId === this.feeSettings.tokenId;
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;

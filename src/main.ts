@@ -29,7 +29,8 @@ import {
   mdiBackupRestore,
   mdiCheckAll,
   mdiEye,
-  mdiEyeOff
+  mdiEyeOff,
+  mdiSwapVerticalVariant
 } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
 
@@ -60,7 +61,8 @@ const mdiSettings = {
     mdiBackupRestore,
     mdiCheckAll,
     mdiEye,
-    mdiEyeOff
+    mdiEyeOff,
+    mdiSwapVerticalVariant
   }
 };
 

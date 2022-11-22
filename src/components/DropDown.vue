@@ -1,19 +1,18 @@
 <template>
-  <div class="dropdown" :class="{ active: active, discrete: discrete }">
+  <div class="dropdown" :class="[{ active: active, discrete: discrete }, rootClass]">
     <button
-      @click="troggle()"
+      @click="toggle()"
       :disabled="disabled"
-      class="trigger flex flex-row"
-      :class="[{ active: active }, position]"
+      :class="[{ active: active }, position, triggerClass]"
+      class="trigger flex flex-row items-center"
     >
       <slot name="trigger" :active="active" />
     </button>
-
     <div
       ref="its"
       v-show="active"
-      @click="troggle()"
-      :class="position"
+      @click="toggle()"
+      :class="[position, listClass]"
       class="items-list"
       tabindex="-1"
     >
@@ -29,18 +28,21 @@ export default defineComponent({
   name: "DropDown",
   props: {
     discrete: { type: Boolean, default: false },
-    disabled: { type: Boolean, default: false }
+    disabled: { type: Boolean, default: false },
+    rootClass: { type: String, required: false },
+    triggerClass: { type: String, required: false },
+    listClass: { type: String, required: false }
   },
   data: () => {
-    return { active: false, position: "bottom" };
+    return { active: false, position: "bottom", topBorder: false };
   },
   watch: {
     active() {
-      this.calcPosition();
+      this.calculatePosition();
     }
   },
   methods: {
-    troggle(): void {
+    toggle(): void {
       this.active = !this.active;
     },
     close(e: Event): void {
@@ -52,7 +54,7 @@ export default defineComponent({
         this.active = false;
       }
     },
-    calcPosition() {
+    calculatePosition() {
       const clientHeight = window.innerHeight || document.documentElement.clientHeight;
       const el = this.$refs.its as HTMLElement;
       if (!el) {

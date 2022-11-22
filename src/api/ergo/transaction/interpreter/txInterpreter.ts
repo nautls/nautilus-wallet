@@ -1,13 +1,14 @@
 import { MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
-import { UnsignedTx, ErgoBoxCandidate, Token } from "@/types/connector";
+import { ErgoBoxCandidate, Token, UnsignedTx } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
 import { difference, find, findLast, groupBy, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
+import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 
-function isMinerFeeTree(ergoTree: string) {
+function isMinerFeeContract(ergoTree: string) {
   return ergoTree === MAINNET_MINER_FEE_TREE;
 }
 
@@ -25,7 +26,7 @@ export class TxInterpreter {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
-    this._feeBox = find(tx.outputs, (b) => isMinerFeeTree(b.ergoTree));
+    this._feeBox = find(tx.outputs, (b) => isMinerFeeContract(b.ergoTree));
 
     if (find(tx.inputs, (i) => ownAddresses.includes(addressFromErgoTree(i.ergoTree)))) {
       this._changeBox = findLast(tx.outputs, (o) =>
@@ -37,9 +38,17 @@ export class TxInterpreter {
       (b) => b !== undefined
     ) as ErgoBoxCandidate[];
 
-    if (isEmpty(this._sendingBoxes) && this._changeBox) {
-      this._sendingBoxes.push(this._changeBox);
-      this._changeBox = undefined;
+    if (this._changeBox && this._sendingBoxes.length <= 1) {
+      if (isEmpty(this._sendingBoxes)) {
+        this._sendingBoxes.push(this._changeBox);
+        this._changeBox = undefined;
+      } else if (
+        isBabelContract(this._sendingBoxes[0].ergoTree) &&
+        !isEmpty(this._sendingBoxes[0].assets)
+      ) {
+        this._sendingBoxes.unshift(this._changeBox);
+        this._changeBox = undefined;
+      }
     }
 
     this._calcBurningBalance();

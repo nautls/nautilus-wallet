@@ -1,8 +1,8 @@
 <template>
   <label
     @click.prevent.stop="setInputFocus()"
-    @mouseover="troggleHover(true)"
-    @mouseout="troggleHover(false)"
+    @mouseover="toggleHover(true)"
+    @mouseout="toggleHover(false)"
   >
     <span v-if="label && label !== ''">{{ label }}</span>
     <div class="asset-input relative">
@@ -71,22 +71,23 @@
 </template>
 
 <script lang="ts">
+import { BigNumberType } from "@/types/internal";
 import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
   name: "AssetInput",
   props: {
     label: { type: String, required: false },
-    disposable: { type: Boolean, defaul: false },
+    disposable: { type: Boolean, default: false },
     asset: { type: Object, required: true },
     modelValue: { type: Object, required: false },
-    reservedAmount: { type: BigNumber, required: false },
-    minAmount: { type: BigNumber, required: false }
+    reservedAmount: { type: Object as PropType<BigNumberType>, required: false },
+    minAmount: { type: Object as PropType<BigNumberType>, required: false }
   },
   setup() {
     return { v$: useVuelidate() };
@@ -122,7 +123,7 @@ export default defineComponent({
         2
       );
     },
-    minRequired(): BigNumber {
+    minRequired(): BigNumberType {
       if (this.reservedAmount && this.minAmount) {
         return this.reservedAmount.plus(this.minAmount);
       }
@@ -168,7 +169,7 @@ export default defineComponent({
     return {
       confirmedAmount: {
         minValue: helpers.withMessage(
-          ({ $params }: any) =>
+          ({ $params }) =>
             `You need at least ${$params.min} ${this.asset.info?.name} to send this transaction`,
           bigNumberMinValue(this.minRequired)
         )
@@ -194,7 +195,7 @@ export default defineComponent({
         return n;
       }
     },
-    troggleHover(val: boolean) {
+    toggleHover(val: boolean) {
       if (val === this.hovered) {
         return;
       }

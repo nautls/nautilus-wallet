@@ -2,7 +2,7 @@
   <div
     class="shadow-scroll text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1"
   >
-    <tx-spending-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
+    <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
       <p>Burning</p>
       <template v-slot:subheader
         ><span>
@@ -10,28 +10,30 @@
           doing.
         </span></template
       >
-    </tx-spending-details>
+    </tx-box-details>
 
-    <tx-spending-details
+    <tx-box-details
       v-for="(output, index) in tx?.sending"
       :assets="output.assets"
+      :babel-swap="output.isBabelBoxSwap"
       :key="index"
-      :type="output.isIntrawallet ? 'info' : 'normal'"
+      :type="output.isIntrawallet ? 'info' : 'default'"
     >
       <p>
         {{ mountTitleForOutput(output) }}
       </p>
 
-      <template v-slot:subheader>
+      <template v-slot:subheader v-if="!output.isBabelBoxSwap">
         <p class="font-mono text-sm break-all">
           {{ $filters.compactString(output.receiver, 60) }}
           <click-to-copy :content="output.receiver" size="11" />
         </p>
       </template>
-    </tx-spending-details>
-    <tx-spending-details v-if="tx?.fee" :assets="tx?.fee?.assets"
-      ><p>Network fee</p></tx-spending-details
-    >
+    </tx-box-details>
+
+    <tx-box-details v-if="tx?.fee" :assets="tx.fee.assets">
+      <p>Network fee</p>
+    </tx-box-details>
 
     <div v-if="devMode && tx" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
       <vue-json-pretty
@@ -117,7 +119,7 @@ import { helpers, requiredUnless } from "@vuelidate/validators";
 import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
-import TxSpendingDetails from "./TxSpendingDetails.vue";
+import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { MAINNET } from "@/constants/ergo";
 import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
@@ -129,7 +131,7 @@ export default defineComponent({
   components: {
     LoadingModal,
     LedgerSigningModal,
-    TxSpendingDetails,
+    TxBoxDetails,
     VueJsonPretty
   },
   emits: ["success", "fail", "refused"],
@@ -287,7 +289,9 @@ export default defineComponent({
       this.$emit("success", signedTx);
     },
     mountTitleForOutput(output: OutputInterpreter) {
-      if (output.isIntrawallet) {
+      if (output.isBabelBoxSwap) {
+        return "Babel Fee swap";
+      } else if (output.isIntrawallet) {
         return "Sending to your address";
       } else if (!this.isP2PK(output.receiver)) {
         return "Sending to contract";
