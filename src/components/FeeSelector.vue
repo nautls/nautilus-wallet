@@ -7,7 +7,7 @@
         root-class="flex-grow"
       >
         <template v-slot:trigger>
-          <span class="flex-grow font-bold pl-1">Fee</span>
+          <span class="flex-grow font-semibold pl-1">Fee</span>
           <div
             class="text-right flex flex-col h-full"
             :class="ergPrice ? 'justify-between' : 'justify-center'"
