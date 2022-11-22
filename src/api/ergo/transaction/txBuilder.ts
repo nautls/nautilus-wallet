@@ -104,7 +104,7 @@ export async function createP2PTransaction({
     );
 
     const babelInput = new ErgoUnsignedInput(fee.box).setContextVars({
-      0: SConstant(SInt(unsignedTx.outputs.length)).toString("hex")
+      0: SConstant(SInt(unsignedTx.outputs.length))
     });
 
     unsignedTx.and
@@ -119,7 +119,7 @@ export async function createP2PTransaction({
           .setAdditionalRegisters({
             R4: babelInput.additionalRegisters.R4,
             R5: babelInput.additionalRegisters.R5,
-            R6: SConstant(SColl(SByte, Buffer.from(babelInput.boxId, "hex"))).toString("hex")
+            R6: SConstant(SColl(SByte, Buffer.from(babelInput.boxId, "hex")))
           })
       )
       .configureSelector((selector) =>
