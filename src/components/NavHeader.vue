@@ -21,7 +21,7 @@
         <vue-feather type="send" class="m-3" size="22" />
       </tool-tip>
     </router-link>
-    <router-link to="/dapps" v-if="!readonly" active-class="active" class="w-full tab-item">
+    <router-link to="/dapps" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="dApps">
         <vue-feather type="grid" class="m-3" size="22" />
       </tool-tip>

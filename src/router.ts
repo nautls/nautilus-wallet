@@ -16,6 +16,7 @@ const SendView = () => import("@/views/SendView.vue");
 const AboutView = () => import("@/views/AboutView.vue");
 const SettingsView = () => import("@/views/SettingsView.vue");
 const ConnectionsView = () => import("@/views/connector/ConnectionsView.vue");
+const DAppsView = () => import("@/views/DAppsView.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -74,6 +75,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/send",
     name: "send-page",
     component: SendView
+  },
+  {
+    path: "/dapps",
+    name: "dapps",
+    component: DAppsView
   },
   {
     path: "/about",

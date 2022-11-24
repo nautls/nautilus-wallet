@@ -5,7 +5,7 @@
     </div>
     <div class="flex flex-wrap gap-4 items-cente justify-between">
       <div
-        @click.native="selectedAsset = nft"
+        @click="selectedAsset = nft"
         class="border cursor-pointer border-gray-300 rounded w-39"
         v-for="nft in nfts"
         :key="nft.tokenId"
