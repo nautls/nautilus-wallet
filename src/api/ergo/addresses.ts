@@ -31,8 +31,7 @@ export function addressFromErgoTree(ergoTree: string) {
 }
 
 export function validateAddress(address: string) {
-  const addr = ErgoAddress.fromBase58(address);
-  return addr.isValid() && addr.network === network;
+  return ErgoAddress.validate(address) && ErgoAddress.getNetworkType(address) === network;
 }
 
 function extractAddressesFromInput(input: UnsignedInput): string[] {
