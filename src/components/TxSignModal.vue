@@ -2,7 +2,7 @@
   <o-modal
     v-model:active="internalActive"
     :auto-focus="true"
-    :can-cancel="true"
+    :can-cancel="false"
     :animation="isPopUp ? 'fade-slide-up' : 'zoom-out'"
     @cancel="emitOnClose"
     scroll="clip"

@@ -81,7 +81,7 @@
     </template>
   </div>
 
-  <div class="flex flex-row gap-4">
+  <div class="flex flex-row gap-4" v-if="!isLedger || (isLedger && !signState.loading)">
     <button class="btn outlined w-full" @click="cancel()" :disabled="isMnemonicSigning">
       Cancel
     </button>
@@ -91,7 +91,20 @@
       <span v-else>Sign</span>
     </button>
   </div>
-  <ledger-signing-modal v-if="isLedger" :state="signState" @close="signState.state = 'unknown'" />
+
+  <div class="-mt-4" v-if="isLedger">
+    <ledger-device
+      v-show="signState.loading"
+      :bottom-text="signState.statusText"
+      :state="signState.state"
+      :loading="signState.loading"
+      :connected="signState.connected"
+      :app-id="signState.appId"
+      :compact="true"
+      :screen-text="signState.screenText"
+    />
+  </div>
+
   <loading-modal
     v-else
     title="Signing"
@@ -102,7 +115,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, Ref } from "vue";
+import { defineComponent, PropType } from "vue";
 import { mapState } from "vuex";
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
@@ -114,11 +127,10 @@ import {
   WalletType
 } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
+import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
-import LedgerSigningModal from "@/components/LedgerSigningModal.vue";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { MAINNET } from "@/constants/ergo";
@@ -130,7 +142,6 @@ export default defineComponent({
   name: "TxSignView",
   components: {
     LoadingModal,
-    LedgerSigningModal,
     TxBoxDetails,
     VueJsonPretty
   },
@@ -141,7 +152,7 @@ export default defineComponent({
   },
   setup() {
     return {
-      v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>>
+      v$: useVuelidate()
     };
   },
   data() {
@@ -240,7 +251,7 @@ export default defineComponent({
           // wait for loading modal animation to finish
           setTimeout(() => {
             this.succeed(signedTx);
-          }, 300);
+          }, 100);
         }
       } catch (e) {
         this.setState("error", {
@@ -250,6 +261,7 @@ export default defineComponent({
 
         if (!(e instanceof PasswordError)) {
           console.error(e);
+
           if (!this.isModal || this.isMnemonicSigning) {
             this.fail(this.signState.statusText);
           } else {
@@ -258,7 +270,7 @@ export default defineComponent({
             // wait for loading modal animation to finish
             setTimeout(() => {
               this.fail(this.signState.statusText);
-            }, 300);
+            }, 100);
           }
         }
       }

@@ -761,23 +761,23 @@ export default createStore({
         command.callback({ statusText: "Loading context data..." });
       }
 
-      const walletType = state.currentWallet.type;
-      const deriver =
-        walletType === WalletType.Ledger
-          ? bip32Pool.get(state.currentWallet.publicKey)
-          : await Bip32.fromMnemonic(
-              await walletsDbService.getMnemonic(command.walletId, command.password)
-            );
+      const isLedger = state.currentWallet.type === WalletType.Ledger;
+      const deriver = isLedger
+        ? bip32Pool.get(state.currentWallet.publicKey)
+        : await Bip32.fromMnemonic(
+            await walletsDbService.getMnemonic(command.walletId, command.password)
+          );
 
       const changeAddress = getChangeAddress(
         command.tx.outputs,
         ownAddresses.map((a) => a.script)
       );
-      const blockHeaders = await graphQLService.getBlockHeaders({ take: 10 });
+
+      const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
 
       const signedTx = await new Prover(deriver)
         .from(addresses)
-        .useLedger(walletType === WalletType.Ledger)
+        .useLedger(isLedger)
         .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
         .setCallback(command.callback)
         .sign(command.tx, blockHeaders);

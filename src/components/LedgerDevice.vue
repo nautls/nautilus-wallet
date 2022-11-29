@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-2 flex-col mx-auto items-center min-w-72 max-w-75 w-75 p-4">
+  <div class="flex gap-2 flex-col mx-auto items-center min-w-72 max-w-75 w-75 p-2">
     <div
       v-if="connected || (state !== 'unknown' && state !== 'deviceNotFound')"
       class="w-auto mx-auto text-center text-sm"
@@ -37,10 +37,16 @@
       </p>
     </div>
 
-    <div v-if="loading" class="text-center pb-2">
+    <div v-if="loading && !compact" class="text-center pb-2">
       <loading-indicator type="circular" class="w-10 h-10" />
     </div>
-    <p v-if="bottomText" class="text-center" v-html="bottomText"></p>
+
+    <p
+      v-if="bottomText"
+      class="text-center"
+      :class="{ 'text-sm -mt-4': compact }"
+      v-html="bottomText"
+    ></p>
   </div>
 </template>
 
@@ -63,6 +69,7 @@ export default defineComponent({
     deviceModel: { Type: String, default: "unknown" },
     connected: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
+    compact: { type: Boolean, default: false },
     appId: { type: Number, required: false }
   },
   computed: {
