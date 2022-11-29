@@ -48,7 +48,6 @@ import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 import { WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
-import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
@@ -59,7 +58,6 @@ import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
-  components: { LoadingIndicator },
   setup() {
     return { v$: useVuelidate() };
   },
