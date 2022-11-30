@@ -24,10 +24,16 @@
       </p>
 
       <template v-slot:subheader v-if="!output.isBabelBoxSwap">
-        <p class="font-mono text-sm break-all">
-          {{ $filters.compactString(output.receiver, 60) }}
-          <click-to-copy :content="output.receiver" size="11" />
-        </p>
+        <div class="font-mono text-sm break-all flex flex-col gap-2">
+          <p>
+            {{ $filters.compactString(output.receiver, 60) }}
+            <click-to-copy :content="output.receiver" size="11" />
+          </p>
+          <p v-if="isLedger && isP2S(output)">
+            <span class="font-semibold font-sans">Script Hash:</span>
+            {{ $filters.compactString(output.scriptHash, 20) }}
+          </p>
+        </div>
       </template>
     </tx-box-details>
 
@@ -133,10 +139,10 @@ import { PasswordError } from "@/types/errors";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { MAINNET } from "@/constants/ergo";
 import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
 import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
+import { AddressType } from "@fleet-sdk/core";
 
 export default defineComponent({
   name: "TxSignView",
@@ -305,22 +311,16 @@ export default defineComponent({
         return "Babel Fee swap";
       } else if (output.isIntrawallet) {
         return "Sending to your address";
-      } else if (!this.isP2PK(output.receiver)) {
+      } else if (output.receiverAddressType === AddressType.P2S) {
         return "Sending to contract";
+      } else if (output.receiverAddressType === AddressType.P2SH) {
+        return "Sending to script hash";
       }
 
       return "Sending to external address";
     },
-    isP2PK(address: string) {
-      if (address.length !== 51) {
-        return false;
-      }
-
-      if (MAINNET) {
-        return address.startsWith("9");
-      }
-
-      return address.startsWith("3");
+    isP2S(output: OutputInterpreter) {
+      return output.receiverAddressType === AddressType.P2S;
     }
   }
 });
