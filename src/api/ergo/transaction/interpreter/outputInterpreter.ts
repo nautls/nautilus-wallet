@@ -1,12 +1,12 @@
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash";
-import { addressFromErgoTree } from "@/api/ergo/addresses";
 import { decodeColl } from "@/api/ergo/sigmaSerializer";
 import { StateAssetInfo } from "@/types/internal";
 import { isBabelContract } from "../../babelFees";
+import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
 
 export type OutputAsset = {
   tokenId: string;
@@ -17,15 +17,27 @@ export type OutputAsset = {
   minting?: boolean;
 };
 
+const network = MAINNET ? Network.Mainnet : Network.Testnet;
+
 export class OutputInterpreter {
-  private _box!: ErgoBoxCandidate;
-  private _inputs!: UnsignedInput[];
-  private _assets!: OutputAsset[];
-  private _assetInfo!: StateAssetInfo;
-  private _addresses?: string[];
+  private readonly _box!: ErgoBoxCandidate;
+  private readonly _inputs!: UnsignedInput[];
+  private readonly _assets!: OutputAsset[];
+  private readonly _assetInfo!: StateAssetInfo;
+  private readonly _addresses?: string[];
+
+  private readonly _receiver: ErgoAddress;
 
   public get receiver(): string {
-    return addressFromErgoTree(this._box.ergoTree);
+    return this._receiver.encode(network);
+  }
+
+  public get scriptHash(): string {
+    return this._receiver.toP2SH(network);
+  }
+
+  public get receiverAddressType(): AddressType {
+    return this._receiver.type;
   }
 
   public get assets(): OutputAsset[] {
@@ -54,6 +66,7 @@ export class OutputInterpreter {
     addresses?: string[]
   ) {
     this._box = boxCandidate;
+    this._receiver = ErgoAddress.fromErgoTree(boxCandidate.ergoTree);
     this._inputs = inputs;
     this._assetInfo = assetInfo;
     this._addresses = addresses;
