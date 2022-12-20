@@ -23,6 +23,6 @@ export const assetIconMap: { [tokenId: string]: string } = {
   ["18c938e1924fc3eadc266e75ec02d81fe73b56e4e9f4e268dffffcb30387c42d"]: "aht.svg",
   ["59ee24951ce668f0ed32bdb2e2e5731b6c36128748a3b23c28407c5f8ccbf0f6"]: "walrus.png",
   ["3405d8f709a19479839597f9a22a7553bdfc1a590a427572787d7c44a88b6386"]: "love.svg",
-  ["4c8ac00a28b198219042af9c03937eecb422b34490d55537366dc9245e85d4e1"]: "woodennickels.svg"
-  ['fcfca7654fb0da57ecf9a3f489bcbeb1d43b56dce7e73b352f7bc6f2561d2a1b']: "woodennickels.svg"
+  ["4c8ac00a28b198219042af9c03937eecb422b34490d55537366dc9245e85d4e1"]: "woodennickels.svg",
+  ['fcfca7654fb0da57ecf9a3f489bcbeb1d43b56dce7e73b352f7bc6f2561d2a1b']: "ergone.svg.svg"
 };
