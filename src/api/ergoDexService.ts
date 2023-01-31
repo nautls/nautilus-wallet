@@ -24,7 +24,7 @@ export type AssetPriceRate = {
   [tokenId: string]: { erg: number };
 };
 
-const BASE_URL = "https://api.ergodex.io/v1";
+const BASE_URL = "https://api.spectrum.fi/v1";
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class ErgoDexService {
