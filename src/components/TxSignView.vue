@@ -154,6 +154,7 @@ export default defineComponent({
   emits: ["success", "fail", "refused"],
   props: {
     transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: true },
+    inputsToSign: { type: Array<number>, required: false },
     isModal: { type: Boolean, default: false }
   },
   setup() {
@@ -243,6 +244,7 @@ export default defineComponent({
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX, {
           tx: this.transaction,
+          inputsToSign: this.inputsToSign,
           walletId: this.currentWalletId,
           password: this.password,
           callback: this.setStateCallback

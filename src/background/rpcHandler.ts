@@ -66,6 +66,7 @@ class RpcHandler {
             query: { popup: "true", auth: "true" }
           });
           break;
+        case "signTxInputs":
         case "signTx":
           router.replace({
             name: "connector-sign-tx",

@@ -127,7 +127,7 @@ export async function createP2PTransaction({
       );
   }
 
-  return unsignedTx.build("EIP-12") as UnsignedTx;
+  return unsignedTx.build().toEIP12Object() as UnsignedTx;
 }
 
 function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {

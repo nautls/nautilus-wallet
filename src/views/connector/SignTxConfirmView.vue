@@ -1,8 +1,20 @@
 <template>
   <div class="flex flex-col h-full gap-4">
     <dapp-plate :origin="origin" :favicon="favicon" compact />
-    <h1 class="text-xl m-auto text-center">Wants to sign a transaction</h1>
-    <tx-sign-view :transaction="rawTx" @fail="onFail" @refused="onRefused" @success="onSuccess" />
+    <h1 class="text-xl m-auto text-center">
+      <template
+        v-if="operation === 'signTxInputs' && inputsToSign !== undefined && inputsToSign.length > 0"
+        >Wants to partially sign a transaction</template
+      >
+      <template v-else>Wants to sign a transaction</template>
+    </h1>
+    <tx-sign-view
+      :transaction="rawTx"
+      :inputs-to-sign="inputsToSign"
+      @fail="onFail"
+      @refused="onRefused"
+      @success="onSuccess"
+    />
   </div>
 </template>
 
@@ -24,7 +36,10 @@ export default defineComponent({
     TxSignView
   },
   async created() {
-    const message = find(rpcHandler.messages, (m) => m.function === "signTx");
+    const message = find(
+      rpcHandler.messages,
+      (m) => m.function === "signTx" || m.function === "signTxInputs"
+    );
     if (!message || !message.params) {
       return;
     }
@@ -34,6 +49,12 @@ export default defineComponent({
     this.origin = message.params[0];
     this.favicon = message.params[1];
     this.rawTx = Object.freeze(message.params[2]);
+    if (message.function === "signTxInputs") {
+      this.operation = "signTxInputs";
+      this.inputsToSign = message.params[3];
+    } else {
+      this.operation = "signTx";
+    }
 
     const connection = await connectedDAppsDbService.getByOrigin(this.origin);
     if (!connection) {
@@ -47,11 +68,13 @@ export default defineComponent({
   data() {
     return {
       rawTx: Object.freeze({} as UnsignedTx),
+      operation: "signTx" as "signTx" | "signTxInputs",
       currentWalletId: 0,
       requestId: 0,
       sessionId: 0,
       origin: "",
-      favicon: ""
+      favicon: "",
+      inputsToSign: [] as number[]
     };
   },
   watch: {
@@ -97,7 +120,7 @@ export default defineComponent({
     onSuccess(signedTx: ErgoTx) {
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
-        function: "signTx",
+        function: this.operation,
         sessionId: this.sessionId,
         requestId: this.requestId,
         return: {
@@ -119,7 +142,7 @@ export default defineComponent({
       window.removeEventListener("beforeunload", this.onWindowClosing);
       rpcHandler.sendMessage({
         type: "rpc/nautilus-response",
-        function: "signTx",
+        function: this.operation,
         sessionId: this.sessionId,
         requestId: this.requestId,
         return: {

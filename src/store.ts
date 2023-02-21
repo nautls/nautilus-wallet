@@ -775,14 +775,23 @@ export default createStore({
 
       const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
 
-      const signedTx = await new Prover(deriver)
-        .from(addresses)
-        .useLedger(isLedger)
-        .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
-        .setCallback(command.callback)
-        .sign(command.tx, blockHeaders);
+      if (command.inputsToSign && command.inputsToSign.length > 0) {
+        return await new Prover(deriver)
+          .from(addresses)
+          .useLedger(isLedger)
+          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .setCallback(command.callback)
+          .signInputs(command.tx, blockHeaders, command.inputsToSign);
+      } else {
+        const signedTx = await new Prover(deriver)
+          .from(addresses)
+          .useLedger(isLedger)
+          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .setCallback(command.callback)
+          .sign(command.tx, blockHeaders);
 
-      return graphQLService.mapTransaction(signedTx);
+        return graphQLService.mapTransaction(signedTx);
+      }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
       context,

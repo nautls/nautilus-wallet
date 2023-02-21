@@ -79,7 +79,7 @@ export async function handleGetBoxesRequest(
     {
       isSuccess: true,
       data: selection.map((box) => ({
-        ...box.toObject("EIP-12"),
+        ...box.toPlainObject("EIP-12"),
         confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
       }))
     },
