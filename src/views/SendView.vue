@@ -104,7 +104,7 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
+import { BigNumberType, FeeSettings, StateAsset, StateWallet, WalletType } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
@@ -149,7 +149,7 @@ export default defineComponent({
     }
   },
   computed: {
-    currentWallet() {
+    currentWallet(): StateWallet {
       return this.$store.state.currentWallet;
     },
     isLedger(): boolean {
@@ -211,7 +211,7 @@ export default defineComponent({
     fee(): BigNumberType {
       return this.feeSettings.value;
     },
-    isFeeInErg() {
+    isFeeInErg(): boolean {
       return this.isErg(this.feeSettings.tokenId);
     },
     changeValue(): BigNumberType | undefined {
@@ -224,7 +224,7 @@ export default defineComponent({
     minBoxValue(): BigNumberType {
       return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
     },
-    devMode() {
+    devMode(): boolean {
       return this.$store.state.settings.devMode;
     }
   },
