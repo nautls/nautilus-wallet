@@ -292,7 +292,8 @@ export default defineComponent({
         const unsignedTx = await createP2PTransaction({
           recipientAddress: this.recipient,
           assets: this.selected,
-          fee: this.feeSettings
+          fee: this.feeSettings,
+          walletType: this.currentWallet.type
         });
 
         const burning = new TxInterpreter(unsignedTx, [], this.$store.state.assetInfo).burning;

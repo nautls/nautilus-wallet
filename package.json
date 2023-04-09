@@ -14,7 +14,7 @@
   "dependencies": {
     "@download/blockies": "^1.0.3",
     "@emurgo/cip4-js": "^1.0.7",
-    "@fleet-sdk/core": "^0.1.0-alpha.25",
+    "@fleet-sdk/core": "^0.1.0-alpha.26",
     "@ledgerhq/hw-transport-webusb": "^6.27.6",
     "@mdi/js": "^7.0.96",
     "@oruga-ui/oruga-next": "^0.5.6",

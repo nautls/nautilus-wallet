@@ -66,7 +66,9 @@ export async function handleGetBoxesRequest(
   }
 
   const boxes = await fetchBoxes(session.walletId);
-  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box)));
+  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
+    (box) => box.creationHeight
+  );
   let selection!: ErgoUnsignedInput[];
 
   try {
