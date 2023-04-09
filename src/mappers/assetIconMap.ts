@@ -25,5 +25,6 @@ export const assetIconMap: { [tokenId: string]: string } = {
   ["3405d8f709a19479839597f9a22a7553bdfc1a590a427572787d7c44a88b6386"]: "love.svg",
   ["4c8ac00a28b198219042af9c03937eecb422b34490d55537366dc9245e85d4e1"]: "woodennickels.svg",
   ["fcfca7654fb0da57ecf9a3f489bcbeb1d43b56dce7e73b352f7bc6f2561d2a1b"]: "ergone.svg",
-  ["9a06d9e545a41fd51eeffc5e20d818073bf820c635e2a9d922269913e0de369d"]: "spf.svg"
+  ["9a06d9e545a41fd51eeffc5e20d818073bf820c635e2a9d922269913e0de369d"]: "spf.svg",
+  ["01dce8a5632d19799950ff90bca3b5d0ca3ebfa8aaafd06f0cc6dd1e97150e7f"]: "cypx.png"
 };
