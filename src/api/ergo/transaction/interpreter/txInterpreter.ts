@@ -3,7 +3,7 @@ import { ErgoBoxCandidate, Token, UnsignedTx } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { difference, find, findLast, groupBy, isEmpty } from "lodash";
+import { difference, find, groupBy, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
@@ -28,11 +28,7 @@ export class TxInterpreter {
     this._assetInfo = assetInfo;
     this._feeBox = find(tx.outputs, (b) => isMinerFeeContract(b.ergoTree));
 
-    if (find(tx.inputs, (i) => ownAddresses.includes(addressFromErgoTree(i.ergoTree)))) {
-      this._changeBox = findLast(tx.outputs, (o) =>
-        ownAddresses.includes(addressFromErgoTree(o.ergoTree))
-      );
-    }
+    this._determineChangeBox();
 
     this._sendingBoxes = difference(tx.outputs, [this._feeBox, this._changeBox]).filter(
       (b) => b !== undefined
@@ -150,5 +146,44 @@ export class TxInterpreter {
     }
 
     return totals;
+  }
+
+  // Find an output that only contains assets from own inputs in <= amounts
+  // In case of multiwitness txs, change box can be different for each participant
+  // In some cases, there can be no change box present as well
+  private _determineChangeBox() {
+    this._changeBox = undefined;
+
+    const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
+
+    const ownInputs = this._tx.inputs.filter((i) => isOwnErgoTree(i.ergoTree));
+    const ownOutputsReversed = this._tx.outputs.filter((o) => isOwnErgoTree(o.ergoTree)).reverse();
+
+    if (ownInputs.length === 0 || ownOutputsReversed.length === 0) {
+      return;
+    }
+
+    const ownInputAssets = this._sumTokens(
+      ownInputs
+        .filter((x) => x.assets)
+        .map((x) => x.assets)
+        .flat()
+    );
+    if (!ownInputAssets) {
+      return;
+    }
+
+    for (const o of ownOutputsReversed) {
+      const nonChangeAssets = o.assets.filter((asset) => {
+        return (
+          ownInputAssets[asset.tokenId] === undefined ||
+          ownInputAssets[asset.tokenId] < new BigNumber(asset.amount)
+        );
+      });
+      if (nonChangeAssets.length === 0) {
+        this._changeBox = o;
+        return;
+      }
+    }
   }
 }
