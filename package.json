@@ -31,7 +31,7 @@
     "cleave.js": "^1.6.0",
     "crypto-js": "^4.1.1",
     "dexie": "^3.2.2",
-    "ergo-lib-wasm-browser": "^0.24.0-alpha-6a99ecc",
+    "ergo-lib-wasm-browser": "^0.24.0-alpha-24cfc31",
     "feather-icons": "^4.29.0",
     "json-bigint": "^1.0.0",
     "ledger-ergo-js": "^0.1.13",
