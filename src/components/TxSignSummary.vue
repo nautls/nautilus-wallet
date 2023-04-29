@@ -18,6 +18,7 @@ import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterprete
 import { addressFromErgoTree } from "@/api/ergo/addresses";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 
 export default defineComponent({
   name: "TxSignSummary",
@@ -39,8 +40,8 @@ export default defineComponent({
       });
     },
     thisWalletDelta() {
-      const inputsAssets = this.mergeInputsTokens(this.thisWalletInputs);
-      const outputsAssets = this.mergeOutputsTokens(this.thisWalletOutputs);
+      const inputsAssets = this.mergeTokensInBoxes(this.thisWalletInputs);
+      const outputsAssets = this.mergeTokensInBoxes(this.thisWalletOutputs);
       const { tokensAGets: thisWalletGets, tokensALoses: thisWalletLoses } = this.subtractAssets(
         outputsAssets,
         inputsAssets
@@ -66,19 +67,24 @@ export default defineComponent({
         return acc;
       }, []);
     },
-    mergeInputsTokens(inputs: UnsignedInput[]): Token[] {
-      const mergedInputsAssets = inputs.reduce((acc: Token[], i: UnsignedInput) => {
-        return acc.concat(i.assets);
-      }, []);
-      return this.accumTokens(mergedInputsAssets);
+    extractAssetsFromBox(box: UnsignedInput | ErgoBoxCandidate): Token[] {
+      return box.assets.concat({
+        tokenId: ERG_TOKEN_ID,
+        amount: String(box.value),
+        decimals: ERG_DECIMALS,
+        name: "ERG"
+      });
     },
-    mergeOutputsTokens(outputs: ErgoBoxCandidate[]): Token[] {
-      const mergedOutputsAssets = outputs.reduce((acc: Token[], o: ErgoBoxCandidate) => {
-        return acc.concat(o.assets);
-      }, []);
+    mergeTokensInBoxes(boxes: (UnsignedInput | ErgoBoxCandidate)[]): Token[] {
+      const mergedOutputsAssets = boxes.reduce(
+        (acc: Token[], box: UnsignedInput | ErgoBoxCandidate) => {
+          return acc.concat(this.extractAssetsFromBox(box));
+        },
+        []
+      );
       return this.accumTokens(mergedOutputsAssets);
     },
-    // The caller has to make sure that there are no duplicate tokenIds in a and b
+    // The caller has to make sure that there are no duplicate tokenIds in a and b (call mergeTokensInBoxes first).
     subtractAssets(a: Token[], b: Token[]): { tokensAGets: Token[]; tokensALoses: Token[] } {
       // Add A tokens and subtract B tokens in the same map. Then use +/- to differentiate between A's and B's deltas.
       const mergedTokensMap: { [tokenId: string]: Token } = {};
