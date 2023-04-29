@@ -1,6 +1,4 @@
 <template>
-  <h1>Summary of the transaction:</h1>
-  <p>You get:</p>
   <tx-box-details :assets="thisWalletGets" :type="'success'">
     <p>Assets <strong>incoming</strong> to your wallet</p>
   </tx-box-details>

@@ -2,6 +2,7 @@
   <div
     class="shadow-scroll text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1"
   >
+    <h1>Changes to your wallet:</h1>
     <tx-sign-summary
       v-if="tx"
       :tx="tx"
@@ -9,6 +10,9 @@
       :ownAddresses="addresses.map((a) => a.script)"
     ></tx-sign-summary>
 
+    <hr />
+
+    <h1>Detailed transaction breakdown:</h1>
     <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
       <p>Burning</p>
       <template v-slot:subheader
