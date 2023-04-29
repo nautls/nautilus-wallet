@@ -15,14 +15,16 @@ import TxBoxDetails from "@/components/TxBoxDetails.vue";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
 import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
-import BigNumber from "bignumber.js";
 import { addressFromErgoTree } from "@/api/ergo/addresses";
+import { StateAssetInfo } from "@/types/internal";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 
 export default defineComponent({
   name: "TxSignSummary",
   components: { TxBoxDetails },
   props: {
     tx: { type: Object as PropType<Readonly<TxInterpreter>>, required: true },
+    assetInfo: { type: Object as PropType<Readonly<StateAssetInfo>>, required: true },
     ownAddresses: { type: Array as PropType<Readonly<string[]>>, required: true }
   },
   computed: {
@@ -78,6 +80,7 @@ export default defineComponent({
     },
     // The caller has to make sure that there are no duplicate tokenIds in a and b
     subtractAssets(a: Token[], b: Token[]): { tokensAGets: Token[]; tokensALoses: Token[] } {
+      // Add A tokens and subtract B tokens in the same map. Then use +/- to differentiate between A's and B's deltas.
       const mergedTokensMap: { [tokenId: string]: Token } = {};
       a.forEach((t: Token) => {
         mergedTokensMap[t.tokenId] = { ...t };
@@ -109,11 +112,12 @@ export default defineComponent({
     },
     tokensToOutputAssets(tokens: Token[]): OutputAsset[] {
       return tokens.map((t: Token) => {
+        const decimals = this.assetInfo[t.tokenId]?.decimals ?? 0;
         return {
           tokenId: t.tokenId,
-          amount: new BigNumber(t.amount),
-          name: t.name,
-          decimals: t.decimals
+          amount: decimalize(toBigNumber(t.amount), decimals),
+          name: this.assetInfo[t.tokenId]?.name,
+          decimals: decimals
         } as OutputAsset;
       });
     }
