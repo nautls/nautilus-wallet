@@ -179,13 +179,13 @@ export class TxInterpreter {
       const nonChangeAssets = o.assets.filter((asset) => {
         return (
           remainingOwnInputAssets[asset.tokenId] === undefined ||
-          remainingOwnInputAssets[asset.tokenId] < toBigNumber(asset.amount)
+          remainingOwnInputAssets[asset.tokenId].isLessThan(asset.amount)
         );
       });
       if (nonChangeAssets.length === 0) {
         o.assets.forEach((asset) => {
           remainingOwnInputAssets[asset.tokenId] = remainingOwnInputAssets[asset.tokenId].minus(
-            toBigNumber(asset.amount)
+            asset.amount
           );
         });
         changeBoxes.push(o);
