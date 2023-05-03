@@ -40,20 +40,27 @@ export default defineComponent({
     thisWalletDelta() {
       const inputsAssets = this.mergeTokensInBoxes(this.thisWalletInputs);
       const outputsAssets = this.mergeTokensInBoxes(this.thisWalletOutputs);
-      const { tokensAGets: thisWalletGets, tokensALoses: thisWalletLoses } = this.subtractAssets(
+      const { tokensAGets: thisWalletPositiveDelta, tokensALoses: thisWalletNegativeDelta } = this.subtractTokens(
         outputsAssets,
         inputsAssets
       );
-      return { thisWalletGets, thisWalletLoses };
+      // Sort to make ERG first
+      const sortByTokenId = (tokens: Token[]) =>
+        tokens.sort((a, b) => (a.tokenId < b.tokenId ? -1 : 1));
+      return {
+        positive: sortByTokenId(thisWalletPositiveDelta),
+        negative: sortByTokenId(thisWalletNegativeDelta)
+      };
     },
     thisWalletGets() {
-      return this.tokensToOutputAssets(this.thisWalletDelta.thisWalletGets);
+      return this.tokensToOutputAssets(this.thisWalletDelta.positive);
     },
     thisWalletLoses() {
-      return this.tokensToOutputAssets(this.thisWalletDelta.thisWalletLoses);
+      return this.tokensToOutputAssets(this.thisWalletDelta.negative);
     }
   },
   methods: {
+    // Merges duplicate tokenIds (adds their amounts)
     accumTokens(tokens: Token[]): Token[] {
       return tokens.reduce((acc: Token[], t: Token) => {
         const existingToken = acc.find((a: Token) => a.tokenId === t.tokenId);
@@ -74,39 +81,39 @@ export default defineComponent({
       });
     },
     mergeTokensInBoxes(boxes: (UnsignedInput | ErgoBoxCandidate)[]): Token[] {
-      const mergedOutputsAssets = boxes.reduce(
+      const concatenatedBoxAssets = boxes.reduce(
         (acc: Token[], box: UnsignedInput | ErgoBoxCandidate) => {
           return acc.concat(this.extractAssetsFromBox(box));
         },
         []
       );
-      return this.accumTokens(mergedOutputsAssets);
+      return this.accumTokens(concatenatedBoxAssets);
     },
-    // The caller has to make sure that there are no duplicate tokenIds in a and b (call mergeTokensInBoxes first).
-    subtractAssets(a: Token[], b: Token[]): { tokensAGets: Token[]; tokensALoses: Token[] } {
-      // Add A tokens and subtract B tokens in the same map. Then use +/- to differentiate between A's and B's deltas.
+    subtractTokens(a: Token[], b: Token[]): { tokensAGets: Token[]; tokensALoses: Token[] } {
+      // Add A tokens and subtract B tokens in the same map, possibly making amounts negative.
+      // Then use +/- to differentiate between A's and B's deltas.
       const mergedTokensMap: { [tokenId: string]: Token } = {};
       a.forEach((t: Token) => {
         mergedTokensMap[t.tokenId] = { ...t };
       });
       b.forEach((t: Token) => {
         if (Object.prototype.hasOwnProperty.call(mergedTokensMap, t.tokenId)) {
-          mergedTokensMap[t.tokenId].amount = String(
-            BigInt(mergedTokensMap[t.tokenId].amount) - BigInt(t.amount)
-          );
+          mergedTokensMap[t.tokenId].amount = toBigNumber(mergedTokensMap[t.tokenId].amount)
+            .minus(t.amount)
+            .toString();
         } else {
           mergedTokensMap[t.tokenId] = {
             ...t,
-            amount: String(-1n * BigInt(t.amount))
+            amount: toBigNumber(t.amount).times(-1).toString()
           };
         }
       });
       const mergedTokens = Object.keys(mergedTokensMap).map((tokenId) => mergedTokensMap[tokenId]);
-      const tokensAGets = mergedTokens.filter((t: Token) => BigInt(t.amount) > 0n);
+      const tokensAGets = mergedTokens.filter((t: Token) => toBigNumber(t.amount).isGreaterThan(0));
       const tokensALoses = mergedTokens
-        .filter((t: Token) => BigInt(t.amount) < 0n)
+        .filter((t: Token) => toBigNumber(t.amount).isLessThan(0))
         .map((t: Token) => {
-          t.amount = String(BigInt(t.amount) * -1n);
+          t.amount = toBigNumber(t.amount).times(-1).toString();
           return t;
         });
       return {
