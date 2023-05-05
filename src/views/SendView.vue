@@ -1,81 +1,24 @@
 <template>
   <div class="flex flex-col gap-4 min-h-full">
-    <label>
-      Receiver
-      <input
-        type="text"
-        @blur="v$.recipient.$touch()"
-        v-model.lazy="recipient"
-        spellcheck="false"
-        class="w-full control block"
-      />
-      <p class="input-error" v-if="v$.recipient.$error">{{ v$.recipient.$errors[0].$message }}</p>
-    </label>
-    <div>
-      <div class="flex flex-col gap-2">
-        <asset-input
-          v-for="(item, index) in selected"
-          :key="item.asset.tokenId"
-          :label="index === 0 ? 'Assets' : ''"
-          :asset="item.asset"
-          :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-          :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
-          :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-          @remove="remove(item.asset.tokenId)"
-          v-model="item.amount"
-        />
-        <drop-down
-          :disabled="unselected.length === 0"
-          list-class="max-h-50"
-          trigger-class="px-2 py-3 text-sm uppercase"
-        >
-          <template v-slot:trigger>
-            <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
-            <vue-feather type="chevron-down" size="18" />
-          </template>
-          <template v-slot:items>
-            <div class="group">
-              <a
-                @click="add(asset)"
-                class="group-item narrow"
-                v-for="asset in unselected"
-                :key="asset.tokenId"
-              >
-                <div class="flex flex-row items-center gap-2">
-                  <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
-                  <div class="flex-grow">
-                    <template v-if="asset.info?.name">{{
-                      $filters.compactString(asset.info?.name, 26)
-                    }}</template>
-                    <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
-                    <p
-                      v-if="devMode && !isErg(asset.tokenId)"
-                      class="text-gray-400 text-xs font-mono"
-                    >
-                      {{ $filters.compactString(asset.tokenId, 16) }}
-                    </p>
-                  </div>
-                  <div>{{ $filters.formatBigNumber(asset.confirmedAmount) }}</div>
-                </div>
-              </a>
-            </div>
-            <div class="group">
-              <a @click="addAll()" class="group-item narrow">
-                <div class="flex flex-row items-center gap-2">
-                  <mdi-icon name="check-all" class="text-yellow-500 w-8 h-8" size="32" />
-                  <div class="flex-grow">
-                    Add all
-                    <p class="text-gray-400 text-xs">
-                      Use this option to include all your assets in the sending list.
-                    </p>
-                  </div>
-                </div>
-              </a>
-            </div>
-          </template>
-        </drop-down>
-        <p class="input-error" v-if="v$.selected.$error">{{ v$.selected.$errors[0].$message }}</p>
+    <div v-for="(recipient, idx) in recipients" v-bind:key="recipient.id">
+      <div v-if="idx !== 0">
+        <br />
+        <hr />
+        <br />
       </div>
+      <recipient-form
+        :disposable="recipients.length > 1"
+        @removeRecipient="() => removeRecipient(recipient.id)"
+        @update:recipientAddress="(recipientAddress: string) => { setRecipientAddress(recipient.id, recipientAddress) }"
+        @update:selectedAssets="
+          (selectedAssets) => {
+            setRecipientAssets(recipient.id, selectedAssets);
+          }
+        "
+      />
+    </div>
+    <div @click="addRecipient" class="cursor-pointer">
+      + Add receiver
     </div>
 
     <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
@@ -105,47 +48,27 @@ import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BigNumberType, FeeSettings, StateAsset, StateWallet, WalletType } from "@/types/internal";
-import { differenceBy, find, isEmpty, remove } from "lodash";
+import { differenceBy, find, isEmpty } from "lodash";
 import { decimalize, undecimalize } from "@/utils/bigNumbers";
-import { required, helpers } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
-import { validErgoAddress } from "@/validators";
 import { UnsignedTx } from "@/types/connector";
 import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import { submitTx } from "@/api/ergo/submitTx";
 import { AxiosError } from "axios";
 import BigNumber from "bignumber.js";
-import AssetInput from "@/components/AssetInput.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
 import TxSignModal from "@/components/TxSignModal.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { SignedTransaction } from "@ergo-graphql/types";
-
-const validations = {
-  recipient: {
-    required: helpers.withMessage("Receiver address is required.", required),
-    validErgoAddress
-  },
-  selected: {
-    required: helpers.withMessage(
-      "At least one asset should be selected in order to send a transaction.",
-      required
-    )
-  }
-};
+import RecipientForm from "@/components/RecipientForm.vue";
+import { Recipient } from "@/types/internal";
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, TxSignModal, FeeSelector },
-  setup() {
-    return {
-      v$: useVuelidate()
-    };
-  },
+  components: { RecipientForm, LoadingModal, TxSignModal, FeeSelector },
   created() {
-    if (this.$route.query.recipient) {
-      this.recipient = this.$route.query.recipient as string;
+    if (this.$route.query.recipient && this.recipients.length > 0) {
+      this.recipients[0].address = this.$route.query.recipient as string;
     }
   },
   computed: {
@@ -235,7 +158,7 @@ export default defineComponent({
     assets: {
       immediate: true,
       handler() {
-        if (!isEmpty(this.selected) || this.v$.$anyDirty) {
+        if (!isEmpty(this.selected)) {
           return;
         }
 
@@ -246,9 +169,6 @@ export default defineComponent({
       if (this.isErg(newVal)) {
         this.setErgAsSelected();
       }
-    },
-    ["selected.length"]() {
-      this.v$.selected.$touch();
     }
   },
   data() {
@@ -261,15 +181,47 @@ export default defineComponent({
       } as FeeSettings,
       signModalActive: false,
       password: "",
-      recipient: "",
+      recipients: [
+        {
+          id: 0,
+          address: "",
+          selectedAssets: []
+        }
+      ] as Recipient[],
+      nextRecipientId: 1,
       stateMessage: "",
       state: "unknown"
     };
   },
-  validations() {
-    return validations;
-  },
   methods: {
+    ensureRecipientExists(id: number) {
+      if (!find(this.recipients, (r) => r.id === id)) {
+        throw new Error("Invalid recipient index");
+      }
+    },
+    addRecipient() {
+      this.recipients.push({
+        id: this.nextRecipientId,
+        address: "",
+        selectedAssets: []
+      });
+      this.nextRecipientId++;
+    },
+    setRecipientAddress(id: number, recipientAddress: string) {
+      this.ensureRecipientExists(id);
+      const idx = this.recipients.map((r) => r.id).indexOf(id);
+      this.recipients.splice(idx, 1, { ...this.recipients[idx], address: recipientAddress });
+    },
+    setRecipientAssets(id: number, selectedAssets: TxAssetAmount[]) {
+      this.ensureRecipientExists(id);
+      const idx = this.recipients.map((r) => r.id).indexOf(id);
+      this.recipients.splice(idx, 1, { ...this.recipients[idx], selectedAssets });
+    },
+    removeRecipient(id: number) {
+      this.ensureRecipientExists(id);
+      const idx = this.recipients.map((r) => r.id).indexOf(id);
+      this.recipients.splice(idx, 1);
+    },
     getReserveAmountFor(tokenId: string): BigNumberType | undefined {
       if (this.isFeeAsset(tokenId)) {
         return this.reservedFeeAssetAmount;
@@ -280,18 +232,20 @@ export default defineComponent({
     async buildTx() {
       this.transaction = undefined;
 
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
-
       this.state = "loading";
       this.stateMessage = "Loading context data...";
 
       try {
         const unsignedTx = await createP2PTransaction({
-          recipientAddress: this.recipient,
-          assets: this.selected,
+          recipientsInfo: this.recipients.map((r) => ({
+            address: r.address,
+            assets: r.selectedAssets.map((a) => {
+              return {
+                asset: a.asset,
+                amount: a.amount
+              } as TxAssetAmount;
+            })
+          })),
           fee: this.feeSettings,
           walletType: this.currentWallet.type
         });
@@ -314,10 +268,15 @@ export default defineComponent({
     clear(): void {
       this.selected = [];
       this.setErgAsSelected();
-      this.recipient = "";
+      this.recipients = [
+        {
+          id: 0,
+          address: "",
+          selectedAssets: []
+        }
+      ];
       this.password = "";
       this.transaction = undefined;
-      this.v$.$reset();
     },
     async onSuccess(signedTx: SignedTransaction) {
       this.signModalActive = false;
@@ -373,53 +332,6 @@ export default defineComponent({
     },
     urlForTransaction(txId: string): string {
       return new URL(`/transactions/${txId}`, this.$store.state.settings.explorerUrl).toString();
-    },
-    add(asset: StateAsset) {
-      this.removeDisposableSelections();
-      this.selected.push({ asset });
-
-      if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
-        this.setMinBoxValue();
-      }
-    },
-    addAll() {
-      this.unselected.forEach((unselected) => {
-        this.selected.push({ asset: unselected });
-      });
-
-      this.setMinBoxValue();
-    },
-    remove(tokenId: string) {
-      remove(this.selected, (a) => a.asset.tokenId === tokenId);
-      this.setMinBoxValue();
-    },
-    setMinBoxValue() {
-      if (this.selected.length === 1) {
-        return;
-      }
-
-      const erg = find(this.selected, (a) => this.isFeeAsset(a.asset.tokenId));
-      if (!erg) {
-        return;
-      }
-
-      if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
-        erg.amount = new BigNumber(this.minBoxValue);
-      }
-    },
-    removeDisposableSelections() {
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
-        return;
-      }
-
-      const first = this.selected[0];
-      if (!first) {
-        return;
-      }
-
-      if (!first.amount || first.amount.isZero()) {
-        this.remove(first.asset.tokenId);
-      }
     },
     isFeeAsset(tokenId: string): boolean {
       return tokenId === this.feeSettings.tokenId;

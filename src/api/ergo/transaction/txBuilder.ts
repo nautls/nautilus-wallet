@@ -26,14 +26,17 @@ export type TxAssetAmount = {
   amount?: BigNumberType;
 };
 
+export type RecipientInfo = {
+  address: string;
+  assets: TxAssetAmount[];
+};
+
 export async function createP2PTransaction({
-  recipientAddress,
-  assets,
+  recipientsInfo,
   fee,
   walletType
 }: {
-  recipientAddress: string;
-  assets: TxAssetAmount[];
+  recipientsInfo: RecipientInfo[];
   fee: FeeSettings;
   walletType: WalletType;
 }): Promise<UnsignedTx> {
@@ -54,7 +57,7 @@ export async function createP2PTransaction({
     ? undecimalize(fee.value, fee.assetInfo?.decimals)
     : new BigNumber(0);
 
-  let sendingNanoErgsAmount = getSendingNanoErgs(assets);
+  let sendingNanoErgsAmount = getSendingNanoErgs(recipientsInfo.flatMap((info) => info.assets));
   let feeNanoErgsAmount: BigNumber;
 
   if (isBabelFeeTransaction) {
@@ -77,29 +80,31 @@ export async function createP2PTransaction({
       feeNanoErgsAmount = feeNanoErgsAmount.minus(sendingNanoErgsAmount);
     }
   } else {
-    if (sendingNanoErgsAmount.isLessThan(MIN_BOX_VALUE)) {
+    if (recipientsInfo.some((info) => getSendingNanoErgs(info.assets).isLessThan(MIN_BOX_VALUE))) {
       throw new Error("ERG not selected or less than the minimum required.");
     }
     feeNanoErgsAmount = undecimalize(fee.value, ERG_DECIMALS);
   }
 
-  const output = new OutputBuilder(sendingNanoErgsAmount.toString(), recipientAddress).addTokens(
-    assets
-      .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
-      .map((token) => ({
-        tokenId: token.asset.tokenId,
-        amount: undecimalize(
-          token.amount || new BigNumber(0),
-          token.asset.info?.decimals
-        ).toString()
-      }))
-  );
+  const outputs = recipientsInfo.map((info) => {
+    return new OutputBuilder(getSendingNanoErgs(info.assets).toString(), info.address).addTokens(
+      info.assets
+        .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
+        .map((token) => ({
+          tokenId: token.asset.tokenId,
+          amount: undecimalize(
+            token.amount || new BigNumber(0),
+            token.asset.info?.decimals
+          ).toString()
+        }))
+    );
+  });
 
   const unsignedTx = new TransactionBuilder(currentHeight)
     .from(inputs)
-    .to(output)
+    .to(outputs)
     .payFee(feeNanoErgsAmount.toString())
-    .sendChangeTo(await safeGetChangeAddress(recipientAddress));
+    .sendChangeTo(await safeGetChangeAddress(recipientsInfo.map((info) => info.address)));
 
   if (walletType === WalletType.Ledger) {
     unsignedTx
@@ -142,22 +147,25 @@ export async function createP2PTransaction({
 }
 
 function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
-  const erg = assets.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
+  const erg = assets
+    .filter((a) => a.asset.tokenId === ERG_TOKEN_ID)
+    .reduce((acc, a) => acc.plus(a.amount ?? 0), new BigNumber(0));
 
-  if (erg && erg.amount) {
-    return undecimalize(erg.amount, ERG_DECIMALS);
+  // TODO we can probably replace this whole block with just `return undecimalize(erg, ERG_DECIMALS);`
+  if (erg.isGreaterThan(0)) {
+    return undecimalize(erg, ERG_DECIMALS);
   } else {
     return new BigNumber(0);
   }
 }
 
-export async function safeGetChangeAddress(recipientAddress: string): Promise<string> {
+export async function safeGetChangeAddress(recipientAddresses: string[]): Promise<string> {
   const wallet = store.state.currentWallet;
   const addresses = store.state.currentAddresses;
 
   if (wallet.settings.avoidAddressReuse) {
     const unused = addresses.find(
-      (a) => a.state === AddressState.Unused && a.script !== recipientAddress
+      (a) => a.state === AddressState.Unused && !recipientAddresses.includes(a.script)
     );
 
     if (isEmpty(unused)) {
@@ -166,8 +174,9 @@ export async function safeGetChangeAddress(recipientAddress: string): Promise<st
   }
 
   const index = wallet.settings.avoidAddressReuse
-    ? addresses.find((a) => a.state === AddressState.Unused && a.script !== recipientAddress)
-        ?.index ?? wallet.settings.defaultChangeIndex
+    ? addresses.find(
+        (a) => a.state === AddressState.Unused && !recipientAddresses.includes(a.script)
+      )?.index ?? wallet.settings.defaultChangeIndex
     : wallet.settings.defaultChangeIndex;
 
   return bip32Pool.get(wallet.publicKey).deriveAddress(index || 0).script;
