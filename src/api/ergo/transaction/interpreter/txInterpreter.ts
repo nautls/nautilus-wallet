@@ -1,4 +1,4 @@
-import { MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
+import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token, UnsignedTx } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
@@ -7,6 +7,13 @@ import { difference, find, groupBy, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
+import { utxoSum, utxoSumResultDiff } from "@fleet-sdk/common";
+import {
+  tokensToOutputAssets,
+  boxCandidateToBoxAmounts,
+  tokenAmountToToken,
+  sortByTokenId
+} from "@/api/ergo/transaction/interpreter/utils";
 
 function isMinerFeeContract(ergoTree: string) {
   return ergoTree === MAINNET_MINER_FEE_TREE;
@@ -21,12 +28,22 @@ export class TxInterpreter {
   private _assetInfo!: StateAssetInfo;
   private _addresses!: string[];
   private _burningBalance!: OutputAsset[];
+  private _ownInputs!: ErgoBoxCandidate[];
+  private _ownOutputs!: ErgoBoxCandidate[];
+  private _totalIncoming!: OutputAsset[];
+  private _totalLeaving!: OutputAsset[];
 
   constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: StateAssetInfo) {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
     this._feeBox = find(tx.outputs, (b) => isMinerFeeContract(b.ergoTree));
+
+    const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
+    this._ownInputs = tx.inputs.filter((b) => isOwnErgoTree(b.ergoTree));
+    this._ownOutputs = tx.outputs.filter((b) => isOwnErgoTree(b.ergoTree));
+
+    this._calcIncomingLeavingTotals();
 
     this._changeBoxes = this._determineChangeBoxes();
 
@@ -84,6 +101,59 @@ export class TxInterpreter {
     }
 
     return new OutputInterpreter(this._feeBox, this._tx.inputs, this._assetInfo);
+  }
+
+  public get totalIncoming(): OutputAsset[] {
+    return this._totalIncoming;
+  }
+
+  public get totalLeaving(): OutputAsset[] {
+    return this._totalLeaving;
+  }
+
+  private _calcIncomingLeavingTotals() {
+    const ownInputAssets = utxoSum(this._ownInputs.map(boxCandidateToBoxAmounts));
+    const ownOutputAssets = utxoSum(this._ownOutputs.map(boxCandidateToBoxAmounts));
+
+    // Set amounts of tokens that are in own inputs, but not on own outputs to 0 in outputs,
+    // so utxoSumResultDiff will calculate delta correctly instead of ignoring those tokens
+    const tokenIdsExclusiveToOwnInputs = difference(
+      ownInputAssets.tokens.map((t) => t.tokenId),
+      ownOutputAssets.tokens.map((t) => t.tokenId)
+    );
+    ownOutputAssets.tokens = ownOutputAssets.tokens.concat(
+      tokenIdsExclusiveToOwnInputs.map((id) => ({ tokenId: id, amount: 0n }))
+    );
+    const outputsMinusInputs = utxoSumResultDiff(ownOutputAssets, ownInputAssets);
+
+    // Handle non-ERG tokens
+    const totalIncomingTokens = outputsMinusInputs.tokens
+      .filter((t) => t.amount > 0n)
+      .map((t) => tokenAmountToToken(t, this._assetInfo));
+    const totalLeavingTokens = outputsMinusInputs.tokens
+      .filter((t) => t.amount < 0n)
+      .map((t) => tokenAmountToToken({ tokenId: t.tokenId, amount: -t.amount }, this._assetInfo));
+
+    // Handle ERG
+    const ergToken = tokenAmountToToken(
+      {
+        tokenId: ERG_TOKEN_ID,
+        amount:
+          outputsMinusInputs.nanoErgs > 0n
+            ? outputsMinusInputs.nanoErgs
+            : -outputsMinusInputs.nanoErgs
+      },
+      this._assetInfo
+    );
+    if (outputsMinusInputs.nanoErgs > 0n) {
+      totalIncomingTokens.push(ergToken);
+    } else {
+      totalLeavingTokens.push(ergToken);
+    }
+
+    // Sort to make ERG first
+    this._totalIncoming = tokensToOutputAssets(sortByTokenId(totalIncomingTokens), this._assetInfo);
+    this._totalLeaving = tokensToOutputAssets(sortByTokenId(totalLeavingTokens), this._assetInfo);
   }
 
   private _calcBurningBalance() {
@@ -149,12 +219,7 @@ export class TxInterpreter {
   private _determineChangeBoxes(): ErgoBoxCandidate[] {
     const changeBoxes: ErgoBoxCandidate[] = [];
 
-    const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
-
-    const ownInputs = this._tx.inputs.filter((i) => isOwnErgoTree(i.ergoTree));
-    const ownOutputs = this._tx.outputs.filter((o) => isOwnErgoTree(o.ergoTree));
-
-    if (ownInputs.length === 0 || ownOutputs.length === 0) {
+    if (this._ownInputs.length === 0 || this._ownOutputs.length === 0) {
       return [];
     }
 
@@ -163,7 +228,7 @@ export class TxInterpreter {
     // This will detect some subset of outputs that form a valid
     // set of own change boxes that is maximal in terms of inclusion.
     const remainingOwnInputAssets = this._sumTokens(
-      ownInputs
+      this._ownInputs
         .filter((x) => x.assets)
         .map((x) => x.assets)
         .flat()
@@ -172,10 +237,10 @@ export class TxInterpreter {
       return [];
     }
     // Consider outputs with most assets first in an attempt to include as many tokens as possible
-    ownOutputs.sort((a, b) => {
+    const sortedOwnOutputs = [...this._ownOutputs].sort((a, b) => {
       return b.assets.length - a.assets.length;
     });
-    for (const o of ownOutputs) {
+    for (const o of sortedOwnOutputs) {
       const nonChangeAssets = o.assets.filter((asset) => {
         return (
           remainingOwnInputAssets[asset.tokenId] === undefined ||
