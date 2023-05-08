@@ -38,7 +38,6 @@
           :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
           v-model="item.amount"
-          @update:modelValue="signalUpdate"
         />
         <drop-down
           :disabled="unselected.length === 0"
@@ -277,12 +276,6 @@ export default defineComponent({
       } else if (this.isErg(tokenId) && this.hasChange) {
         return this.changeValue;
       }
-    },
-    signalUpdate() {
-      this.$emit("update:recipientData", {
-        address: this.recipientAddress,
-        selectedAssets: this.selected
-      });
     },
     signalRecipientRemove() {
       this.$emit("removeRecipient", "removeRecipient");

@@ -81,6 +81,32 @@ export default defineComponent({
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
     },
+    // Aggregate amoung all recipients
+    selected(): TxAssetAmount[] {
+      const selectedAssetMap: { [tokenId: string]: { asset: StateAsset; amount: BigNumberType } } =
+        {};
+      for (const recipient of this.recipients) {
+        recipient.selectedAssets.forEach((assetInfo) => {
+          if (!Object.hasOwn(selectedAssetMap, assetInfo.asset.tokenId)) {
+            selectedAssetMap[assetInfo.asset.tokenId] = {
+              asset: assetInfo.asset,
+              amount: new BigNumber(0)
+            };
+          }
+          selectedAssetMap[assetInfo.asset.tokenId].amount = selectedAssetMap[
+            assetInfo.asset.tokenId
+          ].amount.plus(assetInfo.amount ?? 0);
+        });
+      }
+      const selected = [] as TxAssetAmount[];
+      for (const assetInfo of Object.values(selectedAssetMap)) {
+        selected.push({
+          asset: assetInfo.asset,
+          amount: assetInfo.amount
+        });
+      }
+      return selected;
+    },
     unselected(): StateAsset[] {
       return differenceBy(
         this.assets,
@@ -173,7 +199,6 @@ export default defineComponent({
   },
   data() {
     return {
-      selected: [] as TxAssetAmount[],
       transaction: undefined as Readonly<UnsignedTx> | undefined,
       feeSettings: {
         tokenId: ERG_TOKEN_ID,
