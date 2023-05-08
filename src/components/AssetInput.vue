@@ -92,6 +92,11 @@ export default defineComponent({
   setup() {
     return { v$: useVuelidate() };
   },
+  mounted() {
+    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
+      this.$emit("update:modelValue", this.asset.confirmedAmount);
+    }
+  },
   computed: {
     conversionCurrency(): string {
       return this.$store.state.settings.conversionCurrency;
@@ -134,17 +139,11 @@ export default defineComponent({
       return this.$store.state.ergPrice;
     }
   },
-  mounted() {
-    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
-      this.$emit("update:modelValue", this.asset.confirmedAmount);
-    }
-  },
   watch: {
     parsedValue(value: BigNumber | undefined) {
       if (!value && !isEmpty(this.internalValue)) {
         return;
       }
-
       this.$emit("update:modelValue", value);
     },
     modelValue(value: BigNumber) {

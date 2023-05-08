@@ -1,6 +1,7 @@
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import BigNumber from "bignumber.js";
 import { ErgoBox, UnsignedTx } from "./connector";
+import { TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
 
 export enum AddressState {
   Used,
@@ -140,4 +141,10 @@ export type SigningState = {
 export type UpdateUsedAddressesFilterCommand = {
   walletId: number;
   filter: boolean;
+};
+
+export type Recipient = {
+  id: number;
+  address: string;
+  selectedAssets: TxAssetAmount[];
 };
