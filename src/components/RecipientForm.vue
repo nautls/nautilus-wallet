@@ -33,7 +33,7 @@
           :key="item.asset.tokenId"
           :label="index === 0 ? 'Assets' : ''"
           :asset="item.asset"
-          :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
+          :reserved-amount="this.getReserveAmountFor(item.asset.tokenId)"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
           :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
@@ -96,12 +96,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BigNumberType, FeeSettings, StateAsset, StateWallet, WalletType } from "@/types/internal";
+import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
-import { decimalize, undecimalize } from "@/utils/bigNumbers";
+import { decimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
@@ -131,6 +131,10 @@ export default defineComponent({
     disposable: {
       type: Boolean,
       default: true
+    },
+    getReserveAmountFor: {
+      type: Function as PropType<(tokenId: string) => BigNumberType | undefined>,
+      required: true
     }
   },
   setup() {
@@ -139,12 +143,6 @@ export default defineComponent({
     };
   },
   computed: {
-    currentWallet(): StateWallet {
-      return this.$store.state.currentWallet;
-    },
-    isLedger(): boolean {
-      return this.currentWallet.type === WalletType.Ledger;
-    },
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
     },
@@ -155,61 +153,11 @@ export default defineComponent({
         (a) => a.tokenId
       );
     },
-    hasMinErgSelected(): boolean {
-      const erg = this.selected.find((x) => this.isErg(x.asset.tokenId));
-      if (!erg || !erg.amount || erg.amount.isZero()) {
-        return false;
-      }
-
-      return undecimalize(erg.amount, ERG_DECIMALS).isGreaterThanOrEqualTo(MIN_BOX_VALUE);
-    },
-    hasChange(): boolean {
-      if (!isEmpty(this.unselected)) {
-        return true;
-      }
-
-      for (const item of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
-        if (
-          !item.amount ||
-          (!this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.confirmedAmount)) ||
-          (this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.confirmedAmount.minus(this.fee)))
-        ) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-    reservedFeeAssetAmount(): BigNumberType {
-      const feeAsset = find(this.selected, (a) => a.asset.tokenId === this.feeSettings.tokenId);
-      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
-        return new BigNumber(0);
-      }
-
-      if (!this.changeValue) {
-        return this.fee;
-      }
-
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
-        return this.fee.plus(this.changeValue);
-      }
-
-      return this.fee;
-    },
     fee(): BigNumberType {
       return this.feeSettings.value;
     },
     isFeeInErg(): boolean {
       return this.isErg(this.feeSettings.tokenId);
-    },
-    changeValue(): BigNumberType | undefined {
-      if (!this.hasChange) {
-        return;
-      }
-
-      return this.minBoxValue;
     },
     minBoxValue(): BigNumberType {
       return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
@@ -219,9 +167,6 @@ export default defineComponent({
     }
   },
   watch: {
-    currentWallet() {
-      this.$router.push({ name: "assets-page" });
-    },
     assets: {
       immediate: true,
       handler() {
@@ -270,13 +215,6 @@ export default defineComponent({
     return validations;
   },
   methods: {
-    getReserveAmountFor(tokenId: string): BigNumberType | undefined {
-      if (this.isFeeAsset(tokenId)) {
-        return this.reservedFeeAssetAmount;
-      } else if (this.isErg(tokenId) && this.hasChange) {
-        return this.changeValue;
-      }
-    },
     signalRecipientRemove() {
       this.$emit("removeRecipient", "removeRecipient");
     },
@@ -302,9 +240,6 @@ export default defineComponent({
       if (erg) {
         this.selected.unshift({ asset: erg, amount: undefined });
       }
-    },
-    urlForTransaction(txId: string): string {
-      return new URL(`/transactions/${txId}`, this.$store.state.settings.explorerUrl).toString();
     },
     add(asset: StateAsset) {
       this.removeDisposableSelections();

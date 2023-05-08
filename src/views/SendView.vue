@@ -8,6 +8,7 @@
       </div>
       <recipient-form
         :disposable="recipients.length > 1"
+        :get-reserve-amount-for="getReserveAmountFor"
         @removeRecipient="() => removeRecipient(recipient.id)"
         @update:recipientAddress="(recipientAddress: string) => { setRecipientAddress(recipient.id, recipientAddress) }"
         @update:selectedAssets="
