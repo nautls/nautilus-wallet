@@ -32,7 +32,7 @@ class ErgoDexService {
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 30);
 
-    const { data } = await axios.get<ErgoDexPool[]>(`${BASE_URL}/amm/markets`, {
+    const { data } = await axios.get<ErgoDexPool[]>(`${BASE_URL}/price-tracking/markets`, {
       params: {
         from: this._getUtcTimestamp(fromDate),
         to: this._getUtcTimestamp(new Date())
