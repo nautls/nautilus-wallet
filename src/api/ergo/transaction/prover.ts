@@ -157,7 +157,7 @@ export class Prover {
         }
 
         this.sendCallback({
-          statusText: "Waiting for device transaction signing confirmation..."
+          statusText: "Please confirm the transaction signature on your device."
         });
         const proofs = await ledgerApp.signTx(
           {

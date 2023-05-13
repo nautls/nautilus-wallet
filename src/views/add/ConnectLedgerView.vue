@@ -48,18 +48,16 @@ import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 import { WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
-import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
-import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
+import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import Bip32 from "@/api/ergo/bip32";
-import { DERIVATION_PATH } from "@/constants/ergo";
+import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
-  components: { LoadingIndicator },
   setup() {
     return { v$: useVuelidate() };
   },
@@ -129,7 +127,8 @@ export default defineComponent({
         this.screenText = "Confirm Address";
         this.statusText = "";
         this.confirmationAddress = bip32.deriveAddress(0).script;
-        if (await app.showAddress(DERIVATION_PATH + "/0")) {
+        const network = MAINNET ? Network.Mainnet : Network.Testnet;
+        if (await app.showAddress(DERIVATION_PATH + "/0", network)) {
           this.state = LedgerState.success;
         }
       } catch (e) {

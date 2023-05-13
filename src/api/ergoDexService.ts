@@ -24,7 +24,7 @@ export type AssetPriceRate = {
   [tokenId: string]: { erg: number };
 };
 
-const BASE_URL = "https://api.ergodex.io/v1";
+const BASE_URL = "https://api.spectrum.fi/v1";
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 class ErgoDexService {
@@ -32,7 +32,7 @@ class ErgoDexService {
     const fromDate = new Date();
     fromDate.setDate(fromDate.getDate() - 30);
 
-    const { data } = await axios.get<ErgoDexPool[]>(`${BASE_URL}/amm/markets`, {
+    const { data } = await axios.get<ErgoDexPool[]>(`${BASE_URL}/price-tracking/markets`, {
       params: {
         from: this._getUtcTimestamp(fromDate),
         to: this._getUtcTimestamp(new Date())

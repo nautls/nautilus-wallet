@@ -3,7 +3,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
 import { UnsignedTx } from "@/types/connector";
-import { AddressState, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
+import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { bip32Pool } from "@/utils/objectPool";
 import {
@@ -19,6 +19,7 @@ import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 import { fetchBoxes } from "../boxFetcher";
+import { CherryPickSelectionStrategy } from "@fleet-sdk/core";
 
 export type TxAssetAmount = {
   asset: StateAsset;
@@ -28,11 +29,13 @@ export type TxAssetAmount = {
 export async function createP2PTransaction({
   recipientAddress,
   assets,
-  fee
+  fee,
+  walletType
 }: {
   recipientAddress: string;
   assets: TxAssetAmount[];
   fee: FeeSettings;
+  walletType: WalletType;
 }): Promise<UnsignedTx> {
   const [inputs, currentHeight] = await Promise.all([
     fetchBoxes(store.state.currentWallet.id),
@@ -98,6 +101,14 @@ export async function createP2PTransaction({
     .payFee(feeNanoErgsAmount.toString())
     .sendChangeTo(await safeGetChangeAddress(recipientAddress));
 
+  if (walletType === WalletType.Ledger) {
+    unsignedTx
+      .configure((settings) => settings.isolateErgOnChange().setMaxTokensPerChangeBox(1))
+      .configureSelector((selector) => selector.defineStrategy(new CherryPickSelectionStrategy()));
+  } else {
+    unsignedTx.configureSelector((selector) => selector.orderBy((input) => input.creationHeight));
+  }
+
   if (isBabelFeeTransaction && fee.box) {
     const nanoErgsChangeAmount = new BigNumber(fee.box.value).minus(
       babelTokenUnitsAmount.multipliedBy(getNanoErgsPerTokenRate(fee.box))
@@ -127,7 +138,7 @@ export async function createP2PTransaction({
       );
   }
 
-  return unsignedTx.build("EIP-12") as UnsignedTx;
+  return unsignedTx.build().toEIP12Object() as UnsignedTx;
 }
 
 function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
