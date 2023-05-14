@@ -14,7 +14,7 @@ export const dappsManifest: DAppManifestItem[] = [
   {
     name: "Wallet Optimization",
     icon: { name: "consolidate", source: "mdi", color: "text-purple-500" },
-    path: "dapps/consolidate"
+    path: "/dapps/wallet-optimization"
   },
   {
     name: "Babel Fees",

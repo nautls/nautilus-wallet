@@ -6,6 +6,7 @@ import AuthView from "@/views/connector/AuthView.vue";
 import SignTxConfirmView from "@/views/connector/SignTxConfirmView.vue";
 import ConnectLedgerView from "@/views/add/ConnectLedgerView.vue";
 
+// Views
 const AddView = () => import("@/views/add/AddView.vue");
 const NftGalleryView = () => import("@/views/NftGalleryView.vue");
 const ReceiveView = () => import("@/views/ReceiveView.vue");
@@ -17,6 +18,10 @@ const AboutView = () => import("@/views/AboutView.vue");
 const SettingsView = () => import("@/views/SettingsView.vue");
 const ConnectionsView = () => import("@/views/connector/ConnectionsView.vue");
 const DAppsView = () => import("@/views/DAppsView.vue");
+
+// dApps
+const WalletOptimizationDApp = () => import("@/dapps/WalletOptimizationDApp.vue");
+const DAppsList = () => import("@/dapps/DappsList.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -79,7 +84,18 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/dapps",
     name: "dapps",
-    component: DAppsView
+    component: DAppsView,
+    children: [
+      {
+        path: "",
+        component: DAppsList
+      },
+      {
+        path: "wallet-optimization",
+        name: "wallet-optimization",
+        component: WalletOptimizationDApp
+      }
+    ]
   },
   {
     path: "/about",
