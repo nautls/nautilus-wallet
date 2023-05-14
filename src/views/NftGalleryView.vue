@@ -3,10 +3,10 @@
     <div>
       <input type="text" v-model="filter" placeholder="Search" class="w-full control block" />
     </div>
-    <div class="flex flex-wrap gap-4 items-cente justify-between">
+    <div class="flex flex-wrap gap-4 items-center justify-between">
       <div
         @click="selectedAsset = nft"
-        class="border cursor-pointer border-gray-300 rounded w-39"
+        class="border cursor-pointer border-gray-300 rounded w-39 transition duration-250 hover:bg-gray-100 active:bg-gray-200"
         v-for="nft in nfts"
         :key="nft.tokenId"
       >
