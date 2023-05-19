@@ -1,4 +1,4 @@
-import { chunk, first, isEmpty, min, minBy } from "lodash";
+import { chunk, first, isEmpty, min } from "lodash";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
@@ -26,6 +26,11 @@ export type AssetBalance = {
   confirmedAmount: string;
   unconfirmedAmount?: string;
   address: string;
+};
+
+export type UnspentBoxesInfo = {
+  oldest: number | undefined;
+  count: number;
 };
 
 export const MIN_SERVER_VERSION = [0, 4, 0];
@@ -334,7 +339,7 @@ class GraphQLService {
     return boxes;
   }
 
-  public async getOldestUnspentBoxCreationHeight(addresses: string[]): Promise<number | undefined> {
+  public async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
     const query = gql<{ boxes: Box[] }>`
       query BoxesCreationHeight($addresses: [String!], $skip: Int, $take: Int) {
         boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
@@ -356,7 +361,7 @@ class GraphQLService {
       heights = heights.concat(chunk);
     }
 
-    return min(heights);
+    return { oldest: min(heights), count: heights.length };
   }
 
   public async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
