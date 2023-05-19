@@ -9,6 +9,7 @@
         class="w-full control block"
       />
     </div>
+    <storage-rent-box />
     <div class="border rounded">
       <table class="table">
         <thead>
@@ -117,12 +118,14 @@ import BigNumber from "bignumber.js";
 import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import { ACTIONS } from "@/constants/store";
+import StorageRentBox from "@/components/StorageRentBox.vue";
 
 export default defineComponent({
   name: "AssetsView",
   components: {
     EmptyLogo,
-    AssetInfoModal
+    AssetInfoModal,
+    StorageRentBox
   },
   computed: {
     ergPrice(): number {

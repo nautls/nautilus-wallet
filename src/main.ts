@@ -35,9 +35,12 @@ import {
   mdiFire,
   mdiChessRook,
   mdiRobotOutline,
-  mdiWidgetsOutline
+  mdiWidgetsOutline,
+  mdiCheckCircleOutline
 } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
 import "@/config/axiosConfig";
 
@@ -50,6 +53,7 @@ if (hasBrowserContext()) {
   rpcHandler.start();
 }
 wasmModule.loadAsync();
+dayjs.extend(relativeTime);
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
@@ -72,7 +76,8 @@ const mdiSettings = {
     mdiFire,
     mdiChessRook,
     mdiRobotOutline,
-    mdiWidgetsOutline
+    mdiWidgetsOutline,
+    mdiCheckCircleOutline
   }
 };
 

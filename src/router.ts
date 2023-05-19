@@ -83,11 +83,11 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/dapps",
-    name: "dapps",
     component: DAppsView,
     children: [
       {
         path: "",
+        name: "dapps",
         component: DAppsList
       },
       {

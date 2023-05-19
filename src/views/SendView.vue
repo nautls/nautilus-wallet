@@ -78,9 +78,9 @@
       </div>
     </div>
 
-    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
-
     <div class="flex-grow"></div>
+
+    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
     <button class="btn w-full" @click="buildTx()">Confirm</button>
     <loading-modal
       title="Loading"

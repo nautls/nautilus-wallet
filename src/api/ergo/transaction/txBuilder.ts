@@ -2,7 +2,7 @@ import { graphQLService } from "@/api/explorer/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
-import { UnsignedTx } from "@/types/connector";
+import { ErgoBox, UnsignedTx } from "@/types/connector";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { bip32Pool } from "@/utils/objectPool";
@@ -25,6 +25,26 @@ export type TxAssetAmount = {
   asset: StateAsset;
   amount?: BigNumberType;
 };
+
+export async function createConsolidationTransaction(
+  boxes: ErgoBox[],
+  creationHeight: number,
+  walletType: WalletType
+) {
+  const unsigned = new TransactionBuilder(creationHeight)
+    .from(boxes)
+    .configureSelector((x) => x.ensureInclusion((input) => input.value > 0n))
+    .sendChangeTo(await safeGetChangeAddress())
+    .payMinFee();
+
+  if (walletType === WalletType.Ledger) {
+    unsigned
+      .configure((settings) => settings.isolateErgOnChange().setMaxTokensPerChangeBox(1))
+      .configureSelector((selector) => selector.defineStrategy(new CherryPickSelectionStrategy()));
+  }
+
+  return unsigned.build().toEIP12Object() as UnsignedTx;
+}
 
 export async function createP2PTransaction({
   recipientAddress,
@@ -151,7 +171,7 @@ function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
   }
 }
 
-export async function safeGetChangeAddress(recipientAddress: string): Promise<string> {
+export async function safeGetChangeAddress(recipientAddress = ""): Promise<string> {
   const wallet = store.state.currentWallet;
   const addresses = store.state.currentAddresses;
 
