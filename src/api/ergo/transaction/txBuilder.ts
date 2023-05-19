@@ -30,7 +30,7 @@ export async function createConsolidationTransaction(
   boxes: ErgoBox[],
   creationHeight: number,
   walletType: WalletType
-) {
+): Promise<UnsignedTx> {
   const unsigned = new TransactionBuilder(creationHeight)
     .from(boxes)
     .configureSelector((x) => x.ensureInclusion((input) => input.value > 0n))

@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import store from "@/store";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { addressesDbService } from "@/api/database/addressesDbService";
+import { HEALTHY_BLOCKS_AGE, HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 
 const oldestBoxAge = ref<number | undefined>(undefined);
 const boxCount = ref(0);
@@ -37,7 +38,7 @@ async function loadBoxInfo() {
 
 <template>
   <div
-    v-if="oldestBoxAge"
+    v-if="oldestBoxAge !== undefined && oldestBoxAge > HEALTHY_BLOCKS_AGE"
     class="rounded rounded border-1 bg-red-100 border-red-300 text-sm py-3 px-4"
   >
     <div>
@@ -58,7 +59,7 @@ async function loadBoxInfo() {
     </router-link>
   </div>
   <div
-    v-if="boxCount > 1"
+    v-else-if="boxCount > HEALTHY_UTXO_COUNT"
     class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
   >
     <div>

@@ -10,12 +10,15 @@ import { graphQLService } from "@/api/explorer/graphQlService";
 import { FeeSettings } from "@/types/internal";
 import { decimalize } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import {
+  BLOCK_TIME_IN_MINUTES,
+  ERG_DECIMALS,
+  ERG_TOKEN_ID,
+  HEALTHY_BLOCKS_AGE,
+  SAFE_MIN_FEE_VALUE,
+  HEALTHY_UTXO_COUNT
+} from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
-
-const BLOCK_TIME_IN_MINUTES = 2;
-const BLOCKS_IN_A_YEAR = 525960 / BLOCK_TIME_IN_MINUTES;
-const HEALTHY_BLOCKS_AGE = BLOCKS_IN_A_YEAR * 3;
 
 const loading = ref(true);
 const boxes = ref<ErgoBox[]>([]);
@@ -57,7 +60,7 @@ const oldestBox = computed(() => {
 
 const utxoHealth = computed(() => {
   return {
-    count: boxes.value.length < 100,
+    count: boxes.value.length < HEALTHY_UTXO_COUNT,
     age: !minBoxHeight.value || currentHeight.value - minBoxHeight.value < HEALTHY_BLOCKS_AGE,
     size: size.value < 100_000
   };
