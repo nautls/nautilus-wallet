@@ -8,14 +8,7 @@ import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
 import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
-import {
-  Client,
-  createClient,
-  gql,
-  fetchExchange,
-  dedupExchange,
-  TypedDocumentNode
-} from "@urql/core";
+import { Client, createClient, gql, fetchExchange, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 
 export type AssetBalance = {
@@ -33,7 +26,7 @@ export type UnspentBoxesInfo = {
   count: number;
 };
 
-export const MIN_SERVER_VERSION = [0, 4, 0];
+export const MIN_SERVER_VERSION = [0, 4, 4];
 const MAX_RESULTS_PER_REQUEST = 50;
 const MAX_PARAMS_PER_REQUEST = 20;
 
@@ -41,7 +34,6 @@ const GRAPHQL_SERVERS = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
       "https://graphql.erg.zelcore.io/",
-      "https://ergo-explorer.anetabtc.io/graphql",
       "https://explore.sigmaspace.io/api/graphql"
     ]
   : ["https://gql-testnet.ergoplatform.com/", "https://tn-ergo-explorer.anetabtc.io/graphql"];
@@ -119,7 +111,6 @@ class GraphQLService {
       url: defaultUrl,
       requestPolicy: "network-only",
       exchanges: [
-        dedupExchange,
         retryExchange({
           initialDelayMs: 1000,
           maxDelayMs: 5000,
@@ -146,7 +137,6 @@ class GraphQLService {
       url: this._url,
       requestPolicy: "network-only",
       exchanges: [
-        dedupExchange,
         retryExchange({
           initialDelayMs: 100,
           maxDelayMs: 5000,
@@ -303,7 +293,7 @@ class GraphQLService {
   }
 
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
-    const query = gql<{ boxes: Box[] }>`
+    const query = gql`
       query Boxes($addresses: [String!], $skip: Int, $take: Int) {
         boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
           boxId
@@ -340,7 +330,7 @@ class GraphQLService {
   }
 
   public async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
-    const query = gql<{ boxes: Box[] }>`
+    const query = gql`
       query BoxesCreationHeight($addresses: [String!], $skip: Int, $take: Int) {
         boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
           creationHeight
