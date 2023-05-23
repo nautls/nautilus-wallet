@@ -115,7 +115,7 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import BigNumber from "bignumber.js";
-import EmptyLogo from "@/assets/images/tokens/asset-nft-picture.svg";
+import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import { ACTIONS } from "@/constants/store";
 import StorageRentBox from "@/components/StorageRentBox.vue";
