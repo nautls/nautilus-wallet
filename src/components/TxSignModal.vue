@@ -102,8 +102,8 @@ function onLoadingModalClose() {
 
 <template>
   <div class="flex flex-col h-full gap-4">
-    <div class="mb-4 text-center">
-      <h1 class="font-bold text-lg">Transaction review</h1>
+    <div class="mb-2 text-center">
+      <h1 class="font-bold text-lg">Transaction Review</h1>
       <p class="text-xs">Please review your transaction before you sign it.</p>
     </div>
 

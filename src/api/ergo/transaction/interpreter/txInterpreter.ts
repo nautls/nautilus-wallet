@@ -135,20 +135,23 @@ export class TxInterpreter {
       .map((t) => tokenAmountToToken({ tokenId: t.tokenId, amount: -t.amount }, this._assetInfo));
 
     // Handle ERG
-    const ergToken = tokenAmountToToken(
-      {
-        tokenId: ERG_TOKEN_ID,
-        amount:
-          outputsMinusInputs.nanoErgs > 0n
-            ? outputsMinusInputs.nanoErgs
-            : -outputsMinusInputs.nanoErgs
-      },
-      this._assetInfo
-    );
-    if (outputsMinusInputs.nanoErgs > 0n) {
-      totalIncomingTokens.push(ergToken);
-    } else {
-      totalLeavingTokens.push(ergToken);
+    if (outputsMinusInputs.nanoErgs !== 0n) {
+      const ergToken = tokenAmountToToken(
+        {
+          tokenId: ERG_TOKEN_ID,
+          amount:
+            outputsMinusInputs.nanoErgs > 0n
+              ? outputsMinusInputs.nanoErgs
+              : -outputsMinusInputs.nanoErgs
+        },
+        this._assetInfo
+      );
+
+      if (outputsMinusInputs.nanoErgs > 0n) {
+        totalIncomingTokens.push(ergToken);
+      } else {
+        totalLeavingTokens.push(ergToken);
+      }
     }
 
     // Sort to make ERG first

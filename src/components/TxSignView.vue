@@ -7,7 +7,6 @@
     </template>
 
     <template v-else>
-      <h1>Changes to your wallet:</h1>
       <tx-sign-summary
         v-if="tx"
         :tx="tx"
@@ -15,19 +14,12 @@
         :ownAddresses="addresses.map((a) => a.script)"
       ></tx-sign-summary>
 
-      <hr />
+      <div class="relative flex items-center pt-2">
+        <div class="flex-grow border-t border-gray-300 mx-2"></div>
+        <span class="flex-shrink text-xs text-gray-400">Transaction details</span>
+        <div class="flex-grow border-t border-gray-300 mx-2"></div>
+      </div>
 
-      <h1>Detailed transaction breakdown:</h1>
-
-      <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
-        <p>Burning</p>
-        <template v-slot:subheader
-          ><span>
-            The assets listed below will be lost. Only continue if you know exactly what are you
-            doing.
-          </span></template
-        >
-      </tx-box-details>
       <tx-box-details
         v-for="(output, index) in tx?.sending"
         :assets="output.assets"
@@ -170,7 +162,7 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: true },
+    transaction: { type: Object as PropType<Readonly<UnsignedTx | undefined>>, required: true },
     inputsToSign: { type: Array<number>, required: false },
     isModal: { type: Boolean, default: false },
     setExternalState: {
