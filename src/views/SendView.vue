@@ -81,22 +81,7 @@
     <div class="flex-grow"></div>
 
     <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
-    <button class="btn w-full" @click="buildTx()">Confirm</button>
-    <loading-modal
-      title="Loading"
-      :message="stateMessage"
-      :state="state"
-      @close="state = 'unknown'"
-    />
-
-    <tx-sign-modal
-      @close="onClose"
-      @fail="onFail"
-      @refused="onRefused"
-      @success="onSuccess"
-      :active="signModalActive"
-      :transaction="transaction"
-    />
+    <button class="btn w-full" @click="sendTx()">Confirm</button>
   </div>
 </template>
 
@@ -104,23 +89,17 @@
 import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BigNumberType, FeeSettings, StateAsset, StateWallet, WalletType } from "@/types/internal";
+import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash";
 import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
-import { UnsignedTx } from "@/types/connector";
 import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
-import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
-import { submitTx } from "@/api/ergo/submitTx";
-import { AxiosError } from "axios";
 import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
-import LoadingModal from "@/components/LoadingModal.vue";
-import TxSignModal from "@/components/TxSignModal.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { SignedTransaction } from "@ergo-graphql/types";
+import { openTransactionSigningModal } from "@/utils/componentUtils";
 
 const validations = {
   recipient: {
@@ -137,23 +116,20 @@ const validations = {
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, LoadingModal, TxSignModal, FeeSelector },
+  components: { AssetInput, FeeSelector },
   setup() {
     return {
       v$: useVuelidate()
     };
   },
   created() {
-    if (this.$route.query.recipient) {
-      this.recipient = this.$route.query.recipient as string;
+    if (this.$route.query.recipient && typeof this.$route.query.recipient === "string") {
+      this.recipient = this.$route.query.recipient;
     }
   },
   computed: {
     currentWallet(): StateWallet {
       return this.$store.state.currentWallet;
-    },
-    isLedger(): boolean {
-      return this.currentWallet.type === WalletType.Ledger;
     },
     assets(): StateAsset[] {
       return this.$store.getters[GETTERS.BALANCE];
@@ -254,16 +230,12 @@ export default defineComponent({
   data() {
     return {
       selected: [] as TxAssetAmount[],
-      transaction: undefined as Readonly<UnsignedTx> | undefined,
       feeSettings: {
         tokenId: ERG_TOKEN_ID,
         value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
       } as FeeSettings,
-      signModalActive: false,
       password: "",
-      recipient: "",
-      stateMessage: "",
-      state: "unknown"
+      recipient: ""
     };
   },
   validations() {
@@ -277,84 +249,31 @@ export default defineComponent({
         return this.changeValue;
       }
     },
-    async buildTx() {
-      this.transaction = undefined;
-
+    async sendTx() {
       const isValid = await this.v$.$validate();
       if (!isValid) {
         return;
       }
 
-      this.state = "loading";
-      this.stateMessage = "Loading context data...";
-
-      try {
-        const unsignedTx = await createP2PTransaction({
-          recipientAddress: this.recipient,
-          assets: this.selected,
-          fee: this.feeSettings,
-          walletType: this.currentWallet.type
-        });
-
-        const burning = new TxInterpreter(unsignedTx, [], this.$store.state.assetInfo).burning;
-        if (!isEmpty(burning)) {
-          throw new Error(
-            "Malformed transaction. This is happening due to a known issue with the transaction building library, a patch is on the way."
-          );
-        }
-
-        this.transaction = Object.freeze(unsignedTx);
-        this.signModalActive = true;
-      } catch (e) {
-        this.state = "error";
-        this.stateMessage = typeof e === "string" ? e : (e as Error).message;
-        this.signModalActive = false;
-      }
+      openTransactionSigningModal({
+        onTransactionBuild: this.buildTransaction,
+        onSuccess: this.clear
+      });
+    },
+    async buildTransaction() {
+      return await createP2PTransaction({
+        recipientAddress: this.recipient,
+        assets: this.selected,
+        fee: this.feeSettings,
+        walletType: this.currentWallet.type
+      });
     },
     clear(): void {
       this.selected = [];
       this.setErgAsSelected();
       this.recipient = "";
       this.password = "";
-      this.transaction = undefined;
       this.v$.$reset();
-    },
-    async onSuccess(signedTx: SignedTransaction) {
-      this.signModalActive = false;
-      this.stateMessage = "Signed. Submitting transaction...";
-
-      try {
-        const txId = await submitTx(signedTx, this.currentWallet.id);
-        this.state = "success";
-        this.stateMessage = `Transaction submitted<br><a class='url' href='${this.urlForTransaction(
-          txId
-        )}' target='_blank'>View on Explorer</a>`;
-
-        this.clear();
-      } catch (e) {
-        this.state = "error";
-
-        if (e instanceof AxiosError) {
-          this.stateMessage = e.message;
-        } else {
-          this.stateMessage = typeof e === "string" ? e : (e as Error).message;
-        }
-      }
-    },
-    onRefused() {
-      this.state = "unknown";
-      this.stateMessage = "";
-      this.signModalActive = false;
-    },
-    onFail(info: string) {
-      this.state = "error";
-      this.stateMessage = info;
-      this.signModalActive = false;
-    },
-    onClose() {
-      this.state = "unknown";
-      this.stateMessage = "";
-      this.signModalActive = false;
     },
     setErgAsSelected(): void {
       if (!this.isFeeInErg && !isEmpty(this.selected)) {
@@ -370,9 +289,6 @@ export default defineComponent({
       if (erg) {
         this.selected.unshift({ asset: erg, amount: undefined });
       }
-    },
-    urlForTransaction(txId: string): string {
-      return new URL(`/transactions/${txId}`, this.$store.state.settings.explorerUrl).toString();
     },
     add(asset: StateAsset) {
       this.removeDisposableSelections();

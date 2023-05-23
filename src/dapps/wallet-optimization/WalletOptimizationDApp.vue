@@ -2,7 +2,7 @@
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import store from "@/store";
 import { ErgoBox } from "@/types/connector";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { estimateBoxSize } from "@fleet-sdk/core";
 import dayjs from "dayjs";
 import { minBy } from "lodash";
@@ -19,6 +19,9 @@ import {
   HEALTHY_UTXO_COUNT
 } from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { filters } from "@/utils/globalFilters";
+import { createConsolidationTransaction } from "./transactionFactory";
+import { openTransactionSigningModal } from "@/utils/componentUtils";
 
 const loading = ref(true);
 const boxes = ref<ErgoBox[]>([]);
@@ -95,18 +98,17 @@ function successColor(success: boolean) {
   return success ? "text-green-500" : "text-orange-500";
 }
 
-function formatBytes(bytes: number, decimals = 1) {
-  if (!+bytes) {
-    return "0 bytes";
-  }
+function sendTransaction() {
+  openTransactionSigningModal({ onTransactionBuild: createTransaction });
+}
 
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+async function createTransaction() {
+  return await createConsolidationTransaction(
+    toRaw(boxes.value),
+    currentHeight.value,
+    store.state.currentWallet.type,
+    toRaw(fee.value)
+  );
 }
 </script>
 
@@ -120,7 +122,7 @@ function formatBytes(bytes: number, decimals = 1) {
         size="32"
         :class="successColor(utxoHealth.count)"
       />
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded"></h1>
+      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
       <h1 v-else>{{ boxes.length }}</h1>
       <p>UTxO count</p>
     </div>
@@ -132,7 +134,7 @@ function formatBytes(bytes: number, decimals = 1) {
         size="32"
         :class="successColor(utxoHealth.age)"
       />
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded"></h1>
+      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
       <h1 v-else>{{ oldestBox }}</h1>
       <p>Oldest UTxO</p>
     </div>
@@ -144,8 +146,8 @@ function formatBytes(bytes: number, decimals = 1) {
         size="32"
         :class="successColor(utxoHealth.size)"
       />
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded"></h1>
-      <h1 v-else>{{ formatBytes(size) }}</h1>
+      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
+      <h1 v-else>{{ filters.formatBytes(size) }}</h1>
       <p>Wallet size</p>
     </div>
   </div>
@@ -167,5 +169,5 @@ function formatBytes(bytes: number, decimals = 1) {
   </div>
   <div class="flex-grow"></div>
   <fee-selector v-model:selected="fee" />
-  <button :disabled="loading" class="btn w-full">Optimize</button>
+  <button :disabled="loading" class="btn w-full" @click="sendTransaction">Optimize</button>
 </template>

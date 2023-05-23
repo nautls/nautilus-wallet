@@ -19,23 +19,6 @@ export type TxAssetAmount = {
   amount?: BigNumberType;
 };
 
-export async function createConsolidationTransaction(
-  boxes: ErgoBox[],
-  creationHeight: number,
-  walletType: WalletType,
-  fee: FeeSettings
-): Promise<UnsignedTx> {
-  const unsigned = new TransactionBuilder(creationHeight)
-    .from(boxes)
-    .configureSelector((x) => x.ensureInclusion((input) => input.value > 0n))
-    .sendChangeTo(await safeGetChangeAddress());
-
-  await setFee(unsigned, fee);
-  setSelectionAndChangeStrategy(unsigned, walletType);
-
-  return unsigned.build().toEIP12Object() as UnsignedTx;
-}
-
 export async function createP2PTransaction({
   recipientAddress,
   assets,
@@ -126,6 +109,7 @@ export async function setFee(
 
     feeNanoErgs = tokenUnits.multipliedBy(getNanoErgsPerTokenRate(selectedBox));
     if (
+      sendingNanoErgs.gt(0) &&
       sendingNanoErgs.lte(MIN_BOX_VALUE) &&
       sendingNanoErgs.lte(feeNanoErgs.minus(SAFE_MIN_FEE_VALUE))
     ) {
@@ -136,10 +120,6 @@ export async function setFee(
     builder.extend(
       BabelSwapPlugin(fee.box, { tokenId: fee.tokenId, amount: tokenUnits.toString() })
     );
-  }
-
-  if (sendingNanoErgs.isLessThan(MIN_BOX_VALUE)) {
-    throw new Error("ERG not selected or less than the minimum required.");
   }
 
   builder.payFee(feeNanoErgs.toString());

@@ -2,57 +2,59 @@
   <div
     class="shadow-scroll text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1"
   >
-    <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
-      <p>Burning</p>
-      <template v-slot:subheader
-        ><span>
-          The assets listed below will be lost. Only continue if you know exactly what are you
-          doing.
-        </span></template
+    <template v-if="!transaction">
+      <tx-box-details loading v-for="i in 3" :key="i" />
+    </template>
+
+    <template v-else>
+      <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
+        <p>Burning</p>
+        <template v-slot:subheader
+          ><span>
+            The assets listed below will be lost. Only continue if you know exactly what are you
+            doing.
+          </span></template
+        >
+      </tx-box-details>
+      <tx-box-details
+        v-for="(output, index) in tx?.sending"
+        :assets="output.assets"
+        :babel-swap="output.isBabelBoxSwap"
+        :key="index"
+        :type="output.isIntrawallet ? 'info' : 'default'"
       >
-    </tx-box-details>
-
-    <tx-box-details
-      v-for="(output, index) in tx?.sending"
-      :assets="output.assets"
-      :babel-swap="output.isBabelBoxSwap"
-      :key="index"
-      :type="output.isIntrawallet ? 'info' : 'default'"
-    >
-      <p>
-        {{ mountTitleForOutput(output) }}
-      </p>
-
-      <template v-slot:subheader v-if="!output.isBabelBoxSwap">
-        <div class="font-mono text-sm break-all flex flex-col gap-2">
-          <p>
-            {{ $filters.compactString(output.receiver, 60) }}
-            <click-to-copy :content="output.receiver" size="11" />
-          </p>
-          <p v-if="isLedger && isP2S(output)">
-            <span class="font-semibold font-sans">Script Hash:</span>
-            {{ $filters.compactString(output.scriptHash, 20) }}
-          </p>
-        </div>
-      </template>
-    </tx-box-details>
-
-    <tx-box-details v-if="tx?.fee" :assets="tx.fee.assets">
-      <p>Network fee</p>
-    </tx-box-details>
-
-    <div v-if="devMode && tx" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
-      <vue-json-pretty
-        class="!font-mono text-xs text-white"
-        :highlight-selected-node="false"
-        :show-double-quotes="false"
-        :show-length="true"
-        :collapse-path="/(extension|tokens|assets|additionalRegisters)$/"
-        :show-line="false"
-        :deep="1"
-        :data="tx?.rawTx"
-      ></vue-json-pretty>
-    </div>
+        <p>
+          {{ getOutputTitle(output) }}
+        </p>
+        <template v-slot:subheader v-if="!output.isBabelBoxSwap">
+          <div class="font-mono text-sm break-all flex flex-col gap-2">
+            <p>
+              {{ $filters.compactString(output.receiver, 60) }}
+              <click-to-copy :content="output.receiver" size="11" />
+            </p>
+            <p v-if="isLedger && isP2S(output)">
+              <span class="font-semibold font-sans">Script Hash:</span>
+              {{ $filters.compactString(output.scriptHash, 20) }}
+            </p>
+          </div>
+        </template>
+      </tx-box-details>
+      <tx-box-details v-if="tx?.fee" :assets="tx.fee.assets">
+        <p>Network fee</p>
+      </tx-box-details>
+      <div v-if="devMode && tx" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
+        <vue-json-pretty
+          class="!font-mono text-xs text-white"
+          :highlight-selected-node="false"
+          :show-double-quotes="false"
+          :show-length="true"
+          :collapse-path="/(extension|tokens|assets|additionalRegisters)$/"
+          :show-line="false"
+          :deep="1"
+          :data="tx?.rawTx"
+        ></vue-json-pretty>
+      </div>
+    </template>
   </div>
 
   <div>
@@ -61,7 +63,7 @@
       class="inline-flex items-center font-normal cursor-pointer bg-red-100 border-1 border-red-300 mb-2 py-1 px-3 rounded w-full"
     >
       <input class="checkbox" type="checkbox" v-model="burnAgreement" />
-      <span class="text-red-900">I understand that I'm burning my token(s).</span>
+      <span class="text-red-900">I understand that I'm burning token(s).</span>
     </label>
 
     <template v-if="!isLedger">
@@ -75,7 +77,7 @@
             placeholder="Spending password"
             type="password"
             @blur="v$.password.$touch()"
-            :disabled="!canSign || isMnemonicSigning"
+            :disabled="!canSign || isMnemonicSigning || !transaction"
             v-model="password"
             class="w-full control block"
           />
@@ -92,7 +94,7 @@
       Cancel
     </button>
 
-    <button class="btn w-full" @click="sign()" :disabled="!canSign">
+    <button class="btn w-full" @click="sign()" :disabled="!canSign || !transaction">
       <loading-indicator v-if="isMnemonicSigning" type="circular" class="h-4 w-4 align-middle" />
       <span v-else>Sign</span>
     </button>
@@ -112,7 +114,7 @@
   </div>
 
   <loading-modal
-    v-else
+    v-else-if="!setExternalState"
     title="Signing"
     :message="signState.statusText"
     :state="signState.state"
@@ -126,6 +128,7 @@ import { mapState } from "vuex";
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
+  LoadingModalState,
   SigningState,
   SignTxCommand,
   StateAddress,
@@ -153,8 +156,12 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: true },
-    isModal: { type: Boolean, default: false }
+    transaction: { type: Object as PropType<Readonly<UnsignedTx | undefined>> },
+    isModal: { type: Boolean },
+    setExternalState: {
+      type: Function as PropType<(state: LoadingModalState, message?: string) => void>,
+      required: false
+    }
   },
   setup() {
     return {
@@ -171,7 +178,7 @@ export default defineComponent({
         deviceModel: LedgerDeviceModelId.nanoS,
         screenText: "",
         statusText: "",
-        state: "unknown",
+        state: "unknown" as LoadingModalState,
         appId: 0
       } as SigningState
     };
@@ -195,7 +202,7 @@ export default defineComponent({
       return this.$store.state.currentWallet.type === WalletType.Ledger;
     },
     isMnemonicSigning() {
-      return this.isModal && this.signState.loading && !this.isLedger;
+      return this.isModal && this.signState.loading && !this.isLedger && !this.setExternalState;
     },
     currentWalletId() {
       return this.$store.state.currentWallet.id;
@@ -213,7 +220,7 @@ export default defineComponent({
       );
     },
     tx(): TxInterpreter | undefined {
-      if (this.addresses.length === 0) {
+      if (this.addresses.length === 0 || !this.transaction) {
         return;
       }
 
@@ -238,7 +245,7 @@ export default defineComponent({
         return;
       }
 
-      this.setState("loading", { loading: true, statusText: "" });
+      this.setState("loading", { loading: true, statusText: "Signing transaction..." });
 
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX, {
@@ -252,7 +259,9 @@ export default defineComponent({
           this.setState("success", { loading: false });
           this.succeed(signedTx);
         } else {
-          this.setState("unknown", { loading: false });
+          if (!this.setExternalState) {
+            this.setState("unknown", { loading: false });
+          }
 
           // wait for loading modal animation to finish
           setTimeout(() => {
@@ -266,6 +275,7 @@ export default defineComponent({
         });
 
         if (!(e instanceof PasswordError)) {
+          // eslint-disable-next-line no-console
           console.error(e);
 
           if (!this.isModal || this.isMnemonicSigning) {
@@ -281,12 +291,16 @@ export default defineComponent({
         }
       }
     },
-    setState(
-      state: "success" | "error" | "loading" | "unknown",
-      newState: Omit<Partial<SigningState>, "state">
-    ) {
-      if (state === "error" || !this.isModal || (this.isModal && this.isLedger)) {
+    setState(state: LoadingModalState, newState: Omit<Partial<SigningState>, "state">) {
+      if (
+        state === "error" ||
+        !this.isModal ||
+        (this.isModal && this.isLedger) ||
+        !this.setExternalState
+      ) {
         this.signState.state = state;
+      } else if (this.setExternalState) {
+        this.setExternalState(state, newState.statusText);
       }
 
       this.signState = Object.assign(this.signState, newState);
@@ -306,7 +320,7 @@ export default defineComponent({
     succeed(signedTx: ErgoTx) {
       this.$emit("success", signedTx);
     },
-    mountTitleForOutput(output: OutputInterpreter) {
+    getOutputTitle(output: OutputInterpreter) {
       if (output.isBabelBoxSwap) {
         return "Babel Fee swap";
       } else if (output.isIntrawallet) {

@@ -20,7 +20,8 @@ const ConnectionsView = () => import("@/views/connector/ConnectionsView.vue");
 const DAppsView = () => import("@/views/DAppsView.vue");
 
 // dApps
-const WalletOptimizationDApp = () => import("@/dapps/WalletOptimizationDApp.vue");
+const WalletOptimizationDApp = () =>
+  import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue");
 const DAppsList = () => import("@/dapps/DappsList.vue");
 
 const routes: Array<RouteRecordRaw> = [
