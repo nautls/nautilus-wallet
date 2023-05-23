@@ -1,79 +1,127 @@
-<template>
-  <o-modal
-    v-model:active="internalActive"
-    :auto-focus="true"
-    :can-cancel="false"
-    :animation="isPopUp ? 'fade-slide-up' : 'zoom-out'"
-    @cancel="emitOnClose"
-    scroll="clip"
-    root-class="outline-none <sm:justify-end"
-    content-class="animation-content max-h-90vh p-4 rounded !max-w-100 !w-90vw <sm:rounded-t-xl <sm:rounded-none <sm:h-90vh !<sm:w-100vw"
-  >
-    <div class="flex flex-col h-full gap-4">
-      <div class="mb-4 text-center">
-        <h1 class="font-bold text-lg">Transaction review</h1>
-        <p class="text-xs">Please review your transaction before you sign it.</p>
-      </div>
-      <tx-sign-view
-        v-if="transaction"
-        :transaction="transaction"
-        :is-modal="true"
-        @fail="fail"
-        @refused="refused"
-        @success="success"
-      />
-    </div>
-  </o-modal>
-</template>
-
-<script lang="ts">
+<script setup lang="ts">
 import { ErgoTx, UnsignedTx } from "@/types/connector";
-import { isPopup } from "@/utils/browserApi";
-import { defineComponent, PropType } from "vue";
+import { PropType, nextTick, onMounted, reactive, ref } from "vue";
 import TxSignView from "./TxSignView.vue";
+import LoadingModal from "@/components/LoadingModal.vue";
+import { LoadingModalState, TransactionBuilderFunction } from "@/types/internal";
+import { submitTx } from "@/api/ergo/submitTx";
+import store from "@/store";
 
-export default defineComponent({
-  name: "TxSignModal",
-  components: { TxSignView },
-  emits: ["success", "fail", "refused", "close"],
-  props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: false },
-    active: { type: Boolean, required: true }
-  },
-  computed: {
-    isPopUp(): boolean {
-      return isPopup();
-    }
-  },
-  data() {
-    return {
-      internalActive: false
-    };
-  },
-  watch: {
-    active(newVal: boolean) {
-      this.internalActive = newVal;
-    }
-  },
-  methods: {
-    fail(info: string) {
-      this.$emit("fail", info);
-      this.close();
-    },
-    refused(info: string) {
-      this.$emit("refused", info);
-      this.close();
-    },
-    success(tx: ErgoTx) {
-      this.$emit("success", tx);
-      this.close();
-    },
-    emitOnClose(): void {
-      this.$emit("close");
-    },
-    close(): void {
-      this.internalActive = false;
-    }
+const props = defineProps({
+  submit: { type: Boolean, default: true },
+  onTransactionBuild: {
+    type: Function as PropType<TransactionBuilderFunction>,
+    required: true
   }
 });
+
+const emit = defineEmits(["success", "fail", "refused", "close"]);
+
+const transaction = ref<UnsignedTx | undefined>();
+const loading = reactive({
+  message: "",
+  state: "unknown" as LoadingModalState,
+  animate: true
+});
+
+onMounted(async () => {
+  transaction.value = await buildTransaction();
+
+  if (loading.state === "loading") {
+    setState("unknown");
+  }
+});
+
+async function buildTransaction() {
+  try {
+    return await props.onTransactionBuild();
+  } catch (e) {
+    setState("error", typeof e === "string" ? e : (e as Error).message);
+  }
+}
+
+function setState(state: LoadingModalState, message = "") {
+  loading.state = state;
+  loading.message = message;
+}
+
+function fail(info: string) {
+  emit("fail", info);
+  close();
+}
+
+function refused(info: string) {
+  emit("refused", info);
+  close();
+}
+
+async function success(signedTx: ErgoTx) {
+  if (!props.submit) {
+    emit("success", signedTx);
+    return;
+  }
+
+  setState("loading", "Submitting transaction...");
+
+  try {
+    const txId = await submitTx(signedTx, store.state.currentWallet.id);
+    setState(
+      "success",
+      `Transaction submitted<br><a class='url' href='${getTransactionExplorerUrl(
+        txId
+      )}' target='_blank'>View on Explorer</a>`
+    );
+    emit("success", signedTx);
+  } catch (e) {
+    setState("error", typeof e === "string" ? e : (e as Error).message);
+  }
+}
+
+function getTransactionExplorerUrl(txId: string): string {
+  return new URL(`/transactions/${txId}`, store.state.settings.explorerUrl).toString();
+}
+
+function close(): void {
+  emit("close");
+}
+
+function onLoadingModalClose() {
+  if (loading.state === "error") {
+    setState("unknown");
+    return;
+  }
+
+  loading.animate = false;
+  setState("unknown");
+
+  nextTick(() => {
+    close();
+  });
+}
 </script>
+
+<template>
+  <div class="flex flex-col h-full gap-4">
+    <div class="mb-4 text-center">
+      <h1 class="font-bold text-lg">Transaction review</h1>
+      <p class="text-xs">Please review your transaction before you sign it.</p>
+    </div>
+
+    <tx-sign-view
+      :transaction="transaction"
+      :is-modal="true"
+      :set-external-state="setState"
+      @fail="fail"
+      @refused="refused"
+      @success="success"
+    />
+
+    <loading-modal
+      title="Loading"
+      @close="onLoadingModalClose()"
+      :message="loading.message"
+      :state="loading.state"
+      :animate="loading.animate"
+    />
+  </div>
+</template>

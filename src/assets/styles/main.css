@@ -385,3 +385,25 @@ input:disabled {
 .url {
   @apply text-blue-500;
 }
+
+.stats {
+  @apply flex flex-row gap-0 text-center  bg-white;
+}
+.stats-card {
+  @apply border border-gray-200 w-full p-2;
+}
+.stats-card:last-child {
+  @apply rounded-r-md;
+}
+.stats-card:not(:last-child) {
+  @apply border-r-0;
+}
+.stats-card:first-child {
+  @apply rounded-l-md;
+}
+.stats-card h1 {
+  @apply font-bold;
+}
+.stats-card p {
+  @apply text-xs text-gray-500;
+}

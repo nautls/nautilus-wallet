@@ -5,6 +5,7 @@
     :can-cancel="closable"
     :overlay-class="overlayClass"
     :content-class="contentClass"
+    :animation="animate ? undefined : ''"
     @onClose="emitOnClose()"
     scroll="clip"
   >
@@ -21,16 +22,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { LoadingModalState } from "@/types/internal";
+import { PropType, defineComponent } from "vue";
 
 export default defineComponent({
   name: "LoadingModal",
   props: {
     title: { type: String, required: true },
-    message: { type: String, required: false },
-    transparentOverlay: { type: Boolean, default: false },
+    message: { type: String },
+    transparentOverlay: { type: Boolean },
+    animate: { type: Boolean, default: true },
     state: {
-      type: String,
+      type: String as PropType<LoadingModalState>,
       required: true,
       validate(value: string) {
         return ["unknown", "success", "loading", "error"].includes(value);

@@ -1,4 +1,4 @@
-import { chunk, first, isEmpty } from "lodash";
+import { chunk, first, isEmpty, min } from "lodash";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
@@ -8,7 +8,7 @@ import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
 import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
-import { Client, createClient, gql, fetchExchange, dedupExchange } from "@urql/core";
+import { Client, createClient, gql, fetchExchange, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 
 export type AssetBalance = {
@@ -21,7 +21,12 @@ export type AssetBalance = {
   address: string;
 };
 
-export const MIN_SERVER_VERSION = [0, 4, 0];
+export type UnspentBoxesInfo = {
+  oldest: number | undefined;
+  count: number;
+};
+
+export const MIN_SERVER_VERSION = [0, 4, 4];
 const MAX_RESULTS_PER_REQUEST = 50;
 const MAX_PARAMS_PER_REQUEST = 20;
 
@@ -29,7 +34,6 @@ const GRAPHQL_SERVERS = MAINNET
   ? [
       "https://gql.ergoplatform.com/",
       "https://graphql.erg.zelcore.io/",
-      "https://ergo-explorer.anetabtc.io/graphql",
       "https://explore.sigmaspace.io/api/graphql"
     ]
   : ["https://gql-testnet.ergoplatform.com/", "https://tn-ergo-explorer.anetabtc.io/graphql"];
@@ -107,7 +111,6 @@ class GraphQLService {
       url: defaultUrl,
       requestPolicy: "network-only",
       exchanges: [
-        dedupExchange,
         retryExchange({
           initialDelayMs: 1000,
           maxDelayMs: 5000,
@@ -134,7 +137,6 @@ class GraphQLService {
       url: this._url,
       requestPolicy: "network-only",
       exchanges: [
-        dedupExchange,
         retryExchange({
           initialDelayMs: 100,
           maxDelayMs: 5000,
@@ -291,14 +293,65 @@ class GraphQLService {
   }
 
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
+    const query = gql`
+      query Boxes($addresses: [String!], $skip: Int, $take: Int) {
+        boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
+          boxId
+          transactionId
+          value
+          creationHeight
+          index
+          ergoTree
+          additionalRegisters
+          assets {
+            tokenId
+            amount
+          }
+        }
+      }
+    `;
+
     let boxes: ErgoBox[] = [];
     const addressesChunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
 
     for (const addresses of addressesChunks) {
-      boxes = boxes.concat(await this.getAddressesChunkUnspentBoxes(addresses));
+      boxes = boxes.concat(
+        await this.queryAddressesChunkUnspentBoxes<ErgoBox>(addresses, query, (box) => {
+          return {
+            ...box,
+            confirmed: true,
+            additionalRegisters: box.additionalRegisters as Registers
+          };
+        })
+      );
     }
 
     return boxes;
+  }
+
+  public async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
+    const query = gql`
+      query BoxesCreationHeight($addresses: [String!], $skip: Int, $take: Int) {
+        boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
+          creationHeight
+        }
+      }
+    `;
+
+    let heights: number[] = [];
+    const addressesChunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
+
+    for (const addresses of addressesChunks) {
+      const chunk = await this.queryAddressesChunkUnspentBoxes(
+        addresses,
+        query,
+        (box) => box.creationHeight
+      );
+
+      heights = heights.concat(chunk);
+    }
+
+    return { oldest: min(heights), count: heights.length };
   }
 
   public async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
@@ -349,25 +402,11 @@ class GraphQLService {
     );
   }
 
-  private async getAddressesChunkUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
-    const query = gql<{ boxes: Box[] }>`
-      query Boxes($addresses: [String!], $skip: Int, $take: Int) {
-        boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
-          boxId
-          transactionId
-          value
-          creationHeight
-          index
-          ergoTree
-          additionalRegisters
-          assets {
-            tokenId
-            amount
-          }
-        }
-      }
-    `;
-
+  private async queryAddressesChunkUnspentBoxes<T>(
+    addresses: string[],
+    query: TypedDocumentNode<{ boxes: Box[] }>,
+    map: (box: Box) => T
+  ): Promise<T[]> {
     let boxes: Box[] = [];
     let lastChunkLength = 0;
     let skip = 0;
@@ -384,15 +423,7 @@ class GraphQLService {
       }
     } while (lastChunkLength === MAX_RESULTS_PER_REQUEST);
 
-    return (
-      boxes.map((box) => {
-        return {
-          ...box,
-          confirmed: true,
-          additionalRegisters: box.additionalRegisters as Registers
-        };
-      }) || []
-    );
+    return boxes.map(map) || [];
   }
 
   public async getTokenInfo(tokenId: string): Promise<Token | undefined> {

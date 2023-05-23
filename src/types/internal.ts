@@ -86,6 +86,8 @@ export type StateAssetInfo = {
 
 export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
 
+export type LoadingModalState = "unknown" | "success" | "loading" | "error";
+
 export type FeeSettings = {
   tokenId: string;
   readonly value: BigNumberType;
@@ -134,9 +136,14 @@ export type SigningState = {
   statusText: string;
   screenText: string;
   deviceModel: LedgerDeviceModelId;
-  state: string;
+  state: LoadingModalState;
   appId: number;
 };
+
+export type TransactionBuilderFunction = () => Promise<UnsignedTx>;
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
 export type UpdateUsedAddressesFilterCommand = {
   walletId: number;
