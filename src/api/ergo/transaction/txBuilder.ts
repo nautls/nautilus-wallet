@@ -1,25 +1,18 @@
 import { graphQLService } from "@/api/explorer/graphQlService";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
-import { UnsignedTx } from "@/types/connector";
+import { ErgoBox, UnsignedTx } from "@/types/connector";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { bip32Pool } from "@/utils/objectPool";
-import {
-  ErgoUnsignedInput,
-  OutputBuilder,
-  SByte,
-  SColl,
-  SConstant,
-  SInt,
-  TransactionBuilder
-} from "@fleet-sdk/core";
+import { OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
 import BigNumber from "bignumber.js";
 import { isEmpty } from "lodash";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 import { fetchBoxes } from "../boxFetcher";
 import { CherryPickSelectionStrategy } from "@fleet-sdk/core";
+import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
 
 export type TxAssetAmount = {
   asset: StateAsset;
@@ -49,18 +42,61 @@ export async function createP2PTransaction({
     throw Error("Unable to fetch current height, please check your connection.");
   }
 
-  const isBabelFeeTransaction = fee.tokenId !== ERG_TOKEN_ID;
-  const babelTokenUnitsAmount = isBabelFeeTransaction
-    ? undecimalize(fee.value, fee.assetInfo?.decimals)
-    : new BigNumber(0);
+  const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
+  const sendingNanoErgs = getSendingNanoErgs(assets);
 
-  let sendingNanoErgsAmount = getSendingNanoErgs(assets);
-  let feeNanoErgsAmount: BigNumber;
+  const unsigned = new TransactionBuilder(currentHeight)
+    .from(inputs)
+    .to(
+      new OutputBuilder(
+        sendingNanoErgs.eq(0) && isBabelFee ? BigInt(MIN_BOX_VALUE) : sendingNanoErgs.toString(),
+        recipientAddress
+      ).addTokens(
+        assets
+          .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
+          .map((token) => ({
+            tokenId: token.asset.tokenId,
+            amount: undecimalize(
+              token.amount || BigNumber(0),
+              token.asset.info?.decimals
+            ).toString()
+          }))
+      )
+    )
+    .sendChangeTo(await safeGetChangeAddress(recipientAddress));
 
-  if (isBabelFeeTransaction) {
+  await setFee(unsigned, fee);
+  setSelectionAndChangeStrategy(unsigned, walletType);
+
+  return unsigned.build().toEIP12Object() as UnsignedTx;
+}
+
+export function setSelectionAndChangeStrategy(
+  builder: TransactionBuilder,
+  walletType: WalletType
+): TransactionBuilder {
+  if (walletType === WalletType.Ledger) {
+    return builder
+      .configure((settings) => settings.isolateErgOnChange().setMaxTokensPerChangeBox(1))
+      .configureSelector((selector) => selector.defineStrategy(new CherryPickSelectionStrategy()));
+  }
+
+  return builder.configureSelector((selector) => selector.orderBy((input) => input.creationHeight));
+}
+
+export async function setFee(
+  builder: TransactionBuilder,
+  fee: FeeSettings
+): Promise<TransactionBuilder> {
+  const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
+  let feeNanoErgs = undecimalize(fee.value, ERG_DECIMALS);
+  let sendingNanoErgs = BigNumber(builder.outputs.sum().nanoErgs.toString());
+
+  if (isBabelFee) {
+    const tokenUnits = undecimalize(fee.value, fee.assetInfo?.decimals);
     const selectedBox = selectBestBabelBox(
       await fetchBabelBoxes(fee.tokenId, fee.nanoErgsPerToken),
-      babelTokenUnitsAmount
+      tokenUnits
     );
 
     if (!selectedBox) {
@@ -71,74 +107,24 @@ export async function createP2PTransaction({
       fee.box = selectedBox;
     }
 
-    feeNanoErgsAmount = babelTokenUnitsAmount.multipliedBy(getNanoErgsPerTokenRate(selectedBox));
-    if (sendingNanoErgsAmount.isLessThan(MIN_BOX_VALUE)) {
-      sendingNanoErgsAmount = new BigNumber(MIN_BOX_VALUE);
-      feeNanoErgsAmount = feeNanoErgsAmount.minus(sendingNanoErgsAmount);
+    feeNanoErgs = tokenUnits.multipliedBy(getNanoErgsPerTokenRate(selectedBox));
+    if (
+      sendingNanoErgs.gt(0) &&
+      sendingNanoErgs.lte(MIN_BOX_VALUE) &&
+      sendingNanoErgs.lte(feeNanoErgs.minus(SAFE_MIN_FEE_VALUE))
+    ) {
+      sendingNanoErgs = BigNumber(MIN_BOX_VALUE);
+      feeNanoErgs = feeNanoErgs.minus(sendingNanoErgs);
     }
-  } else {
-    if (sendingNanoErgsAmount.isLessThan(MIN_BOX_VALUE)) {
-      throw new Error("ERG not selected or less than the minimum required.");
-    }
-    feeNanoErgsAmount = undecimalize(fee.value, ERG_DECIMALS);
-  }
 
-  const output = new OutputBuilder(sendingNanoErgsAmount.toString(), recipientAddress).addTokens(
-    assets
-      .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
-      .map((token) => ({
-        tokenId: token.asset.tokenId,
-        amount: undecimalize(
-          token.amount || new BigNumber(0),
-          token.asset.info?.decimals
-        ).toString()
-      }))
-  );
-
-  const unsignedTx = new TransactionBuilder(currentHeight)
-    .from(inputs)
-    .to(output)
-    .payFee(feeNanoErgsAmount.toString())
-    .sendChangeTo(await safeGetChangeAddress(recipientAddress));
-
-  if (walletType === WalletType.Ledger) {
-    unsignedTx
-      .configure((settings) => settings.isolateErgOnChange().setMaxTokensPerChangeBox(1))
-      .configureSelector((selector) => selector.defineStrategy(new CherryPickSelectionStrategy()));
-  } else {
-    unsignedTx.configureSelector((selector) => selector.orderBy((input) => input.creationHeight));
-  }
-
-  if (isBabelFeeTransaction && fee.box) {
-    const nanoErgsChangeAmount = new BigNumber(fee.box.value).minus(
-      babelTokenUnitsAmount.multipliedBy(getNanoErgsPerTokenRate(fee.box))
+    builder.extend(
+      BabelSwapPlugin(fee.box, { tokenId: fee.tokenId, amount: tokenUnits.toString() })
     );
-
-    const babelInput = new ErgoUnsignedInput(fee.box).setContextVars({
-      0: SConstant(SInt(unsignedTx.outputs.length))
-    });
-
-    unsignedTx.and
-      .from(babelInput)
-      .to(
-        new OutputBuilder(nanoErgsChangeAmount.toString(), babelInput.ergoTree)
-          .addTokens(fee.box.assets)
-          .addTokens({
-            tokenId: fee.tokenId,
-            amount: babelTokenUnitsAmount.toString()
-          })
-          .setAdditionalRegisters({
-            R4: babelInput.additionalRegisters.R4,
-            R5: babelInput.additionalRegisters.R5,
-            R6: SConstant(SColl(SByte, Buffer.from(babelInput.boxId, "hex")))
-          })
-      )
-      .configureSelector((selector) =>
-        selector.ensureInclusion((input) => input.boxId === babelInput.boxId)
-      );
   }
 
-  return unsignedTx.build().toEIP12Object() as UnsignedTx;
+  builder.payFee(feeNanoErgs.toString());
+
+  return builder;
 }
 
 function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
@@ -151,7 +137,7 @@ function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
   }
 }
 
-export async function safeGetChangeAddress(recipientAddress: string): Promise<string> {
+export async function safeGetChangeAddress(recipientAddress = ""): Promise<string> {
   const wallet = store.state.currentWallet;
   const addresses = store.state.currentAddresses;
 

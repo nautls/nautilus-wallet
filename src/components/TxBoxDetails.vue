@@ -3,57 +3,78 @@
     <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none" :class="headerStyles">
       <div class="flex flex-row items-center w-full">
         <div class="flex w-full">
-          <slot />
+          <p v-if="loading" class="skeleton h-5 w-3/5 rounded"></p>
+          <template v-else>
+            <slot />
+          </template>
         </div>
         <div v-if="babelSwap" class="flex-shrink"><babel-badge class="h-5 w-5 align-middle" /></div>
       </div>
 
-      <div class="text-xs font-normal text-gray-600 pt-1" v-if="$slots.subheader">
+      <div v-if="loading" class="pt-2">
+        <p class="skeleton h-3 w-full rounded"></p>
+        <p class="skeleton h-3 w-2/5 rounded mt-1"></p>
+      </div>
+      <div v-else-if="$slots.subheader" class="text-xs font-normal text-gray-600 pt-1">
         <slot name="subheader" />
       </div>
     </div>
 
     <ul class="px-3 py-1">
-      <li v-for="(asset, index) in assets" :key="index">
-        <div v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1" class="text-center py-2">
-          <mdi-icon
-            name="swap-vertical-variant"
-            size="24"
-            class="align-middle text-gray-600 transform-flip"
-          />
-        </div>
+      <li v-if="loading">
         <div class="flex flex-row items-center gap-2 py-1">
-          <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />
+          <empty-logo class="h-7 w-7 animate-pulse fill-gray-300" />
           <div class="flex-grow items-center align-middle">
-            <span class="align-middle">
-              <template v-if="asset.name">{{
-                $filters.compactString(asset.name, 20, "end")
-              }}</template>
-              <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
-            </span>
-            <tool-tip v-if="asset.minting" class="align-middle">
-              <template v-slot:label>
-                <div class="block w-38">
-                  <span>This asset is being minted by this transaction.</span>
-                  <div class="text-left pt-2">
-                    <p v-if="asset.description">
-                      <span class="font-bold">Description</span>:
-                      {{ $filters.compactString(asset.description, 50, "end") }}
-                    </p>
-                    <p v-if="asset.decimals">
-                      <span class="font-bold">Decimals</span>: {{ asset.decimals }}
-                    </p>
-                  </div>
-                </div>
-              </template>
-              <vue-feather type="git-commit" class="align-middle pl-2" size="18" />
-            </tool-tip>
+            <div class="skeleton h-4 w-2/5 rounded"></div>
           </div>
-          <div>
-            {{ $filters.formatBigNumber(asset.amount) }}
-          </div>
+          <div class="skeleton h-4 w-1/6 rounded"></div>
         </div>
       </li>
+      <template v-else>
+        <li v-for="(asset, index) in assets" :key="index">
+          <div
+            v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1"
+            class="text-center py-2"
+          >
+            <mdi-icon
+              name="swap-vertical-variant"
+              size="24"
+              class="align-middle text-gray-600 transform-flip"
+            />
+          </div>
+          <div class="flex flex-row items-center gap-2 py-1">
+            <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />
+            <div class="flex-grow items-center align-middle">
+              <span class="align-middle">
+                <template v-if="asset.name">{{
+                  $filters.compactString(asset.name, 20, "end")
+                }}</template>
+                <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
+              </span>
+              <tool-tip v-if="asset.minting" class="align-middle">
+                <template v-slot:label>
+                  <div class="block w-38">
+                    <span>This asset is being minted on this transaction.</span>
+                    <div class="text-left pt-2">
+                      <p v-if="asset.description">
+                        <span class="font-bold">Description</span>:
+                        {{ $filters.compactString(asset.description, 50, "end") }}
+                      </p>
+                      <p v-if="asset.decimals">
+                        <span class="font-bold">Decimals</span>: {{ asset.decimals }}
+                      </p>
+                    </div>
+                  </div>
+                </template>
+                <vue-feather type="git-commit" class="align-middle pl-2" size="18" />
+              </tool-tip>
+            </div>
+            <div>
+              {{ $filters.formatBigNumber(asset.amount) }}
+            </div>
+          </div>
+        </li>
+      </template>
     </ul>
   </div>
 </template>
@@ -63,15 +84,18 @@ import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterprete
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { defineComponent, PropType } from "vue";
 import BabelBadge from "@/assets/images/babel-badge.svg";
+import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 
 export default defineComponent({
   name: "TxBoxDetails",
   components: {
-    BabelBadge
+    BabelBadge,
+    EmptyLogo
   },
   props: {
-    assets: { type: Array as PropType<Array<OutputAsset>>, required: true },
-    babelSwap: { type: Boolean, default: false },
+    assets: { type: Array as PropType<Array<OutputAsset>>, default: () => [] },
+    babelSwap: { type: Boolean },
+    loading: { type: Boolean },
     type: {
       type: String as PropType<"default" | "danger" | "warning" | "info" | "success">,
       default: "default"

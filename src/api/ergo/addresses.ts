@@ -16,7 +16,7 @@ export function getChangeAddress(
 ): string | undefined {
   const addresses = outputs
     .filter((o) => o.ergoTree.startsWith(P2PK_TREE_PREFIX))
-    .map((o) => addressFromPk(o.ergoTree))
+    .map((o) => addressFromErgoTree(o.ergoTree))
     .filter((a) => ownAddresses.includes(a));
 
   return last(addresses);

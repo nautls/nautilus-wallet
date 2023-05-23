@@ -17,3 +17,9 @@ export const MIN_TUPLE_LENGTH = 6;
 export const PK_HEX_LENGTH = 66;
 export const UNKNOWN_MINTING_BOX_ID = "";
 export const TOKEN_ID_LENGTH = 64;
+
+const MINUTES_IN_A_YEAR = 525960;
+export const BLOCK_TIME_IN_MINUTES = 2;
+export const BLOCKS_IN_A_YEAR = MINUTES_IN_A_YEAR / BLOCK_TIME_IN_MINUTES;
+export const HEALTHY_BLOCKS_AGE = BLOCKS_IN_A_YEAR * 3;
+export const HEALTHY_UTXO_COUNT = 100;

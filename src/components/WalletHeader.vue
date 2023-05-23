@@ -65,7 +65,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapActions, mapState } from "vuex";
-import NavHeader from "@/components/NavHeader.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { Browser } from "@/utils/browserApi";
@@ -73,7 +72,7 @@ import WalletLogo from "./WalletLogo.vue";
 
 export default defineComponent({
   name: "WalletHeader",
-  components: { NavHeader, WalletLogo },
+  components: { WalletLogo },
   data() {
     return {
       checksum: ""
