@@ -86,8 +86,14 @@ function close(): void {
 }
 
 function onLoadingModalClose() {
+  if (loading.state === "error") {
+    setState("unknown");
+    return;
+  }
+
   loading.animate = false;
   setState("unknown");
+
   nextTick(() => {
     close();
   });

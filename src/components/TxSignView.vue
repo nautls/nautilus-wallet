@@ -293,9 +293,7 @@ export default defineComponent({
     },
     setState(state: LoadingModalState, newState: Omit<Partial<SigningState>, "state">) {
       if (
-        state === "error" ||
-        !this.isModal ||
-        (this.isModal && this.isLedger) ||
+        (state === "error" || !this.isModal || (this.isModal && this.isLedger)) &&
         !this.setExternalState
       ) {
         this.signState.state = state;
