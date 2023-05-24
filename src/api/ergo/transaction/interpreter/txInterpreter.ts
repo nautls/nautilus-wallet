@@ -114,6 +114,8 @@ export class TxInterpreter {
   private _calcIncomingLeavingTotals() {
     const ownInputAssets = utxoSum(this._ownInputs.map(boxCandidateToBoxAmounts));
     const ownOutputAssets = utxoSum(this._ownOutputs.map(boxCandidateToBoxAmounts));
+    ownInputAssets.nanoErgs = ownInputAssets.nanoErgs ?? 0n;
+    ownOutputAssets.nanoErgs = ownOutputAssets.nanoErgs ?? 0n;
 
     // Set amounts of tokens that are in own inputs, but not on own outputs to 0 in outputs,
     // so utxoSumResultDiff will calculate delta correctly instead of ignoring those tokens
