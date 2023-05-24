@@ -14,7 +14,7 @@
         :ownAddresses="addresses.map((a) => a.script)"
       ></tx-sign-summary>
 
-      <div class="relative flex items-center pt-2">
+      <div class="flex items-center pt-2">
         <div class="flex-grow border-t border-gray-300 mx-2"></div>
         <span class="flex-shrink text-xs text-gray-400">Transaction details</span>
         <div class="flex-grow border-t border-gray-300 mx-2"></div>
