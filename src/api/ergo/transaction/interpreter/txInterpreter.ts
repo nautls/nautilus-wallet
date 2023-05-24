@@ -237,10 +237,7 @@ export class TxInterpreter {
       const index = this._tx.outputs.findIndex((output) => isMinerFeeContract(output.ergoTree));
 
       if (index > -1 && index < this._tx.outputs.length) {
-        // console.log("ok");
         const possiblyChange = this._tx.outputs.slice(index + 1);
-        // const change = this._ownOutputs.filter((output) => possiblyChange.includes(output));
-        // console.log(change.map((x) => x.value));
         return this._ownOutputs.filter((output) => possiblyChange.includes(output));
       }
 
