@@ -232,7 +232,7 @@ export class TxInterpreter {
     const diff = utxoSumResultDiff(inputAssets, outputAssets);
 
     // handle intrawallet transactions, in this case we consider change as
-    // the own boxes before the fee box
+    // the own boxes after the fee box
     if (diff.nanoErgs <= BigInt(this._feeBox?.value || 0)) {
       const index = this._tx.outputs.findIndex((output) => isMinerFeeContract(output.ergoTree));
 
