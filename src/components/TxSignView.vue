@@ -7,12 +7,7 @@
     </template>
 
     <template v-else>
-      <tx-sign-summary
-        v-if="tx"
-        :tx="tx"
-        :assetInfo="assets"
-        :ownAddresses="addresses.map((a) => a.script)"
-      ></tx-sign-summary>
+      <tx-sign-summary v-if="tx" :tx="tx" />
 
       <div class="flex items-center pt-2">
         <div class="flex-grow border-t border-gray-300 mx-2"></div>
@@ -162,7 +157,7 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx | undefined>>, required: true },
+    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: false },
     inputsToSign: { type: Array<number>, required: false },
     isModal: { type: Boolean, default: false },
     setExternalState: {
