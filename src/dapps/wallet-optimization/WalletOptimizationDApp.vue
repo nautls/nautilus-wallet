@@ -115,40 +115,46 @@ async function createTransaction() {
 <template>
   <div class="stats">
     <div class="stats-card">
-      <div v-if="loading" class="skeleton h-8 w-8 rounded-full m-auto block mb-1.5"></div>
+      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
       <mdi-icon
         v-else
         :name="successIcon(utxoHealth.count)"
-        size="32"
         :class="successColor(utxoHealth.count)"
+        size="22"
       />
+
+      <p>UTxO count</p>
+
       <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
       <h1 v-else>{{ boxes.length }}</h1>
-      <p>UTxO count</p>
     </div>
     <div class="stats-card">
-      <div v-if="loading" class="skeleton h-8 w-8 rounded-full m-auto block mb-1.5"></div>
+      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
       <mdi-icon
         v-else
         :name="successIcon(utxoHealth.age)"
-        size="32"
         :class="successColor(utxoHealth.age)"
+        size="22"
       />
+
+      <p>Oldest UTxO</p>
+
       <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
       <h1 v-else>{{ oldestBox }}</h1>
-      <p>Oldest UTxO</p>
     </div>
     <div class="stats-card">
-      <div v-if="loading" class="skeleton h-8 w-8 rounded-full m-auto block mb-1.5"></div>
+      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
       <mdi-icon
         v-else
         :name="successIcon(utxoHealth.size)"
-        size="32"
         :class="successColor(utxoHealth.size)"
+        size="22"
       />
+
+      <p>Wallet size</p>
+
       <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
       <h1 v-else>{{ filters.formatBytes(size) }}</h1>
-      <p>Wallet size</p>
     </div>
   </div>
   <div>
