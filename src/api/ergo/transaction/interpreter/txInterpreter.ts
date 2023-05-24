@@ -58,7 +58,7 @@ export class TxInterpreter {
         isBabelContract(this._sendingBoxes[0].ergoTree) &&
         !isEmpty(this._sendingBoxes[0].assets)
       ) {
-        this._sendingBoxes = [...this._sendingBoxes, ...this._changeBoxes];
+        this._sendingBoxes = [...this._changeBoxes, ...this._sendingBoxes];
         this._changeBoxes = [];
       }
     }
