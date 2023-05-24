@@ -179,8 +179,8 @@ class NautilusErgoApi {
     return this._rpcCall("signTx", [tx]);
   }
 
-  sign_tx_input(tx, index) {
-    return this._rpcCall("signTxInput", [tx, index]);
+  sign_tx_inputs(tx, indexes) {
+    return this._rpcCall("signTxInputs", [tx, indexes]);
   }
 
   sign_data(addr, message) {

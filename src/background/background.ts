@@ -93,10 +93,10 @@ Browser.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
         case "auth":
           await handleAuthRequest(message, port, session);
           break;
+        case "signTxInputs":
         case "signTx":
           await handleSignTxRequest(message, port, session);
           break;
-        case "signTxInput":
         case "signData":
           await handleNotImplementedRequest(message, port, session);
           break;
@@ -136,6 +136,19 @@ function sendRequestsToUI(port: chrome.runtime.Port) {
             value.origin,
             value.favicon,
             request.message.params ? request.message.params[0] : undefined
+          ]
+        } as RpcMessage);
+      } else if (request.message.function === "signTxInputs") {
+        port.postMessage({
+          type: "rpc/nautilus-request",
+          sessionId: key,
+          requestId: request.message.requestId,
+          function: request.message.function,
+          params: [
+            value.origin,
+            value.favicon,
+            request.message.params ? request.message.params[0] : undefined,
+            request.message.params ? request.message.params[1] : undefined
           ]
         } as RpcMessage);
       } else if (request.message.function === "auth") {

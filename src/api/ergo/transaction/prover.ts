@@ -27,6 +27,7 @@ import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
 import { addressFromErgoTree } from "../addresses";
 import { Header } from "@ergo-graphql/types";
 import { toBigNumber } from "@/utils/bigNumbers";
+import { SignedInput } from "@fleet-sdk/common";
 
 export class Prover {
   private _from!: StateAddress[];
@@ -80,6 +81,21 @@ export class Prover {
     const signed = await this._sign(tx, unspentBoxes, dataInputBoxes, headers);
 
     return JSONBig.parse(signed.to_json());
+  }
+
+  public async signInputs(
+    unsignedTx: UnsignedTx,
+    headers: Header[],
+    inputsToSign: number[]
+  ): Promise<SignedInput[]> {
+    inputsToSign = inputsToSign.sort();
+    const sigmaRust = wasmModule.SigmaRust;
+    const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
+    const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
+    const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+    const signed = this._signInputs(tx, unspentBoxes, dataInputBoxes, headers, inputsToSign);
+
+    return signed;
   }
 
   private async _sign(
@@ -223,7 +239,52 @@ export class Prover {
 
     const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
     const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
+
     const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
+    return signed;
+  }
+
+  private _signInputs(
+    unsigned: UnsignedTransaction,
+    unspentBoxes: ErgoBoxes,
+    dataInputBoxes: ErgoBoxes,
+    headers: Header[],
+    inputsToSign: number[]
+  ) {
+    const sigmaRust = wasmModule.SigmaRust;
+    const wallet = this.buildWallet(this._from, this._deriver);
+    const blockHeaders = sigmaRust.BlockHeaders.from_json(
+      headers.map((x) => {
+        return {
+          ...x,
+          id: x.headerId,
+          timestamp: toBigNumber(x.timestamp).toNumber(),
+          nBits: toBigNumber(x.nBits).toNumber(),
+          votes: Buffer.from(x.votes).toString("hex")
+        };
+      })
+    );
+
+    const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
+    const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
+    const signed: SignedInput[] = [];
+
+    for (const index of inputsToSign) {
+      const result = wallet.sign_tx_input(
+        index,
+        signContext,
+        unsigned,
+        unspentBoxes,
+        dataInputBoxes
+      );
+
+      signed.push({
+        boxId: result.box_id().to_str(),
+        spendingProof: JSON.parse(result.spending_proof().to_json())
+      });
+    }
+
+    console.log(signed);
     return signed;
   }
 

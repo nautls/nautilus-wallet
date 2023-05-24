@@ -7,15 +7,19 @@
     </template>
 
     <template v-else>
-      <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
-        <p>Burning</p>
-        <template v-slot:subheader
-          ><span>
-            The assets listed below will be lost. Only continue if you know exactly what are you
-            doing.
-          </span></template
-        >
-      </tx-box-details>
+      <tx-sign-summary
+        v-if="tx"
+        :tx="tx"
+        :assetInfo="assets"
+        :ownAddresses="addresses.map((a) => a.script)"
+      ></tx-sign-summary>
+
+      <div class="flex items-center pt-2">
+        <div class="flex-grow border-t border-gray-300 mx-2"></div>
+        <span class="flex-shrink text-xs text-gray-400">Transaction details</span>
+        <div class="flex-grow border-t border-gray-300 mx-2"></div>
+      </div>
+
       <tx-box-details
         v-for="(output, index) in tx?.sending"
         :assets="output.assets"
@@ -146,18 +150,21 @@ import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInte
 import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
 import { AddressType } from "@fleet-sdk/core";
+import TxSignSummary from "@/components/TxSignSummary.vue";
 
 export default defineComponent({
   name: "TxSignView",
   components: {
+    TxSignSummary,
     LoadingModal,
     TxBoxDetails,
     VueJsonPretty
   },
   emits: ["success", "fail", "refused"],
   props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx | undefined>> },
-    isModal: { type: Boolean },
+    transaction: { type: Object as PropType<Readonly<UnsignedTx | undefined>>, required: true },
+    inputsToSign: { type: Array<number>, required: false },
+    isModal: { type: Boolean, default: false },
     setExternalState: {
       type: Function as PropType<(state: LoadingModalState, message?: string) => void>,
       required: false
@@ -250,6 +257,7 @@ export default defineComponent({
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX, {
           tx: this.transaction,
+          inputsToSign: this.inputsToSign,
           walletId: this.currentWalletId,
           password: this.password,
           callback: this.setStateCallback

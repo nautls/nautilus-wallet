@@ -98,6 +98,7 @@ export type FeeSettings = {
 
 export type SignTxCommand = {
   tx: UnsignedTx;
+  inputsToSign?: number[];
   walletId: number;
   password: string;
   callback?: (newState: Partial<SigningState>) => void;
