@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ErgoTx, UnsignedTx } from "@/types/connector";
-import { PropType, nextTick, onMounted, reactive, ref } from "vue";
+import { PropType, computed, nextTick, onMounted, reactive, ref } from "vue";
 import TxSignView from "./TxSignView.vue";
 import LoadingModal from "@/components/LoadingModal.vue";
-import { LoadingModalState, TransactionBuilderFunction } from "@/types/internal";
+import { LoadingModalState, TransactionBuilderFunction, WalletType } from "@/types/internal";
 import { submitTx } from "@/api/ergo/submitTx";
 import store from "@/store";
 
@@ -24,6 +24,10 @@ const loading = reactive({
   animate: true
 });
 
+const isLedger = computed(() => {
+  return store.state.currentWallet.type === WalletType.Ledger;
+});
+
 onMounted(async () => {
   transaction.value = await buildTransaction();
 
@@ -41,6 +45,10 @@ async function buildTransaction() {
 }
 
 function setState(state: LoadingModalState, message = "") {
+  if (isLedger.value && state === "loading") {
+    return;
+  }
+
   loading.state = state;
   loading.message = message;
 }
