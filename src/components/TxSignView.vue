@@ -146,6 +146,7 @@ import VueJsonPretty from "vue-json-pretty";
 import "vue-json-pretty/lib/styles.css";
 import { AddressType } from "@fleet-sdk/core";
 import TxSignSummary from "@/components/TxSignSummary.vue";
+import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 
 export default defineComponent({
   name: "TxSignView",
@@ -197,6 +198,9 @@ export default defineComponent({
   },
   computed: {
     ...mapState({ wallets: "wallets", loading: "loading" }),
+    mode() {
+      return this.isModal ? "modal" : "embedded";
+    },
     isReadonly() {
       return this.$store.state.currentWallet.type === WalletType.ReadOnly;
     },
@@ -258,52 +262,39 @@ export default defineComponent({
           callback: this.setStateCallback
         } as SignTxCommand);
 
-        if (!this.isModal || this.isMnemonicSigning) {
+        if (this.mode === "embedded" || this.isMnemonicSigning) {
           this.setState("success", { loading: false });
-          this.succeed(signedTx);
-        } else {
-          if (!this.setExternalState) {
-            this.setState("unknown", { loading: false });
-          }
-
-          // wait for loading modal animation to finish
-          setTimeout(() => {
-            this.succeed(signedTx);
-          }, 100);
         }
+
+        this.succeed(signedTx);
       } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+
+        if (e instanceof DeviceError) {
+          if (e.code === RETURN_CODE.DENIED) {
+            this.fail(e.message);
+
+            return;
+          }
+        } else if (!(e instanceof PasswordError) && this.mode == "embedded") {
+          this.fail(this.signState.statusText);
+
+          return;
+        }
+
         this.setState("error", {
           loading: false,
           statusText: typeof e === "string" ? e : (e as Error).message
         });
-
-        if (!(e instanceof PasswordError)) {
-          // eslint-disable-next-line no-console
-          console.error(e);
-
-          if (!this.isModal || this.isMnemonicSigning) {
-            this.fail(this.signState.statusText);
-          } else {
-            this.setState("unknown", { loading: false });
-
-            // wait for loading modal animation to finish
-            setTimeout(() => {
-              this.fail(this.signState.statusText);
-            }, 100);
-          }
-        }
       }
     },
     setState(state: LoadingModalState, newState: Omit<Partial<SigningState>, "state">) {
-      if (
-        (state === "error" || !this.isModal || (this.isModal && this.isLedger)) &&
-        !this.setExternalState
-      ) {
-        this.signState.state = state;
-      } else if (this.setExternalState) {
+      if (this.setExternalState) {
         this.setExternalState(state, newState.statusText);
       }
 
+      this.signState.state = state;
       this.signState = Object.assign(this.signState, newState);
     },
     setStateCallback(newState: SigningState) {
