@@ -123,7 +123,7 @@
             <td class="text-right">
               <div
                 v-if="hideBalances"
-                class="skeleton animate-none h-4.5 w-2/4 rounded align-middle"
+                class="skeleton animate-none h-4.5 w-2/4 rounded align-middle inline-block"
               ></div>
               <template v-else>
                 <span class="float-left">Σ</span>
