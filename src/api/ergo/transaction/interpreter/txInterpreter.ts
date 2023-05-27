@@ -1,5 +1,5 @@
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
-import { ErgoBoxCandidate, Token, UnsignedTx } from "@/types/connector";
+import { ErgoBoxCandidate, Token, UnsignedInput, UnsignedTx } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
@@ -7,7 +7,7 @@ import { difference, find, groupBy, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
-import { utxoSum, utxoSumResultDiff } from "@fleet-sdk/common";
+import { some, utxoSum, utxoSumResultDiff } from "@fleet-sdk/common";
 import {
   tokensToOutputAssets,
   boxCandidateToBoxAmounts,
@@ -28,7 +28,7 @@ export class TxInterpreter {
   private _assetInfo!: StateAssetInfo;
   private _addresses!: string[];
   private _burningBalance!: OutputAsset[];
-  private _ownInputs!: ErgoBoxCandidate[];
+  private _ownInputs!: UnsignedInput[];
   private _ownOutputs!: ErgoBoxCandidate[];
   private _totalIncoming!: OutputAsset[];
   private _totalLeaving!: OutputAsset[];
@@ -40,25 +40,26 @@ export class TxInterpreter {
     this._feeBox = find(tx.outputs, (b) => isMinerFeeContract(b.ergoTree));
 
     const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
+    const isSendingOutput = (output: ErgoBoxCandidate) =>
+      output !== this._feeBox && !this._changeBoxes.includes(output);
+
     this._ownInputs = tx.inputs.filter((b) => isOwnErgoTree(b.ergoTree));
     this._ownOutputs = tx.outputs.filter((b) => isOwnErgoTree(b.ergoTree));
-
+    this._changeBoxes = this._determineChangeBoxes();
+    this._sendingBoxes = tx.outputs.filter(isSendingOutput);
     this._calcIncomingLeavingTotals();
 
-    this._changeBoxes = this._determineChangeBoxes();
-
-    this._sendingBoxes = difference(tx.outputs, [this._feeBox, ...this._changeBoxes]).filter(
-      (b) => b !== undefined
-    ) as ErgoBoxCandidate[];
-
-    if (this._changeBoxes.length > 0 && this._sendingBoxes.length <= 1) {
+    if (some(this._changeBoxes)) {
       if (isEmpty(this._sendingBoxes)) {
-        this._sendingBoxes.push(this._changeBoxes.pop() as ErgoBoxCandidate);
+        this._sendingBoxes = this._changeBoxes;
+        this._changeBoxes = [];
       } else if (
+        this._sendingBoxes.length === 1 &&
         isBabelContract(this._sendingBoxes[0].ergoTree) &&
         !isEmpty(this._sendingBoxes[0].assets)
       ) {
-        this._sendingBoxes.unshift(this._changeBoxes.pop() as ErgoBoxCandidate);
+        this._sendingBoxes = [...this._changeBoxes, ...this._sendingBoxes];
+        this._changeBoxes = [];
       }
     }
 
@@ -222,9 +223,24 @@ export class TxInterpreter {
   }
 
   private _determineChangeBoxes(): ErgoBoxCandidate[] {
-    const changeBoxes: ErgoBoxCandidate[] = [];
+    if (isEmpty(this._ownInputs) || isEmpty(this._ownOutputs)) {
+      return [];
+    }
 
-    if (this._ownInputs.length === 0 || this._ownOutputs.length === 0) {
+    const inputAssets = utxoSum(this._ownInputs);
+    const outputAssets = utxoSum(this._ownOutputs);
+    const diff = utxoSumResultDiff(inputAssets, outputAssets);
+
+    // handle intrawallet transactions, in this case we consider change as
+    // the own boxes after the fee box
+    if (diff.nanoErgs <= BigInt(this._feeBox?.value || 0)) {
+      const index = this._tx.outputs.findIndex((output) => isMinerFeeContract(output.ergoTree));
+
+      if (index > -1 && index < this._tx.outputs.length) {
+        const possiblyChange = this._tx.outputs.slice(index + 1);
+        return this._ownOutputs.filter((output) => possiblyChange.includes(output));
+      }
+
       return [];
     }
 
@@ -232,35 +248,34 @@ export class TxInterpreter {
     // subtract the amounts from own outputs when possible.
     // This will detect some subset of outputs that form a valid
     // set of own change boxes that is maximal in terms of inclusion.
-    const remainingOwnInputAssets = this._sumTokens(
-      this._ownInputs
-        .filter((x) => x.assets)
-        .map((x) => x.assets)
-        .flat()
+    const remainingInputTokens = Object.fromEntries(
+      inputAssets.tokens.map(({ tokenId, amount }) => [tokenId, amount])
     );
-    if (!remainingOwnInputAssets) {
-      return [];
-    }
-    // Consider outputs with most assets first in an attempt to include as many tokens as possible
-    const sortedOwnOutputs = [...this._ownOutputs].sort((a, b) => {
-      return b.assets.length - a.assets.length;
-    });
-    for (const o of sortedOwnOutputs) {
-      const nonChangeAssets = o.assets.filter((asset) => {
-        return (
-          remainingOwnInputAssets[asset.tokenId] === undefined ||
-          remainingOwnInputAssets[asset.tokenId].isLessThan(asset.amount)
-        );
-      });
-      if (nonChangeAssets.length === 0) {
-        o.assets.forEach((asset) => {
-          remainingOwnInputAssets[asset.tokenId] = remainingOwnInputAssets[asset.tokenId].minus(
-            asset.amount
-          );
-        });
-        changeBoxes.push(o);
+    let remainingInputErg = inputAssets.nanoErgs;
+
+    const changeBoxes: ErgoBoxCandidate[] = [];
+    for (const output of this._ownOutputs) {
+      const outputValue = BigInt(output.value);
+      if (remainingInputErg < outputValue) {
+        continue;
+      }
+
+      const containsNonChangeAssets = !!output.assets.find(
+        (token) =>
+          !remainingInputTokens[token.tokenId] ||
+          remainingInputTokens[token.tokenId] < BigInt(token.amount)
+      );
+
+      if (!containsNonChangeAssets) {
+        remainingInputErg -= outputValue;
+        for (const asset of output.assets) {
+          remainingInputTokens[asset.tokenId] -= BigInt(asset.amount);
+        }
+
+        changeBoxes.push(output);
       }
     }
+
     return changeBoxes;
   }
 }

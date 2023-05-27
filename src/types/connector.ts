@@ -82,14 +82,14 @@ export type UnsignedInput = {
   index: number;
   ergoTree: string;
   creationHeight: number;
-  value: number | string;
+  value: string;
   assets: Token[];
   additionalRegisters: Registers;
   extension: { [key: string]: string };
 };
 
 export type ErgoBoxCandidate = {
-  value: number | string;
+  value: string;
   ergoTree: string;
   creationHeight: number;
   assets: Token[];
