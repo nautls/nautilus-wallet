@@ -21,7 +21,7 @@
           :disabled="loading"
           v-model="selectedWords"
           :data="filteredWords"
-          autocomplete
+          allow-autocomplete
           :allow-new="false"
           :open-on-focus="false"
           field="user.first_name"
