@@ -7,7 +7,7 @@ import { difference, find, groupBy, isEmpty } from "lodash";
 import { addressFromErgoTree } from "../../addresses";
 import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
-import { some, utxoSum, utxoSumResultDiff } from "@fleet-sdk/common";
+import { some, utxoSum, utxoDiff } from "@fleet-sdk/common";
 import {
   tokensToOutputAssets,
   boxCandidateToBoxAmounts,
@@ -115,11 +115,9 @@ export class TxInterpreter {
   private _calcIncomingLeavingTotals() {
     const ownInputAssets = utxoSum(this._ownInputs.map(boxCandidateToBoxAmounts));
     const ownOutputAssets = utxoSum(this._ownOutputs.map(boxCandidateToBoxAmounts));
-    ownInputAssets.nanoErgs = ownInputAssets.nanoErgs ?? 0n;
-    ownOutputAssets.nanoErgs = ownOutputAssets.nanoErgs ?? 0n;
 
     // Set amounts of tokens that are in own inputs, but not on own outputs to 0 in outputs,
-    // so utxoSumResultDiff will calculate delta correctly instead of ignoring those tokens
+    // so utxoDiff will calculate delta correctly instead of ignoring those tokens
     const tokenIdsExclusiveToOwnInputs = difference(
       ownInputAssets.tokens.map((t) => t.tokenId),
       ownOutputAssets.tokens.map((t) => t.tokenId)
@@ -127,7 +125,7 @@ export class TxInterpreter {
     ownOutputAssets.tokens = ownOutputAssets.tokens.concat(
       tokenIdsExclusiveToOwnInputs.map((id) => ({ tokenId: id, amount: 0n }))
     );
-    const outputsMinusInputs = utxoSumResultDiff(ownOutputAssets, ownInputAssets);
+    const outputsMinusInputs = utxoDiff(ownOutputAssets, ownInputAssets);
 
     // Handle non-ERG tokens
     const totalIncomingTokens = outputsMinusInputs.tokens
@@ -229,7 +227,7 @@ export class TxInterpreter {
 
     const inputAssets = utxoSum(this._ownInputs);
     const outputAssets = utxoSum(this._ownOutputs);
-    const diff = utxoSumResultDiff(inputAssets, outputAssets);
+    const diff = utxoDiff(inputAssets, outputAssets);
 
     // handle intrawallet transactions, in this case we consider change as
     // the own boxes after the fee box
