@@ -268,6 +268,7 @@ export default defineComponent({
 
         this.succeed(signedTx);
       } catch (e) {
+        const errorMessage = typeof e === "string" ? e : (e as Error).message;
         // eslint-disable-next-line no-console
         console.error(e);
 
@@ -278,14 +279,14 @@ export default defineComponent({
             return;
           }
         } else if (!(e instanceof PasswordError) && this.mode == "embedded") {
-          this.fail(this.signState.statusText);
+          this.fail(errorMessage);
 
           return;
         }
 
         this.setState("error", {
           loading: false,
-          statusText: typeof e === "string" ? e : (e as Error).message
+          statusText: errorMessage
         });
       }
     },
