@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "private": true,
   "scripts": {
     "dev:mainnet": "vue-cli-service serve",
@@ -32,7 +32,7 @@
     "bs58check": "^2.1.2",
     "cleave.js": "^1.6.0",
     "crypto-js": "^4.1.1",
-    "dayjs": "^1.11.7",
+    "dayjs": "^1.11.8",
     "dexie": "^3.2.2",
     "ergo-lib-wasm-browser": "^0.24.0",
     "feather-icons": "^4.29.0",
@@ -45,11 +45,11 @@
     "vue": "^3.2.41",
     "vue-feather": "^2.0.0-rc.1",
     "vue-json-pretty": "^2.1.1",
-    "vue-router": "^4.1.6",
+    "vue-router": "^4.2.2",
     "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@ergo-graphql/types": "^0.4.0",
+    "@ergo-graphql/types": "^0.5.0",
     "@types/bs58check": "^2.1.0",
     "@types/chrome": "^0.0.200",
     "@types/cleave.js": "^1.4.7",
@@ -75,7 +75,7 @@
     "jest": "^29.2.2",
     "prettier": "^2.7.1",
     "stream-browserify": "^3.0.0",
-    "svgo": "^3.0.0",
+    "svgo": "^3.0.2",
     "ts-jest": "^29.0.3",
     "typescript": "^4.8.4",
     "webpack": "^5.78.0",
