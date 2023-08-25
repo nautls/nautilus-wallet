@@ -31,8 +31,7 @@
         class="nav-btn"
       >
         <div class="h-full float-left flex w-8 mr-4">
-          <ledger-logo class="w-6 h-6 m-auto fill-gray-500" />
-          <!-- <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" /> -->
+          <ledger-logo class="w-6 h-6 m-auto fill-gray-800" />
         </div>
         <span class="title">Connect a hardware wallet</span>
         <span class="subtitle"
