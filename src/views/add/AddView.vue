@@ -31,7 +31,7 @@
         class="nav-btn"
       >
         <div class="h-full float-left flex w-8 mr-4">
-          <ledger-logo class="w-6 h-6 m-auto fill-gray-800" />
+          <ledger-logo class="w-6 h-6 m-auto fill-gray-600" />
         </div>
         <span class="title">Connect a hardware wallet</span>
         <span class="subtitle"

@@ -91,26 +91,36 @@
             </tr>
           </template>
           <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
-            <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
-              <a :href="urlFor(address.script)" target="_blank">{{
-                $filters.compactString(address.script, 10)
-              }}</a>
-              <div class="align-middle inline-block">
-                <click-to-copy :content="address.script" class="mx-2" size="12" />
+            <td class="font-mono">
+              <div class="flex gap-2 text-gray-700">
+                <a
+                  :href="urlFor(address.script)"
+                  :class="{ 'text-gray-400': isUsed(address) }"
+                  target="_blank"
+                  >{{ $filters.compactString(address.script, 10) }}</a
+                >
+                <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
+                  <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
+                    <mdi-icon name="shield-check-outline" size="15" />
+                  </a>
+                </tool-tip>
+
+                <click-to-copy :content="address.script" size="14" />
 
                 <template v-if="!currentWallet.settings.avoidAddressReuse">
                   <vue-feather
                     v-if="currentWallet.settings.defaultChangeIndex === address.index"
                     type="check-circle"
                     class="text-green-600"
-                    size="12"
+                    size="14"
                   />
                   <tool-tip v-else label="Set as default<br />address">
                     <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
-                      <vue-feather type="circle" size="12" />
+                      <vue-feather type="circle" size="14" />
                     </a>
                   </tool-tip>
                 </template>
+
                 <tool-tip
                   v-if="hasPendingBalance(address)"
                   label="Pending transaction<br />for this address"
@@ -242,8 +252,8 @@ export default defineComponent({
     async newAddress() {
       try {
         await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
-      } catch (e: any) {
-        this.errorMsg = e.message;
+      } catch (e) {
+        this.errorMsg = (e as Error).message;
       }
     },
     ergBalanceFor(address: StateAddress): string {

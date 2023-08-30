@@ -172,7 +172,7 @@ export default defineComponent({
           extendedPublicKey: pk,
           type: WalletType.Ledger
         });
-      } catch (e: any) {
+      } catch (e) {
         this.loading = false;
         return;
       }

@@ -32,7 +32,8 @@ import {
   mdiEyeOff,
   mdiSwapVerticalVariant,
   mdiConsolidate,
-  mdiCheckCircleOutline
+  mdiCheckCircleOutline,
+  mdiShieldCheckOutline
 } from "@mdi/js";
 import { hasBrowserContext } from "./utils/browserApi";
 import dayjs from "dayjs";
@@ -69,7 +70,8 @@ const mdiSettings = {
     mdiEyeOff,
     mdiSwapVerticalVariant,
     mdiConsolidate,
-    mdiCheckCircleOutline
+    mdiCheckCircleOutline,
+    mdiShieldCheckOutline
   }
 };
 
