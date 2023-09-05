@@ -33,8 +33,10 @@
       v-if="isLedger"
       class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
     >
-      <strong>Never send more than 20 distinct tokens</strong> in a single transaction to a Ledger
-      wallet. Due to device's memory limitations your assets can get stuck in your wallet.
+      <strong
+        >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
+      >
+      Due to device's memory limitations, your funds may get stuck in your wallet.
     </div>
     <div>
       <button class="w-full btn" @click="newAddress()" :disabled="loading || errorMsg != ''">

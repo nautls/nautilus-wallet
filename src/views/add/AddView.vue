@@ -58,6 +58,7 @@ import { defineComponent } from "vue";
 import { isEmpty } from "lodash";
 import { Browser, isPopup } from "@/utils/browserApi";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import { isUndefined } from "@fleet-sdk/common";
 
 export default defineComponent({
   name: "AddView",
@@ -74,8 +75,9 @@ export default defineComponent({
   },
   methods: {
     navInTab(navigate: () => unknown, href: string) {
-      if (!isPopup() || !Browser.tabs) {
+      if (!isPopup() || isUndefined(Browser.tabs)) {
         navigate();
+        return;
       }
 
       Browser.tabs.create({

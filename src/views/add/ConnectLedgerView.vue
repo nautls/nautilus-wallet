@@ -18,12 +18,13 @@
     </div>
     <div class="text-gray-600">
       <ledger-device
-        :bottom-text="statusText"
-        :state="state"
-        :loading="loading"
         :connected="connected"
+        :screen-text="screenContent"
+        :caption="caption"
+        :model="model"
+        :loading="loading"
+        :state="state"
         :app-id="appId"
-        :screen-text="screenText"
       />
     </div>
     <div v-if="confirmationAddress" class="text-sm">
@@ -46,7 +47,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import { WalletType } from "@/types/internal";
+import { ProverStateType, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store/actions";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
@@ -54,7 +55,7 @@ import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
+import { LedgerDeviceModelId } from "@/constants/ledger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -63,14 +64,14 @@ export default defineComponent({
   },
   data() {
     return {
-      loading: false,
       connected: false,
+      loading: false,
       walletName: "",
       confirmationAddress: "",
-      statusText: "",
-      screenText: "",
-      state: LedgerState.unknown,
-      deviceModel: "",
+      caption: "",
+      screenContent: "",
+      state: undefined as ProverStateType | undefined,
+      model: LedgerDeviceModelId.nanoX,
       appId: 0
     };
   },
@@ -88,34 +89,39 @@ export default defineComponent({
       }
 
       this.loading = true;
-      this.state = LedgerState.unknown;
-      this.statusText = "Connecting...";
+      this.state = undefined;
+      this.caption = "Connecting...";
       let pk = "";
       let app!: ErgoLedgerApp;
 
       try {
         app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
         this.appId = app.authToken ?? 0;
-        this.deviceModel = app.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX;
+        this.model =
+          (app.transport.deviceModel?.id.toString() as LedgerDeviceModelId) ??
+          LedgerDeviceModelId.nanoX;
 
         if ((await app.getAppName()).name !== "Ergo") {
-          this.state = LedgerState.error;
+          this.state = ProverStateType.error;
           this.loading = false;
-          this.statusText = "Ergo App is not opened.";
+          this.caption = "Ergo App is not opened.";
           app.transport.close();
           return;
         }
 
+        // this.state = ProverStateType.busy;
         this.connected = true;
+        this.screenContent = "Extended Public Key Export";
       } catch (e) {
-        this.state = LedgerState.deviceNotFound;
+        this.state = ProverStateType.unavailable;
         this.loading = false;
-        this.statusText = "";
+        this.caption = "";
         console.error(e);
         return;
       }
 
-      this.statusText = "Waiting for device extended public key export confirmation...";
+      this.caption =
+        "Please confirm the export of the <strong>Extended Public Key</strong> on your device.";
       try {
         const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'");
         const bip32 = Bip32.fromPublicKey(
@@ -124,37 +130,38 @@ export default defineComponent({
         );
 
         pk = bip32.extendedPublicKey.toString("hex");
-        this.screenText = "Confirm Address";
-        this.statusText = "";
+        this.screenContent = "Confirm Address";
+        this.caption = "";
         this.confirmationAddress = bip32.deriveAddress(0).script;
         const network = MAINNET ? Network.Mainnet : Network.Testnet;
         if (await app.showAddress(DERIVATION_PATH + "/0", network)) {
-          this.state = LedgerState.success;
+          this.state = ProverStateType.success;
+          this.screenContent = "Confirmed";
         }
       } catch (e) {
         console.error(e);
         this.loading = false;
-        this.state = LedgerState.error;
+        this.state = ProverStateType.error;
 
         if (e instanceof DeviceError) {
           switch (e.code) {
             case RETURN_CODE.DENIED:
               if (this.confirmationAddress) {
-                this.statusText = "Address not confirmed.";
+                this.caption = "Address not confirmed.";
                 this.confirmationAddress = "";
               } else {
-                this.statusText = "Extended public key export denied.";
+                this.caption = "Extended public key export denied.";
               }
               break;
             case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
-              this.statusText =
+              this.caption =
                 "It looks like your device is locked. Make sure it is unlocked before proceeding.";
               break;
             default:
-              this.statusText = `[Device error] ${e.message}`;
+              this.caption = `[Device error] ${e.message}`;
           }
         } else {
-          this.statusText = `[Unknown error] ${e instanceof Error ? e.message : e}`;
+          this.caption = `[Unknown error] ${e instanceof Error ? e.message : e}`;
         }
 
         return;
@@ -164,7 +171,7 @@ export default defineComponent({
       }
 
       this.confirmationAddress = "";
-      this.statusText = "Syncing...";
+      this.caption = "Syncing...";
 
       try {
         await this.putWallet({

@@ -38,10 +38,10 @@
       </button>
     </div>
 
-    <loading-modal
+    <sign-state-modal
       title="Signing"
-      :message="errorMessage"
-      :state="errorMessage ? 'error' : 'unknown'"
+      :caption="errorMessage"
+      :state="signState"
       @close="errorMessage = ''"
     />
   </div>
@@ -56,14 +56,14 @@ import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService"
 import { ACTIONS } from "@/constants/store/actions";
 import useVuelidate, { Validation, ValidationArgs } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
-import { SignEip28MessageCommand, WalletType } from "@/types/internal";
+import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { SignError, SignErrorCode } from "@/types/connector";
-import LoadingModal from "@/components/LoadingModal.vue";
+import SignStateModal from "@/components/SignStateModal.vue";
 import { PasswordError } from "@/types/errors";
 
 export default defineComponent({
   name: "AuthView",
-  components: { LoadingModal },
+  components: { SignStateModal },
   setup() {
     return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
   },
@@ -120,6 +120,9 @@ export default defineComponent({
     },
     isLedger() {
       return this.$store.state.currentWallet.type === WalletType.Ledger;
+    },
+    signState() {
+      return this.errorMessage ? ProverStateType.error : undefined;
     }
   },
   watch: {
