@@ -2,7 +2,7 @@ import { graphQLService } from "@/api/explorer/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
-import { ErgoBox, UnsignedTx } from "@/types/connector";
+import { UnsignedTx } from "@/types/connector";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { bip32Pool } from "@/utils/objectPool";

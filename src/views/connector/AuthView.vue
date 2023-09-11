@@ -176,6 +176,7 @@ export default defineComponent({
         window.removeEventListener("beforeunload", this.refuse);
         window.close();
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error(e);
         if (e instanceof PasswordError) {
           this.errorMessage = e.message;
