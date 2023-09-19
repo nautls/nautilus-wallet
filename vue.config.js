@@ -1,8 +1,8 @@
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
-const WebpackExtensionManifestPlugin = require("webpack-extension-manifest-plugin");
-const webpack = require("webpack");
 const { defineConfig } = require("@vue/cli-service");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const webpack = require("webpack");
+const WebpackExtensionManifestPlugin = require("webpack-extension-manifest-plugin");
+const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 
 const commitHash = require("child_process").execSync("git rev-parse HEAD").toString().trim();
 const mainnet = !process.argv.includes("--testnet");
@@ -78,7 +78,8 @@ module.exports = defineConfig({
     config.plugin("define").tap((options) => {
       options[0]["process.env"].GIT_HASH = JSON.stringify(commitHash);
       options[0]["process.env"].MAINNET = JSON.stringify(!process.argv.includes("--testnet"));
-      return options;
+      
+return options;
     });
 
     config

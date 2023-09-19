@@ -1,0 +1,37 @@
+{
+  "root": true,
+  "parser": "vue-eslint-parser",
+  "parserOptions": { "parser": "@typescript-eslint/parser" },
+  "env": { "es6": true },
+  "ignorePatterns": ["node_modules", "dist", "coverage", "jest.config.ts", "vue.config.js"],
+  "plugins": ["import"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:vue/vue3-recommended",
+    "prettier",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "globals": {
+    "BigInt": true,
+    "console": true,
+    "WebAssembly": true,
+    "chrome": true,
+    "process": true,
+    "Buffer": true
+  },
+  "rules": {
+    "vue/component-api-style": ["warn", ["script-setup", "composition"]],
+    "no-console": "error",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "import/order": ["warn", { "alphabetize": { "order": "asc" } }],
+    "sort-imports": ["warn", { "ignoreDeclarationSort": true, "ignoreCase": true }]
+  },
+  "overrides": [
+    {
+      "files": ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
+}
