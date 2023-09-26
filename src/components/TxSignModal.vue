@@ -2,10 +2,16 @@
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { PropType, computed, nextTick, onMounted, reactive, ref } from "vue";
 import TxSignView from "./TxSignView.vue";
-import LoadingModal from "@/components/LoadingModal.vue";
-import { LoadingModalState, TransactionBuilderFunction, WalletType } from "@/types/internal";
+import SignStateModal from "@/components/SignStateModal.vue";
+import {
+  ProverStateType,
+  SigningState,
+  TransactionBuilderFunction,
+  WalletType
+} from "@/types/internal";
 import { submitTx } from "@/api/ergo/submitTx";
 import store from "@/store";
+import { PartialSignState } from "../api/ergo/transaction/prover";
 
 const props = defineProps({
   submit: { type: Boolean, default: true },
@@ -18,9 +24,11 @@ const props = defineProps({
 const emit = defineEmits(["success", "fail", "refused", "close"]);
 
 const transaction = ref<UnsignedTx | undefined>();
-const loading = reactive({
+
+const signState = reactive({
   message: "",
-  state: "unknown" as LoadingModalState,
+  txId: "",
+  type: undefined as ProverStateType | undefined,
   animate: true
 });
 
@@ -31,8 +39,8 @@ const isLedger = computed(() => {
 onMounted(async () => {
   transaction.value = await buildTransaction();
 
-  if (loading.state === "loading") {
-    setState("unknown");
+  if (signState.type === ProverStateType.busy) {
+    setState();
   }
 });
 
@@ -40,17 +48,18 @@ async function buildTransaction() {
   try {
     return await props.onTransactionBuild();
   } catch (e) {
-    setState("error", typeof e === "string" ? e : (e as Error).message);
+    setState(ProverStateType.error, typeof e === "string" ? e : (e as Error).message);
   }
 }
 
-function setState(state: LoadingModalState, message = "") {
-  if (isLedger.value && state === "loading") {
+function setState(stateType?: ProverStateType, message?: string, txId?: string) {
+  if (isLedger.value && stateType === ProverStateType.busy) {
     return;
   }
 
-  loading.state = state;
-  loading.message = message;
+  signState.type = stateType;
+  signState.message = message ?? "";
+  signState.txId = txId ?? "";
 }
 
 function fail(info: string) {
@@ -63,30 +72,26 @@ function refused(info: string) {
   close();
 }
 
-async function success(signedTx: ErgoTx) {
+async function success(
+  signedTx: ErgoTx,
+  setStateEx: (state: ProverStateType, obj: PartialSignState) => void
+) {
   if (!props.submit) {
     emit("success", signedTx);
     return;
   }
 
-  setState("loading", "Submitting transaction...");
+  setStateEx(ProverStateType.busy, { statusText: "Sending transaction..." });
 
   try {
     const txId = await submitTx(signedTx, store.state.currentWallet.id);
-    setState(
-      "success",
-      `Transaction submitted<br><a class='url' href='${getTransactionExplorerUrl(
-        txId
-      )}' target='_blank'>View on Explorer</a>`
-    );
+    setStateEx(ProverStateType.success, { statusText: "Sent!" });
+    setState(ProverStateType.success, "", txId);
+
     emit("success", signedTx);
   } catch (e) {
-    setState("error", typeof e === "string" ? e : (e as Error).message);
+    setState(ProverStateType.error, typeof e === "string" ? e : (e as Error).message);
   }
-}
-
-function getTransactionExplorerUrl(txId: string): string {
-  return new URL(`/transactions/${txId}`, store.state.settings.explorerUrl).toString();
 }
 
 function close(): void {
@@ -94,13 +99,13 @@ function close(): void {
 }
 
 function onLoadingModalClose() {
-  if (loading.state === "error") {
-    setState("unknown");
+  if (signState.type === ProverStateType.error) {
+    setState();
     return;
   }
 
-  loading.animate = false;
-  setState("unknown");
+  signState.animate = false;
+  setState();
 
   nextTick(() => {
     close();
@@ -124,12 +129,13 @@ function onLoadingModalClose() {
       @success="success"
     />
 
-    <loading-modal
+    <sign-state-modal
       title="Loading"
       @close="onLoadingModalClose()"
-      :message="loading.message"
-      :state="loading.state"
-      :animate="loading.animate"
+      :caption="signState.message"
+      :state="signState.type"
+      :tx-id="signState.txId"
+      :animate="signState.animate"
     />
   </div>
 </template>

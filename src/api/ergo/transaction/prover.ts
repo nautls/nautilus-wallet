@@ -1,19 +1,15 @@
-import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
-import { StateAddress } from "@/types/internal";
-import { wasmModule } from "@/utils/wasm-module";
+import { Header } from "@ergo-graphql/types";
+import { SignedInput } from "@fleet-sdk/common";
+import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
+  ErgoBoxCandidate,
   ErgoBoxes,
   Tokens,
   UnsignedTransaction,
   Wallet,
-  ErgoBox as WasmErgoBox,
-  ErgoBoxCandidate
+  ErgoBox as WasmErgoBox
 } from "ergo-lib-wasm-browser";
-import { find, first } from "lodash";
-import Bip32 from "../bip32";
 import JSONBig from "json-bigint";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   BoxCandidate,
   DeviceError,
@@ -23,18 +19,26 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { LedgerDeviceModelId, LedgerState } from "@/constants/ledger";
+import { find, first } from "lodash";
 import { addressFromErgoTree } from "../addresses";
-import { Header } from "@ergo-graphql/types";
+import Bip32 from "../bip32";
+import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
+import { LedgerDeviceModelId } from "@/constants/ledger";
+import { ErgoTx, UnsignedTx } from "@/types/connector";
+import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
-import { SignedInput } from "@fleet-sdk/common";
+import { wasmModule } from "@/utils/wasm-module";
+
+export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
+  device?: Partial<ProverDeviceState>;
+};
 
 export class Prover {
   private _from!: StateAddress[];
   private _useLedger!: boolean;
   private _changeIndex!: number;
   private _deriver!: Bip32;
-  private _callbackFunc?: (newVal: unknown) => void;
+  private _callbackFn?: (newVal: PartialSignState) => void;
 
   public constructor(deriver: Bip32) {
     this._deriver = deriver;
@@ -53,7 +57,7 @@ export class Prover {
 
   public setCallback<T>(callback?: (newState: T) => void): Prover {
     if (callback) {
-      this._callbackFunc = callback as (newVal: unknown) => void;
+      this._callbackFn = callback as (newVal: unknown) => void;
     }
 
     return this;
@@ -113,16 +117,23 @@ export class Prover {
         ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create())
           .useAuthToken()
           .enableDebugMode();
-        this.sendCallback({
-          connected: true,
-          appId: ledgerApp.authToken,
-          deviceModel: ledgerApp.transport.deviceModel?.id.toString() ?? LedgerDeviceModelId.nanoX
+
+        this.reportState({
+          device: {
+            screenText: "Connected",
+            connected: true,
+            appId: ledgerApp.authToken || 0,
+            model:
+              (ledgerApp.transport.deviceModel?.id.toString() as LedgerDeviceModelId) ??
+              LedgerDeviceModelId.nanoX
+          }
         });
       } catch (e) {
-        this.sendCallback({
-          connected: false,
-          loading: false,
-          state: LedgerState.deviceNotFound
+        this.reportState({
+          device: {
+            connected: false
+          },
+          type: ProverStateType.unavailable
         });
 
         throw e;
@@ -172,9 +183,13 @@ export class Prover {
           });
         }
 
-        this.sendCallback({
-          statusText: "Please confirm the transaction signature on your device."
+        this.reportState({
+          statusText: "Please confirm the transaction signature on your device.",
+          device: {
+            screenText: "Waiting for approval..."
+          }
         });
+
         const proofs = await ledgerApp.signTx(
           {
             inputs,
@@ -189,18 +204,21 @@ export class Prover {
           MAINNET ? Network.Mainnet : Network.Testnet
         );
 
-        this.sendCallback({
-          screenText: "Signed",
-          statusText: "Sending transaction..."
+        this.reportState({
+          type: ProverStateType.success,
+          device: {
+            screenText: "Signed"
+          }
         });
 
         return wasmModule.SigmaRust.Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
-          const resp = {
-            loading: false,
-            state: LedgerState.error,
-            statusText: ""
+          const resp: PartialSignState = {
+            type: ProverStateType.error,
+            device: {
+              screenText: "Error"
+            }
           };
 
           switch (e.code) {
@@ -215,7 +233,7 @@ export class Prover {
               resp.statusText = `[Device error] ${e.message}`;
           }
 
-          this.sendCallback(resp);
+          this.reportState(resp);
         }
 
         throw e;
@@ -284,7 +302,6 @@ export class Prover {
       });
     }
 
-    console.log(signed);
     return signed;
   }
 
@@ -306,12 +323,12 @@ export class Prover {
     return Buffer.concat([...[Buffer.from([registers.length])], ...registers]);
   }
 
-  private sendCallback(state: unknown) {
-    if (!this._callbackFunc) {
+  private reportState(state: PartialSignState) {
+    if (!this._callbackFn) {
       return;
     }
 
-    this._callbackFunc(state);
+    this._callbackFn(state);
   }
 
   private buildWallet(addresses: StateAddress[], bip32: Bip32): Wallet {

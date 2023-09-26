@@ -1,28 +1,29 @@
-import { Prettify } from "@/types/internal";
+import { ensureDefaults } from "@fleet-sdk/common";
 import { useProgrammatic } from "@oruga-ui/oruga-next";
 import { AllowedComponentProps, Component, VNodeProps } from "vue";
-import TxSignModal from "@/components/TxSignModal.vue";
 import { isPopup } from "./browserApi";
+import TxSignModal from "@/components/TxSignModal.vue";
+import { Prettify } from "@/types/internal";
+
+const DEFAULT_PROPS: Partial<ModalParams<Component>> = {
+  autoFocus: true,
+  animation: isPopup() ? "fade-slide-up" : "zoom-out",
+  scroll: "clip",
+  rootClass: "outline-none <sm:justify-end",
+  contentClass:
+    "animation-content max-h-90vh p-4 rounded !max-w-100 !w-90vw <sm:rounded-t-xl <sm:rounded-none max-h-90vh !<sm:w-100vw"
+};
+
+const { oruga } = useProgrammatic();
 
 export function openTransactionSigningModal(props: ComponentProps<typeof TxSignModal>) {
-  openModal(TxSignModal, {
-    props,
-
-    autoFocus: true,
-    animation: isPopup() ? "fade-slide-up" : "zoom-out",
-    scroll: "clip",
-    rootClass: "outline-none <sm:justify-end",
-    contentClass:
-      "animation-content max-h-90vh p-4 rounded !max-w-100 !w-90vw <sm:rounded-t-xl <sm:rounded-none h-90vh !<sm:w-100vw"
-  });
+  openModal(TxSignModal, { props });
 }
 
 export function openModal<T extends Component>(component: T, params: ModalParams<T>) {
-  const { oruga } = useProgrammatic();
-
   oruga.modal.open({
     component: component,
-    ...params
+    ...ensureDefaults(params, DEFAULT_PROPS)
   });
 }
 
@@ -55,3 +56,7 @@ export type ModalParams<T extends Component> = {
   onCancel?: () => void;
   onClose?: () => void;
 };
+
+export function chunkString(str: string, length: number): string[] {
+  return str.match(new RegExp(`.{1,${length}}`, "g")) ?? [];
+}

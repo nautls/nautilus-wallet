@@ -128,13 +128,11 @@ label {
 
 .shadow-scroll {
   --rad: radial-gradient(100% 0.8rem, rgba(0, 0, 0, 0.1), transparent);
-  background: linear-gradient(
-        white 0.4rem,
-        transparent 2rem calc(100% - 2rem),
-        white calc(100% - 0.4rem)
-      )
+  background:
+    linear-gradient(white 0.4rem, transparent 2rem calc(100% - 2rem), white calc(100% - 0.4rem))
       local,
-    var(--rad) top / 100% 200%, var(--rad) bottom / 100% 200%;
+    var(--rad) top / 100% 200%,
+    var(--rad) bottom / 100% 200%;
 }
 
 .zoom-out-enter-active,
@@ -412,4 +410,8 @@ input:disabled {
 
 .stats-card p {
   @apply text-xs text-gray-500;
+}
+
+.tag {
+  @apply rounded-md bg-gray-100 px-1 ring-1  ring-gray-500/20;
 }

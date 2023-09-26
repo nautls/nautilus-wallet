@@ -31,8 +31,7 @@
         class="nav-btn"
       >
         <div class="h-full float-left flex w-8 mr-4">
-          <ledger-logo class="w-6 h-6 m-auto fill-gray-500" />
-          <!-- <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" /> -->
+          <ledger-logo class="w-6 h-6 m-auto fill-gray-600" />
         </div>
         <span class="title">Connect a hardware wallet</span>
         <span class="subtitle"
@@ -59,6 +58,7 @@ import { defineComponent } from "vue";
 import { isEmpty } from "lodash";
 import { Browser, isPopup } from "@/utils/browserApi";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import { isUndefined } from "@fleet-sdk/common";
 
 export default defineComponent({
   name: "AddView",
@@ -75,8 +75,9 @@ export default defineComponent({
   },
   methods: {
     navInTab(navigate: () => unknown, href: string) {
-      if (!isPopup() || !Browser.tabs) {
+      if (!isPopup() || isUndefined(Browser.tabs)) {
         navigate();
+        return;
       }
 
       Browser.tabs.create({

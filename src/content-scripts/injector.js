@@ -22,10 +22,12 @@ function inject(code) {
 }
 
 function log(content) {
+  // eslint-disable-next-line no-console
   console.log(`[Nautilus] ${content}`);
 }
 
 function error(content) {
+  // eslint-disable-next-line no-console
   console.error(`[Nautilus] ${content}`);
 }
 

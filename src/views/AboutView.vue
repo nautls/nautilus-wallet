@@ -53,13 +53,13 @@
 import { MAINNET } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
 import { defineComponent } from "vue";
-const { version } = require("../../package.json");
+import pkg from "../../package.json";
 
 export default defineComponent({
   name: "AboutView",
   computed: {
     version(): string {
-      return version;
+      return pkg.version;
     },
     gitHash(): string {
       return process.env.GIT_HASH;
