@@ -1,5 +1,5 @@
-import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
+import { decimalize, undecimalize } from "@/utils/bigNumbers";
 
 describe("bigNumber helpers", () => {
   it("decimalize numbers with various decimal places", () => {

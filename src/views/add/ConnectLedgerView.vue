@@ -4,20 +4,21 @@
       <label
         >Wallet name
         <input
+          v-model.lazy="walletName"
           :disabled="loading"
           maxlength="50"
           type="text"
-          @blur="v$.walletName.$touch()"
-          v-model.lazy="walletName"
           class="w-full control block"
+          @blur="v$.walletName.$touch()"
         />
-        <p class="input-error" v-if="v$.walletName.$error">
+        <p v-if="v$.walletName.$error" class="input-error">
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
     </div>
     <div class="text-gray-600">
       <ledger-device
+        v-show="appId"
         :connected="connected"
         :screen-text="screenContent"
         :caption="caption"
@@ -28,7 +29,7 @@
       />
     </div>
     <div v-if="confirmationAddress" class="text-sm">
-      <div class="rounded font-mono bg-gray-200 p-2 break-all">
+      <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
         <p><label>Address:</label> {{ confirmationAddress }}</p>
       </div>
       <p class="p-1">
@@ -38,24 +39,25 @@
       </p>
     </div>
     <div class="flex-grow"></div>
-    <button type="button" v-if="!loading" @click="add()" class="w-full btn">
+    <button v-if="!loading" type="button" class="w-full btn" @click="add()">
       <span>Connect</span>
     </button>
   </div>
 </template>
 
 <script lang="ts">
+import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
+import useVuelidate from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
+import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import { ProverStateType, WalletType } from "@/types/internal";
-import { ACTIONS } from "@/constants/store/actions";
-import useVuelidate from "@vuelidate/core";
-import { required, helpers } from "@vuelidate/validators";
-import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import Bip32 from "@/api/ergo/bip32";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
+import { ACTIONS } from "@/constants/store/actions";
+import { ProverStateType, WalletType } from "@/types/internal";
+import { log } from "@/utils/logger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -109,14 +111,14 @@ export default defineComponent({
           return;
         }
 
-        // this.state = ProverStateType.busy;
         this.connected = true;
         this.screenContent = "Extended Public Key Export";
       } catch (e) {
         this.state = ProverStateType.unavailable;
         this.loading = false;
         this.caption = "";
-        console.error(e);
+        log.error(e);
+
         return;
       }
 
@@ -139,9 +141,9 @@ export default defineComponent({
           this.screenContent = "Confirmed";
         }
       } catch (e) {
-        console.error(e);
         this.loading = false;
         this.state = ProverStateType.error;
+        log.error(e);
 
         if (e instanceof DeviceError) {
           switch (e.code) {

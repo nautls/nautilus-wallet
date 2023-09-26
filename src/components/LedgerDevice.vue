@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { PropType, computed } from "vue";
-import { ProverStateType } from "@/types/internal";
+import { isDefined } from "@fleet-sdk/common";
+import { computed, PropType } from "vue";
 import ledgerS from "@/assets/images/hw-devices/ledger-s.svg";
 import ledgerX from "@/assets/images/hw-devices/ledger-x.svg";
-import { isDefined } from "@fleet-sdk/common";
+import { LedgerDeviceModelId } from "@/constants/ledger";
+import { ProverStateType } from "@/types/internal";
 
 const props = defineProps({
   model: {
     type: String as PropType<LedgerDeviceModelId>,
     default: LedgerDeviceModelId.nanoX
   },
-  state: { type: Number as PropType<ProverStateType>, required: false },
+  state: { type: Number as PropType<ProverStateType>, required: false, default: undefined },
   connected: { type: Boolean },
-  screenText: { type: String },
+  screenText: { type: String, default: undefined },
   loading: { type: Boolean },
-  caption: { type: String, required: false },
+  caption: { type: String, required: false, default: undefined },
   compactView: { type: Boolean },
-  appId: { type: Number, required: false }
+  appId: { type: Number, required: false, default: undefined }
 });
 
 const validState = computed(
@@ -32,23 +32,17 @@ const screenPosition = computed(() =>
 </script>
 
 <template>
-  <div class="flex gap-2 flex-col mx-auto items-center min-w-72 max-w-75 w-75 p-2">
+  <div class="flex gap-2 flex-col mx-auto items-center min-w-72 p-2">
     <div v-if="connected || validState" class="w-auto mx-auto text-center text-sm">
-      <div
-        v-if="connected && appId"
-        class="inline-flex gap-2 items-center rounded-md bg-gray-50 px-2 py-1 text-xs text-gray-600 ring-1 ring-inset ring-gray-500/10"
-      >
-        Application ID: <span class="font-bold">{{ appIdHex }}</span>
-      </div>
       <div class="relative">
         <ledger-x v-if="isNanoX" class="w-max" />
         <ledger-s v-else class="w-max" />
-        <div :class="screenPosition" class="absolute text-light-600 text-xs items-center">
-          <div class="h-full flex items-center justify-center gap-2">
+        <div :class="screenPosition" class="absolute text-light-600 text-xs items-center px-1">
+          <div class="h-full flex items-center justify-center gap-1">
             <loading-indicator
               v-if="isLoading && compactView"
               type="circular"
-              class="w-5 h-5 mx-0.5"
+              class="w-5 h-5 min-w-5"
             />
             <vue-feather
               v-else-if="state === ProverStateType.success"
@@ -65,9 +59,15 @@ const screenPosition = computed(() =>
           </div>
         </div>
       </div>
-    </div>
 
-    <div v-if="state === ProverStateType.unavailable">
+      <div
+        v-if="appId"
+        class="mx-auto -mt-4 rounded-md w-min whitespace-nowrap bg-gray-50 px-2 py-1 mb-2 text-xs text-gray-600 border-1 border-gray-500/10"
+      >
+        Application ID: <span class="font-bold">{{ appIdHex }}</span>
+      </div>
+    </div>
+    <div v-else-if="!validState">
       <p class="text-center text-red-600">
         <vue-feather type="alert-circle" size="64" />
       </p>
@@ -82,6 +82,7 @@ const screenPosition = computed(() =>
       <loading-indicator type="circular" class="w-10 h-10" />
     </div>
 
+    <!-- eslint-disable-next-line vue/no-v-html -->
     <p v-if="caption" class="text-center" :class="{ 'text-sm ': compactView }" v-html="caption"></p>
   </div>
 </template>

@@ -24,8 +24,8 @@
         <div v-show="loading" class="skeleton rounded h-3 w-25 h-25"></div>
         <canvas
           v-show="!loading"
-          class="inline-block max-w-25 max-h-25 rounded"
           id="primary-address-canvas"
+          class="inline-block max-w-25 max-h-25 rounded"
         ></canvas>
       </div>
     </div>
@@ -39,10 +39,10 @@
       Due to device's memory limitations, your funds may get stuck in your wallet.
     </div>
     <div>
-      <button class="w-full btn" @click="newAddress()" :disabled="loading || errorMsg != ''">
+      <button class="w-full btn" :disabled="loading || errorMsg != ''" @click="newAddress()">
         New address
       </button>
-      <p class="input-error" v-if="errorMsg != ''">
+      <p v-if="errorMsg != ''" class="input-error">
         {{ errorMsg }}
       </p>
     </div>
@@ -92,7 +92,7 @@
               </td>
             </tr>
           </template>
-          <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
+          <tr v-for="address in addresses.slice().reverse()" v-else :key="address.script">
             <td class="font-mono">
               <div class="flex gap-2 text-gray-700">
                 <a
@@ -102,7 +102,7 @@
                   >{{ $filters.compactString(address.script, 10) }}</a
                 >
                 <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
-                  <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
+                  <a class="cursor-pointer" @click="showOnLedger(address)">
                     <mdi-icon name="shield-check-outline" size="15" />
                   </a>
                 </tool-tip>
@@ -150,9 +150,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import QRCode from "qrcode";
+import { isDefined } from "@fleet-sdk/common";
 import { find, last } from "lodash";
+import QRCode from "qrcode";
+import { defineComponent } from "vue";
+import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
+import { openModal } from "../utils/componentUtils";
+import MdiIcon from "@/components/MdiIcon.vue";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { ACTIONS } from "@/constants/store";
 import {
   StateAddress,
   StateWallet,
@@ -160,13 +166,17 @@ import {
   UpdateUsedAddressesFilterCommand,
   WalletType
 } from "@/types/internal";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
-import MdiIcon from "@/components/MdiIcon.vue";
 
 export default defineComponent({
   name: "ReceiveView",
+  components: { MdiIcon },
+  data() {
+    return {
+      prevCount: 1,
+      errorMsg: ""
+    };
+  },
   computed: {
     currentWallet(): StateWallet {
       return this.$store.state.currentWallet;
@@ -232,12 +242,6 @@ export default defineComponent({
       }
     }
   },
-  data() {
-    return {
-      prevCount: 1,
-      errorMsg: ""
-    };
-  },
   methods: {
     updateDefaultChangeIndex(index: number) {
       this.$store.dispatch(ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX, {
@@ -267,15 +271,24 @@ export default defineComponent({
       return address.state === AddressState.Used;
     },
     hasPendingBalance(address: StateAddress): boolean {
-      return !!find(address.balance, (b) => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
+      return isDefined(
+        find(
+          address.balance,
+          (b) => isDefined(b.unconfirmedAmount) && !b.unconfirmedAmount.isZero()
+        )
+      );
     },
     urlFor(address: string | undefined): string {
       return new URL(`/addresses/${address}`, this.$store.state.settings.explorerUrl).toString();
     },
     toggleHideBalance(): void {
       this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
+    },
+    showOnLedger(address: StateAddress) {
+      openModal(ConfirmAddressOnDevice, {
+        props: { address: address.script, index: address.index }
+      });
     }
-  },
-  components: { MdiIcon }
+  }
 });
 </script>

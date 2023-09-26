@@ -1,19 +1,15 @@
-import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
-import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
-import { wasmModule } from "@/utils/wasm-module";
+import { Header } from "@ergo-graphql/types";
+import { SignedInput } from "@fleet-sdk/common";
+import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
+  ErgoBoxCandidate,
   ErgoBoxes,
   Tokens,
   UnsignedTransaction,
   Wallet,
-  ErgoBox as WasmErgoBox,
-  ErgoBoxCandidate
+  ErgoBox as WasmErgoBox
 } from "ergo-lib-wasm-browser";
-import { find, first } from "lodash";
-import Bip32 from "../bip32";
 import JSONBig from "json-bigint";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   BoxCandidate,
   DeviceError,
@@ -23,11 +19,15 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { LedgerDeviceModelId } from "@/constants/ledger";
+import { find, first } from "lodash";
 import { addressFromErgoTree } from "../addresses";
-import { Header } from "@ergo-graphql/types";
+import Bip32 from "../bip32";
+import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
+import { LedgerDeviceModelId } from "@/constants/ledger";
+import { ErgoTx, UnsignedTx } from "@/types/connector";
+import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
-import { SignedInput } from "@fleet-sdk/common";
+import { wasmModule } from "@/utils/wasm-module";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;
@@ -186,7 +186,7 @@ export class Prover {
         this.reportState({
           statusText: "Please confirm the transaction signature on your device.",
           device: {
-            screenText: "Waiting confirmation..."
+            screenText: "Waiting for approval..."
           }
         });
 
@@ -302,7 +302,6 @@ export class Prover {
       });
     }
 
-    console.log(signed);
     return signed;
   }
 
