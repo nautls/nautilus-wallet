@@ -1,6 +1,6 @@
-import { LedgerDeviceModelId } from "@/constants/ledger";
 import BigNumber from "bignumber.js";
 import { ErgoBox, UnsignedTx } from "./connector";
+import { LedgerDeviceModelId } from "@/constants/ledger";
 
 export enum AddressState {
   Used,
@@ -86,8 +86,6 @@ export type StateAssetInfo = {
 
 export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
 
-export type LoadingModalState = "unknown" | "success" | "loading" | "error";
-
 export type FeeSettings = {
   tokenId: string;
   readonly value: BigNumberType;
@@ -130,14 +128,24 @@ export type UpdateChangeIndexCommand = {
   index: number;
 };
 
-export type SigningState = {
-  loading: boolean;
-  connected: boolean;
-  statusText: string;
-  screenText: string;
-  deviceModel: LedgerDeviceModelId;
-  state: LoadingModalState;
+export const enum ProverStateType {
+  success,
+  error,
+  busy,
+  unavailable
+}
+
+export type ProverDeviceState = {
+  model: LedgerDeviceModelId;
   appId: number;
+  connected: boolean;
+  screenText?: string;
+};
+
+export type SigningState = {
+  statusText: string;
+  type?: ProverStateType;
+  device?: ProverDeviceState;
 };
 
 export type TransactionBuilderFunction = () => Promise<UnsignedTx>;

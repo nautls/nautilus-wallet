@@ -88,7 +88,7 @@
     </template>
   </div>
 
-  <div class="flex flex-row gap-4" v-if="!isLedger || (isLedger && !signState.loading)">
+  <div class="flex flex-row gap-4" v-if="!isLedger || (isLedger && !signing && !signed)">
     <button class="btn outlined w-full" @click="cancel()" :disabled="isMnemonicSigning">
       Cancel
     </button>
@@ -99,25 +99,24 @@
     </button>
   </div>
 
-  <div class="-mt-4" v-if="isLedger">
+  <div class="-mt-6" v-if="isLedger">
     <ledger-device
-      v-show="signState.loading"
-      :bottom-text="signState.statusText"
-      :state="signState.state"
-      :loading="signState.loading"
-      :connected="signState.connected"
-      :app-id="signState.appId"
-      :compact="true"
-      :screen-text="signState.screenText"
+      v-show="active"
+      :caption="signState.statusText"
+      :state="signState.type"
+      :connected="signState.device?.connected"
+      :app-id="signState.device?.appId"
+      :model="signState.device?.model"
+      :screen-text="signState.device?.screenText"
+      compact-view
     />
   </div>
-
-  <loading-modal
+  <sign-state-modal
     v-else-if="!setExternalState"
     title="Signing"
-    :message="signState.statusText"
-    :state="signState.state"
-    @close="signState.state = 'unknown'"
+    :caption="signState.statusText"
+    :state="signState.type"
+    @close="signState.type = undefined"
   />
 </template>
 
@@ -127,8 +126,8 @@ import { mapState } from "vuex";
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
-  LoadingModalState,
   SigningState,
+  ProverStateType,
   SignTxCommand,
   StateAddress,
   StateAssetInfo,
@@ -138,7 +137,7 @@ import { ACTIONS } from "@/constants/store";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { PasswordError } from "@/types/errors";
-import LoadingModal from "@/components/LoadingModal.vue";
+import SignStateModal from "@/components/SignStateModal.vue";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
@@ -147,12 +146,13 @@ import "vue-json-pretty/lib/styles.css";
 import { AddressType } from "@fleet-sdk/core";
 import TxSignSummary from "@/components/TxSignSummary.vue";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
+import { isDefined } from "@fleet-sdk/common";
 
 export default defineComponent({
   name: "TxSignView",
   components: {
     TxSignSummary,
-    LoadingModal,
+    SignStateModal,
     TxBoxDetails,
     VueJsonPretty
   },
@@ -162,7 +162,7 @@ export default defineComponent({
     inputsToSign: { type: Array<number>, required: false },
     isModal: { type: Boolean, default: false },
     setExternalState: {
-      type: Function as PropType<(state: LoadingModalState, message?: string) => void>,
+      type: Function as PropType<(state: ProverStateType, message?: string) => void>,
       required: false
     }
   },
@@ -176,13 +176,14 @@ export default defineComponent({
       burnAgreement: false,
       password: "",
       signState: {
-        loading: false,
-        connected: false,
-        deviceModel: LedgerDeviceModelId.nanoS,
-        screenText: "",
+        type: undefined,
         statusText: "",
-        state: "unknown" as LoadingModalState,
-        appId: 0
+        device: {
+          model: LedgerDeviceModelId.nanoS,
+          appId: 0,
+          connected: false,
+          screenText: ""
+        }
       } as SigningState
     };
   },
@@ -198,6 +199,15 @@ export default defineComponent({
   },
   computed: {
     ...mapState({ wallets: "wallets", loading: "loading" }),
+    signing() {
+      return this.signState.type === ProverStateType.busy;
+    },
+    signed() {
+      return this.signState.type === ProverStateType.success;
+    },
+    active() {
+      return isDefined(this.signState.type);
+    },
     mode() {
       return this.isModal ? "modal" : "embedded";
     },
@@ -208,7 +218,7 @@ export default defineComponent({
       return this.$store.state.currentWallet.type === WalletType.Ledger;
     },
     isMnemonicSigning() {
-      return this.isModal && this.signState.loading && !this.isLedger && !this.setExternalState;
+      return this.isModal && this.signing && !this.isLedger && !this.setExternalState;
     },
     currentWalletId() {
       return this.$store.state.currentWallet.id;
@@ -251,7 +261,7 @@ export default defineComponent({
         return;
       }
 
-      this.setState("loading", { loading: true, statusText: "Signing transaction..." });
+      this.setState(ProverStateType.busy, { statusText: "Signing transaction..." });
 
       try {
         const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX, {
@@ -259,14 +269,14 @@ export default defineComponent({
           inputsToSign: this.inputsToSign,
           walletId: this.currentWalletId,
           password: this.password,
-          callback: this.setStateCallback
+          callback: this.patchState
         } as SignTxCommand);
 
         if (this.mode === "embedded" || this.isMnemonicSigning) {
-          this.setState("success", { loading: false });
+          this.setState(ProverStateType.success);
         }
 
-        this.succeed(signedTx);
+        this.succeed(signedTx, this.setState);
       } catch (e) {
         const errorMessage = typeof e === "string" ? e : (e as Error).message;
         // eslint-disable-next-line no-console
@@ -284,22 +294,28 @@ export default defineComponent({
           return;
         }
 
-        this.setState("error", {
-          loading: false,
+        this.setState(ProverStateType.error, {
           statusText: errorMessage
         });
       }
     },
-    setState(state: LoadingModalState, newState: Omit<Partial<SigningState>, "state">) {
+    setState(state: ProverStateType, newState?: Omit<Partial<SigningState>, "state">) {
       if (this.setExternalState) {
-        this.setExternalState(state, newState.statusText);
+        this.setExternalState(state, newState?.statusText);
       }
 
-      this.signState.state = state;
-      this.signState = Object.assign(this.signState, newState);
+      this.signState.type = state;
+      if (newState) {
+        this.patchState(newState);
+      }
     },
-    setStateCallback(newState: SigningState) {
-      this.signState = Object.assign(this.signState, newState);
+    patchState(newState: Partial<SigningState>) {
+      if (newState.device && this.signState.device) {
+        Object.assign(this.signState.device, newState.device);
+        delete newState.device;
+      }
+
+      Object.assign(this.signState, newState);
     },
     cancel() {
       this.refuse("User rejected");
@@ -310,8 +326,11 @@ export default defineComponent({
     fail(info: string) {
       this.$emit("fail", info);
     },
-    succeed(signedTx: ErgoTx) {
-      this.$emit("success", signedTx);
+    succeed(
+      signedTx: ErgoTx,
+      setStateFn: (state: ProverStateType, obj: Omit<Partial<SigningState>, "state">) => void
+    ) {
+      this.$emit("success", signedTx, setStateFn);
     },
     getOutputTitle(output: OutputInterpreter) {
       if (output.isBabelBoxSwap) {

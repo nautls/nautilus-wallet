@@ -3,7 +3,7 @@ import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import store from "@/store";
 import { ErgoBox } from "@/types/connector";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
-import { estimateBoxSize } from "@fleet-sdk/core";
+import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash";
 import { graphQLService } from "@/api/explorer/graphQlService";
@@ -37,7 +37,7 @@ watch(() => store.state.currentWallet.id, loadBoxes);
 const size = computed(() => {
   let size = 0;
   for (const box of boxes.value) {
-    size += estimateBoxSize(box);
+    size += serializeBox(box).length;
   }
 
   return size;

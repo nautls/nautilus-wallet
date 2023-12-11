@@ -24,8 +24,8 @@
         <div v-show="loading" class="skeleton rounded h-3 w-25 h-25"></div>
         <canvas
           v-show="!loading"
-          class="inline-block max-w-25 max-h-25 rounded"
           id="primary-address-canvas"
+          class="inline-block max-w-25 max-h-25 rounded"
         ></canvas>
       </div>
     </div>
@@ -33,14 +33,16 @@
       v-if="isLedger"
       class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
     >
-      <strong>Never send more than 20 distinct tokens</strong> in a single transaction to a Ledger
-      wallet. Due to device's memory limitations your assets can get stuck in your wallet.
+      <strong
+        >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
+      >
+      Due to device's memory limitations, your funds may get stuck in your wallet.
     </div>
     <div>
-      <button class="w-full btn" @click="newAddress()" :disabled="loading || errorMsg != ''">
+      <button class="w-full btn" :disabled="loading || errorMsg != ''" @click="newAddress()">
         New address
       </button>
-      <p class="input-error" v-if="errorMsg != ''">
+      <p v-if="errorMsg != ''" class="input-error">
         {{ errorMsg }}
       </p>
     </div>
@@ -90,27 +92,37 @@
               </td>
             </tr>
           </template>
-          <tr v-else v-for="address in addresses.slice().reverse()" :key="address.script">
-            <td class="font-mono" :class="{ 'text-gray-400': isUsed(address) }">
-              <a :href="urlFor(address.script)" target="_blank">{{
-                $filters.compactString(address.script, 10)
-              }}</a>
-              <div class="align-middle inline-block">
-                <click-to-copy :content="address.script" class="mx-2" size="12" />
+          <tr v-for="address in addresses.slice().reverse()" v-else :key="address.script">
+            <td class="font-mono">
+              <div class="flex gap-2 text-gray-700">
+                <a
+                  :href="urlFor(address.script)"
+                  :class="{ 'text-gray-400': isUsed(address) }"
+                  target="_blank"
+                  >{{ $filters.compactString(address.script, 10) }}</a
+                >
+                <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
+                  <a class="cursor-pointer" @click="showOnLedger(address)">
+                    <mdi-icon name="shield-check-outline" size="15" />
+                  </a>
+                </tool-tip>
+
+                <click-to-copy :content="address.script" size="14" />
 
                 <template v-if="!currentWallet.settings.avoidAddressReuse">
                   <vue-feather
                     v-if="currentWallet.settings.defaultChangeIndex === address.index"
                     type="check-circle"
                     class="text-green-600"
-                    size="12"
+                    size="14"
                   />
                   <tool-tip v-else label="Set as default<br />address">
                     <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
-                      <vue-feather type="circle" size="12" />
+                      <vue-feather type="circle" size="14" />
                     </a>
                   </tool-tip>
                 </template>
+
                 <tool-tip
                   v-if="hasPendingBalance(address)"
                   label="Pending transaction<br />for this address"
@@ -138,9 +150,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import QRCode from "qrcode";
+import { isDefined } from "@fleet-sdk/common";
 import { find, last } from "lodash";
+import QRCode from "qrcode";
+import { defineComponent } from "vue";
+import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
+import { openModal } from "../utils/componentUtils";
+import MdiIcon from "@/components/MdiIcon.vue";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { ACTIONS } from "@/constants/store";
 import {
   StateAddress,
   StateWallet,
@@ -148,13 +166,17 @@ import {
   UpdateUsedAddressesFilterCommand,
   WalletType
 } from "@/types/internal";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
-import MdiIcon from "@/components/MdiIcon.vue";
 
 export default defineComponent({
   name: "ReceiveView",
+  components: { MdiIcon },
+  data() {
+    return {
+      prevCount: 1,
+      errorMsg: ""
+    };
+  },
   computed: {
     currentWallet(): StateWallet {
       return this.$store.state.currentWallet;
@@ -220,12 +242,6 @@ export default defineComponent({
       }
     }
   },
-  data() {
-    return {
-      prevCount: 1,
-      errorMsg: ""
-    };
-  },
   methods: {
     updateDefaultChangeIndex(index: number) {
       this.$store.dispatch(ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX, {
@@ -242,8 +258,8 @@ export default defineComponent({
     async newAddress() {
       try {
         await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
-      } catch (e: any) {
-        this.errorMsg = e.message;
+      } catch (e) {
+        this.errorMsg = (e as Error).message;
       }
     },
     ergBalanceFor(address: StateAddress): string {
@@ -255,15 +271,24 @@ export default defineComponent({
       return address.state === AddressState.Used;
     },
     hasPendingBalance(address: StateAddress): boolean {
-      return !!find(address.balance, (b) => b.unconfirmedAmount && !b.unconfirmedAmount.isZero());
+      return isDefined(
+        find(
+          address.balance,
+          (b) => isDefined(b.unconfirmedAmount) && !b.unconfirmedAmount.isZero()
+        )
+      );
     },
     urlFor(address: string | undefined): string {
       return new URL(`/addresses/${address}`, this.$store.state.settings.explorerUrl).toString();
     },
     toggleHideBalance(): void {
       this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
+    },
+    showOnLedger(address: StateAddress) {
+      openModal(ConfirmAddressOnDevice, {
+        props: { address: address.script, index: address.index }
+      });
     }
-  },
-  components: { MdiIcon }
+  }
 });
 </script>

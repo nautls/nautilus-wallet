@@ -12,6 +12,7 @@ function getDefaultBounds() {
 
 function getBoundsForWindow(targetWindow: chrome.windows.Window) {
   const defaults = getDefaultBounds();
+
   return {
     width: targetWindow.width ?? defaults.width,
     positionX: targetWindow.left ?? defaults.positionX,
@@ -20,7 +21,7 @@ function getBoundsForWindow(targetWindow: chrome.windows.Window) {
 }
 
 export function getBoundsForTabWindow(
-  targetTabId: any
+  targetTabId?: number
 ): Promise<{ width: number; positionX: number; positionY: number }> {
   return new Promise((resolve) => {
     Browser.tabs.get(targetTabId, (tab: chrome.tabs.Tab) => {

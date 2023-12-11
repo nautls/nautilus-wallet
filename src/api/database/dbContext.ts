@@ -8,7 +8,7 @@ import {
   IAssetInfo
 } from "@/types/database";
 import { uniqBy } from "lodash";
-import { ERG_TOKEN_ID, MAINNET, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
+import { ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;

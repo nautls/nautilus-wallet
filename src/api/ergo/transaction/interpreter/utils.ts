@@ -1,8 +1,8 @@
-import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
-import { decimalize, toBigNumber } from "@/utils/bigNumbers";
-import { StateAssetInfo } from "@/types/internal";
-import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
 import { Amount, TokenAmount } from "@fleet-sdk/common";
+import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
+import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
+import { StateAssetInfo } from "@/types/internal";
+import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 
 export const tokensToOutputAssets = (tokens: Token[], assetInfo: StateAssetInfo): OutputAsset[] => {
   return tokens.map((t: Token) => {
