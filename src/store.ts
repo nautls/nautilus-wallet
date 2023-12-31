@@ -172,7 +172,15 @@ export default createStore({
     },
     [GETTERS.NON_NFT_BALANCE](state, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
-      return balance.filter((b) => !b.info || b.info.type === undefined);
+      return balance.filter(
+        (b) =>
+          !b.info ||
+          !b.info.type ||
+          (b.info.type !== AssetSubtype.AudioArtwork &&
+            b.info.type !== AssetSubtype.VideoArtwork &&
+            b.info.type !== AssetSubtype.PictureArtwork &&
+            b.info.type !== AssetSubtype.ThresholdSignature)
+      );
     }
   },
   mutations: {
