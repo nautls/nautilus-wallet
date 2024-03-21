@@ -28,7 +28,7 @@
 
 ## Description
 
-Nautilus Wallet is a comunity driven wallet designed for Ergo Platform with focus on privacy, security and user experience.
+Nautilus Wallet is a community driven wallet designed for Ergo Platform with focus on privacy, security and user experience.
 
 - Easy to use
 - Blazing fast

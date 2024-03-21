@@ -31,5 +31,12 @@ export const assetIconMap: { [tokenId: string]: string } = {
   ["089990451bb430f05a85f4ef3bcb6ebf852b3d6ee68d86d78658b9ccef20074f"]: "quacks.svg",
   ["2a51396e09ad9eca60b1bdafd365416beae155efce64fc3deb0d1b3580127b8f"]: "obsidian.png",
   ["956bcab1ea3ed40c91bf845fe4f2dee727fe130a95f244a41a6ee7a25f14e23f"]: "gluon.png",
-  ["d1d2ae2ac0456aa43550dd4fda45e4f866d523be9170d3a3e4cab43a83926334"]: "GreasyCex.svg"
+  ["d1d2ae2ac0456aa43550dd4fda45e4f866d523be9170d3a3e4cab43a83926334"]: "GreasyCex.svg",
+  ["e023c5f382b6e96fbd878f6811aac73345489032157ad5affb84aefd4956c297"]: "rsada.svg",
+  ["8b08cdd5449a9592a9e79711d7d79249d7a03c535d17efaee83e216e80a44c4b"]: "rosen.svg",
+  ["1465c9b9de602bd75f8f38df83118e2c8b1d5b2f5518514dd1438149053652a8"]: "dark_erdoge.svg",
+  ["1e0b4e64499cadd4838b6e4e935b9104a6f80975efe1395b714aac19b67a7ac0"]: "sick_erdoge.svg",
+  ["52f4544ce8a420d484ece16f9b984d81c23e46971ef5e37c29382ac50f80d5bd"]: "auctioncoin.png",
+  ["7ba2a85fdb302a181578b1f64cb4a533d89b3f8de4159efece75da41041537f9"]: "gort.png",
+  ["cbd75cfe1a4f37f9a22eaee516300e36ea82017073036f07a09c1d2e10277cda"]: "hodlerg3.svg"
 };
