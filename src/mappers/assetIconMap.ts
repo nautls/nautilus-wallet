@@ -30,5 +30,6 @@ export const assetIconMap: { [tokenId: string]: string } = {
   ["01ddcc3d0205c2da8a067ffe047a2ccfc3e8241bc3fcc6f6ebc96b7f7363bb36"]: "proxie.png",
   ["089990451bb430f05a85f4ef3bcb6ebf852b3d6ee68d86d78658b9ccef20074f"]: "quacks.svg",
   ["2a51396e09ad9eca60b1bdafd365416beae155efce64fc3deb0d1b3580127b8f"]: "obsidian.png",
-  ["956bcab1ea3ed40c91bf845fe4f2dee727fe130a95f244a41a6ee7a25f14e23f"]: "gluon.png"
+  ["956bcab1ea3ed40c91bf845fe4f2dee727fe130a95f244a41a6ee7a25f14e23f"]: "gluon.png",
+  ["d1d2ae2ac0456aa43550dd4fda45e4f866d523be9170d3a3e4cab43a83926334"]: "GreasyCex.svg"
 };
