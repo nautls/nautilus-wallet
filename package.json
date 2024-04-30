@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "private": true,
   "scripts": {
     "dev:mainnet": "vue-cli-service serve",
