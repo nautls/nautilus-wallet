@@ -1,3 +1,10 @@
+import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
+import { OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
+import { CherryPickSelectionStrategy } from "@fleet-sdk/core";
+import BigNumber from "bignumber.js";
+import { isEmpty } from "lodash";
+import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
+import { fetchBoxes } from "../boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
@@ -6,13 +13,8 @@ import { UnsignedTx } from "@/types/connector";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
 import { bip32Pool } from "@/utils/objectPool";
-import { OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
-import BigNumber from "bignumber.js";
-import { isEmpty } from "lodash";
-import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
-import { fetchBoxes } from "../boxFetcher";
-import { CherryPickSelectionStrategy } from "@fleet-sdk/core";
-import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
+
+const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 export type TxAssetAmount = {
   asset: StateAsset;
@@ -81,7 +83,9 @@ export function setSelectionAndChangeStrategy(
       .configureSelector((selector) => selector.defineStrategy(new CherryPickSelectionStrategy()));
   }
 
-  return builder.configureSelector((selector) => selector.orderBy((input) => input.creationHeight));
+  return builder
+    .configure((settings) => settings.setMaxTokensPerChangeBox(SAFE_MAX_CHANGE_TOKEN_LIMIT))
+    .configureSelector((selector) => selector.orderBy((input) => input.creationHeight));
 }
 
 export async function setFee(
