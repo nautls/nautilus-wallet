@@ -78,8 +78,8 @@ module.exports = defineConfig({
     config.plugin("define").tap((options) => {
       options[0]["process.env"].GIT_HASH = JSON.stringify(commitHash);
       options[0]["process.env"].MAINNET = JSON.stringify(!process.argv.includes("--testnet"));
-      
-return options;
+
+      return options;
     });
 
     config
@@ -103,6 +103,6 @@ return options;
       .loader("./loaders/svgLoader.js")
       .end();
 
-    config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
+    // config.plugin("windicss").use(new WindiCSSWebpackPlugin()).end();
   }
 });

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   @apply bg-gray-200 overflow-x-hidden text-base leading-normal tracking-wide text-dark-500 antialiased;
 }
@@ -11,7 +15,7 @@ a {
 }
 
 input {
-  @apply !outline-none;
+  @apply !outline-none font-normal;
 }
 
 .break-anywhere {
