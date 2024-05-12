@@ -29,7 +29,10 @@
         ></canvas>
       </div>
     </div>
-    <div v-if="isLedger" class="rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4">
+    <div
+      v-if="isLedger"
+      class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
+    >
       <strong
         >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
       >
