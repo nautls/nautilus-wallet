@@ -3,7 +3,7 @@ import { ErgoBox } from "@/types/connector";
 import { BigNumberType } from "@/types/internal";
 import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
-import { first, isEmpty, orderBy, sortBy } from "lodash";
+import { first, isEmpty, orderBy, sortBy } from "lodash-es";
 import { graphQLService } from "../explorer/graphQlService";
 import { addressFromErgoTree } from "./addresses";
 

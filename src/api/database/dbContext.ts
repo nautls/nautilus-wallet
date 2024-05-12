@@ -7,7 +7,7 @@ import {
   IDbUtxo,
   IAssetInfo
 } from "@/types/database";
-import { uniqBy } from "lodash";
+import { uniqBy } from "lodash-es";
 import { ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {

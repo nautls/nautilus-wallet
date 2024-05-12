@@ -3,7 +3,7 @@ import { ErgoBoxCandidate, Token, UnsignedInput, UnsignedTx } from "@/types/conn
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { difference, find, groupBy, isEmpty } from "lodash";
+import { difference, find, groupBy, isEmpty } from "lodash-es";
 import { addressFromErgoTree } from "../../addresses";
 import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";

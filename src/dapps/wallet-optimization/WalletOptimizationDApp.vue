@@ -5,7 +5,7 @@ import { ErgoBox } from "@/types/connector";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
-import { minBy } from "lodash";
+import { minBy } from "lodash-es";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { FeeSettings } from "@/types/internal";
 import { decimalize } from "@/utils/bigNumbers";

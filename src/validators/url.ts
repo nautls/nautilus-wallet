@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 
 function validator(value: string) {
   if (isEmpty(value)) {

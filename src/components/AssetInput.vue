@@ -76,7 +76,7 @@ import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({

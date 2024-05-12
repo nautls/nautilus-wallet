@@ -68,7 +68,7 @@ import { defineComponent, PropType } from "vue";
 import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/api/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import { AssetSubtype } from "@/types/internal";
 import ImageSandbox from "./ImageSandbox.vue";

@@ -154,7 +154,7 @@ import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
-import { clone, isEmpty, isEqual } from "lodash";
+import { clone, isEmpty, isEqual } from "lodash-es";
 import {
   getDefaultServerUrl,
   validateServerNetwork,

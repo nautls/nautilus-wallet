@@ -80,7 +80,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { generateMnemonic, wordlists } from "bip39";
-import { orderBy, take } from "lodash";
+import { orderBy, take } from "lodash-es";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";
