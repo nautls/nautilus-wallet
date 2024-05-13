@@ -2,7 +2,7 @@ import { IDbUtxo } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "../ergo/addresses";
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 import { SignedTransaction } from "@ergo-graphql/types";
 
 class UTxOsDbService {

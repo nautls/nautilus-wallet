@@ -90,7 +90,7 @@ import { defineComponent } from "vue";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
-import { differenceBy, find, isEmpty, remove } from "lodash";
+import { differenceBy, find, isEmpty, remove } from "lodash-es";
 import { decimalize, undecimalize } from "@/utils/bigNumbers";
 import { required, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";

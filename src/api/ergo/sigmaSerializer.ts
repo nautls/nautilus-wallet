@@ -8,7 +8,7 @@ import {
 } from "@/constants/ergo";
 import { Registers } from "@/types/connector";
 import { wasmModule } from "@/utils/wasm-module";
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 
 export function isColl(input: string): boolean {
   return !isEmpty(input) && input.startsWith(COLL_BYTE_PREFIX) && input.length >= MIN_COLL_LENGTH;

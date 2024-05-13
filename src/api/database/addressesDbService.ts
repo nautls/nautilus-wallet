@@ -1,6 +1,6 @@
 import { IDbAddress, IDbWallet } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
-import { find } from "lodash";
+import { find } from "lodash-es";
 import { AddressState } from "@/types/internal";
 import { walletsDbService } from "./walletsDbService";
 

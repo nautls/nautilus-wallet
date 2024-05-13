@@ -1,6 +1,6 @@
 import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
 import { openWindow } from "@/utils/uiHelpers";
-import { find, isEmpty } from "lodash";
+import { find, isEmpty } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { postConnectorResponse } from "./messagingUtils";
 import {

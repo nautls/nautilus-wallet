@@ -51,7 +51,7 @@
 import { defineComponent, Ref } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find } from "lodash";
+import { find } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { ACTIONS } from "@/constants/store/actions";
 import useVuelidate, { Validation, ValidationArgs } from "@vuelidate/core";

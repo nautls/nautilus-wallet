@@ -88,7 +88,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { wordlists } from "bip39";
-import { intersection, isEmpty, join, orderBy, take } from "lodash";
+import { intersection, isEmpty, join, orderBy, take } from "lodash-es";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";

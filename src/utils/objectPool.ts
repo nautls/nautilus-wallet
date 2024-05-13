@@ -1,5 +1,5 @@
 import Bip32 from "@/api/ergo/bip32";
-import { find, findIndex } from "lodash";
+import { find, findIndex } from "lodash-es";
 
 type PoolItem<ObjectType, Key> = {
   key: Key;

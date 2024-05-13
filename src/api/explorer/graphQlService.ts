@@ -1,4 +1,4 @@
-import { chunk, first, isEmpty, min } from "lodash";
+import { chunk, first, isEmpty, min } from "lodash-es";
 import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";

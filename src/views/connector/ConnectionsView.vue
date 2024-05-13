@@ -21,7 +21,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapState } from "vuex";
-import { find } from "lodash";
+import { find } from "lodash-es";
 import { ACTIONS } from "@/constants/store";
 
 export default defineComponent({

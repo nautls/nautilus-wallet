@@ -151,7 +151,7 @@
 
 <script lang="ts">
 import { isDefined } from "@fleet-sdk/common";
-import { find, last } from "lodash";
+import { find, last } from "lodash-es";
 import QRCode from "qrcode";
 import { defineComponent } from "vue";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";

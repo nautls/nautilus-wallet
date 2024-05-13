@@ -22,7 +22,7 @@
 import { defineComponent } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find, isEmpty } from "lodash";
+import { find, isEmpty } from "lodash-es";
 import { ErgoTx, SignError, SignErrorCode, UnsignedTx } from "@/types/connector";
 import DappPlate from "@/components/DappPlate.vue";
 import { ACTIONS } from "@/constants/store";

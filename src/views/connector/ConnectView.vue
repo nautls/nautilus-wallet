@@ -25,7 +25,7 @@
 import { defineComponent } from "vue";
 import { mapState } from "vuex";
 import { rpcHandler } from "@/background/rpcHandler";
-import { find, isEmpty } from "lodash";
+import { find, isEmpty } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 
 export default defineComponent({

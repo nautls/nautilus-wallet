@@ -13,7 +13,7 @@ import {
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
-import { groupBy, isEmpty, isUndefined } from "lodash";
+import { groupBy, isEmpty, isUndefined } from "lodash-es";
 import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
