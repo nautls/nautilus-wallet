@@ -1,4 +1,4 @@
-import { isEmpty, join } from "lodash";
+import { isEmpty, join } from "lodash-es";
 import { validateMnemonic } from "bip39";
 
 function validator(words: []) {

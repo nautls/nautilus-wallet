@@ -2,7 +2,7 @@ import { Registers } from "@/types/connector";
 import { IAssetInfo } from "@/types/database";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { Token } from "@ergo-graphql/types";
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 import { decodeColl, decodeCollTuple, isColl, isTuple } from "../ergo/sigmaSerializer";
 
 export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {

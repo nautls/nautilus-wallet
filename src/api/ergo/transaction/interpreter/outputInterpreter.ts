@@ -2,7 +2,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
-import { find, findIndex, first, isEmpty } from "lodash";
+import { find, findIndex, first, isEmpty } from "lodash-es";
 import { decodeColl } from "@/api/ergo/sigmaSerializer";
 import { StateAssetInfo } from "@/types/internal";
 import { isBabelContract } from "../../babelFees";

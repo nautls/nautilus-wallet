@@ -1,6 +1,6 @@
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
-import { difference, find, isEmpty, sortBy, unionBy } from "lodash";
+import { difference, find, isEmpty, sortBy, unionBy } from "lodash-es";
 import { addressesDbService } from "../database/addressesDbService";
 import { assetsDbService } from "../database/assetsDbService";
 import { utxosDbService } from "../database/utxosDbService";

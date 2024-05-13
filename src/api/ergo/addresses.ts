@@ -1,7 +1,7 @@
 import { P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
 import { ErgoAddress, Network } from "@fleet-sdk/core";
-import { isEmpty, last, uniq } from "lodash";
+import { isEmpty, last, uniq } from "lodash-es";
 import { extractPksFromP2SErgoTree, extractPksFromRegisters } from "./sigmaSerializer";
 
 const network = MAINNET ? Network.Mainnet : Network.Testnet;

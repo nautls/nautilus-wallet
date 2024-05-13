@@ -19,7 +19,7 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { find, first } from "lodash";
+import { find, first } from "lodash-es";
 import { addressFromErgoTree } from "../addresses";
 import Bip32 from "../bip32";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";

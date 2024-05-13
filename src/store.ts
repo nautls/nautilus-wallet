@@ -18,7 +18,7 @@ import {
   uniq,
   difference,
   union
-} from "lodash";
+} from "lodash-es";
 import {
   Network,
   WalletType,

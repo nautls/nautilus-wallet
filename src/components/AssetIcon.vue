@@ -36,7 +36,7 @@ import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
-import { isEmpty } from "lodash";
+import { isEmpty } from "lodash-es";
 
 export default defineComponent({
   name: "AssetIcon",
