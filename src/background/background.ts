@@ -23,9 +23,7 @@ const sessions = new Map<number, Session>();
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
 function getOrigin(url?: string) {
-  if (!url) {
-    return;
-  }
+  if (!url) return;
 
   const matches = url.match(ORIGIN_MATCHER);
   if (matches) {

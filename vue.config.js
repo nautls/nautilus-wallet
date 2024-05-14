@@ -53,10 +53,11 @@ module.exports = defineConfig({
     ]
   },
   pages: {
-    index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" },
-    background: { entry: "src/background/background.ts", template: "public/background.html" }
+    index: { entry: "src/main.ts", template: "public/index.html", title: "Nautilus" }
   },
   chainWebpack: (config) => {
+    config.entry("bg").add("./src/background/background.ts");
+
     config.output.filename("js/[name].js").chunkFilename("js/[name].js").end();
 
     config.plugin("copy").tap(([pathConfigs]) => {

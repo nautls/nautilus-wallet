@@ -18,8 +18,7 @@
     }
   ],
   "background": {
-    "page": "background.html",
-    "persistent": false
+    "service_worker": "js/bg.js"
   },
   "content_scripts": [
     {

@@ -1,63 +1,48 @@
 (() => {
   var rpcId = 0;
   var resolver = new Map();
-  var api = undefined;
+  var instance = undefined;
+
   window.addEventListener("message", function (event) {
-    if (event.data.type !== "rpc/connector-response/auth") {
-      return;
-    }
+    if (event.data.type !== "rpc/connector-response/auth") return;
 
     const promise = resolver.get(event.data.requestId);
-    if (!promise) {
-      return;
-    }
+    if (!promise) return;
 
     resolver.delete(event.data.requestId);
-    const ret = event.data.return;
-    if (event.data.function === "connect" && ret.data === true) {
-      if (event.data.params[0] === true) {
-        api = ergo;
-      } else {
-        api = Object.freeze(new NautilusErgoApi());
-      }
-    } else if (event.data.function === "disconnect" && ret.data === true) {
-      api = undefined;
+    const r = event.data.return;
+
+    if (event.data.function === "connect" && r.data === true) {
+      instance = event.data.params[0] === true ? ergo : Object.freeze(new NautilusErgoApi());
+    } else if (event.data.function === "disconnect" && r.data === true) {
+      instance = undefined;
     }
 
-    if (ret.isSuccess) {
-      promise.resolve(ret.data);
+    if (r.isSuccess) {
+      promise.resolve(r.data);
     } else {
-      promise.reject(ret.data);
+      promise.reject(r.data);
     }
   });
 
   class NautilusAuthApi {
     connect({ createErgoObject = true } = {}) {
-      return this._rpcCall("connect", [createErgoObject]);
+      return this.#rpcCall("connect", [createErgoObject]);
     }
 
     disconnect() {
-      if (api) {
-        return this._rpcCall("disconnect");
-      }
-      return Promise.resolve(false);
+      return !!instance ? this.#rpcCall("disconnect") : Promise.resolve(false);
     }
 
     isConnected() {
-      if (api) {
-        return this._rpcCall("checkConnection");
-      }
-      return Promise.resolve(false);
+      return !!instance ? this.#rpcCall("checkConnection") : Promise.resolve(false);
     }
 
     getContext() {
-      if (api) {
-        return Promise.resolve(api);
-      }
-      return Promise.reject();
+      return !!instance ? Promise.resolve(instance) : Promise.reject();
     }
 
-    _rpcCall(func, params) {
+    #rpcCall(func, params) {
       return new Promise(function (resolve, reject) {
         window.postMessage({
           type: "rpc/connector-request",
@@ -83,10 +68,10 @@
     };
   }
 
-  const warnDeprecated = function (func) {
+  const warnDeprecated = function (fnName) {
     console.warn(
       "[Deprecated] In order to avoid conflicts with another wallets, this method will be disabled and replaced by '" +
-        func +
+        fnName +
         "' soon."
     );
   };
