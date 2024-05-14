@@ -1,4 +1,5 @@
-import { Browser } from "./browserApi";
+import { browser } from "./browserApi";
+import type { Windows } from "webextension-polyfill";
 
 const POPUP_SIZE = { width: 380, height: 640 };
 
@@ -10,7 +11,7 @@ function getDefaultBounds() {
   };
 }
 
-function getBoundsForWindow(targetWindow: chrome.windows.Window) {
+function getBoundsForWindow(targetWindow: Windows.Window) {
   const defaults = getDefaultBounds();
 
   return {
@@ -23,30 +24,28 @@ function getBoundsForWindow(targetWindow: chrome.windows.Window) {
 export function getBoundsForTabWindow(
   targetTabId?: number
 ): Promise<{ width: number; positionX: number; positionY: number }> {
-  return new Promise((resolve) => {
-    Browser.tabs.get(targetTabId, (tab: chrome.tabs.Tab) => {
-      if (!tab) {
-        return resolve(getDefaultBounds());
-      }
+  return new Promise(async (resolve) => {
+    if (!browser || !targetTabId) return resolve(getDefaultBounds());
 
-      Browser.windows.get(tab.windowId, (targetWindow: chrome.windows.Window) => {
-        if (!targetWindow) {
-          return resolve(getDefaultBounds());
-        }
+    const tab = await browser.tabs.get(targetTabId);
+    if (!tab?.windowId) return resolve(getDefaultBounds());
 
-        resolve(getBoundsForWindow(targetWindow));
-      });
-    });
+    const window = await browser.windows.get(tab.windowId);
+    if (!window) return resolve(getDefaultBounds());
+
+    resolve(getBoundsForWindow(window));
   });
 }
 
 export async function openWindow(tabId?: number) {
+  if (!tabId || !browser) throw Error("Browser API is not available");
+
   const bounds = await getBoundsForTabWindow(tabId);
-  Browser.windows.create({
+  browser.windows.create({
     ...POPUP_SIZE,
     focused: true,
     type: "popup",
-    url: Browser.extension.getURL("index.html"),
+    url: browser.runtime.getURL("index.html"),
     left: bounds.width + bounds.positionX - (POPUP_SIZE.width + 10),
     top: bounds.positionY + 40
   });

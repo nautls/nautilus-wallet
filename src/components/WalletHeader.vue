@@ -67,7 +67,7 @@ import { defineComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { Browser } from "@/utils/browserApi";
+import { browser } from "@/utils/browserApi";
 import WalletLogo from "./WalletLogo.vue";
 
 export default defineComponent({
@@ -81,12 +81,10 @@ export default defineComponent({
   methods: {
     ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
     async expandView() {
-      if (!Browser.tabs) {
-        return;
-      }
+      if (!browser?.tabs) return;
 
-      Browser.tabs.create({
-        url: Browser.extension.getURL("index.html"),
+      browser.tabs.create({
+        url: browser.runtime.getURL("index.html"),
         active: true
       });
       window.close();

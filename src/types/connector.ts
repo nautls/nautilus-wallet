@@ -1,3 +1,5 @@
+import type { Runtime } from "webextension-polyfill";
+
 export type RequestQueueItem = {
   message: RpcMessage;
   handled: boolean;
@@ -7,7 +9,7 @@ export type RequestQueueItem = {
 export type Session = {
   origin: string;
   favicon?: string;
-  port: chrome.runtime.Port;
+  port: Runtime.Port;
   walletId?: number;
   requestQueue: RequestQueueItem[];
 };

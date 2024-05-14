@@ -20,10 +20,11 @@ import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
+import type { Runtime } from "webextension-polyfill";
 
 export async function handleGetBoxesRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -92,7 +93,7 @@ export async function handleGetBoxesRequest(
 
 export async function handleGetBalanceRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -141,7 +142,7 @@ async function _getBalance(walletId: number, tokenId: string) {
 
 export async function handleGetAddressesRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session: Session | undefined,
   addressState: AddressState
 ) {
@@ -175,7 +176,7 @@ export async function handleGetAddressesRequest(
 
 export async function handleGetChangeAddressRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -208,7 +209,7 @@ export async function handleGetChangeAddressRequest(
 
 export async function handleSignTxRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port)) {
@@ -234,7 +235,7 @@ export async function handleSignTxRequest(
 
 export async function handleAuthRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port)) {
@@ -266,7 +267,7 @@ export async function handleAuthRequest(
 
 export async function handleGetCurrentHeightRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session: Session | undefined
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -297,7 +298,7 @@ export async function handleGetCurrentHeightRequest(
 
 export async function handleSubmitTxRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -346,7 +347,7 @@ export async function handleSubmitTxRequest(
 
 export async function handleNotImplementedRequest(
   request: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Runtime.Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port)) {
@@ -366,7 +367,7 @@ export async function handleNotImplementedRequest(
 async function openPopup(
   session: Session,
   message: RpcMessage,
-  port: chrome.runtime.Port
+  port: Runtime.Port
 ): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
@@ -383,7 +384,7 @@ async function openPopup(
 export function validateSession(
   session: Session | undefined,
   request: RpcMessage,
-  port: chrome.runtime.Port
+  port: Runtime.Port
 ): session is Session {
   let error: APIError | undefined;
 

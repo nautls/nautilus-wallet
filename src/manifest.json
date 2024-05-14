@@ -1,12 +1,22 @@
 {
   "short_name": "Nautilus",
-  "manifest_version": 2,
-  "minimum_chrome_version": "48",
-  "content_security_policy": "script-src 'self' 'wasm-eval'; object-src 'self';",
-  "browser_action": {
+  "manifest_version": 3,
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
     "default_popup": "index.html",
     "default_title": "Nautilus Wallet"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "js/injector.js", "js/authApi.js"],
+      "matches": ["*://*/*"],
+      "extension_ids": []
+    }
+  ],
   "background": {
     "page": "background.html",
     "persistent": false

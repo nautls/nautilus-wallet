@@ -1,23 +1,23 @@
-function getApiInstance() {
-  if (typeof browser !== "undefined") {
-    return browser;
-  } else if (typeof chrome !== "undefined") {
-    return chrome;
-  }
+import type { Browser } from "webextension-polyfill";
 
-  return undefined;
+declare const chrome: Browser;
+
+/**
+ * Dynamically loads the browser API instance.
+ * @returns The API instance for the browser, or undefined if the browser context is not available.
+ */
+function getApiInstance(): Browser | undefined {
+  if (!hasBrowserContext()) return undefined;
+  return require("webextension-polyfill");
 }
 
-export const Browser = getApiInstance();
+export const browser = getApiInstance();
 
-export function hasBrowserContext(): boolean {
-  return typeof Browser !== "undefined";
+export function hasBrowserContext() {
+  return typeof chrome === "object" && !!chrome.runtime?.id;
 }
 
 export function isPopup() {
-  if (!hasBrowserContext() || !Browser.extension) {
-    return false;
-  }
-
-  return Browser.extension.getViews({ type: "popup" })[0] === self;
+  if (!browser?.extension) return false;
+  return browser?.extension.getViews({ type: "popup" })[0] === self;
 }

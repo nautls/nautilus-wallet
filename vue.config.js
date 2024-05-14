@@ -78,8 +78,9 @@ module.exports = defineConfig({
     config.plugin("define").tap((options) => {
       options[0]["process.env"].GIT_HASH = JSON.stringify(commitHash);
       options[0]["process.env"].MAINNET = JSON.stringify(!process.argv.includes("--testnet"));
-      
-return options;
+      options[0]["__VUE_PROD_HYDRATION_MISMATCH_DETAILS__"] = false;
+
+      return options;
     });
 
     config
