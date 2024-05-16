@@ -1,10 +1,8 @@
-import { P2PK_TREE_PREFIX, MAINNET } from "@/constants/ergo";
+import { P2PK_TREE_PREFIX, NETWORK } from "@/constants/ergo";
 import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
 import { ErgoAddress, Network } from "@fleet-sdk/core";
 import { isEmpty, last, uniq } from "lodash-es";
 import { extractPksFromP2SErgoTree, extractPksFromRegisters } from "./sigmaSerializer";
-
-const network = MAINNET ? Network.Mainnet : Network.Testnet;
 
 export function extractAddressesFromInputs(inputs: UnsignedInput[]) {
   return inputs.map((input) => extractAddressesFromInput(input)).flat();
@@ -23,15 +21,15 @@ export function getChangeAddress(
 }
 
 export function addressFromPk(pk: string) {
-  return ErgoAddress.fromPublicKey(pk, network).toString();
+  return ErgoAddress.fromPublicKey(pk, NETWORK).toString();
 }
 
 export function addressFromErgoTree(ergoTree: string) {
-  return ErgoAddress.fromErgoTree(ergoTree, network).toString();
+  return ErgoAddress.fromErgoTree(ergoTree, NETWORK).toString();
 }
 
 export function validateAddress(address: string) {
-  return ErgoAddress.validate(address) && ErgoAddress.getNetworkType(address) === network;
+  return ErgoAddress.validate(address) && ErgoAddress.getNetworkType(address) === NETWORK;
 }
 
 function extractAddressesFromInput(input: UnsignedInput): string[] {

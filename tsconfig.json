@@ -10,7 +10,7 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "types": ["jest", "vite/client", "chrome"],
+    "types": ["vite/client", "chrome"],
     "paths": {
       "@/*": ["src/*"]
     },

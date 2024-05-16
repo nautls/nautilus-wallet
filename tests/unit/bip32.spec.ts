@@ -1,5 +1,6 @@
+import { describe, it, expect, beforeAll } from "vitest";
 import { walletChecksum } from "@emurgo/cip4-js";
-import Bip32 from "@/api/ergo/bip32";
+import Bip32 from "../../src/api/ergo/bip32";
 
 describe("address generation", () => {
   const extendedPublicKey =
