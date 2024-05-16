@@ -20,6 +20,7 @@
     "@fleet-sdk/babel-fees-plugin": "^0.1.10",
     "@fleet-sdk/common": "^0.3.4",
     "@fleet-sdk/core": "^0.3.4",
+    "@fleet-sdk/crypto": "^0.3.4",
     "@fleet-sdk/serializer": "^0.3.4",
     "@ledgerhq/hw-transport-webusb": "^6.28.6",
     "@mdi/js": "^7.4.47",

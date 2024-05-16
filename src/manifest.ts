@@ -27,10 +27,10 @@ export default defineManifest(async (env) => ({
           }
         ]
       : undefined,
-  // background: {
-  //   service_worker: "src/background/background.ts",
-  //   type: "module"
-  // },
+  background: {
+    service_worker: "src/background/background.ts",
+    type: "module"
+  },
   content_scripts: [
     {
       matches: ["file://*/*", "http://*/*", "https://*/*"],

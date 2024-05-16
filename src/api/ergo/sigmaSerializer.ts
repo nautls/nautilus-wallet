@@ -1,21 +1,17 @@
 import {
   COLL_BYTE_PREFIX,
   MIN_COLL_LENGTH,
-  MIN_TUPLE_LENGTH,
+  P2PK_TREE_PREFIX,
   PK_HEX_LENGTH,
-  SIGMA_CONSTANT_PK_MATCHER,
-  TUPLE_PREFIX
+  SIGMA_CONSTANT_PK_MATCHER
 } from "@/constants/ergo";
-import { Registers } from "@/types/connector";
+import { Registers, UnsignedInput } from "@/types/connector";
 import { ErgoTree } from "ergo-lib-wasm-browser";
-import { isEmpty } from "lodash-es";
+import { isEmpty, uniq } from "@fleet-sdk/common";
+import { addressFromErgoTree, addressFromPk } from "./addresses";
 
 export function isColl(input: string): boolean {
   return !isEmpty(input) && input.startsWith(COLL_BYTE_PREFIX) && input.length >= MIN_COLL_LENGTH;
-}
-
-export function isTuple(input: string): boolean {
-  return !isEmpty(input) && input.startsWith(TUPLE_PREFIX) && input.length >= MIN_TUPLE_LENGTH;
 }
 
 export function decodeColl(input: string, encoding: BufferEncoding = "utf8"): string | undefined {
@@ -43,37 +39,6 @@ function getCollSpan(input: string, start: number): [start: number, length: numb
   return decodeVlq(input, start);
 }
 
-export function decodeCollTuple(
-  input: string,
-  encoding: BufferEncoding = "utf8"
-): (string | undefined)[] {
-  if (!isTuple(input)) {
-    return [];
-  }
-
-  const indexes: number[] = [];
-  let cursor = TUPLE_PREFIX.length;
-  let readNext = true;
-
-  do {
-    readNext = input.startsWith(COLL_BYTE_PREFIX, cursor);
-    if (readNext) {
-      cursor += COLL_BYTE_PREFIX.length;
-    }
-  } while (readNext);
-
-  let index, length!: number | undefined;
-  do {
-    [index, length] = getCollSpan(input, cursor);
-    if (length) {
-      indexes.push(cursor);
-      cursor = index + length;
-    }
-  } while (length);
-
-  return indexes.map((index) => decodeConst(input, index, encoding));
-}
-
 function decodeVlq(input: string, position: number): [cursor: number, value: number | undefined] {
   let len = 0;
   let readNext = true;
@@ -94,9 +59,7 @@ export function extractPksFromRegisters(registers: Registers): string[] {
   const pks: string[] = [];
   for (const register of Object.values(registers)) {
     const pk = extractPkFromSigmaConstant(register);
-    if (pk) {
-      pks.push(pk);
-    }
+    if (pk) pks.push(pk);
   }
 
   return pks;
@@ -132,4 +95,30 @@ export function extractPkFromSigmaConstant(constant?: string): string | undefine
       return result[i];
     }
   }
+}
+
+function extractAddressesFromInput(input: UnsignedInput): string[] {
+  if (input.ergoTree.startsWith(P2PK_TREE_PREFIX)) {
+    return [addressFromErgoTree(input.ergoTree)];
+  }
+
+  let pks = extractPksFromP2SErgoTree(input.ergoTree);
+  if (input.additionalRegisters) {
+    pks = pks.concat(extractPksFromRegisters(input.additionalRegisters));
+  }
+
+  if (isEmpty(pks)) {
+    return [];
+  }
+
+  const addresses: string[] = [];
+  for (const pk of uniq(pks)) {
+    addresses.push(addressFromPk(pk));
+  }
+
+  return addresses;
+}
+
+export function extractAddressesFromInputs(inputs: UnsignedInput[]) {
+  return inputs.map((input) => extractAddressesFromInput(input)).flat();
 }

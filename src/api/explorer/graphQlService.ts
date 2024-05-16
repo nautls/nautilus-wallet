@@ -157,7 +157,7 @@ class GraphQLService {
   }
 
   private _getCurrentServerUrl() {
-    const rawSettings = localStorage.getItem("settings");
+    const rawSettings = undefined; // localStorage.getItem("settings");
     if (!rawSettings) {
       return getDefaultServerUrl();
     }
