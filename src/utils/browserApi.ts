@@ -1,14 +1,10 @@
-import type { Browser } from "webextension-polyfill";
-
-declare const chrome: Browser;
-
 /**
  * Dynamically loads the browser API instance.
  * @returns The API instance for the browser, or undefined if the browser context is not available.
  */
-function getApiInstance(): Browser | undefined {
+function getApiInstance(): typeof chrome | undefined {
   if (!hasBrowserContext()) return undefined;
-  return require("webextension-polyfill");
+  return chrome;
 }
 
 export const browser = getApiInstance();
@@ -21,3 +17,6 @@ export function isPopup() {
   if (!browser?.extension) return false;
   return browser?.extension.getViews({ type: "popup" })[0] === self;
 }
+
+export type Port = chrome.runtime.Port;
+export type Window = chrome.windows.Window;

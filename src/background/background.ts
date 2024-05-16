@@ -15,9 +15,8 @@ import {
   handleGetCurrentHeightRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
-import { browser } from "@/utils/browserApi";
+import { browser, Port } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
-import type { Runtime } from "webextension-polyfill";
 
 const sessions = new Map<number, Session>();
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
@@ -31,12 +30,12 @@ function getOrigin(url?: string) {
   }
 }
 
-browser?.runtime.onConnect.addListener((port: Runtime.Port) => {
+browser?.runtime.onConnect.addListener((port) => {
   // eslint-disable-next-line no-console
   console.log(`connected with ${getOrigin(port.sender?.url)}`);
 
   if (port.name === "nautilus-ui") {
-    port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port: Runtime.Port) => {
+    port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port) => {
       if (message.type === "rpc/nautilus-event") {
         switch (message.name) {
           case "loaded":
@@ -54,7 +53,7 @@ browser?.runtime.onConnect.addListener((port: Runtime.Port) => {
       }
     });
   } else {
-    port.onMessage.addListener(async (message: RpcMessage, port: Runtime.Port) => {
+    port.onMessage.addListener(async (message: RpcMessage, port) => {
       const origin = getOrigin(port.sender?.url);
       const tabId = port.sender?.tab?.id;
       if (message.type !== "rpc/connector-request" || !port.sender || !origin || !tabId) {
@@ -108,7 +107,7 @@ browser?.runtime.onConnect.addListener((port: Runtime.Port) => {
   }
 });
 
-function sendRequestsToUI(port: Runtime.Port) {
+function sendRequestsToUI(port: Port) {
   for (const [key, value] of sessions.entries()) {
     if (isEmpty(value.requestQueue)) {
       continue;
@@ -168,7 +167,7 @@ function sendRequestsToUI(port: Runtime.Port) {
   }
 }
 
-async function handleConnectionRequest(message: RpcMessage, port: Runtime.Port, origin: string) {
+async function handleConnectionRequest(message: RpcMessage, port: Port, origin: string) {
   let response: RpcReturn = { isSuccess: true, data: true };
   const connection = await connectedDAppsDbService.getByOrigin(origin);
   if (connection) {
@@ -197,7 +196,7 @@ async function handleConnectionRequest(message: RpcMessage, port: Runtime.Port, 
   postConnectorResponse(response, message, port, "auth");
 }
 
-async function handleDisconnectRequest(request: RpcMessage, port: Runtime.Port, origin?: string) {
+async function handleDisconnectRequest(request: RpcMessage, port: Port, origin?: string) {
   if (!origin) {
     postConnectorResponse(
       {
@@ -230,7 +229,7 @@ async function handleDisconnectRequest(request: RpcMessage, port: Runtime.Port, 
   );
 }
 
-function handleCheckConnectionRequest(request: RpcMessage, port: Runtime.Port) {
+function handleCheckConnectionRequest(request: RpcMessage, port: Port) {
   const tabId = port.sender?.tab?.id;
   const session = tabId !== undefined ? sessions.get(tabId) : undefined;
 
@@ -277,7 +276,7 @@ function handleOriginDisconnect(event: RpcEvent) {
   } as RpcEvent);
 }
 
-async function showConnectionWindow(message: RpcMessage, port: Runtime.Port): Promise<RpcReturn> {
+async function showConnectionWindow(message: RpcMessage, port: Port): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
     const origin = getOrigin(port.sender?.url);

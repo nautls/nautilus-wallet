@@ -20,13 +20,9 @@ import { submitTx } from "@/api/ergo/submitTx";
 import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
-import type { Runtime } from "webextension-polyfill";
+import { Port } from "../utils/browserApi";
 
-export async function handleGetBoxesRequest(
-  request: RpcMessage,
-  port: Runtime.Port,
-  session?: Session
-) {
+export async function handleGetBoxesRequest(request: RpcMessage, port: Port, session?: Session) {
   if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
@@ -91,11 +87,7 @@ export async function handleGetBoxesRequest(
   );
 }
 
-export async function handleGetBalanceRequest(
-  request: RpcMessage,
-  port: Runtime.Port,
-  session?: Session
-) {
+export async function handleGetBalanceRequest(request: RpcMessage, port: Port, session?: Session) {
   if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
@@ -142,7 +134,7 @@ async function _getBalance(walletId: number, tokenId: string) {
 
 export async function handleGetAddressesRequest(
   request: RpcMessage,
-  port: Runtime.Port,
+  port: Port,
   session: Session | undefined,
   addressState: AddressState
 ) {
@@ -176,7 +168,7 @@ export async function handleGetAddressesRequest(
 
 export async function handleGetChangeAddressRequest(
   request: RpcMessage,
-  port: Runtime.Port,
+  port: Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -207,11 +199,7 @@ export async function handleGetChangeAddressRequest(
   );
 }
 
-export async function handleSignTxRequest(
-  request: RpcMessage,
-  port: Runtime.Port,
-  session?: Session
-) {
+export async function handleSignTxRequest(request: RpcMessage, port: Port, session?: Session) {
   if (!validateSession(session, request, port)) {
     return;
   }
@@ -233,11 +221,7 @@ export async function handleSignTxRequest(
   postConnectorResponse(response, request, port);
 }
 
-export async function handleAuthRequest(
-  request: RpcMessage,
-  port: Runtime.Port,
-  session?: Session
-) {
+export async function handleAuthRequest(request: RpcMessage, port: Port, session?: Session) {
   if (!validateSession(session, request, port)) {
     return;
   }
@@ -267,7 +251,7 @@ export async function handleAuthRequest(
 
 export async function handleGetCurrentHeightRequest(
   request: RpcMessage,
-  port: Runtime.Port,
+  port: Port,
   session: Session | undefined
 ) {
   if (!validateSession(session, request, port) || !session.walletId) {
@@ -296,11 +280,7 @@ export async function handleGetCurrentHeightRequest(
   }
 }
 
-export async function handleSubmitTxRequest(
-  request: RpcMessage,
-  port: Runtime.Port,
-  session?: Session
-) {
+export async function handleSubmitTxRequest(request: RpcMessage, port: Port, session?: Session) {
   if (!validateSession(session, request, port) || !session.walletId) {
     return;
   }
@@ -347,7 +327,7 @@ export async function handleSubmitTxRequest(
 
 export async function handleNotImplementedRequest(
   request: RpcMessage,
-  port: Runtime.Port,
+  port: Port,
   session?: Session
 ) {
   if (!validateSession(session, request, port)) {
@@ -364,11 +344,7 @@ export async function handleNotImplementedRequest(
   );
 }
 
-async function openPopup(
-  session: Session,
-  message: RpcMessage,
-  port: Runtime.Port
-): Promise<RpcReturn> {
+async function openPopup(session: Session, message: RpcMessage, port: Port): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
     if (!tabId || !port.sender?.url) {
@@ -384,7 +360,7 @@ async function openPopup(
 export function validateSession(
   session: Session | undefined,
   request: RpcMessage,
-  port: Runtime.Port
+  port: Port
 ): session is Session {
   let error: APIError | undefined;
 

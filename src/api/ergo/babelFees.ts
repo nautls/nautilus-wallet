@@ -1,11 +1,11 @@
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
 import { BigNumberType } from "@/types/internal";
-import { wasmModule } from "@/utils/wasm-module";
 import BigNumber from "bignumber.js";
 import { first, isEmpty, orderBy, sortBy } from "lodash-es";
 import { graphQLService } from "../explorer/graphQlService";
 import { addressFromErgoTree } from "./addresses";
+import { Constant } from "ergo-lib-wasm-browser";
 
 const BABEL_ERGOTREE_PREFIX = "100604000e20";
 const BABEL_ERGOTREE_SUFFIX =
@@ -35,9 +35,7 @@ export function extractTokenIdFromBabelContract(ergoTree: string): string {
 }
 
 export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
-  return new BigNumber(
-    wasmModule.SigmaRust.Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str()
-  );
+  return new BigNumber(Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str());
 }
 
 export async function fetchBabelBoxes(tokenId: string, price?: BigNumberType): Promise<ErgoBox[]> {

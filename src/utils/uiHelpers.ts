@@ -1,5 +1,4 @@
-import { browser } from "./browserApi";
-import type { Windows } from "webextension-polyfill";
+import { browser, Window } from "./browserApi";
 
 const POPUP_SIZE = { width: 380, height: 640 };
 
@@ -11,7 +10,7 @@ function getDefaultBounds() {
   };
 }
 
-function getBoundsForWindow(targetWindow: Windows.Window) {
+function getBoundsForWindow(targetWindow: Window) {
   const defaults = getDefaultBounds();
 
   return {

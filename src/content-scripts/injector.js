@@ -1,3 +1,5 @@
+import authApi from "./authApi.js?url";
+
 function shouldInject() {
   const documentElement = document.documentElement.nodeName;
   const docElemCheck = documentElement ? documentElement.toLowerCase() === "html" : true;
@@ -23,7 +25,7 @@ function inject(code) {
 
 function injectScript(script_file) {
   var script = document.createElement("script");
-  script.src = chrome.runtime.getURL("js/" + script_file);
+  script.src = chrome.runtime.getURL(script_file);
   (document.head || document.documentElement).appendChild(script);
   log(script_file + " injected");
 }
@@ -143,7 +145,7 @@ let nautilusPort;
 const Browser = typeof browser === "undefined" ? chrome : browser;
 
 if (shouldInject()) {
-  if (injectScript("authApi.js")) {
+  if (injectScript(authApi)) {
     log("Access methods injected.");
   }
 

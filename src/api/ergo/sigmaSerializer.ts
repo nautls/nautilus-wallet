@@ -7,7 +7,7 @@ import {
   TUPLE_PREFIX
 } from "@/constants/ergo";
 import { Registers } from "@/types/connector";
-import { wasmModule } from "@/utils/wasm-module";
+import { ErgoTree } from "ergo-lib-wasm-browser";
 import { isEmpty } from "lodash-es";
 
 export function isColl(input: string): boolean {
@@ -104,7 +104,7 @@ export function extractPksFromRegisters(registers: Registers): string[] {
 
 export function extractPksFromP2SErgoTree(ergoTree: string): string[] {
   const pks: string[] = [];
-  const tree = wasmModule.SigmaRust.ErgoTree.from_base16_bytes(ergoTree);
+  const tree = ErgoTree.from_base16_bytes(ergoTree);
   const len = tree.constants_len();
   for (let i = 0; i < len; i++) {
     const constant = tree.get_constant(i)?.encode_to_base16();

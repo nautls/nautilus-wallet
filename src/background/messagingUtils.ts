@@ -1,7 +1,7 @@
 import { APIError, RpcMessage, RpcReturn } from "@/types/connector";
-import { Runtime } from "webextension-polyfill";
+import { Port } from "../utils/browserApi";
 
-export function postErrorMessage(error: APIError, request: RpcMessage, port: Runtime.Port) {
+export function postErrorMessage(error: APIError, request: RpcMessage, port: Port) {
   postConnectorResponse(
     {
       isSuccess: false,
@@ -15,7 +15,7 @@ export function postErrorMessage(error: APIError, request: RpcMessage, port: Run
 export function postConnectorResponse(
   response: RpcReturn,
   message: RpcMessage,
-  port: Runtime.Port,
+  port: Port,
   subType?: string
 ) {
   const defaultType = "rpc/connector-response";

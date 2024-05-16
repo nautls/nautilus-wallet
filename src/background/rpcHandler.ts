@@ -1,11 +1,10 @@
 import router from "@/router";
 import { RpcEvent, RpcMessage } from "@/types/connector";
-import { browser } from "@/utils/browserApi";
-import type { Runtime } from "webextension-polyfill";
+import { Port, browser } from "@/utils/browserApi";
 
 class RpcHandler {
   private _messages: RpcMessage[];
-  private _port!: Runtime.Port;
+  private _port!: Port;
 
   constructor() {
     this._messages = [];

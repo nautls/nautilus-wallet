@@ -1,4 +1,4 @@
-import type { Runtime } from "webextension-polyfill";
+import { Port } from "../utils/browserApi";
 
 export type RequestQueueItem = {
   message: RpcMessage;
@@ -9,7 +9,7 @@ export type RequestQueueItem = {
 export type Session = {
   origin: string;
   favicon?: string;
-  port: Runtime.Port;
+  port: Port;
   walletId?: number;
   requestQueue: RequestQueueItem[];
 };
