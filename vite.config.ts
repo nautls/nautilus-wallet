@@ -12,8 +12,7 @@ import { execSync } from "child_process";
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: [{ find: "@", replacement: "/src" }],
-    extensions: [".mjs", ".js", ".ts", ".json", ".vue"]
+    alias: { "@": "/src" }
   },
   define: {
     "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(execSync("git rev-parse HEAD").toString())
@@ -31,6 +30,7 @@ export default defineConfig({
     emptyOutDir: true,
     outDir: "dist",
     assetsInlineLimit(filePath) {
+      // prevent content scripts from being inlined as base64
       if (filePath.includes("content-script")) return false;
     },
     rollupOptions: {
