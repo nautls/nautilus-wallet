@@ -1,7 +1,21 @@
-class NautilusErgoApi {
-  static instance;
+type Resolver = {
+  currentId: number;
+  requests: Map<number, { resolve: (value: unknown) => void; reject: (reason: unknown) => void }>;
+};
 
-  #resolver = {
+declare const ergoConnector: any;
+
+declare interface Window {
+  ergo: any;
+  ergo_request_read_access: any;
+  ergo_check_read_access: any;
+  ergoConnector: any;
+}
+
+class NautilusErgoApi {
+  static instance: NautilusErgoApi;
+
+  #resolver: Resolver = {
     currentId: 1,
     requests: new Map()
   };
@@ -36,19 +50,19 @@ class NautilusErgoApi {
     return this.#rpcCall("getChangeAddress");
   }
 
-  sign_tx(tx) {
+  sign_tx(tx: unknown) {
     return this.#rpcCall("signTx", [tx]);
   }
 
-  sign_tx_inputs(tx, indexes) {
+  sign_tx_inputs(tx: unknown, indexes: number[]) {
     return this.#rpcCall("signTxInputs", [tx, indexes]);
   }
 
-  sign_data(addr, message) {
+  sign_data(addr: string, message: string) {
     return this.#rpcCall("signData", [addr, message]);
   }
 
-  auth(addr, message) {
+  auth(addr: string, message: string) {
     return this.#rpcCall("auth", [addr, message]);
   }
 
@@ -56,11 +70,11 @@ class NautilusErgoApi {
     return this.#rpcCall("getCurrentHeight");
   }
 
-  submit_tx(tx) {
+  submit_tx(tx: unknown) {
     return this.#rpcCall("submitTx", [tx]);
   }
 
-  #rpcCall(func, params) {
+  #rpcCall(func: string, params?: unknown[]) {
     return new Promise((resolve, reject) => {
       window.postMessage({
         type: "rpc/connector-request",
@@ -74,8 +88,9 @@ class NautilusErgoApi {
     });
   }
 
-  #eventHandler(resolver) {
-    return (event) => {
+  #eventHandler(resolver: Resolver) {
+    // todo: remove this any
+    return (event: any) => {
       if (event.data.type === "rpc/connector-response") {
         console.debug(JSON.stringify(event.data));
         const promise = resolver.requests.get(event.data.requestId);
@@ -96,7 +111,7 @@ class NautilusErgoApi {
 (() => {
   const resolver = new Map();
   let rpcId = 0;
-  let instance = undefined;
+  let instance: Readonly<NautilusErgoApi> | undefined;
 
   window.addEventListener("message", function (event) {
     if (event.data.type !== "rpc/connector-response/auth") return;
@@ -142,7 +157,7 @@ class NautilusErgoApi {
       return !!instance ? Promise.resolve(instance) : Promise.reject();
     }
 
-    #rpcCall(func, params) {
+    #rpcCall(func: string, params?: unknown[]) {
       return new Promise(function (resolve, reject) {
         window.postMessage({
           type: "rpc/connector-request",
@@ -159,7 +174,7 @@ class NautilusErgoApi {
 
   if (window.ergoConnector !== undefined) {
     window.ergoConnector = {
-      ...ergoConnector,
+      ...window.ergoConnector,
       nautilus: Object.freeze(new NautilusAuthApi())
     };
   } else {
@@ -168,12 +183,8 @@ class NautilusErgoApi {
     };
   }
 
-  const warnDeprecated = function (fnName) {
-    console.warn(
-      "[Deprecated] In order to avoid conflicts with another wallets, this method will be disabled and replaced by '" +
-        fnName +
-        "' soon."
-    );
+  const warnDeprecated = function (fnName: string) {
+    console.warn(`[Deprecated] This method will be disabled soon and replaced by '${fnName}'.`);
   };
 
   if (!window.ergo_request_read_access && !window.ergo_check_read_access) {

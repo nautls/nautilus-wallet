@@ -21,7 +21,7 @@ export default defineManifest(async (env) => ({
     env.mode === "development"
       ? [
           {
-            resources: ["src/content-scripts/injector.js", "src/content-scripts/injected.js"],
+            resources: ["src/content-scripts/injector.ts", "src/content-scripts/injected.ts"],
             matches: ["<all_urls>"],
             extension_ids: []
           }
@@ -34,7 +34,7 @@ export default defineManifest(async (env) => ({
   content_scripts: [
     {
       matches: ["<all_urls>"],
-      js: ["src/content-scripts/injector.js"],
+      js: ["src/content-scripts/injector.ts"],
       run_at: "document_start",
       all_frames: true
     }

@@ -35,7 +35,14 @@ export default defineConfig({
     },
     rollupOptions: {
       // remove non-english wordlists from the final bundle
-      external: /^\.\/wordlists\/(?!english)/
+      external: /^\.\/wordlists\/(?!english)/,
+      output: {
+        chunkFileNames(info) {
+          if (info.name === "injector.ts") return "assets/injector.js";
+          if (info.name === "injected.ts") return "assets/injected.js";
+          return "assets/[name]-[hash].js";
+        }
+      }
     }
   },
   optimizeDeps: {
