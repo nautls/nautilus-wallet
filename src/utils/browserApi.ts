@@ -19,4 +19,3 @@ export function isPopup() {
 }
 
 export type Port = chrome.runtime.Port;
-export type Window = chrome.windows.Window;

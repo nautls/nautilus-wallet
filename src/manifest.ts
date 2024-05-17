@@ -21,8 +21,8 @@ export default defineManifest(async (env) => ({
     env.mode === "development"
       ? [
           {
-            resources: ["src/content-scripts/injector.js", "src/content-scripts/authApi.js"],
-            matches: ["*://*/*"],
+            resources: ["src/content-scripts/injector.js", "src/content-scripts/injected.js"],
+            matches: ["<all_urls>"],
             extension_ids: []
           }
         ]
@@ -33,7 +33,7 @@ export default defineManifest(async (env) => ({
   },
   content_scripts: [
     {
-      matches: ["file://*/*", "http://*/*", "https://*/*"],
+      matches: ["<all_urls>"],
       js: ["src/content-scripts/injector.js"],
       run_at: "document_start",
       all_frames: true

@@ -1,4 +1,4 @@
-import authApi from "./authApi.js?url";
+import authApi from "./injected.js?url";
 
 function shouldInject() {
   const documentElement = document.documentElement.nodeName;
@@ -8,26 +8,21 @@ function shouldInject() {
   return docElemCheck && docTypeCheck;
 }
 
-function inject(code) {
+function injectScript(file) {
   try {
-    const container = document.head || document.documentElement;
-    const scriptTag = document.createElement("script");
-    scriptTag.setAttribute("async", "false");
-    scriptTag.textContent = code;
-    container.insertBefore(scriptTag, container.children[0]);
-    container.removeChild(scriptTag);
+    var script = document.createElement("script");
+    script.async = false;
+    script.src = chrome.runtime.getURL(file);
+    script.onload = function () {
+      this.remove();
+    };
+
+    (document.head || document.documentElement).appendChild(script);
     return true;
-  } catch (e) {
-    error("Injection failed: " + e);
+  } catch (error) {
+    error("Failed to inject " + file, error);
     return false;
   }
-}
-
-function injectScript(script_file) {
-  var script = document.createElement("script");
-  script.src = chrome.runtime.getURL(script_file);
-  (document.head || document.documentElement).appendChild(script);
-  log(script_file + " injected");
 }
 
 function log(content) {
@@ -40,150 +35,40 @@ function error(content) {
   console.error(`[Nautilus] ${content}`);
 }
 
-const ERGO_API_CODE = `
-class NautilusErgoApi {
-  static instance;
-
-  _resolver = {
-    currentId: 1,
-    requests: new Map()
-  };
-
-  constructor() {
-    if (NautilusErgoApi.instance) {
-      return NautilusErgoApi.instance;
-    }
-
-    window.addEventListener("message", this._eventHandler(this._resolver));
-    NautilusErgoApi.instance = this;
-    return this;
-  }
-
-  get_utxos(amountOrTargetObj = undefined, token_id = "ERG", paginate = undefined) {
-    return this._rpcCall("getBoxes", [amountOrTargetObj, token_id, paginate]);
-  }
-
-  get_balance(token_id = "ERG") {
-    return this._rpcCall("getBalance", [token_id]);
-  }
-
-  get_used_addresses(paginate = undefined) {
-    return this._rpcCall("getUsedAddresses", [paginate]);
-  }
-
-  get_unused_addresses() {
-    return this._rpcCall("getUnusedAddresses");
-  }
-
-  get_change_address() {
-    return this._rpcCall("getChangeAddress");
-  }
-
-  sign_tx(tx) {
-    return this._rpcCall("signTx", [tx]);
-  }
-
-  sign_tx_inputs(tx, indexes) {
-    return this._rpcCall("signTxInputs", [tx, indexes]);
-  }
-
-  sign_data(addr, message) {
-    return this._rpcCall("signData", [addr, message]);
-  }
-
-  auth(addr, message) {
-    return this._rpcCall("auth", [addr, message]);
-  }
-
-  get_current_height() {
-    return this._rpcCall("getCurrentHeight")
-  }
-
-  submit_tx(tx) {
-    return this._rpcCall("submitTx", [tx]);
-  }
-
-  _rpcCall(func, params) {
-    return new Promise((resolve, reject) => {
-      window.postMessage({
-        type: "rpc/connector-request",
-        requestId: this._resolver.currentId,
-        function: func,
-        params
-      });
-      this._resolver.requests.set(this._resolver.currentId, { resolve: resolve, reject: reject });
-      this._resolver.currentId++;
-    });
-  }
-
-  _eventHandler(resolver) {
-    return (event) => {
-      if (event.data.type === "rpc/connector-response") {
-        console.debug(JSON.stringify(event.data));
-        const promise = resolver.requests.get(event.data.requestId);
-        if (promise !== undefined) {
-          resolver.requests.delete(event.data.requestId);
-          const ret = event.data.return;
-          if (ret.isSuccess) {
-            promise.resolve(ret.data);
-          } else {
-            promise.reject(ret.data);
-          }
-        }
-      }
-    };
-  }
-}
-// API_INSTANCE //`;
-
-const ERGO_CONST_CODE = `const ergo = Object.freeze(new NautilusErgoApi());`;
-
 let ergoApiInjected = false;
 let nautilusPort;
 
 // eslint-disable-next-line no-undef
-const Browser = typeof browser === "undefined" ? chrome : browser;
+const browser = chrome;
 
 if (shouldInject()) {
   if (injectScript(authApi)) {
     log("Access methods injected.");
   }
 
-  nautilusPort = Browser.runtime.connect();
-  nautilusPort.onMessage.addListener((message) => {
-    if (
-      !message.type.startsWith("rpc/connector-response") &&
-      message.type !== "rpc/nautilus-event"
-    ) {
+  nautilusPort = browser.runtime.connect();
+  nautilusPort.onMessage.addListener((msg) => {
+    if (!msg.type.startsWith("rpc/connector-response") && msg.type !== "rpc/nautilus-event") {
       return;
     }
 
-    if (message.type === "rpc/connector-response") {
-      window.postMessage(message, location.origin);
-    } else if (message.type === "rpc/connector-response/auth") {
+    if (msg.type === "rpc/connector-response") {
+      // chrome.runtime.sendMessage(msg);
+      window.postMessage(msg, location.origin);
+    } else if (msg.type === "rpc/connector-response/auth") {
       if (
         !ergoApiInjected &&
-        message.function === "connect" &&
-        message.return.isSuccess &&
-        message.return.data === true
+        msg.function === "connect" &&
+        msg.return.isSuccess &&
+        msg.return.data === true
       ) {
-        const api = ERGO_API_CODE.replace(
-          "// API_INSTANCE //",
-          message.params[0] === true ? ERGO_CONST_CODE : ""
-        );
-        if (inject(api)) {
-          log("Ergo API injected.");
-          if (message.params[0] === true) {
-            log("Ergo API instantiated.");
-          }
-
-          ergoApiInjected = true;
-        }
+        log("Wallet access granted.");
+        ergoApiInjected = true;
       }
 
-      window.postMessage(message, location.origin);
-    } else if (message.type === "rpc/nautilus-event") {
-      if (message.name === "disconnected") {
+      window.postMessage(msg, location.origin);
+    } else if (msg.type === "rpc/nautilus-event") {
+      if (msg.name === "disconnected") {
         window.dispatchEvent(new Event("ergo_wallet_disconnected"));
       }
     }

@@ -1,43 +1,22 @@
-import { browser, Window } from "./browserApi";
+import { isDefined } from "@fleet-sdk/common";
+import { browser } from "./browserApi";
 
 const POPUP_SIZE = { width: 380, height: 640 };
 
-function getDefaultBounds() {
-  return {
-    width: screen.availWidth,
-    positionX: 0,
-    positionY: 0
-  };
-}
+export async function getBoundsForTabWindow(tabId?: number) {
+  if (!browser || !tabId) return undefined;
 
-function getBoundsForWindow(targetWindow: Window) {
-  const defaults = getDefaultBounds();
+  const tab = await browser.tabs.get(tabId);
+  if (!tab?.windowId) return undefined;
 
-  return {
-    width: targetWindow.width ?? defaults.width,
-    positionX: targetWindow.left ?? defaults.positionX,
-    positionY: targetWindow.top ?? defaults.positionY
-  };
-}
+  const window = await browser.windows.get(tab.windowId);
+  if (!window) return undefined;
 
-export function getBoundsForTabWindow(
-  targetTabId?: number
-): Promise<{ width: number; positionX: number; positionY: number }> {
-  return new Promise(async (resolve) => {
-    if (!browser || !targetTabId) return resolve(getDefaultBounds());
-
-    const tab = await browser.tabs.get(targetTabId);
-    if (!tab?.windowId) return resolve(getDefaultBounds());
-
-    const window = await browser.windows.get(tab.windowId);
-    if (!window) return resolve(getDefaultBounds());
-
-    resolve(getBoundsForWindow(window));
-  });
+  return { width: window.width, left: window.left, top: window.top };
 }
 
 export async function openWindow(tabId?: number) {
-  if (!tabId || !browser) throw Error("Browser API is not available");
+  if (!browser) throw Error("Browser API is not available");
 
   const bounds = await getBoundsForTabWindow(tabId);
   browser.windows.create({
@@ -45,7 +24,10 @@ export async function openWindow(tabId?: number) {
     focused: true,
     type: "popup",
     url: browser.runtime.getURL("index.html"),
-    left: bounds.width + bounds.positionX - (POPUP_SIZE.width + 10),
-    top: bounds.positionY + 40
+    left:
+      isDefined(bounds?.width) && isDefined(bounds.left)
+        ? bounds?.width + bounds?.left - (POPUP_SIZE.width + 10)
+        : undefined,
+    top: isDefined(bounds?.top) ? bounds?.top + 50 : undefined
   });
 }
