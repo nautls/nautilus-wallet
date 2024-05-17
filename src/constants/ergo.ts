@@ -1,6 +1,6 @@
 import { Network } from "@fleet-sdk/common";
 
-export const MAINNET = process.env.MAINNET ?? true;
+export const MAINNET = import.meta.env.NETWORK === "mainnet";
 export const NETWORK = MAINNET ? Network.Mainnet : Network.Testnet;
 export const ERG_TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 export const DEFAULT_WALLET_STRENGTH = 160;

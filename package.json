@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev:mainnet": "vite",
-    "dev:testnet": "echo not implemented",
+    "dev:testnet": "vite --mainnet",
     "build:mainnet": "vite build",
-    "build:testnet": "echo not implemented",
+    "build:testnet": "vite build --testnet",
     "preview:mainnet": "vite preview",
-    "preview:testnet": "echo not implemented",
+    "preview:testnet": "vite preview --testnet",
     "test:unit": "vitest run",
     "test:lint": "echo not implemented",
     "fix:lint": "echo not implemented"

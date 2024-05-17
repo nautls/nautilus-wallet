@@ -9,13 +9,17 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { crx } from "@crxjs/vite-plugin";
 import { execSync } from "child_process";
 
+const network = process.argv.includes("--testnet") ? "testnet" : "mainnet";
+const gitHash = execSync("git rev-parse HEAD").toString();
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
     alias: { "@": "/src" }
   },
   define: {
-    "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(execSync("git rev-parse HEAD").toString())
+    "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(gitHash),
+    "import.meta.env.NETWORK": JSON.stringify(network)
   },
   plugins: [
     vue(),

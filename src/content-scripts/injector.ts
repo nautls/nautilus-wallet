@@ -3,9 +3,6 @@ import { Port } from "../utils/browserApi";
 import injected from "./injected.ts?script";
 
 function shouldInject() {
-  // not needed but will keep this to have some "usage" and to make sure vite will bundle injected.ts file
-  if (!injected) return false;
-
   const documentElement = document.documentElement.nodeName;
   const docElemCheck = documentElement ? documentElement.toLowerCase() === "html" : true;
   const { doctype } = window.document;
