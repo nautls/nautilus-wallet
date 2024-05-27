@@ -1,4 +1,7 @@
-export const MAINNET = process.env.MAINNET ?? true;
+import { Network } from "@fleet-sdk/common";
+
+export const MAINNET = import.meta.env.NETWORK === "mainnet";
+export const NETWORK = MAINNET ? Network.Mainnet : Network.Testnet;
 export const ERG_TOKEN_ID = "0000000000000000000000000000000000000000000000000000000000000000";
 export const DEFAULT_WALLET_STRENGTH = 160;
 export const DERIVATION_PATH = "m/44'/429'/0'/0";
@@ -11,9 +14,7 @@ export const MAINNET_MINER_FEE_TREE =
 export const SIGMA_CONSTANT_PK_MATCHER = new RegExp(/08cd([0-9a-fA-F]{66})|^07([0-9a-fA-F]{66})$/);
 export const P2PK_TREE_PREFIX = "0008cd";
 export const COLL_BYTE_PREFIX = "0e";
-export const TUPLE_PREFIX = "3c";
 export const MIN_COLL_LENGTH = 4;
-export const MIN_TUPLE_LENGTH = 6;
 export const PK_HEX_LENGTH = 66;
 export const UNKNOWN_MINTING_BOX_ID = "";
 export const TOKEN_ID_LENGTH = 64;

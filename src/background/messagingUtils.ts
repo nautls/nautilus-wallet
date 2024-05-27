@@ -1,6 +1,7 @@
 import { APIError, RpcMessage, RpcReturn } from "@/types/connector";
+import { Port } from "../utils/browserApi";
 
-export function postErrorMessage(error: APIError, request: RpcMessage, port: chrome.runtime.Port) {
+export function postErrorMessage(error: APIError, request: RpcMessage, port: Port) {
   postConnectorResponse(
     {
       isSuccess: false,
@@ -14,7 +15,7 @@ export function postErrorMessage(error: APIError, request: RpcMessage, port: chr
 export function postConnectorResponse(
   response: RpcReturn,
   message: RpcMessage,
-  port: chrome.runtime.Port,
+  port: Port,
   subType?: string
 ) {
   const defaultType = "rpc/connector-response";

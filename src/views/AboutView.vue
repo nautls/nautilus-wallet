@@ -3,8 +3,8 @@
     <img src="/icons/app/logo-mainnet.svg" class="w-23 m-auto pt-2" />
     <div>
       <h1 class="text-2xl m-auto" v-once>
-        <spam v-if="testnet">Nautilus Testnet Wallet</spam>
-        <spam v-else>Nautilus Wallet</spam>
+        <span v-if="testnet">Nautilus Testnet Wallet</span>
+        <span v-else>Nautilus Wallet</span>
       </h1>
 
       <p v-once>
@@ -62,7 +62,7 @@ export default defineComponent({
       return pkg.version;
     },
     gitHash(): string {
-      return process.env.GIT_HASH;
+      return import.meta.env.GIT_COMMIT_HASH;
     },
     shortGitHash(): string {
       return this.gitHash?.slice(0, 7) ?? "";

@@ -2,9 +2,17 @@ import { Header } from "@ergo-graphql/types";
 import { SignedInput } from "@fleet-sdk/common";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
+  Address,
+  BlockHeaders,
   ErgoBoxCandidate,
   ErgoBoxes,
+  ErgoStateContext,
+  NonMandatoryRegisterId,
+  PreHeader,
+  SecretKey,
+  SecretKeys,
   Tokens,
+  Transaction,
   UnsignedTransaction,
   Wallet,
   ErgoBox as WasmErgoBox
@@ -27,7 +35,6 @@ import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
-import { wasmModule } from "@/utils/wasm-module";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;
@@ -71,17 +78,16 @@ export class Prover {
   public signMessage(message: string) {
     const wallet = this.buildWallet(this._from, this._deriver);
     const address = MAINNET
-      ? wasmModule.SigmaRust.Address.from_mainnet_str(this._from[0].script)
-      : wasmModule.SigmaRust.Address.from_testnet_str(this._from[0].script);
+      ? Address.from_mainnet_str(this._from[0].script)
+      : Address.from_testnet_str(this._from[0].script);
 
     return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
   }
 
   public async sign(unsignedTx: UnsignedTx, headers: Header[]): Promise<ErgoTx> {
-    const sigmaRust = wasmModule.SigmaRust;
-    const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
-    const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+    const unspentBoxes = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
+    const dataInputBoxes = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
+    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
     const signed = await this._sign(tx, unspentBoxes, dataInputBoxes, headers);
 
     return JSONBig.parse(signed.to_json());
@@ -93,10 +99,9 @@ export class Prover {
     inputsToSign: number[]
   ): Promise<SignedInput[]> {
     inputsToSign = inputsToSign.sort();
-    const sigmaRust = wasmModule.SigmaRust;
-    const unspentBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.inputs);
-    const dataInputBoxes = sigmaRust.ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    const tx = sigmaRust.UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+    const unspentBoxes = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
+    const dataInputBoxes = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
+    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
     const signed = this._signInputs(tx, unspentBoxes, dataInputBoxes, headers, inputsToSign);
 
     return signed;
@@ -108,8 +113,6 @@ export class Prover {
     dataInputBoxes: ErgoBoxes,
     headers: Header[]
   ) {
-    const sigmaRust = wasmModule.SigmaRust;
-
     if (this._useLedger) {
       let ledgerApp!: ErgoLedgerApp;
 
@@ -211,7 +214,7 @@ export class Prover {
           }
         });
 
-        return wasmModule.SigmaRust.Transaction.from_unsigned_tx(unsigned, proofs);
+        return Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
           const resp: PartialSignState = {
@@ -243,7 +246,7 @@ export class Prover {
     }
 
     const wallet = this.buildWallet(this._from, this._deriver);
-    const blockHeaders = sigmaRust.BlockHeaders.from_json(
+    const blockHeaders = BlockHeaders.from_json(
       headers.map((x) => {
         return {
           ...x,
@@ -255,8 +258,8 @@ export class Prover {
       })
     );
 
-    const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
-    const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
+    const preHeader = PreHeader.from_block_header(blockHeaders.get(0));
+    const signContext = new ErgoStateContext(preHeader, blockHeaders);
 
     const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
     return signed;
@@ -269,9 +272,8 @@ export class Prover {
     headers: Header[],
     inputsToSign: number[]
   ) {
-    const sigmaRust = wasmModule.SigmaRust;
     const wallet = this.buildWallet(this._from, this._deriver);
-    const blockHeaders = sigmaRust.BlockHeaders.from_json(
+    const blockHeaders = BlockHeaders.from_json(
       headers.map((x) => {
         return {
           ...x,
@@ -283,8 +285,8 @@ export class Prover {
       })
     );
 
-    const preHeader = sigmaRust.PreHeader.from_block_header(blockHeaders.get(0));
-    const signContext = new sigmaRust.ErgoStateContext(preHeader, blockHeaders);
+    const preHeader = PreHeader.from_block_header(blockHeaders.get(0));
+    const signContext = new ErgoStateContext(preHeader, blockHeaders);
     const signed: SignedInput[] = [];
 
     for (const index of inputsToSign) {
@@ -306,7 +308,7 @@ export class Prover {
   }
 
   private serializeRegisters(box: ErgoBoxCandidate): Buffer {
-    const registerEnum = wasmModule.SigmaRust.NonMandatoryRegisterId;
+    const registerEnum = NonMandatoryRegisterId;
     if (!box.register_value(registerEnum.R4)) {
       return Buffer.from([]);
     }
@@ -332,13 +334,12 @@ export class Prover {
   }
 
   private buildWallet(addresses: StateAddress[], bip32: Bip32): Wallet {
-    const sigmaRust = wasmModule.SigmaRust;
-    const sks = new sigmaRust.SecretKeys();
+    const sks = new SecretKeys();
 
     for (const address of addresses) {
-      sks.add(sigmaRust.SecretKey.dlog_from_bytes(bip32.derivePrivateKey(address.index)));
+      sks.add(SecretKey.dlog_from_bytes(bip32.derivePrivateKey(address.index)));
     }
-    return sigmaRust.Wallet.from_secrets(sks);
+    return Wallet.from_secrets(sks);
   }
 }
 

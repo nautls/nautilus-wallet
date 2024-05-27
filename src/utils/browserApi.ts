@@ -1,23 +1,21 @@
-function getApiInstance() {
-  if (typeof browser !== "undefined") {
-    return browser;
-  } else if (typeof chrome !== "undefined") {
-    return chrome;
-  }
-
-  return undefined;
+/**
+ * Dynamically loads the browser API instance.
+ * @returns The API instance for the browser, or undefined if the browser context is not available.
+ */
+function getApiInstance(): typeof chrome | undefined {
+  if (!hasBrowserContext()) return undefined;
+  return chrome;
 }
 
-export const Browser = getApiInstance();
+export const browser = getApiInstance();
 
-export function hasBrowserContext(): boolean {
-  return typeof Browser !== "undefined";
+export function hasBrowserContext() {
+  return typeof chrome === "object" && !!chrome.runtime?.id;
 }
 
 export function isPopup() {
-  if (!hasBrowserContext() || !Browser.extension) {
-    return false;
-  }
-
-  return Browser.extension.getViews({ type: "popup" })[0] === self;
+  if (!browser?.extension) return false;
+  return browser?.extension.getViews({ type: "popup" })[0] === self;
 }
+
+export type Port = chrome.runtime.Port;

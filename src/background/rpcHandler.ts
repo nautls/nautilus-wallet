@@ -1,10 +1,10 @@
 import router from "@/router";
 import { RpcEvent, RpcMessage } from "@/types/connector";
-import { Browser } from "@/utils/browserApi";
+import { Port, browser } from "@/utils/browserApi";
 
 class RpcHandler {
   private _messages: RpcMessage[];
-  private _port!: chrome.runtime.Port;
+  private _port!: Port;
 
   constructor() {
     this._messages = [];
@@ -47,11 +47,9 @@ class RpcHandler {
   }
 
   public start(): void {
-    if (!Browser.runtime) {
-      return;
-    }
+    if (!browser?.runtime) return;
 
-    this._port = Browser.runtime.connect({ name: "nautilus-ui" });
+    this._port = browser.runtime.connect({ name: "nautilus-ui" });
     this.sendEvent("loaded");
 
     this._port.onMessage.addListener((message: RpcMessage, port) => {

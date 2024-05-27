@@ -52,10 +52,7 @@ import { assetsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
 import { rpcHandler } from "./background/rpcHandler";
-import {
-  extractAddressesFromInputs as extractP2PKAddressesFromInputs,
-  getChangeAddress
-} from "./api/ergo/addresses";
+import { extractAddressesFromInputs as extractP2PKAddressesFromInputs } from "./api/ergo/sigmaSerializer";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
@@ -65,6 +62,7 @@ import { Prover } from "./api/ergo/transaction/prover";
 import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
+import { getChangeAddress } from "./api/ergo/addresses";
 
 function dbAddressMapper(a: IDbAddress) {
   return {

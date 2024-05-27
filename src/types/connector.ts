@@ -1,3 +1,5 @@
+import { Port } from "../utils/browserApi";
+
 export type RequestQueueItem = {
   message: RpcMessage;
   handled: boolean;
@@ -7,7 +9,7 @@ export type RequestQueueItem = {
 export type Session = {
   origin: string;
   favicon?: string;
-  port: chrome.runtime.Port;
+  port: Port;
   walletId?: number;
   requestQueue: RequestQueueItem[];
 };

@@ -25,7 +25,6 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import { hasBrowserContext } from "./utils/browserApi";
-import { wasmModule } from "./utils/wasm-module";
 import { rpcHandler } from "@/background/rpcHandler";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
@@ -46,11 +45,8 @@ import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
-if (hasBrowserContext()) {
-  rpcHandler.start();
-}
-wasmModule.loadAsync();
 dayjs.extend(relativeTime);
+if (hasBrowserContext()) rpcHandler.start();
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
