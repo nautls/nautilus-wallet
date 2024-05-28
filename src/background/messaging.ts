@@ -12,13 +12,6 @@ export const enum InternalRequest {
   Auth = "int:auth"
 }
 
-export const enum InternalResponse {
-  Connected = "int:connected",
-  Disconnected = "int:disconnected",
-  Signed = "int:signed",
-  Denied = "int:denied"
-}
-
 export const enum InternalEvent {
   Loaded = "int:loaded",
   Disconnected = "int:disconnected"

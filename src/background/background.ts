@@ -29,6 +29,7 @@ const sessions = new Map<number, Session>();
 const requests = new AsyncRequestQueue();
 
 onMessage(InternalRequest.Connect, async ({ data, sender }) => {
+  if (!isInternalEndpoint(sender)) return false;
   const host = getHost(data.payload.origin);
   if (!host) return false;
 
@@ -39,6 +40,7 @@ onMessage(InternalRequest.Connect, async ({ data, sender }) => {
 });
 
 onMessage(InternalRequest.CheckConnection, async (msg) => {
+  if (!isInternalEndpoint(msg.sender)) return false;
   const host = getHost(msg.data.payload.origin);
   if (!host) return false;
 
@@ -46,6 +48,7 @@ onMessage(InternalRequest.CheckConnection, async (msg) => {
 });
 
 onMessage(InternalRequest.Disconnect, async (msg) => {
+  if (!isInternalEndpoint(msg.sender)) return false;
   const host = getHost(msg.data.payload.origin);
   if (!host) return false;
 
