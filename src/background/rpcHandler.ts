@@ -1,6 +1,31 @@
 import router from "@/router";
 import { RpcEvent, RpcMessage } from "@/types/connector";
-import { Port, browser } from "@/utils/browserApi";
+import { browser, Port } from "@/utils/browserApi";
+import { onMessage, sendMessage } from "webext-bridge/popup";
+import { InternalEvent, InternalRequest } from "./messaging";
+import { AsyncRequestQueue } from "./asyncRequestQueue";
+
+const _ = undefined;
+
+export const queue = new AsyncRequestQueue();
+
+export function listen() {
+  sendMessage(InternalEvent.Loaded, _, "background");
+
+  onMessage(InternalRequest.Connect, async (msg) => {
+    return await handleConnectionRequest(msg.data.payload.origin);
+  });
+}
+
+async function handleConnectionRequest(origin: string) {
+  const promise = queue.push<boolean>({ type: InternalRequest.Connect, origin });
+  await router.replace({
+    name: "connector-connect",
+    query: { popup: "true", auth: "true" }
+  });
+
+  return promise;
+}
 
 class RpcHandler {
   private _messages: RpcMessage[];
@@ -52,7 +77,7 @@ class RpcHandler {
     this._port = browser.runtime.connect({ name: "nautilus-ui" });
     this.sendEvent("loaded");
 
-    this._port.onMessage.addListener((message: RpcMessage, port) => {
+    this._port.onMessage.addListener((message: RpcMessage) => {
       if (message.type !== "rpc/nautilus-request") {
         return;
       }

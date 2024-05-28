@@ -19,7 +19,7 @@ export async function openWindow(tabId?: number) {
   if (!browser) throw Error("Browser API is not available");
 
   const bounds = await getBoundsForTabWindow(tabId);
-  browser.windows.create({
+  return browser.windows.create({
     ...POPUP_SIZE,
     focused: true,
     type: "popup",

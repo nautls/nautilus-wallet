@@ -1,3 +1,7 @@
+import { sendMessage, setNamespace } from "webext-bridge/window";
+import { buildNamespaceFor } from "../background/messagingUtils";
+import { ExternalRequest } from "../background/messaging";
+
 type Resolver = {
   currentId: number;
   requests: Map<number, { resolve: (value: unknown) => void; reject: (reason: unknown) => void }>;
@@ -5,11 +9,13 @@ type Resolver = {
 
 declare const ergoConnector: any;
 
-declare interface Window {
-  ergo: any;
-  ergo_request_read_access: any;
-  ergo_check_read_access: any;
-  ergoConnector: any;
+declare global {
+  interface Window {
+    ergo: any;
+    ergo_request_read_access: any;
+    ergo_check_read_access: any;
+    ergoConnector: any;
+  }
 }
 
 class NautilusErgoApi {
@@ -109,6 +115,13 @@ class NautilusErgoApi {
 }
 
 (() => {
+  setNamespace(buildNamespaceFor(location.origin));
+  window.test = async () => {
+    const resp = await sendMessage(ExternalRequest.Test, { foo: "bar" }, "content-script");
+    console.log(resp);
+    return resp;
+  };
+
   const resolver = new Map();
   let rpcId = 0;
   let instance: Readonly<NautilusErgoApi> | undefined;
@@ -141,20 +154,20 @@ class NautilusErgoApi {
   });
 
   class NautilusAuthApi {
-    connect({ createErgoObject = true } = {}) {
-      return this.#rpcCall("connect", [createErgoObject]);
+    connect({ createErgoObject = true } = {}): Promise<boolean> {
+      return sendMessage(ExternalRequest.Connect, { createErgoObject }, "content-script");
     }
 
     disconnect() {
-      return !!instance ? this.#rpcCall("disconnect") : Promise.resolve(false);
+      return instance ? this.#rpcCall("disconnect") : Promise.resolve(false);
     }
 
     isConnected() {
-      return !!instance ? this.#rpcCall("checkConnection") : Promise.resolve(false);
+      return instance ? this.#rpcCall("checkConnection") : Promise.resolve(false);
     }
 
     getContext() {
-      return !!instance ? Promise.resolve(instance) : Promise.reject();
+      return instance ? Promise.resolve(instance) : Promise.reject();
     }
 
     #rpcCall(func: string, params?: unknown[]) {
@@ -184,6 +197,7 @@ class NautilusErgoApi {
   }
 
   const warnDeprecated = function (fnName: string) {
+    // eslint-disable-next-line no-console
     console.warn(`[Deprecated] This method will be disabled soon and replaced by '${fnName}'.`);
   };
 

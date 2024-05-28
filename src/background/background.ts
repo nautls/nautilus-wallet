@@ -4,35 +4,75 @@ import { find, isEmpty } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { postConnectorResponse } from "./messagingUtils";
 import {
+  handleAuthRequest,
+  handleGetAddressesRequest,
+  handleGetBalanceRequest,
   handleGetBoxesRequest,
   handleGetChangeAddressRequest,
-  handleGetAddressesRequest,
+  handleGetCurrentHeightRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
-  handleSubmitTxRequest,
-  handleAuthRequest,
-  handleGetBalanceRequest,
-  handleGetCurrentHeightRequest
+  handleSubmitTxRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
 import { browser, Port } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
+import { onMessage, sendMessage } from "webext-bridge/background";
+import { isInternalEndpoint } from "webext-bridge";
+import { InternalEvent, InternalRequest } from "./messaging";
+import { AsyncRequestQueue } from "./asyncRequestQueue";
 
-const sessions = new Map<number, Session>();
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
-function getOrigin(url?: string) {
+const sessions = new Map<number, Session>();
+const requests = new AsyncRequestQueue();
+
+onMessage(InternalRequest.Test, async (msg) => {
+  if (!isInternalEndpoint(msg.sender)) return "invalid";
+  const url = (await browser?.tabs.get(msg.sender.tabId))?.url;
+
+  return getHost(url) ?? "hello from bg";
+});
+
+onMessage(InternalRequest.Connect, async (msg) => {
+  return await connect(msg.data.payload.origin, msg.sender.tabId);
+});
+
+async function connect(origin: string, tabId: number): Promise<boolean> {
+  const promise = requests.push<boolean>({ type: InternalRequest.Connect, origin });
+  await openWindow(tabId);
+  return promise;
+}
+
+onMessage(InternalEvent.Loaded, async (msg) => {
+  if (!isInternalEndpoint(msg.sender)) return;
+
+  let request = requests.pop();
+  while (request) {
+    const payload = { origin: request.origin, requestId: request.id };
+
+    switch (request.type) {
+      case InternalRequest.Connect: {
+        const success = await sendMessage(InternalRequest.Connect, { payload }, "popup");
+        request.resolve(success);
+        break;
+      }
+    }
+
+    request = requests.pop();
+  }
+});
+
+function getHost(url?: string) {
   if (!url) return;
 
   const matches = url.match(ORIGIN_MATCHER);
-  if (matches) {
-    return matches[1];
-  }
+  if (matches) return matches[1];
 }
 
 browser?.runtime.onConnect.addListener((port) => {
   // eslint-disable-next-line no-console
-  console.log(`connected with ${getOrigin(port.sender?.url)}`);
+  console.log(`connected with ${getHost(port.sender?.url)}`);
 
   if (port.name === "nautilus-ui") {
     port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port) => {
@@ -54,7 +94,7 @@ browser?.runtime.onConnect.addListener((port) => {
     });
   } else {
     port.onMessage.addListener(async (message: RpcMessage, port) => {
-      const origin = getOrigin(port.sender?.url);
+      const origin = getHost(port.sender?.url);
       const tabId = port.sender?.tab?.id;
       if (message.type !== "rpc/connector-request" || !port.sender || !origin || !tabId) {
         return;
@@ -279,7 +319,7 @@ function handleOriginDisconnect(event: RpcEvent) {
 async function showConnectionWindow(message: RpcMessage, port: Port): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;
-    const origin = getOrigin(port.sender?.url);
+    const origin = getHost(port.sender?.url);
     if (!tabId || !origin) {
       reject("invalid port");
       return;

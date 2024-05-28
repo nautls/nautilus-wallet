@@ -1,13 +1,24 @@
-import { Port } from "../utils/browserApi";
-// @ts-ignore
+import { allowWindowMessaging, onMessage, sendMessage } from "webext-bridge/content-script";
+import { buildNamespaceFor } from "../background/messagingUtils";
+// @ts-expect-error ?script is needed to force vite to bundle the script
 import injected from "./injected.ts?script";
+import { ExternalRequest, InternalRequest } from "../background/messaging";
 
-function shouldInject() {
-  const documentElement = document.documentElement.nodeName;
-  const docElemCheck = documentElement ? documentElement.toLowerCase() === "html" : true;
+allowWindowMessaging(buildNamespaceFor(location.origin));
+
+// eslint-disable-next-line no-undef
+const browser = chrome;
+const CONSOLE_PREFIX = "[Nautilus]";
+
+/**
+ * Checks if the current document supports script injection.
+ */
+function canInject() {
+  const docEl = document.documentElement.nodeName;
+  const docElCheck = docEl ? docEl.toLowerCase() === "html" : true;
   const { doctype } = window.document;
   const docTypeCheck = doctype ? doctype.name === "html" : true;
-  return docElemCheck && docTypeCheck;
+  return docElCheck && docTypeCheck;
 }
 
 /**
@@ -22,17 +33,20 @@ function getRightScriptPath() {
 }
 
 function injectScript() {
+  if (!canInject()) error("Cannot inject script.");
+
+  const path = getRightScriptPath();
+  debug("Injecting script", path);
+
+  const parent = document.head || document.documentElement;
+  const script = document.createElement("script");
+  script.async = false;
+  script.type = "module";
+  script.src = chrome.runtime.getURL(path);
+  script.onload = () => parent.removeChild(script);
+
   try {
-    const path = getRightScriptPath();
-    debug("Injecting script", path);
-
-    var script = document.createElement("script");
-    script.async = false;
-    script.type = "module";
-    script.src = chrome.runtime.getURL(path);
-    script.onload = () => (document.head || document.documentElement).removeChild(script);
-
-    (document.head || document.documentElement).appendChild(script);
+    parent.appendChild(script);
     return true;
   } catch (e) {
     error(e);
@@ -42,33 +56,42 @@ function injectScript() {
 
 function log(...content: unknown[]) {
   // eslint-disable-next-line no-console
-  console.log("[Nautilus]", ...content);
+  console.log(CONSOLE_PREFIX, ...content);
 }
 
 function error(...content: unknown[]) {
   // eslint-disable-next-line no-console
-  console.error("[Nautilus]", ...content);
+  console.error(CONSOLE_PREFIX, ...content);
 }
 
 function debug(...content: unknown[]) {
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
     console.log("[Nautilus 🐞]", ...content);
+  } else {
+    // eslint-disable-next-line no-console
+    console.debug(CONSOLE_PREFIX, ...content);
   }
 }
 
-let ergoApiInjected = false;
-let nautilusPort: Port;
+(() => {
+  if (!injectScript()) return;
+  else log("Access methods injected.");
 
-// eslint-disable-next-line no-undef
-const browser = chrome;
+  const payload = { origin: location.origin };
 
-if (shouldInject()) {
-  if (injectScript()) {
-    log("Access methods injected.");
-  }
+  let ergoApiInjected = false;
 
-  nautilusPort = browser.runtime.connect();
+  onMessage(ExternalRequest.Test, async (msg) => {
+    log("Received test message", msg);
+    return await sendMessage(InternalRequest.Test, { payload }, "background");
+  });
+
+  onMessage(ExternalRequest.Connect, async () => {
+    return await sendMessage(InternalRequest.Connect, { payload }, "background");
+  });
+
+  const nautilusPort = browser.runtime.connect();
   nautilusPort.onMessage.addListener((msg) => {
     if (!msg.type.startsWith("rpc/connector-response") && msg.type !== "rpc/nautilus-event") {
       return;
@@ -84,7 +107,7 @@ if (shouldInject()) {
         msg.return.isSuccess &&
         msg.return.data === true
       ) {
-        log("Wallet access granted.");
+        debug("Wallet access granted.");
         ergoApiInjected = true;
       }
 
@@ -103,4 +126,4 @@ if (shouldInject()) {
 
     nautilusPort.postMessage(event.data);
   });
-}
+})();
