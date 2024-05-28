@@ -22,9 +22,12 @@ export const enum InternalEvent {
   Disconnected = "int:disconnected"
 }
 
+export type InternalMessagePayload = {
+  origin: string;
+  favicon?: string;
+  requestId?: number;
+};
+
 export type InternalMessageData<T = unknown> = {
-  payload: {
-    origin: string;
-    requestId?: number;
-  };
+  payload: InternalMessagePayload;
 } & T;

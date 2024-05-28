@@ -2,7 +2,7 @@ import router from "@/router";
 import { RpcEvent, RpcMessage } from "@/types/connector";
 import { browser, Port } from "@/utils/browserApi";
 import { onMessage, sendMessage } from "webext-bridge/popup";
-import { InternalEvent, InternalRequest } from "./messaging";
+import { InternalEvent, InternalMessagePayload, InternalRequest } from "./messaging";
 import { AsyncRequestQueue } from "./asyncRequestQueue";
 
 const _ = undefined;
@@ -13,16 +13,13 @@ export function listen() {
   sendMessage(InternalEvent.Loaded, _, "background");
 
   onMessage(InternalRequest.Connect, async (msg) => {
-    return await handleConnectionRequest(msg.data.payload.origin);
+    return await handleConnectionRequest(msg.data.payload);
   });
 }
 
-async function handleConnectionRequest(origin: string) {
-  const promise = queue.push<boolean>({ type: InternalRequest.Connect, origin });
-  await router.replace({
-    name: "connector-connect",
-    query: { popup: "true", auth: "true" }
-  });
+async function handleConnectionRequest({ origin, favicon }: InternalMessagePayload) {
+  const promise = queue.push<boolean>({ type: InternalRequest.Connect, origin, favicon });
+  await router.replace({ name: "connector-connect", query: { popup: "true", auth: "true" } });
 
   return promise;
 }

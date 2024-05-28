@@ -5,6 +5,8 @@ type AsyncRequestBase<T = unknown> = {
   id: number;
   type: InternalRequest;
   origin: string;
+  favicon?: string;
+
   resolve: (value: T | PromiseLike<T>) => void;
   reject: (reason: unknown) => void;
 };

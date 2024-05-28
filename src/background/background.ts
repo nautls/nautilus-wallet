@@ -19,7 +19,7 @@ import { browser, Port } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { isInternalEndpoint } from "webext-bridge";
-import { InternalEvent, InternalRequest } from "./messaging";
+import { InternalEvent, InternalMessagePayload, InternalRequest } from "./messaging";
 import { AsyncRequestQueue } from "./asyncRequestQueue";
 
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
@@ -39,9 +39,14 @@ onMessage(InternalRequest.Connect, async (msg) => {
 });
 
 async function connect(origin: string, tabId: number): Promise<boolean> {
-  const promise = requests.push<boolean>({ type: InternalRequest.Connect, origin });
+  const favicon = await getFavicon(tabId);
+  const promise = requests.push<boolean>({ type: InternalRequest.Connect, origin, favicon });
   await openWindow(tabId);
   return promise;
+}
+
+async function getFavicon(tabId: number) {
+  return (await browser?.tabs.get(tabId))?.favIconUrl;
 }
 
 onMessage(InternalEvent.Loaded, async (msg) => {
@@ -49,7 +54,11 @@ onMessage(InternalEvent.Loaded, async (msg) => {
 
   let request = requests.pop();
   while (request) {
-    const payload = { origin: request.origin, requestId: request.id };
+    const payload: InternalMessagePayload = {
+      origin: request.origin,
+      requestId: request.id,
+      favicon: request.favicon
+    };
 
     switch (request.type) {
       case InternalRequest.Connect: {
