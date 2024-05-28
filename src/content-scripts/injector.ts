@@ -90,6 +90,10 @@ function debug(...content: unknown[]) {
     return await sendMessage(InternalRequest.CheckConnection, { payload }, BACKGROUND);
   });
 
+  onMessage(ExternalRequest.Disconnect, async () => {
+    return await sendMessage(InternalRequest.Disconnect, { payload }, BACKGROUND);
+  });
+
   const nautilusPort = browser.runtime.connect();
   nautilusPort.onMessage.addListener((msg) => {
     if (!msg.type.startsWith("rpc/connector-response") && msg.type !== "rpc/nautilus-event") {

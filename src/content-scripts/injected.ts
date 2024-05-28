@@ -13,10 +13,45 @@ type Resolver = {
 declare global {
   interface Window {
     ergo?: Readonly<NautilusErgoApi>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ergoConnector: any;
+    ergoConnector: { nautilus: Readonly<NautilusAuthApi> };
     ergo_request_read_access: () => Promise<boolean>;
     ergo_check_read_access: () => Promise<boolean>;
+  }
+}
+
+class NautilusAuthApi {
+  #context?: Readonly<NautilusErgoApi>;
+
+  async connect({ createErgoObject = true } = {}): Promise<boolean> {
+    const granted = await sendMessage(
+      ExternalRequest.Connect,
+      { createErgoObject },
+      CONTENT_SCRIPT
+    );
+
+    if (granted) {
+      this.#context = Object.freeze(new NautilusErgoApi());
+      if (createErgoObject) {
+        console.log("`ergo` object created.");
+        window.ergo = this.#context;
+      }
+    }
+
+    return granted;
+  }
+
+  isConnected() {
+    return sendMessage(ExternalRequest.CheckConnection, _, CONTENT_SCRIPT);
+  }
+
+  async disconnect() {
+    const disconnected = await sendMessage(ExternalRequest.Disconnect, _, CONTENT_SCRIPT);
+    if (disconnected && window.ergo) delete window.ergo;
+    return disconnected;
+  }
+
+  getContext() {
+    return this.#context ? Promise.resolve(this.#context) : Promise.reject();
   }
 }
 
@@ -117,94 +152,27 @@ class NautilusErgoApi {
   }
 }
 
+const warnDeprecated = function (fnName: string) {
+  // eslint-disable-next-line no-console
+  console.warn(`[Deprecated] This method will be disabled soon and replaced by '${fnName}'.`);
+};
+
 (() => {
   setNamespace(buildNamespaceFor(location.origin));
 
-  const resolver = new Map();
-  let rpcId = 0;
-  let instance: Readonly<NautilusErgoApi> | undefined;
-
-  window.addEventListener("message", function (event) {
-    if (event.data.type !== "rpc/connector-response/auth") return;
-
-    const promise = resolver.get(event.data.requestId);
-    if (!promise) return;
-
-    resolver.delete(event.data.requestId);
-    const r = event.data.return;
-
-    if (event.data.function === "connect" && r.data === true) {
-      instance = Object.freeze(new NautilusErgoApi());
-      if (event.data.params[0] === true) {
-        // eslint-disable-next-line no-console
-        console.log("`ergo` object created.");
-        this.window.ergo = instance;
-      }
-    } else if (event.data.function === "disconnect" && r.data === true) {
-      if (this.window.ergo) delete this.window.ergo;
-      instance = undefined;
-    }
-
-    if (r.isSuccess) {
-      promise.resolve(r.data);
-    } else {
-      promise.reject(r.data);
-    }
-  });
-
-  class NautilusAuthApi {
-    connect({ createErgoObject = true } = {}): Promise<boolean> {
-      return sendMessage(ExternalRequest.Connect, { createErgoObject }, CONTENT_SCRIPT);
-    }
-
-    isConnected() {
-      return sendMessage(ExternalRequest.CheckConnection, _, CONTENT_SCRIPT);
-    }
-
-    disconnect() {
-      return instance ? this.#rpcCall("disconnect") : Promise.resolve(false);
-    }
-
-    getContext() {
-      return instance ? Promise.resolve(instance) : Promise.reject();
-    }
-
-    #rpcCall(func: string, params?: unknown[]) {
-      return new Promise(function (resolve, reject) {
-        window.postMessage({
-          type: "rpc/connector-request",
-          requestId: rpcId,
-          function: func,
-          params
-        });
-
-        resolver.set(rpcId, { resolve: resolve, reject: reject });
-        rpcId++;
-      });
-    }
-  }
-
+  const nautilus = Object.freeze(new NautilusAuthApi());
   if (window.ergoConnector !== undefined) {
-    window.ergoConnector = {
-      ...window.ergoConnector,
-      nautilus: Object.freeze(new NautilusAuthApi())
-    };
+    window.ergoConnector = { ...window.ergoConnector, nautilus };
   } else {
-    window.ergoConnector = {
-      nautilus: Object.freeze(new NautilusAuthApi())
-    };
+    window.ergoConnector = { nautilus };
   }
-
-  const warnDeprecated = function (fnName: string) {
-    // eslint-disable-next-line no-console
-    console.warn(`[Deprecated] This method will be disabled soon and replaced by '${fnName}'.`);
-  };
 
   if (!window.ergo_request_read_access && !window.ergo_check_read_access) {
     window.ergo_request_read_access = function () {
       warnDeprecated("ergoConnector.nautilus.connect()");
       return window.ergoConnector.nautilus.connect();
     };
+
     window.ergo_check_read_access = function () {
       warnDeprecated("ergoConnector.nautilus.isConnected()");
       return window.ergoConnector.nautilus.isConnected();

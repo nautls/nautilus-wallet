@@ -45,6 +45,15 @@ onMessage(InternalRequest.CheckConnection, async (msg) => {
   return await checkConnection(host);
 });
 
+onMessage(InternalRequest.Disconnect, async (msg) => {
+  const host = getHost(msg.data.payload.origin);
+  if (!host) return false;
+
+  await connectedDAppsDbService.deleteByOrigin(host);
+  const connected = await checkConnection(host);
+  return !connected;
+});
+
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
   if (!isInternalEndpoint(sender)) return;
 
