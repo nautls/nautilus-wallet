@@ -6,8 +6,6 @@ import { ExternalRequest, InternalRequest } from "../background/messaging";
 
 allowWindowMessaging(buildNamespaceFor(location.origin));
 
-// eslint-disable-next-line no-undef
-const browser = chrome;
 const CONSOLE_PREFIX = "[Nautilus]";
 const BACKGROUND = "background";
 
@@ -55,11 +53,6 @@ function injectScript() {
   }
 }
 
-function log(...content: unknown[]) {
-  // eslint-disable-next-line no-console
-  console.log(CONSOLE_PREFIX, ...content);
-}
-
 function error(...content: unknown[]) {
   // eslint-disable-next-line no-console
   console.error(CONSOLE_PREFIX, ...content);
@@ -68,7 +61,7 @@ function error(...content: unknown[]) {
 function debug(...content: unknown[]) {
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
-    console.log("[Nautilus 🐞]", ...content);
+    console.log(CONSOLE_PREFIX, ...content);
   } else {
     // eslint-disable-next-line no-console
     console.debug(CONSOLE_PREFIX, ...content);
@@ -81,9 +74,8 @@ function getHost(origin: string) {
 
 (() => {
   if (!injectScript()) return;
-  else log("Access methods injected.");
+  else debug("Access methods injected.");
 
-  let ergoApiInjected = false;
   const payload = { origin: getHost(location.origin) };
 
   onMessage(ExternalRequest.Connect, async () => {
@@ -96,41 +88,5 @@ function getHost(origin: string) {
 
   onMessage(ExternalRequest.Disconnect, async () => {
     return await sendMessage(InternalRequest.Disconnect, { payload }, BACKGROUND);
-  });
-
-  const nautilusPort = browser.runtime.connect();
-  nautilusPort.onMessage.addListener((msg) => {
-    if (!msg.type.startsWith("rpc/connector-response") && msg.type !== "rpc/nautilus-event") {
-      return;
-    }
-
-    if (msg.type === "rpc/connector-response") {
-      // chrome.runtime.sendMessage(msg);
-      window.postMessage(msg, location.origin);
-    } else if (msg.type === "rpc/connector-response/auth") {
-      if (
-        !ergoApiInjected &&
-        msg.function === "connect" &&
-        msg.return.isSuccess &&
-        msg.return.data === true
-      ) {
-        debug("Wallet access granted.");
-        ergoApiInjected = true;
-      }
-
-      window.postMessage(msg, location.origin);
-    } else if (msg.type === "rpc/nautilus-event") {
-      if (msg.name === "disconnected") {
-        window.dispatchEvent(new Event("ergo_wallet_disconnected"));
-      }
-    }
-  });
-
-  window.addEventListener("message", function (event) {
-    if (event.data.type !== "rpc/connector-request") {
-      return;
-    }
-
-    nautilusPort.postMessage(event.data);
   });
 })();

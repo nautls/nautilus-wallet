@@ -32,7 +32,6 @@ class NautilusAuthApi {
     if (granted) {
       this.#context = Object.freeze(new NautilusErgoApi());
       if (createErgoObject) {
-        console.log("`ergo` object created.");
         window.ergo = this.#context;
       }
     }
@@ -46,7 +45,11 @@ class NautilusAuthApi {
 
   async disconnect() {
     const disconnected = await sendMessage(ExternalRequest.Disconnect, _, CONTENT_SCRIPT);
-    if (disconnected && window.ergo) delete window.ergo;
+    if (disconnected) {
+      this.#context = undefined;
+      if (window.ergo) delete window.ergo;
+    }
+
     return disconnected;
   }
 
