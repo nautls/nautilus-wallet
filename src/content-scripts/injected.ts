@@ -7,14 +7,13 @@ type Resolver = {
   requests: Map<number, { resolve: (value: unknown) => void; reject: (reason: unknown) => void }>;
 };
 
-declare const ergoConnector: any;
-
 declare global {
   interface Window {
-    ergo: any;
-    ergo_request_read_access: any;
-    ergo_check_read_access: any;
+    ergo?: Readonly<NautilusErgoApi>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ergoConnector: any;
+    ergo_request_read_access: () => Promise<boolean>;
+    ergo_check_read_access: () => Promise<boolean>;
   }
 }
 
@@ -95,9 +94,10 @@ class NautilusErgoApi {
   }
 
   #eventHandler(resolver: Resolver) {
-    // todo: remove this any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (event: any) => {
       if (event.data.type === "rpc/connector-response") {
+        // eslint-disable-next-line no-console
         console.debug(JSON.stringify(event.data));
         const promise = resolver.requests.get(event.data.requestId);
         if (promise !== undefined) {
@@ -116,11 +116,6 @@ class NautilusErgoApi {
 
 (() => {
   setNamespace(buildNamespaceFor(location.origin));
-  window.test = async () => {
-    const resp = await sendMessage(ExternalRequest.Test, { foo: "bar" }, "content-script");
-    console.log(resp);
-    return resp;
-  };
 
   const resolver = new Map();
   let rpcId = 0;
@@ -138,6 +133,7 @@ class NautilusErgoApi {
     if (event.data.function === "connect" && r.data === true) {
       instance = Object.freeze(new NautilusErgoApi());
       if (event.data.params[0] === true) {
+        // eslint-disable-next-line no-console
         console.log("`ergo` object created.");
         this.window.ergo = instance;
       }
@@ -204,11 +200,11 @@ class NautilusErgoApi {
   if (!window.ergo_request_read_access && !window.ergo_check_read_access) {
     window.ergo_request_read_access = function () {
       warnDeprecated("ergoConnector.nautilus.connect()");
-      return ergoConnector.nautilus.connect();
+      return window.ergoConnector.nautilus.connect();
     };
     window.ergo_check_read_access = function () {
       warnDeprecated("ergoConnector.nautilus.isConnected()");
-      return ergoConnector.nautilus.isConnected();
+      return window.ergoConnector.nautilus.isConnected();
     };
   }
 })();

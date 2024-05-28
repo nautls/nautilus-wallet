@@ -1,4 +1,4 @@
-import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
+import { RpcEvent, RpcMessage, Session } from "../types/connector";
 import { openWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
@@ -27,27 +27,12 @@ const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 const sessions = new Map<number, Session>();
 const requests = new AsyncRequestQueue();
 
-onMessage(InternalRequest.Test, async (msg) => {
-  if (!isInternalEndpoint(msg.sender)) return "invalid";
-  const url = (await browser?.tabs.get(msg.sender.tabId))?.url;
-
-  return getHost(url) ?? "hello from bg";
-});
-
 onMessage(InternalRequest.Connect, async (msg) => {
-  return await connect(msg.data.payload.origin, msg.sender.tabId);
+  const connection = await connectedDAppsDbService.getByOrigin(msg.data.payload.origin);
+  if (connection && connection.walletId) return true;
+
+  return await openConnectionWindow(msg.data.payload.origin, msg.sender.tabId);
 });
-
-async function connect(origin: string, tabId: number): Promise<boolean> {
-  const favicon = await getFavicon(tabId);
-  const promise = requests.push<boolean>({ type: InternalRequest.Connect, origin, favicon });
-  await openWindow(tabId);
-  return promise;
-}
-
-async function getFavicon(tabId: number) {
-  return (await browser?.tabs.get(tabId))?.favIconUrl;
-}
 
 onMessage(InternalEvent.Loaded, async (msg) => {
   if (!isInternalEndpoint(msg.sender)) return;
@@ -71,6 +56,17 @@ onMessage(InternalEvent.Loaded, async (msg) => {
     request = requests.pop();
   }
 });
+
+async function openConnectionWindow(origin: string, tabId: number): Promise<boolean> {
+  const favicon = await getFavicon(tabId);
+  const promise = requests.push<boolean>({ type: InternalRequest.Connect, origin, favicon });
+  await openWindow(tabId);
+  return promise;
+}
+
+async function getFavicon(tabId: number) {
+  return (await browser?.tabs.get(tabId))?.favIconUrl;
+}
 
 function getHost(url?: string) {
   if (!url) return;
@@ -111,9 +107,6 @@ browser?.runtime.onConnect.addListener((port) => {
 
       const session = sessions.get(tabId);
       switch (message.function) {
-        case "connect":
-          await handleConnectionRequest(message, port, origin);
-          break;
         case "disconnect":
           await handleDisconnectRequest(message, port, origin);
           break;
@@ -163,15 +156,7 @@ function sendRequestsToUI(port: Port) {
     }
 
     for (const request of value.requestQueue.filter((r) => !r.handled)) {
-      if (request.message.function === "connect") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [value.origin, value.favicon]
-        } as RpcMessage);
-      } else if (request.message.function === "signTx") {
+      if (request.message.function === "signTx") {
         port.postMessage({
           type: "rpc/nautilus-request",
           sessionId: key,
@@ -214,35 +199,6 @@ function sendRequestsToUI(port: Port) {
       return;
     }
   }
-}
-
-async function handleConnectionRequest(message: RpcMessage, port: Port, origin: string) {
-  let response: RpcReturn = { isSuccess: true, data: true };
-  const connection = await connectedDAppsDbService.getByOrigin(origin);
-  if (connection) {
-    const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.url) {
-      return;
-    }
-
-    response.data = { walletId: connection.walletId };
-    sessions.set(tabId, {
-      port,
-      origin: connection.origin,
-      favicon: port.sender.tab?.favIconUrl,
-      walletId: connection.walletId,
-      requestQueue: []
-    });
-  } else {
-    response = await showConnectionWindow(message, port);
-  }
-
-  response = {
-    isSuccess: response.isSuccess,
-    data: response.data.walletId !== undefined
-  };
-
-  postConnectorResponse(response, message, port, "auth");
 }
 
 async function handleDisconnectRequest(request: RpcMessage, port: Port, origin?: string) {
@@ -325,30 +281,8 @@ function handleOriginDisconnect(event: RpcEvent) {
   } as RpcEvent);
 }
 
-async function showConnectionWindow(message: RpcMessage, port: Port): Promise<RpcReturn> {
-  return new Promise((resolve, reject) => {
-    const tabId = port.sender?.tab?.id;
-    const origin = getHost(port.sender?.url);
-    if (!tabId || !origin) {
-      reject("invalid port");
-      return;
-    }
-
-    sessions.set(tabId, {
-      port,
-      origin: origin,
-      favicon: port.sender?.tab?.favIconUrl,
-      requestQueue: [{ handled: false, message, resolve }]
-    });
-
-    openWindow(tabId);
-  });
-}
-
 function findSessionKeyByOrigin(origin: string): number | undefined {
   for (const [key, value] of sessions.entries()) {
-    if (value.origin === origin) {
-      return key;
-    }
+    if (value.origin === origin) return key;
   }
 }

@@ -1,10 +1,8 @@
 export const enum ExternalRequest {
-  Test = "ext:test",
   Connect = "ext:connect"
 }
 
 export const enum InternalRequest {
-  Test = "int:test",
   Connect = "int:connect",
   SignTx = "int:sign-tx",
   Auth = "int:auth"
