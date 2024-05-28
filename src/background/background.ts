@@ -30,30 +30,24 @@ const requests = new AsyncRequestQueue();
 
 onMessage(InternalRequest.Connect, async ({ data, sender }) => {
   if (!isInternalEndpoint(sender)) return false;
-  const host = getHost(data.payload.origin);
-  if (!host) return false;
 
-  const authorized = await checkConnection(host);
+  const authorized = await checkConnection(data.payload.origin);
   if (authorized) return true;
 
-  return await openConnectionWindow(host, sender.tabId);
+  return await openConnectionWindow(data.payload.origin, sender.tabId);
 });
 
-onMessage(InternalRequest.CheckConnection, async (msg) => {
-  if (!isInternalEndpoint(msg.sender)) return false;
-  const host = getHost(msg.data.payload.origin);
-  if (!host) return false;
+onMessage(InternalRequest.CheckConnection, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return false;
 
-  return await checkConnection(host);
+  return await checkConnection(data.payload.origin);
 });
 
-onMessage(InternalRequest.Disconnect, async (msg) => {
-  if (!isInternalEndpoint(msg.sender)) return false;
-  const host = getHost(msg.data.payload.origin);
-  if (!host) return false;
+onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return false;
 
-  await connectedDAppsDbService.deleteByOrigin(host);
-  const connected = await checkConnection(host);
+  await connectedDAppsDbService.deleteByOrigin(data.payload.origin);
+  const connected = await checkConnection(data.payload.origin);
   return !connected;
 });
 
@@ -113,9 +107,6 @@ browser?.runtime.onConnect.addListener((port) => {
         switch (message.name) {
           case "loaded":
             sendRequestsToUI(port);
-            break;
-          case "disconnected":
-            handleOriginDisconnect(message);
             break;
           case "updated:graphql-url":
             graphQLService.updateServerUrl(message.data);
@@ -289,28 +280,4 @@ function handleNautilusResponse(message: RpcMessage) {
 
   const request = find(session.requestQueue, (r) => r.message.requestId === message.requestId);
   request?.resolve(message?.return || { isSuccess: false });
-}
-
-function handleOriginDisconnect(event: RpcEvent) {
-  const key = findSessionKeyByOrigin(event.data);
-  if (key === undefined) {
-    return;
-  }
-
-  const session = sessions.get(key);
-  if (!session) {
-    return;
-  }
-
-  sessions.delete(key);
-  session.port.postMessage({
-    type: "rpc/nautilus-event",
-    name: event.name
-  } as RpcEvent);
-}
-
-function findSessionKeyByOrigin(origin: string): number | undefined {
-  for (const [key, value] of sessions.entries()) {
-    if (value.origin === origin) return key;
-  }
 }

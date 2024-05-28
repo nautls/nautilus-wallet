@@ -75,12 +75,16 @@ function debug(...content: unknown[]) {
   }
 }
 
+function getHost(origin: string) {
+  return new URL(origin).host;
+}
+
 (() => {
   if (!injectScript()) return;
   else log("Access methods injected.");
 
   let ergoApiInjected = false;
-  const payload = { origin: location.origin };
+  const payload = { origin: getHost(location.origin) };
 
   onMessage(ExternalRequest.Connect, async () => {
     return await sendMessage(InternalRequest.Connect, { payload }, BACKGROUND);
