@@ -9,8 +9,10 @@ import {
 declare module "webext-bridge" {
   export interface ProtocolMap {
     [ExternalRequest.Connect]: ProtocolWithReturn<{ createErgoObject: boolean }, boolean>;
+    [ExternalRequest.CheckConnection]: ProtocolWithReturn<undefined, boolean>;
 
     [InternalRequest.Connect]: ProtocolWithReturn<InternalMessageData, boolean>;
+    [InternalRequest.CheckConnection]: ProtocolWithReturn<InternalMessageData, boolean>;
     [InternalEvent.Loaded]: undefined;
   }
 }

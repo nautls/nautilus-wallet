@@ -2,6 +2,9 @@ import { sendMessage, setNamespace } from "webext-bridge/window";
 import { buildNamespaceFor } from "../background/messagingUtils";
 import { ExternalRequest } from "../background/messaging";
 
+const CONTENT_SCRIPT = "content-script";
+const _ = undefined;
+
 type Resolver = {
   currentId: number;
   requests: Map<number, { resolve: (value: unknown) => void; reject: (reason: unknown) => void }>;
@@ -151,15 +154,15 @@ class NautilusErgoApi {
 
   class NautilusAuthApi {
     connect({ createErgoObject = true } = {}): Promise<boolean> {
-      return sendMessage(ExternalRequest.Connect, { createErgoObject }, "content-script");
+      return sendMessage(ExternalRequest.Connect, { createErgoObject }, CONTENT_SCRIPT);
+    }
+
+    isConnected() {
+      return sendMessage(ExternalRequest.CheckConnection, _, CONTENT_SCRIPT);
     }
 
     disconnect() {
       return instance ? this.#rpcCall("disconnect") : Promise.resolve(false);
-    }
-
-    isConnected() {
-      return instance ? this.#rpcCall("checkConnection") : Promise.resolve(false);
     }
 
     getContext() {

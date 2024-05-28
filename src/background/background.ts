@@ -21,21 +21,32 @@ import { onMessage, sendMessage } from "webext-bridge/background";
 import { isInternalEndpoint } from "webext-bridge";
 import { InternalEvent, InternalMessagePayload, InternalRequest } from "./messaging";
 import { AsyncRequestQueue } from "./asyncRequestQueue";
+import { isDefined } from "@fleet-sdk/common";
 
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
 const sessions = new Map<number, Session>();
 const requests = new AsyncRequestQueue();
 
-onMessage(InternalRequest.Connect, async (msg) => {
-  const connection = await connectedDAppsDbService.getByOrigin(msg.data.payload.origin);
-  if (connection && connection.walletId) return true;
+onMessage(InternalRequest.Connect, async ({ data, sender }) => {
+  const host = getHost(data.payload.origin);
+  if (!host) return false;
 
-  return await openConnectionWindow(msg.data.payload.origin, msg.sender.tabId);
+  const authorized = await checkConnection(host);
+  if (authorized) return true;
+
+  return await openConnectionWindow(host, sender.tabId);
 });
 
-onMessage(InternalEvent.Loaded, async (msg) => {
-  if (!isInternalEndpoint(msg.sender)) return;
+onMessage(InternalRequest.CheckConnection, async (msg) => {
+  const host = getHost(msg.data.payload.origin);
+  if (!host) return false;
+
+  return await checkConnection(host);
+});
+
+onMessage(InternalEvent.Loaded, async ({ sender }) => {
+  if (!isInternalEndpoint(sender)) return;
 
   let request = requests.pop();
   while (request) {
@@ -47,8 +58,8 @@ onMessage(InternalEvent.Loaded, async (msg) => {
 
     switch (request.type) {
       case InternalRequest.Connect: {
-        const success = await sendMessage(InternalRequest.Connect, { payload }, "popup");
-        request.resolve(success);
+        const granted = await sendMessage(InternalRequest.Connect, { payload }, "popup");
+        request.resolve(granted);
         break;
       }
     }
@@ -62,6 +73,11 @@ async function openConnectionWindow(origin: string, tabId: number): Promise<bool
   const promise = requests.push<boolean>({ type: InternalRequest.Connect, origin, favicon });
   await openWindow(tabId);
   return promise;
+}
+
+async function checkConnection(origin: string): Promise<boolean> {
+  const connection = await connectedDAppsDbService.getByOrigin(origin);
+  return isDefined(connection) && isDefined(connection?.walletId);
 }
 
 async function getFavicon(tabId: number) {

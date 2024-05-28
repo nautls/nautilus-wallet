@@ -1,9 +1,11 @@
 export const enum ExternalRequest {
-  Connect = "ext:connect"
+  Connect = "ext:connect",
+  CheckConnection = "ext:check-connection"
 }
 
 export const enum InternalRequest {
   Connect = "int:connect",
+  CheckConnection = "int:check-connection",
   SignTx = "int:sign-tx",
   Auth = "int:auth"
 }

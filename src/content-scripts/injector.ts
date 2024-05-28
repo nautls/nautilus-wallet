@@ -9,6 +9,7 @@ allowWindowMessaging(buildNamespaceFor(location.origin));
 // eslint-disable-next-line no-undef
 const browser = chrome;
 const CONSOLE_PREFIX = "[Nautilus]";
+const BACKGROUND = "background";
 
 /**
  * Checks if the current document supports script injection.
@@ -78,17 +79,15 @@ function debug(...content: unknown[]) {
   if (!injectScript()) return;
   else log("Access methods injected.");
 
+  let ergoApiInjected = false;
   const payload = { origin: location.origin };
 
-  let ergoApiInjected = false;
-
-  onMessage(ExternalRequest.Test, async (msg) => {
-    log("Received test message", msg);
-    return await sendMessage(InternalRequest.Test, { payload }, "background");
+  onMessage(ExternalRequest.Connect, async () => {
+    return await sendMessage(InternalRequest.Connect, { payload }, BACKGROUND);
   });
 
-  onMessage(ExternalRequest.Connect, async () => {
-    return await sendMessage(InternalRequest.Connect, { payload }, "background");
+  onMessage(ExternalRequest.CheckConnection, async () => {
+    return await sendMessage(InternalRequest.CheckConnection, { payload }, BACKGROUND);
   });
 
   const nautilusPort = browser.runtime.connect();

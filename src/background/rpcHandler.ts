@@ -40,7 +40,7 @@ class RpcHandler {
     this._sendMessage(message);
   }
 
-  private _sendMessage(message: any): void {
+  private _sendMessage(message: unknown): void {
     if (!this._port) {
       throw Error("communication port is undefined");
     }
@@ -48,9 +48,9 @@ class RpcHandler {
     this._port.postMessage(message);
   }
 
-  public sendEvent(event: string, data?: any): void;
+  public sendEvent(event: string, data?: unknown): void;
   public sendEvent(event: RpcEvent): void;
-  public sendEvent(event: RpcEvent | string, data?: any): void {
+  public sendEvent(event: RpcEvent | string, data?: unknown): void {
     if (typeof event === "string") {
       this._sendMessage({
         type: "rpc/nautilus-event",
