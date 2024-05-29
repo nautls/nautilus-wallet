@@ -8,7 +8,7 @@ import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
 import BigNumber from "bignumber.js";
 import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
-import { Client, createClient, gql, fetchExchange, TypedDocumentNode } from "@urql/core";
+import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 
 export type AssetBalance = {
@@ -157,6 +157,7 @@ class GraphQLService {
   }
 
   private _getCurrentServerUrl() {
+    // todo: fix this
     const rawSettings = undefined; // localStorage.getItem("settings");
     if (!rawSettings) {
       return getDefaultServerUrl();

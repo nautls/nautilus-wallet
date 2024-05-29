@@ -6,6 +6,10 @@ import { APIErrorCode } from "../types/connector";
 
 const CONTENT_SCRIPT = "content-script";
 const _ = undefined;
+const PAGINATION_ERROR = {
+  code: APIErrorCode.InvalidRequest,
+  info: "Pagination is not supported."
+};
 
 type Resolver = {
   currentId: number;
@@ -83,7 +87,7 @@ class NautilusErgoApi {
     tokenId?: string,
     paginate?: undefined
   ) {
-    if (paginate) throw { code: APIErrorCode.InvalidRequest, info: "Pagination is not supported." };
+    if (paginate) throw PAGINATION_ERROR;
 
     let target: SelectionTarget | undefined;
     if (amountOrTarget) {
@@ -106,16 +110,38 @@ class NautilusErgoApi {
     return handle(result);
   }
 
-  get_used_addresses(paginate = undefined) {
-    return this.#rpcCall("getUsedAddresses", [paginate]);
+  async get_used_addresses(paginate: undefined) {
+    if (paginate) throw PAGINATION_ERROR;
+
+    const result = await sendMessage(
+      ExternalRequest.GetAddresses,
+      { filter: "used" },
+      CONTENT_SCRIPT
+    );
+
+    return handle(result);
   }
 
-  get_unused_addresses() {
-    return this.#rpcCall("getUnusedAddresses");
+  async get_unused_addresses(paginate: undefined) {
+    if (paginate) throw PAGINATION_ERROR;
+
+    const result = await sendMessage(
+      ExternalRequest.GetAddresses,
+      { filter: "unused" },
+      CONTENT_SCRIPT
+    );
+
+    return handle(result);
   }
 
-  get_change_address() {
-    return this.#rpcCall("getChangeAddress");
+  async get_change_address() {
+    const result = await sendMessage(
+      ExternalRequest.GetAddresses,
+      { filter: "change" },
+      CONTENT_SCRIPT
+    );
+
+    return handle(result);
   }
 
   sign_tx(tx: unknown) {

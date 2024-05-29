@@ -99,4 +99,8 @@ function getHost(origin: string) {
   onMessage(ExternalRequest.GetBalance, async ({ data }) => {
     return await sendMessage(InternalRequest.GetBalance, { payload, ...data }, BACKGROUND);
   });
+
+  onMessage(ExternalRequest.GetAddresses, async ({ data }) => {
+    return await sendMessage(InternalRequest.GetAddresses, { payload, ...data }, BACKGROUND);
+  });
 })();

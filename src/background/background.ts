@@ -2,17 +2,15 @@ import { APIErrorCode, RpcEvent, RpcMessage, Session } from "../types/connector"
 import { openWindow } from "@/utils/uiHelpers";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import {
+  getAddresses,
   getBalance,
   getUTxOs,
   handleAuthRequest,
-  handleGetAddressesRequest,
-  handleGetChangeAddressRequest,
   handleGetCurrentHeightRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
-import { AddressState } from "@/types/internal";
 import { browser } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { onMessage, sendMessage } from "webext-bridge/background";
@@ -25,7 +23,7 @@ import {
   SuccessResult
 } from "./messaging";
 import { AsyncRequestQueue } from "./asyncRequestQueue";
-import { isDefined } from "@fleet-sdk/common";
+import { isDefined, isEmpty } from "@fleet-sdk/common";
 import { ERG_TOKEN_ID } from "../constants/ergo";
 
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
@@ -77,6 +75,18 @@ onMessage(InternalRequest.GetBalance, async ({ sender, data }) => {
   const tokenId = !data.tokenId || data.tokenId === "ERG" ? ERG_TOKEN_ID : data.tokenId;
   const balance = await getBalance(connection.walletId, tokenId);
   return success(balance);
+});
+
+onMessage(InternalRequest.GetAddresses, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return NOT_CONNECTED_ERROR;
+
+  const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
+  if (!connection) return NOT_CONNECTED_ERROR;
+
+  const addresses = await getAddresses(connection.walletId, data.filter);
+  if (isEmpty(addresses)) return error(APIErrorCode.InternalError, "No addresses found.");
+
+  return success(addresses);
 });
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
@@ -170,15 +180,6 @@ browser?.runtime.onConnect.addListener((port) => {
 
       const session = sessions.get(tabId);
       switch (message.function) {
-        case "getUsedAddresses":
-          await handleGetAddressesRequest(message, port, session, AddressState.Used);
-          break;
-        case "getUnusedAddresses":
-          await handleGetAddressesRequest(message, port, session, AddressState.Unused);
-          break;
-        case "getChangeAddress":
-          await handleGetChangeAddressRequest(message, port, session);
-          break;
         case "auth":
           await handleAuthRequest(message, port, session);
           break;

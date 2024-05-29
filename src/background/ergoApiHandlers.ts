@@ -70,71 +70,17 @@ export async function getBalance(walletId: number, tokenId: string) {
   return balances;
 }
 
-export async function handleGetAddressesRequest(
-  request: RpcMessage,
-  port: Port,
-  session: Session | undefined,
-  addressState: AddressState
-) {
-  if (!validateSession(session, request, port) || !session.walletId) {
-    return;
+export type AddressType = "used" | "unused" | "change";
+
+export async function getAddresses(walletId: number, filter: AddressType) {
+  if (filter === "change") {
+    const address = await addressesDbService.getChangeAddress(walletId);
+    return address?.script;
   }
 
-  if (request.params && request.params[0]) {
-    postErrorMessage(
-      {
-        code: APIErrorCode.InvalidRequest,
-        info: "Pagination is not implemented."
-      },
-      request,
-      port
-    );
-
-    return;
-  }
-
-  const addresses = await addressesDbService.getByState(session.walletId, addressState);
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: addresses.map((x) => x.script)
-    },
-    request,
-    port
-  );
-}
-
-export async function handleGetChangeAddressRequest(
-  request: RpcMessage,
-  port: Port,
-  session?: Session
-) {
-  if (!validateSession(session, request, port) || !session.walletId) {
-    return;
-  }
-
-  const address = await addressesDbService.getChangeAddress(session.walletId);
-  if (!address) {
-    postErrorMessage(
-      {
-        code: APIErrorCode.InternalError,
-        info: "Change address not found."
-      },
-      request,
-      port
-    );
-
-    return;
-  }
-
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: address.script
-    },
-    request,
-    port
-  );
+  const state = filter === "used" ? AddressState.Used : AddressState.Unused;
+  const addresses = await addressesDbService.getByState(walletId, state);
+  return addresses.map((x) => x.script);
 }
 
 export async function handleSignTxRequest(request: RpcMessage, port: Port, session?: Session) {
