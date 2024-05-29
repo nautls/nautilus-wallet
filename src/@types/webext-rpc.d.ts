@@ -7,11 +7,15 @@ import type {
   Result
 } from "@/background/messaging";
 import type { Box } from "@fleet-sdk/common";
-import type { SelectionTarget } from "@nautilus-js/eip12-types";
+import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 
 type ConnectionPayload = { createErgoObject: boolean };
+
 type UTxOsTarget = { target: SelectionTarget | undefined };
 type UTxOResult = Result<Box<string>[]>;
+
+type BalanceArgs = { tokenId?: string };
+type BalanceResult = Result<AssetBalance[] | string>;
 
 declare module "webext-bridge" {
   export interface ProtocolMap {
@@ -20,12 +24,14 @@ declare module "webext-bridge" {
     [ExternalRequest.Disconnect]: ProtocolWithReturn<undefined, boolean>;
 
     [ExternalRequest.GetUTxOs]: ProtocolWithReturn<UTxOsTarget, UTxOResult>;
+    [ExternalRequest.GetBalance]: ProtocolWithReturn<BalanceArgs, BalanceResult>;
 
     [InternalRequest.Connect]: ProtocolWithReturn<DataWithPayload, boolean>;
     [InternalRequest.CheckConnection]: ProtocolWithReturn<DataWithPayload, boolean>;
     [InternalRequest.Disconnect]: ProtocolWithReturn<DataWithPayload, boolean>;
 
     [InternalRequest.GetUTxOs]: ProtocolWithReturn<DataWithPayload<UTxOsTarget>, UTxOResult>;
+    [InternalRequest.GetBalance]: ProtocolWithReturn<DataWithPayload<BalanceArgs>, BalanceResult>;
 
     [InternalEvent.Loaded]: undefined;
   }

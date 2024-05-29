@@ -3,58 +3,71 @@ import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
-import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
+import { sumBigNumberBy } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
-import { groupBy, isEmpty } from "lodash-es";
+import { groupBy } from "lodash-es";
 import { postConnectorResponse, postErrorMessage } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { Port } from "../utils/browserApi";
+import BigNumber from "bignumber.js";
+import { Box, some } from "@fleet-sdk/common";
+import type { AssetBalance } from "@nautilus-js/eip12-types";
+import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
+import { fetchBoxes } from "../api/ergo/boxFetcher";
+import { SelectionTarget } from "@nautilus-js/eip12-types";
 
-export async function handleGetBalanceRequest(request: RpcMessage, port: Port, session?: Session) {
-  if (!validateSession(session, request, port) || !session.walletId) {
-    return;
-  }
-
-  let tokenId = ERG_TOKEN_ID;
-  if (request.params && request.params[0] && request.params[0] !== "ERG") {
-    tokenId = request.params[0];
-  }
-
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: await _getBalance(session.walletId, tokenId)
-    },
-    request,
-    port
+export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
+  const boxes = await fetchBoxes(walletId);
+  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
+    (box) => box.creationHeight
   );
+
+  let selection!: ErgoUnsignedInput[];
+  const selectionTarget = {
+    nanoErgs: target?.nanoErgs ? BigInt(target.nanoErgs) : undefined,
+    tokens:
+      target?.tokens?.map((x) => ({
+        tokenId: x.tokenId,
+        amount: x.amount ? BigInt(x.amount) : undefined
+      })) || []
+  };
+
+  try {
+    selection = selector.select(selectionTarget);
+  } catch {
+    selection = [];
+  }
+
+  return selection.map((box) => ({
+    ...box.toPlainObject("EIP-12"),
+    confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
+  }));
 }
 
-async function _getBalance(walletId: number, tokenId: string) {
-  if (tokenId === "all") {
-    const assets = await assetsDbService.getByWalletId(walletId);
-    const responseData: { tokenId: string; balance: string }[] = [];
-    const groups = groupBy(assets, (x) => x.tokenId);
-    for (const tokenId in groups) {
-      responseData.push({
-        tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
-        balance: sumBigNumberBy(groups[tokenId], (x) => toBigNumber(x.confirmedAmount)).toString()
-      });
-    }
-
-    return responseData;
+export async function getBalance(walletId: number, tokenId: string) {
+  if (tokenId !== "all") {
+    const assets = await assetsDbService.getByTokenId(walletId, tokenId);
+    return some(assets)
+      ? assets
+          .map((a) => BigNumber(a.confirmedAmount))
+          .reduce((acc, val) => acc.plus(val))
+          .toString()
+      : "0";
   }
 
-  const assets = await assetsDbService.getByTokenId(walletId, tokenId);
+  const assets = await assetsDbService.getByWalletId(walletId);
+  const balances: AssetBalance[] = [];
+  const groups = groupBy(assets, (x) => x.tokenId);
+  for (const tokenId in groups) {
+    balances.push({
+      tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
+      balance: sumBigNumberBy(groups[tokenId], (x) => BigNumber(x.confirmedAmount)).toString()
+    });
+  }
 
-  return isEmpty(assets)
-    ? "0"
-    : assets
-        .map((a) => toBigNumber(a.confirmedAmount))
-        .reduce((acc, val) => acc.plus(val))
-        .toString();
+  return balances;
 }
 
 export async function handleGetAddressesRequest(

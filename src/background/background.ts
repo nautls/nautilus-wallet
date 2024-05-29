@@ -1,12 +1,11 @@
 import { APIErrorCode, RpcEvent, RpcMessage, Session } from "../types/connector";
 import { openWindow } from "@/utils/uiHelpers";
-import { find, isEmpty } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import { postConnectorResponse } from "./messagingUtils";
 import {
+  getBalance,
+  getUTxOs,
   handleAuthRequest,
   handleGetAddressesRequest,
-  handleGetBalanceRequest,
   handleGetChangeAddressRequest,
   handleGetCurrentHeightRequest,
   handleNotImplementedRequest,
@@ -14,7 +13,7 @@ import {
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
 import { AddressState } from "@/types/internal";
-import { browser, Port } from "@/utils/browserApi";
+import { browser } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { isInternalEndpoint } from "webext-bridge";
@@ -26,10 +25,8 @@ import {
   SuccessResult
 } from "./messaging";
 import { AsyncRequestQueue } from "./asyncRequestQueue";
-import { Box, isDefined } from "@fleet-sdk/common";
-import { SelectionTarget } from "@nautilus-js/eip12-types";
-import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
-import { fetchBoxes } from "../api/ergo/boxFetcher";
+import { isDefined } from "@fleet-sdk/common";
+import { ERG_TOKEN_ID } from "../constants/ergo";
 
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
@@ -59,43 +56,28 @@ onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
   return !connected;
 });
 
+const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
+
 onMessage(InternalRequest.GetUTxOs, async ({ sender, data }) => {
-  if (!isInternalEndpoint(sender)) return error(APIErrorCode.InvalidRequest, "Not connected.");
+  if (!isInternalEndpoint(sender)) return NOT_CONNECTED_ERROR;
 
   const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
-  if (!connection) return error(APIErrorCode.InvalidRequest, "Not connected.");
+  if (!connection) return NOT_CONNECTED_ERROR;
 
   const utxos = await getUTxOs(connection.walletId, data.target);
   return success(utxos);
 });
 
-async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
-  const boxes = await fetchBoxes(walletId);
-  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
-    (box) => box.creationHeight
-  );
+onMessage(InternalRequest.GetBalance, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return NOT_CONNECTED_ERROR;
 
-  let selection!: ErgoUnsignedInput[];
-  const selectionTarget = {
-    nanoErgs: target?.nanoErgs ? BigInt(target.nanoErgs) : undefined,
-    tokens:
-      target?.tokens?.map((x) => ({
-        tokenId: x.tokenId,
-        amount: x.amount ? BigInt(x.amount) : undefined
-      })) || []
-  };
+  const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
+  if (!connection) return NOT_CONNECTED_ERROR;
 
-  try {
-    selection = selector.select(selectionTarget);
-  } catch {
-    selection = [];
-  }
-
-  return selection.map((box) => ({
-    ...box.toPlainObject("EIP-12"),
-    confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
-  }));
-}
+  const tokenId = !data.tokenId || data.tokenId === "ERG" ? ERG_TOKEN_ID : data.tokenId;
+  const balance = await getBalance(connection.walletId, tokenId);
+  return success(balance);
+});
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
   if (!isInternalEndpoint(sender)) return;
@@ -169,18 +151,13 @@ browser?.runtime.onConnect.addListener((port) => {
   console.log(`connected with ${getHost(port.sender?.url)}`);
 
   if (port.name === "nautilus-ui") {
-    port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port) => {
+    port.onMessage.addListener(async (message: RpcMessage | RpcEvent) => {
       if (message.type === "rpc/nautilus-event") {
         switch (message.name) {
-          case "loaded":
-            sendRequestsToUI(port);
-            break;
           case "updated:graphql-url":
             graphQLService.updateServerUrl(message.data);
             break;
         }
-      } else if (message.type === "rpc/nautilus-response") {
-        handleNautilusResponse(message);
       }
     });
   } else {
@@ -193,15 +170,6 @@ browser?.runtime.onConnect.addListener((port) => {
 
       const session = sessions.get(tabId);
       switch (message.function) {
-        case "disconnect":
-          await handleDisconnectRequest(message, port, origin);
-          break;
-        case "checkConnection":
-          handleCheckConnectionRequest(message, port);
-          break;
-        case "getBalance":
-          await handleGetBalanceRequest(message, port, session);
-          break;
         case "getUsedAddresses":
           await handleGetAddressesRequest(message, port, session, AddressState.Used);
           break;
@@ -231,117 +199,3 @@ browser?.runtime.onConnect.addListener((port) => {
     });
   }
 });
-
-function sendRequestsToUI(port: Port) {
-  for (const [key, value] of sessions.entries()) {
-    if (isEmpty(value.requestQueue)) {
-      continue;
-    }
-
-    for (const request of value.requestQueue.filter((r) => !r.handled)) {
-      if (request.message.function === "signTx") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [
-            value.origin,
-            value.favicon,
-            request.message.params ? request.message.params[0] : undefined
-          ]
-        } as RpcMessage);
-      } else if (request.message.function === "signTxInputs") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [
-            value.origin,
-            value.favicon,
-            request.message.params ? request.message.params[0] : undefined,
-            request.message.params ? request.message.params[1] : undefined
-          ]
-        } as RpcMessage);
-      } else if (request.message.function === "auth") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [value.origin, value.favicon].concat(
-            request.message.params ? request.message.params : undefined
-          )
-        } as RpcMessage);
-      } else {
-        continue;
-      }
-
-      request.handled = true;
-      return;
-    }
-  }
-}
-
-async function handleDisconnectRequest(request: RpcMessage, port: Port, origin?: string) {
-  if (!origin) {
-    postConnectorResponse(
-      {
-        isSuccess: true,
-        data: false
-      },
-      request,
-      port,
-      "auth"
-    );
-
-    return;
-  }
-
-  await connectedDAppsDbService.deleteByOrigin(origin);
-  sessions.forEach((value, key) => {
-    if (value.origin === origin) {
-      sessions.delete(key);
-    }
-  });
-
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: true
-    },
-    request,
-    port,
-    "auth"
-  );
-}
-
-function handleCheckConnectionRequest(request: RpcMessage, port: Port) {
-  const tabId = port.sender?.tab?.id;
-  const session = tabId !== undefined ? sessions.get(tabId) : undefined;
-
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: session !== undefined && session.walletId !== undefined
-    },
-    request,
-    port,
-    "auth"
-  );
-}
-
-function handleNautilusResponse(message: RpcMessage) {
-  const session = sessions.get(message.sessionId);
-  if (!session) {
-    return;
-  }
-
-  if (message.function === "connect" && message.return && message.return.isSuccess) {
-    session.walletId = message.return.data.walletId;
-  }
-
-  const request = find(session.requestQueue, (r) => r.message.requestId === message.requestId);
-  request?.resolve(message?.return || { isSuccess: false });
-}

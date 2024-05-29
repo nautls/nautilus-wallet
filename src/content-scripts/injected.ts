@@ -1,6 +1,6 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
 import { buildNamespaceFor } from "../background/messagingUtils";
-import { ExternalRequest } from "../background/messaging";
+import { ExternalRequest, Result } from "../background/messaging";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
 import { APIErrorCode } from "../types/connector";
 
@@ -98,16 +98,12 @@ class NautilusErgoApi {
     }
 
     const result = await sendMessage(ExternalRequest.GetUTxOs, { target }, CONTENT_SCRIPT);
-
-    if (result.success) {
-      return result.data;
-    } else {
-      throw result.error;
-    }
+    return handle(result);
   }
 
-  get_balance(token_id = "ERG") {
-    return this.#rpcCall("getBalance", [token_id]);
+  async get_balance(tokenId = "ERG") {
+    const result = await sendMessage(ExternalRequest.GetBalance, { tokenId }, CONTENT_SCRIPT);
+    return handle(result);
   }
 
   get_used_addresses(paginate = undefined) {
@@ -178,6 +174,14 @@ class NautilusErgoApi {
         }
       }
     };
+  }
+}
+
+function handle<T>(result: Result<T>) {
+  if (result.success) {
+    return result.data;
+  } else {
+    throw result.error;
   }
 }
 

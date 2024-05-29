@@ -95,4 +95,8 @@ function getHost(origin: string) {
   onMessage(ExternalRequest.GetUTxOs, async ({ data }) => {
     return await sendMessage(InternalRequest.GetUTxOs, { payload, ...data }, BACKGROUND);
   });
+
+  onMessage(ExternalRequest.GetBalance, async ({ data }) => {
+    return await sendMessage(InternalRequest.GetBalance, { payload, ...data }, BACKGROUND);
+  });
 })();
