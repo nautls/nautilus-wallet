@@ -160,8 +160,9 @@ class NautilusErgoApi {
     return this.#rpcCall("auth", [addr, message]);
   }
 
-  get_current_height() {
-    return this.#rpcCall("getCurrentHeight");
+  async get_current_height() {
+    const result = await sendMessage(ExternalRequest.GetCurrentHeight, _, CONTENT_SCRIPT);
+    return handle(result);
   }
 
   submit_tx(tx: unknown) {

@@ -103,4 +103,8 @@ function getHost(origin: string) {
   onMessage(ExternalRequest.GetAddresses, async ({ data }) => {
     return await sendMessage(InternalRequest.GetAddresses, { payload, ...data }, BACKGROUND);
   });
+
+  onMessage(ExternalRequest.GetCurrentHeight, async () => {
+    return await sendMessage(InternalRequest.GetCurrentHeight, { payload }, BACKGROUND);
+  });
 })();

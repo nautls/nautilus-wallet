@@ -133,35 +133,8 @@ export async function handleAuthRequest(request: RpcMessage, port: Port, session
   postConnectorResponse(response, request, port);
 }
 
-export async function handleGetCurrentHeightRequest(
-  request: RpcMessage,
-  port: Port,
-  session: Session | undefined
-) {
-  if (!validateSession(session, request, port) || !session.walletId) {
-    return;
-  }
-
-  const height = await graphQLService.getCurrentHeight();
-  if (height) {
-    postConnectorResponse(
-      {
-        isSuccess: true,
-        data: height
-      },
-      request,
-      port
-    );
-  } else {
-    postErrorMessage(
-      {
-        code: APIErrorCode.InternalError,
-        info: "Height returned by the backend is invalid."
-      },
-      request,
-      port
-    );
-  }
+export async function getCurrentHeight() {
+  return graphQLService.getCurrentHeight();
 }
 
 export async function handleSubmitTxRequest(request: RpcMessage, port: Port, session?: Session) {

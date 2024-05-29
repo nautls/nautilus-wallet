@@ -7,7 +7,8 @@ export const enum ExternalRequest {
 
   GetUTxOs = "ext:get-utxos",
   GetBalance = "ext:get-balance",
-  GetAddresses = "ext:get-addresses"
+  GetAddresses = "ext:get-addresses",
+  GetCurrentHeight = "ext:get-current-height"
 }
 
 export const enum InternalRequest {
@@ -18,6 +19,7 @@ export const enum InternalRequest {
   GetUTxOs = "int:get-utxos",
   GetBalance = "int:get-balance",
   GetAddresses = "int:get-addresses",
+  GetCurrentHeight = "int:get-current-height",
   SignTx = "int:sign-tx",
   Auth = "int:auth"
 }

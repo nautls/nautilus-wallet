@@ -30,6 +30,7 @@ declare module "webext-bridge" {
     [ExternalRequest.GetUTxOs]: WithReturn<UTxOsTarget, UTxOResult>;
     [ExternalRequest.GetBalance]: WithReturn<BalanceArgs, BalanceResult>;
     [ExternalRequest.GetAddresses]: WithReturn<AddressesArgs, AddressesResult>;
+    [ExternalRequest.GetCurrentHeight]: WithReturn<undefined, Result<number>>;
 
     [InternalRequest.Connect]: WithReturn<WithPayload, boolean>;
     [InternalRequest.CheckConnection]: WithReturn<WithPayload, boolean>;
@@ -38,6 +39,7 @@ declare module "webext-bridge" {
     [InternalRequest.GetUTxOs]: WithReturn<WithPayload<UTxOsTarget>, UTxOResult>;
     [InternalRequest.GetBalance]: WithReturn<WithPayload<BalanceArgs>, BalanceResult>;
     [InternalRequest.GetAddresses]: WithReturn<WithPayload<AddressesArgs>, AddressesResult>;
+    [InternalRequest.GetCurrentHeight]: WithReturn<WithPayload, Result<number>>;
 
     [InternalEvent.Loaded]: undefined;
   }

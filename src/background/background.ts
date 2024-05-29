@@ -4,9 +4,9 @@ import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService"
 import {
   getAddresses,
   getBalance,
+  getCurrentHeight,
   getUTxOs,
   handleAuthRequest,
-  handleGetCurrentHeightRequest,
   handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest
@@ -87,6 +87,19 @@ onMessage(InternalRequest.GetAddresses, async ({ sender, data }) => {
   if (isEmpty(addresses)) return error(APIErrorCode.InternalError, "No addresses found.");
 
   return success(addresses);
+});
+
+onMessage(InternalRequest.GetCurrentHeight, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return NOT_CONNECTED_ERROR;
+
+  const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
+  if (!connection) return NOT_CONNECTED_ERROR;
+
+  const height = await getCurrentHeight();
+
+  return height
+    ? success(height)
+    : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
 });
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
@@ -189,9 +202,6 @@ browser?.runtime.onConnect.addListener((port) => {
           break;
         case "signData":
           await handleNotImplementedRequest(message, port, session);
-          break;
-        case "getCurrentHeight":
-          await handleGetCurrentHeightRequest(message, port, session);
           break;
         case "submitTx":
           await handleSubmitTxRequest(message, port, sessions.get(tabId));
