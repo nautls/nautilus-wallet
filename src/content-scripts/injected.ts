@@ -1,6 +1,8 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
 import { buildNamespaceFor } from "../background/messagingUtils";
 import { ExternalRequest } from "../background/messaging";
+import { SelectionTarget } from "@nautilus-js/eip12-types";
+import { APIErrorCode } from "../types/connector";
 
 const CONTENT_SCRIPT = "content-script";
 const _ = undefined;
@@ -76,8 +78,32 @@ class NautilusErgoApi {
     return this;
   }
 
-  get_utxos(amountOrTargetObj = undefined, token_id = "ERG", paginate = undefined) {
-    return this.#rpcCall("getBoxes", [amountOrTargetObj, token_id, paginate]);
+  async get_utxos(
+    amountOrTarget?: SelectionTarget | string,
+    tokenId?: string,
+    paginate?: undefined
+  ) {
+    if (paginate) throw { code: APIErrorCode.InvalidRequest, info: "Pagination is not supported." };
+
+    let target: SelectionTarget | undefined;
+    if (amountOrTarget) {
+      if (typeof amountOrTarget === "string") {
+        target =
+          !tokenId || tokenId === "ERG"
+            ? { nanoErgs: amountOrTarget }
+            : { tokens: [{ tokenId, amount: amountOrTarget }] };
+      } else {
+        target = amountOrTarget;
+      }
+    }
+
+    const result = await sendMessage(ExternalRequest.GetUTxOs, { target }, CONTENT_SCRIPT);
+
+    if (result.success) {
+      return result.data;
+    } else {
+      throw result.error;
+    }
   }
 
   get_balance(token_id = "ERG") {

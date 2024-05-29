@@ -57,6 +57,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.23",
     "@ergo-graphql/types": "^0.5.1",
+    "@nautilus-js/eip12-types": "^0.1.9",
     "@types/bs58check": "^2.1.2",
     "@types/chrome": "^0.0.268",
     "@types/cleave.js": "^1.4.12",

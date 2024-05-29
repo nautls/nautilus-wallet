@@ -1,91 +1,16 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import {
-  APIError,
-  APIErrorCode,
-  RpcMessage,
-  RpcReturn,
-  SelectionTarget,
-  Session,
-  TokenTargetAmount
-} from "@/types/connector";
+import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import { openWindow } from "@/utils/uiHelpers";
-import { groupBy, isEmpty, isUndefined } from "lodash-es";
-import { postErrorMessage, postConnectorResponse } from "./messagingUtils";
+import { groupBy, isEmpty } from "lodash-es";
+import { postConnectorResponse, postErrorMessage } from "./messagingUtils";
 import JSONBig from "json-bigint";
 import { submitTx } from "@/api/ergo/submitTx";
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
-import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import { Port } from "../utils/browserApi";
-
-export async function handleGetBoxesRequest(request: RpcMessage, port: Port, session?: Session) {
-  if (!validateSession(session, request, port) || !session.walletId) {
-    return;
-  }
-
-  let target: SelectionTarget = { nanoErgs: undefined, tokens: undefined };
-  if (request.params) {
-    const firstParam = request.params[0];
-    if (!firstParam || typeof firstParam === "string" || typeof firstParam === "number") {
-      const amount = firstParam;
-      const tokenId = request.params[1];
-
-      if (tokenId === "ERG") {
-        target.nanoErgs = amount ? BigInt(amount) : undefined;
-      } else if (tokenId) {
-        target.tokens = [{ tokenId, amount: amount ? BigInt(amount) : undefined }];
-      }
-    } else {
-      target = {
-        nanoErgs: isUndefined(firstParam.nanoErgs) ? undefined : BigInt(firstParam.nanoErgs),
-        tokens: isUndefined(firstParam.tokens)
-          ? undefined
-          : firstParam.tokens.map((x: TokenTargetAmount) => {
-              return { tokenId: x.tokenId, amount: x.amount ? BigInt(x.amount) : undefined };
-            })
-      };
-    }
-
-    if (request.params[2]) {
-      postErrorMessage(
-        {
-          code: APIErrorCode.InvalidRequest,
-          info: "Pagination is not implemented."
-        },
-        request,
-        port
-      );
-    }
-  }
-
-  const boxes = await fetchBoxes(session.walletId);
-  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
-    (box) => box.creationHeight
-  );
-  let selection!: ErgoUnsignedInput[];
-
-  try {
-    selection = selector.select(target);
-  } catch {
-    selection = [];
-  }
-
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: selection.map((box) => ({
-        ...box.toPlainObject("EIP-12"),
-        confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
-      }))
-    },
-    request,
-    port
-  );
-}
 
 export async function handleGetBalanceRequest(request: RpcMessage, port: Port, session?: Session) {
   if (!validateSession(session, request, port) || !session.walletId) {

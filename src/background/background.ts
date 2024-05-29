@@ -1,4 +1,4 @@
-import { RpcEvent, RpcMessage, Session } from "../types/connector";
+import { APIErrorCode, RpcEvent, RpcMessage, Session } from "../types/connector";
 import { openWindow } from "@/utils/uiHelpers";
 import { find, isEmpty } from "lodash-es";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
@@ -7,7 +7,6 @@ import {
   handleAuthRequest,
   handleGetAddressesRequest,
   handleGetBalanceRequest,
-  handleGetBoxesRequest,
   handleGetChangeAddressRequest,
   handleGetCurrentHeightRequest,
   handleNotImplementedRequest,
@@ -19,9 +18,18 @@ import { browser, Port } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { isInternalEndpoint } from "webext-bridge";
-import { InternalEvent, InternalMessagePayload, InternalRequest } from "./messaging";
+import {
+  ErrorResult,
+  InternalEvent,
+  InternalMessagePayload,
+  InternalRequest,
+  SuccessResult
+} from "./messaging";
 import { AsyncRequestQueue } from "./asyncRequestQueue";
-import { isDefined } from "@fleet-sdk/common";
+import { Box, isDefined } from "@fleet-sdk/common";
+import { SelectionTarget } from "@nautilus-js/eip12-types";
+import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
+import { fetchBoxes } from "../api/ergo/boxFetcher";
 
 const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
 
@@ -51,6 +59,44 @@ onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
   return !connected;
 });
 
+onMessage(InternalRequest.GetUTxOs, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return error(APIErrorCode.InvalidRequest, "Not connected.");
+
+  const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
+  if (!connection) return error(APIErrorCode.InvalidRequest, "Not connected.");
+
+  const utxos = await getUTxOs(connection.walletId, data.target);
+  return success(utxos);
+});
+
+async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
+  const boxes = await fetchBoxes(walletId);
+  const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
+    (box) => box.creationHeight
+  );
+
+  let selection!: ErgoUnsignedInput[];
+  const selectionTarget = {
+    nanoErgs: target?.nanoErgs ? BigInt(target.nanoErgs) : undefined,
+    tokens:
+      target?.tokens?.map((x) => ({
+        tokenId: x.tokenId,
+        amount: x.amount ? BigInt(x.amount) : undefined
+      })) || []
+  };
+
+  try {
+    selection = selector.select(selectionTarget);
+  } catch {
+    selection = [];
+  }
+
+  return selection.map((box) => ({
+    ...box.toPlainObject("EIP-12"),
+    confirmed: boxes.find((x) => x.boxId === box.boxId)?.confirmed || false
+  }));
+}
+
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
   if (!isInternalEndpoint(sender)) return;
 
@@ -73,6 +119,27 @@ onMessage(InternalEvent.Loaded, async ({ sender }) => {
     request = requests.pop();
   }
 });
+
+/**
+ * Creates a success result object with the specified data.
+ *
+ * @template T - The type of the data.
+ * @param data - The data to be included in the success result.
+ * @returns A success result object containing the specified data.
+ */
+function success<T>(data: T): SuccessResult<T> {
+  return { success: true, data };
+}
+
+/**
+ * Creates an ErrorResult object with the specified API error code and information.
+ * @param code - The API error code.
+ * @param info - Additional information about the error.
+ * @returns An ErrorResult object with the specified error code and information.
+ */
+function error(code: APIErrorCode, info: string): ErrorResult {
+  return { success: false, error: { code, info } };
+}
 
 async function openConnectionWindow(origin: string, tabId: number): Promise<boolean> {
   const favicon = await getFavicon(tabId);
@@ -131,9 +198,6 @@ browser?.runtime.onConnect.addListener((port) => {
           break;
         case "checkConnection":
           handleCheckConnectionRequest(message, port);
-          break;
-        case "getBoxes":
-          await handleGetBoxesRequest(message, port, session);
           break;
         case "getBalance":
           await handleGetBalanceRequest(message, port, session);

@@ -78,6 +78,7 @@ function getHost(origin: string) {
 
   const payload = { origin: getHost(location.origin) };
 
+  // auth requests
   onMessage(ExternalRequest.Connect, async () => {
     return await sendMessage(InternalRequest.Connect, { payload }, BACKGROUND);
   });
@@ -88,5 +89,10 @@ function getHost(origin: string) {
 
   onMessage(ExternalRequest.Disconnect, async () => {
     return await sendMessage(InternalRequest.Disconnect, { payload }, BACKGROUND);
+  });
+
+  // context requests
+  onMessage(ExternalRequest.GetUTxOs, async ({ data }) => {
+    return await sendMessage(InternalRequest.GetUTxOs, { payload, ...data }, BACKGROUND);
   });
 })();

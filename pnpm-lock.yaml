@@ -129,6 +129,9 @@ importers:
       '@ergo-graphql/types':
         specifier: ^0.5.1
         version: 0.5.1
+      '@nautilus-js/eip12-types':
+        specifier: ^0.1.9
+        version: 0.1.9
       '@types/bs58check':
         specifier: ^2.1.2
         version: 2.1.2
@@ -480,6 +483,9 @@ packages:
 
   '@mdi/js@7.4.47':
     resolution: {integrity: sha512-KPnNOtm5i2pMabqZxpUz7iQf+mfrYZyKCZ8QNz85czgEt7cuHcGorWfdzUMWYA0SD+a6Hn4FmJ+YhzzzjkTZrQ==}
+
+  '@nautilus-js/eip12-types@0.1.9':
+    resolution: {integrity: sha512-J3zujpfav3BMFeEeeU4rvFC1QlmStOadLIa2hbIkCtV88njh23p45xyac59JXiIfdF2LJ1lnR2mr6YSqc+OBrA==}
 
   '@noble/hashes@1.4.0':
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
@@ -3026,6 +3032,8 @@ snapshots:
   '@ledgerhq/logs@6.12.0': {}
 
   '@mdi/js@7.4.47': {}
+
+  '@nautilus-js/eip12-types@0.1.9': {}
 
   '@noble/hashes@1.4.0': {}
 
