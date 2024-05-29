@@ -7,7 +7,6 @@ import {
   getCurrentHeight,
   getUTxOs,
   handleAuthRequest,
-  handleNotImplementedRequest,
   handleSignTxRequest,
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
@@ -100,6 +99,18 @@ onMessage(InternalRequest.GetCurrentHeight, async ({ sender, data }) => {
   return height
     ? success(height)
     : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
+});
+
+onMessage(InternalRequest.SignData, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return NOT_CONNECTED_ERROR;
+
+  const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
+  if (!connection) return NOT_CONNECTED_ERROR;
+
+  return {
+    success: false,
+    error: { code: APIErrorCode.InvalidRequest, info: "Not implemented." }
+  } as ErrorResult;
 });
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
@@ -199,9 +210,6 @@ browser?.runtime.onConnect.addListener((port) => {
         case "signTxInputs":
         case "signTx":
           await handleSignTxRequest(message, port, session);
-          break;
-        case "signData":
-          await handleNotImplementedRequest(message, port, session);
           break;
         case "submitTx":
           await handleSubmitTxRequest(message, port, sessions.get(tabId));

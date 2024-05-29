@@ -182,25 +182,6 @@ export async function handleSubmitTxRequest(request: RpcMessage, port: Port, ses
   }
 }
 
-export async function handleNotImplementedRequest(
-  request: RpcMessage,
-  port: Port,
-  session?: Session
-) {
-  if (!validateSession(session, request, port)) {
-    return;
-  }
-
-  postErrorMessage(
-    {
-      code: APIErrorCode.InvalidRequest,
-      info: "Not implemented."
-    },
-    request,
-    port
-  );
-}
-
 async function openPopup(session: Session, message: RpcMessage, port: Port): Promise<RpcReturn> {
   return new Promise((resolve, reject) => {
     const tabId = port.sender?.tab?.id;

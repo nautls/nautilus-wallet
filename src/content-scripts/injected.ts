@@ -113,34 +113,19 @@ class NautilusErgoApi {
   async get_used_addresses(paginate: undefined) {
     if (paginate) throw PAGINATION_ERROR;
 
-    const result = await sendMessage(
-      ExternalRequest.GetAddresses,
-      { filter: "used" },
-      CONTENT_SCRIPT
-    );
-
+    const result = await sendMessage(ExternalRequest.GetAddresses, "used", CONTENT_SCRIPT);
     return handle(result);
   }
 
   async get_unused_addresses(paginate: undefined) {
     if (paginate) throw PAGINATION_ERROR;
 
-    const result = await sendMessage(
-      ExternalRequest.GetAddresses,
-      { filter: "unused" },
-      CONTENT_SCRIPT
-    );
-
+    const result = await sendMessage(ExternalRequest.GetAddresses, "unused", CONTENT_SCRIPT);
     return handle(result);
   }
 
   async get_change_address() {
-    const result = await sendMessage(
-      ExternalRequest.GetAddresses,
-      { filter: "change" },
-      CONTENT_SCRIPT
-    );
-
+    const result = await sendMessage(ExternalRequest.GetAddresses, "change", CONTENT_SCRIPT);
     return handle(result);
   }
 
@@ -152,8 +137,10 @@ class NautilusErgoApi {
     return this.#rpcCall("signTxInputs", [tx, indexes]);
   }
 
-  sign_data(addr: string, message: string) {
-    return this.#rpcCall("signData", [addr, message]);
+  async sign_data(address: string, message: string) {
+    const data = { address, message };
+    const result = await sendMessage(ExternalRequest.SignData, data, CONTENT_SCRIPT);
+    return handle(result);
   }
 
   auth(addr: string, message: string) {

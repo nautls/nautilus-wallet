@@ -101,10 +101,14 @@ function getHost(origin: string) {
   });
 
   onMessage(ExternalRequest.GetAddresses, async ({ data }) => {
-    return await sendMessage(InternalRequest.GetAddresses, { payload, ...data }, BACKGROUND);
+    return await sendMessage(InternalRequest.GetAddresses, { payload, filter: data }, BACKGROUND);
   });
 
   onMessage(ExternalRequest.GetCurrentHeight, async () => {
     return await sendMessage(InternalRequest.GetCurrentHeight, { payload }, BACKGROUND);
+  });
+
+  onMessage(ExternalRequest.SignData, async () => {
+    return await sendMessage(InternalRequest.SignData, { payload }, BACKGROUND);
   });
 })();

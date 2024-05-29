@@ -1,5 +1,6 @@
 import type { ProtocolWithReturn as WithReturn } from "webext-bridge";
 import type {
+  ErrorResult,
   ExternalRequest,
   InternalEvent,
   InternalRequest,
@@ -29,8 +30,9 @@ declare module "webext-bridge" {
 
     [ExternalRequest.GetUTxOs]: WithReturn<UTxOsTarget, UTxOResult>;
     [ExternalRequest.GetBalance]: WithReturn<BalanceArgs, BalanceResult>;
-    [ExternalRequest.GetAddresses]: WithReturn<AddressesArgs, AddressesResult>;
+    [ExternalRequest.GetAddresses]: WithReturn<AddressType, AddressesResult>;
     [ExternalRequest.GetCurrentHeight]: WithReturn<undefined, Result<number>>;
+    [ExternalRequest.SignData]: WithReturn<unknown, ErrorResult>;
 
     [InternalRequest.Connect]: WithReturn<WithPayload, boolean>;
     [InternalRequest.CheckConnection]: WithReturn<WithPayload, boolean>;
@@ -40,6 +42,7 @@ declare module "webext-bridge" {
     [InternalRequest.GetBalance]: WithReturn<WithPayload<BalanceArgs>, BalanceResult>;
     [InternalRequest.GetAddresses]: WithReturn<WithPayload<AddressesArgs>, AddressesResult>;
     [InternalRequest.GetCurrentHeight]: WithReturn<WithPayload, Result<number>>;
+    [InternalRequest.SignData]: WithReturn<WithPayload, ErrorResult>;
 
     [InternalEvent.Loaded]: undefined;
   }
