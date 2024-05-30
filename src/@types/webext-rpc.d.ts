@@ -8,7 +8,7 @@ import type {
   DataWithPayload as WithPayload
 } from "@/background/messaging";
 import type { Box } from "@fleet-sdk/common";
-import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
+import type { AssetBalance, AuthResult, SelectionTarget } from "@nautilus-js/eip12-types";
 import type { AddressType } from "@/background/ergoApiHandlers";
 
 type ConnectionPayload = { createErgoObject: boolean };
@@ -22,6 +22,8 @@ type BalanceResult = Result<AssetBalance[] | string>;
 type AddressesArgs = { filter: AddressType };
 type AddressesResult = Result<string[] | string>;
 
+type AuthArgs = { address: string; message: string };
+
 declare module "webext-bridge" {
   export interface ProtocolMap {
     [ExternalRequest.Connect]: WithReturn<ConnectionPayload, boolean>;
@@ -33,6 +35,7 @@ declare module "webext-bridge" {
     [ExternalRequest.GetAddresses]: WithReturn<AddressType, AddressesResult>;
     [ExternalRequest.GetCurrentHeight]: WithReturn<undefined, Result<number>>;
     [ExternalRequest.SignData]: WithReturn<unknown, ErrorResult>;
+    [ExternalRequest.Auth]: WithReturn<AuthArgs, Result<AuthResult>>;
 
     [InternalRequest.Connect]: WithReturn<WithPayload, boolean>;
     [InternalRequest.CheckConnection]: WithReturn<WithPayload, boolean>;
@@ -43,6 +46,7 @@ declare module "webext-bridge" {
     [InternalRequest.GetAddresses]: WithReturn<WithPayload<AddressesArgs>, AddressesResult>;
     [InternalRequest.GetCurrentHeight]: WithReturn<WithPayload, Result<number>>;
     [InternalRequest.SignData]: WithReturn<WithPayload, ErrorResult>;
+    [InternalRequest.Auth]: WithReturn<WithPayload<AuthArgs>, Result<AuthResult>>;
 
     [InternalEvent.Loaded]: undefined;
   }

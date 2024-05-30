@@ -2,26 +2,38 @@ import router from "@/router";
 import { RpcEvent, RpcMessage } from "@/types/connector";
 import { browser, Port } from "@/utils/browserApi";
 import { onMessage, sendMessage } from "webext-bridge/popup";
-import { InternalEvent, InternalMessagePayload, InternalRequest } from "./messaging";
-import { AsyncRequestQueue } from "./asyncRequestQueue";
-
-const _ = undefined;
+import { DataWithPayload, InternalEvent, InternalRequest } from "./messaging";
+import { AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
+import { RouteLocationRaw } from "vue-router";
 
 export const queue = new AsyncRequestQueue();
+const _ = undefined;
 
 export function listen() {
   sendMessage(InternalEvent.Loaded, _, "background");
 
-  onMessage(InternalRequest.Connect, async (msg) => {
-    return await handleConnectionRequest(msg.data.payload);
-  });
+  onMessage(InternalRequest.Connect, ({ data }) => handle(InternalRequest.Connect, data));
+  onMessage(InternalRequest.Auth, ({ data }) => handle(InternalRequest.Auth, data));
 }
 
-async function handleConnectionRequest({ origin, favicon }: InternalMessagePayload) {
-  const promise = queue.push<boolean>({ type: InternalRequest.Connect, origin, favicon });
-  await router.replace({ name: "connector-connect", query: { popup: "true", auth: "true" } });
+async function handle<T>(type: AsyncRequestType, data: DataWithPayload) {
+  const promise = queue.push<T>({
+    type,
+    origin: data.payload.origin,
+    favicon: data.payload.favicon,
+    data
+  });
+  const route: RouteLocationRaw = { name: getRoute(type), query: { popup: "true" } };
+  if (type === InternalRequest.Connect) route.query!.auth = "true";
+  await router.replace(route);
 
   return promise;
+}
+
+function getRoute(requestType: AsyncRequestType) {
+  if (requestType === InternalRequest.Connect) return "connector-connect";
+  if (requestType === InternalRequest.Auth) return "connector-auth";
+  if (requestType === InternalRequest.SignTx) return "connector-sign-tx";
 }
 
 class RpcHandler {
@@ -90,12 +102,6 @@ class RpcHandler {
         case "signTx":
           router.replace({
             name: "connector-sign-tx",
-            query: { popup: "true" }
-          });
-          break;
-        case "auth":
-          router.replace({
-            name: "connector-auth",
             query: { popup: "true" }
           });
           break;

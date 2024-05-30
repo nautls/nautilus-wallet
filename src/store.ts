@@ -4,48 +4,48 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import {
-  groupBy,
-  sortBy,
+  clone,
+  difference,
   find,
   findIndex,
-  last,
-  take,
-  first,
-  maxBy,
-  clone,
   findLastIndex,
+  first,
+  groupBy,
   isEmpty,
-  uniq,
-  difference,
-  union
+  last,
+  maxBy,
+  sortBy,
+  take,
+  union,
+  uniq
 } from "lodash-es";
 import {
-  Network,
-  WalletType,
   AddressState,
   AddressType,
+  AssetSubtype,
+  AssetType,
+  Eip28SignedMessage,
+  Network,
+  SignEip28MessageCommand,
   SignTxCommand,
-  UpdateWalletSettingsCommand,
+  StateAssetInfo,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
-  StateAssetInfo,
-  AssetType,
-  AssetSubtype,
-  SignEip28MessageCommand,
-  Eip28SignedMessage
+  UpdateWalletSettingsCommand,
+  WalletType
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
-import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
+import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import {
-  ERG_TOKEN_ID,
   CHUNK_DERIVE_LENGTH,
   ERG_DECIMALS,
-  UNKNOWN_MINTING_BOX_ID,
-  MAINNET
+  ERG_TOKEN_ID,
+  MAINNET,
+  UNKNOWN_MINTING_BOX_ID
 } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
@@ -800,7 +800,7 @@ export default createStore({
       }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
-      context,
+      _,
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);

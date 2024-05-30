@@ -143,8 +143,10 @@ class NautilusErgoApi {
     return handle(result);
   }
 
-  auth(addr: string, message: string) {
-    return this.#rpcCall("auth", [addr, message]);
+  async auth(address: string, message: string) {
+    const data = { address, message };
+    const result = await sendMessage(ExternalRequest.Auth, data, CONTENT_SCRIPT);
+    return handle(result);
   }
 
   async get_current_height() {

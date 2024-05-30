@@ -4,7 +4,7 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy } from "@/utils/bigNumbers";
-import { openWindow } from "@/utils/uiHelpers";
+import { createWindow } from "@/utils/uiHelpers";
 import { groupBy } from "lodash-es";
 import { postConnectorResponse, postErrorMessage } from "./messagingUtils";
 import JSONBig from "json-bigint";
@@ -12,11 +12,17 @@ import { submitTx } from "@/api/ergo/submitTx";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { Port } from "../utils/browserApi";
 import BigNumber from "bignumber.js";
-import { Box, some } from "@fleet-sdk/common";
+import { Box, isDefined, some } from "@fleet-sdk/common";
 import type { AssetBalance } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import { fetchBoxes } from "../api/ergo/boxFetcher";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
+import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+
+export async function checkConnection(origin: string) {
+  const connection = await connectedDAppsDbService.getByOrigin(origin);
+  return isDefined(connection) && isDefined(connection?.walletId);
+}
 
 export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
   const boxes = await fetchBoxes(walletId);
@@ -105,34 +111,6 @@ export async function handleSignTxRequest(request: RpcMessage, port: Port, sessi
   postConnectorResponse(response, request, port);
 }
 
-export async function handleAuthRequest(request: RpcMessage, port: Port, session?: Session) {
-  if (!validateSession(session, request, port)) {
-    return;
-  }
-
-  if (!request.params || !request.params[0] || !request.params[1]) {
-    postErrorMessage({ code: APIErrorCode.InvalidRequest, info: "Bad params" }, request, port);
-    return;
-  }
-
-  const address = request.params[0];
-  const addressEntity = await addressesDbService.getByScript(address);
-  if (!addressEntity || addressEntity.walletId !== session?.walletId) {
-    postErrorMessage(
-      {
-        code: APIErrorCode.InvalidRequest,
-        info: `Address '${address}' does not belong to the connected wallet.`
-      },
-      request,
-      port
-    );
-    return;
-  }
-
-  const response = await openPopup(session, request, port);
-  postConnectorResponse(response, request, port);
-}
-
 export async function getCurrentHeight() {
   return graphQLService.getCurrentHeight();
 }
@@ -191,7 +169,7 @@ async function openPopup(session: Session, message: RpcMessage, port: Port): Pro
     }
 
     session.requestQueue.push({ handled: false, message, resolve });
-    openWindow(tabId);
+    createWindow(tabId);
   });
 }
 

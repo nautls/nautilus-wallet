@@ -1,4 +1,5 @@
-import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+import { UnsignedTransaction } from "@fleet-sdk/common";
+import { AuthArgs } from "../@types/webext-rpc";
 import { InternalRequest } from "./messaging";
 
 type AsyncRequestBase<T = unknown> = {
@@ -6,24 +7,32 @@ type AsyncRequestBase<T = unknown> = {
   type: InternalRequest;
   origin: string;
   favicon?: string;
+  data: T;
 
-  resolve: (value: T | PromiseLike<T>) => void;
+  resolve: <K = unknown>(value: K | PromiseLike<K>) => void;
   reject: (reason: unknown) => void;
 };
 
-export type ConnectionRequest = AsyncRequestBase<boolean> & {
+export type ConnectionRequest = AsyncRequestBase<undefined> & {
   type: InternalRequest.Connect;
-  favicon: string;
 };
 
-export type SignTransactionRequest = AsyncRequestBase<SignedTransaction> & {
+export type SignTransactionRequest<T = unknown> = AsyncRequestBase<T> & {
   type: InternalRequest.SignTx;
-  data: EIP12UnsignedTransaction;
 };
 
-type AsyncRequest = ConnectionRequest | SignTransactionRequest;
+export type AuthRequest<T = unknown> = AsyncRequestBase<T> & {
+  type: InternalRequest.Auth;
+};
+
+export type AsyncRequest = ConnectionRequest | SignTransactionRequest | AuthRequest;
 
 type AsyncRequestInput = Omit<AsyncRequest, "id" | "resolve" | "reject">;
+
+export type AsyncRequestType =
+  | InternalRequest.Connect
+  | InternalRequest.SignTx
+  | InternalRequest.Auth;
 
 export class AsyncRequestQueue {
   #queue;
@@ -47,8 +56,9 @@ export class AsyncRequestQueue {
   }
 
   pop(): AsyncRequest | undefined;
+  pop(type: InternalRequest.Auth): AuthRequest<AuthArgs> | undefined;
   pop(type: InternalRequest.Connect): ConnectionRequest | undefined;
-  pop(type: InternalRequest.SignTx): SignTransactionRequest | undefined;
+  pop(type: InternalRequest.SignTx): SignTransactionRequest<UnsignedTransaction> | undefined;
   pop(type?: InternalRequest): AsyncRequest | undefined {
     if (!type) return this.#queue.pop();
 

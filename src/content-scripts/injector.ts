@@ -111,4 +111,8 @@ function getHost(origin: string) {
   onMessage(ExternalRequest.SignData, async () => {
     return await sendMessage(InternalRequest.SignData, { payload }, BACKGROUND);
   });
+
+  onMessage(ExternalRequest.Auth, async ({ data }) => {
+    return await sendMessage(InternalRequest.Auth, { payload, ...data }, BACKGROUND);
+  });
 })();

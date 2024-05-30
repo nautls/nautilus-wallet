@@ -1,4 +1,4 @@
-import { APIErrorCode } from "@/types/connector";
+import { APIErrorCode, SignErrorCode } from "@/types/connector";
 
 export const enum ExternalRequest {
   Connect = "ext:connect",
@@ -11,7 +11,8 @@ export const enum ExternalRequest {
   GetCurrentHeight = "ext:get-current-height",
   SignTx = "ext:sign-tx",
   SignTxInput = "ext:sign-tx-input",
-  SignData = "ext:sign-data"
+  SignData = "ext:sign-data",
+  Auth = "ext:auth"
 }
 
 export const enum InternalRequest {
@@ -35,7 +36,10 @@ export const enum InternalEvent {
 }
 
 export type SuccessResult<T> = { success: true; data: T };
-export type ErrorResult = { success: false; error: { code: APIErrorCode; info: string } };
+export type ErrorResult = {
+  success: false;
+  error: { code: APIErrorCode | SignErrorCode; info: string };
+};
 export type Result<T> = SuccessResult<T> | ErrorResult;
 
 export type InternalMessagePayload = {
@@ -47,3 +51,24 @@ export type InternalMessagePayload = {
 export type DataWithPayload<T = unknown> = {
   payload: InternalMessagePayload;
 } & T;
+
+/**
+ * Creates a success result object with the specified data.
+ *
+ * @template T - The type of the data.
+ * @param data - The data to be included in the success result.
+ * @returns A success result object containing the specified data.
+ */
+export function success<T>(data: T): SuccessResult<T> {
+  return { success: true, data };
+}
+
+/**
+ * Creates an ErrorResult object with the specified API error code and information.
+ * @param code - The API error code.
+ * @param info - Additional information about the error.
+ * @returns An ErrorResult object with the specified error code and information.
+ */
+export function error(code: APIErrorCode | SignErrorCode, info: string): ErrorResult {
+  return { success: false, error: { code, info } };
+}
