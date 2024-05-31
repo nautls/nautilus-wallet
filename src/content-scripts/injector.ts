@@ -108,6 +108,10 @@ function getHost(origin: string) {
     return await sendMessage(InternalRequest.GetCurrentHeight, { payload }, BACKGROUND);
   });
 
+  onMessage(ExternalRequest.SubmitTransaction, async ({ data }) => {
+    return await sendMessage(InternalRequest.SubmitTransaction, { payload, ...data }, BACKGROUND);
+  });
+
   onMessage(ExternalRequest.SignData, async () => {
     return await sendMessage(InternalRequest.SignData, { payload }, BACKGROUND);
   });

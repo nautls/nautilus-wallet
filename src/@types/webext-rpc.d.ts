@@ -35,6 +35,9 @@ type SignTxResult = Result<SignedTransaction>;
 type SignTxInputsArgs = { transaction: EIP12UnsignedTransaction; indexes: number[] };
 type SignTxInputsResult = Result<SignedInput[]>;
 
+type SubmitTxArgs = { transaction: SignedTransaction };
+type SubmitTxResult = Result<string>;
+
 declare module "webext-bridge" {
   export interface ProtocolMap {
     [ExternalRequest.Connect]: WithReturn<ConnectionPayload, boolean>;
@@ -49,6 +52,7 @@ declare module "webext-bridge" {
     [ExternalRequest.Auth]: WithReturn<AuthArgs, Result<AuthResult>>;
     [ExternalRequest.SignTx]: WithReturn<SignTxArgs, SignTxResult>;
     [ExternalRequest.SignTxInputs]: WithReturn<SignTxInputsArgs, SignTxInputsResult>;
+    [ExternalRequest.SubmitTransaction]: WithReturn<SubmitTxArgs, SubmitTxResult>;
 
     [InternalRequest.Connect]: WithReturn<WithPayload, boolean>;
     [InternalRequest.CheckConnection]: WithReturn<WithPayload, boolean>;
@@ -62,6 +66,7 @@ declare module "webext-bridge" {
     [InternalRequest.Auth]: WithReturn<WithPayload<AuthArgs>, Result<AuthResult>>;
     [InternalRequest.SignTx]: WithReturn<WithPayload<SignTxArgs>, SignTxResult>;
     [InternalRequest.SignTxInputs]: WithReturn<WithPayload<SignTxInputsArgs>, SignTxInputsResult>;
+    [InternalRequest.SubmitTransaction]: WithReturn<WithPayload<SubmitTxArgs>, SubmitTxResult>;
 
     [InternalEvent.Loaded]: undefined;
   }

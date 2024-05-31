@@ -1,4 +1,4 @@
-import { APIErrorCode, SignErrorCode } from "@/types/connector";
+import { APIErrorCode, SignErrorCode, TxSendErrorCode } from "@/types/connector";
 
 export const enum ExternalRequest {
   Connect = "ext:connect",
@@ -12,7 +12,8 @@ export const enum ExternalRequest {
   SignTx = "ext:sign-tx",
   SignTxInputs = "ext:sign-tx-input",
   SignData = "ext:sign-data",
-  Auth = "ext:auth"
+  Auth = "ext:auth",
+  SubmitTransaction = "ext:submit-transaction"
 }
 
 export const enum InternalRequest {
@@ -27,7 +28,8 @@ export const enum InternalRequest {
   SignTx = "int:sign-tx",
   SignTxInputs = "int:sign-tx-input",
   SignData = "int:sign-data",
-  Auth = "int:auth"
+  Auth = "int:auth",
+  SubmitTransaction = "int:submit-transaction"
 }
 
 export const enum InternalEvent {
@@ -38,7 +40,7 @@ export const enum InternalEvent {
 export type SuccessResult<T> = { success: true; data: T };
 export type ErrorResult = {
   success: false;
-  error: { code: APIErrorCode | SignErrorCode; info: string };
+  error: { code: APIErrorCode | SignErrorCode | TxSendErrorCode; info: string };
 };
 export type Result<T> = SuccessResult<T> | ErrorResult;
 
@@ -69,6 +71,9 @@ export function success<T>(data: T): SuccessResult<T> {
  * @param info - Additional information about the error.
  * @returns An ErrorResult object with the specified error code and information.
  */
-export function error(code: APIErrorCode | SignErrorCode, info: string): ErrorResult {
+export function error(
+  code: APIErrorCode | SignErrorCode | TxSendErrorCode,
+  info: string
+): ErrorResult {
   return { success: false, error: { code, info } };
 }

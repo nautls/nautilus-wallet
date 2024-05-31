@@ -3,18 +3,13 @@ import { buildNamespaceFor } from "../background/messagingUtils";
 import { ExternalRequest, Result } from "../background/messaging";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
 import { APIErrorCode } from "../types/connector";
-import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 
 const CONTENT_SCRIPT = "content-script";
 const _ = undefined;
 const PAGINATION_ERROR = {
   code: APIErrorCode.InvalidRequest,
   info: "Pagination is not supported."
-};
-
-type Resolver = {
-  currentId: number;
-  requests: Map<number, { resolve: (value: unknown) => void; reject: (reason: unknown) => void }>;
 };
 
 declare global {
@@ -68,17 +63,11 @@ class NautilusAuthApi {
 class NautilusErgoApi {
   static instance: NautilusErgoApi;
 
-  #resolver: Resolver = {
-    currentId: 1,
-    requests: new Map()
-  };
-
   constructor() {
     if (NautilusErgoApi.instance) {
       return NautilusErgoApi.instance;
     }
 
-    window.addEventListener("message", this.#eventHandler(this.#resolver));
     NautilusErgoApi.instance = this;
     return this;
   }
@@ -158,42 +147,14 @@ class NautilusErgoApi {
     return handle(result);
   }
 
-  submit_tx(tx: unknown) {
-    return this.#rpcCall("submitTx", [tx]);
-  }
+  async submit_tx(transaction: SignedTransaction) {
+    const result = await sendMessage(
+      ExternalRequest.SubmitTransaction,
+      { transaction },
+      CONTENT_SCRIPT
+    );
 
-  #rpcCall(func: string, params?: unknown[]) {
-    return new Promise((resolve, reject) => {
-      window.postMessage({
-        type: "rpc/connector-request",
-        requestId: this.#resolver.currentId,
-        function: func,
-        params
-      });
-
-      this.#resolver.requests.set(this.#resolver.currentId, { resolve, reject });
-      this.#resolver.currentId++;
-    });
-  }
-
-  #eventHandler(resolver: Resolver) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (event: any) => {
-      if (event.data.type === "rpc/connector-response") {
-        // eslint-disable-next-line no-console
-        console.debug(JSON.stringify(event.data));
-        const promise = resolver.requests.get(event.data.requestId);
-        if (promise !== undefined) {
-          resolver.requests.delete(event.data.requestId);
-          const ret = event.data.return;
-          if (ret.isSuccess) {
-            promise.resolve(ret.data);
-          } else {
-            promise.reject(ret.data);
-          }
-        }
-      }
-    };
+    return handle(result);
   }
 }
 

@@ -1,4 +1,4 @@
-import { APIErrorCode, RpcEvent, RpcMessage, Session } from "../types/connector";
+import { APIErrorCode, TxSendErrorCode } from "../types/connector";
 import { createWindow } from "@/utils/uiHelpers";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import {
@@ -6,11 +6,9 @@ import {
   getAddresses,
   getBalance,
   getCurrentHeight,
-  getUTxOs,
-  handleSubmitTxRequest
+  getUTxOs
 } from "./ergoApiHandlers";
 import { browser } from "@/utils/browserApi";
-import { graphQLService } from "@/api/explorer/graphQlService";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { BridgeMessage, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import {
@@ -25,12 +23,10 @@ import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "./asyncReques
 import { isEmpty } from "@fleet-sdk/common";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/api/database/addressesDbService";
+import { submitTx } from "../api/ergo/submitTx";
 
 type SuccessfulConnection = { success: true; walletId: number };
 
-const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
-
-const sessions = new Map<number, Session>();
 const requests = new AsyncRequestQueue();
 
 onMessage(InternalRequest.Connect, async ({ data, sender }) => {
@@ -90,6 +86,19 @@ onMessage(InternalRequest.GetCurrentHeight, async (msg) => {
   return height
     ? success(height)
     : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
+});
+
+onMessage(InternalRequest.SubmitTransaction, async (msg) => {
+  const check = await validate(msg);
+  if (!check.success) return check;
+  if (!msg.data.transaction) return invalidRequest("Invalid params.");
+
+  try {
+    const response = await submitTx(msg.data.transaction, check.walletId);
+    return success(response);
+  } catch (e) {
+    return error(TxSendErrorCode.Refused, (e as Error).message);
+  }
 });
 
 onMessage(InternalRequest.SignData, async (msg) => {
@@ -175,42 +184,3 @@ async function getFavicon(tabId: number) {
 function invalidRequest(info: string) {
   return error(APIErrorCode.InvalidRequest, info);
 }
-
-function getHost(url?: string) {
-  if (!url) return;
-
-  const matches = url.match(ORIGIN_MATCHER);
-  if (matches) return matches[1];
-}
-
-browser?.runtime.onConnect.addListener((port) => {
-  // eslint-disable-next-line no-console
-  console.log(`connected with ${getHost(port.sender?.url)}`);
-
-  if (port.name === "nautilus-ui") {
-    port.onMessage.addListener(async (message: RpcMessage | RpcEvent) => {
-      if (message.type === "rpc/nautilus-event") {
-        switch (message.name) {
-          case "updated:graphql-url":
-            graphQLService.updateServerUrl(message.data);
-            break;
-        }
-      }
-    });
-  } else {
-    port.onMessage.addListener(async (message: RpcMessage, port) => {
-      const origin = getHost(port.sender?.url);
-      const tabId = port.sender?.tab?.id;
-      if (message.type !== "rpc/connector-request" || !port.sender || !origin || !tabId) {
-        return;
-      }
-
-      // const session = sessions.get(tabId);
-      switch (message.function) {
-        case "submitTx":
-          await handleSubmitTxRequest(message, port, sessions.get(tabId));
-          break;
-      }
-    });
-  }
-});
