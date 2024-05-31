@@ -1,5 +1,5 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
-import { buildNamespaceFor } from "../background/messagingUtils";
+import { buildNamespaceFor } from "@/background/messaging";
 import { ExternalRequest, Result } from "../background/messaging";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
 import { APIErrorCode } from "../types/connector";
@@ -91,79 +91,61 @@ class NautilusErgoApi {
       }
     }
 
-    const result = await sendMessage(ExternalRequest.GetUTxOs, { target }, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.GetUTxOs, { target }, CONTENT_SCRIPT));
   }
 
   async get_balance(tokenId = "ERG") {
-    const result = await sendMessage(ExternalRequest.GetBalance, { tokenId }, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.GetBalance, { tokenId }, CONTENT_SCRIPT));
   }
 
   async get_used_addresses(paginate: undefined) {
     if (paginate) throw PAGINATION_ERROR;
-
-    const result = await sendMessage(ExternalRequest.GetAddresses, "used", CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.GetAddresses, "used", CONTENT_SCRIPT));
   }
 
   async get_unused_addresses(paginate: undefined) {
     if (paginate) throw PAGINATION_ERROR;
-
-    const result = await sendMessage(ExternalRequest.GetAddresses, "unused", CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.GetAddresses, "unused", CONTENT_SCRIPT));
   }
 
   async get_change_address() {
-    const result = await sendMessage(ExternalRequest.GetAddresses, "change", CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.GetAddresses, "change", CONTENT_SCRIPT));
   }
 
   async sign_tx(transaction: EIP12UnsignedTransaction) {
-    const result = await sendMessage(ExternalRequest.SignTx, { transaction }, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.SignTx, { transaction }, CONTENT_SCRIPT));
   }
 
   async sign_tx_inputs(transaction: EIP12UnsignedTransaction, indexes: number[]) {
-    const data = { transaction, indexes };
-    const result = await sendMessage(ExternalRequest.SignTxInputs, data, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(
+      await sendMessage(ExternalRequest.SignTxInputs, { transaction, indexes }, CONTENT_SCRIPT)
+    );
   }
 
   async sign_data(address: string, message: string) {
-    const data = { address, message };
-    const result = await sendMessage(ExternalRequest.SignData, data, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(
+      await sendMessage(ExternalRequest.SignData, { address, message }, CONTENT_SCRIPT)
+    );
   }
 
   async auth(address: string, message: string) {
-    const data = { address, message };
-    const result = await sendMessage(ExternalRequest.Auth, data, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.Auth, { address, message }, CONTENT_SCRIPT));
   }
 
   async get_current_height() {
-    const result = await sendMessage(ExternalRequest.GetCurrentHeight, _, CONTENT_SCRIPT);
-    return handle(result);
+    return handle(await sendMessage(ExternalRequest.GetCurrentHeight, _, CONTENT_SCRIPT));
   }
 
   async submit_tx(transaction: SignedTransaction) {
-    const result = await sendMessage(
-      ExternalRequest.SubmitTransaction,
-      { transaction },
-      CONTENT_SCRIPT
+    return handle(
+      await sendMessage(ExternalRequest.SubmitTransaction, { transaction }, CONTENT_SCRIPT)
     );
-
-    return handle(result);
   }
 }
 
 function handle<T>(result: Result<T>) {
-  if (result.success) {
-    return result.data;
-  } else {
-    throw result.error;
-  }
+  if (result.success) return result.data;
+  else throw result.error;
 }
 
 const warnDeprecated = function (fnName: string) {

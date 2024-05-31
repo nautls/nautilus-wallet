@@ -1,5 +1,7 @@
 import { APIErrorCode, SignErrorCode, TxSendErrorCode } from "@/types/connector";
 
+export const RPC_NAMESPACE = "0e689455-8013-478d-827e-13e96888576a";
+
 export const enum ExternalRequest {
   Connect = "ext:connect",
   CheckConnection = "ext:check-connection",
@@ -77,4 +79,8 @@ export function error(
   info: string
 ): ErrorResult {
   return { success: false, error: { code, info } };
+}
+
+export function buildNamespaceFor(origin: string) {
+  return `${RPC_NAMESPACE}/${origin}`;
 }

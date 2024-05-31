@@ -1,21 +1,18 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { APIError, APIErrorCode, RpcMessage, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy } from "@/utils/bigNumbers";
 import { groupBy } from "lodash-es";
-import { postConnectorResponse, postErrorMessage } from "./messagingUtils";
-import JSONBig from "json-bigint";
-import { submitTx } from "@/api/ergo/submitTx";
 import { graphQLService } from "@/api/explorer/graphQlService";
-import { Port } from "../utils/browserApi";
 import BigNumber from "bignumber.js";
 import { Box, isDefined, some } from "@fleet-sdk/common";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import { fetchBoxes } from "../api/ergo/boxFetcher";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+
+export type AddressType = "used" | "unused" | "change";
 
 export async function checkConnection(origin: string) {
   const connection = await connectedDAppsDbService.getByOrigin(origin);
@@ -72,8 +69,6 @@ export async function getBalance(walletId: number, tokenId: string) {
 
   return balances;
 }
-
-export type AddressType = "used" | "unused" | "change";
 
 export async function getAddresses(walletId: number, filter: AddressType) {
   if (filter === "change") {
