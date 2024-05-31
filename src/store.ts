@@ -780,19 +780,20 @@ export default createStore({
       );
 
       const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
+      const changeIndex = find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0;
 
       if (command.inputsToSign && command.inputsToSign.length > 0) {
         return await new Prover(deriver)
           .from(addresses)
           .useLedger(isLedger)
-          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .changeIndex(changeIndex)
           .setCallback(command.callback)
           .signInputs(command.tx, blockHeaders, command.inputsToSign);
       } else {
         const signedTx = await new Prover(deriver)
           .from(addresses)
           .useLedger(isLedger)
-          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .changeIndex(changeIndex)
           .setCallback(command.callback)
           .sign(command.tx, blockHeaders);
 

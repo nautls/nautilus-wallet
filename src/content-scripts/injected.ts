@@ -3,6 +3,7 @@ import { buildNamespaceFor } from "../background/messagingUtils";
 import { ExternalRequest, Result } from "../background/messaging";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
 import { APIErrorCode } from "../types/connector";
+import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 
 const CONTENT_SCRIPT = "content-script";
 const _ = undefined;
@@ -129,12 +130,15 @@ class NautilusErgoApi {
     return handle(result);
   }
 
-  sign_tx(tx: unknown) {
-    return this.#rpcCall("signTx", [tx]);
+  async sign_tx(transaction: EIP12UnsignedTransaction) {
+    const result = await sendMessage(ExternalRequest.SignTx, { transaction }, CONTENT_SCRIPT);
+    return handle(result);
   }
 
-  sign_tx_inputs(tx: unknown, indexes: number[]) {
-    return this.#rpcCall("signTxInputs", [tx, indexes]);
+  async sign_tx_inputs(transaction: EIP12UnsignedTransaction, indexes: number[]) {
+    const data = { transaction, indexes };
+    const result = await sendMessage(ExternalRequest.SignTxInputs, data, CONTENT_SCRIPT);
+    return handle(result);
   }
 
   async sign_data(address: string, message: string) {

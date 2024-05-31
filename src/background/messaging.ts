@@ -10,7 +10,7 @@ export const enum ExternalRequest {
   GetAddresses = "ext:get-addresses",
   GetCurrentHeight = "ext:get-current-height",
   SignTx = "ext:sign-tx",
-  SignTxInput = "ext:sign-tx-input",
+  SignTxInputs = "ext:sign-tx-input",
   SignData = "ext:sign-data",
   Auth = "ext:auth"
 }
@@ -25,7 +25,7 @@ export const enum InternalRequest {
   GetAddresses = "int:get-addresses",
   GetCurrentHeight = "int:get-current-height",
   SignTx = "int:sign-tx",
-  SignTxInput = "int:sign-tx-input",
+  SignTxInputs = "int:sign-tx-input",
   SignData = "int:sign-data",
   Auth = "int:auth"
 }

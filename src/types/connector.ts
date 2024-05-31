@@ -78,18 +78,6 @@ export type Token = {
 
 export type Registers = { [key: string]: string };
 
-export type UnsignedInput = {
-  boxId: string;
-  transactionId: string;
-  index: number;
-  ergoTree: string;
-  creationHeight: number;
-  value: string;
-  assets: Token[];
-  additionalRegisters: Registers;
-  extension: { [key: string]: string };
-};
-
 export type ErgoBoxCandidate = {
   value: string;
   ergoTree: string;
@@ -112,30 +100,6 @@ export type ErgoBox = {
 
 export type DataInput = {
   boxId: string;
-};
-
-export type UnsignedTx = {
-  inputs: UnsignedInput[];
-  dataInputs: DataInput[] | UnsignedInput[];
-  outputs: ErgoBoxCandidate[];
-};
-
-export type InputSpendingProof = {
-  proofBytes: string;
-  extension: unknown;
-};
-
-export type Input = {
-  readonly boxId: string;
-  readonly spendingProof: InputSpendingProof;
-};
-
-export type ErgoTx = {
-  readonly id: string;
-  readonly inputs: Input[];
-  readonly dataInputs: DataInput[];
-  readonly outputs: ErgoBox[];
-  readonly size: number;
 };
 
 export type TokenTargetAmount = {

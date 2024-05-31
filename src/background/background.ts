@@ -7,17 +7,15 @@ import {
   getBalance,
   getCurrentHeight,
   getUTxOs,
-  handleSignTxRequest,
   handleSubmitTxRequest
 } from "./ergoApiHandlers";
 import { browser } from "@/utils/browserApi";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { onMessage, sendMessage } from "webext-bridge/background";
-import { BridgeMessage, isInternalEndpoint } from "webext-bridge";
+import { BridgeMessage, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import {
   DataWithPayload,
   error,
-  ErrorResult,
   InternalEvent,
   InternalMessagePayload,
   InternalRequest,
@@ -25,8 +23,7 @@ import {
 } from "./messaging";
 import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
 import { isEmpty } from "@fleet-sdk/common";
-import { ERG_TOKEN_ID } from "../constants/ergo";
-import { AuthResult } from "@nautilus-js/eip12-types";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/api/database/addressesDbService";
 
 type SuccessfulConnection = { success: true; walletId: number };
@@ -41,19 +38,16 @@ onMessage(InternalRequest.Connect, async ({ data, sender }) => {
 
   const authorized = await checkConnection(data.payload.origin);
   if (authorized) return true;
-
-  return await openWindow<boolean>(InternalRequest.Connect, data, sender.tabId);
+  return await openWindow(InternalRequest.Connect, data, sender.tabId);
 });
 
 onMessage(InternalRequest.CheckConnection, async ({ sender, data }) => {
   if (!isInternalEndpoint(sender)) return false;
-
   return await checkConnection(data.payload.origin);
 });
 
 onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
   if (!isInternalEndpoint(sender)) return false;
-
   await connectedDAppsDbService.deleteByOrigin(data.payload.origin);
   const connected = await checkConnection(data.payload.origin);
   return !connected;
@@ -102,29 +96,28 @@ onMessage(InternalRequest.SignData, async (msg) => {
   const check = await validate(msg);
   if (!check.success) return check;
 
-  return {
-    success: false,
-    error: { code: APIErrorCode.InvalidRequest, info: "Not implemented." }
-  } as ErrorResult;
+  return invalidRequest("Not implemented.");
 });
 
 onMessage(InternalRequest.Auth, async (msg) => {
   const check = await validate(msg);
   if (!check.success) return check;
-  if (!msg.data.address || !msg.data.message) {
-    return error(APIErrorCode.InvalidRequest, "Invalid params.");
-  }
+  if (!msg.data.address || !msg.data.message) return invalidRequest("Invalid params.");
 
   const address = await addressesDbService.getByScript(msg.data.address);
   if (!address || address.walletId !== check.walletId) {
-    return error(
-      APIErrorCode.InvalidRequest,
-      "The address is not associated with the connected wallet."
-    );
+    return invalidRequest("The address is not associated with the connected wallet.");
   }
 
-  const result = await openWindow<AuthResult>(InternalRequest.Auth, msg.data, msg.sender.tabId);
-  return result;
+  return await openWindow(InternalRequest.Auth, msg.data, msg.sender.tabId);
+});
+
+onMessage(InternalRequest.SignTx, async (msg) => {
+  const check = await validate(msg);
+  if (!check.success) return check;
+  if (!msg.data.transaction) return invalidRequest("Invalid params.");
+
+  return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId);
 });
 
 async function validate({ sender, data }: BridgeMessage<DataWithPayload>) {
@@ -156,15 +149,31 @@ onMessage(InternalEvent.Loaded, async ({ sender }) => {
   } while (request);
 });
 
-async function openWindow<T>(request: AsyncRequestType, data: DataWithPayload, tabId: number) {
-  const favicon = await getFavicon(tabId);
-  const promise = requests.push<T>({ type: request, origin: data.payload.origin, favicon, data });
+async function openWindow<T extends AsyncRequestType>(
+  request: T,
+  data: DataWithPayload,
+  tabId: number
+) {
+  if (!data.payload.favicon) {
+    data.payload.favicon = await getFavicon(tabId);
+  }
+
+  const promise = requests.push<GetReturnType<T>>({
+    type: request,
+    origin: data.payload.origin,
+    data
+  });
+
   await createWindow(tabId);
   return promise;
 }
 
 async function getFavicon(tabId: number) {
   return (await browser?.tabs.get(tabId))?.favIconUrl;
+}
+
+function invalidRequest(info: string) {
+  return error(APIErrorCode.InvalidRequest, info);
 }
 
 function getHost(url?: string) {
@@ -196,12 +205,8 @@ browser?.runtime.onConnect.addListener((port) => {
         return;
       }
 
-      const session = sessions.get(tabId);
+      // const session = sessions.get(tabId);
       switch (message.function) {
-        case "signTxInputs":
-        case "signTx":
-          await handleSignTxRequest(message, port, session);
-          break;
         case "submitTx":
           await handleSubmitTxRequest(message, port, sessions.get(tabId));
           break;

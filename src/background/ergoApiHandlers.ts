@@ -1,10 +1,9 @@
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { APIError, APIErrorCode, RpcMessage, RpcReturn, Session } from "@/types/connector";
+import { APIError, APIErrorCode, RpcMessage, Session } from "@/types/connector";
 import { AddressState } from "@/types/internal";
 import { sumBigNumberBy } from "@/utils/bigNumbers";
-import { createWindow } from "@/utils/uiHelpers";
 import { groupBy } from "lodash-es";
 import { postConnectorResponse, postErrorMessage } from "./messagingUtils";
 import JSONBig from "json-bigint";
@@ -13,10 +12,9 @@ import { graphQLService } from "@/api/explorer/graphQlService";
 import { Port } from "../utils/browserApi";
 import BigNumber from "bignumber.js";
 import { Box, isDefined, some } from "@fleet-sdk/common";
-import type { AssetBalance } from "@nautilus-js/eip12-types";
+import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import { fetchBoxes } from "../api/ergo/boxFetcher";
-import { SelectionTarget } from "@nautilus-js/eip12-types";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 
 export async function checkConnection(origin: string) {
@@ -29,8 +27,6 @@ export async function getUTxOs(walletId: number, target?: SelectionTarget): Prom
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
     (box) => box.creationHeight
   );
-
-  let selection!: ErgoUnsignedInput[];
   const selectionTarget = {
     nanoErgs: target?.nanoErgs ? BigInt(target.nanoErgs) : undefined,
     tokens:
@@ -40,6 +36,7 @@ export async function getUTxOs(walletId: number, target?: SelectionTarget): Prom
       })) || []
   };
 
+  let selection!: ErgoUnsignedInput[];
   try {
     selection = selector.select(selectionTarget);
   } catch {
@@ -89,43 +86,16 @@ export async function getAddresses(walletId: number, filter: AddressType) {
   return addresses.map((x) => x.script);
 }
 
-export async function handleSignTxRequest(request: RpcMessage, port: Port, session?: Session) {
-  if (!validateSession(session, request, port)) {
-    return;
-  }
-
-  if (!request.params || !request.params[0]) {
-    postErrorMessage(
-      {
-        code: APIErrorCode.InvalidRequest,
-        info: "Unsigned transaction object is undefined."
-      },
-      request,
-      port
-    );
-
-    return;
-  }
-
-  const response = await openPopup(session, request, port);
-  postConnectorResponse(response, request, port);
-}
-
 export async function getCurrentHeight() {
   return graphQLService.getCurrentHeight();
 }
 
 export async function handleSubmitTxRequest(request: RpcMessage, port: Port, session?: Session) {
-  if (!validateSession(session, request, port) || !session.walletId) {
-    return;
-  }
+  if (!validateSession(session, request, port) || !session.walletId) return;
 
   if (!request.params || !request.params[0]) {
     postErrorMessage(
-      {
-        code: APIErrorCode.InvalidRequest,
-        info: "Signed transaction object is undefined."
-      },
+      { code: APIErrorCode.InvalidRequest, info: "Signed transaction object is undefined." },
       request,
       port
     );
@@ -158,19 +128,6 @@ export async function handleSubmitTxRequest(request: RpcMessage, port: Port, ses
       port
     );
   }
-}
-
-async function openPopup(session: Session, message: RpcMessage, port: Port): Promise<RpcReturn> {
-  return new Promise((resolve, reject) => {
-    const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.url) {
-      reject("Invalid port.");
-      return;
-    }
-
-    session.requestQueue.push({ handled: false, message, resolve });
-    createWindow(tabId);
-  });
 }
 
 export function validateSession(

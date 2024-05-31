@@ -115,4 +115,12 @@ function getHost(origin: string) {
   onMessage(ExternalRequest.Auth, async ({ data }) => {
     return await sendMessage(InternalRequest.Auth, { payload, ...data }, BACKGROUND);
   });
+
+  onMessage(ExternalRequest.SignTx, async ({ data }) => {
+    return await sendMessage(InternalRequest.SignTx, { payload, ...data }, BACKGROUND);
+  });
+
+  onMessage(ExternalRequest.SignTxInputs, async ({ data }) => {
+    return await sendMessage(InternalRequest.SignTxInputs, { payload, ...data }, BACKGROUND);
+  });
 })();

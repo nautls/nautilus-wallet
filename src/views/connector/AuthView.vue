@@ -45,7 +45,7 @@ onMounted(async () => {
 
   const connection = await connectedDAppsDbService.getByOrigin(request.value.origin);
   if (!connection || !connection.walletId) {
-    request.value.resolve(error(APIErrorCode.Refused, "Not authorized."));
+    request.value.resolve(error(APIErrorCode.Refused, "Unauthorized."));
     window.close();
     return;
   }
@@ -114,7 +114,6 @@ function cancel() {
 
 function refuse() {
   if (!request.value) return;
-
   request.value.resolve(error(APIErrorCode.Refused, "User rejected."));
 }
 </script>
