@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { computed, nextTick, onMounted, PropType, reactive, ref } from "vue";
 import TxSignView from "./TxSignView.vue";
 import SignStateModal from "@/components/SignStateModal.vue";
@@ -7,6 +6,7 @@ import { ProverStateType, TransactionBuilderFunction, WalletType } from "@/types
 import { submitTx } from "@/api/ergo/submitTx";
 import store from "@/store";
 import { PartialSignState } from "../api/ergo/transaction/prover";
+import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 
 const props = defineProps({
   submit: { type: Boolean, default: true },
@@ -18,7 +18,7 @@ const props = defineProps({
 
 const emit = defineEmits(["success", "fail", "refused", "close"]);
 
-const transaction = ref<UnsignedTx | undefined>();
+const transaction = ref<EIP12UnsignedTransaction>();
 
 const signState = reactive({
   message: "",
@@ -68,7 +68,7 @@ function refused(info: string) {
 }
 
 async function success(
-  signedTx: ErgoTx,
+  signedTx: SignedTransaction,
   setStateEx: (state: ProverStateType, obj: PartialSignState) => void
 ) {
   if (!props.submit) {

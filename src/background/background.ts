@@ -24,6 +24,7 @@ import { isEmpty } from "@fleet-sdk/common";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { submitTx } from "../api/ergo/submitTx";
+import { graphQLService } from "../api/explorer/graphQlService";
 
 type SuccessfulConnection = { success: true; walletId: number };
 
@@ -156,6 +157,11 @@ onMessage(InternalEvent.Loaded, async ({ sender }) => {
     const result = await sendMessage(request.type, data, "popup");
     request.resolve(result);
   } while (request);
+});
+
+onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
+  if (!isInternalEndpoint(msg.sender) || !msg.data) return;
+  graphQLService.updateServerUrl(msg.data);
 });
 
 async function openWindow<T extends AsyncRequestType>(

@@ -51,7 +51,6 @@ import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs as extractP2PKAddressesFromInputs } from "./api/ergo/sigmaSerializer";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
@@ -63,6 +62,7 @@ import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlServi
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { getChangeAddress } from "./api/ergo/addresses";
+import { sendBackendServerUrl } from "./background/rpcHandler";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -408,9 +408,7 @@ export default createStore({
       localStorage.setItem("settings", JSON.stringify(state.settings));
 
       graphQLService.updateServerUrl(state.settings.graphQLServer);
-      if (rpcHandler.connected) {
-        rpcHandler.sendEvent("updated:graphql-url", state.settings.graphQLServer);
-      }
+      sendBackendServerUrl(state.settings.graphQLServer);
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
@@ -797,7 +795,7 @@ export default createStore({
           .setCallback(command.callback)
           .sign(command.tx, blockHeaders);
 
-        return graphQLService.mapTransaction(signedTx);
+        return signedTx;
       }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
@@ -825,7 +823,6 @@ export default createStore({
     async [ACTIONS.REMOVE_CONNECTION]({ dispatch }, origin: string) {
       await connectedDAppsDbService.deleteByOrigin(origin);
       dispatch(ACTIONS.LOAD_CONNECTIONS);
-      rpcHandler.sendEvent("disconnected", origin);
     },
     async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
       await walletsDbService.updateSettings(command.walletId, command.name, command);
