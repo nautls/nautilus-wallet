@@ -17,5 +17,3 @@ export function isPopup() {
   if (!browser?.extension) return false;
   return browser?.extension.getViews({ type: "popup" })[0] === self;
 }
-
-export type Port = chrome.runtime.Port;

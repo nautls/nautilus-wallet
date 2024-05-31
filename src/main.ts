@@ -25,7 +25,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import { hasBrowserContext } from "./utils/browserApi";
-import { listen } from "@/background/rpcHandler";
+import { startListening } from "@/background/rpcHandler";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import DAppPlate from "@/components/DappPlate.vue";
@@ -46,7 +46,9 @@ import "windi.css";
 import "@/assets/styles/main.css";
 
 dayjs.extend(relativeTime);
-if (hasBrowserContext()) listen();
+if (hasBrowserContext()) {
+  startListening();
+}
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
