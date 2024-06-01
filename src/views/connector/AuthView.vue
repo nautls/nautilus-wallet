@@ -9,7 +9,7 @@ import { PasswordError } from "@/types/errors";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { error, success } from "@/background/messaging";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import { AuthRequest } from "../../background/asyncRequestQueue";
+import { AsyncRequest } from "../../background/asyncRequestQueue";
 import { onMounted } from "vue";
 import { AuthArgs } from "@/@types/webext-rpc";
 import { watch } from "vue";
@@ -17,7 +17,7 @@ import useVuelidate from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import SignStateModal from "@/components/SignStateModal.vue";
 
-const request = ref<AuthRequest<AuthArgs>>();
+const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const errorMessage = ref("");
 const walletId = ref(0);

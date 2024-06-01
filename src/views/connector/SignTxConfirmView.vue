@@ -2,7 +2,7 @@
 import DappPlate from "@/components/DappPlate.vue";
 import TxSignView from "@/components/TxSignView.vue";
 import { ref, watch } from "vue";
-import { SignTxInputsRequest, SignTxRequest } from "@/background/asyncRequestQueue";
+import { AsyncRequest } from "@/background/asyncRequestQueue";
 import { onMounted } from "vue";
 import { error, InternalRequest, success } from "@/background/messaging";
 import { queue } from "@/background/rpcHandler";
@@ -14,7 +14,7 @@ import { ACTIONS } from "@/constants/store";
 import { computed } from "vue";
 import { SignedTransaction, some } from "@fleet-sdk/common";
 
-type RequestType = SignTxRequest<SignTxArgs> | SignTxInputsRequest<SignTxInputsArgs>;
+type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
 
 const request = ref<RequestType>();
 const walletId = ref(0);
@@ -52,20 +52,21 @@ function setWallet(loading: boolean, walletId: number) {
 }
 
 const inputsToSign = computed(() => {
-  if (request.value?.type === InternalRequest.SignTxInputs) {
-    return request.value.data.indexes;
-  }
-
-  return undefined;
+  if (!isSignInputsRequest(request.value)) return undefined;
+  return request.value.data.indexes;
 });
 
 const isPartialSign = computed(() => {
   return (
-    request.value?.type === InternalRequest.SignTxInputs &&
+    isSignInputsRequest(request.value) &&
     request.value.data.indexes.length > 0 &&
     request.value.data.indexes.length < request.value.data.transaction.inputs.length
   );
 });
+
+function isSignInputsRequest(req?: RequestType): req is AsyncRequest<SignTxInputsArgs> {
+  return req?.type === InternalRequest.SignTxInputs;
+}
 
 onMounted(async () => {
   request.value = queue.pop(InternalRequest.SignTx) || queue.pop(InternalRequest.SignTxInputs);

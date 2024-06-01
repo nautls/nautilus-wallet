@@ -50,7 +50,6 @@ export type Result<T> = SuccessResult<T> | ErrorResult;
 export type InternalMessagePayload = {
   origin: string;
   favicon?: string;
-  requestId?: number;
 };
 
 export type DataWithPayload<T = unknown> = {

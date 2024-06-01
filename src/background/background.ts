@@ -11,14 +11,7 @@ import {
 import { browser } from "@/utils/browserApi";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { BridgeMessage, GetReturnType, isInternalEndpoint } from "webext-bridge";
-import {
-  DataWithPayload,
-  error,
-  InternalEvent,
-  InternalMessagePayload,
-  InternalRequest,
-  success
-} from "./messaging";
+import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "./messaging";
 import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
 import { isEmpty } from "@fleet-sdk/common";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -147,11 +140,7 @@ onMessage(InternalEvent.Loaded, async ({ sender }) => {
     request = requests.pop();
     if (!request) continue;
 
-    const payload: InternalMessagePayload = {
-      origin: request.origin,
-      requestId: request.id,
-      favicon: request.favicon
-    };
+    const payload = { origin: request.origin, favicon: request.favicon };
     const data = request.data ? { payload, ...request.data } : { payload };
 
     const result = await sendMessage(request.type, data, "popup");

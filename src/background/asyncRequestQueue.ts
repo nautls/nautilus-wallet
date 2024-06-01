@@ -1,8 +1,7 @@
 import { AuthArgs, SignTxArgs, SignTxInputsArgs } from "@/@types/webext-rpc";
 import { InternalRequest } from "./messaging";
 
-type AsyncRequestBase<T = unknown> = {
-  id: number;
+export type AsyncRequest<T = unknown> = {
   type: InternalRequest;
   origin: string;
   favicon?: string;
@@ -11,24 +10,6 @@ type AsyncRequestBase<T = unknown> = {
   resolve: <K = unknown>(value: K | PromiseLike<K>) => void;
   reject: (reason: unknown) => void;
 };
-
-export type ConnectionRequest = AsyncRequestBase<undefined> & {
-  type: InternalRequest.Connect;
-};
-
-export type SignTxRequest<T = unknown> = AsyncRequestBase<T> & {
-  type: InternalRequest.SignTx;
-};
-
-export type SignTxInputsRequest<T = unknown> = AsyncRequestBase<T> & {
-  type: InternalRequest.SignTxInputs;
-};
-
-export type AuthRequest<T = unknown> = AsyncRequestBase<T> & {
-  type: InternalRequest.Auth;
-};
-
-export type AsyncRequest = ConnectionRequest | SignTxRequest | SignTxInputsRequest | AuthRequest;
 
 type AsyncRequestInput = Omit<AsyncRequest, "id" | "resolve" | "reject">;
 
@@ -40,17 +21,14 @@ export type AsyncRequestType =
 
 export class AsyncRequestQueue {
   #queue;
-  #currentId;
 
   constructor() {
     this.#queue = [] as AsyncRequest[];
-    this.#currentId = 0;
   }
 
   push<T>(asyncRequest: AsyncRequestInput): Promise<T> {
     const request = asyncRequest as AsyncRequest;
-    request.id = this.#currentId++;
-    const promise = new Promise<unknown>((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       request.resolve = resolve;
       request.reject = reject;
     });
@@ -60,10 +38,10 @@ export class AsyncRequestQueue {
   }
 
   pop(): AsyncRequest | undefined;
-  pop(type: InternalRequest.Auth): AuthRequest<AuthArgs> | undefined;
-  pop(type: InternalRequest.Connect): ConnectionRequest | undefined;
-  pop(type: InternalRequest.SignTx): SignTxRequest<SignTxArgs> | undefined;
-  pop(type: InternalRequest.SignTxInputs): SignTxInputsRequest<SignTxInputsArgs> | undefined;
+  pop(type: InternalRequest.Auth): AsyncRequest<AuthArgs> | undefined;
+  pop(type: InternalRequest.Connect): AsyncRequest | undefined;
+  pop(type: InternalRequest.SignTx): AsyncRequest<SignTxArgs> | undefined;
+  pop(type: InternalRequest.SignTxInputs): AsyncRequest<SignTxInputsArgs> | undefined;
   pop(type?: InternalRequest): AsyncRequest | undefined {
     if (!type) return this.#queue.pop();
 
@@ -74,15 +52,6 @@ export class AsyncRequestQueue {
     this.#queue.splice(index, 1);
 
     return request;
-  }
-
-  get(id: number): AsyncRequest | undefined {
-    return this.#queue.find((x) => x.id === id);
-  }
-
-  remove(id: number): void {
-    const index = this.#queue.findIndex((x) => x.id === id);
-    if (index > -1) this.#queue.splice(index, 1);
   }
 
   some(): boolean {
