@@ -3,7 +3,7 @@
     class="shadow-scroll text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1"
   >
     <template v-if="!transaction">
-      <tx-box-details loading v-for="i in 3" :key="i" />
+      <tx-box-details v-for="i in 3" :key="i" loading />
     </template>
 
     <template v-else>
@@ -17,15 +17,15 @@
 
       <tx-box-details
         v-for="(output, index) in tx?.sending"
+        :key="index"
         :assets="output.assets"
         :babel-swap="output.isBabelBoxSwap"
-        :key="index"
         :type="output.isIntrawallet ? 'info' : 'default'"
       >
         <p>
           {{ getOutputTitle(output) }}
         </p>
-        <template v-slot:subheader v-if="!output.isBabelBoxSwap">
+        <template v-if="!output.isBabelBoxSwap" #subheader>
           <div class="font-mono text-sm break-all flex flex-col gap-2">
             <p>
               {{ $filters.compactString(output.receiver, 60) }}
@@ -61,7 +61,7 @@
       v-if="tx?.burning"
       class="inline-flex items-center font-normal cursor-pointer bg-red-100 border-1 border-red-300 mb-2 py-1 px-3 rounded w-full"
     >
-      <input class="checkbox" type="checkbox" v-model="burnAgreement" />
+      <input v-model="burnAgreement" class="checkbox" type="checkbox" />
       <span class="text-red-900">I understand that I'm burning token(s).</span>
     </label>
 
@@ -70,17 +70,17 @@
         <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
         <span class="align-middle"> This wallet cannot sign transactions.</span>
       </p>
-      <div class="text-left" v-else>
-        <form @submit.prevent="sign()" :disabled="!canSign || isMnemonicSigning">
+      <div v-else class="text-left">
+        <form :disabled="!canSign || isMnemonicSigning" @submit.prevent="sign()">
           <input
+            v-model="password"
             placeholder="Spending password"
             type="password"
-            @blur="v$.password.$touch()"
             :disabled="!canSign || isMnemonicSigning || !transaction"
-            v-model="password"
             class="w-full control block"
+            @blur="v$.password.$touch()"
           />
-          <p class="input-error" v-if="v$.password.$error">
+          <p v-if="v$.password.$error" class="input-error">
             {{ v$.password.$errors[0].$message }}
           </p>
         </form>
@@ -88,18 +88,18 @@
     </template>
   </div>
 
-  <div class="flex flex-row gap-4" v-if="!isLedger || (isLedger && !signing && !signed)">
-    <button class="btn outlined w-full" @click="cancel()" :disabled="isMnemonicSigning">
+  <div v-if="!isLedger || (isLedger && !signing && !signed)" class="flex flex-row gap-4">
+    <button class="btn outlined w-full" :disabled="isMnemonicSigning" @click="cancel()">
       Cancel
     </button>
 
-    <button class="btn w-full" @click="sign()" :disabled="!canSign || !transaction">
+    <button class="btn w-full" :disabled="!canSign || !transaction" @click="sign()">
       <loading-indicator v-if="isMnemonicSigning" type="circular" class="h-4 w-4 align-middle" />
       <span v-else>Sign</span>
     </button>
   </div>
 
-  <div class="-mt-6" v-if="isLedger">
+  <div v-if="isLedger" class="-mt-6">
     <ledger-device
       v-show="active"
       :caption="signState.statusText"
@@ -123,11 +123,10 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { mapState } from "vuex";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
 import {
-  SigningState,
   ProverStateType,
+  SigningState,
   SignTxCommand,
   StateAddress,
   StateAssetInfo,
@@ -146,7 +145,7 @@ import "vue-json-pretty/lib/styles.css";
 import { AddressType } from "@fleet-sdk/core";
 import TxSignSummary from "@/components/TxSignSummary.vue";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
-import { isDefined } from "@fleet-sdk/common";
+import { EIP12UnsignedTransaction, isDefined, SignedTransaction } from "@fleet-sdk/common";
 
 export default defineComponent({
   name: "TxSignView",
@@ -156,9 +155,8 @@ export default defineComponent({
     TxBoxDetails,
     VueJsonPretty
   },
-  emits: ["success", "fail", "refused"],
   props: {
-    transaction: { type: Object as PropType<Readonly<UnsignedTx>>, required: false },
+    transaction: { type: Object as PropType<Readonly<EIP12UnsignedTransaction>>, required: false },
     inputsToSign: { type: Array<number>, required: false },
     isModal: { type: Boolean, default: false },
     setExternalState: {
@@ -166,6 +164,7 @@ export default defineComponent({
       required: false
     }
   },
+  emits: ["success", "fail", "refused"],
   setup() {
     return {
       v$: useVuelidate()
@@ -327,7 +326,7 @@ export default defineComponent({
       this.$emit("fail", info);
     },
     succeed(
-      signedTx: ErgoTx,
+      signedTx: SignedTransaction,
       setStateFn: (state: ProverStateType, obj: Omit<Partial<SigningState>, "state">) => void
     ) {
       this.$emit("success", signedTx, setStateFn);

@@ -4,54 +4,53 @@ import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import {
-  groupBy,
-  sortBy,
+  clone,
+  difference,
   find,
   findIndex,
-  last,
-  take,
-  first,
-  maxBy,
-  clone,
   findLastIndex,
+  first,
+  groupBy,
   isEmpty,
-  uniq,
-  difference,
-  union
+  last,
+  maxBy,
+  sortBy,
+  take,
+  union,
+  uniq
 } from "lodash-es";
 import {
-  Network,
-  WalletType,
   AddressState,
   AddressType,
+  AssetSubtype,
+  AssetType,
+  Eip28SignedMessage,
+  Network,
+  SignEip28MessageCommand,
   SignTxCommand,
-  UpdateWalletSettingsCommand,
+  StateAssetInfo,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
-  StateAssetInfo,
-  AssetType,
-  AssetSubtype,
-  SignEip28MessageCommand,
-  Eip28SignedMessage
+  UpdateWalletSettingsCommand,
+  WalletType
 } from "@/types/internal";
 import { bip32Pool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
-import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
+import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import {
-  ERG_TOKEN_ID,
   CHUNK_DERIVE_LENGTH,
   ERG_DECIMALS,
-  UNKNOWN_MINTING_BOX_ID,
-  MAINNET
+  ERG_TOKEN_ID,
+  MAINNET,
+  UNKNOWN_MINTING_BOX_ID
 } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { rpcHandler } from "./background/rpcHandler";
 import { extractAddressesFromInputs as extractP2PKAddressesFromInputs } from "./api/ergo/sigmaSerializer";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
@@ -63,6 +62,7 @@ import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlServi
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { getChangeAddress } from "./api/ergo/addresses";
+import { sendBackendServerUrl } from "./background/rpcHandler";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -408,9 +408,7 @@ export default createStore({
       localStorage.setItem("settings", JSON.stringify(state.settings));
 
       graphQLService.updateServerUrl(state.settings.graphQLServer);
-      if (rpcHandler.connected) {
-        rpcHandler.sendEvent("updated:graphql-url", state.settings.graphQLServer);
-      }
+      sendBackendServerUrl(state.settings.graphQLServer);
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
@@ -780,27 +778,28 @@ export default createStore({
       );
 
       const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
+      const changeIndex = find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0;
 
       if (command.inputsToSign && command.inputsToSign.length > 0) {
         return await new Prover(deriver)
           .from(addresses)
           .useLedger(isLedger)
-          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .changeIndex(changeIndex)
           .setCallback(command.callback)
           .signInputs(command.tx, blockHeaders, command.inputsToSign);
       } else {
         const signedTx = await new Prover(deriver)
           .from(addresses)
           .useLedger(isLedger)
-          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .changeIndex(changeIndex)
           .setCallback(command.callback)
           .sign(command.tx, blockHeaders);
 
-        return graphQLService.mapTransaction(signedTx);
+        return signedTx;
       }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
-      context,
+      _,
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
@@ -824,7 +823,6 @@ export default createStore({
     async [ACTIONS.REMOVE_CONNECTION]({ dispatch }, origin: string) {
       await connectedDAppsDbService.deleteByOrigin(origin);
       dispatch(ACTIONS.LOAD_CONNECTIONS);
-      rpcHandler.sendEvent("disconnected", origin);
     },
     async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
       await walletsDbService.updateSettings(command.walletId, command.name, command);

@@ -1,200 +1,177 @@
-type Resolver = {
-  currentId: number;
-  requests: Map<number, { resolve: (value: unknown) => void; reject: (reason: unknown) => void }>;
+import { sendMessage, setNamespace } from "webext-bridge/window";
+import { buildNamespaceFor } from "@/background/messaging";
+import { ExternalRequest, Result } from "../background/messaging";
+import { SelectionTarget } from "@nautilus-js/eip12-types";
+import { APIErrorCode } from "../types/connector";
+import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+
+const CONTENT_SCRIPT = "content-script";
+const _ = undefined;
+const PAGINATION_ERROR = {
+  code: APIErrorCode.InvalidRequest,
+  info: "Pagination is not supported."
 };
 
-declare const ergoConnector: any;
+declare global {
+  interface Window {
+    ergo?: Readonly<NautilusErgoApi>;
+    ergoConnector: { nautilus: Readonly<NautilusAuthApi> };
+    ergo_request_read_access: () => Promise<boolean>;
+    ergo_check_read_access: () => Promise<boolean>;
+  }
+}
 
-declare interface Window {
-  ergo: any;
-  ergo_request_read_access: any;
-  ergo_check_read_access: any;
-  ergoConnector: any;
+class NautilusAuthApi {
+  #context?: Readonly<NautilusErgoApi>;
+
+  async connect({ createErgoObject = true } = {}): Promise<boolean> {
+    const granted = await sendMessage(
+      ExternalRequest.Connect,
+      { createErgoObject },
+      CONTENT_SCRIPT
+    );
+
+    if (granted) {
+      this.#context = Object.freeze(new NautilusErgoApi());
+      if (createErgoObject) {
+        window.ergo = this.#context;
+      }
+    }
+
+    return granted;
+  }
+
+  isConnected() {
+    return sendMessage(ExternalRequest.CheckConnection, _, CONTENT_SCRIPT);
+  }
+
+  async disconnect() {
+    const disconnected = await sendMessage(ExternalRequest.Disconnect, _, CONTENT_SCRIPT);
+    if (disconnected) {
+      this.#context = undefined;
+      if (window.ergo) delete window.ergo;
+    }
+
+    return disconnected;
+  }
+
+  getContext() {
+    return this.#context ? Promise.resolve(this.#context) : Promise.reject();
+  }
 }
 
 class NautilusErgoApi {
   static instance: NautilusErgoApi;
-
-  #resolver: Resolver = {
-    currentId: 1,
-    requests: new Map()
-  };
 
   constructor() {
     if (NautilusErgoApi.instance) {
       return NautilusErgoApi.instance;
     }
 
-    window.addEventListener("message", this.#eventHandler(this.#resolver));
     NautilusErgoApi.instance = this;
     return this;
   }
 
-  get_utxos(amountOrTargetObj = undefined, token_id = "ERG", paginate = undefined) {
-    return this.#rpcCall("getBoxes", [amountOrTargetObj, token_id, paginate]);
-  }
+  async get_utxos(
+    amountOrTarget?: SelectionTarget | string,
+    tokenId?: string,
+    paginate?: undefined
+  ) {
+    if (paginate) throw PAGINATION_ERROR;
 
-  get_balance(token_id = "ERG") {
-    return this.#rpcCall("getBalance", [token_id]);
-  }
-
-  get_used_addresses(paginate = undefined) {
-    return this.#rpcCall("getUsedAddresses", [paginate]);
-  }
-
-  get_unused_addresses() {
-    return this.#rpcCall("getUnusedAddresses");
-  }
-
-  get_change_address() {
-    return this.#rpcCall("getChangeAddress");
-  }
-
-  sign_tx(tx: unknown) {
-    return this.#rpcCall("signTx", [tx]);
-  }
-
-  sign_tx_inputs(tx: unknown, indexes: number[]) {
-    return this.#rpcCall("signTxInputs", [tx, indexes]);
-  }
-
-  sign_data(addr: string, message: string) {
-    return this.#rpcCall("signData", [addr, message]);
-  }
-
-  auth(addr: string, message: string) {
-    return this.#rpcCall("auth", [addr, message]);
-  }
-
-  get_current_height() {
-    return this.#rpcCall("getCurrentHeight");
-  }
-
-  submit_tx(tx: unknown) {
-    return this.#rpcCall("submitTx", [tx]);
-  }
-
-  #rpcCall(func: string, params?: unknown[]) {
-    return new Promise((resolve, reject) => {
-      window.postMessage({
-        type: "rpc/connector-request",
-        requestId: this.#resolver.currentId,
-        function: func,
-        params
-      });
-
-      this.#resolver.requests.set(this.#resolver.currentId, { resolve, reject });
-      this.#resolver.currentId++;
-    });
-  }
-
-  #eventHandler(resolver: Resolver) {
-    // todo: remove this any
-    return (event: any) => {
-      if (event.data.type === "rpc/connector-response") {
-        console.debug(JSON.stringify(event.data));
-        const promise = resolver.requests.get(event.data.requestId);
-        if (promise !== undefined) {
-          resolver.requests.delete(event.data.requestId);
-          const ret = event.data.return;
-          if (ret.isSuccess) {
-            promise.resolve(ret.data);
-          } else {
-            promise.reject(ret.data);
-          }
-        }
+    let target: SelectionTarget | undefined;
+    if (amountOrTarget) {
+      if (typeof amountOrTarget === "string") {
+        target =
+          !tokenId || tokenId === "ERG"
+            ? { nanoErgs: amountOrTarget }
+            : { tokens: [{ tokenId, amount: amountOrTarget }] };
+      } else {
+        target = amountOrTarget;
       }
-    };
+    }
+
+    return handle(await sendMessage(ExternalRequest.GetUTxOs, { target }, CONTENT_SCRIPT));
+  }
+
+  async get_balance(tokenId = "ERG") {
+    return handle(await sendMessage(ExternalRequest.GetBalance, { tokenId }, CONTENT_SCRIPT));
+  }
+
+  async get_used_addresses(paginate: undefined) {
+    if (paginate) throw PAGINATION_ERROR;
+    return handle(await sendMessage(ExternalRequest.GetAddresses, "used", CONTENT_SCRIPT));
+  }
+
+  async get_unused_addresses(paginate: undefined) {
+    if (paginate) throw PAGINATION_ERROR;
+    return handle(await sendMessage(ExternalRequest.GetAddresses, "unused", CONTENT_SCRIPT));
+  }
+
+  async get_change_address() {
+    return handle(await sendMessage(ExternalRequest.GetAddresses, "change", CONTENT_SCRIPT));
+  }
+
+  async sign_tx(transaction: EIP12UnsignedTransaction) {
+    return handle(await sendMessage(ExternalRequest.SignTx, { transaction }, CONTENT_SCRIPT));
+  }
+
+  async sign_tx_inputs(transaction: EIP12UnsignedTransaction, indexes: number[]) {
+    return handle(
+      await sendMessage(ExternalRequest.SignTxInputs, { transaction, indexes }, CONTENT_SCRIPT)
+    );
+  }
+
+  async sign_data(address: string, message: string) {
+    return handle(
+      await sendMessage(ExternalRequest.SignData, { address, message }, CONTENT_SCRIPT)
+    );
+  }
+
+  async auth(address: string, message: string) {
+    return handle(await sendMessage(ExternalRequest.Auth, { address, message }, CONTENT_SCRIPT));
+  }
+
+  async get_current_height() {
+    return handle(await sendMessage(ExternalRequest.GetCurrentHeight, _, CONTENT_SCRIPT));
+  }
+
+  async submit_tx(transaction: SignedTransaction) {
+    return handle(
+      await sendMessage(ExternalRequest.SubmitTransaction, { transaction }, CONTENT_SCRIPT)
+    );
   }
 }
 
+function handle<T>(result: Result<T>) {
+  if (result.success) return result.data;
+  else throw result.error;
+}
+
+const warnDeprecated = function (fnName: string) {
+  // eslint-disable-next-line no-console
+  console.warn(`[Deprecated] This method will be disabled soon and replaced by '${fnName}'.`);
+};
+
 (() => {
-  const resolver = new Map();
-  let rpcId = 0;
-  let instance: Readonly<NautilusErgoApi> | undefined;
+  setNamespace(buildNamespaceFor(location.origin));
 
-  window.addEventListener("message", function (event) {
-    if (event.data.type !== "rpc/connector-response/auth") return;
-
-    const promise = resolver.get(event.data.requestId);
-    if (!promise) return;
-
-    resolver.delete(event.data.requestId);
-    const r = event.data.return;
-
-    if (event.data.function === "connect" && r.data === true) {
-      instance = Object.freeze(new NautilusErgoApi());
-      if (event.data.params[0] === true) {
-        console.log("`ergo` object created.");
-        this.window.ergo = instance;
-      }
-    } else if (event.data.function === "disconnect" && r.data === true) {
-      if (this.window.ergo) delete this.window.ergo;
-      instance = undefined;
-    }
-
-    if (r.isSuccess) {
-      promise.resolve(r.data);
-    } else {
-      promise.reject(r.data);
-    }
-  });
-
-  class NautilusAuthApi {
-    connect({ createErgoObject = true } = {}) {
-      return this.#rpcCall("connect", [createErgoObject]);
-    }
-
-    disconnect() {
-      return !!instance ? this.#rpcCall("disconnect") : Promise.resolve(false);
-    }
-
-    isConnected() {
-      return !!instance ? this.#rpcCall("checkConnection") : Promise.resolve(false);
-    }
-
-    getContext() {
-      return !!instance ? Promise.resolve(instance) : Promise.reject();
-    }
-
-    #rpcCall(func: string, params?: unknown[]) {
-      return new Promise(function (resolve, reject) {
-        window.postMessage({
-          type: "rpc/connector-request",
-          requestId: rpcId,
-          function: func,
-          params
-        });
-
-        resolver.set(rpcId, { resolve: resolve, reject: reject });
-        rpcId++;
-      });
-    }
-  }
-
+  const nautilus = Object.freeze(new NautilusAuthApi());
   if (window.ergoConnector !== undefined) {
-    window.ergoConnector = {
-      ...window.ergoConnector,
-      nautilus: Object.freeze(new NautilusAuthApi())
-    };
+    window.ergoConnector = { ...window.ergoConnector, nautilus };
   } else {
-    window.ergoConnector = {
-      nautilus: Object.freeze(new NautilusAuthApi())
-    };
+    window.ergoConnector = { nautilus };
   }
-
-  const warnDeprecated = function (fnName: string) {
-    console.warn(`[Deprecated] This method will be disabled soon and replaced by '${fnName}'.`);
-  };
 
   if (!window.ergo_request_read_access && !window.ergo_check_read_access) {
     window.ergo_request_read_access = function () {
       warnDeprecated("ergoConnector.nautilus.connect()");
-      return ergoConnector.nautilus.connect();
+      return window.ergoConnector.nautilus.connect();
     };
+
     window.ergo_check_read_access = function () {
       warnDeprecated("ergoConnector.nautilus.isConnected()");
-      return ergoConnector.nautilus.isConnected();
+      return window.ergoConnector.nautilus.isConnected();
     };
   }
 })();

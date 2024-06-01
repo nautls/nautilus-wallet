@@ -1,15 +1,123 @@
+<script setup lang="ts">
+import DappPlate from "@/components/DappPlate.vue";
+import TxSignView from "@/components/TxSignView.vue";
+import { ref, watch } from "vue";
+import { AsyncRequest } from "@/background/asyncRequestQueue";
+import { onMounted } from "vue";
+import { error, InternalRequest, success } from "@/background/messaging";
+import { queue } from "@/background/rpcHandler";
+import { SignTxArgs, SignTxInputsArgs } from "@/@types/webext-rpc";
+import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { APIErrorCode, SignErrorCode } from "@/types/connector";
+import store from "@/store";
+import { ACTIONS } from "@/constants/store";
+import { computed } from "vue";
+import { SignedTransaction, some } from "@fleet-sdk/common";
+
+type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
+
+const request = ref<RequestType>();
+const walletId = ref(0);
+
+watch(
+  () => store.state.loading.wallets,
+  (loading) => setWallet(loading, walletId.value),
+  { immediate: true }
+);
+
+watch(
+  () => walletId.value,
+  (walletId) => setWallet(store.state.loading.wallets, walletId),
+  { immediate: true }
+);
+
+watch(
+  () => request.value,
+  (newReq) => {
+    if (!newReq) return;
+    const tokenIds = newReq.data.transaction.inputs
+      .filter((x) => some(x.assets))
+      .flatMap((x) => x.assets)
+      .map((x) => x.tokenId);
+
+    if (some(tokenIds)) {
+      store.dispatch(ACTIONS.LOAD_ASSETS_INFO, tokenIds);
+    }
+  }
+);
+
+function setWallet(loading: boolean, walletId: number) {
+  if (loading || !walletId) return;
+  store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+}
+
+const inputsToSign = computed(() => {
+  if (!isSignInputsRequest(request.value)) return undefined;
+  return request.value.data.indexes;
+});
+
+const isPartialSign = computed(() => {
+  return (
+    isSignInputsRequest(request.value) &&
+    request.value.data.indexes.length > 0 &&
+    request.value.data.indexes.length < request.value.data.transaction.inputs.length
+  );
+});
+
+function isSignInputsRequest(req?: RequestType): req is AsyncRequest<SignTxInputsArgs> {
+  return req?.type === InternalRequest.SignTxInputs;
+}
+
+onMounted(async () => {
+  request.value = queue.pop(InternalRequest.SignTx) || queue.pop(InternalRequest.SignTxInputs);
+  if (!request.value) return;
+
+  const connection = await connectedDAppsDbService.getByOrigin(request.value.origin);
+  if (!connection || !connection.walletId) {
+    request.value.resolve(error(APIErrorCode.Refused, "Unauthorized."));
+    window.close();
+    return;
+  }
+
+  walletId.value = connection.walletId;
+  window.addEventListener("beforeunload", refuse);
+});
+
+function refuse() {
+  request.value?.resolve(error(SignErrorCode.UserDeclined, "User rejected."));
+}
+
+function onSuccess(signedTx: SignedTransaction) {
+  request.value?.resolve(success(signedTx));
+  close();
+}
+
+function onRefused(info: string) {
+  request.value?.resolve(error(SignErrorCode.UserDeclined, info));
+  close();
+}
+
+function onFail(info: string) {
+  request.value?.resolve(error(SignErrorCode.ProofGeneration, info));
+  close();
+}
+
+function close() {
+  window.removeEventListener("beforeunload", refuse);
+  window.close();
+}
+</script>
+
 <template>
   <div class="flex flex-col h-full gap-4">
-    <dapp-plate :origin="origin" :favicon="favicon" compact />
+    <dapp-plate :origin="request?.origin" :favicon="request?.favicon" compact />
     <h1 class="text-xl m-auto text-center">
-      <template
-        v-if="operation === 'signTxInputs' && inputsToSign !== undefined && inputsToSign.length > 0"
-        >Wants to partially sign a transaction</template
-      >
+      <template v-if="isPartialSign">Wants to partially sign a transaction</template>
       <template v-else>Wants to sign a transaction</template>
     </h1>
     <tx-sign-view
-      :transaction="rawTx"
+      v-if="request?.data"
+      :transaction="request.data.transaction"
       :inputs-to-sign="inputsToSign"
       @fail="onFail"
       @refused="onRefused"
@@ -17,144 +125,3 @@
     />
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { mapState } from "vuex";
-import { rpcHandler } from "@/background/rpcHandler";
-import { find, isEmpty } from "lodash-es";
-import { ErgoTx, SignError, SignErrorCode, UnsignedTx } from "@/types/connector";
-import DappPlate from "@/components/DappPlate.vue";
-import { ACTIONS } from "@/constants/store";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import TxSignView from "@/components/TxSignView.vue";
-
-export default defineComponent({
-  name: "SignTxConfirmView",
-  components: {
-    DappPlate,
-    TxSignView
-  },
-  async created() {
-    const message = find(
-      rpcHandler.messages,
-      (m) => m.function === "signTx" || m.function === "signTxInputs"
-    );
-    if (!message || !message.params) {
-      return;
-    }
-
-    this.sessionId = message.sessionId;
-    this.requestId = message.requestId;
-    this.origin = message.params[0];
-    this.favicon = message.params[1];
-    this.rawTx = Object.freeze(message.params[2]);
-    if (message.function === "signTxInputs") {
-      this.operation = "signTxInputs";
-      this.inputsToSign = message.params[3];
-    } else {
-      this.operation = "signTx";
-    }
-
-    const connection = await connectedDAppsDbService.getByOrigin(this.origin);
-    if (!connection) {
-      window.close();
-      return;
-    }
-
-    this.currentWalletId = connection.walletId;
-    window.addEventListener("beforeunload", this.onWindowClosing);
-  },
-  data() {
-    return {
-      rawTx: Object.freeze({} as UnsignedTx),
-      operation: "signTx" as "signTx" | "signTxInputs",
-      currentWalletId: 0,
-      requestId: 0,
-      sessionId: 0,
-      origin: "",
-      favicon: "",
-      inputsToSign: [] as number[]
-    };
-  },
-  watch: {
-    ["loading.wallets"]: {
-      immediate: true,
-      async handler(loading: boolean) {
-        this.setWallet(loading, this.currentWalletId);
-      }
-    },
-    currentWalletId: {
-      immediate: true,
-      async handler(walletId: number) {
-        this.setWallet(this.loading.wallets, walletId);
-      }
-    },
-    rawTx() {
-      this.loadAssetInfo(
-        this.rawTx.inputs
-          .filter((x) => x.assets)
-          .map((x) => x.assets)
-          .flat()
-          .map((x) => x.tokenId)
-      );
-    }
-  },
-  computed: {
-    ...mapState({ wallets: "wallets", loading: "loading" })
-  },
-  methods: {
-    async setWallet(loading: boolean, walletId: number) {
-      if (loading || walletId === 0) {
-        return;
-      }
-      this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
-    },
-    async loadAssetInfo(tokenIds: string[]) {
-      if (isEmpty(tokenIds)) {
-        return;
-      }
-
-      this.$store.dispatch(ACTIONS.LOAD_ASSETS_INFO, tokenIds);
-    },
-    onSuccess(signedTx: ErgoTx) {
-      rpcHandler.sendMessage({
-        type: "rpc/nautilus-response",
-        function: this.operation,
-        sessionId: this.sessionId,
-        requestId: this.requestId,
-        return: {
-          isSuccess: true,
-          data: signedTx
-        }
-      });
-
-      window.removeEventListener("beforeunload", this.onWindowClosing);
-      window.close();
-    },
-    onRefused(info: string) {
-      this.sendError({ code: SignErrorCode.UserDeclined, info });
-    },
-    onFail(info: string) {
-      this.sendError({ code: SignErrorCode.ProofGeneration, info });
-    },
-    sendError(error: SignError) {
-      window.removeEventListener("beforeunload", this.onWindowClosing);
-      rpcHandler.sendMessage({
-        type: "rpc/nautilus-response",
-        function: this.operation,
-        sessionId: this.sessionId,
-        requestId: this.requestId,
-        return: {
-          isSuccess: false,
-          data: error
-        }
-      });
-      window.close();
-    },
-    onWindowClosing() {
-      this.onRefused("unauthorized");
-    }
-  }
-});
-</script>

@@ -1,15 +1,15 @@
 import { chunk, first, isEmpty, min } from "lodash-es";
-import { ErgoBox, ErgoTx, Registers } from "@/types/connector";
+import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/utils/serializer";
 import { isZero } from "@/utils/bigNumbers";
 import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
 import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
-import BigNumber from "bignumber.js";
 import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
-import { Client, createClient, gql, fetchExchange, TypedDocumentNode } from "@urql/core";
+import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
+import { browser, hasBrowserContext } from "../../utils/browserApi";
 
 export type AssetBalance = {
   tokenId: string;
@@ -95,17 +95,17 @@ export async function validateServerNetwork(url: string): Promise<boolean> {
 }
 
 class GraphQLService {
-  private _queryClient!: Client;
-  private _txBroadcastClient?: Client;
-  private _url!: string;
+  #queryClient!: Client;
+  #txBroadcastClient?: Client;
+  #url!: string;
 
   constructor() {
-    this._url = this._getCurrentServerUrl();
-    this._queryClient = this._createQueryClient();
+    this.#loadServerUrl();
+    this.#queryClient = this.#createQueryClient();
   }
 
-  private _createTxBroadcastClient(): Client {
-    const defaultUrl = this._url;
+  #createTxBroadcastClient(): Client {
+    const defaultUrl = this.#url;
 
     return createClient({
       url: defaultUrl,
@@ -132,9 +132,9 @@ class GraphQLService {
     });
   }
 
-  private _createQueryClient(): Client {
+  #createQueryClient(): Client {
     return createClient({
-      url: this._url,
+      url: this.#url,
       requestPolicy: "network-only",
       exchanges: [
         retryExchange({
@@ -156,38 +156,44 @@ class GraphQLService {
     });
   }
 
-  private _getCurrentServerUrl() {
-    const rawSettings = undefined; // localStorage.getItem("settings");
-    if (!rawSettings) {
-      return getDefaultServerUrl();
-    }
+  #loadServerUrl() {
+    if (hasBrowserContext()) {
+      this.updateServerUrl(getDefaultServerUrl());
+      browser?.storage.local.get("settings", (s) =>
+        this.updateServerUrl(s.graphQLServer ?? getDefaultServerUrl())
+      );
 
-    const url = JSON.parse(rawSettings).graphQLServer;
-    return !url ? getDefaultServerUrl() : url;
-  }
-
-  private _getTxBroadcastClient(): Client {
-    if (!this._txBroadcastClient) {
-      this._txBroadcastClient = this._createTxBroadcastClient();
-    }
-
-    return this._txBroadcastClient;
-  }
-
-  public updateServerUrl(url: string) {
-    if (this._url === url) {
       return;
     }
 
-    this._url = url;
-    this._queryClient = this._createQueryClient();
-    this._txBroadcastClient = undefined;
+    const rawSettings = localStorage.getItem("settings");
+    if (!rawSettings) return;
+    const url = JSON.parse(rawSettings).graphQLServer;
+    this.updateServerUrl(url ?? getDefaultServerUrl());
+  }
+
+  #getTxBroadcastClient(): Client {
+    if (!this.#txBroadcastClient) {
+      this.#txBroadcastClient = this.#createTxBroadcastClient();
+    }
+
+    return this.#txBroadcastClient;
+  }
+
+  updateServerUrl(url: string) {
+    if (this.#url === url) {
+      return;
+    }
+
+    this.#url = url;
+    this.#queryClient = this.#createQueryClient();
+    this.#txBroadcastClient = undefined;
   }
 
   public async getAddressesBalance(addresses: string[]): Promise<AssetBalance[]> {
     if (CHUNK_DERIVE_LENGTH >= addresses.length) {
       const raw = await this.getAddressesBalanceFromChunk(addresses);
-      return this._parseAddressesBalanceResponse(raw || []);
+      return this.#parseAddressesBalanceResponse(raw || []);
     }
 
     const chunks = chunk(addresses, CHUNK_DERIVE_LENGTH);
@@ -196,10 +202,10 @@ class GraphQLService {
       balances = balances.concat((await this.getAddressesBalanceFromChunk(chunk)) || []);
     }
 
-    return this._parseAddressesBalanceResponse(balances);
+    return this.#parseAddressesBalanceResponse(balances);
   }
 
-  private _parseAddressesBalanceResponse(addressesInfo: Address[]): AssetBalance[] {
+  #parseAddressesBalanceResponse(addressesInfo: Address[]): AssetBalance[] {
     let assets: AssetBalance[] = [];
 
     for (const addressInfo of addressesInfo.filter((r) => !isZero(r.balance.nanoErgs))) {
@@ -247,7 +253,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient.query(query, { addresses }).toPromise();
+    const response = await this.#queryClient.query(query, { addresses }).toPromise();
     return response.data?.addresses;
   }
 
@@ -275,7 +281,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient.query(query, { addresses }).toPromise();
+    const response = await this.#queryClient.query(query, { addresses }).toPromise();
     return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
   }
 
@@ -288,7 +294,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient.query(query, {}).toPromise();
+    const response = await this.#queryClient.query(query, {}).toPromise();
     return first(response.data?.blockHeaders)?.height;
   }
 
@@ -380,7 +386,7 @@ class GraphQLService {
     let skip = 0;
 
     do {
-      const response = await this._queryClient
+      const response = await this.#queryClient
         .query(query, { address, skip, take: MAX_RESULTS_PER_REQUEST })
         .toPromise();
       skip += MAX_RESULTS_PER_REQUEST;
@@ -412,7 +418,7 @@ class GraphQLService {
     let skip = 0;
 
     do {
-      const response = await this._queryClient
+      const response = await this.#queryClient
         .query(query, { addresses, skip, take: MAX_RESULTS_PER_REQUEST })
         .toPromise();
       skip += MAX_RESULTS_PER_REQUEST;
@@ -445,7 +451,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient.query(query, { tokenId }).toPromise();
+    const response = await this.#queryClient.query(query, { tokenId }).toPromise();
     return first(response.data?.tokens);
   }
 
@@ -492,7 +498,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient.query(query, options).toPromise();
+    const response = await this.#queryClient.query(query, options).toPromise();
     return response.data?.blockHeaders ?? [];
   }
 
@@ -503,7 +509,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._queryClient
+    const response = await this.#queryClient
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
@@ -521,7 +527,7 @@ class GraphQLService {
       }
     `;
 
-    const response = await this._getTxBroadcastClient()
+    const response = await this.#getTxBroadcastClient()
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
@@ -544,7 +550,7 @@ class GraphQLService {
         }
       `;
 
-      const response = await this._getTxBroadcastClient()
+      const response = await this.#getTxBroadcastClient()
         .query(query, { transactionId })
         .toPromise();
 
@@ -568,44 +574,6 @@ class GraphQLService {
         }))
       )
     );
-  }
-
-  public mapTransaction(signedTx: ErgoTx): SignedTransaction {
-    return {
-      id: signedTx.id,
-      size: signedTx.size,
-      inputs: signedTx.inputs.map((input) => {
-        return { boxId: input.boxId, spendingProof: input.spendingProof };
-      }),
-      dataInputs: signedTx.dataInputs,
-      outputs: signedTx.outputs.map((output) => {
-        return {
-          boxId: output.boxId,
-          value: this._asString(output.value),
-          ergoTree: output.ergoTree,
-          creationHeight: output.creationHeight,
-          index: output.index,
-          transactionId: output.transactionId,
-          assets: output.assets.map((a) => {
-            return {
-              tokenId: a.tokenId,
-              amount: this._asString(a.amount.toString())
-            };
-          }),
-          additionalRegisters: output.additionalRegisters
-        };
-      })
-    };
-  }
-
-  private _asString(value?: string | bigint | BigNumber | number): string {
-    if (!value) {
-      return "";
-    } else if (typeof value == "string") {
-      return value;
-    } else {
-      return value.toString();
-    }
   }
 }
 

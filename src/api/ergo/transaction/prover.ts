@@ -1,5 +1,5 @@
 import { Header } from "@ergo-graphql/types";
-import { SignedInput } from "@fleet-sdk/common";
+import { EIP12UnsignedTransaction, SignedInput, SignedTransaction } from "@fleet-sdk/common";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   Address,
@@ -32,7 +32,6 @@ import { addressFromErgoTree } from "../addresses";
 import Bip32 from "../bip32";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ErgoTx, UnsignedTx } from "@/types/connector";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
 import { toBigNumber } from "@/utils/bigNumbers";
 
@@ -84,17 +83,20 @@ export class Prover {
     return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
   }
 
-  public async sign(unsignedTx: UnsignedTx, headers: Header[]): Promise<ErgoTx> {
+  public async sign(
+    unsignedTx: EIP12UnsignedTransaction,
+    headers: Header[]
+  ): Promise<SignedTransaction> {
     const unspentBoxes = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
     const dataInputBoxes = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
     const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
     const signed = await this._sign(tx, unspentBoxes, dataInputBoxes, headers);
 
-    return JSONBig.parse(signed.to_json());
+    return signed.to_js_eip12();
   }
 
   public async signInputs(
-    unsignedTx: UnsignedTx,
+    unsignedTx: EIP12UnsignedTransaction,
     headers: Header[],
     inputsToSign: number[]
   ): Promise<SignedInput[]> {

@@ -1,305 +1,179 @@
-import { RpcEvent, RpcMessage, RpcReturn, Session } from "../types/connector";
-import { openWindow } from "@/utils/uiHelpers";
-import { find, isEmpty } from "lodash-es";
+import { APIErrorCode, TxSendErrorCode } from "../types/connector";
+import { createWindow } from "@/utils/uiHelpers";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import { postConnectorResponse } from "./messagingUtils";
 import {
-  handleGetBoxesRequest,
-  handleGetChangeAddressRequest,
-  handleGetAddressesRequest,
-  handleNotImplementedRequest,
-  handleSignTxRequest,
-  handleSubmitTxRequest,
-  handleAuthRequest,
-  handleGetBalanceRequest,
-  handleGetCurrentHeightRequest
+  checkConnection,
+  getAddresses,
+  getBalance,
+  getCurrentHeight,
+  getUTxOs
 } from "./ergoApiHandlers";
-import { AddressState } from "@/types/internal";
-import { browser, Port } from "@/utils/browserApi";
-import { graphQLService } from "@/api/explorer/graphQlService";
+import { browser } from "@/utils/browserApi";
+import { onMessage, sendMessage } from "webext-bridge/background";
+import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
+import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "./messaging";
+import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
+import { isEmpty } from "@fleet-sdk/common";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { addressesDbService } from "@/api/database/addressesDbService";
+import { submitTx } from "../api/ergo/submitTx";
+import { graphQLService } from "../api/explorer/graphQlService";
+import { JsonValue } from "@/types/internal";
 
-const sessions = new Map<number, Session>();
-const ORIGIN_MATCHER = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
+type AuthenticatedMessageHandler<T extends InternalRequest> = (
+  message: BridgeMessage<GetDataType<T, JsonValue>>,
+  walletId?: number
+) => GetReturnType<T> | Promise<GetReturnType<T>>;
 
-function getOrigin(url?: string) {
-  if (!url) return;
+const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
+const requests = new AsyncRequestQueue();
 
-  const matches = url.match(ORIGIN_MATCHER);
-  if (matches) {
-    return matches[1];
-  }
+function onAuthenticatedMessage<T extends InternalRequest>(
+  request: T,
+  handler: AuthenticatedMessageHandler<T>
+) {
+  onMessage(request, async (msg) => {
+    if (!isInternalEndpoint(msg.sender)) return handler(msg);
+    const conn = await connectedDAppsDbService.getByOrigin(msg.data.payload.origin);
+    if (!conn) return handler(msg);
+
+    return handler(msg, conn.walletId);
+  });
 }
 
-browser?.runtime.onConnect.addListener((port) => {
-  // eslint-disable-next-line no-console
-  console.log(`connected with ${getOrigin(port.sender?.url)}`);
+onMessage(InternalRequest.Connect, async ({ data, sender }) => {
+  if (!isInternalEndpoint(sender)) return false;
 
-  if (port.name === "nautilus-ui") {
-    port.onMessage.addListener(async (message: RpcMessage | RpcEvent, port) => {
-      if (message.type === "rpc/nautilus-event") {
-        switch (message.name) {
-          case "loaded":
-            sendRequestsToUI(port);
-            break;
-          case "disconnected":
-            handleOriginDisconnect(message);
-            break;
-          case "updated:graphql-url":
-            graphQLService.updateServerUrl(message.data);
-            break;
-        }
-      } else if (message.type === "rpc/nautilus-response") {
-        handleNautilusResponse(message);
-      }
-    });
-  } else {
-    port.onMessage.addListener(async (message: RpcMessage, port) => {
-      const origin = getOrigin(port.sender?.url);
-      const tabId = port.sender?.tab?.id;
-      if (message.type !== "rpc/connector-request" || !port.sender || !origin || !tabId) {
-        return;
-      }
+  const authorized = await checkConnection(data.payload.origin);
+  if (authorized) return true;
+  return await openWindow(InternalRequest.Connect, data, sender.tabId);
+});
 
-      const session = sessions.get(tabId);
-      switch (message.function) {
-        case "connect":
-          await handleConnectionRequest(message, port, origin);
-          break;
-        case "disconnect":
-          await handleDisconnectRequest(message, port, origin);
-          break;
-        case "checkConnection":
-          handleCheckConnectionRequest(message, port);
-          break;
-        case "getBoxes":
-          await handleGetBoxesRequest(message, port, session);
-          break;
-        case "getBalance":
-          await handleGetBalanceRequest(message, port, session);
-          break;
-        case "getUsedAddresses":
-          await handleGetAddressesRequest(message, port, session, AddressState.Used);
-          break;
-        case "getUnusedAddresses":
-          await handleGetAddressesRequest(message, port, session, AddressState.Unused);
-          break;
-        case "getChangeAddress":
-          await handleGetChangeAddressRequest(message, port, session);
-          break;
-        case "auth":
-          await handleAuthRequest(message, port, session);
-          break;
-        case "signTxInputs":
-        case "signTx":
-          await handleSignTxRequest(message, port, session);
-          break;
-        case "signData":
-          await handleNotImplementedRequest(message, port, session);
-          break;
-        case "getCurrentHeight":
-          await handleGetCurrentHeightRequest(message, port, session);
-          break;
-        case "submitTx":
-          await handleSubmitTxRequest(message, port, sessions.get(tabId));
-          break;
-      }
-    });
+onMessage(InternalRequest.CheckConnection, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return false;
+  return await checkConnection(data.payload.origin);
+});
+
+onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
+  if (!isInternalEndpoint(sender)) return false;
+  await connectedDAppsDbService.deleteByOrigin(data.payload.origin);
+  const connected = await checkConnection(data.payload.origin);
+  return !connected;
+});
+
+onAuthenticatedMessage(InternalRequest.GetUTxOs, async ({ data }, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+
+  const utxos = await getUTxOs(walletId, data.target);
+  return success(utxos);
+});
+
+onAuthenticatedMessage(InternalRequest.GetBalance, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+
+  const tokenId = !msg.data.tokenId || msg.data.tokenId === "ERG" ? ERG_TOKEN_ID : msg.data.tokenId;
+  const balance = await getBalance(walletId, tokenId);
+  return success(balance);
+});
+
+onAuthenticatedMessage(InternalRequest.GetAddresses, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+
+  const addresses = await getAddresses(walletId, msg.data.filter);
+  if (isEmpty(addresses)) return error(APIErrorCode.InternalError, "No addresses found.");
+
+  return success(addresses);
+});
+
+onAuthenticatedMessage(InternalRequest.GetCurrentHeight, async (_, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+
+  const height = await getCurrentHeight();
+  return height
+    ? success(height)
+    : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
+});
+
+onAuthenticatedMessage(InternalRequest.SubmitTransaction, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+  if (!msg.data.transaction) return invalidRequest("Invalid params.");
+
+  try {
+    const response = await submitTx(msg.data.transaction, walletId);
+    return success(response);
+  } catch (e) {
+    return error(TxSendErrorCode.Refused, (e as Error).message);
   }
 });
 
-function sendRequestsToUI(port: Port) {
-  for (const [key, value] of sessions.entries()) {
-    if (isEmpty(value.requestQueue)) {
-      continue;
-    }
+onAuthenticatedMessage(InternalRequest.SignData, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+  return invalidRequest("Not implemented.");
+});
 
-    for (const request of value.requestQueue.filter((r) => !r.handled)) {
-      if (request.message.function === "connect") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [value.origin, value.favicon]
-        } as RpcMessage);
-      } else if (request.message.function === "signTx") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [
-            value.origin,
-            value.favicon,
-            request.message.params ? request.message.params[0] : undefined
-          ]
-        } as RpcMessage);
-      } else if (request.message.function === "signTxInputs") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [
-            value.origin,
-            value.favicon,
-            request.message.params ? request.message.params[0] : undefined,
-            request.message.params ? request.message.params[1] : undefined
-          ]
-        } as RpcMessage);
-      } else if (request.message.function === "auth") {
-        port.postMessage({
-          type: "rpc/nautilus-request",
-          sessionId: key,
-          requestId: request.message.requestId,
-          function: request.message.function,
-          params: [value.origin, value.favicon].concat(
-            request.message.params ? request.message.params : undefined
-          )
-        } as RpcMessage);
-      } else {
-        continue;
-      }
+onAuthenticatedMessage(InternalRequest.Auth, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+  if (!msg.data.address || !msg.data.message) return invalidRequest("Invalid params.");
 
-      request.handled = true;
-      return;
-    }
-  }
-}
-
-async function handleConnectionRequest(message: RpcMessage, port: Port, origin: string) {
-  let response: RpcReturn = { isSuccess: true, data: true };
-  const connection = await connectedDAppsDbService.getByOrigin(origin);
-  if (connection) {
-    const tabId = port.sender?.tab?.id;
-    if (!tabId || !port.sender?.url) {
-      return;
-    }
-
-    response.data = { walletId: connection.walletId };
-    sessions.set(tabId, {
-      port,
-      origin: connection.origin,
-      favicon: port.sender.tab?.favIconUrl,
-      walletId: connection.walletId,
-      requestQueue: []
-    });
-  } else {
-    response = await showConnectionWindow(message, port);
+  const address = await addressesDbService.getByScript(msg.data.address);
+  if (!address || address.walletId !== walletId) {
+    return invalidRequest("The address is not associated with the connected wallet.");
   }
 
-  response = {
-    isSuccess: response.isSuccess,
-    data: response.data.walletId !== undefined
-  };
+  return await openWindow(InternalRequest.Auth, msg.data, msg.sender.tabId);
+});
 
-  postConnectorResponse(response, message, port, "auth");
-}
+onAuthenticatedMessage(InternalRequest.SignTx, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
+  if (!msg.data.transaction) return invalidRequest("Invalid params.");
 
-async function handleDisconnectRequest(request: RpcMessage, port: Port, origin?: string) {
-  if (!origin) {
-    postConnectorResponse(
-      {
-        isSuccess: true,
-        data: false
-      },
-      request,
-      port,
-      "auth"
-    );
+  return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId);
+});
 
-    return;
+onMessage(InternalEvent.Loaded, async ({ sender }) => {
+  if (!isInternalEndpoint(sender)) return;
+
+  let request: AsyncRequest | undefined;
+  do {
+    request = requests.pop();
+    if (!request) continue;
+
+    const payload = { origin: request.origin, favicon: request.favicon };
+    const data = request.data ? { payload, ...request.data } : { payload };
+
+    const result = await sendMessage(request.type, data, "popup");
+    request.resolve(result);
+  } while (request);
+});
+
+onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
+  if (!isInternalEndpoint(msg.sender) || !msg.data) return;
+  graphQLService.updateServerUrl(msg.data);
+});
+
+async function openWindow<T extends AsyncRequestType>(
+  request: T,
+  data: DataWithPayload,
+  tabId: number
+) {
+  if (!data.payload.favicon) {
+    data.payload.favicon = await getFavicon(tabId);
   }
 
-  await connectedDAppsDbService.deleteByOrigin(origin);
-  sessions.forEach((value, key) => {
-    if (value.origin === origin) {
-      sessions.delete(key);
-    }
+  const promise = requests.push<GetReturnType<T>>({
+    type: request,
+    origin: data.payload.origin,
+    data
   });
 
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: true
-    },
-    request,
-    port,
-    "auth"
-  );
+  await createWindow(tabId);
+  return promise;
 }
 
-function handleCheckConnectionRequest(request: RpcMessage, port: Port) {
-  const tabId = port.sender?.tab?.id;
-  const session = tabId !== undefined ? sessions.get(tabId) : undefined;
-
-  postConnectorResponse(
-    {
-      isSuccess: true,
-      data: session !== undefined && session.walletId !== undefined
-    },
-    request,
-    port,
-    "auth"
-  );
+async function getFavicon(tabId: number) {
+  return (await browser?.tabs.get(tabId))?.favIconUrl;
 }
 
-function handleNautilusResponse(message: RpcMessage) {
-  const session = sessions.get(message.sessionId);
-  if (!session) {
-    return;
-  }
-
-  if (message.function === "connect" && message.return && message.return.isSuccess) {
-    session.walletId = message.return.data.walletId;
-  }
-
-  const request = find(session.requestQueue, (r) => r.message.requestId === message.requestId);
-  request?.resolve(message?.return || { isSuccess: false });
-}
-
-function handleOriginDisconnect(event: RpcEvent) {
-  const key = findSessionKeyByOrigin(event.data);
-  if (key === undefined) {
-    return;
-  }
-
-  const session = sessions.get(key);
-  if (!session) {
-    return;
-  }
-
-  sessions.delete(key);
-  session.port.postMessage({
-    type: "rpc/nautilus-event",
-    name: event.name
-  } as RpcEvent);
-}
-
-async function showConnectionWindow(message: RpcMessage, port: Port): Promise<RpcReturn> {
-  return new Promise((resolve, reject) => {
-    const tabId = port.sender?.tab?.id;
-    const origin = getOrigin(port.sender?.url);
-    if (!tabId || !origin) {
-      reject("invalid port");
-      return;
-    }
-
-    sessions.set(tabId, {
-      port,
-      origin: origin,
-      favicon: port.sender?.tab?.favIconUrl,
-      requestQueue: [{ handled: false, message, resolve }]
-    });
-
-    openWindow(tabId);
-  });
-}
-
-function findSessionKeyByOrigin(origin: string): number | undefined {
-  for (const [key, value] of sessions.entries()) {
-    if (value.origin === origin) {
-      return key;
-    }
-  }
+function invalidRequest(info: string) {
+  return error(APIErrorCode.InvalidRequest, info);
 }

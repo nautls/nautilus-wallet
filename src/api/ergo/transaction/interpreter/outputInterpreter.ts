@@ -1,5 +1,5 @@
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
-import { ErgoBoxCandidate, UnsignedInput } from "@/types/connector";
+import { ErgoBoxCandidate } from "@/types/connector";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash-es";
@@ -7,6 +7,7 @@ import { decodeColl } from "@/api/ergo/sigmaSerializer";
 import { StateAssetInfo } from "@/types/internal";
 import { isBabelContract } from "../../babelFees";
 import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
+import { EIP12UnsignedInput } from "@fleet-sdk/common";
 
 export type OutputAsset = {
   tokenId: string;
@@ -21,7 +22,7 @@ const network = MAINNET ? Network.Mainnet : Network.Testnet;
 
 export class OutputInterpreter {
   private readonly _box!: ErgoBoxCandidate;
-  private readonly _inputs!: UnsignedInput[];
+  private readonly _inputs!: EIP12UnsignedInput[];
   private readonly _assets!: OutputAsset[];
   private readonly _assetInfo!: StateAssetInfo;
   private readonly _addresses?: string[];
@@ -61,7 +62,7 @@ export class OutputInterpreter {
 
   constructor(
     boxCandidate: ErgoBoxCandidate,
-    inputs: UnsignedInput[],
+    inputs: EIP12UnsignedInput[],
     assetInfo: StateAssetInfo,
     addresses?: string[]
   ) {

@@ -1,5 +1,5 @@
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
-import { ErgoBoxCandidate, Token, UnsignedInput, UnsignedTx } from "@/types/connector";
+import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
@@ -7,12 +7,18 @@ import { difference, find, groupBy, isEmpty } from "lodash-es";
 import { addressFromErgoTree } from "../../addresses";
 import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
-import { some, utxoSum, utxoDiff } from "@fleet-sdk/common";
 import {
-  tokensToOutputAssets,
+  EIP12UnsignedInput,
+  EIP12UnsignedTransaction,
+  some,
+  utxoDiff,
+  utxoSum
+} from "@fleet-sdk/common";
+import {
   boxCandidateToBoxAmounts,
+  sortByTokenId,
   tokenAmountToToken,
-  sortByTokenId
+  tokensToOutputAssets
 } from "@/api/ergo/transaction/interpreter/utils";
 
 function isMinerFeeContract(ergoTree: string) {
@@ -20,7 +26,7 @@ function isMinerFeeContract(ergoTree: string) {
 }
 
 export class TxInterpreter {
-  private _tx!: UnsignedTx;
+  private _tx!: EIP12UnsignedTransaction;
 
   private _changeBoxes: ErgoBoxCandidate[];
   private _feeBox?: ErgoBoxCandidate;
@@ -28,12 +34,12 @@ export class TxInterpreter {
   private _assetInfo!: StateAssetInfo;
   private _addresses!: string[];
   private _burningBalance!: OutputAsset[];
-  private _ownInputs!: UnsignedInput[];
+  private _ownInputs!: EIP12UnsignedInput[];
   private _ownOutputs!: ErgoBoxCandidate[];
   private _totalIncoming!: OutputAsset[];
   private _totalLeaving!: OutputAsset[];
 
-  constructor(tx: UnsignedTx, ownAddresses: string[], assetInfo: StateAssetInfo) {
+  constructor(tx: EIP12UnsignedTransaction, ownAddresses: string[], assetInfo: StateAssetInfo) {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
@@ -66,7 +72,7 @@ export class TxInterpreter {
     this._calcBurningBalance();
   }
 
-  public get rawTx(): UnsignedTx {
+  public get rawTx(): EIP12UnsignedTransaction {
     return this._tx;
   }
 
