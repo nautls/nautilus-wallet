@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
   readonly GIT_COMMIT_HASH: string;
-  readonly NETWORK: "mainnet" | "testnet";
+  readonly VITE_NETWORK: "mainnet" | "testnet";
 }
 
 interface ImportMeta {
