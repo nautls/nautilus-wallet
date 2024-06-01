@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev:mainnet": "vite",
-    "dev:testnet": "vite --mainnet",
+    "dev:testnet": "VITE_NETWORK=testnet vite",
     "build:mainnet": "vite build",
-    "build:testnet": "vite build --testnet",
+    "build:testnet": "VITE_NETWORK=testnet vite build",
+    "build:mainnet:stage": "vite build --mode staging",
     "preview:mainnet": "vite preview",
-    "preview:testnet": "vite preview --testnet",
+    "preview:testnet": "VITE_NETWORK=testnet vite preview",
     "test:unit": "vitest run",
     "test:lint": "echo not implemented",
     "fix:lint": "echo not implemented"
