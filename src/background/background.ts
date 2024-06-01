@@ -10,7 +10,7 @@ import {
 } from "./ergoApiHandlers";
 import { browser } from "@/utils/browserApi";
 import { onMessage, sendMessage } from "webext-bridge/background";
-import { BridgeMessage, GetReturnType, isInternalEndpoint } from "webext-bridge";
+import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "./messaging";
 import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
 import { isEmpty } from "@fleet-sdk/common";
@@ -18,10 +18,28 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { submitTx } from "../api/ergo/submitTx";
 import { graphQLService } from "../api/explorer/graphQlService";
+import { JsonValue } from "@/types/internal";
 
-type SuccessfulConnection = { success: true; walletId: number };
+type AuthenticatedMessageHandler<T extends InternalRequest> = (
+  message: BridgeMessage<GetDataType<T, JsonValue>>,
+  walletId?: number
+) => GetReturnType<T> | Promise<GetReturnType<T>>;
 
+const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
 const requests = new AsyncRequestQueue();
+
+function onAuthenticatedMessage<T extends InternalRequest>(
+  request: T,
+  handler: AuthenticatedMessageHandler<T>
+) {
+  onMessage(request, async (msg) => {
+    if (!isInternalEndpoint(msg.sender)) return handler(msg);
+    const conn = await connectedDAppsDbService.getByOrigin(msg.data.payload.origin);
+    if (!conn) return handler(msg);
+
+    return handler(msg, conn.walletId);
+  });
+}
 
 onMessage(InternalRequest.Connect, async ({ data, sender }) => {
   if (!isInternalEndpoint(sender)) return false;
@@ -43,38 +61,32 @@ onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
   return !connected;
 });
 
-const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
+onAuthenticatedMessage(InternalRequest.GetUTxOs, async ({ data }, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
 
-onMessage(InternalRequest.GetUTxOs, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
-
-  const utxos = await getUTxOs(check.walletId, msg.data.target);
+  const utxos = await getUTxOs(walletId, data.target);
   return success(utxos);
 });
 
-onMessage(InternalRequest.GetBalance, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
+onAuthenticatedMessage(InternalRequest.GetBalance, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
 
   const tokenId = !msg.data.tokenId || msg.data.tokenId === "ERG" ? ERG_TOKEN_ID : msg.data.tokenId;
-  const balance = await getBalance(check.walletId, tokenId);
+  const balance = await getBalance(walletId, tokenId);
   return success(balance);
 });
 
-onMessage(InternalRequest.GetAddresses, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
+onAuthenticatedMessage(InternalRequest.GetAddresses, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
 
-  const addresses = await getAddresses(check.walletId, msg.data.filter);
+  const addresses = await getAddresses(walletId, msg.data.filter);
   if (isEmpty(addresses)) return error(APIErrorCode.InternalError, "No addresses found.");
 
   return success(addresses);
 });
 
-onMessage(InternalRequest.GetCurrentHeight, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
+onAuthenticatedMessage(InternalRequest.GetCurrentHeight, async (_, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
 
   const height = await getCurrentHeight();
   return height
@@ -82,55 +94,41 @@ onMessage(InternalRequest.GetCurrentHeight, async (msg) => {
     : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
 });
 
-onMessage(InternalRequest.SubmitTransaction, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
+onAuthenticatedMessage(InternalRequest.SubmitTransaction, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
 
   try {
-    const response = await submitTx(msg.data.transaction, check.walletId);
+    const response = await submitTx(msg.data.transaction, walletId);
     return success(response);
   } catch (e) {
     return error(TxSendErrorCode.Refused, (e as Error).message);
   }
 });
 
-onMessage(InternalRequest.SignData, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
-
+onAuthenticatedMessage(InternalRequest.SignData, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
   return invalidRequest("Not implemented.");
 });
 
-onMessage(InternalRequest.Auth, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
+onAuthenticatedMessage(InternalRequest.Auth, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
   if (!msg.data.address || !msg.data.message) return invalidRequest("Invalid params.");
 
   const address = await addressesDbService.getByScript(msg.data.address);
-  if (!address || address.walletId !== check.walletId) {
+  if (!address || address.walletId !== walletId) {
     return invalidRequest("The address is not associated with the connected wallet.");
   }
 
   return await openWindow(InternalRequest.Auth, msg.data, msg.sender.tabId);
 });
 
-onMessage(InternalRequest.SignTx, async (msg) => {
-  const check = await validate(msg);
-  if (!check.success) return check;
+onAuthenticatedMessage(InternalRequest.SignTx, async (msg, walletId) => {
+  if (!walletId) return NOT_CONNECTED_ERROR;
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
 
   return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId);
 });
-
-async function validate({ sender, data }: BridgeMessage<DataWithPayload>) {
-  if (!isInternalEndpoint(sender)) return NOT_CONNECTED_ERROR;
-
-  const connection = await connectedDAppsDbService.getByOrigin(data.payload.origin);
-  if (!connection) return NOT_CONNECTED_ERROR;
-
-  return { success: true, walletId: connection.walletId } as SuccessfulConnection;
-}
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
   if (!isInternalEndpoint(sender)) return;
