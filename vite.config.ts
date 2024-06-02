@@ -37,8 +37,6 @@ export default defineConfig({
       if (filePath.includes("content-script")) return false;
     },
     rollupOptions: {
-      // remove non-english wordlists from the final bundle
-      external: /^\.\/wordlists\/(?!english)/,
       output: {
         chunkFileNames(info) {
           if (info.name === "injector.ts") return "assets/injector.js";

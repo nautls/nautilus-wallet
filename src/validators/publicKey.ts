@@ -1,4 +1,4 @@
-import Bip32 from "@/api/ergo/bip32";
+import HdKey from "@/api/ergo/hdKey";
 import { isEmpty } from "lodash-es";
 
 function validator(value: string) {
@@ -7,7 +7,7 @@ function validator(value: string) {
   }
 
   try {
-    Bip32.fromPublicKey(value);
+    HdKey.fromPublicKey(value);
   } catch (e) {
     return false;
   }

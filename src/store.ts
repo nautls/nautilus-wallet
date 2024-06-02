@@ -1,6 +1,6 @@
 import { walletsDbService } from "@/api/database/walletsDbService";
 import { createStore } from "vuex";
-import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
+import HdKey, { DerivedAddress } from "@/api/ergo/hdKey";
 import BigNumber from "bignumber.js";
 import { coinGeckoService } from "@/api/coinGeckoService";
 import {
@@ -34,7 +34,7 @@ import {
   UpdateWalletSettingsCommand,
   WalletType
 } from "@/types/internal";
-import { bip32Pool } from "@/utils/objectPool";
+import { hdKeyPool } from "@/utils/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
@@ -63,6 +63,7 @@ import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { getChangeAddress } from "./api/ergo/addresses";
 import { sendBackendServerUrl } from "./background/rpcHandler";
+import { hex } from "@fleet-sdk/crypto";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -278,7 +279,7 @@ export default createStore({
           name: w.name,
           type: w.type,
           publicKey: w.publicKey,
-          extendedPublicKey: bip32Pool.get(w.publicKey).extendedPublicKey.toString("hex"),
+          extendedPublicKey: hex.encode(hdKeyPool.get(w.publicKey).extendedPublicKey),
           balance: new BigNumber(0),
           settings: w.settings
         };
@@ -417,8 +418,8 @@ export default createStore({
       }
 
       for (const wallet of wallets) {
-        bip32Pool.alloc(
-          Bip32.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
+        hdKeyPool.alloc(
+          HdKey.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
           wallet.publicKey
         );
       }
@@ -432,18 +433,18 @@ export default createStore({
         | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly | WalletType.Ledger }
         | { mnemonic: string; password: string; name: string; type: WalletType.Standard }
     ) {
-      const bip32 =
+      const key =
         wallet.type === WalletType.Standard
-          ? await Bip32.fromMnemonic(wallet.mnemonic)
-          : Bip32.fromPublicKey(wallet.extendedPublicKey);
+          ? await HdKey.fromMnemonic(wallet.mnemonic)
+          : HdKey.fromPublicKey(wallet.extendedPublicKey);
 
-      bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
+      hdKeyPool.alloc(key.neutered(), hex.encode(key.publicKey));
       const walletId = await walletsDbService.put({
         name: wallet.name.trim(),
         network: Network.ErgoMainnet,
         type: wallet.type,
-        publicKey: bip32.publicKey.toString("hex"),
-        chainCode: bip32.chainCode.toString("hex"),
+        publicKey: hex.encode(key.publicKey),
+        chainCode: hex.encode(key.chainCode),
         mnemonic:
           wallet.type === WalletType.Standard
             ? AES.encrypt(wallet.mnemonic, wallet.password).toString()
@@ -463,13 +464,13 @@ export default createStore({
         throw Error("wallet not found");
       }
 
-      const bip32 = bip32Pool.get(wallet.publicKey);
+      const key = hdKeyPool.get(wallet.publicKey);
       const stateWallet: StateWallet = {
         id: wallet.id,
         name: wallet.name,
         type: wallet.type,
         publicKey: wallet.publicKey,
-        extendedPublicKey: bip32.extendedPublicKey.toString("hex"),
+        extendedPublicKey: hex.encode(key.extendedPublicKey),
         settings: wallet.settings
       };
 
@@ -497,8 +498,7 @@ export default createStore({
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
       const index = (maxBy(state.currentAddresses, (a) => a.index)?.index || 0) + 1;
-      const bip32 = bip32Pool.get(pk);
-      const address = bip32.deriveAddress(index);
+      const address = hdKeyPool.get(pk).deriveAddress(index);
       await addressesDbService.put({
         type: AddressType.P2PK,
         state: AddressState.Unused,
@@ -524,7 +524,7 @@ export default createStore({
 
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
-      const bip32 = bip32Pool.get(pk);
+      const key = hdKeyPool.get(pk);
       let active: StateAddress[] = sortBy(
         (await addressesDbService.getByWalletId(walletId)).map((a) => dbAddressMapper(a)),
         (a) => a.index
@@ -548,7 +548,7 @@ export default createStore({
       }
 
       do {
-        derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
+        derived = key.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
         offset += derived.length;
         usedChunk = await graphQLService.getUsedAddresses(derived.map((a) => a.script));
         used = used.concat(usedChunk);
@@ -767,8 +767,8 @@ export default createStore({
 
       const isLedger = state.currentWallet.type === WalletType.Ledger;
       const deriver = isLedger
-        ? bip32Pool.get(state.currentWallet.publicKey)
-        : await Bip32.fromMnemonic(
+        ? hdKeyPool.get(state.currentWallet.publicKey)
+        : await HdKey.fromMnemonic(
             await walletsDbService.getMnemonic(command.walletId, command.password)
           );
 
@@ -803,7 +803,7 @@ export default createStore({
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const deriver = await Bip32.fromMnemonic(
+      const deriver = await HdKey.fromMnemonic(
         await walletsDbService.getMnemonic(command.walletId, command.password)
       );
 

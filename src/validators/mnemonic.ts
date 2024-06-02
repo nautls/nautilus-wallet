@@ -1,5 +1,5 @@
 import { isEmpty, join } from "lodash-es";
-import { validateMnemonic } from "bip39";
+import { validateMnemonic } from "@fleet-sdk/wallet";
 
 function validator(words: []) {
   if (isEmpty(words)) {

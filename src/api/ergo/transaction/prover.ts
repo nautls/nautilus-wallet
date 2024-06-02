@@ -29,7 +29,7 @@ import {
 } from "ledger-ergo-js";
 import { find, first } from "lodash-es";
 import { addressFromErgoTree } from "../addresses";
-import Bip32 from "../bip32";
+import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
@@ -43,10 +43,10 @@ export class Prover {
   private _from!: StateAddress[];
   private _useLedger!: boolean;
   private _changeIndex!: number;
-  private _deriver!: Bip32;
+  private _deriver!: HdKey;
   private _callbackFn?: (newVal: PartialSignState) => void;
 
-  public constructor(deriver: Bip32) {
+  public constructor(deriver: HdKey) {
     this._deriver = deriver;
     this._useLedger = false;
   }
@@ -335,11 +335,11 @@ export class Prover {
     this._callbackFn(state);
   }
 
-  private buildWallet(addresses: StateAddress[], bip32: Bip32): Wallet {
+  private buildWallet(addresses: StateAddress[], key: HdKey): Wallet {
     const sks = new SecretKeys();
 
     for (const address of addresses) {
-      sks.add(SecretKey.dlog_from_bytes(bip32.derivePrivateKey(address.index)));
+      sks.add(SecretKey.dlog_from_bytes(key.derivePrivateKey(address.index)));
     }
     return Wallet.from_secrets(sks);
   }
