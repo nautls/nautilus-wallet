@@ -7,7 +7,6 @@ axios.defaults.transformResponse = [
       try {
         data = JSONBig.parse(data);
       } catch (e) {
-        console.error(e);
         return data;
       }
     }

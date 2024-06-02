@@ -1,6 +1,6 @@
-import { Amount, TokenAmount } from "@fleet-sdk/common";
+import { Amount, Box, TokenAmount } from "@fleet-sdk/common";
 import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
-import { ErgoBoxCandidate, Token, UnsignedInput } from "@/types/connector";
+import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 
@@ -16,7 +16,7 @@ export const tokensToOutputAssets = (tokens: Token[], assetInfo: StateAssetInfo)
   });
 };
 
-export const boxCandidateToBoxAmounts = (b: ErgoBoxCandidate | UnsignedInput) => {
+export const boxCandidateToBoxAmounts = (b: ErgoBoxCandidate | Box) => {
   return {
     value: b.value.toString(),
     assets: b.assets

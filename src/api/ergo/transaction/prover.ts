@@ -4,10 +4,8 @@ import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   Address,
   BlockHeaders,
-  ErgoBoxCandidate,
   ErgoBoxes,
   ErgoStateContext,
-  NonMandatoryRegisterId,
   PreHeader,
   SecretKey,
   SecretKeys,
@@ -184,7 +182,7 @@ export class Prover {
             ergoTree: Buffer.from(wasmOutput.ergo_tree().sigma_serialize_bytes()),
             creationHeight: wasmOutput.creation_height(),
             tokens: mapTokens(wasmOutput.tokens()),
-            registers: this.serializeRegisters(wasmOutput)
+            registers: Buffer.from(wasmOutput.serialized_additional_registers())
           });
         }
 
@@ -268,9 +266,9 @@ export class Prover {
   }
 
   private _signInputs(
-    unsigned: UnsignedTransaction,
-    unspentBoxes: ErgoBoxes,
-    dataInputBoxes: ErgoBoxes,
+    tx: UnsignedTransaction,
+    inputs: ErgoBoxes,
+    dataInputs: ErgoBoxes,
     headers: Header[],
     inputsToSign: number[]
   ) {
@@ -288,17 +286,11 @@ export class Prover {
     );
 
     const preHeader = PreHeader.from_block_header(blockHeaders.get(0));
-    const signContext = new ErgoStateContext(preHeader, blockHeaders);
+    const context = new ErgoStateContext(preHeader, blockHeaders);
     const signed: SignedInput[] = [];
 
     for (const index of inputsToSign) {
-      const result = wallet.sign_tx_input(
-        index,
-        signContext,
-        unsigned,
-        unspentBoxes,
-        dataInputBoxes
-      );
+      const result = wallet.sign_tx_input(index, context, tx, inputs, dataInputs);
 
       signed.push({
         boxId: result.box_id().to_str(),
@@ -307,24 +299,6 @@ export class Prover {
     }
 
     return signed;
-  }
-
-  private serializeRegisters(box: ErgoBoxCandidate): Buffer {
-    const registerEnum = NonMandatoryRegisterId;
-    if (!box.register_value(registerEnum.R4)) {
-      return Buffer.from([]);
-    }
-
-    const registers = [
-      Buffer.from(box.register_value(registerEnum.R4)?.sigma_serialize_bytes() ?? []),
-      Buffer.from(box.register_value(registerEnum.R5)?.sigma_serialize_bytes() ?? []),
-      Buffer.from(box.register_value(registerEnum.R6)?.sigma_serialize_bytes() ?? []),
-      Buffer.from(box.register_value(registerEnum.R7)?.sigma_serialize_bytes() ?? []),
-      Buffer.from(box.register_value(registerEnum.R8)?.sigma_serialize_bytes() ?? []),
-      Buffer.from(box.register_value(registerEnum.R9)?.sigma_serialize_bytes() ?? [])
-    ].filter((b) => b.length > 0);
-
-    return Buffer.concat([...[Buffer.from([registers.length])], ...registers]);
   }
 
   private reportState(state: PartialSignState) {

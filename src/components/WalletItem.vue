@@ -13,18 +13,18 @@
           $filters.walletType(wallet.type)
         }}</small>
         <mdi-icon
+          v-if="wallet.settings.avoidAddressReuse"
           class="align-middle"
           name="incognito"
           size="16"
-          v-if="wallet.settings.avoidAddressReuse"
         />
         <loading-indicator v-if="loading" class="w-4 h-4" />
       </div>
     </div>
 
     <canvas
-      class="rounded w-9 h-9 ring-1 ring-gray-300 ring-offset-1 inline-block"
       :id="canvaId"
+      class="rounded w-9 h-9 ring-1 ring-gray-300 ring-offset-1 inline-block"
     ></canvas>
   </div>
 </template>
@@ -34,6 +34,7 @@ import { defineComponent } from "vue";
 import { walletChecksum } from "@emurgo/cip4-js";
 import { renderIcon } from "@download/blockies";
 import LoadingIndicator from "./LoadingIndicator.vue";
+import { hex } from "@fleet-sdk/crypto";
 
 const mkcolor = (primary: string, secondary: string, spots: string) => ({
   primary,
@@ -51,6 +52,7 @@ const COLORS = [
 
 export default defineComponent({
   name: "WalletItem",
+  components: { LoadingIndicator },
   props: {
     wallet: { type: Object, required: true },
     loading: { type: Boolean, default: false },
@@ -73,7 +75,7 @@ export default defineComponent({
           this.$nextTick(() => {
             const plate = walletChecksum(this.wallet.extendedPublicKey);
             this.checksum = plate.TextPart;
-            const colorIdx = Buffer.from(plate.ImagePart, "hex")[0] % COLORS.length;
+            const colorIdx = hex.decode(plate.ImagePart)[0] % COLORS.length;
             const color = COLORS[colorIdx];
             renderIcon(
               {
@@ -90,7 +92,6 @@ export default defineComponent({
         }
       }
     }
-  },
-  components: { LoadingIndicator }
+  }
 });
 </script>
