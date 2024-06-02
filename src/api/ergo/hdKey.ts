@@ -3,10 +3,7 @@ import { ErgoHDKey } from "@fleet-sdk/wallet";
 import { hex } from "@fleet-sdk/crypto";
 import { base58check } from "@fleet-sdk/crypto";
 
-export type DerivedAddress = {
-  index: number;
-  script: string;
-};
+export type DerivedAddress = { index: number; script: string };
 
 export default class HdKey {
   #change!: ErgoHDKey;
@@ -21,9 +18,7 @@ export default class HdKey {
   }
 
   public neutered(): HdKey {
-    if (!this.#change.privateKey) {
-      return this;
-    }
+    if (!this.#change.privateKey) return this;
 
     this.#change.wipePrivateData();
     return this;
@@ -78,6 +73,7 @@ export default class HdKey {
   public derivePrivateKey(index: number): Uint8Array {
     const sk = this.#change.deriveChild(index).privateKey;
     if (!sk) throw Error("private key not found.");
+
     return sk;
   }
 
