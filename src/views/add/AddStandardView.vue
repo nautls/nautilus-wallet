@@ -79,7 +79,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { generateMnemonic, wordlists } from "bip39";
+import { generateMnemonic } from "@fleet-sdk/wallet";
 import { orderBy, take } from "lodash-es";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
@@ -87,8 +87,7 @@ import { WalletType } from "@/types/internal";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
-
-const words = wordlists.english;
+import { wordlist } from "@scure/bip39/wordlists/english";
 
 export default defineComponent({
   name: "AddStandardView",
@@ -100,7 +99,7 @@ export default defineComponent({
   },
   data() {
     return {
-      filteredWords: Object.freeze(words),
+      filteredWords: Object.freeze(wordlist),
       walletName: "",
       password: "",
       confirmPassword: "",
@@ -154,13 +153,13 @@ export default defineComponent({
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
-        return Object.freeze(take(words, 10));
+        return Object.freeze(take(wordlist, 10));
       }
 
       const lowerText = text.toLowerCase();
       const filtered = orderBy(
         take(
-          words.filter((w) => {
+          wordlist.filter((w) => {
             return w.includes(lowerText);
           }),
           10

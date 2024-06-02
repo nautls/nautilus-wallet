@@ -4,22 +4,22 @@
       <label
         >Wallet name
         <input
-          :disabled="loading"
           v-model.lazy="walletName"
+          :disabled="loading"
           maxlength="50"
-          @blur="v$.walletName.$touch()"
           type="text"
           class="w-full control block"
+          @blur="v$.walletName.$touch()"
         />
-        <p class="input-error" v-if="v$.walletName.$error">
+        <p v-if="v$.walletName.$error" class="input-error">
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
       <label>
         Recovery phrase
         <o-inputitems
-          :disabled="loading"
           v-model="selectedWords"
+          :disabled="loading"
           :data="filteredWords"
           allow-autocomplete
           :allow-new="false"
@@ -27,7 +27,7 @@
           field="user.first_name"
           root-class="input-wrap items-select"
           item-class="tag"
-          :autocompleteClasses="{
+          :autocomplete-classes="{
             menuClass: 'autocomplete-list',
             itemClass: 'item',
             itemHoverClass: 'selected'
@@ -35,14 +35,14 @@
           :closable="false"
           :allow-duplicates="true"
           :on-paste-separators="[' ']"
-          :confirmKeys="[',', 'Tab', 'Enter', ' ']"
-          @keydown.tab.prevent.stop
+          :confirm-keys="[',', 'Tab', 'Enter', ' ']"
           :keep-first="true"
+          @keydown.tab.prevent.stop
           @typing="filterBy"
           @blur="v$.selectedWords.$touch()"
           @paste.prevent.stop="onPaste"
         />
-        <p class="input-error" v-if="v$.selectedWords.$error">
+        <p v-if="v$.selectedWords.$error" class="input-error">
           {{ v$.selectedWords.$errors[0].$message }}
         </p>
       </label>
@@ -50,26 +50,26 @@
         <label class="w-1/2"
           >Spending password
           <input
-            :disabled="loading"
             v-model.lazy="password"
-            @blur="v$.password.$touch()"
+            :disabled="loading"
             type="password"
             class="w-full control block"
+            @blur="v$.password.$touch()"
           />
-          <p class="input-error" v-if="v$.password.$error">
+          <p v-if="v$.password.$error" class="input-error">
             {{ v$.password.$errors[0].$message }}
           </p></label
         >
         <label class="w-1/2"
           >Confirm password
           <input
-            :disabled="loading"
             v-model.lazy="confirmPassword"
-            @blur="v$.confirmPassword.$touch()"
+            :disabled="loading"
             type="password"
             class="w-full control block"
+            @blur="v$.confirmPassword.$touch()"
           />
-          <p class="input-error" v-if="v$.confirmPassword.$error">
+          <p v-if="v$.confirmPassword.$error" class="input-error">
             {{ v$.confirmPassword.$errors[0].$message }}
           </p></label
         >
@@ -77,7 +77,7 @@
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
-      <button @click="add()" :disabled="loading" type="button" class="w-full btn">
+      <button :disabled="loading" type="button" class="w-full btn" @click="add()">
         <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />
         <span v-else>Confirm</span>
       </button>
@@ -87,7 +87,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { wordlists } from "bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
 import { intersection, isEmpty, join, orderBy, take } from "lodash-es";
 import { mapActions } from "vuex";
 import { ACTIONS } from "@/constants/store/actions";
@@ -95,8 +95,6 @@ import { WalletType } from "@/types/internal";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
 import { validMnemonic } from "@/validators";
-
-const wordlist = wordlists.english;
 
 export default defineComponent({
   name: "RestoreView",
@@ -151,8 +149,9 @@ export default defineComponent({
           password: this.password,
           type: WalletType.Standard
         });
-      } catch (e: any) {
+      } catch (e) {
         this.loading = false;
+        // eslint-disable-next-line no-console
         console.error(e);
         return;
       }
@@ -191,7 +190,7 @@ export default defineComponent({
       const intersec = intersection(wordlist, pasteWords);
 
       if (intersec.length == pasteWords.length) {
-        // need to paste from pasteWords since intersect doesn't garantees the order os elements
+        // need to paste from pasteWords since intersect doesn't guarantees the order os elements
         this.selectedWords = pasteWords;
       }
     }

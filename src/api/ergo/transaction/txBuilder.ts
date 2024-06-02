@@ -9,10 +9,10 @@ import { graphQLService } from "@/api/explorer/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
-import { UnsignedTx } from "@/types/connector";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/utils/bigNumbers";
-import { bip32Pool } from "@/utils/objectPool";
+import { hdKeyPool } from "@/utils/objectPool";
+import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
@@ -31,7 +31,7 @@ export async function createP2PTransaction({
   assets: TxAssetAmount[];
   fee: FeeSettings;
   walletType: WalletType;
-}): Promise<UnsignedTx> {
+}): Promise<EIP12UnsignedTransaction> {
   const [inputs, currentHeight] = await Promise.all([
     fetchBoxes(store.state.currentWallet.id),
     graphQLService.getCurrentHeight()
@@ -70,7 +70,7 @@ export async function createP2PTransaction({
   await setFee(unsigned, fee);
   setSelectionAndChangeStrategy(unsigned, walletType);
 
-  return unsigned.build().toEIP12Object() as UnsignedTx;
+  return unsigned.build().toEIP12Object();
 }
 
 export function setSelectionAndChangeStrategy(
@@ -160,5 +160,5 @@ export async function safeGetChangeAddress(recipientAddress = ""): Promise<strin
         ?.index ?? wallet.settings.defaultChangeIndex
     : wallet.settings.defaultChangeIndex;
 
-  return bip32Pool.get(wallet.publicKey).deriveAddress(index || 0).script;
+  return hdKeyPool.get(wallet.publicKey).deriveAddress(index || 0).script;
 }
