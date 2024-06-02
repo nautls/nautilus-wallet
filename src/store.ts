@@ -51,7 +51,7 @@ import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import AES from "crypto-js/aes";
 import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { extractAddressesFromInputs as extractP2PKAddressesFromInputs } from "./api/ergo/sigmaSerializer";
+import { extractAddressesFromInputs } from "./api/ergo/extraction";
 import { utxosDbService } from "./api/database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { assetInfoDbService } from "./api/database/assetInfoDbService";
@@ -744,7 +744,7 @@ export default createStore({
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
     async [ACTIONS.SIGN_TX]({ state }, command: SignTxCommand) {
-      const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
+      const inputAddresses = extractAddressesFromInputs(command.tx.inputs);
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = ownAddresses
         .filter((a) => inputAddresses.includes(a.script))
@@ -803,17 +803,16 @@ export default createStore({
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const deriver = await HdKey.fromMnemonic(
-        await walletsDbService.getMnemonic(command.walletId, command.password)
-      );
+      const mnemonic = await walletsDbService.getMnemonic(command.walletId, command.password);
+      const deriver = await HdKey.fromMnemonic(mnemonic);
 
       const signingAddress = ownAddresses.filter((x) => x.script === command.address);
-      const message = buildEip28ResponseMessage(command.message, command.origin);
-      const proofBytes = new Prover(deriver).from(signingAddress).signMessage(message);
+      const signedMessage = buildEip28ResponseMessage(command.message, command.origin);
+      const proof = new Prover(deriver).from(signingAddress).signMessage(signedMessage);
 
       return {
-        signedMessage: message,
-        proof: Buffer.from(proofBytes).toString("hex")
+        signedMessage,
+        proof: hex.encode(proof)
       };
     },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
