@@ -3,11 +3,12 @@ import { ErgoBoxCandidate } from "@/types/connector";
 import { decimalize, toBigNumber } from "@/utils/bigNumbers";
 import BigNumber from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash-es";
-import { decodeColl } from "@/api/ergo/sigmaSerializer";
+import { sigmaDecode } from "@/api/ergo/serialization";
 import { StateAssetInfo } from "@/types/internal";
 import { isBabelContract } from "../../babelFees";
 import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
 import { EIP12UnsignedInput } from "@fleet-sdk/common";
+import { utf8 } from "@fleet-sdk/crypto";
 
 export type OutputAsset = {
   tokenId: string;
@@ -155,15 +156,16 @@ export class OutputInterpreter {
       };
     }
 
-    const decimals = parseInt(decodeColl(this._box.additionalRegisters["R6"]) ?? "");
+    const decodedDecimals = sigmaDecode(this._box.additionalRegisters["R6"], utf8);
+    const decimals = decodedDecimals ? parseInt(decodedDecimals) : undefined;
     return {
       tokenId: token.tokenId,
-      name: decodeColl(this._box.additionalRegisters["R4"]) ?? "",
+      name: sigmaDecode(this._box.additionalRegisters["R4"], utf8) ?? "",
       decimals,
       amount: decimals
         ? decimalize(toBigNumber(token.amount), decimals)
         : toBigNumber(token.amount),
-      description: decodeColl(this._box.additionalRegisters["R5"]) ?? "",
+      description: sigmaDecode(this._box.additionalRegisters["R5"], utf8) ?? "",
       minting: true
     };
   }

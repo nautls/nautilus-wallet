@@ -50,8 +50,8 @@ export default defineConfig({
     include: ["vue", "vue-router", "vuex"]
   },
   server: {
-    port: 5173,
+    port: 5174,
     strictPort: true,
-    hmr: { port: 5173 }
+    hmr: { port: 5174 }
   }
 });

@@ -2,22 +2,16 @@ import { Registers } from "@/types/connector";
 import { IAssetInfo } from "@/types/database";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { Token } from "@ergo-graphql/types";
-import { SColl, SConstant, SPair, parse } from "@fleet-sdk/serializer";
-import { utf8, hex, Coder } from "@fleet-sdk/crypto";
-import { isUndefined, isEmpty } from "@fleet-sdk/common";
-
-function decode<T>(value: string, coder?: Coder<unknown, T>) {
-  const v = parse<T>(value, "safe");
-  if (isUndefined(v)) return;
-
-  return coder ? coder.encode(v) : v;
-}
+import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
+import { hex, utf8 } from "@fleet-sdk/crypto";
+import { isEmpty } from "@fleet-sdk/common";
+import { sigmaDecode } from "../ergo/serialization";
 
 export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
   if (!tokenInfo.box) return;
 
   const registers = tokenInfo.box.additionalRegisters as Registers;
-  const type = decode<string>(registers.R7, hex);
+  const type = sigmaDecode<string>(registers.R7, hex);
   const assetInfo: IAssetInfo = {
     id: tokenInfo.tokenId,
     mintingBoxId: tokenInfo.boxId,
@@ -33,7 +27,7 @@ export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
   };
 
   if (assetInfo.type === AssetType.NFT) {
-    assetInfo.artworkHash = decode(registers.R8, hex);
+    assetInfo.artworkHash = sigmaDecode(registers.R8, hex);
 
     const r9 = SConstant.from<Uint8Array | [Uint8Array, Uint8Array]>(registers.R9);
     if (r9.type instanceof SColl) {

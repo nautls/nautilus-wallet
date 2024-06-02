@@ -52,7 +52,7 @@ export default class HdKey {
   }
 
   public get extendedPublicKey(): Uint8Array {
-    if (this.#xpk) {
+    if (!this.#xpk) {
       const decoded = base58check.decode(this.#change.extendedPublicKey);
       this.#xpk = this.normalizeExtendedKey(decoded);
     }
