@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,8 +9,6 @@
     "build:mainnet": "vite build",
     "build:testnet": "VITE_NETWORK=testnet vite build",
     "build:mainnet:stage": "vite build --mode staging",
-    "preview:mainnet": "vite preview",
-    "preview:testnet": "VITE_NETWORK=testnet vite preview",
     "test:unit": "vitest run",
     "test:lint": "echo not implemented",
     "fix:lint": "echo not implemented"
