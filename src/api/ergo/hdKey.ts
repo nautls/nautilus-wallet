@@ -14,11 +14,7 @@ export default class HdKey {
 
   private constructor(key: ErgoHDKey, derivationPath?: string) {
     if (!key.privateKey) {
-      if (derivationPath) {
-        this.#change = key.derive(derivationPath);
-      } else {
-        this.#change = key;
-      }
+      this.#change = derivationPath ? key.derive(derivationPath) : key;
     } else {
       this.#change = key;
     }
@@ -29,6 +25,7 @@ export default class HdKey {
       return this;
     }
 
+    this.#change.wipePrivateData();
     return this;
   }
 
