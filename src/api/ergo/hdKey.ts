@@ -5,6 +5,13 @@ import { base58check } from "@fleet-sdk/crypto";
 
 export type DerivedAddress = { index: number; script: string };
 
+type PublicKeyOptions =
+  | string
+  | {
+      publicKey: string;
+      chainCode: string;
+    };
+
 export default class HdKey {
   #change!: ErgoHDKey;
   #xpk!: Uint8Array;
@@ -28,22 +35,14 @@ export default class HdKey {
     return new this(await ErgoHDKey.fromMnemonic(mnemonic));
   }
 
-  public static fromPublicKey(
-    key: string | { publicKey: string; chainCode: string },
-    derivationPath?: string
-  ): HdKey {
+  public static fromPublicKey(key: PublicKeyOptions, path?: string): HdKey {
     if (typeof key === "string") {
       const encoded = base58check.encode(hex.decode(key));
       return new this(ErgoHDKey.fromExtendedKey(encoded));
-    } else {
-      return new this(
-        ErgoHDKey.fromExtendedKey({
-          publicKey: hex.decode(key.publicKey),
-          chainCode: hex.decode(key.chainCode)
-        }),
-        derivationPath
-      );
     }
+
+    const opt = { publicKey: hex.decode(key.publicKey), chainCode: hex.decode(key.chainCode) };
+    return new this(ErgoHDKey.fromExtendedKey(opt), path);
   }
 
   public get privateKey(): Uint8Array | undefined {
@@ -59,8 +58,9 @@ export default class HdKey {
   }
 
   public get extendedPublicKey(): Uint8Array {
-    if (!this.#xpk) {
-      this.#xpk = this.normalizeExtendedKey(base58check.decode(this.#change.extendedPublicKey));
+    if (this.#xpk) {
+      const decoded = base58check.decode(this.#change.extendedPublicKey);
+      this.#xpk = this.normalizeExtendedKey(decoded);
     }
 
     return this.#xpk;
