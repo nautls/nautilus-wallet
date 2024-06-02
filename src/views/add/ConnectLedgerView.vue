@@ -129,7 +129,7 @@ export default defineComponent({
         const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'");
         const key = HdKey.fromPublicKey(
           { publicKey: ledgerPk.publicKey, chainCode: ledgerPk.chainCode },
-          "0"
+          "m/0"
         );
 
         pk = hex.encode(key.extendedPublicKey);
