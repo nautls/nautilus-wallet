@@ -4,13 +4,7 @@ import { hex } from "@fleet-sdk/crypto";
 import { base58check } from "@fleet-sdk/crypto";
 
 export type DerivedAddress = { index: number; script: string };
-
-type PublicKeyOptions =
-  | string
-  | {
-      publicKey: string;
-      chainCode: string;
-    };
+type PublicKeyOptions = string | { publicKey: string; chainCode: string };
 
 export default class HdKey {
   #change!: ErgoHDKey;
@@ -26,8 +20,8 @@ export default class HdKey {
 
   public neutered(): HdKey {
     if (!this.#change.privateKey) return this;
-
     this.#change.wipePrivateData();
+
     return this;
   }
 
@@ -66,6 +60,11 @@ export default class HdKey {
     return this.#xpk;
   }
 
+  /**
+   * Removes fingerprint, and child number from the extended key,
+   * it was necessary for Yoroi compatibility and kept to avoid
+   * breaking changes.
+   */
   private normalizeExtendedKey(key: Uint8Array) {
     return key.fill(0, 4, 12);
   }
