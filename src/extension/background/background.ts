@@ -11,7 +11,7 @@ import {
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { createWindow } from "@/common/uiHelpers";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { browser } from "@/common/browserApi";
+import { browser } from "@/common/browser";
 import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "@/rpc/protocol";
 import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "@/rpc/asyncRequestQueue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";

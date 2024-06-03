@@ -65,10 +65,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapActions, mapState } from "vuex";
+import WalletLogo from "./WalletLogo.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { browser } from "@/common/browserApi";
-import WalletLogo from "./WalletLogo.vue";
+import { browser } from "@/common/browser";
 
 export default defineComponent({
   name: "WalletHeader",
@@ -104,4 +104,3 @@ export default defineComponent({
   }
 });
 </script>
-@/common/browserApi

@@ -25,14 +25,14 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import NavHeader from "@/components/NavHeader.vue";
-import WalletHeader from "@/components/WalletHeader.vue";
-import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { mapActions, mapState } from "vuex";
+import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
-import { isPopup } from "@/common/browserApi";
 import WalletLogo from "./components/WalletLogo.vue";
+import { isPopup } from "@/common/browser";
+import WalletHeader from "@/components/WalletHeader.vue";
+import NavHeader from "@/components/NavHeader.vue";
 
 function runSetInterval(callback: () => void, ms: number): number {
   callback();

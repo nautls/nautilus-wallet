@@ -4,7 +4,7 @@ import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@ur
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
-import { browser, hasBrowserContext } from "../../../common/browserApi";
+import { browser, hasBrowserContext } from "@/common/browser";
 import { sigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";

@@ -1,5 +1,5 @@
 import { isDefined } from "@fleet-sdk/common";
-import { browser } from "./browserApi";
+import { browser } from "./browser";
 
 const POPUP_SIZE = { width: 380, height: 640 };
 

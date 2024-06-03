@@ -24,7 +24,7 @@ import mdiVue from "mdi-vue/v3";
 import { createApp } from "vue";
 import VueFeather from "vue-feather";
 import App from "./App.vue";
-import { hasBrowserContext } from "./common/browserApi";
+import { hasBrowserContext } from "./common/browser";
 import store from "./store";
 import router from "./router";
 import { filters } from "@/common/globalFilters";

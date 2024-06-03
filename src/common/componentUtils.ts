@@ -1,7 +1,7 @@
 import { ensureDefaults } from "@fleet-sdk/common";
 import { useProgrammatic } from "@oruga-ui/oruga-next";
 import { AllowedComponentProps, Component, VNodeProps } from "vue";
-import { isPopup } from "./browserApi";
+import { isPopup } from "./browser";
 import TxSignModal from "@/components/TxSignModal.vue";
 import { Prettify } from "@/types/internal";
 
