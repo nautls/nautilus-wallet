@@ -23,7 +23,7 @@ export default defineConfig({
   plugins: [
     vue(),
     crx({ manifest: buildManifest(network) }),
-    nodePolyfills(),
+    nodePolyfills({ include: ["buffer"], globals: { Buffer: true } }),
     svgLoader(),
     wasmLoader(),
     windiCSS(),
@@ -39,7 +39,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         chunkFileNames(info) {
-          if (info.name === "injector.ts") return "assets/injector.js";
+          if (info.name === "contentScript.ts") return "assets/contentScript.js";
           if (info.name === "injected.ts") return "assets/injected.js";
           return "assets/[name]-[hash].js";
         }
