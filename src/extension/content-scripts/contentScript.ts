@@ -1,6 +1,5 @@
 import { allowWindowMessaging, onMessage, sendMessage } from "webext-bridge/content-script";
-import { buildNamespaceFor } from "@/background/messaging";
-import { ExternalRequest, InternalRequest } from "../background/messaging";
+import { buildNamespaceFor, ExternalRequest, InternalRequest } from "@/rpc/protocol";
 
 // @ts-expect-error ?script is needed to force vite to bundle the script
 import injected from "./injected.ts?script";

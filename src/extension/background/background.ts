@@ -1,4 +1,4 @@
-import { APIErrorCode, TxSendErrorCode } from "../types/connector";
+import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { createWindow } from "@/utils/uiHelpers";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import {
@@ -7,17 +7,17 @@ import {
   getBalance,
   getCurrentHeight,
   getUTxOs
-} from "./ergoApiHandlers";
+} from "./ergoHandlers";
 import { browser } from "@/utils/browserApi";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
-import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "./messaging";
-import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
+import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "@/rpc/protocol";
+import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "@/rpc/asyncRequestQueue";
 import { isEmpty } from "@fleet-sdk/common";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/api/database/addressesDbService";
-import { submitTx } from "../api/ergo/submitTx";
-import { graphQLService } from "../api/explorer/graphQlService";
+import { submitTx } from "@/api/ergo/submitTx";
+import { graphQLService } from "@/api/explorer/graphQlService";
 import { JsonValue } from "@/types/internal";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (

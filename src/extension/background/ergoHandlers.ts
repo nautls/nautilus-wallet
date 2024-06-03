@@ -9,7 +9,7 @@ import BigNumber from "bignumber.js";
 import { Box, isDefined, some } from "@fleet-sdk/common";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
-import { fetchBoxes } from "../api/ergo/boxFetcher";
+import { fetchBoxes } from "@/api/ergo/boxFetcher";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 
 export type AddressType = "used" | "unused" | "change";

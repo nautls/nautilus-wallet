@@ -25,7 +25,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import { hasBrowserContext } from "./utils/browserApi";
-import { startListening } from "@/background/rpcHandler";
+import { startListening } from "@/rpc/uiRpcHandlers";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import DAppPlate from "@/components/DappPlate.vue";

@@ -2,10 +2,10 @@
 import DappPlate from "@/components/DappPlate.vue";
 import TxSignView from "@/components/TxSignView.vue";
 import { ref, watch } from "vue";
-import { AsyncRequest } from "@/background/asyncRequestQueue";
+import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { onMounted } from "vue";
-import { error, InternalRequest, success } from "@/background/messaging";
-import { queue } from "@/background/rpcHandler";
+import { error, InternalRequest, success } from "@/rpc/protocol";
+import { queue } from "@/rpc/uiRpcHandlers";
 import { SignTxArgs, SignTxInputsArgs } from "@/@types/webext-rpc";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";

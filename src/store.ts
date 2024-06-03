@@ -62,7 +62,7 @@ import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlServi
 import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { getChangeAddress } from "./api/ergo/addresses";
-import { sendBackendServerUrl } from "./background/rpcHandler";
+import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
 import { hex } from "@fleet-sdk/crypto";
 
 function dbAddressMapper(a: IDbAddress) {

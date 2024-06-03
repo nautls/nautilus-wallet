@@ -1,12 +1,13 @@
 import type { ProtocolWithReturn as WithReturn } from "webext-bridge";
 import type {
+  AddressType,
   ErrorResult,
   ExternalRequest,
   InternalEvent,
   InternalRequest,
   Result,
   DataWithPayload as WithPayload
-} from "@/background/messaging";
+} from "@/rpc/protocol";
 import type {
   Box,
   EIP12UnsignedTransaction,
@@ -14,7 +15,6 @@ import type {
   SignedTransaction
 } from "@fleet-sdk/common";
 import type { AssetBalance, AuthResult, SelectionTarget } from "@nautilus-js/eip12-types";
-import type { AddressType } from "@/background/ergoApiHandlers";
 
 type ConnectionPayload = { createErgoObject: boolean };
 

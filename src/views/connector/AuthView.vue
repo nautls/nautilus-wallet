@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { queue } from "@/background/rpcHandler";
-import { InternalRequest } from "@/background/messaging";
+import { queue } from "@/rpc/uiRpcHandlers";
+import { error, InternalRequest, success } from "@/rpc/protocol";
 import { computed, ref } from "vue";
 import store from "@/store";
 import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/types/errors";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import { error, success } from "@/background/messaging";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import { AsyncRequest } from "../../background/asyncRequestQueue";
+import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { onMounted } from "vue";
 import { AuthArgs } from "@/@types/webext-rpc";
 import { watch } from "vue";

@@ -1,8 +1,7 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
-import { buildNamespaceFor } from "@/background/messaging";
-import { ExternalRequest, Result } from "../background/messaging";
+import { buildNamespaceFor, ExternalRequest, Result } from "@/rpc/protocol";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
-import { APIErrorCode } from "../types/connector";
+import { APIErrorCode } from "@/types/connector";
 import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 
 const CONTENT_SCRIPT = "content-script";
