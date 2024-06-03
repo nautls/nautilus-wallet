@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import store from "@/store";
-import { graphQLService } from "@/api/explorer/graphQlService";
-import { addressesDbService } from "@/api/database/addressesDbService";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { addressesDbService } from "@/database/addressesDbService";
 import { HEALTHY_BLOCKS_AGE, HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 
 const oldestBoxAge = ref<number | undefined>(undefined);

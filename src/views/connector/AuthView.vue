@@ -1,20 +1,17 @@
 <script setup lang="ts">
-import { queue } from "@/background/rpcHandler";
-import { InternalRequest } from "@/background/messaging";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, requiredUnless } from "@vuelidate/validators";
+import { queue } from "@/rpc/uiRpcHandlers";
+import { error, InternalRequest, success } from "@/rpc/protocol";
 import store from "@/store";
 import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { PasswordError } from "@/types/errors";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import { error, success } from "@/background/messaging";
+import { PasswordError } from "@/common/errors";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import { AsyncRequest } from "../../background/asyncRequestQueue";
-import { onMounted } from "vue";
-import { AuthArgs } from "@/@types/webext-rpc";
-import { watch } from "vue";
-import useVuelidate from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
+import { AsyncRequest } from "@/rpc/asyncRequestQueue";
+import { AuthArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 
 const request = ref<AsyncRequest<AuthArgs>>();

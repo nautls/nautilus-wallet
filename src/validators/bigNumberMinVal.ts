@@ -1,5 +1,5 @@
 import { BigNumberType } from "@/types/internal";
-import { filters } from "@/utils/globalFilters";
+import { filters } from "@/common/globalFilters";
 import { ValidationRuleWithParams } from "@vuelidate/core";
 
 function validator(min: BigNumberType) {

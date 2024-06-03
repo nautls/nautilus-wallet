@@ -1,5 +1,5 @@
 import { BigNumberType } from "@/types/internal";
-import { filters } from "@/utils/globalFilters";
+import { filters } from "@/common/globalFilters";
 
 function validator(max: BigNumberType) {
   return (value?: BigNumberType) => {

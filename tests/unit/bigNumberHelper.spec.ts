@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import BigNumber from "bignumber.js";
-import { decimalize, undecimalize } from "@/utils/bigNumbers";
+import { decimalize, undecimalize } from "@/common/bigNumbers";
 
 describe("bigNumber helpers", () => {
   it("decimalize numbers with various decimal places", () => {

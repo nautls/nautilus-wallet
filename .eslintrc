@@ -9,6 +9,7 @@
     "plugin:vue/vue3-recommended",
     "prettier",
     "plugin:@typescript-eslint/recommended",
+    "plugin:import/recommended",
     "plugin:import/typescript"
   ],
   "globals": {
@@ -19,10 +20,19 @@
     "process": true,
     "Buffer": true
   },
+  "settings": {
+    "import/resolver": {
+      "typescript": true,
+      "node": true
+    }
+  },
   "rules": {
     "vue/component-api-style": ["warn", ["script-setup", "composition"]],
     "no-console": "error",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "sort-imports": ["warn", { "ignoreDeclarationSort": true, "ignoreCase": true }]
+    "sort-imports": ["warn", { "ignoreDeclarationSort": true, "ignoreCase": true }],
+    "import/order": "warn",
+    "import/default": "off",
+    "import/no-named-as-default-member": "off"
   }
 }

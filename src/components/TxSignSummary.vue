@@ -1,7 +1,7 @@
 <template>
   <tx-box-details v-if="tx?.burning" :assets="tx?.burning" type="danger">
     <p>Burning</p>
-    <template v-slot:subheader
+    <template #subheader
       ><span>
         The assets listed below will be lost. Only continue if you know exactly what are you doing.
       </span></template
@@ -19,7 +19,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import TxBoxDetails from "@/components/TxBoxDetails.vue";
-import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
+import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
 
 export default defineComponent({
   name: "TxSignSummary",

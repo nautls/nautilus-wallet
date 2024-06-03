@@ -47,18 +47,18 @@
 
 <script lang="ts">
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
-import useVuelidate from "@vuelidate/core";
+import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import HdKey from "@/api/ergo/hdKey";
+import { hex } from "@fleet-sdk/crypto";
+import HdKey from "@/chains/ergo/hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ACTIONS } from "@/constants/store/actions";
 import { ProverStateType, WalletType } from "@/types/internal";
-import { log } from "@/utils/logger";
-import { hex } from "@fleet-sdk/crypto";
+import { log } from "@/common/logger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -192,3 +192,4 @@ export default defineComponent({
   }
 });
 </script>
+@/common/logger

@@ -1,13 +1,13 @@
+import { execSync } from "child_process";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 import wasmLoader from "vite-plugin-wasm";
 import windiCSS from "vite-plugin-windicss";
 import topLevelAwait from "vite-plugin-top-level-await";
-import { buildManifest } from "./src/manifest";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { crx } from "@crxjs/vite-plugin";
-import { execSync } from "child_process";
+import { buildManifest } from "./src/manifest";
 
 const gitHash = execSync("git rev-parse HEAD").toString().trim();
 const network = (process.env.VITE_NETWORK as "mainnet" | "testnet") ?? "mainnet";
@@ -23,7 +23,7 @@ export default defineConfig({
   plugins: [
     vue(),
     crx({ manifest: buildManifest(network) }),
-    nodePolyfills(),
+    nodePolyfills({ include: ["buffer"], globals: { Buffer: true } }),
     svgLoader(),
     wasmLoader(),
     windiCSS(),
@@ -39,7 +39,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         chunkFileNames(info) {
-          if (info.name === "injector.ts") return "assets/injector.js";
+          if (info.name === "contentScript.ts") return "assets/contentScript.js";
           if (info.name === "injected.ts") return "assets/injected.js";
           return "assets/[name]-[hash].js";
         }

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { ConnectionRequest } from "@/background/asyncRequestQueue";
-import { queue } from "@/background/rpcHandler";
-import { InternalRequest } from "@/background/messaging";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { AsyncRequest } from "@/rpc/asyncRequestQueue";
+import { queue } from "@/rpc/uiRpcHandlers";
+import { InternalRequest } from "@/rpc/protocol";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 
 const selected = ref(0);
-const request = ref<ConnectionRequest>();
+const request = ref<AsyncRequest>();
 
 onMounted(() => {
   request.value = queue.pop(InternalRequest.Connect);
@@ -31,7 +31,7 @@ function cancel() {
   window.close();
 }
 
-async function saveConnection(walletId: number, request: ConnectionRequest) {
+async function saveConnection(walletId: number, request: AsyncRequest) {
   const { origin, favicon } = request;
   await connectedDAppsDbService.put({ walletId, origin, favicon });
 }

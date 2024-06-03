@@ -123,7 +123,14 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { mapState } from "vuex";
-import { TxInterpreter } from "@/api/ergo/transaction/interpreter/txInterpreter";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, requiredUnless } from "@vuelidate/validators";
+import VueJsonPretty from "vue-json-pretty";
+import { AddressType } from "@fleet-sdk/core";
+import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
+import { EIP12UnsignedTransaction, isDefined, SignedTransaction } from "@fleet-sdk/common";
+import TxBoxDetails from "./TxBoxDetails.vue";
+import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
 import {
   ProverStateType,
   SigningState,
@@ -133,19 +140,12 @@ import {
   WalletType
 } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
-import { PasswordError } from "@/types/errors";
+import { PasswordError } from "@/common/errors";
 import SignStateModal from "@/components/SignStateModal.vue";
-import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { OutputInterpreter } from "@/api/ergo/transaction/interpreter/outputInterpreter";
-import VueJsonPretty from "vue-json-pretty";
+import { OutputInterpreter } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import "vue-json-pretty/lib/styles.css";
-import { AddressType } from "@fleet-sdk/core";
 import TxSignSummary from "@/components/TxSignSummary.vue";
-import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
-import { EIP12UnsignedTransaction, isDefined, SignedTransaction } from "@fleet-sdk/common";
 
 export default defineComponent({
   name: "TxSignView",

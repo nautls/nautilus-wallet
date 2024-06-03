@@ -25,18 +25,18 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import NavHeader from "@/components/NavHeader.vue";
-import WalletHeader from "@/components/WalletHeader.vue";
-import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { mapActions, mapState } from "vuex";
+import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
-import { isPopup } from "./utils/browserApi";
 import WalletLogo from "./components/WalletLogo.vue";
+import { isPopup } from "@/common/browser";
+import WalletHeader from "@/components/WalletHeader.vue";
+import NavHeader from "@/components/NavHeader.vue";
 
-function runSetInterval(callback: () => void, ms: number): NodeJS.Timer {
+function runSetInterval(callback: () => void, ms: number): number {
   callback();
-  return setInterval(callback, ms);
+  return setInterval(callback, ms) as unknown as number;
 }
 
 export default defineComponent({
@@ -49,15 +49,25 @@ export default defineComponent({
   },
   data: () => {
     return {
-      getPriceTimerId: Object.freeze({} as NodeJS.Timer),
-      syncTimerId: Object.freeze({} as NodeJS.Timer)
+      getPriceTimerId: Object.freeze(0),
+      syncTimerId: Object.freeze(0)
     };
+  },
+  computed: {
+    ...mapState(["loading", "settings"]),
+    maxWidth() {
+      if (isPopup()) {
+        return "max-w-365px";
+      }
+
+      return undefined;
+    }
   },
   async created() {
     this.syncTimerId = Object.freeze(
       setInterval(() => {
         this.refresh();
-      }, REFRESH_BALANCE_INTERVAL)
+      }, REFRESH_BALANCE_INTERVAL) as unknown as number
     );
 
     await this.init();
@@ -70,16 +80,6 @@ export default defineComponent({
   deactivated() {
     clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
-  },
-  computed: {
-    ...mapState(["loading", "settings"]),
-    maxWidth() {
-      if (isPopup()) {
-        return "max-w-365px";
-      }
-
-      return undefined;
-    }
   },
   methods: {
     ...mapActions({

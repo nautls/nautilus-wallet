@@ -38,8 +38,7 @@ export const buildManifest = (network: Network) =>
     content_security_policy: {
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
     },
-    permissions: ["storage", "activeTab", "scripting", "tabs"],
-    host_permissions: ["<all_urls>"],
+    permissions: ["storage", "tabs"],
     action: {
       default_popup: "index.html",
       default_title: "Nautilus Wallet"
@@ -48,20 +47,23 @@ export const buildManifest = (network: Network) =>
       env.mode === "development"
         ? [
             {
-              resources: ["src/content-scripts/injector.ts", "src/content-scripts/injected.ts"],
+              resources: [
+                "src/extension/content-scripts/contentScript.ts",
+                "src/extension/content-scripts/injected.ts"
+              ],
               matches: ["<all_urls>"],
               extension_ids: []
             }
           ]
         : undefined,
     background: {
-      service_worker: "src/background/background.ts",
+      service_worker: "src/extension/background/background.ts",
       type: "module"
     },
     content_scripts: [
       {
+        js: ["src/extension/content-scripts/contentScript.ts"],
         matches: ["<all_urls>"],
-        js: ["src/content-scripts/injector.ts"],
         run_at: "document_start",
         all_frames: true
       }
