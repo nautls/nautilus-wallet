@@ -24,7 +24,7 @@ import VueFeather from "vue-feather";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import { hasBrowserContext } from "./utils/browserApi";
+import { hasBrowserContext } from "./common/browserApi";
 import { startListening } from "@/rpc/uiRpcHandlers";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
@@ -36,7 +36,7 @@ import MdiIcon from "@/components/MdiIcon.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { vueCleave } from "@/directives/cleave";
-import { filters } from "@/utils/globalFilters";
+import { filters } from "@/common/globalFilters";
 
 import "@/config/axiosConfig";
 

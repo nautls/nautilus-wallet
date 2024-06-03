@@ -10,8 +10,8 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
-import { undecimalize } from "@/utils/bigNumbers";
-import { hdKeyPool } from "@/utils/objectPool";
+import { undecimalize } from "@/common/bigNumbers";
+import { hdKeyPool } from "@/common/objectPool";
 import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;

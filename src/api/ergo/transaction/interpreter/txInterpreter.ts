@@ -1,7 +1,7 @@
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { StateAssetInfo } from "@/types/internal";
-import { decimalize, sumBigNumberBy, toBigNumber } from "@/utils/bigNumbers";
+import { decimalize, sumBigNumberBy, toBigNumber } from "@/common/bigNumbers";
 import BigNumber from "bignumber.js";
 import { difference, find, groupBy, isEmpty } from "lodash-es";
 import { addressFromErgoTree } from "../../addresses";

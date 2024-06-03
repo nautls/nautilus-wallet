@@ -1,4 +1,4 @@
-import { AuthArgs, SignTxArgs, SignTxInputsArgs } from "@/@types/webext-rpc";
+import { AuthArgs, SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
 import { InternalRequest } from "@/rpc/protocol";
 
 export type AsyncRequest<T = unknown> = {

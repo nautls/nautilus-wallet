@@ -1,5 +1,5 @@
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
-import { createWindow } from "@/utils/uiHelpers";
+import { createWindow } from "@/common/uiHelpers";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import {
   checkConnection,
@@ -8,7 +8,7 @@ import {
   getCurrentHeight,
   getUTxOs
 } from "./ergoHandlers";
-import { browser } from "@/utils/browserApi";
+import { browser } from "@/common/browserApi";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "@/rpc/protocol";

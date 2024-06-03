@@ -6,7 +6,7 @@ import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { onMounted } from "vue";
 import { error, InternalRequest, success } from "@/rpc/protocol";
 import { queue } from "@/rpc/uiRpcHandlers";
-import { SignTxArgs, SignTxInputsArgs } from "@/@types/webext-rpc";
+import { SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
 import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import store from "@/store";

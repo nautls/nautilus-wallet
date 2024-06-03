@@ -2,7 +2,7 @@ import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
-import { sumBigNumberBy } from "@/utils/bigNumbers";
+import { sumBigNumberBy } from "@/common/bigNumbers";
 import { groupBy } from "lodash-es";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import BigNumber from "bignumber.js";

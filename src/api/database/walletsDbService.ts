@@ -4,7 +4,7 @@ import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash-es";
 import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
-import { PasswordError } from "@/types/errors";
+import { PasswordError } from "@/common/errors";
 
 class WalletsDbService {
   public async getById(id: number): Promise<IDbWallet | undefined> {

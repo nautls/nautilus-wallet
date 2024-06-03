@@ -31,7 +31,7 @@ import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
-import { toBigNumber } from "@/utils/bigNumbers";
+import { toBigNumber } from "@/common/bigNumbers";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;

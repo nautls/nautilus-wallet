@@ -34,10 +34,10 @@ import {
   UpdateWalletSettingsCommand,
   WalletType
 } from "@/types/internal";
-import { hdKeyPool } from "@/utils/objectPool";
+import { hdKeyPool } from "@/common/objectPool";
 import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
-import { decimalize, toBigNumber } from "@/utils/bigNumbers";
+import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import {
   CHUNK_DERIVE_LENGTH,
   ERG_DECIMALS,

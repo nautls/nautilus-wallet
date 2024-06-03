@@ -91,15 +91,15 @@ import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
 import { differenceBy, find, isEmpty, remove } from "lodash-es";
-import { decimalize, undecimalize } from "@/utils/bigNumbers";
-import { required, helpers } from "@vuelidate/validators";
+import { decimalize, undecimalize } from "@/common/bigNumbers";
+import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
 import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
 import BigNumber from "bignumber.js";
 import AssetInput from "@/components/AssetInput.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { openTransactionSigningModal } from "@/utils/componentUtils";
+import { openTransactionSigningModal } from "@/common/componentUtils";
 
 const validations = {
   recipient: {

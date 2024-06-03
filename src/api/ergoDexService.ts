@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import { uniqWith } from "lodash-es";
-import { asDict } from "@/utils/serializer";
+import { asDict } from "@/common/serializer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import BigNumber from "bignumber.js";
 

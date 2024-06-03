@@ -57,7 +57,7 @@ import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ACTIONS } from "@/constants/store/actions";
 import { ProverStateType, WalletType } from "@/types/internal";
-import { log } from "@/utils/logger";
+import { log } from "@/common/logger";
 import { hex } from "@fleet-sdk/crypto";
 
 export default defineComponent({
@@ -192,3 +192,4 @@ export default defineComponent({
   }
 });
 </script>
+@/common/logger

@@ -6,11 +6,11 @@
     scroll="clip"
     content-class="max-h-95vh bg-transparent relative overflow-hidden !max-w-100 !w-90vw"
   >
-    <button @click="close()" type="button" class="fixed top-0 right-0 m-2 text-light-300">
+    <button type="button" class="fixed top-0 right-0 m-2 text-light-300" @click="close()">
       <mdi-icon name="close" size="24" />
     </button>
 
-    <div class="h-10" v-if="!isImageNft" @click="close()"></div>
+    <div v-if="!isImageNft" class="h-10" @click="close()"></div>
     <div class="text-xs tracking-normal rounded bg-light-50" :class="{ 'pt-10': !isImageNft }">
       <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-83.1 w-full rounded-t" />
       <asset-icon
@@ -27,7 +27,7 @@
           <h1 class="font-bold text-lg">
             {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
           </h1>
-          <p class="whitespace-pre-wrap" v-if="description">{{ description }}</p>
+          <p v-if="description" class="whitespace-pre-wrap">{{ description }}</p>
         </div>
         <div class="flex flex-row gap-4 mt-2">
           <div class="w-1/2">
@@ -69,7 +69,7 @@ import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/api/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { isEmpty } from "lodash-es";
-import { decimalize, toBigNumber } from "@/utils/bigNumbers";
+import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import { AssetSubtype } from "@/types/internal";
 import ImageSandbox from "./ImageSandbox.vue";
 import BigNumber from "bignumber.js";
@@ -82,6 +82,13 @@ export default defineComponent({
   props: {
     tokenId: { type: String, required: false },
     confirmedBalance: { type: Object as PropType<BigNumber.Instance>, required: false }
+  },
+  data() {
+    return {
+      active: false,
+      internalTokenId: "",
+      asset: Object.freeze({} as IAssetInfo | undefined)
+    };
   },
   computed: {
     emissionAmount(): string {
@@ -131,13 +138,6 @@ export default defineComponent({
     hideBalances(): boolean {
       return this.$store.state.settings.hideBalances;
     }
-  },
-  data() {
-    return {
-      active: false,
-      internalTokenId: "",
-      asset: Object.freeze({} as IAssetInfo | undefined)
-    };
   },
   watch: {
     tokenId(newVal: string) {

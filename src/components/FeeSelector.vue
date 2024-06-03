@@ -11,14 +11,14 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { GETTERS } from "@/constants/store/getters";
 import store from "@/store";
 import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
-import { decimalize } from "@/utils/bigNumbers";
+import { decimalize } from "@/common/bigNumbers";
 import { bigNumberMinValue } from "@/validators";
 import useVuelidate from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { groupBy, isEmpty, maxBy, sortBy } from "lodash-es";
 import { computed, onMounted, PropType, reactive, watch } from "vue";
-import { filters } from "@/utils/globalFilters";
+import { filters } from "@/common/globalFilters";
 import { areEqualBy } from "@fleet-sdk/common";
 
 type FeeAsset = {
@@ -361,3 +361,4 @@ function emitSelectedUpdate() {
     </p>
   </div>
 </template>
+@/common/bigNumbers@/common/globalFilters

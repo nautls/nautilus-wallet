@@ -135,7 +135,7 @@ import {
 import { ACTIONS } from "@/constants/store";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
-import { PasswordError } from "@/types/errors";
+import { PasswordError } from "@/common/errors";
 import SignStateModal from "@/components/SignStateModal.vue";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";

@@ -67,7 +67,7 @@ import { defineComponent } from "vue";
 import { mapActions, mapState } from "vuex";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { browser } from "@/utils/browserApi";
+import { browser } from "@/common/browserApi";
 import WalletLogo from "./WalletLogo.vue";
 
 export default defineComponent({
@@ -104,3 +104,4 @@ export default defineComponent({
   }
 });
 </script>
+@/common/browserApi

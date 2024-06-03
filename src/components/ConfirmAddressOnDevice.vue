@@ -3,7 +3,7 @@ import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { computed, onMounted, reactive } from "vue";
 import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
-import { log } from "../utils/logger";
+import { log } from "@/common/logger";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverStateType } from "@/types/internal";
 
