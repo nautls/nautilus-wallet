@@ -134,4 +134,3 @@ function onLoadingModalClose() {
     />
   </div>
 </template>
-../chains/ergo/transaction/prover

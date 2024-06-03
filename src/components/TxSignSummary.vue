@@ -29,4 +29,3 @@ export default defineComponent({
   }
 });
 </script>
-@/chains/ergo/transaction/interpreter/txInterpreter
