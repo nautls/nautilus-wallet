@@ -1,7 +1,6 @@
-import { NETWORK } from "@/constants/ergo";
 import { ErgoHDKey } from "@fleet-sdk/wallet";
-import { hex } from "@fleet-sdk/crypto";
-import { base58check } from "@fleet-sdk/crypto";
+import { base58check, hex } from "@fleet-sdk/crypto";
+import { NETWORK } from "@/constants/ergo";
 
 export type DerivedAddress = { index: number; script: string };
 type PublicKeyOptions = string | { publicKey: string; chainCode: string };

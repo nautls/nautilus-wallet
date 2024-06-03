@@ -1,8 +1,8 @@
 import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
-import { OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
-import { CherryPickSelectionStrategy } from "@fleet-sdk/core";
-import BigNumber from "bignumber.js";
+import { CherryPickSelectionStrategy, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
+import { BigNumber } from "bignumber.js";
 import { isEmpty } from "lodash-es";
+import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 import { fetchBoxes } from "../boxFetcher";
 import { graphQLService } from "@/api/explorer/graphQlService";
@@ -12,7 +12,6 @@ import store from "@/store";
 import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/common/bigNumbers";
 import { hdKeyPool } from "@/common/objectPool";
-import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 

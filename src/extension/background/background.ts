@@ -1,6 +1,6 @@
-import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
-import { createWindow } from "@/common/uiHelpers";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { onMessage, sendMessage } from "webext-bridge/background";
+import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
+import { isEmpty } from "@fleet-sdk/common";
 import {
   checkConnection,
   getAddresses,
@@ -8,12 +8,12 @@ import {
   getCurrentHeight,
   getUTxOs
 } from "./ergoHandlers";
+import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
+import { createWindow } from "@/common/uiHelpers";
+import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
 import { browser } from "@/common/browserApi";
-import { onMessage, sendMessage } from "webext-bridge/background";
-import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "@/rpc/protocol";
 import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "@/rpc/asyncRequestQueue";
-import { isEmpty } from "@fleet-sdk/common";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { submitTx } from "@/api/ergo/submitTx";

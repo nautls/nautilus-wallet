@@ -1,15 +1,15 @@
 import { chunk, first, isEmpty, min } from "lodash-es";
+import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
+import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
+import { retryExchange } from "@urql/exchange-retry";
+import { browser, hasBrowserContext } from "../../common/browserApi";
+import { parseEIP4Asset } from "./eip4Parser";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";
 import { isZero } from "@/common/bigNumbers";
 import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard } from "@/types/internal";
-import { parseEIP4Asset } from "./eip4Parser";
 import { IAssetInfo } from "@/types/database";
-import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
-import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
-import { retryExchange } from "@urql/exchange-retry";
-import { browser, hasBrowserContext } from "../../common/browserApi";
 
 export type AssetBalance = {
   tokenId: string;

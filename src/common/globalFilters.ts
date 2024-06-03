@@ -1,5 +1,5 @@
+import { BigNumber } from "bignumber.js";
 import { WalletType } from "@/types/internal";
-import BigNumber from "bignumber.js";
 
 const defaultBigNumbersFormatter = Intl.NumberFormat("en", {
   notation: "compact",

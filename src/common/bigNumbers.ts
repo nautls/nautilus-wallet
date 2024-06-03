@@ -1,5 +1,5 @@
+import { BigNumber } from "bignumber.js";
 import { BigNumberType } from "@/types/internal";
-import BigNumber from "bignumber.js";
 
 export function decimalize(value: BigNumberType, decimals: number): BigNumber;
 export function decimalize(

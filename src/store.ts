@@ -1,8 +1,5 @@
-import { walletsDbService } from "@/api/database/walletsDbService";
 import { createStore } from "vuex";
-import HdKey, { DerivedAddress } from "@/api/ergo/hdKey";
-import BigNumber from "bignumber.js";
-import { coinGeckoService } from "@/api/coinGeckoService";
+import { BigNumber } from "bignumber.js";
 import {
   clone,
   difference,
@@ -19,6 +16,24 @@ import {
   union,
   uniq
 } from "lodash-es";
+import AES from "crypto-js/aes";
+import { hex } from "@fleet-sdk/crypto";
+import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
+import { extractAddressesFromInputs } from "./api/ergo/extraction";
+import { utxosDbService } from "./api/database/utxosDbService";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
+import { assetInfoDbService } from "./api/database/assetInfoDbService";
+import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
+import { Token } from "./types/connector";
+import { buildEip28ResponseMessage } from "./api/ergo/eip28";
+import { Prover } from "./api/ergo/transaction/prover";
+import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
+import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
+import { getChangeAddress } from "./api/ergo/addresses";
+import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
+import { walletsDbService } from "@/api/database/walletsDbService";
+import HdKey, { DerivedAddress } from "@/api/ergo/hdKey";
+import { coinGeckoService } from "@/api/coinGeckoService";
 import {
   AddressState,
   AddressType,
@@ -28,14 +43,16 @@ import {
   Network,
   SignEip28MessageCommand,
   SignTxCommand,
+  StateAddress,
+  StateAsset,
   StateAssetInfo,
+  StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
   UpdateWalletSettingsCommand,
   WalletType
 } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
-import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
 import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import {
@@ -49,21 +66,6 @@ import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "
 import router from "@/router";
 import { addressesDbService } from "@/api/database/addressesDbService";
 import { assetsDbService } from "@/api/database/assetsDbService";
-import AES from "crypto-js/aes";
-import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { extractAddressesFromInputs } from "./api/ergo/extraction";
-import { utxosDbService } from "./api/database/utxosDbService";
-import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
-import { assetInfoDbService } from "./api/database/assetInfoDbService";
-import { Token } from "./types/connector";
-import { buildEip28ResponseMessage } from "./api/ergo/eip28";
-import { Prover } from "./api/ergo/transaction/prover";
-import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
-import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
-import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
-import { getChangeAddress } from "./api/ergo/addresses";
-import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
-import { hex } from "@fleet-sdk/crypto";
 
 function dbAddressMapper(a: IDbAddress) {
   return {

@@ -1,9 +1,9 @@
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import { uniqWith } from "lodash-es";
+import { BigNumber } from "bignumber.js";
 import { asDict } from "@/common/serializer";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import BigNumber from "bignumber.js";
 
 export type ErgoDexPool = {
   id: string;

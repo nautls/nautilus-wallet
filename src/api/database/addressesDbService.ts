@@ -1,8 +1,7 @@
+import { walletsDbService } from "./walletsDbService";
 import { IDbAddress, IDbWallet } from "@/types/database";
 import { dbContext } from "@/api/database/dbContext";
-import { find } from "lodash-es";
 import { AddressState } from "@/types/internal";
-import { walletsDbService } from "./walletsDbService";
 
 class AddressesDbService {
   public async getByScript(script: string): Promise<IDbAddress | undefined> {
@@ -61,7 +60,7 @@ class AddressesDbService {
     const putAddresses: IDbAddress[] = [];
 
     for (const address of addresses) {
-      const dbAddress = find(dbAddresses, (a) => a.script == address.script);
+      const dbAddress = dbAddresses.find((a) => a.script == address.script);
 
       if (this.isNewOrModified(address, dbAddress)) {
         address.walletId = walletId;

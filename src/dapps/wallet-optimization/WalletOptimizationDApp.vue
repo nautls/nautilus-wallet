@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import store from "@/store";
-import { ErgoBox } from "@/types/connector";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
+import { BigNumber } from "bignumber.js";
+import { createConsolidationTransaction } from "./transactionFactory";
+import { fetchBoxes } from "@/api/ergo/boxFetcher";
+import store from "@/store";
+import { ErgoBox } from "@/types/connector";
 import { graphQLService } from "@/api/explorer/graphQlService";
 import { FeeSettings } from "@/types/internal";
 import { decimalize } from "@/common/bigNumbers";
-import BigNumber from "bignumber.js";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -20,7 +21,6 @@ import {
 } from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { filters } from "@/common/globalFilters";
-import { createConsolidationTransaction } from "./transactionFactory";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 
 const loading = ref(true);

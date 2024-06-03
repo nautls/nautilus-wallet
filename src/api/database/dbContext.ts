@@ -1,13 +1,13 @@
 import Dexie, { Table } from "dexie";
+import { uniqBy } from "lodash-es";
 import {
-  IDbDAppConnection,
+  IAssetInfo,
   IDbAddress,
   IDbAsset,
-  IDbWallet,
+  IDbDAppConnection,
   IDbUtxo,
-  IAssetInfo
+  IDbWallet
 } from "@/types/database";
-import { uniqBy } from "lodash-es";
 import { ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {

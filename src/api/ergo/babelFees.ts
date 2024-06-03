@@ -1,11 +1,11 @@
+import { BigNumber } from "bignumber.js";
+import { first, isEmpty, orderBy, sortBy } from "lodash-es";
+import { Constant } from "ergo-lib-wasm-browser";
+import { graphQLService } from "../explorer/graphQlService";
+import { addressFromErgoTree } from "./addresses";
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
 import { BigNumberType } from "@/types/internal";
-import BigNumber from "bignumber.js";
-import { first, isEmpty, orderBy, sortBy } from "lodash-es";
-import { graphQLService } from "../explorer/graphQlService";
-import { addressFromErgoTree } from "./addresses";
-import { Constant } from "ergo-lib-wasm-browser";
 
 const BABEL_ERGOTREE_PREFIX = "100604000e20";
 const BABEL_ERGOTREE_SUFFIX =

@@ -1,11 +1,11 @@
-import { Registers } from "@/types/connector";
-import { IAssetInfo } from "@/types/database";
-import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { Token } from "@ergo-graphql/types";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { isEmpty } from "@fleet-sdk/common";
 import { sigmaDecode } from "../ergo/serialization";
+import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
+import { IAssetInfo } from "@/types/database";
+import { Registers } from "@/types/connector";
 
 export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
   if (!tokenInfo.box) return;

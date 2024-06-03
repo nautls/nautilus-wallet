@@ -1,10 +1,10 @@
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { ErgoBox } from "@/types/connector";
 import { difference, find, isEmpty, sortBy, unionBy } from "lodash-es";
 import { addressesDbService } from "../database/addressesDbService";
 import { assetsDbService } from "../database/assetsDbService";
 import { utxosDbService } from "../database/utxosDbService";
 import { graphQLService } from "../explorer/graphQlService";
+import { ErgoBox } from "@/types/connector";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export async function fetchBoxes(
   walletId: number,

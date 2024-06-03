@@ -1,7 +1,7 @@
-import { NETWORK, P2PK_TREE_PREFIX } from "@/constants/ergo";
-import { ErgoBoxCandidate } from "@/types/connector";
 import { last } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
+import { NETWORK, P2PK_TREE_PREFIX } from "@/constants/ergo";
+import { ErgoBoxCandidate } from "@/types/connector";
 
 export function getChangeAddress(
   outputs: ErgoBoxCandidate[],

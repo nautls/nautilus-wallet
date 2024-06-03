@@ -7,9 +7,9 @@ import { dappsManifest } from "@/dapps/dappsManifest";
     <router-link
       v-for="dapp in dappsManifest"
       :key="dapp.path"
+      v-slot="{ navigate }"
       :to="dapp.path"
       custom
-      v-slot="{ navigate }"
     >
       <div class="w-1/2 text-center p-2">
         <button

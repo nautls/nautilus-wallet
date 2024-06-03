@@ -1,14 +1,14 @@
-import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
-import { ErgoBoxCandidate } from "@/types/connector";
-import { decimalize, toBigNumber } from "@/common/bigNumbers";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "bignumber.js";
 import { find, findIndex, first, isEmpty } from "lodash-es";
-import { sigmaDecode } from "@/api/ergo/serialization";
-import { StateAssetInfo } from "@/types/internal";
-import { isBabelContract } from "../../babelFees";
 import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
 import { EIP12UnsignedInput } from "@fleet-sdk/common";
 import { utf8 } from "@fleet-sdk/crypto";
+import { isBabelContract } from "../../babelFees";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
+import { ErgoBoxCandidate } from "@/types/connector";
+import { decimalize, toBigNumber } from "@/common/bigNumbers";
+import { sigmaDecode } from "@/api/ergo/serialization";
+import { StateAssetInfo } from "@/types/internal";
 
 export type OutputAsset = {
   tokenId: string;
