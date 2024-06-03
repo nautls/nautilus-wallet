@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { InternalRequest } from "@/rpc/protocol";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 
 const selected = ref(0);
 const request = ref<AsyncRequest>();

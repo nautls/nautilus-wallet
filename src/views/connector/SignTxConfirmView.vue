@@ -1,18 +1,16 @@
 <script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { SignedTransaction, some } from "@fleet-sdk/common";
 import DappPlate from "@/components/DappPlate.vue";
 import TxSignView from "@/components/TxSignView.vue";
-import { ref, watch } from "vue";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
-import { onMounted } from "vue";
 import { error, InternalRequest, success } from "@/rpc/protocol";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import store from "@/store";
 import { ACTIONS } from "@/constants/store";
-import { computed } from "vue";
-import { SignedTransaction, some } from "@fleet-sdk/common";
 
 type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
 

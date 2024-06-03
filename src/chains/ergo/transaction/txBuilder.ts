@@ -5,7 +5,7 @@ import { isEmpty } from "lodash-es";
 import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 import { fetchBoxes } from "../boxFetcher";
-import { graphQLService } from "@/api/explorer/graphQlService";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";

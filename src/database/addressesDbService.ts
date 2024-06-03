@@ -1,6 +1,6 @@
 import { walletsDbService } from "./walletsDbService";
 import { IDbAddress, IDbWallet } from "@/types/database";
-import { dbContext } from "@/api/database/dbContext";
+import { dbContext } from "@/database/dbContext";
 import { AddressState } from "@/types/internal";
 
 class AddressesDbService {

@@ -1,4 +1,4 @@
-import HdKey from "@/api/ergo/hdKey";
+import HdKey from "@/chains/ergo/hdKey";
 
 type PoolItem<ObjectType, Key> = {
   key: Key;

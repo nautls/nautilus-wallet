@@ -32,6 +32,7 @@
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "sort-imports": ["warn", { "ignoreDeclarationSort": true, "ignoreCase": true }],
     "import/order": "warn",
-    "import/default": "off"
+    "import/default": "off",
+    "import/no-named-as-default-member": "off"
   }
 }

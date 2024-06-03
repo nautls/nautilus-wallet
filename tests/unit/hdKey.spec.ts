@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { walletChecksum } from "@emurgo/cip4-js";
-import HdKey from "../../src/api/ergo/hdKey";
+import HdKey from "../../src/chains/ergo/hdKey";
 
 describe("address generation", () => {
   const xpk =

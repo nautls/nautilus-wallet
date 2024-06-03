@@ -1,9 +1,9 @@
 import { isEmpty } from "lodash-es";
 import { SignedTransaction } from "@ergo-graphql/types";
-import { addressFromErgoTree } from "../ergo/addresses";
 import { addressesDbService } from "./addressesDbService";
+import { addressFromErgoTree } from "@/chains/ergo/addresses";
 import { IDbUtxo } from "@/types/database";
-import { dbContext } from "@/api/database/dbContext";
+import { dbContext } from "@/database/dbContext";
 
 class UTxOsDbService {
   public async getAllPending(): Promise<IDbUtxo[]> {

@@ -4,7 +4,7 @@ import {
   safeGetChangeAddress,
   setFee,
   setSelectionAndChangeStrategy
-} from "@/api/ergo/transaction/txBuilder";
+} from "@/chains/ergo/transaction/txBuilder";
 import { FeeSettings, WalletType } from "@/types/internal";
 
 export async function createConsolidationTransaction(

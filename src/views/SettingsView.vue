@@ -4,13 +4,13 @@
     <label>
       Wallet name
       <input
-        @blur="(v$.walletSettings as any).name.$touch()"
         v-model.lazy="walletSettings.name"
         type="text"
         spellcheck="false"
         class="w-full control block"
+        @blur="(v$.walletSettings as any).name.$touch()"
       />
-      <p class="input-error" v-if="(v$.walletSettings as any).name.$error">
+      <p v-if="(v$.walletSettings as any).name.$error" class="input-error">
         {{ (v$.walletSettings as any).name.$errors[0]?.$message }}
       </p>
     </label>
@@ -73,7 +73,7 @@
               :disabled="loading"
               class="w-full !py-1 appearance-none control cursor-pointer"
             >
-              <option v-for="currency in currencies" :value="currency" :key="currency">
+              <option v-for="currency in currencies" :key="currency" :value="currency">
                 {{ $filters.uppercase(currency) }}
               </option>
             </select>
@@ -100,26 +100,26 @@
       <label>
         GraphQL server
         <input
-          @blur="(v$.globalSettings as any).graphQLServer.$touch()"
           v-model.lazy="globalSettings.graphQLServer"
           type="text"
           spellcheck="false"
           class="w-full control block"
+          @blur="(v$.globalSettings as any).graphQLServer.$touch()"
         />
-        <p class="input-error" v-if="(v$.globalSettings as any).graphQLServer.$error">
+        <p v-if="(v$.globalSettings as any).graphQLServer.$error" class="input-error">
           {{ (v$.globalSettings as any).graphQLServer.$errors[0]?.$message }}
         </p>
       </label>
       <label>
         Explorer URL
         <input
-          @blur="(v$.globalSettings as any).explorerUrl.$touch()"
           v-model.lazy="globalSettings.explorerUrl"
           type="text"
           spellcheck="false"
           class="w-full control block"
+          @blur="(v$.globalSettings as any).explorerUrl.$touch()"
         />
-        <p class="input-error" v-if="(v$.globalSettings as any).explorerUrl.$error">
+        <p v-if="(v$.globalSettings as any).explorerUrl.$error" class="input-error">
           {{ (v$.globalSettings as any).explorerUrl.$errors[0]?.$message }}
         </p>
       </label>
@@ -149,18 +149,18 @@ import { defineComponent, Ref } from "vue";
 import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { mapActions, mapState } from "vuex";
+import { clone, isEmpty, isEqual } from "lodash-es";
 import { StateWallet, UpdateWalletSettingsCommand } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
-import { coinGeckoService } from "@/api/coinGeckoService";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
-import { clone, isEmpty, isEqual } from "lodash-es";
 import {
   getDefaultServerUrl,
+  MIN_SERVER_VERSION,
   validateServerNetwork,
-  validateServerVersion,
-  MIN_SERVER_VERSION
-} from "@/api/explorer/graphQlService";
+  validateServerVersion
+} from "@/chains/ergo/services/graphQlService";
 import { validUrl } from "@/validators";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 
@@ -168,7 +168,26 @@ export default defineComponent({
   name: "SettingsView",
   components: { ExtendedPublicKeyModal },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
+    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>> };
+  },
+  data() {
+    return {
+      walletSettings: {
+        name: "",
+        avoidAddressReuse: false,
+        hideUsedAddresses: true
+      },
+      globalSettings: {
+        conversionCurrency: "",
+        devMode: !MAINNET,
+        graphQLServer: "",
+        explorerUrl: ""
+      },
+      walletChanged: true,
+      loading: true,
+      currencies: [] as string[],
+      xpkModalActive: false
+    };
   },
   computed: {
     ...mapState({
@@ -217,25 +236,6 @@ export default defineComponent({
   async mounted() {
     this.currencies = await coinGeckoService.getSupportedCurrencyConversion();
     this.loading = false;
-  },
-  data() {
-    return {
-      walletSettings: {
-        name: "",
-        avoidAddressReuse: false,
-        hideUsedAddresses: true
-      },
-      globalSettings: {
-        conversionCurrency: "",
-        devMode: !MAINNET,
-        graphQLServer: "",
-        explorerUrl: ""
-      },
-      walletChanged: true,
-      loading: true,
-      currencies: [] as string[],
-      xpkModalActive: false
-    };
   },
   validations() {
     return {

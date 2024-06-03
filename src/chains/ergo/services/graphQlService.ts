@@ -2,13 +2,15 @@ import { chunk, first, isEmpty, min } from "lodash-es";
 import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
 import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
-import { browser, hasBrowserContext } from "../../common/browserApi";
-import { parseEIP4Asset } from "./eip4Parser";
+import { hex, utf8 } from "@fleet-sdk/crypto";
+import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
+import { browser, hasBrowserContext } from "../../../common/browserApi";
+import { sigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";
 import { isZero } from "@/common/bigNumbers";
 import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
-import { AssetStandard } from "@/types/internal";
+import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
 
 export type AssetBalance = {
@@ -578,3 +580,55 @@ class GraphQLService {
 }
 
 export const graphQLService = new GraphQLService();
+
+export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
+  if (!tokenInfo.box) return;
+
+  const registers = tokenInfo.box.additionalRegisters as Registers;
+  const type = sigmaDecode<string>(registers.R7, hex);
+  const assetInfo: IAssetInfo = {
+    id: tokenInfo.tokenId,
+    mintingBoxId: tokenInfo.boxId,
+    mintingTransactionId: tokenInfo.box.transactionId,
+    emissionAmount: tokenInfo.emissionAmount,
+    name: tokenInfo.name ?? undefined,
+    description: tokenInfo.description ?? undefined,
+    decimals: tokenInfo.decimals ?? 0,
+    type: parseType(type),
+    subtype: parseSubtype(type),
+    standard:
+      tokenInfo.type === AssetStandard.EIP4 ? AssetStandard.EIP4 : AssetStandard.Unstandardized
+  };
+
+  if (assetInfo.type === AssetType.NFT) {
+    assetInfo.artworkHash = sigmaDecode(registers.R8, hex);
+
+    const r9 = SConstant.from<Uint8Array | [Uint8Array, Uint8Array]>(registers.R9);
+    if (r9.type instanceof SColl) {
+      assetInfo.artworkUrl = utf8.encode(r9.data as Uint8Array);
+    } else if (r9.type instanceof SPair) {
+      const [url, cover] = r9.data as [Uint8Array, Uint8Array];
+      assetInfo.artworkUrl = url ? utf8.encode(url) : undefined;
+      assetInfo.artworkCover = cover ? utf8.encode(cover) : undefined;
+    }
+  }
+
+  return assetInfo;
+}
+
+function parseSubtype(r7Register?: string): AssetSubtype | undefined {
+  if (!r7Register || isEmpty(r7Register)) return;
+  return r7Register as AssetSubtype;
+}
+
+function parseType(r7Register?: string): AssetType {
+  if (!r7Register || isEmpty(r7Register)) return AssetType.Unknown;
+
+  if (r7Register.startsWith(AssetType.NFT)) {
+    return AssetType.NFT;
+  } else if (r7Register.startsWith(AssetType.MembershipToken)) {
+    return AssetType.MembershipToken;
+  }
+
+  return AssetType.Unknown;
+}

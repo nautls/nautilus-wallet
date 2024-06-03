@@ -1,7 +1,7 @@
 import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "lodash-es";
-import { dbContext } from "@/api/database/dbContext";
+import { dbContext } from "@/database/dbContext";
 import { IDbAddress, IDbWallet } from "@/types/database";
 import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
 import { PasswordError } from "@/common/errors";

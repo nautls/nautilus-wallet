@@ -65,14 +65,14 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
+import { isEmpty } from "@fleet-sdk/common";
+import { BigNumber } from "bignumber.js";
+import ImageSandbox from "./ImageSandbox.vue";
 import { IAssetInfo } from "@/types/database";
-import { assetInfoDbService } from "@/api/database/assetInfoDbService";
+import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { isEmpty } from "lodash-es";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import { AssetSubtype } from "@/types/internal";
-import ImageSandbox from "./ImageSandbox.vue";
-import BigNumber from "bignumber.js";
 
 export default defineComponent({
   name: "AssetInfoModal",

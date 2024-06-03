@@ -19,7 +19,7 @@ import {
   sortByTokenId,
   tokenAmountToToken,
   tokensToOutputAssets
-} from "@/api/ergo/transaction/interpreter/utils";
+} from "@/chains/ergo/transaction/interpreter/utils";
 
 function isMinerFeeContract(ergoTree: string) {
   return ergoTree === MAINNET_MINER_FEE_TREE;

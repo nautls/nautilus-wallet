@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, PropType, reactive, ref } from "vue";
+import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 import TxSignView from "./TxSignView.vue";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { ProverStateType, TransactionBuilderFunction, WalletType } from "@/types/internal";
-import { submitTx } from "@/api/ergo/submitTx";
+import { submitTx } from "@/chains/ergo/submitTx";
 import store from "@/store";
-import { PartialSignState } from "../api/ergo/transaction/prover";
-import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+import { PartialSignState } from "@/chains/ergo/transaction/prover";
 
 const props = defineProps({
   submit: { type: Boolean, default: true },
@@ -134,3 +134,4 @@ function onLoadingModalClose() {
     />
   </div>
 </template>
+../chains/ergo/transaction/prover

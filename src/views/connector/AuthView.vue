@@ -1,19 +1,17 @@
 <script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, requiredUnless } from "@vuelidate/validators";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
-import { computed, ref } from "vue";
 import store from "@/store";
 import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
-import { onMounted } from "vue";
 import { AuthArgs } from "@/types/d.ts/webext-rpc";
-import { watch } from "vue";
-import useVuelidate from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
 import SignStateModal from "@/components/SignStateModal.vue";
 
 const request = ref<AsyncRequest<AuthArgs>>();

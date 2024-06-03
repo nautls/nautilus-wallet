@@ -7,7 +7,7 @@ import { isBabelContract } from "../../babelFees";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
-import { sigmaDecode } from "@/api/ergo/serialization";
+import { sigmaDecode } from "@/chains/ergo/serialization";
 import { StateAssetInfo } from "@/types/internal";
 
 export type OutputAsset = {

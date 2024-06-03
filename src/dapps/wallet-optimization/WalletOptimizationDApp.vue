@@ -5,10 +5,10 @@ import dayjs from "dayjs";
 import { minBy } from "lodash-es";
 import { BigNumber } from "bignumber.js";
 import { createConsolidationTransaction } from "./transactionFactory";
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
+import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import store from "@/store";
 import { ErgoBox } from "@/types/connector";
-import { graphQLService } from "@/api/explorer/graphQlService";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { FeeSettings } from "@/types/internal";
 import { decimalize } from "@/common/bigNumbers";
 import {

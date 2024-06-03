@@ -1,16 +1,16 @@
-import { addressesDbService } from "@/api/database/addressesDbService";
-import { assetsDbService } from "@/api/database/assetsDbService";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { AddressState } from "@/types/internal";
-import { sumBigNumberBy } from "@/common/bigNumbers";
 import { groupBy } from "lodash-es";
-import { graphQLService } from "@/api/explorer/graphQlService";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "bignumber.js";
 import { Box, isDefined, some } from "@fleet-sdk/common";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { addressesDbService } from "@/database/addressesDbService";
+import { assetsDbService } from "@/database/assetsDbService";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { AddressState } from "@/types/internal";
+import { sumBigNumberBy } from "@/common/bigNumbers";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { fetchBoxes } from "@/chains/ergo/boxFetcher";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 
 export type AddressType = "used" | "unused" | "change";
 

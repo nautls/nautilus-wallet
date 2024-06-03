@@ -1,8 +1,8 @@
 import { BigNumber } from "bignumber.js";
 import { first, isEmpty, orderBy, sortBy } from "lodash-es";
 import { Constant } from "ergo-lib-wasm-browser";
-import { graphQLService } from "../explorer/graphQlService";
 import { addressFromErgoTree } from "./addresses";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
 import { BigNumberType } from "@/types/internal";

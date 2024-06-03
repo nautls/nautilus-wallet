@@ -1,6 +1,6 @@
 import { differenceBy, find, groupBy, isEmpty, keys, union } from "lodash-es";
 import { IDbAsset } from "@/types/database";
-import { dbContext } from "@/api/database/dbContext";
+import { dbContext } from "@/database/dbContext";
 
 class AssetsDbService {
   public async getByTokenId(walletId: number, tokenId: string): Promise<IDbAsset[]> {

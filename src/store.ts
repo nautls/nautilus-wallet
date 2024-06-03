@@ -18,22 +18,22 @@ import {
 } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { extractAddressesFromInputs } from "./api/ergo/extraction";
-import { utxosDbService } from "./api/database/utxosDbService";
+import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
+import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
-import { assetInfoDbService } from "./api/database/assetInfoDbService";
-import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
+import { assetInfoDbService } from "./database/assetInfoDbService";
 import { Token } from "./types/connector";
-import { buildEip28ResponseMessage } from "./api/ergo/eip28";
-import { Prover } from "./api/ergo/transaction/prover";
-import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
+import { Prover } from "./chains/ergo/transaction/prover";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
-import { getChangeAddress } from "./api/ergo/addresses";
 import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
-import { walletsDbService } from "@/api/database/walletsDbService";
-import HdKey, { DerivedAddress } from "@/api/ergo/hdKey";
-import { coinGeckoService } from "@/api/coinGeckoService";
+import { getChangeAddress } from "@/chains/ergo/addresses";
+import { buildEip28ResponseMessage } from "@/chains/ergo/eip28";
+import { extractAddressesFromInputs } from "@/chains/ergo/extraction";
+import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
+import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
+import { walletsDbService } from "@/database/walletsDbService";
+import HdKey, { DerivedAddress } from "@/chains/ergo/hdKey";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   AddressState,
   AddressType,
@@ -64,8 +64,8 @@ import {
 } from "@/constants/ergo";
 import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
-import { addressesDbService } from "@/api/database/addressesDbService";
-import { assetsDbService } from "@/api/database/assetsDbService";
+import { addressesDbService } from "@/database/addressesDbService";
+import { assetsDbService } from "@/database/assetsDbService";
 
 function dbAddressMapper(a: IDbAddress) {
   return {

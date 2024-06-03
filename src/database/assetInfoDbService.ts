@@ -1,6 +1,6 @@
 import { difference, isEmpty, uniqBy } from "lodash-es";
 import { IAssetInfo } from "@/types/database";
-import { dbContext } from "@/api/database/dbContext";
+import { dbContext } from "@/database/dbContext";
 import { UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class AssetInfoDbService {

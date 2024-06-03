@@ -3,43 +3,43 @@
     <label>
       Receiver
       <input
-        type="text"
-        @blur="v$.recipient.$touch()"
         v-model.lazy="recipient"
+        type="text"
         spellcheck="false"
         class="w-full control block"
+        @blur="v$.recipient.$touch()"
       />
-      <p class="input-error" v-if="v$.recipient.$error">{{ v$.recipient.$errors[0].$message }}</p>
+      <p v-if="v$.recipient.$error" class="input-error">{{ v$.recipient.$errors[0].$message }}</p>
     </label>
     <div>
       <div class="flex flex-col gap-2">
         <asset-input
           v-for="(item, index) in selected"
           :key="item.asset.tokenId"
+          v-model="item.amount"
           :label="index === 0 ? 'Assets' : ''"
           :asset="item.asset"
           :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
           :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
-          v-model="item.amount"
         />
         <drop-down
           :disabled="unselected.length === 0"
           list-class="max-h-50"
           trigger-class="px-2 py-3 text-sm uppercase"
         >
-          <template v-slot:trigger>
+          <template #trigger>
             <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
             <vue-feather type="chevron-down" size="18" />
           </template>
-          <template v-slot:items>
+          <template #items>
             <div class="group">
               <a
-                @click="add(asset)"
-                class="group-item narrow"
                 v-for="asset in unselected"
                 :key="asset.tokenId"
+                class="group-item narrow"
+                @click="add(asset)"
               >
                 <div class="flex flex-row items-center gap-2">
                   <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
@@ -60,7 +60,7 @@
               </a>
             </div>
             <div class="group">
-              <a @click="addAll()" class="group-item narrow">
+              <a class="group-item narrow" @click="addAll()">
                 <div class="flex flex-row items-center gap-2">
                   <mdi-icon name="check-all" class="text-yellow-500 w-8 h-8" size="32" />
                   <div class="flex-grow">
@@ -74,7 +74,7 @@
             </div>
           </template>
         </drop-down>
-        <p class="input-error" v-if="v$.selected.$error">{{ v$.selected.$errors[0].$message }}</p>
+        <p v-if="v$.selected.$error" class="input-error">{{ v$.selected.$errors[0].$message }}</p>
       </div>
     </div>
 
@@ -87,16 +87,16 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { differenceBy, find, isEmpty, remove } from "lodash-es";
+import { helpers, required } from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { BigNumber } from "bignumber.js";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
-import { differenceBy, find, isEmpty, remove } from "lodash-es";
 import { decimalize, undecimalize } from "@/common/bigNumbers";
-import { helpers, required } from "@vuelidate/validators";
-import { useVuelidate } from "@vuelidate/core";
 import { validErgoAddress } from "@/validators";
-import { createP2PTransaction, TxAssetAmount } from "@/api/ergo/transaction/txBuilder";
-import BigNumber from "bignumber.js";
+import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import AssetInput from "@/components/AssetInput.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
@@ -122,10 +122,16 @@ export default defineComponent({
       v$: useVuelidate()
     };
   },
-  created() {
-    if (this.$route.query.recipient && typeof this.$route.query.recipient === "string") {
-      this.recipient = this.$route.query.recipient;
-    }
+  data() {
+    return {
+      selected: [] as TxAssetAmount[],
+      feeSettings: {
+        tokenId: ERG_TOKEN_ID,
+        value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+      } as FeeSettings,
+      password: "",
+      recipient: ""
+    };
   },
   computed: {
     currentWallet(): StateWallet {
@@ -227,16 +233,10 @@ export default defineComponent({
       this.v$.selected.$touch();
     }
   },
-  data() {
-    return {
-      selected: [] as TxAssetAmount[],
-      feeSettings: {
-        tokenId: ERG_TOKEN_ID,
-        value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
-      } as FeeSettings,
-      password: "",
-      recipient: ""
-    };
+  created() {
+    if (this.$route.query.recipient && typeof this.$route.query.recipient === "string") {
+      this.recipient = this.$route.query.recipient;
+    }
   },
   validations() {
     return validations;

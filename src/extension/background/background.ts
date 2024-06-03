@@ -10,14 +10,14 @@ import {
 } from "./ergoHandlers";
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { createWindow } from "@/common/uiHelpers";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { browser } from "@/common/browserApi";
 import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "@/rpc/protocol";
 import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "@/rpc/asyncRequestQueue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { addressesDbService } from "@/api/database/addressesDbService";
-import { submitTx } from "@/api/ergo/submitTx";
-import { graphQLService } from "@/api/explorer/graphQlService";
+import { addressesDbService } from "@/database/addressesDbService";
+import { submitTx } from "@/chains/ergo/submitTx";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { JsonValue } from "@/types/internal";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (
