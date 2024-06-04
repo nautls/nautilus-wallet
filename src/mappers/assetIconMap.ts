@@ -41,5 +41,9 @@ export const assetIconMap: { [tokenId: string]: string } = {
   "7ba2a85fdb302a181578b1f64cb4a533d89b3f8de4159efece75da41041537f9": "gort.png",
   "cbd75cfe1a4f37f9a22eaee516300e36ea82017073036f07a09c1d2e10277cda": "hodlerg3.svg",
   "b0b312cde931c8bbdac0dac5bfd8e2c03bf4611275dc967988c8d15bd5ec20e0": "bober.png",
-  "7a51950e5f548549ec1aa63ffdc38279505b11e7e803d01bcf8347e0123c88b0": "rsbtc.svg"
+  "7a51950e5f548549ec1aa63ffdc38279505b11e7e803d01bcf8347e0123c88b0": "rsbtc.svg",
+  "843b5a2a0658550339c38f29827861fe459ce5206edaf17163113cccafc77af1": "GIF.png",
+  "abe0a3c2f646dcd430aac9c29d80feee865bd8b5231edb545a41105d4c8e4985": "Buns.png",
+  "a9beb1e13364cbbbdac4a456658477862f140725854803dfdcd8e0f4863e7a26": "Mustard.png",
+  "ccaac3de4098aa63de90c56973bb1bff7563e8c58594b2075dd04005dac13ae6": "ketchup.png"
 };
