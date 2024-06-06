@@ -1,43 +1,3 @@
-import { Port } from "../utils/browserApi";
-
-export type RequestQueueItem = {
-  message: RpcMessage;
-  handled: boolean;
-  resolve: (value: RpcReturn) => void;
-};
-
-export type Session = {
-  origin: string;
-  favicon?: string;
-  port: Port;
-  walletId?: number;
-  requestQueue: RequestQueueItem[];
-};
-
-export type RpcMessage = {
-  type:
-    | "rpc/connector-response"
-    | "rpc/connector-request"
-    | "rpc/nautilus-request"
-    | "rpc/nautilus-response";
-  sessionId: number;
-  requestId: number;
-  function: string;
-  params?: any[];
-  return?: RpcReturn;
-};
-
-export type RpcEvent = {
-  type: "rpc/nautilus-event";
-  name: string;
-  data?: any;
-};
-
-export type RpcReturn = {
-  isSuccess: boolean;
-  data?: any;
-};
-
 export enum APIErrorCode {
   InvalidRequest = -1,
   InternalError = -2,
@@ -54,20 +14,10 @@ export enum TxSendErrorCode {
   Failure = 2
 }
 
-export type TxSendError = {
-  code: TxSendErrorCode;
-  info: string;
-};
-
 export enum SignErrorCode {
   ProofGeneration = 1,
   UserDeclined = 2
 }
-
-export type SignError = {
-  code: SignErrorCode;
-  info: string;
-};
 
 export type Token = {
   tokenId: string;
@@ -77,18 +27,6 @@ export type Token = {
 };
 
 export type Registers = { [key: string]: string };
-
-export type UnsignedInput = {
-  boxId: string;
-  transactionId: string;
-  index: number;
-  ergoTree: string;
-  creationHeight: number;
-  value: string;
-  assets: Token[];
-  additionalRegisters: Registers;
-  extension: { [key: string]: string };
-};
 
 export type ErgoBoxCandidate = {
   value: string;
@@ -112,30 +50,6 @@ export type ErgoBox = {
 
 export type DataInput = {
   boxId: string;
-};
-
-export type UnsignedTx = {
-  inputs: UnsignedInput[];
-  dataInputs: DataInput[] | UnsignedInput[];
-  outputs: ErgoBoxCandidate[];
-};
-
-export type InputSpendingProof = {
-  proofBytes: string;
-  extension: unknown;
-};
-
-export type Input = {
-  readonly boxId: string;
-  readonly spendingProof: InputSpendingProof;
-};
-
-export type ErgoTx = {
-  readonly id: string;
-  readonly inputs: Input[];
-  readonly dataInputs: DataInput[];
-  readonly outputs: ErgoBox[];
-  readonly size: number;
 };
 
 export type TokenTargetAmount = {

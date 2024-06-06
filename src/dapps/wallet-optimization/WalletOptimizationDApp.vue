@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { fetchBoxes } from "@/api/ergo/boxFetcher";
-import store from "@/store";
-import { ErgoBox } from "@/types/connector";
 import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
-import { graphQLService } from "@/api/explorer/graphQlService";
+import { BigNumber } from "bignumber.js";
+import { createConsolidationTransaction } from "./transactionFactory";
+import { fetchBoxes } from "@/chains/ergo/boxFetcher";
+import store from "@/store";
+import { ErgoBox } from "@/types/connector";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { FeeSettings } from "@/types/internal";
-import { decimalize } from "@/utils/bigNumbers";
-import BigNumber from "bignumber.js";
+import { decimalize } from "@/common/bigNumbers";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
   ERG_TOKEN_ID,
   HEALTHY_BLOCKS_AGE,
-  SAFE_MIN_FEE_VALUE,
-  HEALTHY_UTXO_COUNT
+  HEALTHY_UTXO_COUNT,
+  SAFE_MIN_FEE_VALUE
 } from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { filters } from "@/utils/globalFilters";
-import { createConsolidationTransaction } from "./transactionFactory";
-import { openTransactionSigningModal } from "@/utils/componentUtils";
+import { filters } from "@/common/globalFilters";
+import { openTransactionSigningModal } from "@/common/componentUtils";
 
 const loading = ref(true);
 const boxes = ref<ErgoBox[]>([]);

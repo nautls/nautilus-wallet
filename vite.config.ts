@@ -1,16 +1,16 @@
+import { execSync } from "child_process";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 import wasmLoader from "vite-plugin-wasm";
 import windiCSS from "vite-plugin-windicss";
 import topLevelAwait from "vite-plugin-top-level-await";
-import manifest from "./src/manifest";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { crx } from "@crxjs/vite-plugin";
-import { execSync } from "child_process";
+import { buildManifest } from "./src/manifest";
 
-const network = process.argv.includes("--testnet") ? "testnet" : "mainnet";
-const gitHash = execSync("git rev-parse HEAD").toString();
+const gitHash = execSync("git rev-parse HEAD").toString().trim();
+const network = (process.env.VITE_NETWORK as "mainnet" | "testnet") ?? "mainnet";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,13 +18,12 @@ export default defineConfig({
     alias: { "@": "/src" }
   },
   define: {
-    "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(gitHash),
-    "import.meta.env.NETWORK": JSON.stringify(network)
+    "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(gitHash)
   },
   plugins: [
     vue(),
-    crx({ manifest }),
-    nodePolyfills(),
+    crx({ manifest: buildManifest(network) }),
+    nodePolyfills({ include: ["buffer"], globals: { Buffer: true } }),
     svgLoader(),
     wasmLoader(),
     windiCSS(),
@@ -38,11 +37,9 @@ export default defineConfig({
       if (filePath.includes("content-script")) return false;
     },
     rollupOptions: {
-      // remove non-english wordlists from the final bundle
-      external: /^\.\/wordlists\/(?!english)/,
       output: {
         chunkFileNames(info) {
-          if (info.name === "injector.ts") return "assets/injector.js";
+          if (info.name === "contentScript.ts") return "assets/contentScript.js";
           if (info.name === "injected.ts") return "assets/injected.js";
           return "assets/[name]-[hash].js";
         }
@@ -53,8 +50,8 @@ export default defineConfig({
     include: ["vue", "vue-router", "vuex"]
   },
   server: {
-    port: 5173,
+    port: 5174,
     strictPort: true,
-    hmr: { port: 5173 }
+    hmr: { port: 5174 }
   }
 });

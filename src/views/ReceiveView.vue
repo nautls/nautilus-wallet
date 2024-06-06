@@ -155,7 +155,7 @@ import { find, last } from "lodash-es";
 import QRCode from "qrcode";
 import { defineComponent } from "vue";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
-import { openModal } from "../utils/componentUtils";
+import { openModal } from "@/common/componentUtils";
 import MdiIcon from "@/components/MdiIcon.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";

@@ -1,68 +1,71 @@
-import { walletsDbService } from "@/api/database/walletsDbService";
 import { createStore } from "vuex";
-import Bip32, { DerivedAddress } from "@/api/ergo/bip32";
-import BigNumber from "bignumber.js";
-import { coinGeckoService } from "@/api/coinGeckoService";
+import { BigNumber } from "bignumber.js";
 import {
-  groupBy,
-  sortBy,
+  clone,
+  difference,
   find,
   findIndex,
-  last,
-  take,
-  first,
-  maxBy,
-  clone,
   findLastIndex,
+  first,
+  groupBy,
   isEmpty,
-  uniq,
-  difference,
-  union
+  last,
+  maxBy,
+  sortBy,
+  take,
+  union,
+  uniq
 } from "lodash-es";
+import AES from "crypto-js/aes";
+import { hex } from "@fleet-sdk/crypto";
+import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
+import { utxosDbService } from "./database/utxosDbService";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
+import { assetInfoDbService } from "./database/assetInfoDbService";
+import { Token } from "./types/connector";
+import { Prover } from "./chains/ergo/transaction/prover";
+import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
+import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
+import { getChangeAddress } from "@/chains/ergo/addresses";
+import { buildEip28ResponseMessage } from "@/chains/ergo/eip28";
+import { extractAddressesFromInputs } from "@/chains/ergo/extraction";
+import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
+import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
+import { walletsDbService } from "@/database/walletsDbService";
+import HdKey, { DerivedAddress } from "@/chains/ergo/hdKey";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
-  Network,
-  WalletType,
   AddressState,
   AddressType,
+  AssetSubtype,
+  AssetType,
+  Eip28SignedMessage,
+  Network,
+  SignEip28MessageCommand,
   SignTxCommand,
-  UpdateWalletSettingsCommand,
+  StateAddress,
+  StateAsset,
+  StateAssetInfo,
+  StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
-  StateAssetInfo,
-  AssetType,
-  AssetSubtype,
-  SignEip28MessageCommand,
-  Eip28SignedMessage
+  UpdateWalletSettingsCommand,
+  WalletType
 } from "@/types/internal";
-import { bip32Pool } from "@/utils/objectPool";
-import { StateAddress, StateAsset, StateWallet } from "@/types/internal";
-import { MUTATIONS, GETTERS, ACTIONS } from "@/constants/store";
-import { decimalize, toBigNumber } from "@/utils/bigNumbers";
+import { hdKeyPool } from "@/common/objectPool";
+import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
+import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import {
-  ERG_TOKEN_ID,
   CHUNK_DERIVE_LENGTH,
   ERG_DECIMALS,
-  UNKNOWN_MINTING_BOX_ID,
-  MAINNET
+  ERG_TOKEN_ID,
+  MAINNET,
+  UNKNOWN_MINTING_BOX_ID
 } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IAssetInfo, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
 import router from "@/router";
-import { addressesDbService } from "@/api/database/addressesDbService";
-import { assetsDbService } from "@/api/database/assetsDbService";
-import AES from "crypto-js/aes";
-import { connectedDAppsDbService } from "./api/database/connectedDAppsDbService";
-import { rpcHandler } from "./background/rpcHandler";
-import { extractAddressesFromInputs as extractP2PKAddressesFromInputs } from "./api/ergo/sigmaSerializer";
-import { utxosDbService } from "./api/database/utxosDbService";
-import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
-import { assetInfoDbService } from "./api/database/assetInfoDbService";
-import { Token } from "./types/connector";
-import { buildEip28ResponseMessage } from "./api/ergo/eip28";
-import { Prover } from "./api/ergo/transaction/prover";
-import { getDefaultServerUrl, graphQLService } from "./api/explorer/graphQlService";
-import { AssetPriceRate, ergoDexService } from "./api/ergoDexService";
-import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
-import { getChangeAddress } from "./api/ergo/addresses";
+import { addressesDbService } from "@/database/addressesDbService";
+import { assetsDbService } from "@/database/assetsDbService";
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -278,7 +281,7 @@ export default createStore({
           name: w.name,
           type: w.type,
           publicKey: w.publicKey,
-          extendedPublicKey: bip32Pool.get(w.publicKey).extendedPublicKey.toString("hex"),
+          extendedPublicKey: hex.encode(hdKeyPool.get(w.publicKey).extendedPublicKey),
           balance: new BigNumber(0),
           settings: w.settings
         };
@@ -408,9 +411,7 @@ export default createStore({
       localStorage.setItem("settings", JSON.stringify(state.settings));
 
       graphQLService.updateServerUrl(state.settings.graphQLServer);
-      if (rpcHandler.connected) {
-        rpcHandler.sendEvent("updated:graphql-url", state.settings.graphQLServer);
-      }
+      sendBackendServerUrl(state.settings.graphQLServer);
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
@@ -419,8 +420,8 @@ export default createStore({
       }
 
       for (const wallet of wallets) {
-        bip32Pool.alloc(
-          Bip32.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
+        hdKeyPool.alloc(
+          HdKey.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
           wallet.publicKey
         );
       }
@@ -434,18 +435,18 @@ export default createStore({
         | { extendedPublicKey: string; name: string; type: WalletType.ReadOnly | WalletType.Ledger }
         | { mnemonic: string; password: string; name: string; type: WalletType.Standard }
     ) {
-      const bip32 =
+      const key =
         wallet.type === WalletType.Standard
-          ? await Bip32.fromMnemonic(wallet.mnemonic)
-          : Bip32.fromPublicKey(wallet.extendedPublicKey);
+          ? await HdKey.fromMnemonic(wallet.mnemonic)
+          : HdKey.fromPublicKey(wallet.extendedPublicKey);
 
-      bip32Pool.alloc(bip32.neutered(), bip32.publicKey.toString("hex"));
+      hdKeyPool.alloc(key.neutered(), hex.encode(key.publicKey));
       const walletId = await walletsDbService.put({
         name: wallet.name.trim(),
         network: Network.ErgoMainnet,
         type: wallet.type,
-        publicKey: bip32.publicKey.toString("hex"),
-        chainCode: bip32.chainCode.toString("hex"),
+        publicKey: hex.encode(key.publicKey),
+        chainCode: hex.encode(key.chainCode),
         mnemonic:
           wallet.type === WalletType.Standard
             ? AES.encrypt(wallet.mnemonic, wallet.password).toString()
@@ -465,13 +466,13 @@ export default createStore({
         throw Error("wallet not found");
       }
 
-      const bip32 = bip32Pool.get(wallet.publicKey);
+      const key = hdKeyPool.get(wallet.publicKey);
       const stateWallet: StateWallet = {
         id: wallet.id,
         name: wallet.name,
         type: wallet.type,
         publicKey: wallet.publicKey,
-        extendedPublicKey: bip32.extendedPublicKey.toString("hex"),
+        extendedPublicKey: hex.encode(key.extendedPublicKey),
         settings: wallet.settings
       };
 
@@ -499,8 +500,7 @@ export default createStore({
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
       const index = (maxBy(state.currentAddresses, (a) => a.index)?.index || 0) + 1;
-      const bip32 = bip32Pool.get(pk);
-      const address = bip32.deriveAddress(index);
+      const address = hdKeyPool.get(pk).deriveAddress(index);
       await addressesDbService.put({
         type: AddressType.P2PK,
         state: AddressState.Unused,
@@ -526,7 +526,7 @@ export default createStore({
 
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
-      const bip32 = bip32Pool.get(pk);
+      const key = hdKeyPool.get(pk);
       let active: StateAddress[] = sortBy(
         (await addressesDbService.getByWalletId(walletId)).map((a) => dbAddressMapper(a)),
         (a) => a.index
@@ -550,7 +550,7 @@ export default createStore({
       }
 
       do {
-        derived = bip32.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
+        derived = key.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
         offset += derived.length;
         usedChunk = await graphQLService.getUsedAddresses(derived.map((a) => a.script));
         used = used.concat(usedChunk);
@@ -746,7 +746,7 @@ export default createStore({
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
     async [ACTIONS.SIGN_TX]({ state }, command: SignTxCommand) {
-      const inputAddresses = extractP2PKAddressesFromInputs(command.tx.inputs);
+      const inputAddresses = extractAddressesFromInputs(command.tx.inputs);
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
       const addresses = ownAddresses
         .filter((a) => inputAddresses.includes(a.script))
@@ -769,8 +769,8 @@ export default createStore({
 
       const isLedger = state.currentWallet.type === WalletType.Ledger;
       const deriver = isLedger
-        ? bip32Pool.get(state.currentWallet.publicKey)
-        : await Bip32.fromMnemonic(
+        ? hdKeyPool.get(state.currentWallet.publicKey)
+        : await HdKey.fromMnemonic(
             await walletsDbService.getMnemonic(command.walletId, command.password)
           );
 
@@ -780,41 +780,41 @@ export default createStore({
       );
 
       const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
+      const changeIndex = find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0;
 
       if (command.inputsToSign && command.inputsToSign.length > 0) {
         return await new Prover(deriver)
           .from(addresses)
           .useLedger(isLedger)
-          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .changeIndex(changeIndex)
           .setCallback(command.callback)
           .signInputs(command.tx, blockHeaders, command.inputsToSign);
       } else {
         const signedTx = await new Prover(deriver)
           .from(addresses)
           .useLedger(isLedger)
-          .changeIndex(find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0)
+          .changeIndex(changeIndex)
           .setCallback(command.callback)
           .sign(command.tx, blockHeaders);
 
-        return graphQLService.mapTransaction(signedTx);
+        return signedTx;
       }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
-      context,
+      _,
       command: SignEip28MessageCommand
     ): Promise<Eip28SignedMessage> {
       const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const deriver = await Bip32.fromMnemonic(
-        await walletsDbService.getMnemonic(command.walletId, command.password)
-      );
+      const mnemonic = await walletsDbService.getMnemonic(command.walletId, command.password);
+      const deriver = await HdKey.fromMnemonic(mnemonic);
 
       const signingAddress = ownAddresses.filter((x) => x.script === command.address);
-      const message = buildEip28ResponseMessage(command.message, command.origin);
-      const proofBytes = new Prover(deriver).from(signingAddress).signMessage(message);
+      const signedMessage = buildEip28ResponseMessage(command.message, command.origin);
+      const proof = new Prover(deriver).from(signingAddress).signMessage(signedMessage);
 
       return {
-        signedMessage: message,
-        proof: Buffer.from(proofBytes).toString("hex")
+        signedMessage,
+        proof: hex.encode(proof)
       };
     },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
@@ -824,7 +824,6 @@ export default createStore({
     async [ACTIONS.REMOVE_CONNECTION]({ dispatch }, origin: string) {
       await connectedDAppsDbService.deleteByOrigin(origin);
       dispatch(ACTIONS.LOAD_CONNECTIONS);
-      rpcHandler.sendEvent("disconnected", origin);
     },
     async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
       await walletsDbService.updateSettings(command.walletId, command.name, command);

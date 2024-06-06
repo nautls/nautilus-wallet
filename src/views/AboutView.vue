@@ -2,7 +2,7 @@
   <div class="flex flex-col h-full gap-4 text-center text-sm">
     <img src="/icons/app/logo-mainnet.svg" class="w-23 m-auto pt-2" />
     <div>
-      <h1 class="text-2xl m-auto" v-once>
+      <h1 v-once class="text-2xl m-auto">
         <span v-if="testnet">Nautilus Testnet Wallet</span>
         <span v-else>Nautilus Wallet</span>
       </h1>
@@ -50,10 +50,10 @@
 </template>
 
 <script lang="ts">
-import { MAINNET } from "@/constants/ergo";
-import { WalletType } from "@/types/internal";
 import { defineComponent } from "vue";
 import pkg from "../../package.json";
+import { MAINNET } from "@/constants/ergo";
+import { WalletType } from "@/types/internal";
 
 export default defineComponent({
   name: "AboutView",

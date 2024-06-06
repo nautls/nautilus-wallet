@@ -1,19 +1,18 @@
+import { Box, EIP12UnsignedTransaction, orderBy, utxoFilter } from "@fleet-sdk/common";
+import { TransactionBuilder } from "@fleet-sdk/core";
 import {
   safeGetChangeAddress,
   setFee,
   setSelectionAndChangeStrategy
-} from "@/api/ergo/transaction/txBuilder";
-import { ErgoBox, UnsignedTx } from "@/types/connector";
-import { WalletType, FeeSettings } from "@/types/internal";
-import { orderBy, utxoFilter } from "@fleet-sdk/common";
-import { TransactionBuilder } from "@fleet-sdk/core";
+} from "@/chains/ergo/transaction/txBuilder";
+import { FeeSettings, WalletType } from "@/types/internal";
 
 export async function createConsolidationTransaction(
-  inputs: ErgoBox[],
+  inputs: Box[],
   creationHeight: number,
   walletType: WalletType,
   fee: FeeSettings
-): Promise<UnsignedTx> {
+): Promise<EIP12UnsignedTransaction> {
   inputs = utxoFilter(
     orderBy(inputs, (input) => input.creationHeight),
     {
@@ -32,5 +31,5 @@ export async function createConsolidationTransaction(
   await setFee(unsigned, fee);
   setSelectionAndChangeStrategy(unsigned, walletType);
 
-  return unsigned.build().toEIP12Object() as UnsignedTx;
+  return unsigned.build().toEIP12Object();
 }

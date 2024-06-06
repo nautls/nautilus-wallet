@@ -40,35 +40,34 @@ Nautilus Wallet is a community driven wallet designed for Ergo Platform with foc
 ## Download
 
 - [From Chrome Store](https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai)
-- [From Firefox Store](https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/)
 - [From GitHub](https://github.com/capt-nemo429/nautilus-wallet/releases/latest)
 
 ## Project setup
 
 ```
-npm install
+pnpm i
 ```
 
 ### Build and start in development mode
 
 ```bash
 # Mainnet
-npm run dev:mainnet
+pnpm run dev:mainnet
 ```
 
 ```bash
 # Testnet
-npm run dev:testnet
+pnpm run dev:testnet
 ```
 
 ### Build for production
 
 ```bash
 # Mainnet
-npm run build:mainnet
+pnpm run build:mainnet
 ```
 
 ```bash
 # Testnet
-npm run build:testnet
+pnpm run build:testnet
 ```

@@ -1,36 +1,156 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, requiredUnless } from "@vuelidate/validators";
+import { queue } from "@/rpc/uiRpcHandlers";
+import { error, InternalRequest, success } from "@/rpc/protocol";
+import store from "@/store";
+import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
+import { ACTIONS } from "@/constants/store";
+import { PasswordError } from "@/common/errors";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import { APIErrorCode, SignErrorCode } from "@/types/connector";
+import { AsyncRequest } from "@/rpc/asyncRequestQueue";
+import { AuthArgs } from "@/types/d.ts/webext-rpc";
+import SignStateModal from "@/components/SignStateModal.vue";
+
+const request = ref<AsyncRequest<AuthArgs>>();
+const password = ref("");
+const errorMessage = ref("");
+const walletId = ref(0);
+
+const isReadonly = computed(() => store.state.currentWallet.type === WalletType.ReadOnly);
+const isLedger = computed(() => store.state.currentWallet.type === WalletType.Ledger);
+const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
+
+const $v = useVuelidate(
+  {
+    password: {
+      required: helpers.withMessage(
+        "A spending password is required for transaction signing.",
+        requiredUnless(isLedger.value)
+      )
+    }
+  },
+  { password },
+  { $lazy: true }
+);
+
+onMounted(async () => {
+  request.value = queue.pop(InternalRequest.Auth);
+  if (!request.value) return;
+
+  const connection = await connectedDAppsDbService.getByOrigin(request.value.origin);
+  if (!connection || !connection.walletId) {
+    request.value.resolve(error(APIErrorCode.Refused, "Unauthorized."));
+    window.close();
+    return;
+  }
+
+  walletId.value = connection.walletId;
+  window.addEventListener("beforeunload", refuse);
+});
+
+watch(
+  () => store.state.loading.wallets,
+  (loading) => setWallet(loading, walletId.value),
+  { immediate: true }
+);
+
+watch(
+  () => walletId.value,
+  (walletId) => setWallet(store.state.loading.wallets, walletId),
+  { immediate: true }
+);
+
+function setWallet(loading: boolean, walletId: number) {
+  if (loading || !walletId) return;
+  store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+}
+
+async function authenticate() {
+  if (isReadonly.value || isLedger.value || !request.value) return;
+  if (!(await $v.value.$validate())) return;
+
+  try {
+    const result = await store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
+      address: request.value.data.address,
+      message: request.value.data.address,
+      origin: request.value.origin,
+      walletId: walletId.value,
+      password: password.value
+    } as SignEip28MessageCommand);
+
+    if (!request.value) return proverError("Prover returned undefined.");
+    request.value.resolve(success(result));
+
+    removeEventListener();
+    window.close();
+  } catch (e) {
+    if (e instanceof PasswordError) {
+      errorMessage.value = e.message;
+    } else {
+      request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
+    }
+  }
+}
+
+function removeEventListener() {
+  window.removeEventListener("beforeunload", refuse);
+}
+
+function proverError(message: string) {
+  return error(SignErrorCode.ProofGeneration, message);
+}
+
+function cancel() {
+  refuse();
+  removeEventListener();
+  window.close();
+}
+
+function refuse() {
+  if (!request.value) return;
+  request.value.resolve(error(APIErrorCode.Refused, "User rejected."));
+}
+</script>
+
 <template>
   <div class="flex flex-col h-full text-sm gap-4 pt-2">
     <h1 class="text-xl m-auto text-center pb-8">Authentication</h1>
 
-    <dapp-plate :favicon="favicon" />
+    <dapp-plate :favicon="request?.favicon" :origin="request?.origin" />
     <p class="text-center">
-      <span class="font-semibold">{{ origin }}</span> wants to make sure the following address
-      belongs to you.
+      <span class="font-semibold">{{ request?.origin }}</span> wants to make sure the following
+      address belongs to you.
     </p>
     <div
       class="text-left font-mono border-1 px-3 py-2 text-sm break-all rounded bg-gray-100 border-gray-300"
     >
-      {{ address }}
+      {{ request?.data.address }}
     </div>
+
     <div class="flex-grow"></div>
+
     <p v-if="isReadonly || isLedger" class="text-sm text-center">
       <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
-      <span class="align-middle"> This wallet cannot sign messages.</span>
+      <span class="align-middle">This wallet cannot sign messages.</span>
     </p>
-    <div class="text-left" v-else>
+    <div v-else class="text-left">
       <form @submit.prevent="authenticate()">
         <input
+          v-model.lazy="password"
           placeholder="Spending password"
           type="password"
-          @blur="v$.password.$touch()"
-          v-model.lazy="password"
           class="w-full control block"
+          @blur="$v.password.$touch()"
         />
-        <p class="input-error" v-if="v$.password.$error">
-          {{ v$.password.$errors[0].$message }}
+        <p v-if="$v.password.$error" class="input-error">
+          {{ $v.password.$errors[0].$message }}
         </p>
       </form>
     </div>
+
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
       <button class="btn w-full" :disabled="isReadonly || isLedger" @click="authenticate()">
@@ -46,169 +166,3 @@
     />
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent, Ref } from "vue";
-import { mapState } from "vuex";
-import { rpcHandler } from "@/background/rpcHandler";
-import { find } from "lodash-es";
-import { connectedDAppsDbService } from "@/api/database/connectedDAppsDbService";
-import { ACTIONS } from "@/constants/store/actions";
-import useVuelidate, { Validation, ValidationArgs } from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
-import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
-import { SignError, SignErrorCode } from "@/types/connector";
-import SignStateModal from "@/components/SignStateModal.vue";
-import { PasswordError } from "@/types/errors";
-
-export default defineComponent({
-  name: "AuthView",
-  components: { SignStateModal },
-  setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<any>, unknown>> };
-  },
-  async created() {
-    const message = find(rpcHandler.messages, (m) => m.function === "auth");
-    if (!message || !message.params) {
-      return;
-    }
-
-    this.sessionId = message.sessionId;
-    this.requestId = message.requestId;
-    this.origin = message.params[0];
-    this.favicon = message.params[1];
-
-    this.address = message.params[2];
-    this.message = message.params[3];
-
-    const connection = await connectedDAppsDbService.getByOrigin(this.origin);
-    if (!connection) {
-      window.close();
-      return;
-    }
-    this.currentWalletId = connection.walletId;
-
-    window.addEventListener("beforeunload", this.refuse);
-  },
-  data() {
-    return {
-      requestId: 0,
-      sessionId: 0,
-      currentWalletId: 0,
-      origin: "",
-      favicon: "",
-      address: "",
-      message: "",
-      password: "",
-      errorMessage: ""
-    };
-  },
-  validations() {
-    return {
-      password: {
-        required: helpers.withMessage(
-          "A spending password is required for transaction signing.",
-          requiredUnless(this.isLedger)
-        )
-      }
-    };
-  },
-  computed: {
-    ...mapState({ wallets: "wallets", loading: "loading" }),
-    isReadonly() {
-      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
-    },
-    isLedger() {
-      return this.$store.state.currentWallet.type === WalletType.Ledger;
-    },
-    signState() {
-      return this.errorMessage ? ProverStateType.error : undefined;
-    }
-  },
-  watch: {
-    ["loading.wallets"]: {
-      immediate: true,
-      async handler(loading: boolean) {
-        this.setWallet(loading, this.currentWalletId);
-      }
-    },
-    currentWalletId: {
-      immediate: true,
-      async handler(walletId: number) {
-        this.setWallet(this.loading.wallets, walletId);
-      }
-    }
-  },
-  methods: {
-    async setWallet(loading: boolean, walletId: number) {
-      if (loading || walletId === 0) {
-        return;
-      }
-      this.$store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
-    },
-    async authenticate() {
-      if (this.isReadonly || this.isLedger) {
-        return;
-      }
-
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
-
-      try {
-        const signResult = await this.$store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
-          address: this.address,
-          message: this.message,
-          origin: this.origin,
-          walletId: this.currentWalletId,
-          password: this.password
-        } as SignEip28MessageCommand);
-
-        rpcHandler.sendMessage({
-          type: "rpc/nautilus-response",
-          function: "auth",
-          sessionId: this.sessionId,
-          requestId: this.requestId,
-          return: { isSuccess: true, data: signResult }
-        });
-
-        window.removeEventListener("beforeunload", this.refuse);
-        window.close();
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        if (e instanceof PasswordError) {
-          this.errorMessage = e.message;
-        } else {
-          this.fail(typeof e === "string" ? e : (e as Error).message);
-        }
-      }
-    },
-    cancel() {
-      this.refuse();
-      window.close();
-    },
-    sendError(error: SignError) {
-      window.removeEventListener("beforeunload", this.refuse);
-
-      rpcHandler.sendMessage({
-        type: "rpc/nautilus-response",
-        function: "auth",
-        sessionId: this.sessionId,
-        requestId: this.requestId,
-        return: {
-          isSuccess: false,
-          data: error
-        }
-      });
-    },
-    fail(info: string) {
-      this.sendError({ code: SignErrorCode.ProofGeneration, info });
-    },
-    refuse() {
-      this.sendError({ code: SignErrorCode.UserDeclined, info: "User rejected" });
-    }
-  }
-});
-</script>

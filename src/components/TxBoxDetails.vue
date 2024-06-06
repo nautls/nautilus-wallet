@@ -80,9 +80,9 @@
 </template>
 
 <script lang="ts">
-import { OutputAsset } from "@/api/ergo/transaction/interpreter/outputInterpreter";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { defineComponent, PropType } from "vue";
+import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import BabelBadge from "@/assets/images/babel-badge.svg";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 

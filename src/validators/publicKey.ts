@@ -1,18 +1,15 @@
-import Bip32 from "@/api/ergo/bip32";
-import { isEmpty } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
+import HdKey from "@/chains/ergo/hdKey";
 
 function validator(value: string) {
-  if (isEmpty(value)) {
-    return false;
-  }
+  if (isEmpty(value)) return false;
 
   try {
-    Bip32.fromPublicKey(value);
+    HdKey.fromPublicKey(value);
+    return true;
   } catch (e) {
     return false;
   }
-
-  return true;
 }
 
 export default {

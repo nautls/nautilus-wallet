@@ -47,17 +47,18 @@
 
 <script lang="ts">
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
-import useVuelidate from "@vuelidate/core";
+import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import Bip32 from "@/api/ergo/bip32";
+import { hex } from "@fleet-sdk/crypto";
+import HdKey from "@/chains/ergo/hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ACTIONS } from "@/constants/store/actions";
 import { ProverStateType, WalletType } from "@/types/internal";
-import { log } from "@/utils/logger";
+import { log } from "@/common/logger";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -126,15 +127,15 @@ export default defineComponent({
         "Please confirm the export of the <strong>Extended Public Key</strong> on your device.";
       try {
         const ledgerPk = await app.getExtendedPublicKey("m/44'/429'/0'");
-        const bip32 = Bip32.fromPublicKey(
+        const key = HdKey.fromPublicKey(
           { publicKey: ledgerPk.publicKey, chainCode: ledgerPk.chainCode },
-          "0"
+          "m/0"
         );
 
-        pk = bip32.extendedPublicKey.toString("hex");
+        pk = hex.encode(key.extendedPublicKey);
         this.screenContent = "Confirm Address";
         this.caption = "";
-        this.confirmationAddress = bip32.deriveAddress(0).script;
+        this.confirmationAddress = key.deriveAddress(0).script;
         const network = MAINNET ? Network.Mainnet : Network.Testnet;
         if (await app.showAddress(DERIVATION_PATH + "/0", network)) {
           this.state = ProverStateType.success;
@@ -191,3 +192,4 @@ export default defineComponent({
   }
 });
 </script>
+@/common/logger

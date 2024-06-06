@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { addressFromErgoTree } from "@/api/ergo/addresses";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers } from "@vuelidate/validators";
+import { BigNumber } from "bignumber.js";
+import { groupBy, isEmpty, maxBy, sortBy } from "lodash-es";
+import { computed, onMounted, PropType, reactive, watch } from "vue";
+import { areEqualBy } from "@fleet-sdk/common";
+import { addressFromErgoTree } from "@/chains/ergo/addresses";
 import {
   buildBabelContractFor,
   extractTokenIdFromBabelContract,
   getNanoErgsPerTokenRate,
   isValidBabelBox
-} from "@/api/ergo/babelFees";
-import { graphQLService } from "@/api/explorer/graphQlService";
+} from "@/chains/ergo/babelFees";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { GETTERS } from "@/constants/store/getters";
 import store from "@/store";
 import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
-import { decimalize } from "@/utils/bigNumbers";
+import { decimalize } from "@/common/bigNumbers";
 import { bigNumberMinValue } from "@/validators";
-import useVuelidate from "@vuelidate/core";
-import { helpers } from "@vuelidate/validators";
-import BigNumber from "bignumber.js";
-import { groupBy, isEmpty, maxBy, sortBy } from "lodash-es";
-import { computed, onMounted, PropType, reactive, watch } from "vue";
-import { filters } from "@/utils/globalFilters";
-import { areEqualBy } from "@fleet-sdk/common";
+import { filters } from "@/common/globalFilters";
 
 type FeeAsset = {
   tokenId: string;
@@ -276,7 +276,7 @@ function emitSelectedUpdate() {
         list-class="max-h-50"
         root-class="flex-grow"
       >
-        <template v-slot:trigger>
+        <template #trigger>
           <span class="flex-grow font-semibold pl-1">Fee</span>
           <div
             class="text-right flex flex-col h-full"
@@ -291,12 +291,10 @@ function emitSelectedUpdate() {
           </div>
         </template>
 
-        <template v-slot:items>
+        <template #items>
           <div class="group">
             <o-slider
               v-model="state.multiplier"
-              @click.prevent.stop
-              @change="v$.$touch()"
               :min="1"
               :max="10"
               :tooltip="false"
@@ -304,6 +302,8 @@ function emitSelectedUpdate() {
               root-class="p-4"
               track-class="rounded-r"
               thumb-class="rounded-md"
+              @click.prevent.stop
+              @change="v$.$touch()"
             />
           </div>
         </template>
@@ -313,7 +313,7 @@ function emitSelectedUpdate() {
         list-class="max-h-37"
         trigger-class="px-2 py-1 h-12 min-w-35 whitespace-nowrap text-sm text-left"
       >
-        <template v-slot:trigger>
+        <template #trigger>
           <asset-icon
             class="h-5 w-5 min-w-5"
             :token-id="state.internalSelected.tokenId"
@@ -330,13 +330,13 @@ function emitSelectedUpdate() {
           <vue-feather type="chevron-down" size="18" />
         </template>
 
-        <template v-slot:items>
+        <template #items>
           <div class="group">
             <a
-              @click="select(asset)"
-              class="group-item narrow-y !px-2"
               v-for="asset in unselected"
               :key="asset.tokenId"
+              class="group-item narrow-y !px-2"
+              @click="select(asset)"
             >
               <div class="flex flex-row items-center gap-2">
                 <asset-icon
@@ -356,7 +356,7 @@ function emitSelectedUpdate() {
         </template>
       </drop-down>
     </div>
-    <p class="input-error" v-if="v$.$error">
+    <p v-if="v$.$error" class="input-error">
       {{ v$.$errors[0].$message }}
     </p>
   </div>

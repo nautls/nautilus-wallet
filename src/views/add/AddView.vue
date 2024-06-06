@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col gap-4 h-full">
     <div class="flex-grow"></div>
-    <router-link to="/add/new" custom v-slot="{ navigate }">
-      <button type="button" @click="navigate" class="nav-btn">
+    <router-link v-slot="{ navigate }" to="/add/new" custom>
+      <button type="button" class="nav-btn" @click="navigate">
         <div class="h-full float-left flex w-8 mr-4">
           <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" />
         </div>
@@ -12,8 +12,8 @@
         >
       </button>
     </router-link>
-    <router-link to="/add/restore" custom v-slot="{ navigate }">
-      <button type="button" @click="navigate" class="nav-btn">
+    <router-link v-slot="{ navigate }" to="/add/restore" custom>
+      <button type="button" class="nav-btn" @click="navigate">
         <div class="h-full float-left flex w-8 mr-4">
           <mdi-icon name="backup-restore" size="32" class="m-auto text-gray-500" />
         </div>
@@ -23,12 +23,12 @@
         >
       </button>
     </router-link>
-    <router-link to="/add/hw/ledger" custom v-slot="{ navigate, href }">
+    <router-link v-slot="{ navigate, href }" to="/add/hw/ledger" custom>
       <button
         type="button"
+        class="nav-btn"
         @click="navInTab(navigate, href)"
         @keypress.enter="navInTab(navigate, href)"
-        class="nav-btn"
       >
         <div class="h-full float-left flex w-8 mr-4">
           <ledger-logo class="w-6 h-6 m-auto fill-gray-600" />
@@ -39,8 +39,8 @@
         >
       </button>
     </router-link>
-    <router-link to="/add/read-only" custom v-slot="{ navigate }">
-      <button @click="navigate" role="button" type="button" class="nav-btn">
+    <router-link v-slot="{ navigate }" to="/add/read-only" custom>
+      <button role="button" type="button" class="nav-btn" @click="navigate">
         <div class="h-full float-left flex w-8 mr-4">
           <mdi-icon name="wallet-outline" size="32" class="m-auto text-gray-500" />
         </div>
@@ -49,14 +49,14 @@
       </button>
     </router-link>
     <div class="flex-grow"></div>
-    <button class="btn outlined w-full" v-if="hasWallets" @click="$router.back()">Cancel</button>
+    <button v-if="hasWallets" class="btn outlined w-full" @click="$router.back()">Cancel</button>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import { isEmpty } from "lodash-es";
-import { browser, isPopup } from "@/utils/browserApi";
+import { browser, isPopup } from "@/common/browser";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 
 export default defineComponent({
@@ -64,13 +64,13 @@ export default defineComponent({
   components: {
     LedgerLogo
   },
+  props: {
+    backButton: { type: String, default: "false" }
+  },
   computed: {
     hasWallets() {
       return !isEmpty(this.$store.state.wallets);
     }
-  },
-  props: {
-    backButton: { type: String, default: "false" }
   },
   methods: {
     navInTab(navigate: () => unknown, href: string) {
