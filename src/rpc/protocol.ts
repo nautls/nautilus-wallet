@@ -40,6 +40,10 @@ export const enum InternalEvent {
   UpdatedBackendUrl = "int:backend-host-updated"
 }
 
+export const enum ExternalEvent {
+  Injected = "ergo-wallet:injected"
+}
+
 export type SuccessResult<T> = { success: true; data: T };
 export type ErrorResult = {
   success: false;

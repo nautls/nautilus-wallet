@@ -3,6 +3,10 @@
   "version": "0.10.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "dev:mainnet": "vite",
     "dev:testnet": "VITE_NETWORK=testnet vite",
