@@ -30,12 +30,11 @@ export default class HdKey {
 
   public static fromPublicKey(key: PublicKeyOptions, path?: string): HdKey {
     if (typeof key === "string") {
-      const encoded = base58check.encode(hex.decode(key));
-      return new this(ErgoHDKey.fromExtendedKey(encoded));
+      return new this(ErgoHDKey.fromExtendedKey(key));
     }
 
     const opt = { publicKey: hex.decode(key.publicKey), chainCode: hex.decode(key.chainCode) };
-    return new this(ErgoHDKey.fromExtendedKey(opt), path);
+    return new this(new ErgoHDKey(opt), path);
   }
 
   public get privateKey(): Uint8Array | undefined {

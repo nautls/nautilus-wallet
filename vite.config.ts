@@ -36,7 +36,6 @@ export default defineConfig({
       // prevent content scripts from being inlined as base64
       if (filePath.includes("content-script")) return false;
     },
-    minify: false,
     rollupOptions: {
       output: {
         chunkFileNames(info) {
