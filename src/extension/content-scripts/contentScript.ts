@@ -1,7 +1,7 @@
 import { allowWindowMessaging, onMessage, sendMessage } from "webext-bridge/content-script";
 // @ts-expect-error ?script is needed to force vite to bundle the script
 import injected from "./injected.ts?script";
-import { buildNamespaceFor, ExternalEvent, ExternalRequest, InternalRequest } from "@/rpc/protocol";
+import { buildNamespaceFor, ExternalRequest, InternalRequest } from "@/rpc/protocol";
 
 allowWindowMessaging(buildNamespaceFor(location.origin));
 
@@ -71,16 +71,9 @@ function getHost(origin: string) {
   return new URL(origin).host;
 }
 
-function dispatchInjectedEvent() {
-  dispatchEvent(new CustomEvent(ExternalEvent.Injected, { detail: "nautilus" }));
-}
-
 (() => {
-  if (injectScript()) {
-    debug("Access methods injected.");
-    // delay the event dispatch to ensure that clients have time to subscribe
-    setTimeout(dispatchInjectedEvent, 100);
-  } else return;
+  if (injectScript()) debug("Access methods injected.");
+  else return;
 
   const payload = { origin: getHost(location.origin) };
 

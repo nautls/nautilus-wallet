@@ -1,7 +1,7 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
 import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
-import { buildNamespaceFor, ExternalRequest, Result } from "@/rpc/protocol";
+import { buildNamespaceFor, ExternalEvent, ExternalRequest, Result } from "@/rpc/protocol";
 import { APIErrorCode } from "@/types/connector";
 
 const CONTENT_SCRIPT = "content-script";
@@ -173,4 +173,6 @@ const warnDeprecated = function (fnName: string) {
       return window.ergoConnector.nautilus.isConnected();
     };
   }
+
+  dispatchEvent(new CustomEvent(ExternalEvent.Injected, { detail: "nautilus" }));
 })();
