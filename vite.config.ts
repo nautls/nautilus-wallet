@@ -29,7 +29,6 @@ export default defineConfig({
     windiCSS(),
     topLevelAwait()
   ],
-  esbuild: { keepNames: true },
   build: {
     emptyOutDir: true,
     outDir: "dist",
