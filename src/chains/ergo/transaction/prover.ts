@@ -26,6 +26,7 @@ import {
   UnsignedBox
 } from "ledger-ergo-js";
 import { find, first } from "lodash-es";
+import { utf8 } from "@fleet-sdk/crypto";
 import { addressFromErgoTree } from "../addresses";
 import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
@@ -78,7 +79,7 @@ export class Prover {
       ? Address.from_mainnet_str(this._from[0].script)
       : Address.from_testnet_str(this._from[0].script);
 
-    return wallet.sign_message_using_p2pk(address, Buffer.from(message, "utf-8"));
+    return wallet.sign_message_using_p2pk(address, utf8.decode(message));
   }
 
   public async sign(

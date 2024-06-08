@@ -75,7 +75,7 @@ async function authenticate() {
   try {
     const result = await store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
       address: request.value.data.address,
-      message: request.value.data.address,
+      message: request.value.data.message,
       origin: request.value.origin,
       walletId: walletId.value,
       password: password.value
