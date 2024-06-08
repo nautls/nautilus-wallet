@@ -29,6 +29,7 @@ export default defineConfig({
     windiCSS(),
     topLevelAwait()
   ],
+  esbuild: { keepNames: true },
   build: {
     emptyOutDir: true,
     outDir: "dist",
@@ -36,7 +37,7 @@ export default defineConfig({
       // prevent content scripts from being inlined as base64
       if (filePath.includes("content-script")) return false;
     },
-    minify: false,
+    // minify: false,
     rollupOptions: {
       output: {
         chunkFileNames(info) {

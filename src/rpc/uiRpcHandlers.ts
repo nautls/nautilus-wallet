@@ -1,8 +1,8 @@
-import router from "@/router";
 import { onMessage, sendMessage } from "webext-bridge/popup";
-import { DataWithPayload, InternalEvent, InternalRequest } from "@/rpc/protocol";
-import { AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
 import { RouteLocationRaw } from "vue-router";
+import { AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
+import router from "@/router";
+import { DataWithPayload, InternalEvent, InternalRequest } from "@/rpc/protocol";
 
 export const queue = new AsyncRequestQueue();
 const BACKGROUND = "background";
