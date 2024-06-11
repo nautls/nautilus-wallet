@@ -124,6 +124,37 @@
         </p>
       </label>
     </div>
+
+    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
+      Token blacklists
+    </div>
+    <p class="text-gray-500 text-xs font-normal -mt-2">
+      Ergo
+      <a target="_blank" href="https://github.com/sigmanauts/token-id-blacklist" class="url"
+        >tokens blacklists</a
+      >
+      are maintained by the Sigmanauts community.
+    </p>
+    <div>
+      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+        <div class="flex-grow">
+          <p>Hide NSFW tokens</p>
+        </div>
+        <div>
+          <o-switch v-model="tokensBlacklists.nsfw" class="align-middle float-right" />
+        </div>
+      </label>
+
+      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5 mt-3">
+        <div class="flex-grow">
+          <p>Hide Scam tokens</p>
+        </div>
+        <div>
+          <o-switch v-model="tokensBlacklists.scam" class="align-middle float-right" />
+        </div>
+      </label>
+    </div>
+
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">Danger zone</div>
     <div>
       <div class="w-full align-middle flex flex-row items-center gap-5">
@@ -181,7 +212,12 @@ export default defineComponent({
         conversionCurrency: "",
         devMode: !MAINNET,
         graphQLServer: "",
-        explorerUrl: ""
+        explorerUrl: "",
+        blacklistedTokensLists: [] as string[]
+      },
+      tokensBlacklists: {
+        nsfw: true,
+        scam: true
       },
       walletChanged: true,
       loading: true,
@@ -217,6 +253,21 @@ export default defineComponent({
         this.updateGlobal();
       }
     },
+    tokensBlacklists: {
+      deep: true,
+      handler() {
+        if (this.walletChanged) {
+          this.walletChanged = false;
+          return;
+        }
+
+        const lists = [];
+        if (this.tokensBlacklists.nsfw) lists.push("nsfw");
+        if (this.tokensBlacklists.scam) lists.push("scam");
+
+        this.globalSettings.blacklistedTokensLists = lists;
+      }
+    },
     ["currentWallet"]: {
       immediate: true,
       deep: true,
@@ -232,6 +283,10 @@ export default defineComponent({
   created() {
     this.currencies = [this.settings.conversionCurrency];
     this.globalSettings = clone(this.settings);
+    this.tokensBlacklists = {
+      nsfw: this.globalSettings.blacklistedTokensLists.includes("nsfw"),
+      scam: this.globalSettings.blacklistedTokensLists.includes("scam")
+    };
   },
   async mounted() {
     this.currencies = await coinGeckoService.getSupportedCurrencyConversion();
@@ -279,7 +334,8 @@ export default defineComponent({
       updateWalletSettings: ACTIONS.UPDATE_WALLET_SETTINGS,
       saveSettings: ACTIONS.SAVE_SETTINGS,
       fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
-      removeWallet: ACTIONS.REMOVE_WALLET
+      removeWallet: ACTIONS.REMOVE_WALLET,
+      loadTokensBlacklist: ACTIONS.LOAD_TOKEN_BLACKLIST
     }),
     async remove() {
       if (confirm(`Are you sure you want to remove '${this.currentWallet.name}'?`)) {
@@ -313,6 +369,7 @@ export default defineComponent({
       if (!isEqual(this.settings, this.globalSettings)) {
         await this.saveSettings(this.globalSettings);
         this.fetchPrices();
+        this.loadTokensBlacklist();
       }
     }
   }
