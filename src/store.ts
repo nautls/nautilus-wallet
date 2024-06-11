@@ -18,9 +18,10 @@ import {
 } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
+import { some } from "@fleet-sdk/common";
 import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
 import { utxosDbService } from "./database/utxosDbService";
-import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
+import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
 import { assetInfoDbService } from "./database/assetInfoDbService";
 import { Token } from "./types/connector";
 import { Prover } from "./chains/ergo/transaction/prover";
@@ -66,6 +67,15 @@ import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "
 import router from "@/router";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
+import {
+  ErgoTokenBlacklist,
+  ergoTokenBlacklistService
+} from "@/chains/ergo/services/tokenBlacklistService";
+import { log } from "@/common/logger";
+
+type TokenBlacklist = {
+  lastUpdated: number;
+} & ErgoTokenBlacklist;
 
 function dbAddressMapper(a: IDbAddress) {
   return {
@@ -105,7 +115,8 @@ export default createStore({
       devMode: !MAINNET,
       graphQLServer: getDefaultServerUrl(),
       explorerUrl: DEFAULT_EXPLORER_URL,
-      hideBalances: false
+      hideBalances: false,
+      blacklistedTokensLists: ["nsfw", "scam"]
     },
     loading: {
       settings: true,
@@ -117,6 +128,7 @@ export default createStore({
     connections: Object.freeze([] as IDbDAppConnection[]),
     assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetInfo,
     ergPrice: 0,
+    tokensBlacklist: { ergo: { lastUpdated: Date.now(), tokenIds: [] as string[] } },
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
     } as AssetPriceRate
@@ -134,10 +146,10 @@ export default createStore({
       );
 
       for (const key in groups) {
+        if (state.tokensBlacklist.ergo.tokenIds.includes(key)) continue;
+
         const group = groups[key];
-        if (group.length === 0) {
-          continue;
-        }
+        if (group.length === 0) continue;
 
         const token: StateAsset = {
           tokenId: group[0].tokenId,
@@ -293,6 +305,22 @@ export default createStore({
     [MUTATIONS.SET_CONNECTIONS](state, connections) {
       state.connections = Object.freeze(connections);
     },
+    [MUTATIONS.SET_TOKENS_BLACKLIST](state, blacklist: TokenBlacklist) {
+      if (isEmpty(state.settings.blacklistedTokensLists)) {
+        state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds: [] } };
+        return;
+      }
+
+      let tokenIds = [] as string[];
+      for (const listName of state.settings.blacklistedTokensLists) {
+        const list = blacklist[listName as keyof ErgoTokenBlacklist];
+        if (some(list)) tokenIds = tokenIds.concat(list);
+      }
+
+      // remove duplicated tokens
+      tokenIds = uniq(tokenIds);
+      state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds } };
+    },
     [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
       const wallet = find(state.wallets, (w) => w.id === command.walletId);
       if (!wallet) {
@@ -363,8 +391,9 @@ export default createStore({
   },
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
-      dispatch(ACTIONS.LOAD_SETTINGS);
       dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
+      await dispatch(ACTIONS.LOAD_SETTINGS);
+      dispatch(ACTIONS.LOAD_TOKEN_BLACKLIST);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
       if (router.currentRoute.value.query.popup === "true") {
@@ -404,14 +433,18 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { settings: false });
     },
     [ACTIONS.SAVE_SETTINGS]({ state, commit }, newSettings) {
+      let graphQlChanged = false;
       if (newSettings) {
+        graphQlChanged = newSettings.graphQLServer !== state.settings.graphQLServer;
         commit(MUTATIONS.SET_SETTINGS, newSettings);
       }
 
       localStorage.setItem("settings", JSON.stringify(state.settings));
 
-      graphQLService.updateServerUrl(state.settings.graphQLServer);
-      sendBackendServerUrl(state.settings.graphQLServer);
+      if (graphQlChanged) {
+        graphQLService.updateServerUrl(state.settings.graphQLServer);
+        sendBackendServerUrl(state.settings.graphQLServer);
+      }
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
@@ -707,16 +740,34 @@ export default createStore({
 
       await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
         assetInfo: balances.map((x) => {
-          return {
-            tokenId: x.tokenId,
-            name: x.name,
-            decimals: x.decimals
-          } as Token;
+          return { tokenId: x.tokenId, name: x.name, decimals: x.decimals } as Token;
         })
       });
       commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
       dispatch(ACTIONS.CHECK_PENDING_BOXES);
+    },
+    async [ACTIONS.LOAD_TOKEN_BLACKLIST]({ commit }) {
+      const dbKey = "ergoTokensBlacklist";
+      const rawDbBlacklist = localStorage.getItem(dbKey);
+      const blacklist: TokenBlacklist = rawDbBlacklist ? JSON.parse(rawDbBlacklist) : undefined;
+
+      if (
+        !blacklist?.lastUpdated ||
+        Date.now() - blacklist.lastUpdated > UPDATE_TOKENS_BLACKLIST_INTERVAL
+      ) {
+        try {
+          const ergoBlacklist = await ergoTokenBlacklistService.fetch();
+          const newBlackList = { lastUpdated: Date.now(), ...ergoBlacklist };
+          localStorage.setItem(dbKey, JSON.stringify(newBlackList));
+
+          commit(MUTATIONS.SET_TOKENS_BLACKLIST, newBlackList);
+        } catch (e) {
+          log.error("Failed to fetch token blacklist", e);
+        }
+      } else if (blacklist) {
+        commit(MUTATIONS.SET_TOKENS_BLACKLIST, blacklist);
+      }
     },
     async [ACTIONS.CHECK_PENDING_BOXES]() {
       const now = Date.now();
@@ -724,9 +775,7 @@ export default createStore({
         (b) => b.spentTimestamp && now - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
       );
 
-      if (isEmpty(boxes)) {
-        return;
-      }
+      if (isEmpty(boxes)) return;
 
       const txIds = uniq(boxes.map((b) => b.spentTxId));
       const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
