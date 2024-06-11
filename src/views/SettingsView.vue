@@ -369,7 +369,7 @@ export default defineComponent({
       if (!isEqual(this.settings, this.globalSettings)) {
         await this.saveSettings(this.globalSettings);
         this.fetchPrices();
-        this.loadTokensBlacklist(true);
+        this.loadTokensBlacklist();
       }
     }
   }

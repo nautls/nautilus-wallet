@@ -747,16 +747,13 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { balance: false });
       dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },
-    async [ACTIONS.LOAD_TOKEN_BLACKLIST]({ commit }, force: boolean = false) {
+    async [ACTIONS.LOAD_TOKEN_BLACKLIST]({ commit }) {
       const dbKey = "ergoTokensBlacklist";
       const rawDbBlacklist = localStorage.getItem(dbKey);
-      const blacklist: TokenBlacklist = rawDbBlacklist
-        ? JSON.parse(rawDbBlacklist)
-        : { lastUpdated: undefined, lists: ["nsfw", "scam"] };
+      const blacklist: TokenBlacklist = rawDbBlacklist ? JSON.parse(rawDbBlacklist) : undefined;
 
       if (
-        force ||
-        !blacklist.lastUpdated ||
+        !blacklist?.lastUpdated ||
         Date.now() - blacklist.lastUpdated > UPDATE_TOKENS_BLACKLIST_INTERVAL
       ) {
         try {
@@ -768,7 +765,7 @@ export default createStore({
         } catch (e) {
           log.error("Failed to fetch token blacklist", e);
         }
-      } else {
+      } else if (blacklist) {
         commit(MUTATIONS.SET_TOKENS_BLACKLIST, blacklist);
       }
     },
