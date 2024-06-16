@@ -840,7 +840,7 @@ export default createStore({
       if (command.inputsToSign && some(command.inputsToSign)) {
         return await prover.signInputs(command.tx, command.inputsToSign);
       } else {
-        return await prover.sign(command.tx);
+        return await prover.signTx(command.tx);
       }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](

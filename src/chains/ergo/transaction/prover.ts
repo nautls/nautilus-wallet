@@ -10,8 +10,6 @@ import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   Address,
   BlockHeaders,
-  ErgoBox,
-  ErgoBoxCandidate,
   ErgoBoxes,
   ErgoStateContext,
   PreHeader,
@@ -19,7 +17,6 @@ import {
   SecretKeys,
   Tokens,
   Transaction,
-  UnsignedInput,
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
@@ -106,9 +103,9 @@ export class Prover {
     return this.#buildWallet().sign_message_using_p2pk(address, utf8.decode(message));
   }
 
-  async sign(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
+  async signTx(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
-    const signed = await this.#sign(tx, inputs, dataInputs);
+    const signed = await this.#signTx(tx, inputs, dataInputs);
     return signed.to_js_eip12();
   }
 
@@ -135,7 +132,7 @@ export class Prover {
     return { tx, inputs, dataInputs };
   }
 
-  async #sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
+  async #signTx(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
     if (this.#useLedger) {
       let ledgerApp!: ErgoLedgerApp;
 
@@ -160,28 +157,6 @@ export class Prover {
       }
 
       try {
-        const inputs: UnsignedBox[] = [];
-        const outputs: BoxCandidate[] = [];
-
-        for (let i = 0; i < unsigned.inputs().len(); i++) {
-          const input = unsigned.inputs().get(i);
-          const box = getBoxById(unspentBoxes, input.box_id().to_str());
-          if (!box) throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
-
-          const ergoTree = box.ergo_tree().to_base16_bytes().toString();
-          const path =
-            this.#from.find((a) => a.script === addressFromErgoTree(ergoTree)) ?? first(this.#from);
-
-          if (!path) throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
-
-          inputs.push(mapLedgerInput(box, input, path));
-        }
-
-        for (let i = 0; i < unsigned.output_candidates().len(); i++) {
-          const wasmOutput = unsigned.output_candidates().get(i);
-          outputs.push(mapLedgerOutput(wasmOutput));
-        }
-
         this.#reportState({
           statusText: "Please confirm the transaction signature on your device.",
           device: { screenText: "Waiting for approval..." }
@@ -189,9 +164,9 @@ export class Prover {
 
         const proofs = await ledgerApp.signTx(
           {
-            inputs,
+            inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
             dataInputs: mapLedgerDataInputs(dataInputs),
-            outputs,
+            outputs: mapLedgerOutputs(unsigned),
             distinctTokenIds: unsigned.distinct_token_ids(),
             changeMap: {
               address: this.#deriver.deriveAddress(this.#changeIndex ?? 0).script,
@@ -201,11 +176,7 @@ export class Prover {
           MAINNET ? Network.Mainnet : Network.Testnet
         );
 
-        this.#reportState({
-          type: ProverStateType.success,
-          device: { screenText: "Signed" }
-        });
-
+        this.#reportState({ type: ProverStateType.success, device: { screenText: "Signed" } });
         return Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
@@ -301,18 +272,32 @@ function mapTokens(wasmTokens: Tokens) {
   return tokens;
 }
 
-function mapLedgerInput(box: ErgoBox, input: UnsignedInput, path: StateAddress): UnsignedBox {
-  return {
-    txId: box.tx_id().to_str(),
-    index: box.index(),
-    value: box.value().as_i64().to_str(),
-    ergoTree: Buffer.from(box.ergo_tree().sigma_serialize_bytes()),
-    creationHeight: box.creation_height(),
-    tokens: mapTokens(box.tokens()),
-    additionalRegisters: Buffer.from(box.serialized_additional_registers()),
-    extension: Buffer.from(input.extension().sigma_serialize_bytes()),
-    signPath: `${DERIVATION_PATH}/${path.index}`
-  };
+function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: StateAddress[]) {
+  const mappedInputs: UnsignedBox[] = [];
+  for (let i = 0; i < tx.inputs().len(); i++) {
+    const input = tx.inputs().get(i);
+    const box = getBoxById(inputs, input.box_id().to_str());
+    if (!box) throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
+
+    const ergoTree = box.ergo_tree().to_base16_bytes().toString();
+    const path =
+      addresses.find((a) => a.script === addressFromErgoTree(ergoTree)) ?? first(addresses);
+    if (!path) throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
+
+    mappedInputs.push({
+      txId: box.tx_id().to_str(),
+      index: box.index(),
+      value: box.value().as_i64().to_str(),
+      ergoTree: Buffer.from(box.ergo_tree().sigma_serialize_bytes()),
+      creationHeight: box.creation_height(),
+      tokens: mapTokens(box.tokens()),
+      additionalRegisters: Buffer.from(box.serialized_additional_registers()),
+      extension: Buffer.from(input.extension().sigma_serialize_bytes()),
+      signPath: `${DERIVATION_PATH}/${path.index}`
+    });
+  }
+
+  return mappedInputs;
 }
 
 function mapLedgerDataInputs(dataInputs: ErgoBoxes) {
@@ -324,12 +309,18 @@ function mapLedgerDataInputs(dataInputs: ErgoBoxes) {
   return boxIds;
 }
 
-function mapLedgerOutput(wasmOutput: ErgoBoxCandidate) {
-  return {
-    value: wasmOutput.value().as_i64().to_str(),
-    ergoTree: Buffer.from(wasmOutput.ergo_tree().sigma_serialize_bytes()),
-    creationHeight: wasmOutput.creation_height(),
-    tokens: mapTokens(wasmOutput.tokens()),
-    registers: Buffer.from(wasmOutput.serialized_additional_registers())
-  };
+function mapLedgerOutputs(tx: UnsignedTransaction) {
+  const outputs: BoxCandidate[] = [];
+  for (let i = 0; i < tx.output_candidates().len(); i++) {
+    const output = tx.output_candidates().get(i);
+    outputs.push({
+      value: output.value().as_i64().to_str(),
+      ergoTree: Buffer.from(output.ergo_tree().sigma_serialize_bytes()),
+      creationHeight: output.creation_height(),
+      tokens: mapTokens(output.tokens()),
+      registers: Buffer.from(output.serialized_additional_registers())
+    });
+  }
+
+  return outputs;
 }
