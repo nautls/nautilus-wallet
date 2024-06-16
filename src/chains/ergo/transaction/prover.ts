@@ -135,7 +135,7 @@ export class Prover {
     return { tx, inputs, dataInputs };
   }
 
-  async #sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputBoxes: ErgoBoxes) {
+  async #sign(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
     if (this.#useLedger) {
       let ledgerApp!: ErgoLedgerApp;
 
@@ -155,13 +155,7 @@ export class Prover {
           }
         });
       } catch (e) {
-        this.#reportState({
-          device: {
-            connected: false
-          },
-          type: ProverStateType.unavailable
-        });
-
+        this.#reportState({ device: { connected: false }, type: ProverStateType.unavailable });
         throw e;
       }
 
@@ -196,7 +190,7 @@ export class Prover {
         const proofs = await ledgerApp.signTx(
           {
             inputs,
-            dataInputs: [],
+            dataInputs: mapLedgerDataInputs(dataInputs),
             outputs,
             distinctTokenIds: unsigned.distinct_token_ids(),
             changeMap: {
@@ -243,7 +237,7 @@ export class Prover {
 
     const wallet = this.#buildWallet();
     const signContext = this.#buildContext();
-    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
+    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
   }
 
   #signInputs(
@@ -319,6 +313,15 @@ function mapLedgerInput(box: ErgoBox, input: UnsignedInput, path: StateAddress):
     extension: Buffer.from(input.extension().sigma_serialize_bytes()),
     signPath: `${DERIVATION_PATH}/${path.index}`
   };
+}
+
+function mapLedgerDataInputs(dataInputs: ErgoBoxes) {
+  const boxIds = Array.from<string>({ length: dataInputs.len() });
+  for (let i = 0; i < dataInputs.len(); i++) {
+    boxIds.push(dataInputs.get(i).box_id().to_str());
+  }
+
+  return boxIds;
 }
 
 function mapLedgerOutput(wasmOutput: ErgoBoxCandidate) {
