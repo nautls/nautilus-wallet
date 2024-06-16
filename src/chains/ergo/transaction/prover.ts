@@ -30,13 +30,13 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { utf8 } from "@fleet-sdk/crypto";
-import { BigNumber } from "bignumber.js";
+import { hex, utf8 } from "@fleet-sdk/crypto";
 import { addressFromErgoTree } from "../addresses";
 import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
+import { toBigNumber } from "@/common/bigNumbers";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;
@@ -81,15 +81,13 @@ export class Prover {
 
   setHeaders(headers: Header[]): Prover {
     this.#headers = BlockHeaders.from_json(
-      headers.map((x) => {
-        ({
-          ...x,
-          id: x.headerId,
-          timestamp: BigNumber(x.timestamp).toNumber(),
-          nBits: BigNumber(x.nBits).toNumber(),
-          votes: Uint8Array.from(x.votes)
-        });
-      })
+      headers.map((x) => ({
+        ...x,
+        id: x.headerId,
+        timestamp: toBigNumber(x.timestamp).toNumber(),
+        nBits: toBigNumber(x.nBits).toNumber(),
+        votes: hex.encode(Uint8Array.from(x.votes))
+      }))
     );
 
     return this;
