@@ -830,23 +830,17 @@ export default createStore({
 
       const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
       const changeIndex = find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0;
+      const prover = new Prover(deriver)
+        .from(addresses)
+        .useLedger(isLedger)
+        .changeIndex(changeIndex)
+        .setHeaders(blockHeaders)
+        .setCallback(command.callback);
 
-      if (command.inputsToSign && command.inputsToSign.length > 0) {
-        return await new Prover(deriver)
-          .from(addresses)
-          .useLedger(isLedger)
-          .changeIndex(changeIndex)
-          .setCallback(command.callback)
-          .signInputs(command.tx, blockHeaders, command.inputsToSign);
+      if (command.inputsToSign && some(command.inputsToSign)) {
+        return await prover.signInputs(command.tx, command.inputsToSign);
       } else {
-        const signedTx = await new Prover(deriver)
-          .from(addresses)
-          .useLedger(isLedger)
-          .changeIndex(changeIndex)
-          .setCallback(command.callback)
-          .sign(command.tx, blockHeaders);
-
-        return signedTx;
+        return await prover.sign(command.tx);
       }
     },
     async [ACTIONS.SIGN_EIP28_MESSAGE](
