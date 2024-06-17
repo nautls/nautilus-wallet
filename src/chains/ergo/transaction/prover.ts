@@ -1,5 +1,11 @@
 import { Header } from "@ergo-graphql/types";
-import { EIP12UnsignedTransaction, SignedInput, SignedTransaction } from "@fleet-sdk/common";
+import {
+  EIP12UnsignedTransaction,
+  first,
+  isEmpty,
+  SignedInput,
+  SignedTransaction
+} from "@fleet-sdk/common";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   Address,
@@ -12,8 +18,7 @@ import {
   Tokens,
   Transaction,
   UnsignedTransaction,
-  Wallet,
-  ErgoBox as WasmErgoBox
+  Wallet
 } from "ergo-lib-wasm-browser";
 import JSONBig from "json-bigint";
 import {
@@ -25,8 +30,7 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { find, first } from "lodash-es";
-import { utf8 } from "@fleet-sdk/crypto";
+import { hex, utf8 } from "@fleet-sdk/crypto";
 import { addressFromErgoTree } from "../addresses";
 import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
@@ -39,82 +43,95 @@ export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
 };
 
 export class Prover {
-  private _from!: StateAddress[];
-  private _useLedger!: boolean;
-  private _changeIndex!: number;
-  private _deriver!: HdKey;
-  private _callbackFn?: (newVal: PartialSignState) => void;
+  #from!: StateAddress[];
+  #useLedger!: boolean;
+  #changeIndex!: number;
+  #deriver!: HdKey;
+  #headers?: BlockHeaders;
 
-  public constructor(deriver: HdKey) {
-    this._deriver = deriver;
-    this._useLedger = false;
+  #callbackFn?: (newVal: PartialSignState) => void;
+
+  constructor(deriver: HdKey) {
+    this.#deriver = deriver;
+    this.#useLedger = false;
   }
 
-  public from(addresses: StateAddress[]): Prover {
-    this._from = addresses;
+  from(addresses: StateAddress[]): Prover {
+    this.#from = addresses;
     return this;
   }
 
-  public changeIndex(index: number): Prover {
-    this._changeIndex = index;
+  changeIndex(index: number): Prover {
+    this.#changeIndex = index;
     return this;
   }
 
-  public setCallback<T>(callback?: (newState: T) => void): Prover {
+  setCallback<T>(callback?: (newState: T) => void): Prover {
     if (callback) {
-      this._callbackFn = callback as (newVal: unknown) => void;
+      this.#callbackFn = callback as (newVal: unknown) => void;
     }
 
     return this;
   }
 
-  public useLedger(use = true): Prover {
-    this._useLedger = use;
+  useLedger(use = true): Prover {
+    this.#useLedger = use;
     return this;
   }
 
-  public signMessage(message: string) {
-    const wallet = this.buildWallet(this._from, this._deriver);
-    const address = MAINNET
-      ? Address.from_mainnet_str(this._from[0].script)
-      : Address.from_testnet_str(this._from[0].script);
+  setHeaders(headers: Header[]): Prover {
+    this.#headers = BlockHeaders.from_json(
+      headers.map((x) => ({
+        ...x,
+        id: x.headerId,
+        timestamp: toBigNumber(x.timestamp).toNumber(),
+        nBits: toBigNumber(x.nBits).toNumber(),
+        votes: hex.encode(Uint8Array.from(x.votes))
+      }))
+    );
 
-    return wallet.sign_message_using_p2pk(address, utf8.decode(message));
+    return this;
   }
 
-  public async sign(
-    unsignedTx: EIP12UnsignedTransaction,
-    headers: Header[]
-  ): Promise<SignedTransaction> {
-    const unspentBoxes = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
-    const dataInputBoxes = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
-    const signed = await this._sign(tx, unspentBoxes, dataInputBoxes, headers);
+  signMessage(message: string) {
+    const address = MAINNET
+      ? Address.from_mainnet_str(this.#from[0].script)
+      : Address.from_testnet_str(this.#from[0].script);
 
+    return this.#buildWallet().sign_message_using_p2pk(address, utf8.decode(message));
+  }
+
+  async signTx(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
+    const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
+    const signed = await this.#signTx(tx, inputs, dataInputs);
     return signed.to_js_eip12();
   }
 
-  public async signInputs(
+  async signInputs(
     unsignedTx: EIP12UnsignedTransaction,
-    headers: Header[],
     inputsToSign: number[]
   ): Promise<SignedInput[]> {
     inputsToSign = inputsToSign.sort();
-    const unspentBoxes = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
-    const dataInputBoxes = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
-    const signed = this._signInputs(tx, unspentBoxes, dataInputBoxes, headers, inputsToSign);
-
-    return signed;
+    const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
+    return this.#signInputs(tx, inputs, dataInputs, inputsToSign);
   }
 
-  private async _sign(
-    unsigned: UnsignedTransaction,
-    unspentBoxes: ErgoBoxes,
-    dataInputBoxes: ErgoBoxes,
-    headers: Header[]
-  ) {
-    if (this._useLedger) {
+  genCommitments(unsignedTx: EIP12UnsignedTransaction) {
+    const context = this.#buildContext();
+    const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
+    return this.#buildWallet().generate_commitments(context, tx, inputs, dataInputs).to_json();
+  }
+
+  #parseUnsignedTx(unsignedTx: EIP12UnsignedTransaction) {
+    const inputs = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
+    const dataInputs = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
+    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+
+    return { tx, inputs, dataInputs };
+  }
+
+  async #signTx(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
+    if (this.#useLedger) {
       let ledgerApp!: ErgoLedgerApp;
 
       try {
@@ -122,7 +139,7 @@ export class Prover {
           .useAuthToken()
           .enableDebugMode();
 
-        this.reportState({
+        this.#reportState({
           device: {
             screenText: "Connected",
             connected: true,
@@ -133,96 +150,37 @@ export class Prover {
           }
         });
       } catch (e) {
-        this.reportState({
-          device: {
-            connected: false
-          },
-          type: ProverStateType.unavailable
-        });
-
+        this.#reportState({ device: { connected: false }, type: ProverStateType.unavailable });
         throw e;
       }
 
       try {
-        const inputs: UnsignedBox[] = [];
-        const outputs: BoxCandidate[] = [];
-
-        for (let i = 0; i < unsigned.inputs().len(); i++) {
-          const input = unsigned.inputs().get(i);
-          const box = findBox(unspentBoxes, input.box_id().to_str());
-          if (!box) {
-            throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
-          }
-
-          const ergoTree = box.ergo_tree().to_base16_bytes().toString();
-          const path =
-            find(this._from, (a) => a.script === addressFromErgoTree(ergoTree)) ??
-            first(this._from);
-
-          if (!path) {
-            throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
-          }
-
-          inputs.push({
-            txId: box.tx_id().to_str(),
-            index: box.index(),
-            value: box.value().as_i64().to_str(),
-            ergoTree: Buffer.from(box.ergo_tree().sigma_serialize_bytes()),
-            creationHeight: box.creation_height(),
-            tokens: mapTokens(box.tokens()),
-            additionalRegisters: Buffer.from(box.serialized_additional_registers()),
-            extension: Buffer.from(input.extension().sigma_serialize_bytes()),
-            signPath: `${DERIVATION_PATH}/${path.index}`
-          });
-        }
-        for (let i = 0; i < unsigned.output_candidates().len(); i++) {
-          const wasmOutput = unsigned.output_candidates().get(i);
-
-          outputs.push({
-            value: wasmOutput.value().as_i64().to_str(),
-            ergoTree: Buffer.from(wasmOutput.ergo_tree().sigma_serialize_bytes()),
-            creationHeight: wasmOutput.creation_height(),
-            tokens: mapTokens(wasmOutput.tokens()),
-            registers: Buffer.from(wasmOutput.serialized_additional_registers())
-          });
-        }
-
-        this.reportState({
+        this.#reportState({
           statusText: "Please confirm the transaction signature on your device.",
-          device: {
-            screenText: "Waiting for approval..."
-          }
+          device: { screenText: "Waiting for approval..." }
         });
 
         const proofs = await ledgerApp.signTx(
           {
-            inputs,
-            dataInputs: [],
-            outputs,
+            inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
+            dataInputs: mapLedgerDataInputs(dataInputs),
+            outputs: mapLedgerOutputs(unsigned),
             distinctTokenIds: unsigned.distinct_token_ids(),
             changeMap: {
-              address: this._deriver.deriveAddress(this._changeIndex ?? 0).script,
-              path: `${DERIVATION_PATH}/${this._changeIndex}`
+              address: this.#deriver.deriveAddress(this.#changeIndex ?? 0).script,
+              path: `${DERIVATION_PATH}/${this.#changeIndex}`
             }
           },
           MAINNET ? Network.Mainnet : Network.Testnet
         );
 
-        this.reportState({
-          type: ProverStateType.success,
-          device: {
-            screenText: "Signed"
-          }
-        });
-
+        this.#reportState({ type: ProverStateType.success, device: { screenText: "Signed" } });
         return Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
           const resp: PartialSignState = {
             type: ProverStateType.error,
-            device: {
-              screenText: "Error"
-            }
+            device: { screenText: "Error" }
           };
 
           switch (e.code) {
@@ -237,7 +195,7 @@ export class Prover {
               resp.statusText = `[Device error] ${e.message}`;
           }
 
-          this.reportState(resp);
+          this.#reportState(resp);
         }
 
         throw e;
@@ -246,89 +204,61 @@ export class Prover {
       }
     }
 
-    const wallet = this.buildWallet(this._from, this._deriver);
-    const blockHeaders = BlockHeaders.from_json(
-      headers.map((x) => {
-        return {
-          ...x,
-          id: x.headerId,
-          timestamp: toBigNumber(x.timestamp).toNumber(),
-          nBits: toBigNumber(x.nBits).toNumber(),
-          votes: Buffer.from(x.votes).toString("hex")
-        };
-      })
-    );
-
-    const preHeader = PreHeader.from_block_header(blockHeaders.get(0));
-    const signContext = new ErgoStateContext(preHeader, blockHeaders);
-
-    const signed = wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputBoxes);
-    return signed;
+    const wallet = this.#buildWallet();
+    const signContext = this.#buildContext();
+    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
   }
 
-  private _signInputs(
+  #signInputs(
     tx: UnsignedTransaction,
     inputs: ErgoBoxes,
     dataInputs: ErgoBoxes,
-    headers: Header[],
     inputsToSign: number[]
   ) {
-    const wallet = this.buildWallet(this._from, this._deriver);
-    const blockHeaders = BlockHeaders.from_json(
-      headers.map((x) => {
-        return {
-          ...x,
-          id: x.headerId,
-          timestamp: toBigNumber(x.timestamp).toNumber(),
-          nBits: toBigNumber(x.nBits).toNumber(),
-          votes: Buffer.from(x.votes).toString("hex")
-        };
-      })
-    );
-
-    const preHeader = PreHeader.from_block_header(blockHeaders.get(0));
-    const context = new ErgoStateContext(preHeader, blockHeaders);
-    const signed: SignedInput[] = [];
+    const wallet = this.#buildWallet();
+    const context = this.#buildContext();
+    const signedInputs: SignedInput[] = [];
 
     for (const index of inputsToSign) {
       const result = wallet.sign_tx_input(index, context, tx, inputs, dataInputs);
-
-      signed.push({
+      signedInputs.push({
         boxId: result.box_id().to_str(),
         spendingProof: JSON.parse(result.spending_proof().to_json())
       });
     }
 
-    return signed;
+    return signedInputs;
   }
 
-  private reportState(state: PartialSignState) {
-    if (!this._callbackFn) {
-      return;
-    }
-
-    this._callbackFn(state);
+  #reportState(state: PartialSignState) {
+    if (!this.#callbackFn) return;
+    this.#callbackFn(state);
   }
 
-  private buildWallet(addresses: StateAddress[], key: HdKey): Wallet {
+  #buildContext() {
+    if (isEmpty(this.#headers)) throw Error("Headers are not set.");
+
+    const preHeader = PreHeader.from_block_header(this.#headers.get(0));
+    return new ErgoStateContext(preHeader, this.#headers);
+  }
+
+  #buildWallet() {
     const sks = new SecretKeys();
-
-    for (const address of addresses) {
-      sks.add(SecretKey.dlog_from_bytes(key.derivePrivateKey(address.index)));
+    for (const address of this.#from) {
+      sks.add(SecretKey.dlog_from_bytes(this.#deriver.derivePrivateKey(address.index)));
     }
+
     return Wallet.from_secrets(sks);
   }
 }
 
-function findBox(wasmBoxes: ErgoBoxes, boxId: string): WasmErgoBox | undefined {
+function getBoxById(wasmBoxes: ErgoBoxes, boxId: string) {
   for (let i = 0; i < wasmBoxes.len(); i++) {
-    if (wasmBoxes.get(i).box_id().to_str() === boxId) {
-      return wasmBoxes.get(i);
-    }
+    if (wasmBoxes.get(i).box_id().to_str() === boxId) return wasmBoxes.get(i);
   }
 }
 
-function mapTokens(wasmTokens: Tokens): Token[] {
+function mapTokens(wasmTokens: Tokens) {
   const tokens: Token[] = [];
   for (let i = 0; i < wasmTokens.len(); i++) {
     tokens.push({
@@ -338,4 +268,57 @@ function mapTokens(wasmTokens: Tokens): Token[] {
   }
 
   return tokens;
+}
+
+function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: StateAddress[]) {
+  const mappedInputs: UnsignedBox[] = [];
+  for (let i = 0; i < tx.inputs().len(); i++) {
+    const input = tx.inputs().get(i);
+    const box = getBoxById(inputs, input.box_id().to_str());
+    if (!box) throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
+
+    const ergoTree = box.ergo_tree().to_base16_bytes().toString();
+    const path =
+      addresses.find((a) => a.script === addressFromErgoTree(ergoTree)) ?? first(addresses);
+    if (!path) throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
+
+    mappedInputs.push({
+      txId: box.tx_id().to_str(),
+      index: box.index(),
+      value: box.value().as_i64().to_str(),
+      ergoTree: Buffer.from(box.ergo_tree().sigma_serialize_bytes()),
+      creationHeight: box.creation_height(),
+      tokens: mapTokens(box.tokens()),
+      additionalRegisters: Buffer.from(box.serialized_additional_registers()),
+      extension: Buffer.from(input.extension().sigma_serialize_bytes()),
+      signPath: `${DERIVATION_PATH}/${path.index}`
+    });
+  }
+
+  return mappedInputs;
+}
+
+function mapLedgerDataInputs(dataInputs: ErgoBoxes) {
+  const boxIds = Array.from<string>({ length: dataInputs.len() });
+  for (let i = 0; i < dataInputs.len(); i++) {
+    boxIds.push(dataInputs.get(i).box_id().to_str());
+  }
+
+  return boxIds;
+}
+
+function mapLedgerOutputs(tx: UnsignedTransaction) {
+  const outputs: BoxCandidate[] = [];
+  for (let i = 0; i < tx.output_candidates().len(); i++) {
+    const output = tx.output_candidates().get(i);
+    outputs.push({
+      value: output.value().as_i64().to_str(),
+      ergoTree: Buffer.from(output.ergo_tree().sigma_serialize_bytes()),
+      creationHeight: output.creation_height(),
+      tokens: mapTokens(output.tokens()),
+      registers: Buffer.from(output.serialized_additional_registers())
+    });
+  }
+
+  return outputs;
 }
