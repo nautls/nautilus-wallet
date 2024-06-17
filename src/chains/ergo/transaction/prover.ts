@@ -299,7 +299,7 @@ function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: 
 }
 
 function mapLedgerDataInputs(dataInputs: ErgoBoxes) {
-  const boxIds = Array.from<string>({ length: dataInputs.len() });
+  const boxIds: string[] = [];
   for (let i = 0; i < dataInputs.len(); i++) {
     boxIds.push(dataInputs.get(i).box_id().to_str());
   }
