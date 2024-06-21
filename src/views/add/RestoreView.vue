@@ -87,13 +87,13 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { english } from "@fleet-sdk/wallet/wordlists";
 import { intersection, isEmpty, join, orderBy, take } from "lodash-es";
 import { mapActions } from "vuex";
-import { ACTIONS } from "@/constants/store/actions";
-import { WalletType } from "@/types/internal";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
+import { ACTIONS } from "@/constants/store/actions";
+import { WalletType } from "@/types/internal";
 import { validMnemonic } from "@/validators";
 
 export default defineComponent({
@@ -103,7 +103,7 @@ export default defineComponent({
   },
   data() {
     return {
-      filteredWords: Object.freeze(wordlist),
+      filteredWords: Object.freeze(english),
       walletName: "",
       password: "",
       confirmPassword: "",
@@ -160,13 +160,13 @@ export default defineComponent({
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
-        this.filteredWords = Object.freeze(take(wordlist, 10));
+        this.filteredWords = Object.freeze(take(english, 10));
       }
 
       const lowerText = text.toLowerCase();
       const filtered = take(
         orderBy(
-          wordlist.filter((w) => {
+          english.filter((w) => {
             return w.includes(lowerText);
           }),
           (w) => !w.startsWith(lowerText)
@@ -187,7 +187,7 @@ export default defineComponent({
         return;
       }
 
-      const intersec = intersection(wordlist, pasteWords);
+      const intersec = intersection(english, pasteWords);
 
       if (intersec.length == pasteWords.length) {
         // need to paste from pasteWords since intersect doesn't guarantees the order os elements

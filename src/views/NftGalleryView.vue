@@ -1,14 +1,14 @@
 <template>
   <div class="flex flex-col gap-4">
     <div>
-      <input type="text" v-model="filter" placeholder="Search" class="w-full control block" />
+      <input v-model="filter" type="text" placeholder="Search" class="w-full control block" />
     </div>
     <div class="flex flex-wrap gap-4 justify-between">
       <div
-        @click="selectedAsset = nft"
-        class="border cursor-pointer border-gray-300 rounded w-39 transition duration-250 hover:bg-gray-100 active:bg-gray-200"
         v-for="nft in nfts"
         :key="nft.tokenId"
+        class="border cursor-pointer border-gray-300 rounded w-39 transition duration-250 hover:bg-gray-100 active:bg-gray-200"
+        @click="selectedAsset = nft"
       >
         <div class="relative">
           <image-sandbox
@@ -27,20 +27,20 @@
       </div>
     </div>
     <asset-info-modal
-      @close="selectedAsset = undefined"
       :token-id="selectedAsset?.tokenId"
       :confirmed-balance="selectedAsset?.confirmedAmount"
+      @close="selectedAsset = undefined"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { mapState } from "vuex";
 import { GETTERS } from "@/constants/store/getters";
 import { StateAsset } from "@/types/internal";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
-import { mapState } from "vuex";
 
 export default defineComponent({
   name: "NftGalleryView",
