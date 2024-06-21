@@ -33,8 +33,8 @@
 import { defineComponent } from "vue";
 import { walletChecksum } from "@emurgo/cip4-js";
 import { renderIcon } from "@download/blockies";
-import LoadingIndicator from "./LoadingIndicator.vue";
 import { hex } from "@fleet-sdk/crypto";
+import LoadingIndicator from "./LoadingIndicator.vue";
 
 const mkcolor = (primary: string, secondary: string, spots: string) => ({
   primary,
