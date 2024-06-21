@@ -5,7 +5,8 @@
     "vitest.config.*",
     "cypress.config.*",
     "nightwatch.conf.*",
-    "playwright.config.*"
+    "playwright.config.*",
+    "src/manifest.ts"
   ],
   "compilerOptions": {
     "composite": true,
@@ -14,6 +15,5 @@
 
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": ["node"]
   }
 }
