@@ -7,23 +7,23 @@
     <div class="flex-grow"></div>
     <div class="w-min">
       <drop-down discrete :disabled="$route.query.popup === 'true'" list-class="max-h-110">
-        <template v-slot:trigger="{ active }">
+        <template #trigger="{ active }">
           <wallet-item
+            :key="wallet.id"
             :wallet="wallet"
             :reverse="!active"
             :loading="loading.addresses || loading.balance"
-            :key="wallet.id"
           />
         </template>
-        <template v-slot:items>
+        <template #items>
           <div class="group">
             <a
               v-for="unselected in unselectedWallets"
-              @click="setCurrentWallet(unselected)"
               :key="unselected.id"
               class="group-item"
+              @click="setCurrentWallet(unselected)"
             >
-              <wallet-item :wallet="unselected" :key="wallet.id" />
+              <wallet-item :key="wallet.id" :wallet="unselected" />
             </a>
           </div>
           <div class="group">
@@ -33,7 +33,7 @@
             >
           </div>
           <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
-            <a @click="expandView()" class="group-item narrow-y">
+            <a class="group-item narrow-y" @click="expandView()">
               <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
               <span class="align-middle">Expand view</span></a
             >
@@ -78,18 +78,6 @@ export default defineComponent({
       checksum: ""
     };
   },
-  methods: {
-    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
-    async expandView() {
-      if (!browser?.tabs) return;
-
-      browser.tabs.create({
-        url: browser.runtime.getURL("index.html"),
-        active: true
-      });
-      window.close();
-    }
-  },
   computed: {
     ...mapState({
       wallet: "currentWallet",
@@ -100,6 +88,18 @@ export default defineComponent({
     unselectedWallets(): StateWallet[] {
       const currentId = this.wallet?.id;
       return this.wallets.filter((w: StateWallet) => w.id !== currentId);
+    }
+  },
+  methods: {
+    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
+    async expandView() {
+      if (!browser?.tabs) return;
+
+      browser.tabs.create({
+        url: browser.runtime.getURL("index.html"),
+        active: true
+      });
+      window.close();
     }
   }
 });

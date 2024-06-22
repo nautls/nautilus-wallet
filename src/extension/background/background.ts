@@ -108,7 +108,13 @@ onAuthenticatedMessage(InternalRequest.SubmitTransaction, async (msg, walletId) 
 
 onAuthenticatedMessage(InternalRequest.SignData, async (msg, walletId) => {
   if (!walletId) return NOT_CONNECTED_ERROR;
-  return invalidRequest("Not implemented.");
+
+  const address = await addressesDbService.getByScript(msg.data.address);
+  if (!address || address.walletId !== walletId) {
+    return invalidRequest("The address is not associated with the connected wallet.");
+  }
+
+  return await openWindow(InternalRequest.SignData, msg.data, msg.sender.tabId);
 });
 
 onAuthenticatedMessage(InternalRequest.Auth, async (msg, walletId) => {
