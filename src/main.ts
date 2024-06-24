@@ -42,11 +42,9 @@ import { startListening } from "@/rpc/uiRpcHandlers";
 
 import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
-// eslint-disable-next-line import/no-unresolved
 import "windi.css";
 import "@/assets/styles/main.css";
 
-// eslint-disable-next-line import/no-named-as-default-member
 dayjs.extend(relativeTime);
 if (hasBrowserContext()) startListening();
 
