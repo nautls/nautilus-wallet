@@ -40,6 +40,7 @@ export class AsyncRequestQueue {
 
   pop(): AsyncRequest | undefined;
   pop(type: InternalRequest.Auth): AsyncRequest<SignDataArgs> | undefined;
+  pop(type: InternalRequest.SignData): AsyncRequest<SignDataArgs> | undefined;
   pop(type: InternalRequest.Connect): AsyncRequest | undefined;
   pop(type: InternalRequest.SignTx): AsyncRequest<SignTxArgs> | undefined;
   pop(type: InternalRequest.SignTxInputs): AsyncRequest<SignTxInputsArgs> | undefined;

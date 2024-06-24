@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
+import { useEventListener } from "@vueuse/core";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
 import store from "@/store";
@@ -11,10 +12,10 @@ import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
-import { AuthArgs } from "@/types/d.ts/webext-rpc";
+import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 
-const request = ref<AsyncRequest<AuthArgs>>();
+const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
 const errorMessage = ref("");
 const walletId = ref(0);
@@ -23,6 +24,7 @@ const isReadonly = computed(() => store.state.currentWallet.type === WalletType.
 const isLedger = computed(() => store.state.currentWallet.type === WalletType.Ledger);
 const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
 
+const removeEventListener = useEventListener(window, "beforeunload", refuse);
 const $v = useVuelidate(
   {
     password: {
@@ -48,7 +50,6 @@ onMounted(async () => {
   }
 
   walletId.value = connection.walletId;
-  window.addEventListener("beforeunload", refuse);
 });
 
 watch(
@@ -93,10 +94,6 @@ async function authenticate() {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
     }
   }
-}
-
-function removeEventListener() {
-  window.removeEventListener("beforeunload", refuse);
 }
 
 function proverError(message: string) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { SignedTransaction, some } from "@fleet-sdk/common";
+import { useEventListener } from "@vueuse/core";
 import DappPlate from "@/components/DappPlate.vue";
 import TxSignView from "@/components/TxSignView.vue";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
@@ -66,6 +67,8 @@ function isSignInputsRequest(req?: RequestType): req is AsyncRequest<SignTxInput
   return req?.type === InternalRequest.SignTxInputs;
 }
 
+const removeEventListener = useEventListener(window, "beforeunload", refuse);
+
 onMounted(async () => {
   request.value = queue.pop(InternalRequest.SignTx) || queue.pop(InternalRequest.SignTxInputs);
   if (!request.value) return;
@@ -78,7 +81,6 @@ onMounted(async () => {
   }
 
   walletId.value = connection.walletId;
-  window.addEventListener("beforeunload", refuse);
 });
 
 function refuse() {
@@ -101,7 +103,7 @@ function onFail(info: string) {
 }
 
 function close() {
-  window.removeEventListener("beforeunload", refuse);
+  removeEventListener();
   window.close();
 }
 </script>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { InternalRequest } from "@/rpc/protocol";
@@ -8,11 +9,11 @@ import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 const selected = ref(0);
 const request = ref<AsyncRequest>();
 
+const removeEventListener = useEventListener(window, "beforeunload", refuse);
+
 onMounted(() => {
   request.value = queue.pop(InternalRequest.Connect);
   if (!request.value) return;
-
-  window.addEventListener("beforeunload", refuse);
 });
 
 async function connect() {
@@ -39,10 +40,6 @@ async function saveConnection(walletId: number, request: AsyncRequest) {
 function refuse() {
   if (!request.value) return;
   request.value.resolve(false);
-}
-
-function removeEventListener() {
-  window.removeEventListener("beforeunload", refuse);
 }
 </script>
 
