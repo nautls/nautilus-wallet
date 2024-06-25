@@ -14,6 +14,7 @@ import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
@@ -29,7 +30,7 @@ const $v = useVuelidate(
   {
     password: {
       required: helpers.withMessage(
-        "A spending password is required for transaction signing.",
+        "A spending password is required for data signing.",
         requiredUnless(isLedger.value)
       )
     }
@@ -113,23 +114,27 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full text-sm gap-4 pt-2">
-    <h1 class="text-xl m-auto text-center pb-8">Authentication</h1>
+  <div class="flex flex-col h-full text-sm gap-2 pt-2">
+    <dapp-plate-header :favicon="request?.favicon" :origin="request?.origin">
+      requests a proof that the selected address belongs to you
+    </dapp-plate-header>
 
-    <dapp-plate :favicon="request?.favicon" :origin="request?.origin" />
-    <p class="text-center">
-      <span class="font-semibold">{{ request?.origin }}</span> wants to make sure the following
-      address belongs to you.
-    </p>
-    <div
-      class="text-left font-mono border-1 px-3 py-2 text-sm break-all rounded bg-gray-100 border-gray-300"
-    >
-      {{ request?.data.address }}
+    <div class="flex-grow"></div>
+
+    <div class="flex shadow-sm flex-col border rounded">
+      <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none">
+        <div class="flex w-full">Address</div>
+      </div>
+      <div
+        class="block bg-gray-700 rounded-b py-2 px-2 break-all max-h-64 overflow-y-auto font-mono text-white"
+      >
+        {{ request?.data.address }}
+      </div>
     </div>
 
     <div class="flex-grow"></div>
 
-    <p v-if="isReadonly || isLedger" class="text-sm text-center">
+    <p v-if="isReadonly || isLedger" class="text-sm text-center space-x-2">
       <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
       <span class="align-middle">This wallet cannot sign messages.</span>
     </p>

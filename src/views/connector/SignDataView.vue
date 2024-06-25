@@ -182,12 +182,6 @@ function refuse() {
         </div>
       </template>
     </div>
-    <!-- <div
-      v-if="typeof messageData === 'string'"
-      class="text-left font-mono border-1 px-3 py-2 text-sm break-all rounded bg-gray-100 border-gray-300"
-    >
-      <span>{{ messageData }}</span>
-    </div> -->
 
     <div class="flex-grow"></div>
 
