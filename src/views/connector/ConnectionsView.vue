@@ -3,6 +3,7 @@ import { computed, onMounted } from "vue";
 import { find } from "lodash-es";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
+import DappPlate from "@/components/DappPlate.vue";
 
 onMounted(() => store.dispatch(ACTIONS.LOAD_CONNECTIONS));
 

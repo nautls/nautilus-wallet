@@ -30,7 +30,6 @@ import router from "./router";
 import { filters } from "@/common/globalFilters";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
-import DAppPlate from "@/components/DappPlate.vue";
 import DropDown from "@/components/DropDown.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import LedgerDevice from "@/components/LedgerDevice.vue";
@@ -110,7 +109,6 @@ app
   .component("loading-indicator", LoadingIndicator)
   .component("wallet-item", WalletItem)
   .component("ledger-device", LedgerDevice)
-  .component("dapp-plate", DAppPlate)
   .component("mdi-icon", MdiIcon)
   .component("asset-icon", AssetIcon)
   .mount("#app");

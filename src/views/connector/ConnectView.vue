@@ -5,6 +5,7 @@ import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { InternalRequest } from "@/rpc/protocol";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
 
 const selected = ref(0);
 const request = ref<AsyncRequest>();
@@ -45,9 +46,10 @@ function refuse() {
 
 <template>
   <div class="flex text-sm flex-col h-full gap-4 text-center pt-2">
-    <dapp-plate :origin="request?.origin" :favicon="request?.favicon" />
+    <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon">
+      requests to connect with Nautilus
+    </dapp-plate-header>
 
-    <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>
     <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
       <label
         v-for="wallet in $store.state.wallets"

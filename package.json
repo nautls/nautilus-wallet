@@ -48,10 +48,10 @@
     "lodash-es": "^4.17.21",
     "mdi-vue": "^3.0.13",
     "qrcode": "^1.5.3",
-    "vue": "^3.4.29",
+    "vue": "^3.4.30",
     "vue-feather": "^2.0.0",
-    "vue-json-pretty": "2.1.1",
-    "vue-router": "^4.3.3",
+    "vue-json-pretty": "2.4.0",
+    "vue-router": "^4.4.0",
     "vuex": "^4.1.0",
     "webext-bridge": "^6.0.1",
     "yaml": "^2.4.5"
