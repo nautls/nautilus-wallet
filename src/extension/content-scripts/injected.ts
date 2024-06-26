@@ -33,8 +33,12 @@ class NautilusAuthApi {
     return granted;
   }
 
-  isConnected() {
+  isAuthorized() {
     return sendMessage(ExternalRequest.CheckConnection, _, CONTENT_SCRIPT);
+  }
+
+  isConnected() {
+    return Promise.resolve(this.#context !== undefined);
   }
 
   async disconnect() {
@@ -48,7 +52,9 @@ class NautilusAuthApi {
   }
 
   getContext() {
-    return this.#context ? Promise.resolve(this.#context) : Promise.reject();
+    return this.#context
+      ? Promise.resolve(this.#context)
+      : Promise.reject({ code: APIErrorCode.Refused, info: "Not connected." });
   }
 }
 
