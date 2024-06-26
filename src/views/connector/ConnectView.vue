@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { InternalRequest } from "@/rpc/protocol";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
 
 const selected = ref(0);
 const request = ref<AsyncRequest>();
 
+const removeEventListener = useEventListener(window, "beforeunload", refuse);
+
 onMounted(() => {
   request.value = queue.pop(InternalRequest.Connect);
   if (!request.value) return;
-
-  window.addEventListener("beforeunload", refuse);
 });
 
 async function connect() {
@@ -40,17 +42,14 @@ function refuse() {
   if (!request.value) return;
   request.value.resolve(false);
 }
-
-function removeEventListener() {
-  window.removeEventListener("beforeunload", refuse);
-}
 </script>
 
 <template>
   <div class="flex text-sm flex-col h-full gap-4 text-center pt-2">
-    <dapp-plate :origin="request?.origin" :favicon="request?.favicon" />
+    <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon">
+      requests to connect with Nautilus
+    </dapp-plate-header>
 
-    <h1 class="text-xl m-auto">Wants to connect with Nautilus</h1>
     <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
       <label
         v-for="wallet in $store.state.wallets"

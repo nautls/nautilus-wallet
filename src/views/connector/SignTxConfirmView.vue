@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { SignedTransaction, some } from "@fleet-sdk/common";
+import { useEventListener } from "@vueuse/core";
 import DappPlate from "@/components/DappPlate.vue";
 import TxSignView from "@/components/TxSignView.vue";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
@@ -11,6 +12,7 @@ import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import store from "@/store";
 import { ACTIONS } from "@/constants/store";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
 
 type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
 
@@ -66,6 +68,8 @@ function isSignInputsRequest(req?: RequestType): req is AsyncRequest<SignTxInput
   return req?.type === InternalRequest.SignTxInputs;
 }
 
+const removeEventListener = useEventListener(window, "beforeunload", refuse);
+
 onMounted(async () => {
   request.value = queue.pop(InternalRequest.SignTx) || queue.pop(InternalRequest.SignTxInputs);
   if (!request.value) return;
@@ -78,7 +82,6 @@ onMounted(async () => {
   }
 
   walletId.value = connection.walletId;
-  window.addEventListener("beforeunload", refuse);
 });
 
 function refuse() {
@@ -101,18 +104,20 @@ function onFail(info: string) {
 }
 
 function close() {
-  window.removeEventListener("beforeunload", refuse);
+  removeEventListener();
   window.close();
 }
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-4">
-    <dapp-plate :origin="request?.origin" :favicon="request?.favicon" compact />
-    <h1 class="text-xl m-auto text-center">
-      <template v-if="isPartialSign">Wants to partially sign a transaction</template>
-      <template v-else>Wants to sign a transaction</template>
-    </h1>
+  <div class="flex flex-col h-full gap-4 text-sm">
+    <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon" class="pt-2">
+      <template v-if="isPartialSign"
+        >requests to <span class="font-semibold">partially</span> sign a transaction</template
+      >
+      <template v-else>requests to sign a transaction</template>
+    </dapp-plate-header>
+
     <tx-sign-view
       v-if="request?.data"
       :transaction="request.data.transaction"

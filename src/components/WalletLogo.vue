@@ -10,10 +10,10 @@ const testnet = !MAINNET;
 const staging = import.meta.env.MODE === "staging";
 const displayName = staging ? "Abyss" : testnet ? "Testnet" : "Mainnet";
 const logo = staging
-  ? "/icons/app/logo-staging.svg"
+  ? "/icons/app/logo-staging.svg?url"
   : testnet
-    ? "/icons/app/logo-testnet.svg"
-    : "/icons/app/logo-mainnet.svg";
+    ? "/icons/app/logo-testnet.svg?url"
+    : "/icons/app/logo-mainnet.svg?url";
 </script>
 
 <template>

@@ -4,14 +4,14 @@
       <label
         >Wallet name
         <input
-          :disabled="loading"
           v-model.lazy="walletName"
+          :disabled="loading"
           maxlength="50"
-          @blur="v$.walletName.$touch()"
           type="text"
           class="w-full control block"
+          @blur="v$.walletName.$touch()"
         />
-        <p class="input-error" v-if="v$.walletName.$error">
+        <p v-if="v$.walletName.$error" class="input-error">
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
@@ -19,26 +19,26 @@
         <label class="w-1/2"
           >Spending password
           <input
-            :disabled="loading"
             v-model.lazy="password"
-            @blur="v$.password.$touch()"
+            :disabled="loading"
             type="password"
             class="w-full control block"
+            @blur="v$.password.$touch()"
           />
-          <p class="input-error" v-if="v$.password.$error">
+          <p v-if="v$.password.$error" class="input-error">
             {{ v$.password.$errors[0].$message }}
           </p></label
         >
         <label class="w-1/2"
           >Confirm password
           <input
-            :disabled="loading"
             v-model.lazy="confirmPassword"
-            @blur="v$.confirmPassword.$touch()"
+            :disabled="loading"
             type="password"
             class="w-full control block"
+            @blur="v$.confirmPassword.$touch()"
           />
-          <p class="input-error" v-if="v$.confirmPassword.$error">
+          <p v-if="v$.confirmPassword.$error" class="input-error">
             {{ v$.confirmPassword.$errors[0].$message }}
           </p></label
         >
@@ -56,7 +56,7 @@
       <label
         class="inline-flex items-center font-normal cursor-pointer bg-yellow-100 border-1 border-yellow-300 mb-2 py-1 px-3 rounded w-full"
       >
-        <input class="checkbox" type="checkbox" v-model="mnemonicStoreAgreement" />
+        <input v-model="mnemonicStoreAgreement" class="checkbox" type="checkbox" />
         <span class="text-yellow-900">I've stored the secret phrase in a secure place.</span>
       </label>
     </div>
@@ -64,10 +64,10 @@
       <div class="flex flex-row gap-4">
         <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
         <button
-          @click="add()"
           :disabled="loading || !mnemonicStoreAgreement"
           type="button"
           class="w-full btn"
+          @click="add()"
         >
           <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />
           <span v-else>Confirm</span>
@@ -82,24 +82,21 @@ import { defineComponent } from "vue";
 import { generateMnemonic } from "@fleet-sdk/wallet";
 import { orderBy, take } from "lodash-es";
 import { mapActions } from "vuex";
-import { ACTIONS } from "@/constants/store/actions";
-import { WalletType } from "@/types/internal";
+import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
+import { ACTIONS } from "@/constants/store/actions";
+import { WalletType } from "@/types/internal";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
-import { wordlist } from "@scure/bip39/wordlists/english";
 
 export default defineComponent({
   name: "AddStandardView",
   setup() {
     return { v$: useVuelidate() };
   },
-  created() {
-    this.mnemonic = generateMnemonic(DEFAULT_WALLET_STRENGTH);
-  },
   data() {
     return {
-      filteredWords: Object.freeze(wordlist),
+      filteredWords: Object.freeze(english),
       walletName: "",
       password: "",
       confirmPassword: "",
@@ -107,6 +104,9 @@ export default defineComponent({
       mnemonicStoreAgreement: false,
       loading: false
     };
+  },
+  created() {
+    this.mnemonic = generateMnemonic(DEFAULT_WALLET_STRENGTH);
   },
   validations() {
     return {
@@ -153,13 +153,13 @@ export default defineComponent({
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
-        return Object.freeze(take(wordlist, 10));
+        return Object.freeze(take(english, 10));
       }
 
       const lowerText = text.toLowerCase();
       const filtered = orderBy(
         take(
-          wordlist.filter((w) => {
+          english.filter((w) => {
             return w.includes(lowerText);
           }),
           10

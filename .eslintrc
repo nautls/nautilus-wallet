@@ -33,6 +33,7 @@
     "sort-imports": ["warn", { "ignoreDeclarationSort": true, "ignoreCase": true }],
     "import/order": "warn",
     "import/default": "off",
-    "import/no-named-as-default-member": "off"
+    "import/no-named-as-default-member": "off",
+    "import/no-unresolved": "off"
   }
 }

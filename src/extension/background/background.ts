@@ -22,20 +22,20 @@ import { JsonValue } from "@/types/internal";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (
   message: BridgeMessage<GetDataType<T, JsonValue>>,
-  walletId?: number
+  walletId: number
 ) => GetReturnType<T> | Promise<GetReturnType<T>>;
 
 const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
 const requests = new AsyncRequestQueue();
 
-function onAuthenticatedMessage<T extends InternalRequest>(
+function onMessageAuth<T extends InternalRequest>(
   request: T,
   handler: AuthenticatedMessageHandler<T>
 ) {
   onMessage(request, async (msg) => {
-    if (!isInternalEndpoint(msg.sender)) return handler(msg);
+    if (!isInternalEndpoint(msg.sender)) return NOT_CONNECTED_ERROR as GetReturnType<T>;
     const conn = await connectedDAppsDbService.getByOrigin(msg.data.payload.origin);
-    if (!conn) return handler(msg);
+    if (!conn) return NOT_CONNECTED_ERROR as GetReturnType<T>;
 
     return handler(msg, conn.walletId);
   });
@@ -61,41 +61,34 @@ onMessage(InternalRequest.Disconnect, async ({ sender, data }) => {
   return !connected;
 });
 
-onAuthenticatedMessage(InternalRequest.GetUTxOs, async ({ data }, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
-
+onMessageAuth(InternalRequest.GetUTxOs, async ({ data }, walletId) => {
   const utxos = await getUTxOs(walletId, data.target);
   return success(utxos);
 });
 
-onAuthenticatedMessage(InternalRequest.GetBalance, async (msg, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
-
+onMessageAuth(InternalRequest.GetBalance, async (msg, walletId) => {
   const tokenId = !msg.data.tokenId || msg.data.tokenId === "ERG" ? ERG_TOKEN_ID : msg.data.tokenId;
   const balance = await getBalance(walletId, tokenId);
   return success(balance);
 });
 
-onAuthenticatedMessage(InternalRequest.GetAddresses, async (msg, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
-
+onMessageAuth(InternalRequest.GetAddresses, async (msg, walletId) => {
   const addresses = await getAddresses(walletId, msg.data.filter);
-  if (isEmpty(addresses)) return error(APIErrorCode.InternalError, "No addresses found.");
+  if (isEmpty(addresses)) {
+    return error(APIErrorCode.InternalError, "No addresses found.");
+  }
 
   return success(addresses);
 });
 
-onAuthenticatedMessage(InternalRequest.GetCurrentHeight, async (_, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
-
+onMessageAuth(InternalRequest.GetCurrentHeight, async () => {
   const height = await getCurrentHeight();
   return height
     ? success(height)
     : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
 });
 
-onAuthenticatedMessage(InternalRequest.SubmitTransaction, async (msg, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
+onMessageAuth(InternalRequest.SubmitTransaction, async (msg, walletId) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
 
   try {
@@ -106,27 +99,27 @@ onAuthenticatedMessage(InternalRequest.SubmitTransaction, async (msg, walletId) 
   }
 });
 
-onAuthenticatedMessage(InternalRequest.SignData, async (msg, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
-  return invalidRequest("Not implemented.");
-});
+onMessageAuth(InternalRequest.SignData, handleDataSigningRequest(InternalRequest.SignData));
+onMessageAuth(InternalRequest.Auth, handleDataSigningRequest(InternalRequest.Auth));
 
-onAuthenticatedMessage(InternalRequest.Auth, async (msg, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
-  if (!msg.data.address || !msg.data.message) return invalidRequest("Invalid params.");
+function handleDataSigningRequest(request: InternalRequest.Auth | InternalRequest.SignData) {
+  return async (
+    msg: BridgeMessage<GetDataType<typeof request>>,
+    walletId: number
+  ): Promise<GetReturnType<typeof request>> => {
+    if (!msg.data.address || !msg.data.message) return invalidRequest("Invalid params.");
 
-  const address = await addressesDbService.getByScript(msg.data.address);
-  if (!address || address.walletId !== walletId) {
-    return invalidRequest("The address is not associated with the connected wallet.");
-  }
+    const address = await addressesDbService.getByScript(msg.data.address);
+    if (address?.walletId !== walletId) {
+      return invalidRequest("The address is not associated with the connected wallet.");
+    }
 
-  return await openWindow(InternalRequest.Auth, msg.data, msg.sender.tabId);
-});
+    return await openWindow(request, msg.data, msg.sender.tabId);
+  };
+}
 
-onAuthenticatedMessage(InternalRequest.SignTx, async (msg, walletId) => {
-  if (!walletId) return NOT_CONNECTED_ERROR;
+onMessageAuth(InternalRequest.SignTx, async (msg) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
-
   return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId);
 });
 

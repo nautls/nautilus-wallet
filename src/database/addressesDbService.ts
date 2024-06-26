@@ -4,15 +4,33 @@ import { dbContext } from "@/database/dbContext";
 import { AddressState } from "@/types/internal";
 
 class AddressesDbService {
-  public async getByScript(script: string): Promise<IDbAddress | undefined> {
+  async getByScript(script: string): Promise<IDbAddress | undefined> {
     return await dbContext.addresses.where({ script }).first();
   }
 
-  public async getByWalletId(walletId: number): Promise<IDbAddress[]> {
+  async getByWalletIdAndScripts(
+    walletId: number,
+    scripts: string[],
+    mode = "loose" as "strict" | "loose"
+  ): Promise<IDbAddress[]> {
+    const result = await dbContext.addresses
+      .where("script")
+      .anyOf(scripts)
+      .and((a) => a.walletId === walletId)
+      .toArray();
+
+    if (mode === "strict" && result.length !== scripts.length) {
+      throw Error("One or more selected addresses are not associated with the connected wallet.");
+    }
+
+    return result;
+  }
+
+  async getByWalletId(walletId: number): Promise<IDbAddress[]> {
     return await dbContext.addresses.where({ walletId }).toArray();
   }
 
-  public async getByState(walletId: number, state: AddressState): Promise<IDbAddress[]> {
+  async getByState(walletId: number, state: AddressState): Promise<IDbAddress[]> {
     const addresses = await dbContext.addresses
       .orderBy("index")
       .filter((a) => a.walletId === walletId && a.state == state)
@@ -21,7 +39,7 @@ class AddressesDbService {
     return addresses;
   }
 
-  public async getChangeAddress(walletId: number): Promise<IDbAddress | undefined> {
+  async getChangeAddress(walletId: number): Promise<IDbAddress | undefined> {
     const wallet = await walletsDbService.getById(walletId);
     if (!wallet) {
       return;
@@ -51,11 +69,11 @@ class AddressesDbService {
       .first();
   }
 
-  public async put(address: IDbAddress): Promise<string> {
+  async put(address: IDbAddress): Promise<string> {
     return dbContext.addresses.put(address);
   }
 
-  public async bulkPut(addresses: IDbAddress[], walletId: number): Promise<void> {
+  async bulkPut(addresses: IDbAddress[], walletId: number): Promise<void> {
     const dbAddresses = await this.getByWalletId(walletId);
     const putAddresses: IDbAddress[] = [];
 

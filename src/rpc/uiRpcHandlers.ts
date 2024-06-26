@@ -14,6 +14,7 @@ export function startListening() {
   onMessage(InternalRequest.Connect, ({ data }) => handle(InternalRequest.Connect, data));
   onMessage(InternalRequest.Auth, ({ data }) => handle(InternalRequest.Auth, data));
   onMessage(InternalRequest.SignTx, ({ data }) => handle(InternalRequest.SignTx, data));
+  onMessage(InternalRequest.SignData, ({ data }) => handle(InternalRequest.SignData, data));
   onMessage(InternalRequest.SignTxInputs, ({ data }) => handle(InternalRequest.SignTxInputs, data));
 }
 
@@ -36,4 +37,5 @@ function getRoute(requestType: AsyncRequestType) {
   if (requestType === InternalRequest.Auth) return "connector-auth";
   if (requestType === InternalRequest.SignTx) return "connector-sign-tx";
   if (requestType === InternalRequest.SignTxInputs) return "connector-sign-tx-input";
+  if (requestType === InternalRequest.SignData) return "connector-sign-data";
 }

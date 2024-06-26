@@ -15,7 +15,7 @@
         <p class="skeleton h-3 w-full rounded"></p>
         <p class="skeleton h-3 w-2/5 rounded mt-1"></p>
       </div>
-      <div v-else-if="$slots.subheader" class="text-xs font-normal text-gray-600 pt-1">
+      <div v-else-if="$slots.subheader" class="text-xs font-normal pt-1">
         <slot name="subheader" />
       </div>
     </div>
@@ -52,7 +52,7 @@
                 <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
               </span>
               <tool-tip v-if="asset.minting" class="align-middle">
-                <template v-slot:label>
+                <template #label>
                   <div class="block w-38">
                     <span>This asset is being minted on this transaction.</span>
                     <div class="text-left pt-2">

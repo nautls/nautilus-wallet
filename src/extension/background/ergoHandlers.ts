@@ -16,7 +16,7 @@ export type AddressType = "used" | "unused" | "change";
 
 export async function checkConnection(origin: string) {
   const connection = await connectedDAppsDbService.getByOrigin(origin);
-  return isDefined(connection) && isDefined(connection?.walletId);
+  return isDefined(connection) && isDefined(connection.walletId);
 }
 
 export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {

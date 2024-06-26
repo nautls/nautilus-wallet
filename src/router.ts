@@ -17,6 +17,7 @@ const dAppsView = asyncComponent(() => import("@/views/DAppsView.vue"));
 const connectView = asyncComponent(() => import("@/views/connector/ConnectView.vue"));
 const assetsView = asyncComponent(() => import("@/views/AssetsView.vue"));
 const authView = asyncComponent(() => import("@/views/connector/AuthView.vue"));
+const signDataView = asyncComponent(() => import("@/views/connector/SignDataView.vue"));
 const signTxView = asyncComponent(() => import("@/views/connector/SignTxConfirmView.vue"));
 const ledgerConnectView = asyncComponent(() => import("@/views/add/ConnectLedgerView.vue"));
 
@@ -121,6 +122,12 @@ const routes: Array<RouteRecordRaw> = [
     name: "connector-sign-tx",
     component: signTxView,
     meta: { title: "Transaction signature" }
+  },
+  {
+    path: "/connector/sign/data",
+    name: "connector-sign-data",
+    component: signDataView,
+    meta: { title: "Data signature" }
   },
   {
     path: "/connector/auth",

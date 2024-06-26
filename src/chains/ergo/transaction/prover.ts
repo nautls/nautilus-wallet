@@ -30,13 +30,14 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { hex, utf8 } from "@fleet-sdk/crypto";
+import { hex } from "@fleet-sdk/crypto";
 import { addressFromErgoTree } from "../addresses";
 import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
 import { toBigNumber } from "@/common/bigNumbers";
+import { walletsDbService } from "@/database/walletsDbService";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;
@@ -93,12 +94,12 @@ export class Prover {
     return this;
   }
 
-  signMessage(message: string) {
+  signMessage(message: Uint8Array) {
     const address = MAINNET
       ? Address.from_mainnet_str(this.#from[0].script)
       : Address.from_testnet_str(this.#from[0].script);
 
-    return this.#buildWallet().sign_message_using_p2pk(address, utf8.decode(message));
+    return this.#buildWallet().sign_message_using_p2pk(address, message);
   }
 
   async signTx(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
@@ -321,4 +322,8 @@ function mapLedgerOutputs(tx: UnsignedTransaction) {
   }
 
   return outputs;
+}
+
+export async function getPrivateDeriver(walletId: number, password: string): Promise<HdKey> {
+  return await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
 }

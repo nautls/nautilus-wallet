@@ -28,7 +28,6 @@ import { Prover } from "./chains/ergo/transaction/prover";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
 import { getChangeAddress } from "@/chains/ergo/addresses";
-import { buildEip28ResponseMessage } from "@/chains/ergo/eip28";
 import { extractAddressesFromInputs } from "@/chains/ergo/extraction";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
@@ -40,9 +39,7 @@ import {
   AddressType,
   AssetSubtype,
   AssetType,
-  Eip28SignedMessage,
   Network,
-  SignEip28MessageCommand,
   SignTxCommand,
   StateAddress,
   StateAsset,
@@ -842,23 +839,6 @@ export default createStore({
       } else {
         return await prover.signTx(command.tx);
       }
-    },
-    async [ACTIONS.SIGN_EIP28_MESSAGE](
-      _,
-      command: SignEip28MessageCommand
-    ): Promise<Eip28SignedMessage> {
-      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const mnemonic = await walletsDbService.getMnemonic(command.walletId, command.password);
-      const deriver = await HdKey.fromMnemonic(mnemonic);
-
-      const signingAddress = ownAddresses.filter((x) => x.script === command.address);
-      const signedMessage = buildEip28ResponseMessage(command.message, command.origin);
-      const proof = new Prover(deriver).from(signingAddress).signMessage(signedMessage);
-
-      return {
-        signedMessage,
-        proof: hex.encode(proof)
-      };
     },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();
