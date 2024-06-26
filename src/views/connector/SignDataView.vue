@@ -9,7 +9,7 @@ import VueJsonPretty from "vue-json-pretty";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
 import store from "@/store";
-import { JsonObject, ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
+import { JsonObject, ProverStateType, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -19,6 +19,7 @@ import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import "vue-json-pretty/lib/styles.css";
+import { signMessage } from "@/chains/ergo/dataSigning";
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
@@ -111,16 +112,14 @@ async function authenticate() {
   if (!(await $v.value.$validate())) return;
 
   try {
-    const result = await store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
-      address: request.value.data.address,
-      message: request.value.data.message,
-      origin: request.value.origin,
+    const proof = await signMessage(ergoMessage, {
+      addresses: [request.value.data.address],
       walletId: walletId.value,
       password: password.value
-    } as SignEip28MessageCommand);
+    });
 
     if (!request.value) return proverError("Prover returned undefined.");
-    request.value.resolve(success(result));
+    request.value.resolve(success(proof));
 
     removeEventListener();
     window.close();
