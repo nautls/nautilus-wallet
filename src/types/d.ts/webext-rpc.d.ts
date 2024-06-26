@@ -16,8 +16,6 @@ import type {
   DataWithPayload as WithPayload
 } from "@/rpc/protocol";
 
-type ConnectionPayload = { createErgoObject: boolean };
-
 type UTxOsTarget = { target: SelectionTarget | undefined };
 type UTxOResult = Result<Box<string>[]>;
 
@@ -40,7 +38,7 @@ type SubmitTxResult = Result<string>;
 
 declare module "webext-bridge" {
   export interface ProtocolMap {
-    [ExternalRequest.Connect]: WithReturn<ConnectionPayload, boolean>;
+    [ExternalRequest.Connect]: WithReturn<undefined, boolean>;
     [ExternalRequest.CheckConnection]: WithReturn<undefined, boolean>;
     [ExternalRequest.Disconnect]: WithReturn<undefined, boolean>;
 

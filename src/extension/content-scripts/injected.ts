@@ -24,17 +24,10 @@ class NautilusAuthApi {
   #context?: Readonly<NautilusErgoApi>;
 
   async connect({ createErgoObject = true } = {}): Promise<boolean> {
-    const granted = await sendMessage(
-      ExternalRequest.Connect,
-      { createErgoObject },
-      CONTENT_SCRIPT
-    );
-
+    const granted = await sendMessage(ExternalRequest.Connect, _, CONTENT_SCRIPT);
     if (granted) {
       this.#context = Object.freeze(new NautilusErgoApi());
-      if (createErgoObject) {
-        window.ergo = this.#context;
-      }
+      if (createErgoObject) window.ergo = this.#context;
     }
 
     return granted;
