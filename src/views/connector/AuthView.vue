@@ -6,7 +6,7 @@ import { useEventListener } from "@vueuse/core";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
 import store from "@/store";
-import { ProverStateType, SignEip28MessageCommand, WalletType } from "@/types/internal";
+import { ProverStateType, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -15,6 +15,7 @@ import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { signAuthMessage } from "@/chains/ergo/dataSigning";
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
@@ -75,13 +76,12 @@ async function authenticate() {
   if (!(await $v.value.$validate())) return;
 
   try {
-    const result = await store.dispatch(ACTIONS.SIGN_EIP28_MESSAGE, {
-      address: request.value.data.address,
-      message: request.value.data.message,
-      origin: request.value.origin,
+    const messageData = { message: request.value.data.message, origin: request.value.origin };
+    const result = await signAuthMessage(messageData, {
       walletId: walletId.value,
-      password: password.value
-    } as SignEip28MessageCommand);
+      password: password.value,
+      addresses: [request.value.data.address]
+    });
 
     if (!request.value) return proverError("Prover returned undefined.");
     request.value.resolve(success(result));
@@ -123,7 +123,7 @@ function refuse() {
 
     <div class="flex shadow-sm flex-col border rounded">
       <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none">
-        <div class="flex w-full">Address</div>
+        <div class="flex w-full">Selected address</div>
       </div>
       <div
         class="block bg-gray-700 rounded-b py-2 px-2 break-all max-h-64 overflow-y-auto font-mono text-white"
