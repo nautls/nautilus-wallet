@@ -1,7 +1,7 @@
-import BigNumber from "bignumber.js";
+import { BigNumber } from "bignumber.js";
+import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { ErgoBox } from "./connector";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 
 export enum AddressState {
   Used,
@@ -140,10 +140,6 @@ export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
-
-export type JsonObject = { [Key in string]?: JsonValue };
-export interface JsonArray extends Array<JsonValue> {}
-export type JsonValue = string | number | boolean | JsonObject | JsonArray | null;
 
 export type UpdateUsedAddressesFilterCommand = {
   walletId: number;

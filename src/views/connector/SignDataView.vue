@@ -6,10 +6,11 @@ import { useEventListener } from "@vueuse/core";
 import { ErgoMessage, MessageType } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
 import VueJsonPretty from "vue-json-pretty";
+import type { JsonObject } from "type-fest";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
 import store from "@/store";
-import { JsonObject, ProverStateType, WalletType } from "@/types/internal";
+import { ProverStateType, WalletType } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -61,6 +62,7 @@ onMounted(async () => {
 
   request.value = req;
   walletId.value = connection.walletId;
+
   ergoMessage = ErgoMessage.fromData(req.data.message);
   messageData.value = decodeMessageData(ergoMessage);
   messageType.value = decodeMessageType(ergoMessage);

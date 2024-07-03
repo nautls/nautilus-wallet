@@ -6,6 +6,7 @@ import type {
   SignedTransaction
 } from "@fleet-sdk/common";
 import type { AssetBalance, AuthResult, SelectionTarget } from "@nautilus-js/eip12-types";
+import type { JsonObject, JsonValue } from "type-fest";
 import type {
   AddressType,
   ErrorResult,
@@ -25,7 +26,8 @@ type BalanceResult = Result<AssetBalance[] | string>;
 type AddressesArgs = { filter: AddressType };
 type AddressesResult = Result<string[] | string>;
 
-type SignDataArgs = { address: string; message: string };
+type SignDataArgs = { address: string; message: JsonObject | JsonValue };
+type AuthArgs = { address: string; message: string };
 
 type SignTxArgs = { transaction: EIP12UnsignedTransaction };
 type SignTxResult = Result<SignedTransaction>;
@@ -47,7 +49,7 @@ declare module "webext-bridge" {
     [ExternalRequest.GetAddresses]: WithReturn<AddressType, AddressesResult>;
     [ExternalRequest.GetCurrentHeight]: WithReturn<undefined, Result<number>>;
     [ExternalRequest.SignData]: WithReturn<SignDataArgs, ErrorResult>;
-    [ExternalRequest.Auth]: WithReturn<SignDataArgs, Result<AuthResult>>;
+    [ExternalRequest.Auth]: WithReturn<AuthArgs, Result<AuthResult>>;
     [ExternalRequest.SignTx]: WithReturn<SignTxArgs, SignTxResult>;
     [ExternalRequest.SignTxInputs]: WithReturn<SignTxInputsArgs, SignTxInputsResult>;
     [ExternalRequest.SubmitTransaction]: WithReturn<SubmitTxArgs, SubmitTxResult>;
@@ -61,7 +63,7 @@ declare module "webext-bridge" {
     [InternalRequest.GetAddresses]: WithReturn<WithPayload<AddressesArgs>, AddressesResult>;
     [InternalRequest.GetCurrentHeight]: WithReturn<WithPayload, Result<number>>;
     [InternalRequest.SignData]: WithReturn<WithPayload<SignDataArgs>, ErrorResult>;
-    [InternalRequest.Auth]: WithReturn<WithPayload<SignDataArgs>, Result<AuthResult>>;
+    [InternalRequest.Auth]: WithReturn<WithPayload<AuthArgs>, Result<AuthResult>>;
     [InternalRequest.SignTx]: WithReturn<WithPayload<SignTxArgs>, SignTxResult>;
     [InternalRequest.SignTxInputs]: WithReturn<WithPayload<SignTxInputsArgs>, SignTxInputsResult>;
     [InternalRequest.SubmitTransaction]: WithReturn<WithPayload<SubmitTxArgs>, SubmitTxResult>;
