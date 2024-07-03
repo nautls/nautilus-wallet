@@ -23,7 +23,7 @@ export default defineConfig({
   plugins: [
     vue(),
     crx({ manifest: buildManifest(network) }),
-    nodePolyfills({ include: ["buffer"], globals: { Buffer: true } }),
+    nodePolyfills({ include: ["buffer"] }),
     svgLoader(),
     wasmLoader(),
     windiCSS(),
