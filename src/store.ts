@@ -409,9 +409,7 @@ export default createStore({
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
-      if (isEmpty(wallets)) {
-        return;
-      }
+      if (isEmpty(wallets)) return;
 
       for (const wallet of wallets) {
         hdKeyPool.alloc(
@@ -456,9 +454,7 @@ export default createStore({
     },
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ dispatch }, id: number) {
       const wallet = await walletsDbService.getById(id);
-      if (!wallet || !wallet.id) {
-        throw Error("wallet not found");
-      }
+      if (!wallet || !wallet.id) throw Error("wallet not found");
 
       const key = hdKeyPool.get(wallet.publicKey);
       const stateWallet: StateWallet = {
@@ -490,6 +486,7 @@ export default createStore({
           `You cannot add more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
         );
       }
+
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
       const index = (maxBy(state.currentAddresses, (a) => a.index)?.index || 0) + 1;
