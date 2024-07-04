@@ -1,9 +1,6 @@
 import { allowWindowMessaging, onMessage, sendMessage } from "webext-bridge/content-script";
-// @ts-expect-error ?script is needed to force vite to bundle the script
-import injected from "./injected.ts?script";
-import { buildNamespaceFor, ExternalRequest, InternalRequest } from "@/rpc/protocol";
-
-allowWindowMessaging(buildNamespaceFor(location.origin));
+import { buildNamespaceFor, ExternalEvent, ExternalRequest, InternalRequest } from "@/rpc/protocol";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 const CONSOLE_PREFIX = "[Nautilus]";
 const BACKGROUND = "background";
@@ -19,27 +16,18 @@ function canInject() {
   return docElCheck && docTypeCheck;
 }
 
-/**
- * Workaround for Vite's/CRXJS output file naming.
- */
-function getRightScriptPath() {
-  const index = injected.indexOf("injected");
-  if (index === -1) return injected;
-
-  const path = injected.slice(0, index);
-  return path + (import.meta.env.PROD ? "injected.js" : "injected.ts.js");
-}
-
 function injectScript() {
   if (!canInject()) error("Cannot inject scripts.");
+  const start = performance.now();
+  window.addEventListener(ExternalEvent.Injected, () =>
+    debug("Injected in", performance.now() - start, "ms")
+  );
 
-  const path = getRightScriptPath();
-  debug("Injecting script", path);
+  const path = `${EXT_ENTRY_ROOT}/content-scripts/injected.js`;
+  debug("Injecting", `'${path}'`);
 
-  const parent = document.head || document.documentElement;
+  const parent = document.head || document.body || document.documentElement;
   const script = document.createElement("script");
-  script.async = false;
-  script.type = "module";
   script.src = chrome.runtime.getURL(path);
   script.onload = () => parent.removeChild(script);
 
@@ -72,9 +60,9 @@ function getHost(origin: string) {
 }
 
 (() => {
-  if (injectScript()) debug("Access methods injected.");
-  else return;
+  if (!injectScript()) return;
 
+  allowWindowMessaging(buildNamespaceFor(location.origin));
   const payload = { origin: getHost(location.origin) };
 
   // auth requests

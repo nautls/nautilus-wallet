@@ -1,6 +1,6 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
-import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+import type { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 import type { JsonObject, JsonValue } from "type-fest";
 import { buildNamespaceFor, ExternalEvent, ExternalRequest, Result } from "@/rpc/protocol";
 import { APIErrorCode } from "@/types/connector";

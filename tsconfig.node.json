@@ -6,14 +6,16 @@
     "cypress.config.*",
     "nightwatch.conf.*",
     "playwright.config.*",
-    "src/manifest.ts"
+    "windi.config.ts",
+    "src/manifest.ts",
+    "src/constants/extension.ts"
   ],
   "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "module": "Preserve",
+    "allowImportingTsExtensions": true,
     "composite": true,
     "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo"
   }
 }
