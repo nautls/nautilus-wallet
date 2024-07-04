@@ -1,4 +1,4 @@
-import type { SignDataArgs, SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
+import type { AuthArgs, SignDataArgs, SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
 import { InternalRequest } from "@/rpc/protocol";
 
 export type AsyncRequest<T = unknown> = {
@@ -39,7 +39,7 @@ export class AsyncRequestQueue {
   }
 
   pop(): AsyncRequest | undefined;
-  pop(type: InternalRequest.Auth): AsyncRequest<SignDataArgs> | undefined;
+  pop(type: InternalRequest.Auth): AsyncRequest<AuthArgs> | undefined;
   pop(type: InternalRequest.SignData): AsyncRequest<SignDataArgs> | undefined;
   pop(type: InternalRequest.Connect): AsyncRequest | undefined;
   pop(type: InternalRequest.SignTx): AsyncRequest<SignTxArgs> | undefined;

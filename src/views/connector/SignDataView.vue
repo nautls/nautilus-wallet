@@ -18,9 +18,10 @@ import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
+import { signMessage } from "@/chains/ergo/signing";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+
 import "vue-json-pretty/lib/styles.css";
-import { signMessage } from "@/chains/ergo/dataSigning";
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
@@ -114,11 +115,12 @@ async function authenticate() {
   if (!(await $v.value.$validate())) return;
 
   try {
-    const proof = await signMessage(ergoMessage, {
-      addresses: [request.value.data.address],
-      walletId: walletId.value,
-      password: password.value
-    });
+    const proof = await signMessage(
+      ergoMessage,
+      [request.value.data.address],
+      walletId.value,
+      password.value
+    );
 
     if (!request.value) return proverError("Prover returned undefined.");
     request.value.resolve(success(proof));

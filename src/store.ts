@@ -6,10 +6,7 @@ import {
   find,
   findIndex,
   findLastIndex,
-  first,
   groupBy,
-  isEmpty,
-  last,
   maxBy,
   sortBy,
   take,
@@ -18,17 +15,14 @@ import {
 } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { some } from "@fleet-sdk/common";
+import { first, isEmpty, last, some } from "@fleet-sdk/common";
 import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
 import { assetInfoDbService } from "./database/assetInfoDbService";
 import { Token } from "./types/connector";
-import { Prover } from "./chains/ergo/transaction/prover";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
-import { getChangeAddress } from "@/chains/ergo/addresses";
-import { extractAddressesFromInputs } from "@/chains/ergo/extraction";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
 import { walletsDbService } from "@/database/walletsDbService";
@@ -40,7 +34,6 @@ import {
   AssetSubtype,
   AssetType,
   Network,
-  SignTxCommand,
   StateAddress,
   StateAsset,
   StateAssetInfo,
@@ -73,15 +66,6 @@ import { log } from "@/common/logger";
 type TokenBlacklist = {
   lastUpdated: number;
 } & ErgoTokenBlacklist;
-
-function dbAddressMapper(a: IDbAddress) {
-  return {
-    script: a.script,
-    state: a.state,
-    index: a.index,
-    balance: undefined
-  };
-}
 
 function navigate(routerName: string) {
   if (router.currentRoute.value.query.redirect !== "false") {
@@ -161,26 +145,26 @@ export default createStore({
       }
 
       if (isEmpty(balance)) {
-        balance.push({
-          tokenId: ERG_TOKEN_ID,
-          confirmedAmount: new BigNumber(0),
-          info: state.assetInfo[ERG_TOKEN_ID]
-        });
-
-        return balance;
+        return [
+          {
+            tokenId: ERG_TOKEN_ID,
+            confirmedAmount: new BigNumber(0),
+            info: state.assetInfo[ERG_TOKEN_ID]
+          }
+        ];
       }
 
       return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
     },
-    [GETTERS.PICTURE_NFT_BALANCE](state, getters) {
+    [GETTERS.PICTURE_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter((b) => b.info && b.info.type === AssetSubtype.PictureArtwork);
     },
-    [GETTERS.NON_PICTURE_NFT_BALANCE](state, getters) {
+    [GETTERS.NON_PICTURE_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter((b) => !b.info || b.info.type !== AssetSubtype.PictureArtwork);
     },
-    [GETTERS.NON_NFT_BALANCE](state, getters) {
+    [GETTERS.NON_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter(
         (b) =>
@@ -557,10 +541,10 @@ export default createStore({
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
       const key = hdKeyPool.get(pk);
-      let active: StateAddress[] = sortBy(
-        (await addressesDbService.getByWalletId(walletId)).map((a) => dbAddressMapper(a)),
-        (a) => a.index
-      );
+      const dbAddresses = await addressesDbService.getByWalletId(walletId);
+      let active = dbAddresses.map((a): StateAddress => ({ ...a, balance: undefined }));
+      active = sortBy(active, (a) => a.index);
+
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
@@ -790,55 +774,6 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { price: false });
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
-    },
-    async [ACTIONS.SIGN_TX]({ state }, command: SignTxCommand) {
-      const inputAddresses = extractAddressesFromInputs(command.tx.inputs);
-      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const addresses = ownAddresses
-        .filter((a) => inputAddresses.includes(a.script))
-        .map((a) => dbAddressMapper(a));
-
-      if (isEmpty(addresses)) {
-        const changeIndex = state.currentWallet.settings.defaultChangeIndex;
-        addresses.push(
-          dbAddressMapper(
-            find(ownAddresses, (a) => a.index === changeIndex) ??
-              find(ownAddresses, (a) => a.index === 0) ??
-              ownAddresses[0]
-          )
-        );
-      }
-
-      if (command.callback) {
-        command.callback({ statusText: "Loading context data..." });
-      }
-
-      const isLedger = state.currentWallet.type === WalletType.Ledger;
-      const deriver = isLedger
-        ? hdKeyPool.get(state.currentWallet.publicKey)
-        : await HdKey.fromMnemonic(
-            await walletsDbService.getMnemonic(command.walletId, command.password)
-          );
-
-      const changeAddress = getChangeAddress(
-        command.tx.outputs,
-        ownAddresses.map((a) => a.script)
-      );
-
-      const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
-      const changeIndex = find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0;
-      const prover = new Prover(deriver)
-        .from(addresses)
-        .useLedger(isLedger)
-        .changeIndex(changeIndex)
-        .setHeaders(blockHeaders)
-        .setCallback(command.callback);
-
-      if (command.inputsToSign && some(command.inputsToSign)) {
-        return await prover.signInputs(command.tx, command.inputsToSign);
-      } else {
-        return await prover.signTx(command.tx);
-      }
     },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();
