@@ -6,7 +6,7 @@ import type {
   SignedTransaction
 } from "@fleet-sdk/common";
 import type { AssetBalance, AuthResult, SelectionTarget } from "@nautilus-js/eip12-types";
-import type { JsonObject, JsonValue } from "type-fest";
+import type { JsonValue } from "type-fest";
 import type {
   AddressType,
   ErrorResult,
@@ -26,7 +26,7 @@ type BalanceResult = Result<AssetBalance[] | string>;
 type AddressesArgs = { filter: AddressType };
 type AddressesResult = Result<string[] | string>;
 
-type SignDataArgs = { address: string; message: JsonObject | JsonValue };
+type SignDataArgs = { address: string; message: JsonValue };
 type AuthArgs = { address: string; message: string };
 
 type SignTxArgs = { transaction: EIP12UnsignedTransaction };

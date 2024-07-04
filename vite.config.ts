@@ -47,8 +47,8 @@ export default defineConfig(({ mode }) => ({
     })
   ],
   build: {
+    chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
-    minify: false,
     outDir: r("dist")
   },
   optimizeDeps: {

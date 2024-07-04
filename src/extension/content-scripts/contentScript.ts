@@ -18,18 +18,17 @@ function canInject() {
 
 function injectScript() {
   if (!canInject()) error("Cannot inject scripts.");
-  const start = performance.now();
-  window.addEventListener(ExternalEvent.Injected, () =>
-    debug("Injected in", performance.now() - start, "ms")
-  );
-
   const path = `${EXT_ENTRY_ROOT}/content-scripts/injected.js`;
-  debug("Injecting", `'${path}'`);
+  debug("Injecting", `'${path}'...`);
 
   const parent = document.head || document.body || document.documentElement;
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL(path);
-  script.onload = () => parent.removeChild(script);
+
+  window.addEventListener(ExternalEvent.Injected, () => {
+    debug(`'${path}' injected!`);
+    parent.removeChild(script);
+  });
 
   try {
     parent.appendChild(script);
