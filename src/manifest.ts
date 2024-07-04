@@ -6,7 +6,7 @@ type Network = "mainnet" | "testnet";
 
 const r = (path: string) => `${EXT_ENTRY_ROOT}/${path}`;
 
-function getIcons(mode: string, network: Network) {
+function buildIcons(mode: string, network: Network) {
   let prefix = "m";
   if (mode === "staging") prefix = "s";
   else if (network === "testnet") prefix = "t";
@@ -18,12 +18,12 @@ function getIcons(mode: string, network: Network) {
   };
 }
 
-function getTitle(mode: string, network: Network) {
+function buildTitle(mode: string, network: Network) {
   if (mode === "staging") return "Nautilus Abyss";
   return network === "mainnet" ? "Nautilus Wallet" : "Nautilus (Testnet)";
 }
 
-function getDescription(mode: string, network: Network) {
+function buildDescription(mode: string, network: Network) {
   if (mode === "staging")
     return "Canary distribution of Nautilus Wallet, for testing and development purposes.";
   return network === "mainnet"
@@ -31,37 +31,49 @@ function getDescription(mode: string, network: Network) {
     : "Testnet distribution of Nautilus Wallet";
 }
 
-export const buildManifest = (network: Network, mode: string): Manifest.WebExtensionManifest => ({
-  manifest_version: 3,
-  name: getTitle(mode, network),
-  short_name: "Nautilus",
-  description: getDescription(mode, network),
-  version: pkg.version,
-  icons: getIcons(mode, network),
-  content_security_policy: {
-    extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
-  },
-  permissions: ["storage", "tabs"],
-  action: {
-    default_popup: r("popup/index.html"),
-    default_title: "Nautilus Wallet"
-  },
-  web_accessible_resources: [
-    {
-      resources: [r("content-scripts/contentScript.js"), r("content-scripts/injected.js")],
-      matches: ["<all_urls>"],
-      extension_ids: []
-    }
-  ],
-  background: {
-    service_worker: r("background/background.ts")
-  },
-  content_scripts: [
-    {
-      js: [r("content-scripts/contentScript.ts")],
-      matches: ["<all_urls>"],
-      run_at: "document_start",
-      all_frames: true
-    }
-  ]
-});
+function buildVersion() {
+  const [major, minor, patch, label] = pkg.version
+    // can only contain digits, dots, or dash
+    .replace(/[^\d.-]+/g, "")
+    // split into version parts
+    .split(/[.-]/);
+
+  return label ? `${major}.${minor}.${patch}.${label}` : `${major}.${minor}.${patch}`;
+}
+
+export function buildManifest(network: Network, mode: string): Manifest.WebExtensionManifest {
+  return {
+    manifest_version: 3,
+    name: buildTitle(mode, network),
+    short_name: "Nautilus",
+    description: buildDescription(mode, network),
+    version: buildVersion(),
+    icons: buildIcons(mode, network),
+    content_security_policy: {
+      extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    },
+    permissions: ["storage", "tabs"],
+    action: {
+      default_popup: r("popup/index.html"),
+      default_title: "Nautilus Wallet"
+    },
+    web_accessible_resources: [
+      {
+        resources: [r("content-scripts/contentScript.js"), r("content-scripts/injected.js")],
+        matches: ["<all_urls>"],
+        extension_ids: []
+      }
+    ],
+    background: {
+      service_worker: r("background/background.ts")
+    },
+    content_scripts: [
+      {
+        js: [r("content-scripts/contentScript.ts")],
+        matches: ["<all_urls>"],
+        run_at: "document_start",
+        all_frames: true
+      }
+    ]
+  };
+}
