@@ -9,9 +9,9 @@
       <button
         v-if="disposable"
         v-show="hovered"
-        @click.prevent.stop="onRemoveClicked()"
         tabindex="-1"
         class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
+        @click.prevent.stop="onRemoveClicked()"
       >
         <vue-feather type="trash" class="p-1" size="12" />
       </button>
@@ -19,7 +19,6 @@
         <div class="w-7/12">
           <input
             ref="val-input"
-            @blur="v$.$touch()"
             v-cleave="{
               numeral: true,
               numeralDecimalScale: asset.info?.decimals ?? 0,
@@ -27,11 +26,12 @@
             }"
             class="w-full outline-none"
             placeholder="Amount"
+            @blur="v$.$touch()"
           />
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
-            <span class="flex-grow text-sm" v-if="asset.info?.name"
+            <span v-if="asset.info?.name" class="flex-grow text-sm"
               ><tool-tip
                 v-if="asset.info?.name.length > 10"
                 tip-class="max-w-35"
@@ -43,41 +43,41 @@
                 {{ asset.info?.name }}
               </template></span
             >
-            <span class="flex-grow" v-else>{{ $filters.compactString(asset.tokenId, 10) }}</span>
+            <span v-else class="flex-grow">{{ $filters.compactString(asset.tokenId, 10) }}</span>
             <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.info?.type" />
           </div>
         </div>
       </div>
       <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
-          <span class="text-xs text-gray-400" v-if="ergPrice && rate(asset.tokenId)"
+          <span v-if="ergPrice && rate(asset.tokenId)" class="text-xs text-gray-400"
             >≈ {{ price }} {{ $filters.uppercase(conversionCurrency) }}</span
           >
-          <span class="text-xs text-gray-400" v-else>No conversion rate</span>
+          <span v-else class="text-xs text-gray-400">No conversion rate</span>
         </div>
         <div class="flex-grow text-right">
           <a
-            @click="setMaxValue()"
             class="text-xs cursor-pointer underline-transparent text-gray-400"
+            @click="setMaxValue()"
             >Balance: {{ $filters.formatBigNumber(confirmedAmount) }}</a
           >
         </div>
       </div>
     </div>
-    <p class="input-error" v-if="v$.$error">
+    <p v-if="v$.$error" class="input-error">
       {{ v$.$errors[0].$message }}
     </p>
   </label>
 </template>
 
 <script lang="ts">
-import { BigNumberType } from "@/types/internal";
-import { bigNumberMinValue, bigNumberMaxValue } from "@/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import BigNumber from "bignumber.js";
-import { isEmpty } from "lodash-es";
+import { BigNumber } from "bignumber.js";
+import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
+import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
+import { BigNumberType } from "@/types/internal";
 
 export default defineComponent({
   name: "AssetInput",
@@ -91,6 +91,12 @@ export default defineComponent({
   },
   setup() {
     return { v$: useVuelidate() };
+  },
+  data() {
+    return {
+      hovered: false,
+      internalValue: ""
+    };
   },
   computed: {
     conversionCurrency(): string {
@@ -134,11 +140,6 @@ export default defineComponent({
       return this.$store.state.ergPrice;
     }
   },
-  mounted() {
-    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
-      this.$emit("update:modelValue", this.asset.confirmedAmount);
-    }
-  },
   watch: {
     parsedValue(value: BigNumber | undefined) {
       if (!value && !isEmpty(this.internalValue)) {
@@ -159,11 +160,10 @@ export default defineComponent({
       el.cleave.setRawValue(value.toString());
     }
   },
-  data() {
-    return {
-      hovered: false,
-      internalValue: ""
-    };
+  mounted() {
+    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
+      this.$emit("update:modelValue", this.asset.confirmedAmount);
+    }
   },
   validations() {
     return {

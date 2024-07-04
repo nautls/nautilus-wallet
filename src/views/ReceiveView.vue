@@ -150,8 +150,7 @@
 </template>
 
 <script lang="ts">
-import { isDefined } from "@fleet-sdk/common";
-import { find, last } from "lodash-es";
+import { isDefined, last } from "@fleet-sdk/common";
 import QRCode from "qrcode";
 import { defineComponent } from "vue";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
@@ -160,13 +159,13 @@ import MdiIcon from "@/components/MdiIcon.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import {
+  AddressState,
   StateAddress,
   StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
   WalletType
 } from "@/types/internal";
-import { AddressState } from "@/types/internal";
 
 export default defineComponent({
   name: "ReceiveView",
@@ -212,7 +211,7 @@ export default defineComponent({
       const settings = this.currentWallet.settings;
       return this.avoidingReuse
         ? last(this.addresses)?.script
-        : find(this.addresses, (a) => a.index === settings.defaultChangeIndex)?.script;
+        : this.addresses.find((a) => a.index === settings.defaultChangeIndex)?.script;
     },
     hideBalances(): boolean {
       return this.$store.state.settings.hideBalances;
@@ -264,7 +263,7 @@ export default defineComponent({
     },
     ergBalanceFor(address: StateAddress): string {
       return (
-        find(address.balance, (a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
+        address.balance?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
       );
     },
     isUsed(address: StateAddress): boolean {
@@ -272,8 +271,7 @@ export default defineComponent({
     },
     hasPendingBalance(address: StateAddress): boolean {
       return isDefined(
-        find(
-          address.balance,
+        address.balance?.find(
           (b) => isDefined(b.unconfirmedAmount) && !b.unconfirmedAmount.isZero()
         )
       );

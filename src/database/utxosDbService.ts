@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 import { SignedTransaction } from "@ergo-graphql/types";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";

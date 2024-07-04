@@ -1,7 +1,6 @@
 import { BigNumber } from "bignumber.js";
-import { find, findIndex, first, isEmpty } from "lodash-es";
 import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
-import { EIP12UnsignedInput } from "@fleet-sdk/common";
+import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
 import { utf8 } from "@fleet-sdk/crypto";
 import { isBabelContract } from "../../babelFees";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
@@ -51,7 +50,7 @@ export class OutputInterpreter {
   }
 
   public get isMinting(): boolean {
-    return find(this._assets, (a) => a.minting) !== undefined;
+    return this._assets.find((a) => a.minting) !== undefined;
   }
 
   public get isBabelBoxSwap(): boolean {
@@ -129,7 +128,7 @@ export class OutputInterpreter {
 
     const minting = this.getMintingToken();
     if (minting) {
-      const index = findIndex(tokens, (t) => t.tokenId === minting.tokenId);
+      const index = tokens.findIndex((t) => t.tokenId === minting.tokenId);
       if (index > -1) {
         tokens[index] = minting;
       }
@@ -144,7 +143,7 @@ export class OutputInterpreter {
       return undefined;
     }
 
-    const token = find(this._box.assets, (b) => b.tokenId === firstInputId);
+    const token = this._box.assets.find((b) => b.tokenId === firstInputId);
     if (!token) {
       return undefined;
     }

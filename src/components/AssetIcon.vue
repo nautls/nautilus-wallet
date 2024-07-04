@@ -30,13 +30,13 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { isEmpty } from "@fleet-sdk/common";
 import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
-import { isEmpty } from "lodash-es";
 
 export default defineComponent({
   name: "AssetIcon",

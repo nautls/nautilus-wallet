@@ -87,8 +87,9 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { differenceBy, find, isEmpty, remove } from "lodash-es";
+import { differenceBy, remove } from "lodash-es";
 import { helpers, required } from "@vuelidate/validators";
+import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
 import { GETTERS } from "@/constants/store/getters";
@@ -175,7 +176,7 @@ export default defineComponent({
       return false;
     },
     reservedFeeAssetAmount(): BigNumberType {
-      const feeAsset = find(this.selected, (a) => a.asset.tokenId === this.feeSettings.tokenId);
+      const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
       if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
       }
@@ -276,16 +277,12 @@ export default defineComponent({
       this.v$.$reset();
     },
     setErgAsSelected(): void {
-      if (!this.isFeeInErg && !isEmpty(this.selected)) {
-        return;
-      }
+      if (!this.isFeeInErg && !isEmpty(this.selected)) return;
 
-      const selected = find(this.selected, (a) => a.asset.tokenId === ERG_TOKEN_ID);
-      if (selected) {
-        return;
-      }
+      const selected = this.selected.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
+      if (selected) return;
 
-      const erg = find(this.assets, (a) => a.tokenId === ERG_TOKEN_ID);
+      const erg = this.assets.find((a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
         this.selected.unshift({ asset: erg, amount: undefined });
       }
@@ -310,14 +307,10 @@ export default defineComponent({
       this.setMinBoxValue();
     },
     setMinBoxValue() {
-      if (this.selected.length === 1) {
-        return;
-      }
+      if (this.selected.length === 1) return;
 
-      const erg = find(this.selected, (a) => this.isFeeAsset(a.asset.tokenId));
-      if (!erg) {
-        return;
-      }
+      const erg = this.selected.find((a) => this.isFeeAsset(a.asset.tokenId));
+      if (!erg) return;
 
       if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
         erg.amount = new BigNumber(this.minBoxValue);

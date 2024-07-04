@@ -1,13 +1,12 @@
-import { difference, isEmpty, uniqBy } from "lodash-es";
+import { difference, uniqBy } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 import { IAssetInfo } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
 import { UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class AssetInfoDbService {
   public async addIfNotExists(assets: IAssetInfo[]) {
-    if (isEmpty(assets)) {
-      return;
-    }
+    if (isEmpty(assets)) return;
 
     assets = uniqBy(assets, (a) => a.id);
     const paramIds = assets.map((a) => a.id);
@@ -28,10 +27,7 @@ class AssetInfoDbService {
   }
 
   public async getAnyOf(ids: string[]): Promise<IAssetInfo[]> {
-    if (isEmpty(ids)) {
-      return [];
-    }
-
+    if (isEmpty(ids)) return [];
     return await dbContext.assetInfo.where("id").anyOf(ids).toArray();
   }
 

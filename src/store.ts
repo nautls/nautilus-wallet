@@ -1,21 +1,9 @@
 import { createStore } from "vuex";
 import { BigNumber } from "bignumber.js";
-import {
-  clone,
-  difference,
-  find,
-  findIndex,
-  findLastIndex,
-  groupBy,
-  maxBy,
-  sortBy,
-  take,
-  union,
-  uniq
-} from "lodash-es";
+import { clone, difference, groupBy, maxBy, sortBy, take, union } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { first, isEmpty, last, some } from "@fleet-sdk/common";
+import { first, isEmpty, last, some, uniq } from "@fleet-sdk/common";
 import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
@@ -180,16 +168,14 @@ export default createStore({
   mutations: {
     [MUTATIONS.SET_CURRENT_WALLET](state, identifier: StateWallet | number) {
       const selected =
-        typeof identifier === "number"
-          ? find(state.wallets, (w) => w.id == identifier)
-          : identifier;
+        typeof identifier === "number" ? state.wallets.find((w) => w.id == identifier) : identifier;
 
       if (!selected || !selected.id) {
         throw Error("Wallet not found");
       }
 
       if (typeof identifier !== "number") {
-        const i = findIndex(state.wallets, (x) => x.id == selected.id);
+        const i = state.wallets.findIndex((x) => x.id == selected.id);
         if (i > -1) {
           state.wallets[i] = selected;
         } else {
@@ -210,7 +196,7 @@ export default createStore({
 
       if (state.currentAddresses.length !== 0) {
         for (const address of content.addresses) {
-          const stateAddr = find(state.currentAddresses, (a) => a.script === address.script);
+          const stateAddr = state.currentAddresses.find((a) => a.script === address.script);
           if (stateAddr && stateAddr.balance) {
             address.balance = stateAddr.balance;
           }
@@ -303,28 +289,22 @@ export default createStore({
       state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds } };
     },
     [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
-      const wallet = find(state.wallets, (w) => w.id === command.walletId);
-      if (!wallet) {
-        return;
-      }
+      const wallet = state.wallets.find((w) => w.id === command.walletId);
+      if (!wallet) return;
 
       wallet.name = command.name;
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
     },
     [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
-      const wallet = find(state.wallets, (w) => w.id === command.walletId);
-      if (!wallet) {
-        return;
-      }
+      const wallet = state.wallets.find((w) => w.id === command.walletId);
+      if (!wallet) return;
 
       wallet.settings.defaultChangeIndex = command.index;
     },
     [MUTATIONS.SET_USED_ADDRESSES_FILTER](state, command: UpdateUsedAddressesFilterCommand) {
-      const wallet = find(state.wallets, (w) => w.id === command.walletId);
-      if (!wallet) {
-        return;
-      }
+      const wallet = state.wallets.find((w) => w.id === command.walletId);
+      if (!wallet) return;
 
       wallet.settings.hideUsedAddresses = command.filter;
     },
@@ -348,7 +328,7 @@ export default createStore({
     },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
       if (state.currentWallet.id === walletId) {
-        state.currentWallet = find(state.wallets, (w) => w.id !== walletId) ?? {
+        state.currentWallet = state.wallets.find((w) => w.id !== walletId) ?? {
           id: 0,
           name: "",
           type: WalletType.Standard,
@@ -364,7 +344,7 @@ export default createStore({
         state.currentAddresses = [];
       }
 
-      const removeIndex = findIndex(state.wallets, (w) => w.id === walletId);
+      const removeIndex = state.wallets.findIndex((w) => w.id === walletId);
       if (removeIndex > -1) {
         state.wallets.splice(removeIndex, 1);
       }
@@ -382,7 +362,7 @@ export default createStore({
       }
 
       if (state.wallets.length > 0) {
-        let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
+        let current = state.wallets.find((w) => w.id === state.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
         }
@@ -501,8 +481,7 @@ export default createStore({
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
-      const lastUsedIndex = findLastIndex(
-        state.currentAddresses,
+      const lastUsedIndex = state.currentAddresses.findLastIndex(
         (a) => a.state === AddressState.Used
       );
 
@@ -581,8 +560,8 @@ export default createStore({
         }
       } while (usedChunk.length > 0);
 
-      const lastUsedIndex = findIndex(active, (a) => a.script === lastUsed);
-      const lastStoredIndex = findIndex(active, (a) => a.script === lastStored);
+      const lastUsedIndex = active.findIndex((a) => a.script === lastUsed);
+      const lastStoredIndex = active.findIndex((a) => a.script === lastStored);
       if (lastStoredIndex > lastUsedIndex) {
         active = take(active, lastStoredIndex + 1);
       } else if (lastUsedIndex > -1) {
@@ -592,7 +571,7 @@ export default createStore({
       }
 
       for (const addr of active) {
-        if (find(used, (address) => addr.script === address)) {
+        if (used.find((address) => addr.script === address)) {
           addr.state = AddressState.Used;
         }
       }
@@ -692,7 +671,7 @@ export default createStore({
       await walletsDbService.delete(walletId);
 
       if (state.currentWallet.id === walletId) {
-        const wallet = find(state.wallets, (w) => w.id !== walletId);
+        const wallet = state.wallets.find((w) => w.id !== walletId);
         if (wallet) {
           await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
           router.push({ name: "assets-page" });

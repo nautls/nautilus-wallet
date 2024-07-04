@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 
 function validator(value: string) {
   if (isEmpty(value)) {

@@ -55,7 +55,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { isEmpty } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 import { browser, isPopup } from "@/common/browser";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 
