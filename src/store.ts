@@ -55,8 +55,9 @@ type TokenBlacklist = {
   lastUpdated: number;
 } & ErgoTokenBlacklist;
 
-function navigate(routerName: string) {
-  if (router.currentRoute.value.query.redirect !== "false") {
+function goTo(routerName: string) {
+  const { redirect, popup } = router.currentRoute.value.query;
+  if (redirect !== "false" || popup !== "true") {
     router.push({ name: routerName });
   }
 }
@@ -369,9 +370,8 @@ export default createStore({
 
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
         dispatch(ACTIONS.LOAD_CONNECTIONS);
-        navigate("assets-page");
       } else {
-        navigate("add-wallet");
+        goTo("add-wallet");
       }
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {

@@ -8,7 +8,7 @@ export const queue = new AsyncRequestQueue();
 const BACKGROUND = "background";
 const _ = undefined;
 
-export function startListening() {
+export function registerRpcHooks() {
   sendMessage(InternalEvent.Loaded, _, BACKGROUND);
 
   onMessage(InternalRequest.Connect, ({ data }) => handle(InternalRequest.Connect, data));
