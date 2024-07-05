@@ -18,7 +18,7 @@
     "WebAssembly": true,
     "chrome": true,
     "process": true,
-    "Buffer": true
+    "Buffer": false
   },
   "settings": {
     "import/resolver": {

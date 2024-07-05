@@ -136,6 +136,7 @@ export class Prover {
       let ledgerApp!: ErgoLedgerApp;
 
       try {
+        // @ts-expect-error - It looks like the type definitions are not up to date in @ledgerhq/hw-transport@6.31.0.
         ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create())
           .useAuthToken()
           .enableDebugMode();
@@ -287,11 +288,11 @@ function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: 
       txId: box.tx_id().to_str(),
       index: box.index(),
       value: box.value().as_i64().to_str(),
-      ergoTree: Buffer.from(box.ergo_tree().sigma_serialize_bytes()),
+      ergoTree: box.ergo_tree().sigma_serialize_bytes(),
       creationHeight: box.creation_height(),
       tokens: mapTokens(box.tokens()),
-      additionalRegisters: Buffer.from(box.serialized_additional_registers()),
-      extension: Buffer.from(input.extension().sigma_serialize_bytes()),
+      additionalRegisters: box.serialized_additional_registers(),
+      extension: input.extension().sigma_serialize_bytes(),
       signPath: `${DERIVATION_PATH}/${path.index}`
     });
   }
@@ -314,10 +315,10 @@ function mapLedgerOutputs(tx: UnsignedTransaction) {
     const output = tx.output_candidates().get(i);
     outputs.push({
       value: output.value().as_i64().to_str(),
-      ergoTree: Buffer.from(output.ergo_tree().sigma_serialize_bytes()),
+      ergoTree: output.ergo_tree().sigma_serialize_bytes(),
       creationHeight: output.creation_height(),
       tokens: mapTokens(output.tokens()),
-      registers: Buffer.from(output.serialized_additional_registers())
+      registers: output.serialized_additional_registers()
     });
   }
 
