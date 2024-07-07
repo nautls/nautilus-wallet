@@ -88,7 +88,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
-import { intersection, isEmpty, join, orderBy, take } from "lodash-es";
+import { intersection, join, orderBy, take } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 import { mapActions } from "vuex";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";

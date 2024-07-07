@@ -3,6 +3,7 @@
   "include": ["src/**/*", "src/**/*.vue"],
   "exclude": ["src/**/__tests__/*", "node_modules"],
   "compilerOptions": {
+    "lib": ["DOM", "ESNext"],
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {

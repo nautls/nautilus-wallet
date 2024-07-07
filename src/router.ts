@@ -1,38 +1,34 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import { defineAsyncComponent as asyncComponent } from "vue";
-import LoadingView from "@/views/LoadingView.vue";
 
 // Views
-const addView = asyncComponent(() => import("@/views/add/AddView.vue"));
-const nftGalleryView = asyncComponent(() => import("@/views/NftGalleryView.vue"));
-const receiveView = asyncComponent(() => import("@/views/ReceiveView.vue"));
-const addReadOnlyView = asyncComponent(() => import("@/views/add/AddReadOnlyView.vue"));
-const restoreView = asyncComponent(() => import("@/views/add/RestoreView.vue"));
-const addStandardView = asyncComponent(() => import("@/views/add/AddStandardView.vue"));
-const sendView = asyncComponent(() => import("@/views/SendView.vue"));
-const aboutView = asyncComponent(() => import("@/views/AboutView.vue"));
-const settingsView = asyncComponent(() => import("@/views/SettingsView.vue"));
-const connectionsView = asyncComponent(() => import("@/views/connector/ConnectionsView.vue"));
-const dAppsView = asyncComponent(() => import("@/views/DAppsView.vue"));
-const connectView = asyncComponent(() => import("@/views/connector/ConnectView.vue"));
-const assetsView = asyncComponent(() => import("@/views/AssetsView.vue"));
-const authView = asyncComponent(() => import("@/views/connector/AuthView.vue"));
-const signDataView = asyncComponent(() => import("@/views/connector/SignDataView.vue"));
-const signTxView = asyncComponent(() => import("@/views/connector/SignTxConfirmView.vue"));
-const ledgerConnectView = asyncComponent(() => import("@/views/add/ConnectLedgerView.vue"));
+const addView = () => import("@/views/add/AddView.vue");
+const nftGalleryView = () => import("@/views/NftGalleryView.vue");
+const receiveView = () => import("@/views/ReceiveView.vue");
+const addReadOnlyView = () => import("@/views/add/AddReadOnlyView.vue");
+const restoreView = () => import("@/views/add/RestoreView.vue");
+const addStandardView = () => import("@/views/add/AddStandardView.vue");
+const sendView = () => import("@/views/SendView.vue");
+const aboutView = () => import("@/views/AboutView.vue");
+const settingsView = () => import("@/views/SettingsView.vue");
+const connectionsView = () => import("@/views/connector/ConnectionsView.vue");
+const dAppsView = () => import("@/views/DAppsView.vue");
+const connectView = () => import("@/views/connector/ConnectView.vue");
+const assetsView = () => import("@/views/AssetsView.vue");
+const authView = () => import("@/views/connector/AuthView.vue");
+const signDataView = () => import("@/views/connector/SignDataView.vue");
+const signTxView = () => import("@/views/connector/SignTxConfirmView.vue");
+const ledgerConnectView = () => import("@/views/add/ConnectLedgerView.vue");
 
 // dApps
-const walletOptimizationDApp = asyncComponent(
-  () => import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue")
-);
-const dAppsList = asyncComponent(() => import("@/dapps/DappsList.vue"));
+const walletOptimizationDApp = () =>
+  import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue");
+const dAppsList = () => import("@/dapps/DappsList.vue");
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
-    name: "loading",
-    component: LoadingView,
-    meta: { fullPage: true }
+    name: "assets-page",
+    component: assetsView
   },
   {
     path: "/add",
@@ -66,12 +62,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: { fullPage: true, title: "Connect a hardware wallet" }
   },
   {
-    path: "/assets",
-    name: "assets-page",
-    component: assetsView
-  },
-  {
-    path: "/assets/nft",
+    path: "/nft",
     name: "nft-gallery",
     component: nftGalleryView
   },

@@ -128,24 +128,28 @@ import { helpers, requiredUnless } from "@vuelidate/validators";
 import VueJsonPretty from "vue-json-pretty";
 import { AddressType } from "@fleet-sdk/core";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
-import { EIP12UnsignedTransaction, isDefined, SignedTransaction } from "@fleet-sdk/common";
+import {
+  EIP12UnsignedTransaction,
+  isDefined,
+  SignedInput,
+  SignedTransaction
+} from "@fleet-sdk/common";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
 import {
   ProverStateType,
   SigningState,
-  SignTxCommand,
   StateAddress,
   StateAssetInfo,
   WalletType
 } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { OutputInterpreter } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
-import "vue-json-pretty/lib/styles.css";
 import TxSignSummary from "@/components/TxSignSummary.vue";
+import { signTransaction } from "@/chains/ergo/signing";
+import "vue-json-pretty/lib/styles.css";
 
 export default defineComponent({
   name: "TxSignView",
@@ -256,20 +260,20 @@ export default defineComponent({
       }
 
       const isValid = await this.v$.$validate();
-      if (!isValid) {
+      if (!isValid || !this.transaction) {
         return;
       }
 
       this.setState(ProverStateType.busy, { statusText: "Signing transaction..." });
 
       try {
-        const signedTx = await this.$store.dispatch(ACTIONS.SIGN_TX, {
-          tx: this.transaction,
-          inputsToSign: this.inputsToSign,
-          walletId: this.currentWalletId,
-          password: this.password,
-          callback: this.patchState
-        } as SignTxCommand);
+        const signedTx = await signTransaction(
+          this.transaction,
+          this.currentWalletId,
+          this.password,
+          this.patchState,
+          this.inputsToSign
+        );
 
         if (this.mode === "embedded" || this.isMnemonicSigning) {
           this.setState(ProverStateType.success);
@@ -326,7 +330,7 @@ export default defineComponent({
       this.$emit("fail", info);
     },
     succeed(
-      signedTx: SignedTransaction,
+      signedTx: SignedTransaction | SignedInput[],
       setStateFn: (state: ProverStateType, obj: Omit<Partial<SigningState>, "state">) => void
     ) {
       this.$emit("success", signedTx, setStateFn);

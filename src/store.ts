@@ -1,34 +1,16 @@
 import { createStore } from "vuex";
 import { BigNumber } from "bignumber.js";
-import {
-  clone,
-  difference,
-  find,
-  findIndex,
-  findLastIndex,
-  first,
-  groupBy,
-  isEmpty,
-  last,
-  maxBy,
-  sortBy,
-  take,
-  union,
-  uniq
-} from "lodash-es";
+import { clone, difference, groupBy, maxBy, sortBy, take, union } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { some } from "@fleet-sdk/common";
+import { first, isEmpty, last, some, uniq } from "@fleet-sdk/common";
 import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
 import { assetInfoDbService } from "./database/assetInfoDbService";
 import { Token } from "./types/connector";
-import { Prover } from "./chains/ergo/transaction/prover";
 import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
 import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
-import { getChangeAddress } from "@/chains/ergo/addresses";
-import { extractAddressesFromInputs } from "@/chains/ergo/extraction";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
 import { walletsDbService } from "@/database/walletsDbService";
@@ -40,7 +22,6 @@ import {
   AssetSubtype,
   AssetType,
   Network,
-  SignTxCommand,
   StateAddress,
   StateAsset,
   StateAssetInfo,
@@ -74,17 +55,9 @@ type TokenBlacklist = {
   lastUpdated: number;
 } & ErgoTokenBlacklist;
 
-function dbAddressMapper(a: IDbAddress) {
-  return {
-    script: a.script,
-    state: a.state,
-    index: a.index,
-    balance: undefined
-  };
-}
-
-function navigate(routerName: string) {
-  if (router.currentRoute.value.query.redirect !== "false") {
+function goTo(routerName: string) {
+  const { redirect, popup } = router.currentRoute.value.query;
+  if (redirect !== "false" || popup !== "true") {
     router.push({ name: routerName });
   }
 }
@@ -161,26 +134,26 @@ export default createStore({
       }
 
       if (isEmpty(balance)) {
-        balance.push({
-          tokenId: ERG_TOKEN_ID,
-          confirmedAmount: new BigNumber(0),
-          info: state.assetInfo[ERG_TOKEN_ID]
-        });
-
-        return balance;
+        return [
+          {
+            tokenId: ERG_TOKEN_ID,
+            confirmedAmount: new BigNumber(0),
+            info: state.assetInfo[ERG_TOKEN_ID]
+          }
+        ];
       }
 
       return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
     },
-    [GETTERS.PICTURE_NFT_BALANCE](state, getters) {
+    [GETTERS.PICTURE_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter((b) => b.info && b.info.type === AssetSubtype.PictureArtwork);
     },
-    [GETTERS.NON_PICTURE_NFT_BALANCE](state, getters) {
+    [GETTERS.NON_PICTURE_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter((b) => !b.info || b.info.type !== AssetSubtype.PictureArtwork);
     },
-    [GETTERS.NON_NFT_BALANCE](state, getters) {
+    [GETTERS.NON_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter(
         (b) =>
@@ -196,16 +169,14 @@ export default createStore({
   mutations: {
     [MUTATIONS.SET_CURRENT_WALLET](state, identifier: StateWallet | number) {
       const selected =
-        typeof identifier === "number"
-          ? find(state.wallets, (w) => w.id == identifier)
-          : identifier;
+        typeof identifier === "number" ? state.wallets.find((w) => w.id == identifier) : identifier;
 
       if (!selected || !selected.id) {
         throw Error("Wallet not found");
       }
 
       if (typeof identifier !== "number") {
-        const i = findIndex(state.wallets, (x) => x.id == selected.id);
+        const i = state.wallets.findIndex((x) => x.id == selected.id);
         if (i > -1) {
           state.wallets[i] = selected;
         } else {
@@ -226,7 +197,7 @@ export default createStore({
 
       if (state.currentAddresses.length !== 0) {
         for (const address of content.addresses) {
-          const stateAddr = find(state.currentAddresses, (a) => a.script === address.script);
+          const stateAddr = state.currentAddresses.find((a) => a.script === address.script);
           if (stateAddr && stateAddr.balance) {
             address.balance = stateAddr.balance;
           }
@@ -319,28 +290,22 @@ export default createStore({
       state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds } };
     },
     [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
-      const wallet = find(state.wallets, (w) => w.id === command.walletId);
-      if (!wallet) {
-        return;
-      }
+      const wallet = state.wallets.find((w) => w.id === command.walletId);
+      if (!wallet) return;
 
       wallet.name = command.name;
       wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
       wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
     },
     [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
-      const wallet = find(state.wallets, (w) => w.id === command.walletId);
-      if (!wallet) {
-        return;
-      }
+      const wallet = state.wallets.find((w) => w.id === command.walletId);
+      if (!wallet) return;
 
       wallet.settings.defaultChangeIndex = command.index;
     },
     [MUTATIONS.SET_USED_ADDRESSES_FILTER](state, command: UpdateUsedAddressesFilterCommand) {
-      const wallet = find(state.wallets, (w) => w.id === command.walletId);
-      if (!wallet) {
-        return;
-      }
+      const wallet = state.wallets.find((w) => w.id === command.walletId);
+      if (!wallet) return;
 
       wallet.settings.hideUsedAddresses = command.filter;
     },
@@ -364,7 +329,7 @@ export default createStore({
     },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
       if (state.currentWallet.id === walletId) {
-        state.currentWallet = find(state.wallets, (w) => w.id !== walletId) ?? {
+        state.currentWallet = state.wallets.find((w) => w.id !== walletId) ?? {
           id: 0,
           name: "",
           type: WalletType.Standard,
@@ -380,7 +345,7 @@ export default createStore({
         state.currentAddresses = [];
       }
 
-      const removeIndex = findIndex(state.wallets, (w) => w.id === walletId);
+      const removeIndex = state.wallets.findIndex((w) => w.id === walletId);
       if (removeIndex > -1) {
         state.wallets.splice(removeIndex, 1);
       }
@@ -398,16 +363,15 @@ export default createStore({
       }
 
       if (state.wallets.length > 0) {
-        let current = find(state.wallets, (w) => w.id === state.settings.lastOpenedWalletId);
+        let current = state.wallets.find((w) => w.id === state.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
         }
 
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
         dispatch(ACTIONS.LOAD_CONNECTIONS);
-        navigate("assets-page");
       } else {
-        navigate("add-wallet");
+        goTo("add-wallet");
       }
     },
     async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
@@ -445,9 +409,7 @@ export default createStore({
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
-      if (isEmpty(wallets)) {
-        return;
-      }
+      if (isEmpty(wallets)) return;
 
       for (const wallet of wallets) {
         hdKeyPool.alloc(
@@ -492,9 +454,7 @@ export default createStore({
     },
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ dispatch }, id: number) {
       const wallet = await walletsDbService.getById(id);
-      if (!wallet || !wallet.id) {
-        throw Error("wallet not found");
-      }
+      if (!wallet || !wallet.id) throw Error("wallet not found");
 
       const key = hdKeyPool.get(wallet.publicKey);
       const stateWallet: StateWallet = {
@@ -517,8 +477,7 @@ export default createStore({
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
-      const lastUsedIndex = findLastIndex(
-        state.currentAddresses,
+      const lastUsedIndex = state.currentAddresses.findLastIndex(
         (a) => a.state === AddressState.Used
       );
 
@@ -527,6 +486,7 @@ export default createStore({
           `You cannot add more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
         );
       }
+
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
       const index = (maxBy(state.currentAddresses, (a) => a.index)?.index || 0) + 1;
@@ -557,10 +517,10 @@ export default createStore({
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
       const key = hdKeyPool.get(pk);
-      let active: StateAddress[] = sortBy(
-        (await addressesDbService.getByWalletId(walletId)).map((a) => dbAddressMapper(a)),
-        (a) => a.index
-      );
+      const dbAddresses = await addressesDbService.getByWalletId(walletId);
+      let active = dbAddresses.map((a): StateAddress => ({ ...a, balance: undefined }));
+      active = sortBy(active, (a) => a.index);
+
       let derived: DerivedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
@@ -597,8 +557,8 @@ export default createStore({
         }
       } while (usedChunk.length > 0);
 
-      const lastUsedIndex = findIndex(active, (a) => a.script === lastUsed);
-      const lastStoredIndex = findIndex(active, (a) => a.script === lastStored);
+      const lastUsedIndex = active.findIndex((a) => a.script === lastUsed);
+      const lastStoredIndex = active.findIndex((a) => a.script === lastStored);
       if (lastStoredIndex > lastUsedIndex) {
         active = take(active, lastStoredIndex + 1);
       } else if (lastUsedIndex > -1) {
@@ -608,7 +568,7 @@ export default createStore({
       }
 
       for (const addr of active) {
-        if (find(used, (address) => addr.script === address)) {
+        if (used.find((address) => addr.script === address)) {
           addr.state = AddressState.Used;
         }
       }
@@ -708,7 +668,7 @@ export default createStore({
       await walletsDbService.delete(walletId);
 
       if (state.currentWallet.id === walletId) {
-        const wallet = find(state.wallets, (w) => w.id !== walletId);
+        const wallet = state.wallets.find((w) => w.id !== walletId);
         if (wallet) {
           await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
           router.push({ name: "assets-page" });
@@ -790,55 +750,6 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { price: false });
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
-    },
-    async [ACTIONS.SIGN_TX]({ state }, command: SignTxCommand) {
-      const inputAddresses = extractAddressesFromInputs(command.tx.inputs);
-      const ownAddresses = await addressesDbService.getByWalletId(command.walletId);
-      const addresses = ownAddresses
-        .filter((a) => inputAddresses.includes(a.script))
-        .map((a) => dbAddressMapper(a));
-
-      if (isEmpty(addresses)) {
-        const changeIndex = state.currentWallet.settings.defaultChangeIndex;
-        addresses.push(
-          dbAddressMapper(
-            find(ownAddresses, (a) => a.index === changeIndex) ??
-              find(ownAddresses, (a) => a.index === 0) ??
-              ownAddresses[0]
-          )
-        );
-      }
-
-      if (command.callback) {
-        command.callback({ statusText: "Loading context data..." });
-      }
-
-      const isLedger = state.currentWallet.type === WalletType.Ledger;
-      const deriver = isLedger
-        ? hdKeyPool.get(state.currentWallet.publicKey)
-        : await HdKey.fromMnemonic(
-            await walletsDbService.getMnemonic(command.walletId, command.password)
-          );
-
-      const changeAddress = getChangeAddress(
-        command.tx.outputs,
-        ownAddresses.map((a) => a.script)
-      );
-
-      const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
-      const changeIndex = find(ownAddresses, (a) => a.script === changeAddress)?.index ?? 0;
-      const prover = new Prover(deriver)
-        .from(addresses)
-        .useLedger(isLedger)
-        .changeIndex(changeIndex)
-        .setHeaders(blockHeaders)
-        .setCallback(command.callback);
-
-      if (command.inputsToSign && some(command.inputsToSign)) {
-        return await prover.signInputs(command.tx, command.inputsToSign);
-      } else {
-        return await prover.signTx(command.tx);
-      }
     },
     async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
       const connections = await connectedDAppsDbService.getAll();

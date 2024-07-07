@@ -12,12 +12,12 @@ import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
-import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
+import type { AuthArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
-import { signAuthMessage } from "@/chains/ergo/dataSigning";
+import { signAuthMessage } from "@/chains/ergo/signing";
 
-const request = ref<AsyncRequest<SignDataArgs>>();
+const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const errorMessage = ref("");
 const walletId = ref(0);
@@ -77,11 +77,12 @@ async function authenticate() {
 
   try {
     const messageData = { message: request.value.data.message, origin: request.value.origin };
-    const result = await signAuthMessage(messageData, {
-      walletId: walletId.value,
-      password: password.value,
-      addresses: [request.value.data.address]
-    });
+    const result = await signAuthMessage(
+      messageData,
+      [request.value.data.address],
+      walletId.value,
+      password.value
+    );
 
     if (!request.value) return proverError("Prover returned undefined.");
     request.value.resolve(success(result));

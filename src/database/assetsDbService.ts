@@ -1,4 +1,5 @@
-import { differenceBy, find, groupBy, isEmpty, keys, union } from "lodash-es";
+import { differenceBy, groupBy, keys, union } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
 
@@ -59,7 +60,7 @@ class AssetsDbService {
     const put: IDbAsset[] = [];
 
     for (const asset of currentAssets) {
-      const dbAsset = find(dbAssets, (a) => a.tokenId == asset.tokenId);
+      const dbAsset = dbAssets.find((a) => a.tokenId == asset.tokenId);
 
       if (
         dbAsset &&

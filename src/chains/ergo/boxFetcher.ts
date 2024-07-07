@@ -1,4 +1,5 @@
-import { difference, find, isEmpty, sortBy, unionBy } from "lodash-es";
+import { difference, sortBy, unionBy } from "lodash-es";
+import { isEmpty } from "@fleet-sdk/common";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { utxosDbService } from "@/database/utxosDbService";
@@ -27,7 +28,7 @@ export async function fetchBoxes(
   if (
     options.useAllAddressesAsFallback &&
     isEmpty(boxes) &&
-    !find(pendingBoxes, (b) => !b.locked && b.content)
+    !pendingBoxes.find((b) => !b.locked && b.content)
   ) {
     boxes = await fetchBoxesFromExplorer(difference(await getAllAddresses(walletId), addresses));
   }

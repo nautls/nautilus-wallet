@@ -1,7 +1,7 @@
 import { sendMessage, setNamespace } from "webext-bridge/window";
 import { SelectionTarget } from "@nautilus-js/eip12-types";
-import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
-import type { JsonObject, JsonValue } from "type-fest";
+import type { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+import type { JsonValue } from "type-fest";
 import { buildNamespaceFor, ExternalEvent, ExternalRequest, Result } from "@/rpc/protocol";
 import { APIErrorCode } from "@/types/connector";
 
@@ -121,7 +121,7 @@ class NautilusErgoApi {
     );
   }
 
-  async sign_data(address: string, message: JsonObject | JsonValue) {
+  async sign_data(address: string, message: JsonValue) {
     return handle(
       await sendMessage(ExternalRequest.SignData, { address, message }, CONTENT_SCRIPT)
     );

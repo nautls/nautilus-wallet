@@ -95,14 +95,6 @@ export type FeeSettings = {
   box?: ErgoBox;
 };
 
-export type SignTxCommand = {
-  tx: EIP12UnsignedTransaction;
-  inputsToSign?: number[];
-  walletId: number;
-  password: string;
-  callback?: (newState: Partial<SigningState>) => void;
-};
-
 export type UpdateWalletSettingsCommand = {
   walletId: number;
   name: string;

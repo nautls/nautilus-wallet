@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { PropType, computed } from "vue";
-import { ProverStateType } from "../types/internal";
+import { computed, PropType } from "vue";
 import { isDefined } from "@fleet-sdk/common";
+import { ProverStateType } from "../types/internal";
 import store from "../store";
 
 const emit = defineEmits(["close"]);
 
 const props = defineProps({
   title: { type: String, required: true },
-  caption: { type: String },
+  caption: { type: String, default: undefined },
   animate: { type: Boolean, default: true },
-  txId: { type: String, required: false },
-  state: { type: Number as PropType<ProverStateType>, required: false }
+  txId: { type: String, required: false, default: undefined },
+  state: { type: Number as PropType<ProverStateType>, required: false, default: undefined }
 });
 
 const stateClass = computed(() => {
@@ -51,8 +51,8 @@ function getTransactionExplorerUrl(txId: string): string {
     :can-cancel="closable"
     content-class="!w-auto rounded"
     :animation="animate ? undefined : ''"
-    @close="emit('close')"
     scroll="clip"
+    @close="emit('close')"
   >
     <div class="p-5 min-w-60 max-w-85 text-center">
       <div :class="stateClass" class="w-full h-26">
@@ -69,7 +69,7 @@ function getTransactionExplorerUrl(txId: string): string {
         <loading-indicator v-else type="circular" class="w-25 h-25 !stroke-gray-500" />
       </div>
       <h1 class="pt-4 font-semibold text-xl" :class="stateClass">{{ titleText }}</h1>
-      <p class="pt-2 font-normal text-sm" v-if="caption">{{ caption }}</p>
+      <p v-if="caption" class="pt-2 font-normal text-sm">{{ caption }}</p>
       <a
         v-if="state === ProverStateType.success && txId"
         class="url pt-2 font-normal text-sm"

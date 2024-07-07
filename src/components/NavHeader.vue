@@ -1,12 +1,12 @@
 <template>
   <nav class="tabs">
     <div class="tab-item spacing"></div>
-    <router-link to="/assets" active-class="active" class="w-full tab-item">
+    <router-link to="/" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="Assets">
         <vue-feather type="pie-chart" class="m-3" size="22" />
       </tool-tip>
     </router-link>
-    <router-link to="/assets/nft" v-if="hasNft" active-class="active" class="w-full tab-item">
+    <router-link v-if="hasNft" to="/nft" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="NFT gallery">
         <vue-feather type="image" class="m-3" size="22" />
       </tool-tip>
@@ -16,7 +16,7 @@
         <vue-feather type="download" class="m-3" size="22" />
       </tool-tip>
     </router-link>
-    <router-link to="/send" v-if="!readonly" active-class="active" class="w-full tab-item">
+    <router-link v-if="!readonly" to="/send" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="Send">
         <vue-feather type="send" class="m-3" size="22" />
       </tool-tip>

@@ -1,8 +1,9 @@
 import { BigNumber } from "bignumber.js";
-import { difference, find, groupBy, isEmpty } from "lodash-es";
+import { difference, groupBy } from "lodash-es";
 import {
   EIP12UnsignedInput,
   EIP12UnsignedTransaction,
+  isEmpty,
   some,
   utxoDiff,
   utxoSum
@@ -43,7 +44,7 @@ export class TxInterpreter {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;
-    this._feeBox = find(tx.outputs, (b) => isMinerFeeContract(b.ergoTree));
+    this._feeBox = tx.outputs.find((b) => isMinerFeeContract(b.ergoTree));
 
     const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
     const isSendingOutput = (output: ErgoBoxCandidate) =>

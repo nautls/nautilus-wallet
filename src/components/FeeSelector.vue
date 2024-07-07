@@ -2,9 +2,9 @@
 import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import { groupBy, isEmpty, maxBy, sortBy } from "lodash-es";
+import { groupBy, maxBy, sortBy } from "lodash-es";
 import { computed, onMounted, PropType, reactive, watch } from "vue";
-import { areEqualBy } from "@fleet-sdk/common";
+import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
 import {
   buildBabelContractFor,

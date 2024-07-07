@@ -3,7 +3,7 @@
   "parser": "vue-eslint-parser",
   "parserOptions": { "parser": "@typescript-eslint/parser" },
   "env": { "es6": true },
-  "ignorePatterns": ["node_modules", "dist", "coverage", "jest.config.ts", "vue.config.js"],
+  "ignorePatterns": ["node_modules", "dist", "coverage"],
   "extends": [
     "eslint:recommended",
     "plugin:vue/vue3-recommended",
@@ -17,8 +17,7 @@
     "console": true,
     "WebAssembly": true,
     "chrome": true,
-    "process": true,
-    "Buffer": true
+    "process": true
   },
   "settings": {
     "import/resolver": {

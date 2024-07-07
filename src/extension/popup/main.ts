@@ -23,10 +23,9 @@ import JSONBig from "json-bigint";
 import mdiVue from "mdi-vue/v3";
 import { createApp } from "vue";
 import VueFeather from "vue-feather";
-import App from "./App.vue";
-import { hasBrowserContext } from "./common/browser";
-import store from "./store";
-import router from "./router";
+import App from "@/App.vue";
+import store from "@/store";
+import router from "@/router";
 import { filters } from "@/common/globalFilters";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
@@ -37,15 +36,14 @@ import MdiIcon from "@/components/MdiIcon.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { vueCleave } from "@/directives/cleave";
-import { startListening } from "@/rpc/uiRpcHandlers";
+import { registerRpcHooks } from "@/rpc/uiRpcHandlers";
 
-import "@/assets/styles/fonts.css";
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "windi.css";
 import "@/assets/styles/main.css";
 
 dayjs.extend(relativeTime);
-if (hasBrowserContext()) startListening();
+registerRpcHooks();
 
 axios.defaults.transformResponse = [
   (data) => {

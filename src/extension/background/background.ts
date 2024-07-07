@@ -1,6 +1,7 @@
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { isEmpty } from "@fleet-sdk/common";
+import { JsonValue } from "type-fest";
 import {
   checkConnection,
   getAddresses,
@@ -18,9 +19,9 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { submitTx } from "@/chains/ergo/submitTx";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { JsonValue } from "@/types/internal";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (
+  // @ts-expect-error webext-bridge uses an older version of type-fest, so JsonValue is not recognized
   message: BridgeMessage<GetDataType<T, JsonValue>>,
   walletId: number
 ) => GetReturnType<T> | Promise<GetReturnType<T>>;

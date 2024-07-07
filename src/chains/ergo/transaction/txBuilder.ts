@@ -1,8 +1,7 @@
 import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
 import { CherryPickSelectionStrategy, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
 import { BigNumber } from "bignumber.js";
-import { isEmpty } from "lodash-es";
-import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 import { fetchBoxes } from "../boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";

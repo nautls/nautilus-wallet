@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { SignedTransaction, some } from "@fleet-sdk/common";
 import { useEventListener } from "@vueuse/core";
-import DappPlate from "@/components/DappPlate.vue";
 import TxSignView from "@/components/TxSignView.vue";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { error, InternalRequest, success } from "@/rpc/protocol";

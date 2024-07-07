@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { find } from "lodash-es";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
 import DappPlate from "@/components/DappPlate.vue";
@@ -10,7 +9,7 @@ onMounted(() => store.dispatch(ACTIONS.LOAD_CONNECTIONS));
 const connections = computed(() => store.state.connections);
 
 function getWalletBy(walletId: number) {
-  return find(store.state.wallets, (w) => w.id === walletId);
+  return store.state.wallets.find((w) => w.id === walletId);
 }
 
 function remove(origin: string) {

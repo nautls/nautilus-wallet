@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import path from "node:path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
@@ -6,14 +7,29 @@ import wasmLoader from "vite-plugin-wasm";
 import windiCSS from "vite-plugin-windicss";
 import topLevelAwait from "vite-plugin-top-level-await";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
-import { crx } from "@crxjs/vite-plugin";
-import { buildManifest } from "./src/manifest";
+import webExtension from "vite-plugin-web-extension";
+import { buildManifest } from "./src/manifest.ts";
+import { EXT_ENTRY_ROOT } from "./src/constants/extension.ts";
 
 const gitHash = execSync("git rev-parse HEAD").toString().trim();
 const network = (process.env.VITE_NETWORK as "mainnet" | "testnet") ?? "mainnet";
+const port = 5173;
+
+function r(...paths: string[]): string {
+  return path.resolve(import.meta.dirname, ...paths);
+}
+
+const plugins = [
+  vue(),
+  windiCSS(),
+  svgLoader(),
+  topLevelAwait(),
+  wasmLoader(),
+  nodePolyfills({ include: ["buffer"] })
+];
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { "@": "/src" }
   },
@@ -21,37 +37,26 @@ export default defineConfig({
     "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(gitHash)
   },
   plugins: [
-    vue(),
-    crx({ manifest: buildManifest(network) }),
-    nodePolyfills({ include: ["buffer"] }),
-    svgLoader(),
-    wasmLoader(),
-    windiCSS(),
-    topLevelAwait()
+    ...(mode === "development" ? plugins : []),
+    webExtension({
+      manifest: () => buildManifest(network, mode),
+      watchFilePaths: [r("src/manifest.ts")],
+      additionalInputs: [`${EXT_ENTRY_ROOT}/content-scripts/injected.ts`],
+      disableAutoLaunch: true,
+      htmlViteConfig: { plugins }
+    })
   ],
   build: {
+    chunkSizeWarningLimit: 2048,
     emptyOutDir: true,
-    outDir: "dist",
-    assetsInlineLimit(filePath) {
-      // prevent content scripts from being inlined as base64
-      if (filePath.includes("content-script")) return false;
-    },
-    rollupOptions: {
-      output: {
-        chunkFileNames(info) {
-          if (info.name === "contentScript.ts") return "assets/contentScript.js";
-          if (info.name === "injected.ts") return "assets/injected.js";
-          return "assets/[name]-[hash].js";
-        }
-      }
-    }
+    outDir: r("dist")
   },
   optimizeDeps: {
     include: ["vue", "vue-router", "vuex"]
   },
   server: {
-    port: 5174,
+    port,
     strictPort: true,
-    hmr: { port: 5174 }
+    hmr: { port }
   }
-});
+}));

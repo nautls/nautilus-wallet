@@ -1,9 +1,9 @@
-import { chunk, first, isEmpty, min } from "lodash-es";
 import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
 import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
+import { chunk, first, isEmpty, min } from "@fleet-sdk/common";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { sigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
@@ -274,7 +274,7 @@ class GraphQLService {
   }
 
   private async getUsedAddressesFromChunk(addresses: string[]): Promise<string[]> {
-    const query = gql<{ addresses: Address[] }>`
+    const query = gql`
       query Addresses($addresses: [String!]!) {
         addresses(addresses: $addresses) {
           address
@@ -283,12 +283,15 @@ class GraphQLService {
       }
     `;
 
-    const response = await this.#queryClient.query(query, { addresses }).toPromise();
+    const response = await this.#queryClient
+      .query<{ addresses: Address[] }>(query, { addresses })
+      .toPromise();
+
     return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
   }
 
   async getCurrentHeight(): Promise<number | undefined> {
-    const query = gql<{ blockHeaders: Header[] }>`
+    const query = gql`
       query query {
         blockHeaders(take: 1) {
           height
@@ -296,8 +299,10 @@ class GraphQLService {
       }
     `;
 
-    const response = await this.#queryClient.query(query, {}).toPromise();
-    return first(response.data?.blockHeaders)?.height;
+    const response = await this.#queryClient
+      .query<{ blockHeaders: Header[] }>(query, {})
+      .toPromise();
+    return response.data?.blockHeaders[0]?.height;
   }
 
   public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
@@ -359,7 +364,7 @@ class GraphQLService {
       heights = heights.concat(chunk);
     }
 
-    return { oldest: min(heights), count: heights.length };
+    return { oldest: min(...heights), count: heights.length };
   }
 
   public async getMempoolBoxes(address: string): Promise<ErgoBox[]> {

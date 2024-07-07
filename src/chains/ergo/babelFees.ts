@@ -1,5 +1,6 @@
 import { BigNumber } from "bignumber.js";
-import { first, isEmpty, orderBy, sortBy } from "lodash-es";
+import { orderBy, sortBy } from "lodash-es";
+import { first, isEmpty } from "@fleet-sdk/common";
 import { Constant } from "ergo-lib-wasm-browser";
 import { addressFromErgoTree } from "./addresses";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
