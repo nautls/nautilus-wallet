@@ -1,9 +1,9 @@
 import { createStore } from "vuex";
 import { BigNumber } from "bignumber.js";
-import { clone, difference, groupBy, maxBy, sortBy, take, union } from "lodash-es";
+import { clone, difference, groupBy, last, maxBy, sortBy, take, union } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { first, isEmpty, last, some, uniq } from "@fleet-sdk/common";
+import { first, isEmpty, some, uniq } from "@fleet-sdk/common";
 import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
@@ -510,9 +510,7 @@ export default createStore({
       });
     },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
-      if (!state.currentWallet.id) {
-        return;
-      }
+      if (!state.currentWallet.id) return;
 
       const walletId = state.currentWallet.id;
       const pk = state.currentWallet.publicKey;
