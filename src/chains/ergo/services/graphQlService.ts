@@ -3,7 +3,8 @@ import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@ur
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
-import { chunk, first, isEmpty, min } from "@fleet-sdk/common";
+import { chunk, first, isEmpty } from "@fleet-sdk/common";
+import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { sigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
@@ -364,7 +365,7 @@ class GraphQLService {
       heights = heights.concat(chunk);
     }
 
-    return { oldest: min(...heights), count: heights.length };
+    return { oldest: min(heights), count: heights.length };
   }
 
   public async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
