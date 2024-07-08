@@ -4,7 +4,6 @@ import { clone, difference, groupBy, last, maxBy, sortBy, take, union } from "lo
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
 import { first, isEmpty, some, uniq } from "@fleet-sdk/common";
-import { connectedDAppsDbService } from "./database/connectedDAppsDbService";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
 import { assetInfoDbService } from "./database/assetInfoDbService";
@@ -41,7 +40,7 @@ import {
   MAINNET,
   UNKNOWN_MINTING_BOX_ID
 } from "@/constants/ergo";
-import { IAssetInfo, IDbAddress, IDbAsset, IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IAssetInfo, IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
@@ -95,7 +94,6 @@ export default createStore({
       balance: true,
       wallets: true
     },
-    connections: Object.freeze([] as IDbDAppConnection[]),
     assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetInfo,
     ergPrice: 0,
     tokensBlacklist: { ergo: { lastUpdated: Date.now(), tokenIds: [] as string[] } },
@@ -270,9 +268,6 @@ export default createStore({
     [MUTATIONS.SET_SETTINGS](state, settings) {
       state.settings = Object.assign(state.settings, settings);
     },
-    [MUTATIONS.SET_CONNECTIONS](state, connections) {
-      state.connections = Object.freeze(connections);
-    },
     [MUTATIONS.SET_TOKENS_BLACKLIST](state, blacklist: TokenBlacklist) {
       if (isEmpty(state.settings.blacklistedTokensLists)) {
         state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds: [] } };
@@ -369,7 +364,6 @@ export default createStore({
         }
 
         dispatch(ACTIONS.SET_CURRENT_WALLET, current);
-        dispatch(ACTIONS.LOAD_CONNECTIONS);
       } else {
         goTo("add-wallet");
       }
@@ -748,14 +742,6 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { price: false });
       await dispatch(ACTIONS.LOAD_MARKET_RATES);
-    },
-    async [ACTIONS.LOAD_CONNECTIONS]({ commit }) {
-      const connections = await connectedDAppsDbService.getAll();
-      commit(MUTATIONS.SET_CONNECTIONS, connections);
-    },
-    async [ACTIONS.REMOVE_CONNECTION]({ dispatch }, origin: string) {
-      await connectedDAppsDbService.deleteByOrigin(origin);
-      dispatch(ACTIONS.LOAD_CONNECTIONS);
     },
     async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
       await walletsDbService.updateSettings(command.walletId, command.name, command);

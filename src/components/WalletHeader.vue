@@ -37,11 +37,7 @@
               <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
               <span class="align-middle">Expand view</span></a
             >
-            <router-link
-              v-if="connections.length > 0"
-              :to="{ name: 'connector-connected' }"
-              class="group-item narrow-y"
-            >
+            <router-link :to="{ name: 'connector-connected' }" class="group-item narrow-y">
               <vue-feather type="list" size="16" class="align-middle pr-2" />
               <span class="align-middle">Connected dApps</span></router-link
             >
@@ -82,7 +78,6 @@ export default defineComponent({
     ...mapState({
       wallet: "currentWallet",
       loading: "loading",
-      connections: "connections",
       wallets: "wallets"
     }),
     unselectedWallets(): StateWallet[] {
