@@ -2,7 +2,9 @@
 import { computed, PropType } from "vue";
 import { isDefined } from "@fleet-sdk/common";
 import { ProverStateType } from "../types/internal";
-import store from "../store";
+import { useAppStore } from "@/stores/appStore";
+
+const app = useAppStore();
 
 const emit = defineEmits(["close"]);
 
@@ -40,7 +42,7 @@ const closable = computed(
 );
 
 function getTransactionExplorerUrl(txId: string): string {
-  return new URL(`/transactions/${txId}`, store.state.settings.explorerUrl).toString();
+  return new URL(`/transactions/${txId}`, app.settings.explorerUrl).toString();
 }
 </script>
 

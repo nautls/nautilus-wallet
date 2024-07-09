@@ -13,7 +13,7 @@ import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
-import { StateAssetInfo } from "@/types/internal";
+import { StateAssetMetadata } from "@/types/internal";
 import { decimalize, sumBigNumberBy, toBigNumber } from "@/common/bigNumbers";
 import {
   boxCandidateToBoxAmounts,
@@ -32,7 +32,7 @@ export class TxInterpreter {
   private _changeBoxes: ErgoBoxCandidate[];
   private _feeBox?: ErgoBoxCandidate;
   private _sendingBoxes!: ErgoBoxCandidate[];
-  private _assetInfo!: StateAssetInfo;
+  private _assetInfo!: StateAssetMetadata;
   private _addresses!: string[];
   private _burningBalance!: OutputAsset[];
   private _ownInputs!: EIP12UnsignedInput[];
@@ -40,7 +40,7 @@ export class TxInterpreter {
   private _totalIncoming!: OutputAsset[];
   private _totalLeaving!: OutputAsset[];
 
-  constructor(tx: EIP12UnsignedTransaction, ownAddresses: string[], assetInfo: StateAssetInfo) {
+  constructor(tx: EIP12UnsignedTransaction, ownAddresses: string[], assetInfo: StateAssetMetadata) {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._assetInfo = assetInfo;

@@ -23,6 +23,7 @@ import JSONBig from "json-bigint";
 import mdiVue from "mdi-vue/v3";
 import { createApp } from "vue";
 import VueFeather from "vue-feather";
+import { createPinia } from "pinia";
 import App from "@/App.vue";
 import store from "@/store";
 import router from "@/router";
@@ -90,9 +91,12 @@ const orugaSettings = {
   }
 };
 
+const pinia = createPinia();
+
 app
-  .use(store)
   .use(router)
+  .use(pinia)
+  .use(store)
   .use(Inputitems)
   .use(Modal)
   .use(Slider)

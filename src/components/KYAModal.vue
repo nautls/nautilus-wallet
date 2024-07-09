@@ -3,9 +3,9 @@
     :active="active"
     :auto-focus="true"
     :can-cancel="false"
-    @onClose="emitOnClose()"
-    scroll="clip"
     content-class="!w-11/12 rounded max-h-10/12"
+    scroll="clip"
+    @on-close="emitOnClose()"
   >
     <div class="p-4 text-xs flex flex-col gap-4 tracking-normal">
       <h1 class="font-bold text-lg">Know Your Assumptions</h1>
@@ -48,28 +48,29 @@
         </ul>
       </div>
 
-      <button @click="accept()" class="btn !p-2 mt-6">I understand and accept the KYA</button>
+      <button class="btn !p-2 mt-6" @click="accept()">I understand and accept the KYA</button>
     </div>
   </o-modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { ACTIONS } from "@/constants/store/actions";
-import { mapActions } from "vuex";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "KYAModal",
   props: {
     active: { type: Boolean, required: true }
   },
+  setup() {
+    return { app: useAppStore() };
+  },
   methods: {
     emitOnClose(): void {
       this.$emit("close");
     },
-    ...mapActions({ saveSettings: ACTIONS.SAVE_SETTINGS }),
     accept(): void {
-      this.saveSettings({ isKyaAccepted: true });
+      this.app.settings.isKyaAccepted = true;
     }
   }
 });

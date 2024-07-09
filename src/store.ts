@@ -8,9 +8,8 @@ import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
 import { assetInfoDbService } from "./database/assetInfoDbService";
 import { Token } from "./types/connector";
-import { DEFAULT_EXPLORER_URL } from "./constants/explorer";
-import { sendBackendServerUrl } from "./rpc/uiRpcHandlers";
-import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
+import { useAppStore } from "./stores/appStore";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
 import { walletsDbService } from "@/database/walletsDbService";
 import HdKey, { DerivedAddress } from "@/chains/ergo/hdKey";
@@ -23,7 +22,7 @@ import {
   Network,
   StateAddress,
   StateAsset,
-  StateAssetInfo,
+  StateAssetMetadata,
   StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
@@ -37,7 +36,6 @@ import {
   CHUNK_DERIVE_LENGTH,
   ERG_DECIMALS,
   ERG_TOKEN_ID,
-  MAINNET,
   UNKNOWN_MINTING_BOX_ID
 } from "@/constants/ergo";
 import { IAssetInfo, IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
@@ -61,6 +59,9 @@ function goTo(routerName: string) {
   }
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+let app: ReturnType<typeof useAppStore>;
+
 export default createStore({
   state: {
     wallets: [] as StateWallet[],
@@ -77,24 +78,13 @@ export default createStore({
       }
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
-    settings: {
-      lastOpenedWalletId: 0,
-      isKyaAccepted: false,
-      conversionCurrency: "usd",
-      devMode: !MAINNET,
-      graphQLServer: getDefaultServerUrl(),
-      explorerUrl: DEFAULT_EXPLORER_URL,
-      hideBalances: false,
-      blacklistedTokensLists: ["nsfw", "scam"]
-    },
     loading: {
-      settings: true,
       price: false,
       addresses: true,
       balance: true,
       wallets: true
     },
-    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetInfo,
+    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetMetadata,
     ergPrice: 0,
     tokensBlacklist: { ergo: { lastUpdated: Date.now(), tokenIds: [] as string[] } },
     assetMarketRates: {
@@ -265,17 +255,14 @@ export default createStore({
         };
       });
     },
-    [MUTATIONS.SET_SETTINGS](state, settings) {
-      state.settings = Object.assign(state.settings, settings);
-    },
     [MUTATIONS.SET_TOKENS_BLACKLIST](state, blacklist: TokenBlacklist) {
-      if (isEmpty(state.settings.blacklistedTokensLists)) {
+      if (isEmpty(app.settings.blacklistedTokensLists)) {
         state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds: [] } };
         return;
       }
 
       let tokenIds = [] as string[];
-      for (const listName of state.settings.blacklistedTokensLists) {
+      for (const listName of app.settings.blacklistedTokensLists) {
         const list = blacklist[listName as keyof ErgoTokenBlacklist];
         if (some(list)) tokenIds = tokenIds.concat(list);
       }
@@ -348,8 +335,12 @@ export default createStore({
   },
   actions: {
     async [ACTIONS.INIT]({ state, dispatch }) {
+      // workaround to keep everything working while refactoring and migrating to pinia
+      // todo: remove this
+      app = useAppStore();
+      await sleep(20); // wait for settings store to be initialized
+
       dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
-      await dispatch(ACTIONS.LOAD_SETTINGS);
       dispatch(ACTIONS.LOAD_TOKEN_BLACKLIST);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
@@ -358,7 +349,7 @@ export default createStore({
       }
 
       if (state.wallets.length > 0) {
-        let current = state.wallets.find((w) => w.id === state.settings.lastOpenedWalletId);
+        let current = state.wallets.find((w) => w.id === app.settings.lastOpenedWalletId);
         if (!current) {
           current = first(state.wallets);
         }
@@ -372,44 +363,17 @@ export default createStore({
       const tokenMarketRates = await ergoDexService.getTokenRates();
       commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
-    [ACTIONS.LOAD_SETTINGS]({ commit }) {
-      const rawSettings = localStorage.getItem("settings");
-      if (rawSettings) {
-        const parsed = JSON.parse(rawSettings);
-        if (!parsed.graphQLServer) {
-          parsed.graphQLServer = getDefaultServerUrl();
-        }
-        if (!parsed.explorerUrl) {
-          parsed.explorerUrl = DEFAULT_EXPLORER_URL;
-        }
-
-        commit(MUTATIONS.SET_SETTINGS, parsed);
-      }
-      commit(MUTATIONS.SET_LOADING, { settings: false });
-    },
-    [ACTIONS.SAVE_SETTINGS]({ state, commit }, newSettings) {
-      let graphQlChanged = false;
-      if (newSettings) {
-        graphQlChanged = newSettings.graphQLServer !== state.settings.graphQLServer;
-        commit(MUTATIONS.SET_SETTINGS, newSettings);
-      }
-
-      localStorage.setItem("settings", JSON.stringify(state.settings));
-
-      if (graphQlChanged) {
-        graphQLService.updateServerUrl(state.settings.graphQLServer);
-        sendBackendServerUrl(state.settings.graphQLServer);
-      }
-    },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
       if (isEmpty(wallets)) return;
 
       for (const wallet of wallets) {
-        hdKeyPool.alloc(
-          HdKey.fromPublicKey({ publicKey: wallet.publicKey, chainCode: wallet.chainCode }),
-          wallet.publicKey
-        );
+        const deriver = HdKey.fromPublicKey({
+          publicKey: wallet.publicKey,
+          chainCode: wallet.chainCode
+        });
+
+        hdKeyPool.alloc(deriver, wallet.publicKey);
       }
 
       commit(MUTATIONS.SET_WALLETS, wallets);
@@ -467,7 +431,7 @@ export default createStore({
       commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
       commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
       commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
-      dispatch(ACTIONS.SAVE_SETTINGS, { lastOpenedWalletId: walletId });
+      app.settings.lastOpenedWalletId = walletId;
       await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
@@ -649,9 +613,7 @@ export default createStore({
       }
 
       const info = await graphQLService.getAssetsInfo(incompleteIds);
-      if (isEmpty(info)) {
-        return;
-      }
+      if (isEmpty(info)) return;
 
       await assetInfoDbService.bulkPut(info);
       commit(MUTATIONS.SET_ASSETS_INFO, info);
@@ -737,7 +699,7 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { price: true });
 
-      const price = await coinGeckoService.getPrice(state.settings.conversionCurrency);
+      const price = await coinGeckoService.getPrice(app.settings.conversionCurrency);
       commit(MUTATIONS.SET_ERG_PRICE, price);
 
       commit(MUTATIONS.SET_LOADING, { price: false });
@@ -757,9 +719,6 @@ export default createStore({
     ) {
       await walletsDbService.updateUsedAddressFilter(command.walletId, command.filter);
       commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, command);
-    },
-    async [ACTIONS.TOGGLE_HIDE_BALANCES]({ dispatch, state }) {
-      dispatch(ACTIONS.SAVE_SETTINGS, { hideBalances: !state.settings.hideBalances });
     }
   }
 });

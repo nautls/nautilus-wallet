@@ -71,18 +71,18 @@ export type StateAsset = {
   tokenId: string;
   confirmedAmount: BigNumberType;
   unconfirmedAmount?: BigNumberType;
-  info?: BasicAssetInfo;
+  info?: BasicAssetMetadata;
 };
 
-export type BasicAssetInfo = {
+export type BasicAssetMetadata = {
   name?: string;
   decimals?: number;
   type?: AssetSubtype;
   artworkUrl?: string;
 };
 
-export type StateAssetInfo = {
-  [tokenId: string]: BasicAssetInfo;
+export type StateAssetMetadata = {
+  [tokenId: string]: BasicAssetMetadata;
 };
 
 export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
@@ -91,7 +91,7 @@ export type FeeSettings = {
   tokenId: string;
   readonly value: BigNumberType;
   readonly nanoErgsPerToken?: BigNumberType;
-  readonly assetInfo?: BasicAssetInfo;
+  readonly assetInfo?: BasicAssetMetadata;
   box?: ErgoBox;
 };
 

@@ -73,6 +73,7 @@ import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import { AssetSubtype } from "@/types/internal";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "AssetInfoModal",
@@ -82,6 +83,9 @@ export default defineComponent({
   props: {
     tokenId: { type: String, required: false },
     confirmedBalance: { type: Object as PropType<BigNumber.Instance>, required: false }
+  },
+  setup() {
+    return { app: useAppStore() };
   },
   data() {
     return {
@@ -136,7 +140,7 @@ export default defineComponent({
       return this.asset.description;
     },
     hideBalances(): boolean {
-      return this.$store.state.settings.hideBalances;
+      return this.app.settings.hideBalances;
     }
   },
   watch: {

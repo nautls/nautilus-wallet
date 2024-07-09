@@ -16,16 +16,19 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { GETTERS } from "@/constants/store/getters";
 import store from "@/store";
-import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
+import { BasicAssetMetadata, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
 import { decimalize } from "@/common/bigNumbers";
 import { bigNumberMinValue } from "@/validators";
 import { filters } from "@/common/globalFilters";
+import { useAppStore } from "@/stores/appStore";
 
 type FeeAsset = {
   tokenId: string;
   nanoErgsPerToken: BigNumberType;
-  info?: BasicAssetInfo;
+  info?: BasicAssetMetadata;
 };
+
+const app = useAppStore();
 
 const bigMinErgFee = new BigNumber(SAFE_MIN_FEE_VALUE);
 const bigMinBoxValue = new BigNumber(MIN_BOX_VALUE);
@@ -46,7 +49,7 @@ const state = reactive({
 
 const conversionCurrency = computed(() => {
   if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return store.state.settings.conversionCurrency;
+    return app.settings.conversionCurrency;
   } else {
     return "ERG";
   }

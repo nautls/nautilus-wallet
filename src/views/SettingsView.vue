@@ -195,12 +195,16 @@ import {
 } from "@/chains/ergo/services/graphQlService";
 import { validUrl } from "@/validators";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
+import { Settings, useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "SettingsView",
   components: { ExtendedPublicKeyModal },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>> };
+    return {
+      v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>>,
+      app: useAppStore()
+    };
   },
   data() {
     return {
@@ -215,7 +219,7 @@ export default defineComponent({
         graphQLServer: "",
         explorerUrl: "",
         blacklistedTokensLists: [] as string[]
-      },
+      } as Settings,
       tokensBlacklists: {
         nsfw: true,
         scam: true
@@ -228,8 +232,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState({
-      currentWallet: "currentWallet",
-      settings: "settings"
+      currentWallet: "currentWallet"
     })
   },
   watch: {
@@ -282,8 +285,8 @@ export default defineComponent({
     }
   },
   created() {
-    this.currencies = [this.settings.conversionCurrency];
-    this.globalSettings = clone(this.settings);
+    this.currencies = [this.app.settings.conversionCurrency];
+    this.globalSettings = clone(this.app.settings);
     this.tokensBlacklists = {
       nsfw: this.globalSettings.blacklistedTokensLists.includes("nsfw"),
       scam: this.globalSettings.blacklistedTokensLists.includes("scam")
@@ -333,7 +336,6 @@ export default defineComponent({
   methods: {
     ...mapActions({
       updateWalletSettings: ACTIONS.UPDATE_WALLET_SETTINGS,
-      saveSettings: ACTIONS.SAVE_SETTINGS,
       fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
       removeWallet: ACTIONS.REMOVE_WALLET,
       loadTokensBlacklist: ACTIONS.LOAD_TOKEN_BLACKLIST
@@ -367,8 +369,8 @@ export default defineComponent({
         return;
       }
 
-      if (!isEqual(this.settings, this.globalSettings)) {
-        await this.saveSettings(this.globalSettings);
+      if (!isEqual(this.app.settings, this.globalSettings)) {
+        this.app.$patch({ settings: this.globalSettings });
         this.fetchPrices();
         this.loadTokensBlacklist();
       }

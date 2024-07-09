@@ -101,6 +101,7 @@ import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/t
 import AssetInput from "@/components/AssetInput.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { useAppStore } from "@/stores/appStore";
 
 const validations = {
   recipient: {
@@ -119,9 +120,7 @@ export default defineComponent({
   name: "SendView",
   components: { AssetInput, FeeSelector },
   setup() {
-    return {
-      v$: useVuelidate()
-    };
+    return { app: useAppStore(), v$: useVuelidate() };
   },
   data() {
     return {
@@ -208,7 +207,7 @@ export default defineComponent({
       return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
     },
     devMode(): boolean {
-      return this.$store.state.settings.devMode;
+      return this.app.settings.devMode;
     }
   },
   watch: {

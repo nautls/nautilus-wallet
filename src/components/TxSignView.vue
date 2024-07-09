@@ -140,7 +140,7 @@ import {
   ProverStateType,
   SigningState,
   StateAddress,
-  StateAssetInfo,
+  StateAssetMetadata,
   WalletType
 } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
@@ -150,6 +150,7 @@ import { OutputInterpreter } from "@/chains/ergo/transaction/interpreter/outputI
 import TxSignSummary from "@/components/TxSignSummary.vue";
 import { signTransaction } from "@/chains/ergo/signing";
 import "vue-json-pretty/lib/styles.css";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "TxSignView",
@@ -170,9 +171,7 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   setup() {
-    return {
-      v$: useVuelidate()
-    };
+    return { v$: useVuelidate(), app: useAppStore() };
   },
   data() {
     return {
@@ -229,7 +228,7 @@ export default defineComponent({
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
     },
-    assets(): StateAssetInfo {
+    assets(): StateAssetMetadata {
       return this.$store.state.assetInfo;
     },
     canSign(): boolean {
@@ -250,7 +249,7 @@ export default defineComponent({
       );
     },
     devMode() {
-      return this.$store.state.settings.devMode;
+      return this.app.settings.devMode;
     }
   },
   methods: {

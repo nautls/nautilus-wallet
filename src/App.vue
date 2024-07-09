@@ -19,17 +19,18 @@
       <router-view />
     </div>
 
-    <kya-modal :active="!loading.settings && !settings.isKyaAccepted" />
+    <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapActions, mapState } from "vuex";
+import { mapActions } from "vuex";
 import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
 import WalletLogo from "./components/WalletLogo.vue";
+import { useAppStore } from "./stores/appStore";
 import { isPopup } from "@/common/browser";
 import WalletHeader from "@/components/WalletHeader.vue";
 import NavHeader from "@/components/NavHeader.vue";
@@ -47,6 +48,9 @@ export default defineComponent({
     KyaModal,
     WalletLogo
   },
+  setup() {
+    return { app: useAppStore() };
+  },
   data: () => {
     return {
       getPriceTimerId: Object.freeze(0),
@@ -54,7 +58,6 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(["loading", "settings"]),
     maxWidth() {
       if (isPopup()) {
         return "max-w-365px";

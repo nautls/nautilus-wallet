@@ -1,10 +1,13 @@
 import { Amount, Box, TokenAmount } from "@fleet-sdk/common";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
-import { StateAssetInfo } from "@/types/internal";
+import { StateAssetMetadata } from "@/types/internal";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
 
-export const tokensToOutputAssets = (tokens: Token[], assetInfo: StateAssetInfo): OutputAsset[] => {
+export const tokensToOutputAssets = (
+  tokens: Token[],
+  assetInfo: StateAssetMetadata
+): OutputAsset[] => {
   return tokens.map((t: Token) => {
     const decimals = assetInfo[t.tokenId]?.decimals ?? 0;
     return {
@@ -25,7 +28,7 @@ export const boxCandidateToBoxAmounts = (b: ErgoBoxCandidate | Box) => {
 
 export const tokenAmountToToken = (
   tokenAmount: TokenAmount<Amount>,
-  assetInfo: StateAssetInfo
+  assetInfo: StateAssetMetadata
 ): Token => {
   return {
     tokenId: tokenAmount.tokenId,

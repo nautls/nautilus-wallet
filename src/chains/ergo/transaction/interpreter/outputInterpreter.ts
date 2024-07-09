@@ -7,7 +7,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
 import { sigmaDecode } from "@/chains/ergo/serialization";
-import { StateAssetInfo } from "@/types/internal";
+import { StateAssetMetadata } from "@/types/internal";
 
 export type OutputAsset = {
   tokenId: string;
@@ -24,7 +24,7 @@ export class OutputInterpreter {
   private readonly _box!: ErgoBoxCandidate;
   private readonly _inputs!: EIP12UnsignedInput[];
   private readonly _assets!: OutputAsset[];
-  private readonly _assetInfo!: StateAssetInfo;
+  private readonly _assetInfo!: StateAssetMetadata;
   private readonly _addresses?: string[];
 
   private readonly _receiver: ErgoAddress;
@@ -63,7 +63,7 @@ export class OutputInterpreter {
   constructor(
     boxCandidate: ErgoBoxCandidate,
     inputs: EIP12UnsignedInput[],
-    assetInfo: StateAssetInfo,
+    assetInfo: StateAssetMetadata,
     addresses?: string[]
   ) {
     this._box = boxCandidate;

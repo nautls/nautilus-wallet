@@ -2,9 +2,9 @@
   <div class="flex flex-col gap-4">
     <div>
       <input
+        v-model="filter"
         type="text"
         :disabled="loading"
-        v-model="filter"
         placeholder="Search"
         class="w-full control block"
       />
@@ -49,7 +49,7 @@
               </td>
             </tr>
           </template>
-          <tr v-else v-for="asset in assets" :key="asset.tokenId" class="h-19">
+          <tr v-for="asset in assets" v-else :key="asset.tokenId" class="h-19">
             <td class="w-14 min-w-14 align-middle">
               <asset-icon
                 class="h-8 w-8 align-middle"
@@ -61,7 +61,7 @@
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
                 {{ asset.info?.name }}
               </p>
-              <a v-else @click="selectedAsset = asset" class="break-anywhere cursor-pointer">
+              <a v-else class="break-anywhere cursor-pointer" @click="selectedAsset = asset">
                 <template v-if="asset.info?.name">{{
                   $filters.compactString(asset.info?.name, 40)
                 }}</template>
@@ -102,23 +102,23 @@
       </table>
     </div>
     <asset-info-modal
-      @close="selectedAsset = undefined"
       :token-id="selectedAsset?.tokenId"
       :confirmed-balance="selectedAsset?.confirmedAmount"
+      @close="selectedAsset = undefined"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { BigNumber } from "bignumber.js";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
-import BigNumber from "bignumber.js";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
-import { ACTIONS } from "@/constants/store";
 import StorageRentBox from "@/components/StorageRentBox.vue";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "AssetsView",
@@ -127,12 +127,22 @@ export default defineComponent({
     AssetInfoModal,
     StorageRentBox
   },
+  setup() {
+    return { app: useAppStore() };
+  },
+  data() {
+    return {
+      filter: "",
+      prevCount: 1,
+      selectedAsset: undefined as StateAsset | undefined
+    };
+  },
   computed: {
     ergPrice(): number {
       return this.$store.state.ergPrice;
     },
     conversionCurrency(): string {
-      return this.$store.state.settings.conversionCurrency;
+      return this.app.settings.conversionCurrency;
     },
     loading(): boolean {
       if (!this.$store.state.loading.balance) {
@@ -158,7 +168,7 @@ export default defineComponent({
       return assetList;
     },
     hideBalances(): boolean {
-      return this.$store.state.settings.hideBalances;
+      return this.app.settings.hideBalances;
     }
   },
   watch: {
@@ -168,13 +178,6 @@ export default defineComponent({
         this.prevCount = length;
       }
     }
-  },
-  data() {
-    return {
-      filter: "",
-      prevCount: 1,
-      selectedAsset: undefined as StateAsset | undefined
-    };
   },
   methods: {
     price(tokenId: string): BigNumber {
@@ -192,7 +195,7 @@ export default defineComponent({
       return tokenId === ERG_TOKEN_ID;
     },
     toggleHideBalance(): void {
-      this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
+      this.app.settings.hideBalances = !this.app.settings.hideBalances;
     }
   }
 });

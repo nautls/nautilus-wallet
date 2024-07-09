@@ -78,6 +78,7 @@ import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import { BigNumberType } from "@/types/internal";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "AssetInput",
@@ -90,7 +91,7 @@ export default defineComponent({
     minAmount: { type: Object as PropType<BigNumberType>, required: false }
   },
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate(), app: useAppStore() };
   },
   data() {
     return {
@@ -100,7 +101,7 @@ export default defineComponent({
   },
   computed: {
     conversionCurrency(): string {
-      return this.$store.state.settings.conversionCurrency;
+      return this.app.settings.conversionCurrency;
     },
     confirmedAmount(): BigNumber {
       return this.asset.confirmedAmount;

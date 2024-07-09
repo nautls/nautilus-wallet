@@ -166,10 +166,14 @@ import {
   UpdateUsedAddressesFilterCommand,
   WalletType
 } from "@/types/internal";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "ReceiveView",
   components: { MdiIcon },
+  setup() {
+    return { app: useAppStore() };
+  },
   data() {
     return {
       prevCount: 1,
@@ -214,7 +218,7 @@ export default defineComponent({
         : this.addresses.find((a) => a.index === settings.defaultChangeIndex)?.script;
     },
     hideBalances(): boolean {
-      return this.$store.state.settings.hideBalances;
+      return this.app.settings.hideBalances;
     }
   },
   watch: {
@@ -277,10 +281,10 @@ export default defineComponent({
       );
     },
     urlFor(address: string | undefined): string {
-      return new URL(`/addresses/${address}`, this.$store.state.settings.explorerUrl).toString();
+      return new URL(`/addresses/${address}`, this.app.settings.explorerUrl).toString();
     },
     toggleHideBalance(): void {
-      this.$store.dispatch(ACTIONS.TOGGLE_HIDE_BALANCES);
+      this.app.settings.hideBalances = !this.app.settings.hideBalances;
     },
     showOnLedger(address: StateAddress) {
       openModal(ConfirmAddressOnDevice, {
