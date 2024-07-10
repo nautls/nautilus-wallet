@@ -69,6 +69,7 @@ import WalletLogo from "./WalletLogo.vue";
 import { StateWallet } from "@/types/internal";
 import { ACTIONS } from "@/constants/store";
 import { browser } from "@/common/browser";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 export default defineComponent({
   name: "WalletHeader",
@@ -96,7 +97,7 @@ export default defineComponent({
       if (!browser?.tabs) return;
 
       browser.tabs.create({
-        url: browser.runtime.getURL("index.html"),
+        url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`),
         active: true
       });
       window.close();
