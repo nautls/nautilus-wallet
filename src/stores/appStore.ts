@@ -5,7 +5,6 @@ import { getDefaultServerUrl, graphQLService } from "../chains/ergo/services/gra
 import { DEFAULT_EXPLORER_URL } from "../constants/explorer";
 import { MAINNET } from "../constants/ergo";
 import { sendBackendServerUrl } from "../rpc/uiRpcHandlers";
-import { usePrivateStateStore } from "./privateStateStore";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -18,8 +17,10 @@ export type Settings = {
   blacklistedTokensLists: string[];
 };
 
+const usePrivateState = defineStore("metadata", { state: () => ({ loading: true }) });
+
 export const useAppStore = defineStore("settings", () => {
-  const privateState = usePrivateStateStore();
+  const privateState = usePrivateState();
 
   const settings = useStorage<Settings>("settings", {
     lastOpenedWalletId: 0,
@@ -33,7 +34,7 @@ export const useAppStore = defineStore("settings", () => {
   });
 
   onMounted(() => {
-    privateState.loading.app = false;
+    privateState.loading = false;
   });
 
   watch(
@@ -44,7 +45,7 @@ export const useAppStore = defineStore("settings", () => {
     }
   );
 
-  const loading = computed(() => privateState.loading.app);
+  const loading = computed(() => privateState.loading);
 
   return {
     settings,
@@ -54,4 +55,5 @@ export const useAppStore = defineStore("settings", () => {
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useAppStore, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(usePrivateState, import.meta.hot));
 }
