@@ -1,3 +1,4 @@
+import { ErgoBox } from "./connector";
 import {
   AddressState,
   AddressType,
@@ -8,7 +9,6 @@ import {
   WalletSettings,
   WalletType
 } from "@/types/internal";
-import { ErgoBox } from "./connector";
 
 export interface IDbWallet {
   id?: number;

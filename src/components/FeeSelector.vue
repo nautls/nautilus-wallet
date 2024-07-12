@@ -21,6 +21,7 @@ import { decimalize } from "@/common/bigNumbers";
 import { bigNumberMinValue } from "@/validators";
 import { filters } from "@/common/globalFilters";
 import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
 
 type FeeAsset = {
   tokenId: string;
@@ -28,7 +29,8 @@ type FeeAsset = {
   info?: BasicAssetMetadata;
 };
 
-const app = useAppStore();
+const appStore = useAppStore();
+const assetsStore = useAssetsStore();
 
 const bigMinErgFee = new BigNumber(SAFE_MIN_FEE_VALUE);
 const bigMinBoxValue = new BigNumber(MIN_BOX_VALUE);
@@ -48,11 +50,9 @@ const state = reactive({
 });
 
 const conversionCurrency = computed(() => {
-  if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return app.settings.conversionCurrency;
-  } else {
-    return "ERG";
-  }
+  return state.internalSelected.tokenId === ERG_TOKEN_ID
+    ? appStore.settings.conversionCurrency
+    : "ERG";
 });
 
 const ergPrice = computed(() => {
@@ -171,7 +171,7 @@ async function loadAssets() {
   const erg: FeeAsset = {
     tokenId: ERG_TOKEN_ID,
     nanoErgsPerToken: new BigNumber(1),
-    info: store.state.assetInfo[ERG_TOKEN_ID]
+    info: assetsStore.metadata.get(ERG_TOKEN_ID)
   };
 
   state.multiplier = 1;
@@ -203,7 +203,7 @@ async function loadAssets() {
 
       return {
         tokenId,
-        info: store.state.assetInfo[tokenId],
+        info: assetsStore.metadata.get(tokenId),
         nanoErgsPerToken: price || new BigNumber(0)
       };
     })

@@ -136,13 +136,7 @@ import {
 } from "@fleet-sdk/common";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
-import {
-  ProverStateType,
-  SigningState,
-  StateAddress,
-  StateAssetMetadata,
-  WalletType
-} from "@/types/internal";
+import { ProverStateType, SigningState, StateAddress, WalletType } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
@@ -151,6 +145,7 @@ import TxSignSummary from "@/components/TxSignSummary.vue";
 import { signTransaction } from "@/chains/ergo/signing";
 import "vue-json-pretty/lib/styles.css";
 import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
 
 export default defineComponent({
   name: "TxSignView",
@@ -171,7 +166,7 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   setup() {
-    return { v$: useVuelidate(), app: useAppStore() };
+    return { v$: useVuelidate(), app: useAppStore(), assets: useAssetsStore() };
   },
   data() {
     return {
@@ -228,9 +223,6 @@ export default defineComponent({
     addresses(): StateAddress[] {
       return this.$store.state.currentAddresses;
     },
-    assets(): StateAssetMetadata {
-      return this.$store.state.assetInfo;
-    },
     canSign(): boolean {
       return (
         !this.isReadonly &&
@@ -245,7 +237,7 @@ export default defineComponent({
       return new TxInterpreter(
         this.transaction,
         this.addresses.map((a) => a.script),
-        this.assets
+        this.assets.metadata
       );
     },
     devMode() {

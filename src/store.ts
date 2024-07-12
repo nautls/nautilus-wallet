@@ -1,14 +1,13 @@
 import { createStore } from "vuex";
 import { BigNumber } from "bignumber.js";
-import { clone, difference, groupBy, last, maxBy, sortBy, take, union } from "lodash-es";
+import { clone, groupBy, last, maxBy, sortBy, take } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
 import { first, isEmpty, some, uniq } from "@fleet-sdk/common";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
-import { assetInfoDbService } from "./database/assetInfoDbService";
-import { Token } from "./types/connector";
 import { useAppStore } from "./stores/appStore";
+import { useAssetsStore } from "./stores/assetsStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
 import { walletsDbService } from "@/database/walletsDbService";
@@ -18,11 +17,9 @@ import {
   AddressState,
   AddressType,
   AssetSubtype,
-  AssetType,
   Network,
   StateAddress,
   StateAsset,
-  StateAssetMetadata,
   StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
@@ -32,13 +29,8 @@ import {
 import { hdKeyPool } from "@/common/objectPool";
 import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
 import { decimalize, toBigNumber } from "@/common/bigNumbers";
-import {
-  CHUNK_DERIVE_LENGTH,
-  ERG_DECIMALS,
-  ERG_TOKEN_ID,
-  UNKNOWN_MINTING_BOX_ID
-} from "@/constants/ergo";
-import { IAssetInfo, IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
+import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
+import { IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
@@ -61,6 +53,7 @@ function goTo(routerName: string) {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let app: ReturnType<typeof useAppStore>;
+let assets: ReturnType<typeof useAssetsStore>;
 
 export default createStore({
   state: {
@@ -84,7 +77,6 @@ export default createStore({
       balance: true,
       wallets: true
     },
-    assetInfo: { [ERG_TOKEN_ID]: { name: "ERG", decimals: ERG_DECIMALS } } as StateAssetMetadata,
     ergPrice: 0,
     tokensBlacklist: { ergo: { lastUpdated: Date.now(), tokenIds: [] as string[] } },
     assetMarketRates: {
@@ -126,7 +118,7 @@ export default createStore({
           {
             tokenId: ERG_TOKEN_ID,
             confirmedAmount: new BigNumber(0),
-            info: state.assetInfo[ERG_TOKEN_ID]
+            info: assets.metadata.get(ERG_TOKEN_ID)
           }
         ];
       }
@@ -225,13 +217,13 @@ export default createStore({
             confirmedAmount:
               decimalize(
                 toBigNumber(x.confirmedAmount),
-                state.assetInfo[x.tokenId]?.decimals ?? 0
+                assets.metadata.get(x.tokenId)?.decimals ?? 0
               ) || new BigNumber(0),
             unconfirmedAmount: decimalize(
               toBigNumber(x.unconfirmedAmount),
-              state.assetInfo[x.tokenId]?.decimals ?? 0
+              assets.metadata.get(x.tokenId)?.decimals ?? 0
             ),
-            info: state.assetInfo[x.tokenId]
+            info: assets.metadata.get(x.tokenId)
           };
         });
       }
@@ -295,20 +287,6 @@ export default createStore({
       rates[ERG_TOKEN_ID] = { erg: 1 };
       state.assetMarketRates = rates;
     },
-    [MUTATIONS.SET_ASSETS_INFO](state, assetsInfo: IAssetInfo[]) {
-      if (isEmpty(assetsInfo)) {
-        return;
-      }
-
-      for (const info of assetsInfo) {
-        state.assetInfo[info.id] = {
-          name: info.name,
-          decimals: info.decimals,
-          type: info.subtype,
-          artworkUrl: info.artworkCover ?? info.artworkUrl
-        };
-      }
-    },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
       if (state.currentWallet.id === walletId) {
         state.currentWallet = state.wallets.find((w) => w.id !== walletId) ?? {
@@ -338,9 +316,9 @@ export default createStore({
       // workaround to keep everything working while refactoring and migrating to pinia
       // todo: remove this
       app = useAppStore();
+      assets = useAssetsStore();
       await sleep(20); // wait for settings store to be initialized
 
-      dispatch(ACTIONS.FETCH_FULL_ASSETS_INFO);
       dispatch(ACTIONS.LOAD_TOKEN_BLACKLIST);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
@@ -561,62 +539,11 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.LOAD_BALANCES]({ commit, dispatch }, walletId: number) {
-      const assets = await assetsDbService.getByWalletId(walletId);
+    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
+      const dbAssets = await assetsDbService.getByWalletId(walletId);
 
-      await dispatch(
-        ACTIONS.LOAD_ASSETS_INFO,
-        assets.map((x) => x.tokenId)
-      );
-      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId });
-    },
-    async [ACTIONS.LOAD_ASSETS_INFO](
-      { state, commit, dispatch },
-      params: string[] | { assetInfo: Token[] }
-    ) {
-      const tokenIds = uniq(
-        Array.isArray(params) ? params : params.assetInfo.map((x) => x.tokenId)
-      );
-      const unloaded = difference(tokenIds, Object.keys(state.assetInfo));
-
-      if (!isEmpty(unloaded) && !Array.isArray(params)) {
-        await assetInfoDbService.addIfNotExists(
-          params.assetInfo
-            .filter((x) => unloaded.includes(x.tokenId))
-            .map((x) => {
-              return {
-                id: x.tokenId,
-                mintingBoxId: UNKNOWN_MINTING_BOX_ID,
-                name: x.name,
-                decimals: x.decimals,
-                type: AssetType.Unknown
-              };
-            })
-        );
-      }
-
-      const assetsInfo = await assetInfoDbService.getAnyOf(unloaded);
-
-      commit(MUTATIONS.SET_ASSETS_INFO, assetsInfo);
-      dispatch(
-        ACTIONS.FETCH_FULL_ASSETS_INFO,
-        difference(
-          unloaded,
-          assetsInfo.map((x) => x.id)
-        )
-      );
-    },
-    async [ACTIONS.FETCH_FULL_ASSETS_INFO]({ commit }, assetIds: string[]) {
-      const incompleteIds = union(assetIds, await assetInfoDbService.getIncompleteInfoIds());
-      if (isEmpty(incompleteIds)) {
-        return;
-      }
-
-      const info = await graphQLService.getAssetsInfo(incompleteIds);
-      if (isEmpty(info)) return;
-
-      await assetInfoDbService.bulkPut(info);
-      commit(MUTATIONS.SET_ASSETS_INFO, info);
+      await assets.loadMetadataFor(dbAssets.map((a) => a.tokenId));
+      commit(MUTATIONS.UPDATE_BALANCES, { assets: dbAssets, walletId });
     },
     async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
       await walletsDbService.delete(walletId);
@@ -637,24 +564,14 @@ export default createStore({
       { commit, dispatch },
       data: { addresses: string[]; walletId: number }
     ) {
-      const balances = await graphQLService.getAddressesBalance(data.addresses);
-      const assets = balances.map((x) => {
-        return {
-          tokenId: x.tokenId,
-          confirmedAmount: x.confirmedAmount,
-          unconfirmedAmount: x.unconfirmedAmount,
-          address: x.address,
-          walletId: data.walletId
-        } as IDbAsset;
-      });
-      assetsDbService.sync(assets, data.walletId);
+      const balance = await graphQLService.getAddressesBalance(data.addresses);
+      assetsDbService.sync(
+        balance.map((entry): IDbAsset => ({ ...entry, walletId: data.walletId })),
+        data.walletId
+      );
 
-      await dispatch(ACTIONS.LOAD_ASSETS_INFO, {
-        assetInfo: balances.map((x) => {
-          return { tokenId: x.tokenId, name: x.name, decimals: x.decimals } as Token;
-        })
-      });
-      commit(MUTATIONS.UPDATE_BALANCES, { assets, walletId: data.walletId });
+      await assets.loadMetadataFor(balance.map((x) => x.tokenId));
+      commit(MUTATIONS.UPDATE_BALANCES, { balance, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
       dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },

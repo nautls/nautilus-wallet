@@ -8,7 +8,7 @@ import {
   IDbUtxo,
   IDbWallet
 } from "@/types/database";
-import { ERG_TOKEN_ID, UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
@@ -65,7 +65,7 @@ class NautilusDb extends Dexie {
             .map((a) => {
               return {
                 id: a.tokenId,
-                mintingBoxId: UNKNOWN_MINTING_BOX_ID,
+                mintingBoxId: "",
                 decimals: a.decimals,
                 name: a.name
               } as IAssetInfo;

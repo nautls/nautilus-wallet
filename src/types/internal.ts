@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
 import { ErgoBox } from "./connector";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 
@@ -81,9 +81,7 @@ export type BasicAssetMetadata = {
   artworkUrl?: string;
 };
 
-export type StateAssetMetadata = {
-  [tokenId: string]: BasicAssetMetadata;
-};
+export type AssetsMetadataMap = Map<TokenId, BasicAssetMetadata>;
 
 export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
 

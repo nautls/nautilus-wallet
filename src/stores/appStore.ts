@@ -17,9 +17,9 @@ export type Settings = {
   blacklistedTokensLists: string[];
 };
 
-const usePrivateState = defineStore("metadata", { state: () => ({ loading: true }) });
+const usePrivateState = defineStore("_app", { state: () => ({ loading: true }) });
 
-export const useAppStore = defineStore("settings", () => {
+export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
 
   const settings = useStorage<Settings>("settings", {

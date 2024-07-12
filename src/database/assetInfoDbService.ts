@@ -2,7 +2,6 @@ import { difference, uniqBy } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
 import { IAssetInfo } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
-import { UNKNOWN_MINTING_BOX_ID } from "@/constants/ergo";
 
 class AssetInfoDbService {
   public async addIfNotExists(assets: IAssetInfo[]) {
@@ -16,10 +15,6 @@ class AssetInfoDbService {
     if (!isEmpty(uncommited)) {
       await dbContext.assetInfo.bulkAdd(assets.filter((a) => uncommited.includes(a.id)));
     }
-  }
-
-  public async getIncompleteInfoIds(): Promise<string[]> {
-    return await dbContext.assetInfo.where({ mintingBoxId: UNKNOWN_MINTING_BOX_ID }).primaryKeys();
   }
 
   public async bulkPut(infos: IAssetInfo[]) {

@@ -14,7 +14,6 @@ export const MAINNET_MINER_FEE_TREE =
 export const SIGMA_CONSTANT_PK_MATCHER = new RegExp(/08cd([0-9a-fA-F]{66})|^07([0-9a-fA-F]{66})$/);
 export const P2PK_TREE_PREFIX = "0008cd";
 export const PK_HEX_LENGTH = 66;
-export const UNKNOWN_MINTING_BOX_ID = "";
 export const TOKEN_ID_LENGTH = 64;
 
 const MINUTES_IN_A_YEAR = 525960;
