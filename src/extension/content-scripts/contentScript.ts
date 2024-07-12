@@ -17,16 +17,16 @@ function canInject() {
 }
 
 function injectScript() {
-  if (!canInject()) error("Cannot inject scripts.");
+  if (!canInject()) error("cannot inject scripts.");
   const path = `${EXT_ENTRY_ROOT}/content-scripts/injected.js`;
-  debug("Injecting", `'${path}'...`);
+  debug("injecting", `'${path}'...`);
 
   const parent = document.head || document.body || document.documentElement;
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL(path);
 
   window.addEventListener(ExternalEvent.Injected, () => {
-    debug(`'${path}' injected!`);
+    debug("ready 🚀");
     parent.removeChild(script);
   });
 
