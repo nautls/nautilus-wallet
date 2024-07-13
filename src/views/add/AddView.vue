@@ -58,6 +58,7 @@ import { defineComponent } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { browser, isPopup } from "@/common/browser";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 export default defineComponent({
   name: "AddView",
@@ -80,7 +81,7 @@ export default defineComponent({
       }
 
       browser.tabs.create({
-        url: browser.runtime.getURL(`index.html${href}?redirect=false`),
+        url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`),
         active: true
       });
       window.close();
