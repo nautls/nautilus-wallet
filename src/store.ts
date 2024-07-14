@@ -3,9 +3,9 @@ import { BigNumber } from "bignumber.js";
 import { clone, groupBy, last, maxBy, sortBy, take } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { first, isEmpty, some, uniq } from "@fleet-sdk/common";
+import { first, isEmpty, uniq } from "@fleet-sdk/common";
 import { utxosDbService } from "./database/utxosDbService";
-import { MIN_UTXO_SPENT_CHECK_TIME, UPDATE_TOKENS_BLACKLIST_INTERVAL } from "./constants/intervals";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { useAppStore } from "./stores/appStore";
 import { useAssetsStore } from "./stores/assetsStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -34,15 +34,6 @@ import { IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
-import {
-  ErgoTokenBlacklist,
-  ergoTokenBlacklistService
-} from "@/chains/ergo/services/tokenBlacklistService";
-import { log } from "@/common/logger";
-
-type TokenBlacklist = {
-  lastUpdated: number;
-} & ErgoTokenBlacklist;
 
 function goTo(routerName: string) {
   const { redirect, popup } = router.currentRoute.value.query;
@@ -78,7 +69,6 @@ export default createStore({
       wallets: true
     },
     ergPrice: 0,
-    tokensBlacklist: { ergo: { lastUpdated: Date.now(), tokenIds: [] as string[] } },
     assetMarketRates: {
       [ERG_TOKEN_ID]: { erg: 1 }
     } as AssetPriceRate
@@ -88,15 +78,12 @@ export default createStore({
       const balance: StateAsset[] = [];
 
       const groups = groupBy(
-        state.currentAddresses
-          .filter((a) => a.balance)
-          .map((a) => a.balance || [])
-          .flat(),
+        state.currentAddresses.filter((a) => a.balance).flatMap((a) => a.balance || []),
         (a) => a?.tokenId
       );
 
       for (const key in groups) {
-        if (state.tokensBlacklist.ergo.tokenIds.includes(key)) continue;
+        if (assets.blacklist.includes(key)) continue;
 
         const group = groups[key];
         if (group.length === 0) continue;
@@ -247,22 +234,6 @@ export default createStore({
         };
       });
     },
-    [MUTATIONS.SET_TOKENS_BLACKLIST](state, blacklist: TokenBlacklist) {
-      if (isEmpty(app.settings.blacklistedTokensLists)) {
-        state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds: [] } };
-        return;
-      }
-
-      let tokenIds = [] as string[];
-      for (const listName of app.settings.blacklistedTokensLists) {
-        const list = blacklist[listName as keyof ErgoTokenBlacklist];
-        if (some(list)) tokenIds = tokenIds.concat(list);
-      }
-
-      // remove duplicated tokens
-      tokenIds = uniq(tokenIds);
-      state.tokensBlacklist = { ergo: { lastUpdated: blacklist.lastUpdated, tokenIds } };
-    },
     [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
       const wallet = state.wallets.find((w) => w.id === command.walletId);
       if (!wallet) return;
@@ -319,7 +290,6 @@ export default createStore({
       assets = useAssetsStore();
       await sleep(20); // wait for settings store to be initialized
 
-      dispatch(ACTIONS.LOAD_TOKEN_BLACKLIST);
       await dispatch(ACTIONS.LOAD_WALLETS);
 
       if (router.currentRoute.value.query.popup === "true") {
@@ -574,28 +544,6 @@ export default createStore({
       commit(MUTATIONS.UPDATE_BALANCES, { balance, walletId: data.walletId });
       commit(MUTATIONS.SET_LOADING, { balance: false });
       dispatch(ACTIONS.CHECK_PENDING_BOXES);
-    },
-    async [ACTIONS.LOAD_TOKEN_BLACKLIST]({ commit }) {
-      const dbKey = "ergoTokensBlacklist";
-      const rawDbBlacklist = localStorage.getItem(dbKey);
-      const blacklist: TokenBlacklist = rawDbBlacklist ? JSON.parse(rawDbBlacklist) : undefined;
-
-      if (
-        !blacklist?.lastUpdated ||
-        Date.now() - blacklist.lastUpdated > UPDATE_TOKENS_BLACKLIST_INTERVAL
-      ) {
-        try {
-          const ergoBlacklist = await ergoTokenBlacklistService.fetch();
-          const newBlackList = { lastUpdated: Date.now(), ...ergoBlacklist };
-          localStorage.setItem(dbKey, JSON.stringify(newBlackList));
-
-          commit(MUTATIONS.SET_TOKENS_BLACKLIST, newBlackList);
-        } catch (e) {
-          log.error("Failed to fetch token blacklist", e);
-        }
-      } else if (blacklist) {
-        commit(MUTATIONS.SET_TOKENS_BLACKLIST, blacklist);
-      }
     },
     async [ACTIONS.CHECK_PENDING_BOXES]() {
       const now = Date.now();
