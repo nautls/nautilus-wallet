@@ -46,15 +46,13 @@ const DEFAULT_DB_CONFIG = { shallow: true, mergeDefaults: true };
 
 const elapsed = (interval: number, lastUpdated: number) => Date.now() - lastUpdated >= interval;
 
-const usePrivateState = () => {
-  const blacklist = useStorage("ergoTokensBlacklist", BLACKLIST_DEFAULTS, _, DEFAULT_DB_CONFIG);
-  const prices = useStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, _, {
+const usePrivateState = defineStore("_assets", () => ({
+  blacklist: useStorage("ergoTokensBlacklist", BLACKLIST_DEFAULTS, _, DEFAULT_DB_CONFIG),
+  prices: useStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, _, {
     ...DEFAULT_DB_CONFIG,
     serializer: PRICE_RATES_SERIALIZER
-  });
-
-  return { blacklist, prices };
-};
+  })
+}));
 
 export const useAssetsStore = defineStore("assets", () => {
   const app = useAppStore();
@@ -74,32 +72,32 @@ export const useAssetsStore = defineStore("assets", () => {
   );
 
   async function fetchBlacklists(force = false) {
-    const lastUpdated = privateState.blacklist.value.lastUpdated ?? Date.now();
+    const lastUpdated = privateState.blacklist.lastUpdated ?? Date.now();
     if (!force && !elapsed(BLACKLIST_UPDATE_INTERVAL, lastUpdated)) return;
 
     const ergoBlacklists = await ergoTokenBlacklistService.fetch();
-    privateState.blacklist.value = { ...ergoBlacklists, lastUpdated: Date.now() };
+    privateState.blacklist = { ...ergoBlacklists, lastUpdated: Date.now() };
   }
 
   async function loadAssetPriceRates(force = false) {
-    const lastUpdated = privateState.prices.value.lastUpdated ?? Date.now();
+    const lastUpdated = privateState.prices.lastUpdated ?? Date.now();
     if (!force && !elapsed(PRICE_RATES_UPDATE_INTERVAL, lastUpdated)) return;
 
     const prices = await assetPricingService.getRates(app.settings.conversionCurrency);
-    privateState.prices.value = { lastUpdated: Date.now(), prices };
+    privateState.prices = { lastUpdated: Date.now(), prices };
   }
 
   const blacklist = computed(() => {
     let tokenIds = [] as string[];
     for (const listName of app.settings.blacklistedTokensLists) {
-      const list = privateState.blacklist.value[listName as keyof ErgoTokenBlacklist];
+      const list = privateState.blacklist[listName as keyof ErgoTokenBlacklist];
       if (Array.isArray(list) && list.length > 0) tokenIds = tokenIds.concat(list);
     }
 
     return tokenIds;
   });
 
-  const prices = computed(() => privateState.prices.value.prices);
+  const prices = computed(() => privateState.prices.prices);
 
   async function loadMetadataFor(tokenIds: string[]) {
     const unloaded = difference(uniq(tokenIds), Array.from(metadata.keys()));
