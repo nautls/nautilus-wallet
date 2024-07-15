@@ -336,9 +336,7 @@ export default defineComponent({
   methods: {
     ...mapActions({
       updateWalletSettings: ACTIONS.UPDATE_WALLET_SETTINGS,
-      fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
-      removeWallet: ACTIONS.REMOVE_WALLET,
-      loadTokensBlacklist: ACTIONS.LOAD_TOKEN_BLACKLIST
+      removeWallet: ACTIONS.REMOVE_WALLET
     }),
     async remove() {
       if (confirm(`Are you sure you want to remove '${this.currentWallet.name}'?`)) {
@@ -371,8 +369,6 @@ export default defineComponent({
 
       if (!isEqual(this.app.settings, this.globalSettings)) {
         this.app.$patch({ settings: this.globalSettings });
-        this.fetchPrices();
-        this.loadTokensBlacklist();
       }
     }
   }

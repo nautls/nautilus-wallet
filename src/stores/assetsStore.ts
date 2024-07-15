@@ -1,11 +1,12 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, shallowReactive } from "vue";
+import { computed, onMounted, shallowReactive, watch } from "vue";
 import { isEmpty, some, uniq } from "@fleet-sdk/common";
 import { difference } from "lodash-es";
 import { useStorage } from "@vueuse/core";
-import { assetInfoDbService } from "../database/assetInfoDbService";
-import { graphQLService } from "../chains/ergo/services/graphQlService";
 import { useAppStore } from "./appStore";
+import { assetInfoDbService } from "@/database/assetInfoDbService";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
 import { BasicAssetMetadata } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import {
@@ -14,24 +15,45 @@ import {
 } from "@/chains/ergo/services/tokenBlacklistService";
 
 const _ = undefined;
-const UPDATE_BLACKLIST_INTERVAL = 10 * 60 * 1000;
-const BLACKLIST_DB_KEY = "ergoTokensBlacklist";
 const ERG_METADATA: BasicAssetMetadata = { name: "ERG", decimals: ERG_DECIMALS };
-const BLACKLIST_DEFAULTS: Required<ErgoTokenBlacklist> = {
-  lastUpdated: Date.now(),
-  nsfw: [],
-  scam: []
+
+const PRICE_RATES_UPDATE_INTERVAL = 5 * 30 * 1000;
+const PRICE_RATES_DEFAULTS = { lastUpdated: 0, prices: new Map<string, AssetRate>() };
+const PRICE_RATES_SERIALIZER = {
+  read: (raw: string): typeof PRICE_RATES_DEFAULTS => {
+    const parsed = JSON.parse(raw);
+    return {
+      lastUpdated: parsed.lastUpdated,
+      prices: new Map<string, AssetRate>(parsed.prices)
+    };
+  },
+  write(val: typeof PRICE_RATES_DEFAULTS): string {
+    return JSON.stringify({
+      lastUpdated: val.lastUpdated,
+      prices: Array.from(val.prices.entries())
+    });
+  }
 };
 
-const hasElapsed = (interval: number, lastUpdated: number) => Date.now() - lastUpdated >= interval;
+const BLACKLIST_UPDATE_INTERVAL = 10 * 60 * 1000;
+const BLACKLIST_DEFAULTS = {
+  lastUpdated: 0,
+  nsfw: [] as string[],
+  scam: [] as string[]
+};
+
+const DEFAULT_DB_CONFIG = { shallow: true, mergeDefaults: true };
+
+const elapsed = (interval: number, lastUpdated: number) => Date.now() - lastUpdated >= interval;
 
 const usePrivateState = () => {
-  const blacklist = useStorage(BLACKLIST_DB_KEY, BLACKLIST_DEFAULTS, _, {
-    shallow: true,
-    mergeDefaults: true
+  const blacklist = useStorage("ergoTokensBlacklist", BLACKLIST_DEFAULTS, _, DEFAULT_DB_CONFIG);
+  const prices = useStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, _, {
+    ...DEFAULT_DB_CONFIG,
+    serializer: PRICE_RATES_SERIALIZER
   });
 
-  return { blacklist };
+  return { blacklist, prices };
 };
 
 export const useAssetsStore = defineStore("assets", () => {
@@ -40,7 +62,32 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const metadata = shallowReactive(new Map([[ERG_TOKEN_ID, ERG_METADATA]]));
 
-  onMounted(fetchBlacklists);
+  onMounted(() => Promise.all([fetchBlacklists(), loadAssetPriceRates()]));
+
+  watch(
+    () => app.settings.conversionCurrency,
+    () => loadAssetPriceRates(true)
+  );
+  watch(
+    () => app.settings.blacklistedTokensLists,
+    () => fetchBlacklists(true)
+  );
+
+  async function fetchBlacklists(force = false) {
+    const lastUpdated = privateState.blacklist.value.lastUpdated ?? Date.now();
+    if (!force && !elapsed(BLACKLIST_UPDATE_INTERVAL, lastUpdated)) return;
+
+    const ergoBlacklists = await ergoTokenBlacklistService.fetch();
+    privateState.blacklist.value = { ...ergoBlacklists, lastUpdated: Date.now() };
+  }
+
+  async function loadAssetPriceRates(force = false) {
+    const lastUpdated = privateState.prices.value.lastUpdated ?? Date.now();
+    if (!force && !elapsed(PRICE_RATES_UPDATE_INTERVAL, lastUpdated)) return;
+
+    const prices = await assetPricingService.getRates(app.settings.conversionCurrency);
+    privateState.prices.value = { lastUpdated: Date.now(), prices };
+  }
 
   const blacklist = computed(() => {
     let tokenIds = [] as string[];
@@ -52,13 +99,7 @@ export const useAssetsStore = defineStore("assets", () => {
     return tokenIds;
   });
 
-  async function fetchBlacklists() {
-    const lastUpdated = privateState.blacklist.value.lastUpdated ?? Date.now();
-    if (!hasElapsed(UPDATE_BLACKLIST_INTERVAL, lastUpdated)) return;
-    const ergoBlacklists = await ergoTokenBlacklistService.fetch();
-
-    privateState.blacklist.value = { ...ergoBlacklists, lastUpdated: Date.now() };
-  }
+  const prices = computed(() => privateState.prices.value.prices);
 
   async function loadMetadataFor(tokenIds: string[]) {
     const unloaded = difference(uniq(tokenIds), Array.from(metadata.keys()));
@@ -88,7 +129,7 @@ export const useAssetsStore = defineStore("assets", () => {
     }
   }
 
-  return { blacklist, metadata, loadMetadataFor };
+  return { blacklist, metadata, prices, loadMetadataFor };
 });
 
 if (import.meta.hot) {

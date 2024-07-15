@@ -9,10 +9,8 @@ import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { useAppStore } from "./stores/appStore";
 import { useAssetsStore } from "./stores/assetsStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { AssetPriceRate, ergoDexService } from "@/chains/ergo/services/ergoDexService";
 import { walletsDbService } from "@/database/walletsDbService";
 import HdKey, { DerivedAddress } from "@/chains/ergo/hdKey";
-import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   AddressState,
   AddressType,
@@ -67,11 +65,7 @@ export default createStore({
       addresses: true,
       balance: true,
       wallets: true
-    },
-    ergPrice: 0,
-    assetMarketRates: {
-      [ERG_TOKEN_ID]: { erg: 1 }
-    } as AssetPriceRate
+    }
   },
   getters: {
     [GETTERS.BALANCE](state) {
@@ -215,9 +209,6 @@ export default createStore({
         });
       }
     },
-    [MUTATIONS.SET_ERG_PRICE](state, price) {
-      state.ergPrice = price;
-    },
     [MUTATIONS.SET_LOADING](state, obj) {
       state.loading = Object.assign(state.loading, obj);
     },
@@ -253,10 +244,6 @@ export default createStore({
       if (!wallet) return;
 
       wallet.settings.hideUsedAddresses = command.filter;
-    },
-    [MUTATIONS.SET_MARKET_RATES](state, rates: AssetPriceRate) {
-      rates[ERG_TOKEN_ID] = { erg: 1 };
-      state.assetMarketRates = rates;
     },
     [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
       if (state.currentWallet.id === walletId) {
@@ -306,10 +293,6 @@ export default createStore({
       } else {
         goTo("add-wallet");
       }
-    },
-    async [ACTIONS.LOAD_MARKET_RATES]({ commit }) {
-      const tokenMarketRates = await ergoDexService.getTokenRates();
-      commit(MUTATIONS.SET_MARKET_RATES, tokenMarketRates);
     },
     async [ACTIONS.LOAD_WALLETS]({ commit }) {
       const wallets = await walletsDbService.getAll();
@@ -556,19 +539,6 @@ export default createStore({
       const txIds = uniq(boxes.map((b) => b.spentTxId));
       const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
       await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
-    },
-    async [ACTIONS.FETCH_CURRENT_PRICES]({ commit, dispatch, state }) {
-      if (state.loading.price) {
-        return;
-      }
-
-      commit(MUTATIONS.SET_LOADING, { price: true });
-
-      const price = await coinGeckoService.getPrice(app.settings.conversionCurrency);
-      commit(MUTATIONS.SET_ERG_PRICE, price);
-
-      commit(MUTATIONS.SET_LOADING, { price: false });
-      await dispatch(ACTIONS.LOAD_MARKET_RATES);
     },
     async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
       await walletsDbService.updateSettings(command.walletId, command.name, command);

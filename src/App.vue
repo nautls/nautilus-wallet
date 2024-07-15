@@ -26,7 +26,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { mapActions } from "vuex";
-import { PRICE_FETCH_INTERVAL, REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
+import { REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
 import { ACTIONS } from "./constants/store/actions";
 import KyaModal from "./components/KYAModal.vue";
 import WalletLogo from "./components/WalletLogo.vue";
@@ -34,11 +34,6 @@ import { useAppStore } from "./stores/appStore";
 import { isPopup } from "@/common/browser";
 import WalletHeader from "@/components/WalletHeader.vue";
 import NavHeader from "@/components/NavHeader.vue";
-
-function runSetInterval(callback: () => void, ms: number): number {
-  callback();
-  return setInterval(callback, ms) as unknown as number;
-}
 
 export default defineComponent({
   name: "App",
@@ -53,7 +48,6 @@ export default defineComponent({
   },
   data: () => {
     return {
-      getPriceTimerId: Object.freeze(0),
       syncTimerId: Object.freeze(0)
     };
   },
@@ -74,19 +68,12 @@ export default defineComponent({
     );
 
     await this.init();
-    this.getPriceTimerId = Object.freeze(
-      runSetInterval(() => {
-        this.fetchPrices();
-      }, PRICE_FETCH_INTERVAL)
-    );
   },
   deactivated() {
-    clearInterval(this.getPriceTimerId);
     clearInterval(this.syncTimerId);
   },
   methods: {
     ...mapActions({
-      fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
       init: ACTIONS.INIT,
       refresh: ACTIONS.REFRESH_CURRENT_ADDRESSES
     })

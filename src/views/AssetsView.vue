@@ -119,6 +119,7 @@ import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import StorageRentBox from "@/components/StorageRentBox.vue";
 import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
 
 export default defineComponent({
   name: "AssetsView",
@@ -128,7 +129,7 @@ export default defineComponent({
     StorageRentBox
   },
   setup() {
-    return { app: useAppStore() };
+    return { app: useAppStore(), assetsStore: useAssetsStore() };
   },
   data() {
     return {
@@ -139,7 +140,7 @@ export default defineComponent({
   },
   computed: {
     ergPrice(): number {
-      return this.$store.state.ergPrice;
+      return this.assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0;
     },
     conversionCurrency(): string {
       return this.app.settings.conversionCurrency;
@@ -189,7 +190,7 @@ export default defineComponent({
       return new BigNumber(rate).multipliedBy(this.ergPrice);
     },
     rate(tokenId: string): number {
-      return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;
+      return this.assetsStore.prices.get(tokenId)?.erg ?? 0;
     },
     isErg(tokenId: string): boolean {
       return tokenId === ERG_TOKEN_ID;

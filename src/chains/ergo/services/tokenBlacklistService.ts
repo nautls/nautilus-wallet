@@ -7,7 +7,6 @@ const SIGMANAUTS_BLACKLIST_URL =
 type SigmanautsBlackList = { NSFW: string[]; Scam: string[] };
 
 export type ErgoTokenBlacklist = {
-  lastUpdated?: number;
   nsfw: string[];
   scam: string[];
 };

@@ -79,6 +79,8 @@ import { defineComponent, PropType } from "vue";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import { BigNumberType } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export default defineComponent({
   name: "AssetInput",
@@ -91,7 +93,7 @@ export default defineComponent({
     minAmount: { type: Object as PropType<BigNumberType>, required: false }
   },
   setup() {
-    return { v$: useVuelidate(), app: useAppStore() };
+    return { v$: useVuelidate(), app: useAppStore(), assets: useAssetsStore() };
   },
   data() {
     return {
@@ -138,7 +140,7 @@ export default defineComponent({
       return this.minAmount || this.reservedAmount || new BigNumber(0);
     },
     ergPrice(): number {
-      return this.$store.state.ergPrice;
+      return this.assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0;
     }
   },
   watch: {
@@ -221,7 +223,7 @@ export default defineComponent({
       return new BigNumber(rate).multipliedBy(this.ergPrice);
     },
     rate(tokenId: string): number {
-      return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;
+      return this.assets.prices.get(tokenId)?.erg ?? 0;
     }
   }
 });
