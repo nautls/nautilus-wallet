@@ -1,5 +1,9 @@
+import { BigNumber } from "bignumber.js";
+import { uniqWith } from "lodash-es";
 import { safeFetch } from "@/common/networking";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+
+const _1 = BigNumber(1);
 
 export type AssetPriceRate = {
   [tokenId: string]: { erg: number };
@@ -67,6 +71,24 @@ class SpectrumService {
         to: this.#getUtcTimestamp(new Date())
       }
     });
+  }
+
+  async getRatesByLiquidity(minUsdLiquidity: number): Promise<Map<string, BigNumber> | undefined> {
+    const [markets, liquidTokens] = await Promise.all([
+      spectrumService.getActivePools(),
+      spectrumService.getTokenIdsByLiquidity(minUsdLiquidity)
+    ]);
+    if (!markets) return;
+
+    const rates = uniqWith(
+      markets.filter((p) => p.baseId === ERG_TOKEN_ID && liquidTokens.includes(p.quoteId)),
+      (a, b) => a.quoteId === b.quoteId && a.baseVolume.value <= b.baseVolume.value
+    );
+
+    const map = new Map<string, BigNumber>();
+    for (const pool of rates) map.set(pool.quoteId, _1.div(pool.lastPrice));
+
+    return map;
   }
 
   #getUtcTimestamp(date: Date) {
