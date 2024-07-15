@@ -299,12 +299,7 @@ export default createStore({
       if (isEmpty(wallets)) return;
 
       for (const wallet of wallets) {
-        const deriver = HdKey.fromPublicKey({
-          publicKey: wallet.publicKey,
-          chainCode: wallet.chainCode
-        });
-
-        hdKeyPool.alloc(deriver, wallet.publicKey);
+        hdKeyPool.alloc(wallet.publicKey, HdKey.fromPublicKey(wallet));
       }
 
       commit(MUTATIONS.SET_WALLETS, wallets);
@@ -321,7 +316,7 @@ export default createStore({
           ? await HdKey.fromMnemonic(wallet.mnemonic)
           : HdKey.fromPublicKey(wallet.extendedPublicKey);
 
-      hdKeyPool.alloc(key.neutered(), hex.encode(key.publicKey));
+      hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
       const walletId = await walletsDbService.put({
         name: wallet.name.trim(),
         network: Network.ErgoMainnet,
