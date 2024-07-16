@@ -3,12 +3,16 @@ import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "@fleet-sdk/common";
 import { dbContext } from "@/database/dbContext";
 import { IDbAddress, IDbWallet } from "@/types/database";
-import { AddressState, UpdateWalletSettingsCommand } from "@/types/internal";
+import { AddressState, WalletSettings } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
 
 class WalletsDbService {
   public async getById(id: number): Promise<IDbWallet | undefined> {
     return await dbContext.wallets.where("id").equals(id).first();
+  }
+
+  public async getFirst(): Promise<IDbWallet | undefined> {
+    return await dbContext.wallets.get(1);
   }
 
   public async getMnemonic(id: number, password: string) {
@@ -22,9 +26,7 @@ class WalletsDbService {
 
     try {
       const mnemonic = AES.decrypt(wallet.mnemonic, password).toString(utf8Enc);
-      if (isEmpty(mnemonic)) {
-        throw new PasswordError();
-      }
+      if (isEmpty(mnemonic)) throw new PasswordError();
 
       return mnemonic;
     } catch {
@@ -46,9 +48,7 @@ class WalletsDbService {
 
   public async put(wallet: IDbWallet): Promise<number> {
     const dbWallet = await this.getByPk(wallet.publicKey);
-    if (!wallet.id) {
-      wallet.id = dbWallet?.id;
-    }
+    if (!wallet.id) wallet.id = dbWallet?.id;
 
     return dbContext.wallets.put(wallet);
   }
@@ -56,12 +56,12 @@ class WalletsDbService {
   public async updateSettings(
     walletId: number,
     walletName: string,
-    command: UpdateWalletSettingsCommand
+    settings: WalletSettings
   ): Promise<number> {
     return await dbContext.wallets.update(walletId, {
       name: walletName.trim(),
-      "settings.avoidAddressReuse": command.avoidAddressReuse,
-      "settings.hideUsedAddresses": command.hideUsedAddresses
+      "settings.avoidAddressReuse": settings.avoidAddressReuse,
+      "settings.hideUsedAddresses": settings.hideUsedAddresses
     });
   }
 
@@ -82,10 +82,13 @@ class WalletsDbService {
   }
 
   public async delete(walletId: number): Promise<void> {
-    await dbContext.addresses.where({ walletId }).delete();
-    await dbContext.assets.where({ walletId }).delete();
-    await dbContext.connectedDApps.where({ walletId }).delete();
-    await dbContext.wallets.delete(walletId);
+    await Promise.all([
+      dbContext.addresses.where({ walletId }).delete(),
+      dbContext.assets.where({ walletId }).delete(),
+      dbContext.connectedDApps.where({ walletId }).delete(),
+      dbContext.utxos.where({ walletId }).delete(),
+      dbContext.wallets.delete(walletId)
+    ]);
   }
 }
 
