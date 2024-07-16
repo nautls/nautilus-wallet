@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import store from "@/store";
 import DappPlate from "@/components/DappPlate.vue";
-import { IDbDAppConnection } from "@/types/database";
+import { IDbDAppConnection, IDbWallet } from "@/types/database";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import { walletsDbService } from "@/database/walletsDbService";
 
 const connections = ref<IDbDAppConnection[]>([]);
+const wallets = ref<IDbWallet[]>([]);
 
-onMounted(async () => loadConnections());
+onMounted(async () => {
+  loadConnections();
+  wallets.value = await walletsDbService.getAll();
+});
 
 async function loadConnections() {
   connections.value = await connectedDAppsDbService.getAll();
 }
 
 function getWalletBy(walletId: number) {
-  return store.state.wallets.find((w) => w.id === walletId);
+  return wallets.value.find((w) => w.id === walletId);
 }
 
 async function remove(origin: string) {

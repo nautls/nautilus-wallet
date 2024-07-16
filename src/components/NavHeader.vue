@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { WalletType } from "@/types/internal";
+import { GETTERS } from "@/constants/store";
+import store from "@/store";
+
+const readonly = computed(() => store.state.currentWallet?.type === WalletType.ReadOnly);
+const hasNft = computed(() => store.getters[GETTERS.PICTURE_NFT_BALANCE].length > 0);
+</script>
+
 <template>
   <nav class="tabs">
     <div class="tab-item spacing"></div>
@@ -29,21 +39,3 @@
     <div class="tab-item spacing"></div>
   </nav>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { WalletType } from "@/types/internal";
-import { GETTERS } from "@/constants/store";
-
-export default defineComponent({
-  name: "NavHeader",
-  computed: {
-    readonly(): boolean {
-      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
-    },
-    hasNft(): boolean {
-      return this.$store.getters[GETTERS.PICTURE_NFT_BALANCE].length > 0;
-    }
-  }
-});
-</script>

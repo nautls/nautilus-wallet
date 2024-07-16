@@ -55,7 +55,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { isEmpty } from "@fleet-sdk/common";
 import { browser, isPopup } from "@/common/browser";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
@@ -70,7 +69,7 @@ export default defineComponent({
   },
   computed: {
     hasWallets() {
-      return !isEmpty(this.$store.state.wallets);
+      return this.$store.state.currentWallet.id !== 0;
     }
   },
   methods: {

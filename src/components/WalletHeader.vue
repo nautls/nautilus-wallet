@@ -1,3 +1,47 @@
+<script setup lang="ts">
+import { computed, onMounted, shallowRef } from "vue";
+import WalletLogo from "./WalletLogo.vue";
+import store from "@/store";
+import { browser } from "@/common/browser";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
+import { ACTIONS } from "@/constants/store";
+import { IDbWallet } from "@/types/database";
+import { walletsDbService } from "@/database/walletsDbService";
+
+const wallets = shallowRef<IDbWallet[]>([]);
+
+const loading = computed(() => store.state.loading);
+
+const currentWallet = computed(() => {
+  if (!store.state.currentWallet || !wallets.value) return;
+  return wallets.value?.find((w) => w.id === store.state.currentWallet?.id);
+});
+
+const unselectedWallets = computed(() => {
+  if (!wallets.value) return [];
+  const currentId = store.state.currentWallet?.id;
+  return wallets.value.filter((w) => w.id !== currentId);
+});
+
+onMounted(async () => {
+  wallets.value = await walletsDbService.getAll();
+});
+
+function setCurrentWallet(wallet: IDbWallet) {
+  store.dispatch(ACTIONS.SET_CURRENT_WALLET, wallet.id);
+}
+
+async function expandView() {
+  if (!browser?.tabs) return;
+
+  browser.tabs.create({
+    url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`),
+    active: true
+  });
+  window.close();
+}
+</script>
+
 <template>
   <div
     class="flex flex-row px-4 py-2 gap-0 items-center bg-gray-100"
@@ -9,8 +53,9 @@
       <drop-down discrete :disabled="$route.query.popup === 'true'" list-class="max-h-110">
         <template #trigger="{ active }">
           <wallet-item
-            :key="wallet.id"
-            :wallet="wallet"
+            v-if="currentWallet"
+            :key="currentWallet.id"
+            :wallet="currentWallet"
             :reverse="!active"
             :loading="loading.addresses || loading.balance"
           />
@@ -23,7 +68,7 @@
               class="group-item"
               @click="setCurrentWallet(unselected)"
             >
-              <wallet-item :key="wallet.id" :wallet="unselected" />
+              <wallet-item :key="currentWallet?.id" :wallet="unselected" />
             </a>
           </div>
           <div class="group">
@@ -57,46 +102,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { mapActions, mapState } from "vuex";
-import WalletLogo from "./WalletLogo.vue";
-import { StateWallet } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
-import { browser } from "@/common/browser";
-import { EXT_ENTRY_ROOT } from "@/constants/extension";
-
-export default defineComponent({
-  name: "WalletHeader",
-  components: { WalletLogo },
-  data() {
-    return {
-      checksum: ""
-    };
-  },
-  computed: {
-    ...mapState({
-      wallet: "currentWallet",
-      loading: "loading",
-      wallets: "wallets"
-    }),
-    unselectedWallets(): StateWallet[] {
-      const currentId = this.wallet?.id;
-      return this.wallets.filter((w: StateWallet) => w.id !== currentId);
-    }
-  },
-  methods: {
-    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
-    async expandView() {
-      if (!browser?.tabs) return;
-
-      browser.tabs.create({
-        url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`),
-        active: true
-      });
-      window.close();
-    }
-  }
-});
-</script>

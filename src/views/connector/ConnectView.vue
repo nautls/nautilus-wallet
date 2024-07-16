@@ -6,13 +6,17 @@ import { queue } from "@/rpc/uiRpcHandlers";
 import { InternalRequest } from "@/rpc/protocol";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { IDbWallet } from "@/types/database";
+import { walletsDbService } from "@/database/walletsDbService";
 
 const selected = ref(0);
 const request = ref<AsyncRequest>();
+const wallets = ref<IDbWallet[]>([]);
 
 const removeEventListener = useEventListener(window, "beforeunload", refuse);
 
-onMounted(() => {
+onMounted(async () => {
+  wallets.value = await walletsDbService.getAll();
   request.value = queue.pop(InternalRequest.Connect);
   if (!request.value) return;
 });
@@ -52,7 +56,7 @@ function refuse() {
 
     <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
       <label
-        v-for="wallet in $store.state.wallets"
+        v-for="wallet in wallets"
         :key="wallet.id"
         class="p-4 flex gap-4 items-center block cursor-pointer hover:bg-gray-100 active:bg-gray-300"
         :class="wallet.id === selected ? 'bg-gray-100 hover:bg-gray-200' : ''"

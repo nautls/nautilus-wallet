@@ -12,8 +12,11 @@ import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import store from "@/store";
 import { ACTIONS } from "@/constants/store";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { useAssetsStore } from "@/stores/assetsStore";
 
 type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
+
+const assets = useAssetsStore();
 
 const request = ref<RequestType>();
 const walletId = ref(0);
@@ -40,7 +43,7 @@ watch(
       .map((x) => x.tokenId);
 
     if (some(tokenIds)) {
-      store.dispatch(ACTIONS.LOAD_ASSETS_INFO, tokenIds);
+      assets.loadMetadataFor(tokenIds);
     }
   }
 );

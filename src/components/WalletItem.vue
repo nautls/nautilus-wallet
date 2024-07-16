@@ -1,3 +1,51 @@
+<script setup lang="ts">
+import { nextTick, onMounted, PropType, ref, shallowRef } from "vue";
+import { WalletChecksum, walletChecksum } from "@emurgo/cip4-js";
+import { renderIcon } from "@download/blockies";
+import { hex } from "@fleet-sdk/crypto";
+import LoadingIndicator from "./LoadingIndicator.vue";
+import { IDbWallet } from "@/types/database";
+
+const COLORS = [
+  ["#17d1aa", "#e1f2ff", "#a80b32"],
+  ["#fa5380", "#e1f2ff", "#0833b2"],
+  ["#f06ef5", "#e1f2ff", "#0804f7"],
+  ["#ebb687", "#e1f2ff", "#852d62"],
+  ["#f59f9a", "#e1f2ff", "#085f48"]
+];
+
+const props = defineProps({
+  wallet: { type: Object as PropType<IDbWallet>, required: true },
+  loading: { type: Boolean, default: false },
+  reverse: { type: Boolean, default: false }
+});
+
+const checksum = shallowRef<WalletChecksum>();
+const canvasId = ref(`wlt-${props.wallet.id}-checksum`);
+
+onMounted(() => {
+  const xpk = `0488b21e000000000000000000${props.wallet.chainCode}${props.wallet.publicKey}`;
+  checksum.value = walletChecksum(xpk);
+
+  const colorIdx = hex.decode(checksum.value.ImagePart)[0] % COLORS.length;
+  const [color, bgcolor, spotcolor] = COLORS[colorIdx];
+
+  nextTick(() => {
+    renderIcon(
+      {
+        seed: checksum.value?.ImagePart,
+        size: 7,
+        scale: 4,
+        color,
+        bgcolor,
+        spotcolor
+      },
+      document.getElementById(canvasId.value)
+    );
+  });
+});
+</script>
+
 <template>
   <div class="flex flex-row gap-3 items-center w-full h-10">
     <div class="flex flex-col gap-0.5 h-full w-full text-left whitespace-nowrap">
@@ -8,7 +56,7 @@
         class="h-full text-xs flex items-center flex-row gap-1"
         :class="{ 'flex-row-reverse': reverse }"
       >
-        <small class="align-middle font-normal">{{ checksum }}</small>
+        <small class="align-middle font-normal">{{ checksum?.TextPart }}</small>
         <small class="rounded bg-gray-200 px-1 font-normal text-dark-200 uppercase">{{
           $filters.walletType(wallet.type)
         }}</small>
@@ -23,75 +71,8 @@
     </div>
 
     <canvas
-      :id="canvaId"
+      :id="canvasId"
       class="rounded w-9 h-9 ring-1 ring-gray-300 ring-offset-1 inline-block"
     ></canvas>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { walletChecksum } from "@emurgo/cip4-js";
-import { renderIcon } from "@download/blockies";
-import { hex } from "@fleet-sdk/crypto";
-import LoadingIndicator from "./LoadingIndicator.vue";
-
-const mkcolor = (primary: string, secondary: string, spots: string) => ({
-  primary,
-  secondary,
-  spots
-});
-
-const COLORS = [
-  mkcolor("#17D1AA", "#E1F2FF", "#A80B32"),
-  mkcolor("#FA5380", "#E1F2FF", "#0833B2"),
-  mkcolor("#F06EF5", "#E1F2FF", "#0804F7"),
-  mkcolor("#EBB687", "#E1F2FF", "#852D62"),
-  mkcolor("#F59F9A", "#E1F2FF", "#085F48")
-];
-
-export default defineComponent({
-  name: "WalletItem",
-  components: { LoadingIndicator },
-  props: {
-    wallet: { type: Object, required: true },
-    loading: { type: Boolean, default: false },
-    reverse: { type: Boolean, default: false }
-  },
-  data() {
-    return {
-      checksum: "",
-      canvaId: Object.freeze(
-        `wlt-checksum-${this.wallet.id}-${new Date().valueOf() + Math.random()}`
-      )
-    };
-  },
-  watch: {
-    wallet: {
-      deep: true,
-      immediate: true,
-      handler() {
-        {
-          this.$nextTick(() => {
-            const plate = walletChecksum(this.wallet.extendedPublicKey);
-            this.checksum = plate.TextPart;
-            const colorIdx = hex.decode(plate.ImagePart)[0] % COLORS.length;
-            const color = COLORS[colorIdx];
-            renderIcon(
-              {
-                seed: plate.ImagePart,
-                size: 7,
-                scale: 4,
-                color: color.primary,
-                bgcolor: color.secondary,
-                spotcolor: color.spots
-              },
-              document.getElementById(this.canvaId)
-            );
-          });
-        }
-      }
-    }
-  }
-});
-</script>
