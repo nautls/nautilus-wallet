@@ -7,7 +7,7 @@ import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
-import { sumBigNumberBy } from "@/common/bigNumbers";
+import { sumBy } from "@/common/bigNumbers";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -63,7 +63,7 @@ export async function getBalance(walletId: number, tokenId: string) {
   for (const tokenId in groups) {
     balances.push({
       tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
-      balance: sumBigNumberBy(groups[tokenId], (x) => BigNumber(x.confirmedAmount)).toString()
+      balance: sumBy(groups[tokenId], (x) => BigNumber(x.confirmedAmount)).toString()
     });
   }
 

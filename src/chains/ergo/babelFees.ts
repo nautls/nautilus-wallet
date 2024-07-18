@@ -6,7 +6,6 @@ import { addressFromErgoTree } from "./addresses";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
-import { BigNumberType } from "@/types/internal";
 
 const BABEL_ERGOTREE_PREFIX = "100604000e20";
 const BABEL_ERGOTREE_SUFFIX =
@@ -39,7 +38,7 @@ export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
   return new BigNumber(Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str());
 }
 
-export async function fetchBabelBoxes(tokenId: string, price?: BigNumberType): Promise<ErgoBox[]> {
+export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
   const p2sAddress = addressFromErgoTree(buildBabelContractFor(tokenId));
 
   let boxes = filterValidBabelBoxes(await graphQLService.getMempoolBoxes(p2sAddress));
@@ -79,7 +78,7 @@ function filterValidBabelBoxes(boxes: ErgoBox[]): ErgoBox[] {
  * @param amount Undecimalized amount
  * @returns
  */
-export function selectBestBabelBox(boxes: ErgoBox[], amount: BigNumberType): ErgoBox | undefined {
+export function selectBestBabelBox(boxes: ErgoBox[], amount: BigNumber): ErgoBox | undefined {
   return first(
     orderBy(
       boxes.filter((box) =>

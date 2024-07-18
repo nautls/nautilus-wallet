@@ -77,7 +77,7 @@ import { BigNumber } from "bignumber.js";
 import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
-import { BigNumberType, StateAsset } from "@/types/internal";
+import { StateAsset } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -89,8 +89,8 @@ export default defineComponent({
     disposable: { type: Boolean, default: false },
     asset: { type: Object as PropType<StateAsset>, required: true },
     modelValue: { type: Object, required: false },
-    reservedAmount: { type: Object as PropType<BigNumberType>, required: false },
-    minAmount: { type: Object as PropType<BigNumberType>, required: false }
+    reservedAmount: { type: Object as PropType<BigNumber>, required: false },
+    minAmount: { type: Object as PropType<BigNumber>, required: false }
   },
   setup() {
     return { v$: useVuelidate(), app: useAppStore(), assets: useAssetsStore() };
@@ -132,7 +132,7 @@ export default defineComponent({
         2
       );
     },
-    minRequired(): BigNumberType {
+    minRequired(): BigNumber {
       if (this.reservedAmount && this.minAmount) {
         return this.reservedAmount.plus(this.minAmount);
       }

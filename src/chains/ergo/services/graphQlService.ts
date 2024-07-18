@@ -5,11 +5,11 @@ import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
 import { chunk, first, isEmpty } from "@fleet-sdk/common";
 import { min } from "lodash-es";
+import { BigNumber } from "bignumber.js";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { sigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";
-import { isZero } from "@/common/bigNumbers";
 import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
@@ -211,7 +211,8 @@ class GraphQLService {
   #parseAddressesBalanceResponse(addressesInfo: Address[]): AssetBalance[] {
     let assets: AssetBalance[] = [];
 
-    for (const addressInfo of addressesInfo.filter((r) => !isZero(r.balance.nanoErgs))) {
+    const nonZeroAddresses = addressesInfo.filter((x) => !BigNumber(x.balance.nanoErgs).isZero());
+    for (const addressInfo of nonZeroAddresses) {
       assets = assets.concat(
         addressInfo.balance.assets.map((t) => {
           return {

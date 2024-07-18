@@ -8,7 +8,7 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
-import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
+import { AddressState, FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { undecimalize } from "@/common/bigNumbers";
 import { hdKeyPool } from "@/common/objectPool";
 
@@ -16,7 +16,7 @@ const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 export type TxAssetAmount = {
   asset: StateAsset;
-  amount?: BigNumberType;
+  amount?: BigNumber;
 };
 
 export async function createP2PTransaction({

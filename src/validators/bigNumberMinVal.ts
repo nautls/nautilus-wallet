@@ -1,9 +1,9 @@
-import { BigNumberType } from "@/types/internal";
-import { filters } from "@/common/globalFilters";
 import { ValidationRuleWithParams } from "@vuelidate/core";
+import { BigNumber } from "bignumber.js";
+import { filters } from "@/common/globalFilters";
 
-function validator(min: BigNumberType) {
-  return (value?: BigNumberType) => {
+function validator(min: BigNumber) {
+  return (value?: BigNumber) => {
     if (!value) {
       return true;
     }
@@ -12,7 +12,7 @@ function validator(min: BigNumberType) {
   };
 }
 
-export default function (min: BigNumberType): ValidationRuleWithParams<{ min: BigNumberType }> {
+export default function (min: BigNumber): ValidationRuleWithParams<{ min: BigNumber }> {
   return {
     $validator: validator(min),
     $message: ({ $params }) =>

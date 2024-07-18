@@ -69,8 +69,8 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
-  confirmedAmount: BigNumberType;
-  unconfirmedAmount?: BigNumberType;
+  confirmedAmount: BigNumber;
+  unconfirmedAmount?: BigNumber;
   metadata?: BasicAssetMetadata;
 };
 
@@ -83,12 +83,10 @@ export type BasicAssetMetadata = {
 
 export type AssetsMetadataMap = Map<TokenId, BasicAssetMetadata>;
 
-export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
-
 export type FeeSettings = {
   tokenId: string;
-  readonly value: BigNumberType;
-  readonly nanoErgsPerToken?: BigNumberType;
+  readonly value: BigNumber;
+  readonly nanoErgsPerToken?: BigNumber;
   readonly assetInfo?: BasicAssetMetadata;
   box?: ErgoBox;
 };

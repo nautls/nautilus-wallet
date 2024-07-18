@@ -2,7 +2,7 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive } from "vue";
 import { groupBy } from "lodash-es";
 import { BigNumber } from "bignumber.js";
-import { decimalize, sumBigNumberBy } from "../common/bigNumbers";
+import { decimalize, sumBy } from "../common/bigNumbers";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
@@ -52,11 +52,11 @@ export const useWallet = defineStore("wallet", () => {
       balance.push({
         tokenId: assetGroup[0].tokenId,
         confirmedAmount: decimalize(
-          sumBigNumberBy(assetGroup, (x) => x.confirmedAmount),
+          sumBy(assetGroup, (x) => x.confirmedAmount),
           metadata?.decimals
         ),
         unconfirmedAmount: decimalize(
-          sumBigNumberBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
+          sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
           metadata?.decimals
         ),
         metadata

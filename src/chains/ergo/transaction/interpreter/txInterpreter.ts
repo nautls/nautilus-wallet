@@ -14,7 +14,7 @@ import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";
-import { decimalize, sumBigNumberBy, toBigNumber } from "@/common/bigNumbers";
+import { decimalize, sumBy, toBigNumber } from "@/common/bigNumbers";
 import {
   boxCandidateToBoxAmounts,
   sortByTokenId,
@@ -219,7 +219,7 @@ export class TxInterpreter {
 
     const totals: { [tokenId: string]: BigNumber } = {};
     for (const key in groups) {
-      totals[key] = sumBigNumberBy(groups[key], (x) => x.amount);
+      totals[key] = sumBy(groups[key], (x) => x.amount);
     }
 
     return totals;

@@ -16,7 +16,7 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { GETTERS } from "@/constants/store/getters";
 import store from "@/store";
-import { BasicAssetMetadata, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
+import { BasicAssetMetadata, FeeSettings, StateAsset } from "@/types/internal";
 import { decimalize } from "@/common/bigNumbers";
 import { bigNumberMinValue } from "@/validators";
 import { filters } from "@/common/globalFilters";
@@ -25,7 +25,7 @@ import { useAssetsStore } from "@/stores/assetsStore";
 
 type FeeAsset = {
   tokenId: string;
-  nanoErgsPerToken: BigNumberType;
+  nanoErgsPerToken: BigNumber;
   metadata?: BasicAssetMetadata;
 };
 

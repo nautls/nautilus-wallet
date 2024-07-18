@@ -98,7 +98,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
+import { FeeSettings, StateAsset, StateWallet } from "@/types/internal";
 import { decimalize, undecimalize } from "@/common/bigNumbers";
 import { validErgoAddress } from "@/validators";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
@@ -178,7 +178,7 @@ export default defineComponent({
 
       return false;
     },
-    reservedFeeAssetAmount(): BigNumberType {
+    reservedFeeAssetAmount(): BigNumber {
       const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
       if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
         return new BigNumber(0);
@@ -194,20 +194,20 @@ export default defineComponent({
 
       return this.fee;
     },
-    fee(): BigNumberType {
+    fee(): BigNumber {
       return this.feeSettings.value;
     },
     isFeeInErg(): boolean {
       return this.isErg(this.feeSettings.tokenId);
     },
-    changeValue(): BigNumberType | undefined {
+    changeValue(): BigNumber | undefined {
       if (!this.hasChange) {
         return;
       }
 
       return this.minBoxValue;
     },
-    minBoxValue(): BigNumberType {
+    minBoxValue(): BigNumber {
       return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
     },
     devMode(): boolean {
@@ -246,7 +246,7 @@ export default defineComponent({
     return validations;
   },
   methods: {
-    getReserveAmountFor(tokenId: string): BigNumberType | undefined {
+    getReserveAmountFor(tokenId: string): BigNumber | undefined {
       if (this.isFeeAsset(tokenId)) {
         return this.reservedFeeAssetAmount;
       } else if (this.isErg(tokenId) && this.hasChange) {
