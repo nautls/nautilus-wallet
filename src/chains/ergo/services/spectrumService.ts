@@ -2,8 +2,9 @@ import { BigNumber } from "bignumber.js";
 import { uniqWith } from "lodash-es";
 import { safeFetch } from "@/common/networking";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { bn } from "@/common/bigNumber";
 
-const _1 = BigNumber(1);
+const _1 = bn(1);
 
 export type AssetPriceRate = {
   [tokenId: string]: { erg: number };

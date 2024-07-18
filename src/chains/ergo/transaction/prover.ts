@@ -36,7 +36,7 @@ import HdKey from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
-import { toBigNumber } from "@/common/bigNumbers";
+import { bn } from "@/common/bigNumber";
 import { walletsDbService } from "@/database/walletsDbService";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
@@ -85,8 +85,8 @@ export class Prover {
       headers.map((x) => ({
         ...x,
         id: x.headerId,
-        timestamp: toBigNumber(x.timestamp).toNumber(),
-        nBits: toBigNumber(x.nBits).toNumber(),
+        timestamp: bn(x.timestamp).toNumber(),
+        nBits: bn(x.nBits).toNumber(),
         votes: hex.encode(Uint8Array.from(x.votes))
       }))
     );

@@ -14,7 +14,7 @@ import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";
-import { decimalize, sumBy, toBigNumber } from "@/common/bigNumbers";
+import { bn, decimalize, sumBy } from "@/common/bigNumber";
 import {
   boxCandidateToBoxAmounts,
   sortByTokenId,
@@ -212,7 +212,7 @@ export class TxInterpreter {
 
     const groups = groupBy(
       assets.map((x) => {
-        return { tokenId: x.tokenId, amount: toBigNumber(x.amount) };
+        return { tokenId: x.tokenId, amount: bn(x.amount) };
       }),
       (x) => x.tokenId
     );

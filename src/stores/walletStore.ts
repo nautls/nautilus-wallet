@@ -1,8 +1,7 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive } from "vue";
 import { groupBy } from "lodash-es";
-import { BigNumber } from "bignumber.js";
-import { decimalize, sumBy } from "../common/bigNumbers";
+import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
@@ -67,7 +66,7 @@ export const useWallet = defineStore("wallet", () => {
       return [
         {
           tokenId: "ERG",
-          confirmedAmount: BigNumber(0),
+          confirmedAmount: bn(0),
           metadata: assets.metadata.get("ERG")
         }
       ];

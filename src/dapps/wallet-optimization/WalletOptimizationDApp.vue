@@ -3,14 +3,13 @@ import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
-import { BigNumber } from "bignumber.js";
 import { createConsolidationTransaction } from "./transactionFactory";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import store from "@/store";
 import { ErgoBox } from "@/types/connector";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { FeeSettings } from "@/types/internal";
-import { decimalize } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -28,7 +27,7 @@ const boxes = ref<ErgoBox[]>([]);
 const currentHeight = ref(0);
 const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
-  value: decimalize(BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+  value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
 });
 
 onMounted(loadBoxes);

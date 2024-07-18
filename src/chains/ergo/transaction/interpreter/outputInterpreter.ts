@@ -5,7 +5,7 @@ import { utf8 } from "@fleet-sdk/crypto";
 import { isBabelContract } from "../../babelFees";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
-import { decimalize, toBigNumber } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import { sigmaDecode } from "@/chains/ergo/serialization";
 import { AssetsMetadataMap } from "@/types/internal";
 
@@ -89,7 +89,7 @@ export class OutputInterpreter {
         tokenId: token.tokenId,
         name: this._metadata.get(token.tokenId)?.name,
         amount: decimalize(
-          toBigNumber(token.amount).minus(inputValue),
+          bn(token.amount).minus(inputValue),
           this._metadata.get(token.tokenId)?.decimals || 0
         )
       } as OutputAsset;
@@ -98,7 +98,7 @@ export class OutputInterpreter {
     assets.push({
       tokenId: ERG_TOKEN_ID,
       name: "ERG",
-      amount: decimalize(toBigNumber(input.value).minus(this._box.value), ERG_DECIMALS)
+      amount: decimalize(bn(input.value).minus(this._box.value), ERG_DECIMALS)
     });
 
     return assets;
@@ -109,7 +109,7 @@ export class OutputInterpreter {
     assets.push({
       tokenId: ERG_TOKEN_ID,
       name: "ERG",
-      amount: decimalize(toBigNumber(this._box.value), ERG_DECIMALS)
+      amount: decimalize(bn(this._box.value), ERG_DECIMALS)
     });
 
     if (isEmpty(this._box.assets)) {
@@ -121,8 +121,8 @@ export class OutputInterpreter {
         tokenId: t.tokenId,
         name: this._metadata.get(t.tokenId)?.name,
         amount: this._metadata.get(t.tokenId)?.decimals
-          ? decimalize(toBigNumber(t.amount), this._metadata.get(t.tokenId)?.decimals || 0)
-          : toBigNumber(t.amount)
+          ? decimalize(bn(t.amount), this._metadata.get(t.tokenId)?.decimals || 0)
+          : bn(t.amount)
       } as OutputAsset;
     });
 
@@ -151,7 +151,7 @@ export class OutputInterpreter {
     if (isEmpty(this._box.additionalRegisters)) {
       return {
         tokenId: token.tokenId,
-        amount: toBigNumber(token.amount)
+        amount: bn(token.amount)
       };
     }
 
@@ -161,9 +161,7 @@ export class OutputInterpreter {
       tokenId: token.tokenId,
       name: sigmaDecode(this._box.additionalRegisters["R4"], utf8) ?? "",
       decimals,
-      amount: decimals
-        ? decimalize(toBigNumber(token.amount), decimals)
-        : toBigNumber(token.amount),
+      amount: decimals ? decimalize(bn(token.amount), decimals) : bn(token.amount),
       description: sigmaDecode(this._box.additionalRegisters["R5"], utf8) ?? "",
       minting: true
     };

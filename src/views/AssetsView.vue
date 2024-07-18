@@ -118,6 +118,7 @@ import StorageRentBox from "@/components/StorageRentBox.vue";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWallet } from "@/stores/walletStore";
+import { bn } from "@/common/bigNumber";
 
 export default defineComponent({
   name: "AssetsView",
@@ -181,9 +182,8 @@ export default defineComponent({
   methods: {
     price(tokenId: string): BigNumber {
       const rate = this.rate(tokenId);
-      if (!rate || !this.ergPrice) return BigNumber(0);
-
-      return BigNumber(rate).times(this.ergPrice);
+      if (!rate || !this.ergPrice) return bn(0);
+      return bn(rate).times(this.ergPrice);
     },
     rate(tokenId: string): number {
       return this.assetsStore.prices.get(tokenId)?.erg ?? 0;

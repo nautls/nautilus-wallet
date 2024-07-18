@@ -1,5 +1,4 @@
 import { groupBy } from "lodash-es";
-import { BigNumber } from "bignumber.js";
 import { Box, isDefined, some } from "@fleet-sdk/common";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
@@ -7,7 +6,7 @@ import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
-import { sumBy } from "@/common/bigNumbers";
+import { bn, sumBy } from "@/common/bigNumber";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -51,7 +50,7 @@ export async function getBalance(walletId: number, tokenId: string) {
     const assets = await assetsDbService.getByTokenId(walletId, tokenId);
     return some(assets)
       ? assets
-          .map((a) => BigNumber(a.confirmedAmount))
+          .map((a) => bn(a.confirmedAmount))
           .reduce((acc, val) => acc.plus(val))
           .toString()
       : "0";
@@ -63,7 +62,7 @@ export async function getBalance(walletId: number, tokenId: string) {
   for (const tokenId in groups) {
     balances.push({
       tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
-      balance: sumBy(groups[tokenId], (x) => BigNumber(x.confirmedAmount)).toString()
+      balance: sumBy(groups[tokenId], (x) => bn(x.confirmedAmount)).toString()
     });
   }
 

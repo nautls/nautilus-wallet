@@ -9,7 +9,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { ACTIONS } from "@/constants/store";
 import store from "@/store";
 import { AddressState, FeeSettings, StateAsset, WalletType } from "@/types/internal";
-import { undecimalize } from "@/common/bigNumbers";
+import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
@@ -56,10 +56,7 @@ export async function createP2PTransaction({
           .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
           .map((token) => ({
             tokenId: token.asset.tokenId,
-            amount: undecimalize(
-              token.amount || BigNumber(0),
-              token.asset.metadata?.decimals
-            ).toString()
+            amount: undecimalize(token.amount || bn(0), token.asset.metadata?.decimals).toString()
           }))
       )
     )
@@ -92,7 +89,7 @@ export async function setFee(
 ): Promise<TransactionBuilder> {
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
   let feeNanoErgs = undecimalize(fee.value, ERG_DECIMALS);
-  let sendingNanoErgs = BigNumber(builder.outputs.sum().nanoErgs.toString());
+  let sendingNanoErgs = bn(builder.outputs.sum().nanoErgs.toString());
 
   if (isBabelFee) {
     const tokenUnits = undecimalize(fee.value, fee.assetInfo?.decimals);
@@ -115,7 +112,7 @@ export async function setFee(
       sendingNanoErgs.lte(MIN_BOX_VALUE) &&
       sendingNanoErgs.lte(feeNanoErgs.minus(SAFE_MIN_FEE_VALUE))
     ) {
-      sendingNanoErgs = BigNumber(MIN_BOX_VALUE);
+      sendingNanoErgs = bn(MIN_BOX_VALUE);
       feeNanoErgs = feeNanoErgs.minus(sendingNanoErgs);
     }
 
@@ -135,7 +132,7 @@ function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
   if (erg && erg.amount) {
     return undecimalize(erg.amount, ERG_DECIMALS);
   } else {
-    return new BigNumber(0);
+    return bn(0);
   }
 }
 

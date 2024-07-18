@@ -6,6 +6,7 @@ import { addressFromErgoTree } from "./addresses";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { TOKEN_ID_LENGTH } from "@/constants/ergo";
 import { ErgoBox } from "@/types/connector";
+import { bn } from "@/common/bigNumber";
 
 const BABEL_ERGOTREE_PREFIX = "100604000e20";
 const BABEL_ERGOTREE_SUFFIX =
@@ -35,7 +36,7 @@ export function extractTokenIdFromBabelContract(ergoTree: string): string {
 }
 
 export function getNanoErgsPerTokenRate(box: ErgoBox): BigNumber {
-  return new BigNumber(Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str());
+  return bn(Constant.decode_from_base16(box.additionalRegisters.R5).to_i64().to_str());
 }
 
 export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promise<ErgoBox[]> {
@@ -44,16 +45,10 @@ export async function fetchBabelBoxes(tokenId: string, price?: BigNumber): Promi
   let boxes = filterValidBabelBoxes(await graphQLService.getMempoolBoxes(p2sAddress));
   boxes = boxes.filter((box) => !boxes.some((x) => x.additionalRegisters.R6.endsWith(box.boxId)));
 
-  if (price) {
-    boxes = filterByPrice(boxes, price as BigNumber);
-  }
-
+  if (price) boxes = filterByPrice(boxes, price);
   if (isEmpty(boxes)) {
     boxes = filterValidBabelBoxes(await graphQLService.getUnspentBoxes([p2sAddress]));
-
-    if (price) {
-      boxes = filterByPrice(boxes, price as BigNumber);
-    }
+    if (price) boxes = filterByPrice(boxes, price);
   }
 
   return sortBy(boxes, (box) => box.creationHeight);
@@ -64,10 +59,7 @@ function filterByPrice(boxes: ErgoBox[], price: BigNumber): ErgoBox[] {
 }
 
 function filterValidBabelBoxes(boxes: ErgoBox[]): ErgoBox[] {
-  if (isEmpty(boxes)) {
-    return boxes;
-  }
-
+  if (isEmpty(boxes)) return boxes;
   return boxes.filter((box) => isValidBabelBox(box));
 }
 
@@ -81,9 +73,7 @@ function filterValidBabelBoxes(boxes: ErgoBox[]): ErgoBox[] {
 export function selectBestBabelBox(boxes: ErgoBox[], amount: BigNumber): ErgoBox | undefined {
   return first(
     orderBy(
-      boxes.filter((box) =>
-        amount.multipliedBy(getNanoErgsPerTokenRate(box)).isLessThanOrEqualTo(box.value)
-      ),
+      boxes.filter((box) => amount.times(getNanoErgsPerTokenRate(box)).lte(box.value)),
       (box) => getNanoErgsPerTokenRate(box)
     ).reverse()
   );

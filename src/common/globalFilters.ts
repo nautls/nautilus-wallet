@@ -1,4 +1,5 @@
 import { BigNumber } from "bignumber.js";
+import { bn } from "./bigNumber";
 import { WalletType } from "@/types/internal";
 
 const defaultBigNumbersFormatter = Intl.NumberFormat("en", {
@@ -36,14 +37,8 @@ export const filters = {
       return `${val.slice(0, maxLength - ellipsis.length + 1).trimEnd()}${ellipsis}`;
     }
   },
-  formatBigNumber(
-    value?: BigNumber | BigNumber.Instance,
-    decimalPlaces?: number,
-    shortThreshold = 1_000_000
-  ) {
-    if (!value) {
-      return "";
-    }
+  formatBigNumber(value?: BigNumber, decimalPlaces?: number, shortThreshold = 1_000_000) {
+    if (!value) return "";
 
     if (value.isGreaterThanOrEqualTo(shortThreshold)) {
       return defaultBigNumbersFormatter.format(value.toNumber());
@@ -54,16 +49,14 @@ export const filters = {
       : value.toFormat(decimalPlaces);
   },
   roundToSignificantFigures(num: number, n: number) {
-    if (num === 0) {
-      return new BigNumber(0);
-    }
+    if (num === 0) return bn(0);
 
     const d = Math.ceil(Math.log10(num < 0 ? -num : num));
     const power = n - d;
 
     const magnitude = Math.pow(10, power);
     const shifted = Math.round(num * magnitude);
-    return new BigNumber(shifted / magnitude);
+    return bn(shifted / magnitude);
   },
   walletType(type: WalletType): string {
     switch (type) {

@@ -81,6 +81,7 @@ import { StateAsset } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { bn } from "@/common/bigNumber";
 
 export default defineComponent({
   name: "AssetInput",
@@ -137,7 +138,7 @@ export default defineComponent({
         return this.reservedAmount.plus(this.minAmount);
       }
 
-      return this.minAmount || this.reservedAmount || new BigNumber(0);
+      return this.minAmount || this.reservedAmount || bn(0);
     },
     ergPrice(): number {
       return this.assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0;
@@ -179,7 +180,7 @@ export default defineComponent({
       },
       parsedValue: {
         required: helpers.withMessage("Amount is required.", required),
-        minValue: bigNumberMinValue(this.minAmount || new BigNumber(0)),
+        minValue: bigNumberMinValue(this.minAmount || bn(0)),
         maxValue: bigNumberMaxValue(this.available)
       }
     };
@@ -193,7 +194,7 @@ export default defineComponent({
         return undefined;
       }
 
-      const n = new BigNumber(val.replaceAll(",", ""));
+      const n = bn(val.replaceAll(",", ""));
       if (!n.isNaN()) {
         return n;
       }
@@ -216,11 +217,8 @@ export default defineComponent({
     },
     priceFor(tokenId: string): BigNumber {
       const rate = this.rate(tokenId);
-      if (!rate || !this.ergPrice) {
-        return new BigNumber(0);
-      }
-
-      return new BigNumber(rate).multipliedBy(this.ergPrice);
+      if (!rate || !this.ergPrice) return bn(0);
+      return bn(rate).multipliedBy(this.ergPrice);
     },
     rate(tokenId: string): number {
       return this.assets.prices.get(tokenId)?.erg ?? 0;

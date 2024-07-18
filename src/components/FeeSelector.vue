@@ -17,7 +17,7 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { GETTERS } from "@/constants/store/getters";
 import store from "@/store";
 import { BasicAssetMetadata, FeeSettings, StateAsset } from "@/types/internal";
-import { decimalize } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import { bigNumberMinValue } from "@/validators";
 import { filters } from "@/common/globalFilters";
 import { useAppStore } from "@/stores/appStore";
@@ -32,8 +32,8 @@ type FeeAsset = {
 const appStore = useAppStore();
 const assetsStore = useAssetsStore();
 
-const bigMinErgFee = new BigNumber(SAFE_MIN_FEE_VALUE);
-const bigMinBoxValue = new BigNumber(MIN_BOX_VALUE);
+const bigMinErgFee = bn(SAFE_MIN_FEE_VALUE);
+const bigMinBoxValue = bn(MIN_BOX_VALUE);
 
 const props = defineProps({
   selected: { type: Object as PropType<FeeSettings>, required: true },
@@ -45,8 +45,8 @@ const emit = defineEmits<{ (event: "update:selected", feeState: FeeSettings): vo
 const state = reactive({
   multiplier: 1,
   assets: [] as FeeAsset[],
-  internalSelected: { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: BigNumber(0) } as FeeAsset,
-  cachedMinRequired: new BigNumber(0)
+  internalSelected: { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) } as FeeAsset,
+  cachedMinRequired: bn(0)
 });
 
 const conversionCurrency = computed(() => {
@@ -168,14 +168,14 @@ onMounted(loadAssets);
 async function loadAssets() {
   const erg: FeeAsset = {
     tokenId: ERG_TOKEN_ID,
-    nanoErgsPerToken: new BigNumber(1),
+    nanoErgsPerToken: bn(1),
     metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
   };
 
   state.multiplier = 1;
   state.assets = [erg];
-  state.internalSelected = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: BigNumber(0) };
-  state.cachedMinRequired = new BigNumber(0);
+  state.internalSelected = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) };
+  state.cachedMinRequired = bn(0);
   select(erg);
 
   const addresses = nonNftAssets.value
@@ -202,7 +202,7 @@ async function loadAssets() {
       return {
         tokenId,
         metadata: assetsStore.metadata.get(tokenId),
-        nanoErgsPerToken: price || new BigNumber(0)
+        nanoErgsPerToken: price || bn(0)
       };
     })
     .filter((asset) => !asset.nanoErgsPerToken.isZero());
@@ -222,12 +222,10 @@ function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
     !state.internalSelected.nanoErgsPerToken ||
     state.internalSelected.nanoErgsPerToken.isZero()
   ) {
-    return new BigNumber(0);
+    return bn(0);
   }
 
-  return nanoErgs
-    .dividedBy(state.internalSelected.nanoErgsPerToken)
-    .integerValue(BigNumber.ROUND_UP);
+  return nanoErgs.div(state.internalSelected.nanoErgsPerToken).integerValue(BigNumber.ROUND_UP);
 }
 
 function recalculateMinRequired() {

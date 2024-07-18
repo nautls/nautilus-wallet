@@ -1,5 +1,4 @@
 import { createStore } from "vuex";
-import { BigNumber } from "bignumber.js";
 import { clone, groupBy, last, maxBy, sortBy, take } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
@@ -26,7 +25,7 @@ import {
 } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
 import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
-import { decimalize, toBigNumber } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
 import { IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
 import router from "@/router";
@@ -97,7 +96,7 @@ export default createStore({
         return [
           {
             tokenId: ERG_TOKEN_ID,
-            confirmedAmount: new BigNumber(0),
+            confirmedAmount: bn(0),
             metadata: assets.metadata.get(ERG_TOKEN_ID)
           }
         ];
@@ -195,11 +194,8 @@ export default createStore({
           const metadata = assets.metadata.get(x.tokenId);
           return {
             tokenId: x.tokenId,
-            confirmedAmount: decimalize(
-              toBigNumber(x.confirmedAmount) || new BigNumber(0),
-              metadata?.decimals
-            ),
-            unconfirmedAmount: decimalize(toBigNumber(x.unconfirmedAmount), metadata?.decimals),
+            confirmedAmount: decimalize(bn(x.confirmedAmount) || bn(0), metadata?.decimals),
+            unconfirmedAmount: decimalize(bn(x.unconfirmedAmount), metadata?.decimals),
             metadata
           };
         });
@@ -216,7 +212,7 @@ export default createStore({
           type: w.type,
           publicKey: w.publicKey,
           extendedPublicKey: hex.encode(hdKeyPool.get(w.publicKey).extendedPublicKey),
-          balance: new BigNumber(0),
+          balance: bn(0),
           settings: w.settings
         };
       });

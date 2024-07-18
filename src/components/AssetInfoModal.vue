@@ -71,7 +71,7 @@ import ImageSandbox from "./ImageSandbox.vue";
 import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { decimalize, toBigNumber } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import { AssetSubtype } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 
@@ -82,7 +82,7 @@ export default defineComponent({
   },
   props: {
     tokenId: { type: String, required: false },
-    confirmedBalance: { type: Object as PropType<BigNumber.Instance>, required: false }
+    confirmedBalance: { type: Object as PropType<BigNumber>, required: false }
   },
   setup() {
     return { app: useAppStore() };
@@ -100,16 +100,12 @@ export default defineComponent({
         return "";
       }
 
-      let amount = toBigNumber(this.asset.emissionAmount);
+      let amount = bn(this.asset.emissionAmount);
       if (this.asset.decimals) {
         amount = decimalize(amount, this.asset.decimals);
       }
 
-      return this.$filters.formatBigNumber(
-        amount ?? new BigNumber(0),
-        undefined,
-        Number.MAX_SAFE_INTEGER
-      );
+      return this.$filters.formatBigNumber(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
     },
     isImageNft(): boolean {
       return this.asset?.subtype === AssetSubtype.PictureArtwork;

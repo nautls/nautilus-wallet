@@ -1,14 +1,11 @@
 import { describe, expect, it } from "vitest";
-import BigNumber from "bignumber.js";
-import { decimalize, undecimalize } from "@/common/bigNumbers";
+import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 
 describe("bigNumber helpers", () => {
   it("decimalize numbers with various decimal places", () => {
     const base = "100000000000000000000000000000";
     for (let i = 0; i < base.length; i++) {
-      expect(decimalize(new BigNumber(base), i).toString(10)).toEqual(
-        base.slice(0, base.length - i)
-      );
+      expect(decimalize(bn(base), i).toString(10)).toEqual(base.slice(0, base.length - i));
     }
   });
 
@@ -18,16 +15,14 @@ describe("bigNumber helpers", () => {
     const expected =
       "1000000000000000000.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
 
-    expect(decimalize(new BigNumber(hugeDecimalsNumber), 101).toString()).toEqual(expected);
+    expect(decimalize(bn(hugeDecimalsNumber), 101).toString()).toEqual(expected);
   });
 
   it("undecimalize numbers with various decimal places", () => {
     const base = "1";
     for (let i = 0; i < 20; i++) {
       base.padEnd(i, "0");
-      expect(undecimalize(new BigNumber(base), i).toString()).toEqual(
-        base.padEnd(base.length + i, "0")
-      );
+      expect(undecimalize(bn(base), i).toString()).toEqual(base.padEnd(base.length + i, "0"));
     }
   });
 
@@ -37,6 +32,6 @@ describe("bigNumber helpers", () => {
     const expected =
       "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
 
-    expect(undecimalize(new BigNumber(hugeDecimalsNumber), 101).toString(10)).toEqual(expected);
+    expect(undecimalize(bn(hugeDecimalsNumber), 101).toString(10)).toEqual(expected);
   });
 });

@@ -99,7 +99,7 @@ import { BigNumber } from "bignumber.js";
 import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings, StateAsset, StateWallet } from "@/types/internal";
-import { decimalize, undecimalize } from "@/common/bigNumbers";
+import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { validErgoAddress } from "@/validators";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import AssetInput from "@/components/AssetInput.vue";
@@ -131,7 +131,7 @@ export default defineComponent({
       selected: [] as TxAssetAmount[],
       feeSettings: {
         tokenId: ERG_TOKEN_ID,
-        value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+        value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
       } as FeeSettings,
       password: "",
       recipient: ""
@@ -180,18 +180,9 @@ export default defineComponent({
     },
     reservedFeeAssetAmount(): BigNumber {
       const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
-      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
-        return new BigNumber(0);
-      }
-
-      if (!this.changeValue) {
-        return this.fee;
-      }
-
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
-        return this.fee.plus(this.changeValue);
-      }
-
+      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) return bn(0);
+      if (!this.changeValue) return this.fee;
+      if (this.feeSettings.tokenId === ERG_TOKEN_ID) return this.fee.plus(this.changeValue);
       return this.fee;
     },
     fee(): BigNumber {
@@ -208,7 +199,7 @@ export default defineComponent({
       return this.minBoxValue;
     },
     minBoxValue(): BigNumber {
-      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
+      return decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
     },
     devMode(): boolean {
       return this.app.settings.devMode;
@@ -316,7 +307,7 @@ export default defineComponent({
       if (!erg) return;
 
       if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
-        erg.amount = new BigNumber(this.minBoxValue);
+        erg.amount = bn(this.minBoxValue);
       }
     },
     removeDisposableSelections() {
