@@ -5,7 +5,7 @@
     </div>
     <div class="flex flex-wrap gap-4 justify-between">
       <div
-        v-for="nft in nfts"
+        v-for="nft in assets"
         :key="nft.tokenId"
         class="border cursor-pointer border-gray-300 rounded w-39 transition duration-250 hover:bg-gray-100 active:bg-gray-200"
         @click="selectedAsset = nft"
@@ -36,11 +36,10 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapState } from "vuex";
-import { GETTERS } from "@/constants/store/getters";
 import { StateAsset } from "@/types/internal";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "NftGalleryView",
@@ -48,12 +47,18 @@ export default defineComponent({
     AssetInfoModal,
     ImageSandbox
   },
+  setup() {
+    return { wallet: useWalletStore() };
+  },
+  data() {
+    return {
+      filter: "",
+      selectedAsset: undefined as StateAsset | undefined
+    };
+  },
   computed: {
-    ...mapState({
-      currentWallet: "currentWallet"
-    }),
-    nfts(): StateAsset[] {
-      const assetList = this.$store.getters[GETTERS.PICTURE_NFT_BALANCE];
+    assets(): StateAsset[] {
+      const assetList = this.wallet.artworkBalance;
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>
@@ -65,15 +70,11 @@ export default defineComponent({
     }
   },
   watch: {
-    currentWallet() {
-      this.$router.push({ name: "assets-page" });
+    assets() {
+      if (this.assets.length === 0) {
+        this.$router.push({ name: "assets-page" });
+      }
     }
-  },
-  data() {
-    return {
-      filter: "",
-      selectedAsset: undefined as StateAsset | undefined
-    };
   }
 });
 </script>

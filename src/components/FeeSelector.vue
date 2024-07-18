@@ -14,14 +14,13 @@ import {
 } from "@/chains/ergo/babelFees";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { GETTERS } from "@/constants/store/getters";
-import store from "@/store";
-import { BasicAssetMetadata, FeeSettings, StateAsset } from "@/types/internal";
+import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
 import { bigNumberMinValue } from "@/validators";
 import { filters } from "@/common/globalFilters";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 type FeeAsset = {
   tokenId: string;
@@ -31,6 +30,7 @@ type FeeAsset = {
 
 const appStore = useAppStore();
 const assetsStore = useAssetsStore();
+const wallet = useWalletStore();
 
 const bigMinErgFee = bn(SAFE_MIN_FEE_VALUE);
 const bigMinBoxValue = bn(MIN_BOX_VALUE);
@@ -86,10 +86,6 @@ const price = computed(() => {
     state.internalSelected.nanoErgsPerToken.times(tokenUnitsFee.value),
     ERG_DECIMALS
   );
-});
-
-const nonNftAssets = computed((): StateAsset[] => {
-  return store.getters[GETTERS.NON_NFT_BALANCE];
 });
 
 const unselected = computed((): FeeAsset[] => {
@@ -154,7 +150,7 @@ watch(
 );
 
 watch(
-  () => ({ walletId: store.state.currentWallet.id, assets: nonNftAssets.value }),
+  () => ({ walletId: wallet.id, assets: wallet.nonArtworkBalance }),
   (newVal, oldVal) => {
     if (areEqualBy(newVal.assets, oldVal.assets, (asset) => asset.tokenId)) {
       return;
@@ -178,7 +174,7 @@ async function loadAssets() {
   state.cachedMinRequired = bn(0);
   select(erg);
 
-  const addresses = nonNftAssets.value
+  const addresses = wallet.nonArtworkBalance
     .filter((x) => x.tokenId !== ERG_TOKEN_ID)
     .map((x) => addressFromErgoTree(buildBabelContractFor(x.tokenId)));
 

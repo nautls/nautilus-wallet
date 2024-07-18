@@ -96,7 +96,6 @@ import { helpers, required } from "@vuelidate/validators";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
-import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings, StateAsset, StateWallet } from "@/types/internal";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
@@ -106,6 +105,7 @@ import AssetInput from "@/components/AssetInput.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 const validations = {
   recipient: {
@@ -124,7 +124,7 @@ export default defineComponent({
   name: "SendView",
   components: { AssetInput, FeeSelector },
   setup() {
-    return { app: useAppStore(), v$: useVuelidate() };
+    return { app: useAppStore(), v$: useVuelidate(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -141,12 +141,9 @@ export default defineComponent({
     currentWallet(): StateWallet {
       return this.$store.state.currentWallet;
     },
-    assets(): StateAsset[] {
-      return this.$store.getters[GETTERS.BALANCE];
-    },
     unselected(): StateAsset[] {
       return differenceBy(
-        this.assets,
+        this.wallet.balance,
         this.selected.map((a) => a.asset),
         (a) => a.tokenId
       );
@@ -276,7 +273,7 @@ export default defineComponent({
       const selected = this.selected.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
       if (selected) return;
 
-      const erg = this.assets.find((a) => a.tokenId === ERG_TOKEN_ID);
+      const erg = this.wallet.balance.find((a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
         this.selected.unshift({ asset: erg, amount: undefined });
       }

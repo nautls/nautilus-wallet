@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { WalletType } from "@/types/internal";
-import { GETTERS } from "@/constants/store";
-import store from "@/store";
+import { useWalletStore } from "@/stores/walletStore";
 
-const readonly = computed(() => store.state.currentWallet?.type === WalletType.ReadOnly);
-const hasNft = computed(() => store.getters[GETTERS.PICTURE_NFT_BALANCE].length > 0);
+const wallet = useWalletStore();
+
+const readonly = computed(() => wallet.type === WalletType.ReadOnly);
+const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 </script>
 
 <template>
@@ -16,7 +17,7 @@ const hasNft = computed(() => store.getters[GETTERS.PICTURE_NFT_BALANCE].length 
         <vue-feather type="pie-chart" class="m-3" size="22" />
       </tool-tip>
     </router-link>
-    <router-link v-if="hasNft" to="/nft" active-class="active" class="w-full tab-item">
+    <router-link v-if="containsArtwork" to="/nft" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="NFT gallery">
         <vue-feather type="image" class="m-3" size="22" />
       </tool-tip>

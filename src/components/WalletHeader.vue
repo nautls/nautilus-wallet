@@ -4,32 +4,29 @@ import WalletLogo from "./WalletLogo.vue";
 import store from "@/store";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
-import { ACTIONS } from "@/constants/store";
-import { IDbWallet } from "@/types/database";
+import { IDbWallet, NotNullId } from "@/types/database";
 import { walletsDbService } from "@/database/walletsDbService";
+import { useWalletStore } from "@/stores/walletStore";
 
-const wallets = shallowRef<IDbWallet[]>([]);
+const wallet = useWalletStore();
+
+const wallets = shallowRef<NotNullId<IDbWallet>[]>([]);
 
 const loading = computed(() => store.state.loading);
 
-const currentWallet = computed(() => {
-  if (!store.state.currentWallet || !wallets.value) return;
-  return wallets.value?.find((w) => w.id === store.state.currentWallet?.id);
+const unselected = computed(() => {
+  if (!wallets.value) return [];
+  const currentId = wallet.id;
+  return wallets.value.filter((w) => w.id !== currentId);
 });
 
-const unselectedWallets = computed(() => {
-  if (!wallets.value) return [];
-  const currentId = store.state.currentWallet?.id;
-  return wallets.value.filter((w) => w.id !== currentId);
+const current = computed(() => {
+  return wallets.value.find((w) => w.id === wallet.id);
 });
 
 onMounted(async () => {
   wallets.value = await walletsDbService.getAll();
 });
-
-function setCurrentWallet(wallet: IDbWallet) {
-  store.dispatch(ACTIONS.SET_CURRENT_WALLET, wallet.id);
-}
 
 async function expandView() {
   if (!browser?.tabs) return;
@@ -53,9 +50,9 @@ async function expandView() {
       <drop-down discrete :disabled="$route.query.popup === 'true'" list-class="max-h-110">
         <template #trigger="{ active }">
           <wallet-item
-            v-if="currentWallet"
-            :key="currentWallet.id"
-            :wallet="currentWallet"
+            v-if="current"
+            :key="wallet.id"
+            :wallet="current"
             :reverse="!active"
             :loading="loading.addresses || loading.balance"
           />
@@ -63,12 +60,12 @@ async function expandView() {
         <template #items>
           <div class="group">
             <a
-              v-for="unselected in unselectedWallets"
-              :key="unselected.id"
+              v-for="walletItem in unselected"
+              :key="walletItem.id"
               class="group-item"
-              @click="setCurrentWallet(unselected)"
+              @click="wallet.load(walletItem.id)"
             >
-              <wallet-item :key="currentWallet?.id" :wallet="unselected" />
+              <wallet-item :key="wallet.id" :wallet="walletItem" />
             </a>
           </div>
           <div class="group">
@@ -77,7 +74,7 @@ async function expandView() {
               <span class="align-middle">Add new wallet</span></router-link
             >
           </div>
-          <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
+          <div class="group" :class="{ 'mt-1': unselected.length === 0 }">
             <a class="group-item narrow-y" @click="expandView()">
               <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
               <span class="align-middle">Expand view</span></a

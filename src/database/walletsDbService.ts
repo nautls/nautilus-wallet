@@ -2,17 +2,17 @@ import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { isEmpty } from "@fleet-sdk/common";
 import { dbContext } from "@/database/dbContext";
-import { IDbAddress, IDbWallet } from "@/types/database";
+import { IDbAddress, IDbWallet, NotNullId } from "@/types/database";
 import { AddressState, WalletSettings } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
 
 class WalletsDbService {
-  public async getById(id: number): Promise<IDbWallet | undefined> {
-    return await dbContext.wallets.where("id").equals(id).first();
+  public async getById(id: number): Promise<NotNullId<IDbWallet> | undefined> {
+    return (await dbContext.wallets.where("id").equals(id).first()) as NotNullId<IDbWallet>;
   }
 
-  public async getFirst(): Promise<IDbWallet | undefined> {
-    return await dbContext.wallets.get(1);
+  public async getFirst(): Promise<NotNullId<IDbWallet> | undefined> {
+    return (await dbContext.wallets.get(1)) as NotNullId<IDbWallet>;
   }
 
   public async getMnemonic(id: number, password: string) {
@@ -42,8 +42,11 @@ class WalletsDbService {
       .first();
   }
 
-  public async getByPk(publicKey: string): Promise<IDbWallet | undefined> {
-    return await dbContext.wallets.where("publicKey").equals(publicKey).first();
+  public async getByPk(publicKey: string): Promise<NotNullId<IDbWallet> | undefined> {
+    return (await dbContext.wallets
+      .where("publicKey")
+      .equals(publicKey)
+      .first()) as NotNullId<IDbWallet>;
   }
 
   public async put(wallet: IDbWallet): Promise<number> {
@@ -77,8 +80,8 @@ class WalletsDbService {
     });
   }
 
-  public async getAll(): Promise<IDbWallet[]> {
-    return await dbContext.wallets.toArray();
+  public async getAll(): Promise<NotNullId<IDbWallet>[]> {
+    return (await dbContext.wallets.toArray()) as NotNullId<IDbWallet>[];
   }
 
   public async delete(walletId: number): Promise<void> {

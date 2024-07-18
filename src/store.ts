@@ -2,62 +2,59 @@ import { createStore } from "vuex";
 import { clone, groupBy, last, maxBy, sortBy, take } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { first, isEmpty, uniq } from "@fleet-sdk/common";
+import { isEmpty, uniq } from "@fleet-sdk/common";
 import { utxosDbService } from "./database/utxosDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { useAppStore } from "./stores/appStore";
 import { useAssetsStore } from "./stores/assetsStore";
+import { useWalletStore } from "./stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { walletsDbService } from "@/database/walletsDbService";
 import HdKey, { DerivedAddress } from "@/chains/ergo/hdKey";
 import {
   AddressState,
   AddressType,
-  AssetSubtype,
   Network,
   StateAddress,
-  StateAsset,
-  StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
   UpdateWalletSettingsCommand,
   WalletType
 } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
-import { ACTIONS, GETTERS, MUTATIONS } from "@/constants/store";
+import { ACTIONS, MUTATIONS } from "@/constants/store";
 import { bn, decimalize } from "@/common/bigNumber";
-import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
-import { IDbAddress, IDbAsset, IDbWallet } from "@/types/database";
+import { CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
+import { IDbAddress, IDbAsset } from "@/types/database";
 import router from "@/router";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 
 function goTo(routerName: string) {
   const { redirect, popup } = router.currentRoute.value.query;
-  if (redirect !== "false" || popup !== "true") {
-    router.push({ name: routerName });
-  }
+  if (redirect !== "false" || popup !== "true") router.push({ name: routerName });
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let app: ReturnType<typeof useAppStore>;
 let assets: ReturnType<typeof useAssetsStore>;
+let wallet: ReturnType<typeof useWalletStore>;
 
 export default createStore({
   state: {
-    wallets: [] as StateWallet[],
-    currentWallet: {
-      id: 0,
-      name: "",
-      type: WalletType.Standard,
-      publicKey: "",
-      extendedPublicKey: "",
-      settings: {
-        avoidAddressReuse: false,
-        hideUsedAddresses: false,
-        defaultChangeIndex: 0
-      }
-    } as StateWallet,
+    // wallets: [] as StateWallet[],
+    // currentWallet: {
+    //   id: 0,
+    //   name: "",
+    //   type: WalletType.Standard,
+    //   publicKey: "",
+    //   extendedPublicKey: "",
+    //   settings: {
+    //     avoidAddressReuse: false,
+    //     hideUsedAddresses: false,
+    //     defaultChangeIndex: 0
+    //   }
+    // } as StateWallet,
     currentAddresses: [] as StateAddress[],
     loading: {
       addresses: true,
@@ -65,86 +62,7 @@ export default createStore({
       wallets: true
     }
   },
-  getters: {
-    [GETTERS.BALANCE](state) {
-      const balance: StateAsset[] = [];
-
-      const groups = groupBy(
-        state.currentAddresses.filter((a) => a.balance).flatMap((a) => a.balance || []),
-        (a) => a?.tokenId
-      );
-
-      for (const key in groups) {
-        if (assets.blacklist.includes(key)) continue;
-
-        const group = groups[key];
-        if (group.length === 0) continue;
-
-        const token: StateAsset = {
-          tokenId: group[0].tokenId,
-          confirmedAmount: group.map((a) => a.confirmedAmount).reduce((acc, val) => acc.plus(val)),
-          unconfirmedAmount: group
-            .map((a) => a.unconfirmedAmount)
-            .reduce((acc, val) => acc?.plus(val || 0)),
-          metadata: group[0].metadata
-        };
-
-        balance.push(token);
-      }
-
-      if (isEmpty(balance)) {
-        return [
-          {
-            tokenId: ERG_TOKEN_ID,
-            confirmedAmount: bn(0),
-            metadata: assets.metadata.get(ERG_TOKEN_ID)
-          }
-        ];
-      }
-
-      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.metadata?.name]);
-    },
-    [GETTERS.PICTURE_NFT_BALANCE](_, getters) {
-      const balance: StateAsset[] = getters[GETTERS.BALANCE];
-      return balance.filter((b) => b.metadata && b.metadata.type === AssetSubtype.PictureArtwork);
-    },
-    [GETTERS.NON_PICTURE_NFT_BALANCE](_, getters) {
-      const balance: StateAsset[] = getters[GETTERS.BALANCE];
-      return balance.filter((b) => !b.metadata || b.metadata.type !== AssetSubtype.PictureArtwork);
-    },
-    [GETTERS.NON_NFT_BALANCE](_, getters) {
-      const balance: StateAsset[] = getters[GETTERS.BALANCE];
-      return balance.filter(
-        (b) =>
-          !b.metadata ||
-          !b.metadata.type ||
-          (b.metadata.type !== AssetSubtype.AudioArtwork &&
-            b.metadata.type !== AssetSubtype.VideoArtwork &&
-            b.metadata.type !== AssetSubtype.PictureArtwork &&
-            b.metadata.type !== AssetSubtype.ThresholdSignature)
-      );
-    }
-  },
   mutations: {
-    [MUTATIONS.SET_CURRENT_WALLET](state, identifier: StateWallet | number) {
-      const selected =
-        typeof identifier === "number" ? state.wallets.find((w) => w.id == identifier) : identifier;
-
-      if (!selected || !selected.id) {
-        throw Error("Wallet not found");
-      }
-
-      if (typeof identifier !== "number") {
-        const i = state.wallets.findIndex((x) => x.id == selected.id);
-        if (i > -1) {
-          state.wallets[i] = selected;
-        } else {
-          state.wallets.push(selected);
-        }
-      }
-
-      state.currentWallet = selected;
-    },
     [MUTATIONS.SET_CURRENT_ADDRESSES](
       state,
       content: { addresses: StateAddress[]; walletId?: number }
@@ -204,19 +122,6 @@ export default createStore({
     [MUTATIONS.SET_LOADING](state, obj) {
       state.loading = Object.assign(state.loading, obj);
     },
-    [MUTATIONS.SET_WALLETS](state, wallets: IDbWallet[]) {
-      state.wallets = wallets.map((w) => {
-        return {
-          id: w.id || 0,
-          name: w.name,
-          type: w.type,
-          publicKey: w.publicKey,
-          extendedPublicKey: hex.encode(hdKeyPool.get(w.publicKey).extendedPublicKey),
-          balance: bn(0),
-          settings: w.settings
-        };
-      });
-    },
     [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
       const wallet = state.wallets.find((w) => w.id === command.walletId);
       if (!wallet) return;
@@ -262,40 +167,18 @@ export default createStore({
     }
   },
   actions: {
-    async [ACTIONS.INIT]({ state, dispatch }) {
+    async [ACTIONS.INIT]() {
       // workaround to keep everything working while refactoring and migrating to pinia
       // todo: remove this
       app = useAppStore();
       assets = useAssetsStore();
-      await sleep(20); // wait for settings store to be initialized
+      wallet = useWalletStore();
+      await sleep(20); // wait for stores to be initialized
 
-      await dispatch(ACTIONS.LOAD_WALLETS);
-
-      if (router.currentRoute.value.query.popup === "true") {
-        return;
-      }
-
-      if (state.wallets.length > 0) {
-        let current = state.wallets.find((w) => w.id === app.settings.lastOpenedWalletId);
-        if (!current) {
-          current = first(state.wallets);
-        }
-
-        dispatch(ACTIONS.SET_CURRENT_WALLET, current);
-      } else {
+      if (router.currentRoute.value.query.popup === "true") return;
+      if (!app.settings.lastOpenedWalletId) {
         goTo("add-wallet");
       }
-    },
-    async [ACTIONS.LOAD_WALLETS]({ commit }) {
-      const wallets = await walletsDbService.getAll();
-      if (isEmpty(wallets)) return;
-
-      for (const wallet of wallets) {
-        hdKeyPool.alloc(wallet.publicKey, HdKey.fromPublicKey(wallet));
-      }
-
-      commit(MUTATIONS.SET_WALLETS, wallets);
-      commit(MUTATIONS.SET_LOADING, { wallets: false });
     },
     async [ACTIONS.PUT_WALLET](
       { dispatch },
@@ -328,29 +211,8 @@ export default createStore({
 
       await dispatch(ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET, walletId);
     },
-    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET]({ dispatch }, id: number) {
-      const wallet = await walletsDbService.getById(id);
-      if (!wallet || !wallet.id) throw Error("wallet not found");
-
-      const key = hdKeyPool.get(wallet.publicKey);
-      const stateWallet: StateWallet = {
-        id: wallet.id,
-        name: wallet.name,
-        type: wallet.type,
-        publicKey: wallet.publicKey,
-        extendedPublicKey: hex.encode(key.extendedPublicKey),
-        settings: wallet.settings
-      };
-
-      await dispatch(ACTIONS.SET_CURRENT_WALLET, stateWallet);
-    },
-    async [ACTIONS.SET_CURRENT_WALLET]({ commit, dispatch }, wallet: StateWallet | number) {
-      const walletId = typeof wallet === "number" ? wallet : wallet.id;
-      commit(MUTATIONS.SET_LOADING, { balance: true, addresses: true });
-      commit(MUTATIONS.SET_CURRENT_WALLET, wallet);
-      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: [], walletId });
-      app.settings.lastOpenedWalletId = walletId;
-      await dispatch(ACTIONS.REFRESH_CURRENT_ADDRESSES);
+    async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET](_, id: number) {
+      wallet.load(id);
     },
     async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
       const lastUsedIndex = state.currentAddresses.findLastIndex(
@@ -406,7 +268,6 @@ export default createStore({
       if (active.length > 0) {
         if (state.currentAddresses.length === 0) {
           commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: clone(active), walletId });
-          dispatch(ACTIONS.LOAD_BALANCES, walletId);
         }
 
         used = used.concat(await graphQLService.getUsedAddresses(active.map((a) => a.script)));
@@ -479,19 +340,13 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.LOAD_BALANCES]({ commit }, walletId: number) {
-      const dbAssets = await assetsDbService.getByWalletId(walletId);
-
-      await assets.loadMetadataFor(dbAssets.map((a) => a.tokenId));
-      commit(MUTATIONS.UPDATE_BALANCES, { assets: dbAssets, walletId });
-    },
-    async [ACTIONS.REMOVE_WALLET]({ state, commit, dispatch }, walletId: number) {
+    async [ACTIONS.REMOVE_WALLET]({ state, commit }, walletId: number) {
       await walletsDbService.delete(walletId);
 
       if (state.currentWallet.id === walletId) {
         const wallet = state.wallets.find((w) => w.id !== walletId);
         if (wallet) {
-          await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
+          // await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
           router.push({ name: "assets-page" });
         } else {
           router.push({ name: "add-wallet" });

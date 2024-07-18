@@ -107,7 +107,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { BigNumber } from "bignumber.js";
-import { GETTERS } from "@/constants/store/getters";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { StateAsset } from "@/types/internal";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
@@ -115,7 +114,7 @@ import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import StorageRentBox from "@/components/StorageRentBox.vue";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { useWallet } from "@/stores/walletStore";
+import { useWalletStore } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 
 export default defineComponent({
@@ -126,7 +125,7 @@ export default defineComponent({
     StorageRentBox
   },
   setup() {
-    return { app: useAppStore(), assetsStore: useAssetsStore(), wallet: useWallet() };
+    return { app: useAppStore(), assetsStore: useAssetsStore(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -147,7 +146,7 @@ export default defineComponent({
         return false;
       }
 
-      const assetList: StateAsset[] = this.$store.getters[GETTERS.NON_PICTURE_NFT_BALANCE];
+      const assetList = this.wallet.nonArtworkBalance;
       if (assetList.length === 0) {
         return true;
       }
@@ -155,7 +154,7 @@ export default defineComponent({
       return false;
     },
     assets(): StateAsset[] {
-      const assetList = this.$store.getters[GETTERS.NON_PICTURE_NFT_BALANCE];
+      const assetList = this.wallet.nonArtworkBalance;
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>

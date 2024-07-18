@@ -5,7 +5,7 @@ import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
-import { StateAsset, WalletSettings, WalletType } from "@/types/internal";
+import { AssetSubtype, StateAsset, WalletSettings, WalletType } from "@/types/internal";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
@@ -21,7 +21,7 @@ const usePrivateState = defineStore("_wallet", () => ({
   assets: shallowReactive<IDbAsset[]>([])
 }));
 
-export const useWallet = defineStore("wallet", () => {
+export const useWalletStore = defineStore("wallet", () => {
   const privateState = usePrivateState();
   const app = useAppStore();
   const assets = useAssetsStore();
@@ -65,9 +65,9 @@ export const useWallet = defineStore("wallet", () => {
     if (balance.length === 0) {
       return [
         {
-          tokenId: "ERG",
+          tokenId: ERG_TOKEN_ID,
           confirmedAmount: bn(0),
-          metadata: assets.metadata.get("ERG")
+          metadata: assets.metadata.get(ERG_TOKEN_ID)
         }
       ];
     }
@@ -76,6 +76,9 @@ export const useWallet = defineStore("wallet", () => {
       a.tokenId === ERG_TOKEN_ID ? 1 : a.tokenId.localeCompare(b.tokenId)
     );
   });
+
+  const artworkBalance = computed(() => balance.value.filter(artwork));
+  const nonArtworkBalance = computed(() => balance.value.filter((x) => !artwork(x)));
 
   onMounted(async () => {
     await load(app.settings.lastOpenedWalletId);
@@ -92,19 +95,44 @@ export const useWallet = defineStore("wallet", () => {
     name.value = dbWallet.name;
     settings.value = dbWallet.settings;
 
-    const [addresses, assets] = await Promise.all([
+    const [dbAddresses, dbAssets] = await Promise.all([
       addressesDbService.getByWalletId(walletId),
       assetsDbService.getByWalletId(walletId)
     ]);
 
-    privateState.addresses = addresses;
-    privateState.assets = assets;
+    privateState.addresses = dbAddresses;
+    privateState.assets = dbAssets;
+    app.settings.lastOpenedWalletId = walletId;
+
+    assets.loadMetadataFor(dbAssets.map((x) => x.tokenId));
   }
 
-  return { id, name, type, publicKey, settings, addresses, balance, loading, syncing, load };
+  return {
+    id,
+    name,
+    type,
+    publicKey,
+    settings,
+    addresses,
+    balance,
+    nonArtworkBalance,
+    artworkBalance,
+    loading,
+    syncing,
+    load
+  };
 });
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(usePrivateState, import.meta.hot));
-  import.meta.hot.accept(acceptHMRUpdate(useWallet, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(useWalletStore, import.meta.hot));
+}
+
+function artwork(asset: StateAsset) {
+  return (
+    asset.metadata &&
+    (asset.metadata.type === AssetSubtype.PictureArtwork ||
+      asset.metadata.type === AssetSubtype.AudioArtwork ||
+      asset.metadata.type === AssetSubtype.VideoArtwork)
+  );
 }
