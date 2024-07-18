@@ -42,10 +42,14 @@
                 @click="add(asset)"
               >
                 <div class="flex flex-row items-center gap-2">
-                  <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
+                  <asset-icon
+                    class="h-8 w-8"
+                    :token-id="asset.tokenId"
+                    :type="asset.metadata?.type"
+                  />
                   <div class="flex-grow">
-                    <template v-if="asset.info?.name">{{
-                      $filters.compactString(asset.info?.name, 26)
+                    <template v-if="asset.metadata?.name">{{
+                      $filters.compactString(asset.metadata?.name, 26)
                     }}</template>
                     <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
                     <p

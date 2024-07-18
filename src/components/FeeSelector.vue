@@ -26,7 +26,7 @@ import { useAssetsStore } from "@/stores/assetsStore";
 type FeeAsset = {
   tokenId: string;
   nanoErgsPerToken: BigNumberType;
-  info?: BasicAssetMetadata;
+  metadata?: BasicAssetMetadata;
 };
 
 const appStore = useAppStore();
@@ -56,7 +56,7 @@ const conversionCurrency = computed(() => {
 });
 
 const ergPrice = computed(() => {
-  return store.state.ergPrice;
+  return assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0;
 });
 
 const minTokenFee = computed(() => {
@@ -64,28 +64,26 @@ const minTokenFee = computed(() => {
 });
 
 const nanoErgsFee = computed(() => {
-  return bigMinErgFee.multipliedBy(state.multiplier);
+  return bigMinErgFee.times(state.multiplier);
 });
 
 const tokenUnitsFee = computed(() => {
-  return minTokenFee.value.multipliedBy(state.multiplier);
+  return minTokenFee.value.times(state.multiplier);
 });
 
 const feeAmount = computed(() => {
-  if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return decimalize(nanoErgsFee.value, state.internalSelected.info?.decimals || 0);
-  }
-
-  return decimalize(tokenUnitsFee.value, state.internalSelected.info?.decimals || 0);
+  const value =
+    state.internalSelected.tokenId === ERG_TOKEN_ID ? nanoErgsFee.value : tokenUnitsFee.value;
+  return decimalize(value, state.internalSelected.metadata?.decimals || 0);
 });
 
 const price = computed(() => {
   if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return decimalize(nanoErgsFee.value, ERG_DECIMALS).multipliedBy(ergPrice.value);
+    return decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value);
   }
 
   return decimalize(
-    state.internalSelected.nanoErgsPerToken.multipliedBy(tokenUnitsFee.value),
+    state.internalSelected.nanoErgsPerToken.times(tokenUnitsFee.value),
     ERG_DECIMALS
   );
 });
@@ -171,7 +169,7 @@ async function loadAssets() {
   const erg: FeeAsset = {
     tokenId: ERG_TOKEN_ID,
     nanoErgsPerToken: new BigNumber(1),
-    info: assetsStore.metadata.get(ERG_TOKEN_ID)
+    metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
   };
 
   state.multiplier = 1;
@@ -195,7 +193,7 @@ async function loadAssets() {
   );
 
   const assets = Object.keys(groups)
-    .map((tokenId) => {
+    .map((tokenId): FeeAsset => {
       const price = maxBy(
         groups[tokenId].map((box) => getNanoErgsPerTokenRate(box)),
         (p) => p.toNumber()
@@ -203,7 +201,7 @@ async function loadAssets() {
 
       return {
         tokenId,
-        info: assetsStore.metadata.get(tokenId),
+        metadata: assetsStore.metadata.get(tokenId),
         nanoErgsPerToken: price || new BigNumber(0)
       };
     })
@@ -240,10 +238,8 @@ function recalculateMinRequired() {
     }
   } else {
     state.cachedMinRequired = decimalize(
-      getTokenUnitsFor(
-        bigMinErgFee.plus(bigMinBoxValue.multipliedBy(props.includeMinAmountPerBox))
-      ),
-      state.internalSelected.info?.decimals || 0
+      getTokenUnitsFor(bigMinErgFee.plus(bigMinBoxValue.times(props.includeMinAmountPerBox))),
+      state.internalSelected.metadata?.decimals || 0
     );
 
     if (state.cachedMinRequired.isGreaterThan(feeAmount.value)) {
@@ -266,7 +262,7 @@ function emitSelectedUpdate() {
     tokenId: state.internalSelected.tokenId,
     nanoErgsPerToken: state.internalSelected.nanoErgsPerToken,
     value: feeAmount.value,
-    assetInfo: state.internalSelected.info
+    assetInfo: state.internalSelected.metadata
   });
 }
 </script>
@@ -320,11 +316,11 @@ function emitSelectedUpdate() {
           <asset-icon
             class="h-5 w-5 min-w-5"
             :token-id="state.internalSelected.tokenId"
-            :type="state.internalSelected.info?.type"
+            :type="state.internalSelected.metadata?.type"
           />
           <div class="whitespace-nowrap flex-grow text-gray-600">
-            <template v-if="state.internalSelected.info?.name">{{
-              filters.compactString(state.internalSelected.info.name, 10)
+            <template v-if="state.internalSelected.metadata?.name">{{
+              filters.compactString(state.internalSelected.metadata.name, 10)
             }}</template>
             <template v-else>{{
               filters.compactString(state.internalSelected.tokenId, 10)
@@ -345,13 +341,13 @@ function emitSelectedUpdate() {
                 <asset-icon
                   class="h-5 w-5 min-w-5"
                   :token-id="asset.tokenId"
-                  :type="asset.info?.type"
+                  :type="asset.metadata?.type"
                 />
                 <div class="flex-grow">
-                  <template v-if="asset.info?.name">{{
-                    filters.compactString(asset.info?.name, 10)
+                  <template v-if="asset.metadata?.name">{{
+                    filters.compactString(asset.metadata?.name, 10)
                   }}</template>
-                  <template v-else>{{ filters.compactString(asset.tokenId, 10) }}</template>
+                  <template v-else>{{ filters.compactString(asset.tokenId, 10) }} </template>
                 </div>
               </div>
             </a>

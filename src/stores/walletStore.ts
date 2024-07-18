@@ -1,7 +1,8 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive } from "vue";
 import { groupBy } from "lodash-es";
-import { sumBy } from "@fleet-sdk/common";
+import { BigNumber } from "bignumber.js";
+import { decimalize, sumBigNumberBy } from "../common/bigNumbers";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
@@ -47,11 +48,18 @@ export const useWallet = defineStore("wallet", () => {
       if (assets.blacklist.includes(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
+      const metadata = assets.metadata.get(tokenId);
       balance.push({
         tokenId: assetGroup[0].tokenId,
-        confirmedAmount: sumBy(assetGroup, (x) => BigInt(x.confirmedAmount)),
-        unconfirmedAmount: sumBy(assetGroup, (x) => BigInt(x.unconfirmedAmount ?? 0n)),
-        metadata: assets.metadata.get(tokenId)
+        confirmedAmount: decimalize(
+          sumBigNumberBy(assetGroup, (x) => x.confirmedAmount),
+          metadata?.decimals
+        ),
+        unconfirmedAmount: decimalize(
+          sumBigNumberBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
+          metadata?.decimals
+        ),
+        metadata
       });
     }
 
@@ -59,7 +67,7 @@ export const useWallet = defineStore("wallet", () => {
       return [
         {
           tokenId: "ERG",
-          confirmedAmount: BigInt(0),
+          confirmedAmount: BigNumber(0),
           metadata: assets.metadata.get("ERG")
         }
       ];

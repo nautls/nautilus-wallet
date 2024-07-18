@@ -56,7 +56,7 @@ class WalletsDbService {
   public async updateSettings(
     walletId: number,
     walletName: string,
-    settings: WalletSettings
+    settings: Partial<WalletSettings>
   ): Promise<number> {
     return await dbContext.wallets.update(walletId, {
       name: walletName.trim(),

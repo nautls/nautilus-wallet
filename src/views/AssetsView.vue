@@ -54,16 +54,16 @@
               <asset-icon
                 class="h-8 w-8 align-middle"
                 :token-id="asset.tokenId"
-                :type="asset.info?.type"
+                :type="asset.metadata?.type"
               />
             </td>
             <td class="align-middle">
               <p v-if="isErg(asset.tokenId)" class="font-semibold">
-                {{ asset.info?.name }}
+                {{ asset.metadata?.name }}
               </p>
               <a v-else class="break-anywhere cursor-pointer" @click="selectedAsset = asset">
-                <template v-if="asset.info?.name">{{
-                  $filters.compactString(asset.info?.name, 40)
+                <template v-if="asset.metadata?.name">{{
+                  $filters.compactString(asset.metadata?.name, 40)
                 }}</template>
                 <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
               </a>
@@ -79,7 +79,7 @@
                 </p>
                 <tool-tip
                   v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                  :label="`1 ${asset.info?.name} <br /> ≈ ${$filters.formatBigNumber(
+                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${$filters.formatBigNumber(
                     price(asset.tokenId),
                     2
                   )} ${$filters.uppercase(conversionCurrency)}`"
@@ -87,10 +87,7 @@
                   <p class="text-xs text-gray-500">
                     ≈
                     {{
-                      $filters.formatBigNumber(
-                        asset.confirmedAmount.multipliedBy(price(asset.tokenId)),
-                        2
-                      )
+                      $filters.formatBigNumber(asset.confirmedAmount.times(price(asset.tokenId)), 2)
                     }}
                     {{ $filters.uppercase(conversionCurrency) }}
                   </p>
@@ -120,6 +117,7 @@ import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import StorageRentBox from "@/components/StorageRentBox.vue";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
+import { useWallet } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "AssetsView",
@@ -129,7 +127,7 @@ export default defineComponent({
     StorageRentBox
   },
   setup() {
-    return { app: useAppStore(), assetsStore: useAssetsStore() };
+    return { app: useAppStore(), assetsStore: useAssetsStore(), wallet: useWallet() };
   },
   data() {
     return {
@@ -162,7 +160,7 @@ export default defineComponent({
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>
-          a.info?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
+          a.metadata?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
         );
       }
 
@@ -183,11 +181,9 @@ export default defineComponent({
   methods: {
     price(tokenId: string): BigNumber {
       const rate = this.rate(tokenId);
-      if (!rate || !this.ergPrice) {
-        return new BigNumber(0);
-      }
+      if (!rate || !this.ergPrice) return BigNumber(0);
 
-      return new BigNumber(rate).multipliedBy(this.ergPrice);
+      return BigNumber(rate).times(this.ergPrice);
     },
     rate(tokenId: string): number {
       return this.assetsStore.prices.get(tokenId)?.erg ?? 0;

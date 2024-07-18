@@ -58,7 +58,7 @@ export async function createP2PTransaction({
             tokenId: token.asset.tokenId,
             amount: undecimalize(
               token.amount || BigNumber(0),
-              token.asset.info?.decimals
+              token.asset.metadata?.decimals
             ).toString()
           }))
       )

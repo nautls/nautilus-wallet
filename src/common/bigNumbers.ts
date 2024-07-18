@@ -1,15 +1,12 @@
 import { BigNumber } from "bignumber.js";
 import { BigNumberType } from "@/types/internal";
 
-export function decimalize(value: BigNumberType, decimals: number): BigNumber;
+export function decimalize(value: BigNumberType, decimals?: number): BigNumber;
 export function decimalize(
   value: BigNumberType | undefined,
-  decimals: number
+  decimal?: number
 ): BigNumber | undefined;
-export function decimalize(
-  value: BigNumberType | undefined,
-  decimals: number
-): BigNumber | undefined {
+export function decimalize(value: BigNumberType | undefined, decimals = 0): BigNumber | undefined {
   if (!decimals || value === undefined) {
     return value as BigNumber;
   }
@@ -50,12 +47,11 @@ export function toBigNumber(
 
 export function sumBigNumberBy<T>(
   collection: T[],
-  iteratee: (value: T) => BigNumberType
+  iteratee: (value: T) => BigNumber.Value
 ): BigNumber {
   let acc = new BigNumber(0);
-  for (const item of collection) {
-    acc = acc.plus(iteratee(item));
-  }
+  for (const item of collection) acc = acc.plus(iteratee(item));
+
   return acc;
 }
 

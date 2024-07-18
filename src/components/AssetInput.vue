@@ -21,7 +21,7 @@
             ref="val-input"
             v-cleave="{
               numeral: true,
-              numeralDecimalScale: asset.info?.decimals ?? 0,
+              numeralDecimalScale: asset.metadata?.decimals ?? 0,
               onValueChanged
             }"
             class="w-full outline-none"
@@ -31,20 +31,20 @@
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
-            <span v-if="asset.info?.name" class="flex-grow text-sm"
+            <span v-if="asset.metadata?.name" class="flex-grow text-sm"
               ><tool-tip
-                v-if="asset.info?.name.length > 10"
+                v-if="asset.metadata?.name.length > 10"
                 tip-class="max-w-35"
-                :label="asset.info?.name"
+                :label="asset.metadata?.name"
               >
-                {{ $filters.compactString(asset.info?.name, 10) }}
+                {{ $filters.compactString(asset.metadata?.name, 10) }}
               </tool-tip>
               <template v-else>
-                {{ asset.info?.name }}
+                {{ asset.metadata?.name }}
               </template></span
             >
             <span v-else class="flex-grow">{{ $filters.compactString(asset.tokenId, 10) }}</span>
-            <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.info?.type" />
+            <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.metadata?.type" />
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ import { BigNumber } from "bignumber.js";
 import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
-import { BigNumberType } from "@/types/internal";
+import { BigNumberType, StateAsset } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -87,7 +87,7 @@ export default defineComponent({
   props: {
     label: { type: String, required: false },
     disposable: { type: Boolean, default: false },
-    asset: { type: Object, required: true },
+    asset: { type: Object as PropType<StateAsset>, required: true },
     modelValue: { type: Object, required: false },
     reservedAmount: { type: Object as PropType<BigNumberType>, required: false },
     minAmount: { type: Object as PropType<BigNumberType>, required: false }
@@ -164,7 +164,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
+    if (!this.asset.metadata?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
       this.$emit("update:modelValue", this.asset.confirmedAmount);
     }
   },
@@ -173,7 +173,7 @@ export default defineComponent({
       confirmedAmount: {
         minValue: helpers.withMessage(
           ({ $params }) =>
-            `You need at least ${$params.min} ${this.asset.info?.name} to send this transaction`,
+            `You need at least ${$params.min} ${this.asset.metadata?.name} to send this transaction`,
           bigNumberMinValue(this.minRequired)
         )
       },

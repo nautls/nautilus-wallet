@@ -78,9 +78,7 @@ export const filters = {
     }
   },
   formatBytes(bytes: number, decimals = 1) {
-    if (!+bytes) {
-      return "0 bytes";
-    }
+    if (!+bytes) return "0 bytes";
 
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;

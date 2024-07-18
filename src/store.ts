@@ -61,7 +61,6 @@ export default createStore({
     } as StateWallet,
     currentAddresses: [] as StateAddress[],
     loading: {
-      price: false,
       addresses: true,
       balance: true,
       wallets: true
@@ -88,7 +87,7 @@ export default createStore({
           unconfirmedAmount: group
             .map((a) => a.unconfirmedAmount)
             .reduce((acc, val) => acc?.plus(val || 0)),
-          info: group[0].info
+          metadata: group[0].metadata
         };
 
         balance.push(token);
@@ -99,31 +98,31 @@ export default createStore({
           {
             tokenId: ERG_TOKEN_ID,
             confirmedAmount: new BigNumber(0),
-            info: assets.metadata.get(ERG_TOKEN_ID)
+            metadata: assets.metadata.get(ERG_TOKEN_ID)
           }
         ];
       }
 
-      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.info?.name]);
+      return sortBy(balance, [(a) => a.tokenId !== ERG_TOKEN_ID, (a) => a.metadata?.name]);
     },
     [GETTERS.PICTURE_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
-      return balance.filter((b) => b.info && b.info.type === AssetSubtype.PictureArtwork);
+      return balance.filter((b) => b.metadata && b.metadata.type === AssetSubtype.PictureArtwork);
     },
     [GETTERS.NON_PICTURE_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
-      return balance.filter((b) => !b.info || b.info.type !== AssetSubtype.PictureArtwork);
+      return balance.filter((b) => !b.metadata || b.metadata.type !== AssetSubtype.PictureArtwork);
     },
     [GETTERS.NON_NFT_BALANCE](_, getters) {
       const balance: StateAsset[] = getters[GETTERS.BALANCE];
       return balance.filter(
         (b) =>
-          !b.info ||
-          !b.info.type ||
-          (b.info.type !== AssetSubtype.AudioArtwork &&
-            b.info.type !== AssetSubtype.VideoArtwork &&
-            b.info.type !== AssetSubtype.PictureArtwork &&
-            b.info.type !== AssetSubtype.ThresholdSignature)
+          !b.metadata ||
+          !b.metadata.type ||
+          (b.metadata.type !== AssetSubtype.AudioArtwork &&
+            b.metadata.type !== AssetSubtype.VideoArtwork &&
+            b.metadata.type !== AssetSubtype.PictureArtwork &&
+            b.metadata.type !== AssetSubtype.ThresholdSignature)
       );
     }
   },
@@ -188,23 +187,20 @@ export default createStore({
       for (const address of state.currentAddresses) {
         const group = groups[address.script];
         if (!group || group.length === 0) {
-          address.balance = undefined;
+          address.balance = [];
           continue;
         }
 
         address.balance = group.map((x) => {
+          const metadata = assets.metadata.get(x.tokenId);
           return {
             tokenId: x.tokenId,
-            confirmedAmount:
-              decimalize(
-                toBigNumber(x.confirmedAmount),
-                assets.metadata.get(x.tokenId)?.decimals ?? 0
-              ) || new BigNumber(0),
-            unconfirmedAmount: decimalize(
-              toBigNumber(x.unconfirmedAmount),
-              assets.metadata.get(x.tokenId)?.decimals ?? 0
+            confirmedAmount: decimalize(
+              toBigNumber(x.confirmedAmount) || new BigNumber(0),
+              metadata?.decimals
             ),
-            info: assets.metadata.get(x.tokenId)
+            unconfirmedAmount: decimalize(toBigNumber(x.unconfirmedAmount), metadata?.decimals),
+            metadata
           };
         });
       }
@@ -400,7 +396,7 @@ export default createStore({
       const pk = state.currentWallet.publicKey;
       const key = hdKeyPool.get(pk);
       const dbAddresses = await addressesDbService.getByWalletId(walletId);
-      let active = dbAddresses.map((a): StateAddress => ({ ...a, balance: undefined }));
+      let active = dbAddresses.map((a): StateAddress => ({ ...a, balance: [] }));
       active = sortBy(active, (a) => a.index);
 
       let derived: DerivedAddress[] = [];
@@ -431,7 +427,7 @@ export default createStore({
             index: d.index,
             script: d.script,
             state: AddressState.Unused,
-            balance: undefined
+            balance: []
           }))
         );
         if (usedChunk.length > 0) {

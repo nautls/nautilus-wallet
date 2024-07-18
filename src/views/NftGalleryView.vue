@@ -12,7 +12,7 @@
       >
         <div class="relative">
           <image-sandbox
-            :src="nft.info?.artworkUrl"
+            :src="nft.metadata?.artworkUrl"
             class="w-full rounded-t h-39"
             height="9.6rem"
             object-fit="contain"
@@ -22,7 +22,7 @@
           <div class="h-39 w-full bg-transparent absolute top-0 left-0"></div>
         </div>
         <p class="text-sm p-2">
-          {{ $filters.compactString(nft.info?.name ?? nft.tokenId, 30) }}
+          {{ $filters.compactString(nft.metadata?.name ?? nft.tokenId, 30) }}
         </p>
       </div>
     </div>
@@ -57,7 +57,7 @@ export default defineComponent({
 
       if (this.filter !== "" && assetList.length > 0) {
         return assetList.filter((a: StateAsset) =>
-          a.info?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
+          a.metadata?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
         );
       }
 
