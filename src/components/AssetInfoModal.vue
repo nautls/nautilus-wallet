@@ -25,7 +25,7 @@
       >
         <div>
           <h1 class="font-bold text-lg">
-            {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
+            {{ asset?.name ?? $filters.string.shorten(asset?.id, 20) }}
           </h1>
           <p v-if="description" class="whitespace-pre-wrap">{{ description }}</p>
         </div>
@@ -38,7 +38,7 @@
             <small class="uppercase text-gray-500">Balance</small>
             <p v-if="hideBalances" class="skeleton animate-none h-4.5 w-2/4 block rounded"></p>
             <p v-else class="text-sm font-bold">
-              {{ $filters.formatBigNumber(confirmedBalance) ?? 0 }}
+              {{ $filters.bn.format(confirmedBalance) ?? 0 }}
             </p>
           </div>
         </div>
@@ -46,14 +46,14 @@
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Token Id</small>
             <p class="text-sm font-bold">
-              {{ $filters.compactString(asset?.id, 12) }}
+              {{ $filters.string.shorten(asset?.id, 12) }}
               <click-to-copy class="pl-1" :content="tokenId" size="12" />
             </p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Minting Transaction</small>
             <p class="text-sm font-bold">
-              {{ $filters.compactString(asset?.mintingTransactionId, 12) }}
+              {{ $filters.string.shorten(asset?.mintingTransactionId, 12) }}
               <click-to-copy class="pl-1" :content="asset?.mintingTransactionId" size="12" />
             </p>
           </div>
@@ -105,7 +105,7 @@ export default defineComponent({
         amount = decimalize(amount, this.asset.decimals);
       }
 
-      return this.$filters.formatBigNumber(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
+      return this.$filters.bn.format(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
     },
     isImageNft(): boolean {
       return this.asset?.subtype === AssetSubtype.PictureArtwork;

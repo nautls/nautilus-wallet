@@ -19,7 +19,6 @@ import {
   SAFE_MIN_FEE_VALUE
 } from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { filters } from "@/common/globalFilters";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 
 const loading = ref(true);
@@ -109,6 +108,17 @@ async function createTransaction() {
     toRaw(fee.value)
   );
 }
+
+function formatBytes(bytes: number, decimals = 1) {
+  if (!+bytes) return "0 bytes";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
 </script>
 
 <template>
@@ -153,7 +163,7 @@ async function createTransaction() {
       <p>Wallet size</p>
 
       <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
-      <h1 v-else>{{ filters.formatBytes(size) }}</h1>
+      <h1 v-else>{{ formatBytes(size) }}</h1>
     </div>
   </div>
   <div>

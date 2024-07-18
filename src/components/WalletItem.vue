@@ -5,6 +5,7 @@ import { renderIcon } from "@download/blockies";
 import { hex } from "@fleet-sdk/crypto";
 import LoadingIndicator from "./LoadingIndicator.vue";
 import { IDbWallet } from "@/types/database";
+import { WalletType } from "@/types/internal";
 
 const COLORS = [
   ["#17d1aa", "#e1f2ff", "#a80b32"],
@@ -44,6 +45,19 @@ onMounted(() => {
     );
   });
 });
+
+function walletTypeToString(type: WalletType): string {
+  switch (type) {
+    case WalletType.Standard:
+      return "Standard";
+    case WalletType.ReadOnly:
+      return "Read-only";
+    case WalletType.Ledger:
+      return "Ledger";
+    default:
+      return "";
+  }
+}
 </script>
 
 <template>
@@ -58,7 +72,7 @@ onMounted(() => {
       >
         <small class="align-middle font-normal">{{ checksum?.TextPart }}</small>
         <small class="rounded bg-gray-200 px-1 font-normal text-dark-200 uppercase">{{
-          $filters.walletType(wallet.type)
+          walletTypeToString(wallet.type)
         }}</small>
         <mdi-icon
           v-if="wallet.settings.avoidAddressReuse"

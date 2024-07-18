@@ -283,7 +283,7 @@ function emitSelectedUpdate() {
               <span>{{ feeAmount.toString() }}</span>
             </div>
             <small v-if="ergPrice" class="text-gray-400"
-              >≈ {{ price.toString() }} {{ filters.uppercase(conversionCurrency) }}</small
+              >≈ {{ price.toString() }} {{ filters.string.uppercase(conversionCurrency) }}</small
             >
           </div>
         </template>
@@ -318,10 +318,10 @@ function emitSelectedUpdate() {
           />
           <div class="whitespace-nowrap flex-grow text-gray-600">
             <template v-if="state.internalSelected.metadata?.name">{{
-              filters.compactString(state.internalSelected.metadata.name, 10)
+              filters.string.shorten(state.internalSelected.metadata.name, 10)
             }}</template>
             <template v-else>{{
-              filters.compactString(state.internalSelected.tokenId, 10)
+              filters.string.shorten(state.internalSelected.tokenId, 10)
             }}</template>
           </div>
           <vue-feather type="chevron-down" size="18" />
@@ -343,9 +343,9 @@ function emitSelectedUpdate() {
                 />
                 <div class="flex-grow">
                   <template v-if="asset.metadata?.name">{{
-                    filters.compactString(asset.metadata?.name, 10)
+                    filters.string.shorten(asset.metadata?.name, 10)
                   }}</template>
-                  <template v-else>{{ filters.compactString(asset.tokenId, 10) }} </template>
+                  <template v-else>{{ filters.string.shorten(asset.tokenId, 10) }} </template>
                 </div>
               </div>
             </a>

@@ -74,7 +74,7 @@
               class="w-full !py-1 appearance-none control cursor-pointer"
             >
               <option v-for="currency in currencies" :key="currency" :value="currency">
-                {{ $filters.uppercase(currency) }}
+                {{ $filters.string.uppercase(currency) }}
               </option>
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">

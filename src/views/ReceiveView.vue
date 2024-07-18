@@ -99,7 +99,7 @@
                   :href="urlFor(address.script)"
                   :class="{ 'text-gray-400': isUsed(address) }"
                   target="_blank"
-                  >{{ $filters.compactString(address.script, 10) }}</a
+                  >{{ $filters.string.shorten(address.script, 10) }}</a
                 >
                 <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
                   <a class="cursor-pointer" @click="showOnLedger(address)">

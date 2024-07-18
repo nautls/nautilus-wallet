@@ -63,9 +63,9 @@
               </p>
               <a v-else class="break-anywhere cursor-pointer" @click="selectedAsset = asset">
                 <template v-if="asset.metadata?.name">{{
-                  $filters.compactString(asset.metadata?.name, 40)
+                  $filters.string.shorten(asset.metadata?.name, 40)
                 }}</template>
-                <template v-else>{{ $filters.compactString(asset.tokenId, 12) }}</template>
+                <template v-else>{{ $filters.string.shorten(asset.tokenId, 12) }}</template>
               </a>
             </td>
             <td class="text-right align-middle whitespace-nowrap">
@@ -75,21 +75,19 @@
               </div>
               <template v-else>
                 <p>
-                  {{ $filters.formatBigNumber(asset.confirmedAmount) }}
+                  {{ $filters.bn.format(asset.confirmedAmount) }}
                 </p>
                 <tool-tip
                   v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${$filters.formatBigNumber(
+                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${$filters.bn.format(
                     price(asset.tokenId),
                     2
-                  )} ${$filters.uppercase(conversionCurrency)}`"
+                  )} ${$filters.string.uppercase(conversionCurrency)}`"
                 >
                   <p class="text-xs text-gray-500">
                     ≈
-                    {{
-                      $filters.formatBigNumber(asset.confirmedAmount.times(price(asset.tokenId)), 2)
-                    }}
-                    {{ $filters.uppercase(conversionCurrency) }}
+                    {{ $filters.bn.format(asset.confirmedAmount.times(price(asset.tokenId)), 2) }}
+                    {{ $filters.string.uppercase(conversionCurrency) }}
                   </p>
                 </tool-tip>
               </template>

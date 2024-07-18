@@ -22,7 +22,7 @@
           <div class="h-39 w-full bg-transparent absolute top-0 left-0"></div>
         </div>
         <p class="text-sm p-2">
-          {{ $filters.compactString(nft.metadata?.name ?? nft.tokenId, 30) }}
+          {{ $filters.string.shorten(nft.metadata?.name ?? nft.tokenId, 30) }}
         </p>
       </div>
     </div>

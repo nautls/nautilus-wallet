@@ -22,11 +22,11 @@
     <p class="text-sm">
       Support the development by donating to:
       <span v-if="readonly">
-        {{ $filters.compactString(donationAddress, 20) }}
+        {{ $filters.string.shorten(donationAddress, 20) }}
         <click-to-copy :content="donationAddress" size="14" class="align-middle" />
       </span>
       <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
-        $filters.compactString(donationAddress, 20)
+        $filters.string.shorten(donationAddress, 20)
       }}</a>
     </p>
 

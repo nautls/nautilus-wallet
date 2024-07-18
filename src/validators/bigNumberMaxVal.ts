@@ -15,7 +15,7 @@ export default function (max: BigNumber) {
   return {
     $validator: validator(max),
     $message: ({ $params }: any) =>
-      `The amount should be less than or equal to ${filters.formatBigNumber($params.max)}`,
+      `The amount should be less than or equal to ${filters.bn.format($params.max)}`,
     $params: { max, type: "maxValue" }
   };
 }

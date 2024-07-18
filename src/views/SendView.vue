@@ -49,17 +49,17 @@
                   />
                   <div class="flex-grow">
                     <template v-if="asset.metadata?.name">{{
-                      $filters.compactString(asset.metadata?.name, 26)
+                      $filters.string.shorten(asset.metadata?.name, 26)
                     }}</template>
-                    <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
+                    <template v-else>{{ $filters.string.shorten(asset.tokenId, 10) }}</template>
                     <p
                       v-if="devMode && !isErg(asset.tokenId)"
                       class="text-gray-400 text-xs font-mono"
                     >
-                      {{ $filters.compactString(asset.tokenId, 16) }}
+                      {{ $filters.string.shorten(asset.tokenId, 16) }}
                     </p>
                   </div>
-                  <div>{{ $filters.formatBigNumber(asset.confirmedAmount) }}</div>
+                  <div>{{ $filters.bn.format(asset.confirmedAmount) }}</div>
                 </div>
               </a>
             </div>

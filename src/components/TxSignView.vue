@@ -28,12 +28,12 @@
         <template v-if="!output.isBabelBoxSwap" #subheader>
           <div class="font-mono text-sm break-all flex flex-col gap-2">
             <p>
-              {{ $filters.compactString(output.receiver, 60) }}
+              {{ $filters.string.shorten(output.receiver, 60) }}
               <click-to-copy :content="output.receiver" size="11" />
             </p>
             <p v-if="isLedger && isP2S(output)">
               <span class="font-semibold font-sans">Script Hash:</span>
-              {{ $filters.compactString(output.scriptHash, 20) }}
+              {{ $filters.string.shorten(output.scriptHash, 20) }}
             </p>
           </div>
         </template>

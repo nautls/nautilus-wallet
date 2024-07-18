@@ -37,13 +37,13 @@
                 tip-class="max-w-35"
                 :label="asset.metadata?.name"
               >
-                {{ $filters.compactString(asset.metadata?.name, 10) }}
+                {{ $filters.string.shorten(asset.metadata?.name, 10) }}
               </tool-tip>
               <template v-else>
                 {{ asset.metadata?.name }}
               </template></span
             >
-            <span v-else class="flex-grow">{{ $filters.compactString(asset.tokenId, 10) }}</span>
+            <span v-else class="flex-grow">{{ $filters.string.shorten(asset.tokenId, 10) }}</span>
             <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.metadata?.type" />
           </div>
         </div>
@@ -51,7 +51,7 @@
       <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
           <span v-if="ergPrice && rate(asset.tokenId)" class="text-xs text-gray-400"
-            >≈ {{ price }} {{ $filters.uppercase(conversionCurrency) }}</span
+            >≈ {{ price }} {{ $filters.string.uppercase(conversionCurrency) }}</span
           >
           <span v-else class="text-xs text-gray-400">No conversion rate</span>
         </div>
@@ -59,7 +59,7 @@
           <a
             class="text-xs cursor-pointer underline-transparent text-gray-400"
             @click="setMaxValue()"
-            >Balance: {{ $filters.formatBigNumber(confirmedAmount) }}</a
+            >Balance: {{ $filters.bn.format(confirmedAmount) }}</a
           >
         </div>
       </div>
@@ -128,7 +128,7 @@ export default defineComponent({
         return "0.00";
       }
 
-      return this.$filters.formatBigNumber(
+      return this.$filters.bn.format(
         this.parsedValue.multipliedBy(this.priceFor(this.asset.tokenId)),
         2
       );

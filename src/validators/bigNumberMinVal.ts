@@ -16,7 +16,7 @@ export default function (min: BigNumber): ValidationRuleWithParams<{ min: BigNum
   return {
     $validator: validator(min),
     $message: ({ $params }) =>
-      `The amount should be greater than or equal to ${filters.formatBigNumber($params.min)}`,
+      `The amount should be greater than or equal to ${filters.bn.format($params.min)}`,
     $params: { min }
   };
 }
