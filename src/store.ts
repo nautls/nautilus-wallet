@@ -307,21 +307,6 @@ export default createStore({
       const txIds = uniq(boxes.map((b) => b.spentTxId));
       const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
       await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
-    },
-    async [ACTIONS.UPDATE_WALLET_SETTINGS]({ commit }, command: UpdateWalletSettingsCommand) {
-      await walletsDbService.updateSettings(command.walletId, command.name, command);
-      commit(MUTATIONS.SET_WALLET_SETTINGS, command);
-    },
-    async [ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX]({ commit }, command: UpdateChangeIndexCommand) {
-      await walletsDbService.updateChangeIndex(command.walletId, command.index);
-      commit(MUTATIONS.SET_DEFAULT_CHANGE_INDEX, command);
-    },
-    async [ACTIONS.UPDATE_USED_ADDRESSES_FILTER](
-      { commit },
-      command: UpdateUsedAddressesFilterCommand
-    ) {
-      await walletsDbService.updateUsedAddressFilter(command.walletId, command.filter);
-      commit(MUTATIONS.SET_USED_ADDRESSES_FILTER, command);
     }
   }
 });

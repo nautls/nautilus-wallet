@@ -57,27 +57,11 @@ class WalletsDbService {
   }
 
   public async updateSettings(
-    walletId: number,
-    walletName: string,
-    settings: Partial<WalletSettings>
+    id: number,
+    name: string,
+    settings?: WalletSettings
   ): Promise<number> {
-    return await dbContext.wallets.update(walletId, {
-      name: walletName.trim(),
-      "settings.avoidAddressReuse": settings.avoidAddressReuse,
-      "settings.hideUsedAddresses": settings.hideUsedAddresses
-    });
-  }
-
-  public async updateChangeIndex(walletId: number, index: number) {
-    return await dbContext.wallets.update(walletId, {
-      "settings.defaultChangeIndex": index
-    });
-  }
-
-  public async updateUsedAddressFilter(walletId: number, hide: boolean) {
-    return await dbContext.wallets.update(walletId, {
-      "settings.hideUsedAddresses": hide
-    });
+    return await dbContext.wallets.update(id, { name: name.trim(), settings });
   }
 
   public async getAll(): Promise<NotNullId<IDbWallet>[]> {

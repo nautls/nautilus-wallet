@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, ref, shallowReactive } from "vue";
+import { computed, onMounted, ref, shallowReactive, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { useAppStore } from "./appStore";
@@ -42,6 +42,15 @@ export const useWalletStore = defineStore("wallet", () => {
     hideUsedAddresses: false,
     defaultChangeIndex: 0
   });
+
+  watch(
+    [name, settings],
+    async () => {
+      if (privateState.loading) return;
+      await walletsDbService.updateSettings(id.value, name.value, toRaw(settings.value));
+    },
+    { deep: true }
+  );
 
   const id = computed(() => privateState.id);
   const type = computed(() => privateState.type);

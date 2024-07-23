@@ -59,7 +59,7 @@
                   :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
                   tip-class="normal-case"
                 >
-                  <a class="cursor-pointer inline-flex" @click="updateUsedAddressesFilter()">
+                  <a class="cursor-pointer inline-flex" @click="toggleUsedAddressesFilter()">
                     <mdi-icon :name="hideUsed ? 'filter-off' : 'filter'" size="16" />
                   </a>
                 </tool-tip>
@@ -157,14 +157,7 @@ import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
 import { openModal } from "@/common/componentUtils";
 import MdiIcon from "@/components/MdiIcon.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { ACTIONS } from "@/constants/store";
-import {
-  AddressState,
-  StateAddress,
-  UpdateChangeIndexCommand,
-  UpdateUsedAddressesFilterCommand,
-  WalletType
-} from "@/types/internal";
+import { AddressState, StateAddress, WalletType } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 
@@ -226,16 +219,10 @@ export default defineComponent({
   },
   methods: {
     updateDefaultChangeIndex(index: number) {
-      this.$store.dispatch(ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX, {
-        walletId: this.wallet.id,
-        index
-      } as UpdateChangeIndexCommand);
+      this.wallet.settings.defaultChangeIndex = index;
     },
-    updateUsedAddressesFilter() {
-      this.$store.dispatch(ACTIONS.UPDATE_USED_ADDRESSES_FILTER, {
-        walletId: this.wallet.id,
-        filter: !this.hideUsed
-      } as UpdateUsedAddressesFilterCommand);
+    toggleUsedAddressesFilter() {
+      this.wallet.settings.hideUsedAddresses = !this.wallet.settings.hideUsedAddresses;
     },
     async newAddress() {
       try {

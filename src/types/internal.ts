@@ -92,19 +92,6 @@ export type FeeSettings = {
   box?: ErgoBox;
 };
 
-export type UpdateWalletSettingsCommand = {
-  walletId: number;
-  name: string;
-  avoidAddressReuse: boolean;
-  hideUsedAddresses: boolean;
-  devMode: boolean;
-};
-
-export type UpdateChangeIndexCommand = {
-  walletId: number;
-  index: number;
-};
-
 export const enum ProverStateType {
   success,
   error,

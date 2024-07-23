@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from "vue";
 import WalletLogo from "./WalletLogo.vue";
-import store from "@/store";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 import { IDbWallet, NotNullId } from "@/types/database";
@@ -12,16 +11,17 @@ const wallet = useWalletStore();
 
 const wallets = shallowRef<NotNullId<IDbWallet>[]>([]);
 
-const loading = computed(() => store.state.loading);
-
 const unselected = computed(() => {
   if (!wallets.value) return [];
   const currentId = wallet.id;
   return wallets.value.filter((w) => w.id !== currentId);
 });
 
-const current = computed(() => {
-  return wallets.value.find((w) => w.id === wallet.id);
+const current = computed((): NotNullId<IDbWallet> | undefined => {
+  const dbWallet = wallets.value.find((w) => w.id === wallet.id);
+  if (!dbWallet) return;
+
+  return { ...dbWallet, name: wallet.name, settings: wallet.settings };
 });
 
 onMounted(async () => {
@@ -54,7 +54,7 @@ async function expandView() {
             :key="wallet.id"
             :wallet="current"
             :reverse="!active"
-            :loading="loading.addresses || loading.balance"
+            :loading="wallet.loading || wallet.syncing"
           />
         </template>
         <template #items>
