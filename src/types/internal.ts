@@ -48,7 +48,7 @@ export type StateAddress = {
   script: string;
   state: AddressState;
   index: number;
-  balance: StateAsset[];
+  assets: StateAsset[];
 };
 
 export type WalletSettings = {
@@ -69,6 +69,7 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
+  address: string;
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
   metadata?: BasicAssetMetadata;

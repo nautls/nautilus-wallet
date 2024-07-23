@@ -5,7 +5,6 @@ import dayjs from "dayjs";
 import { minBy } from "lodash-es";
 import { createConsolidationTransaction } from "./transactionFactory";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import store from "@/store";
 import { ErgoBox } from "@/types/connector";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { FeeSettings } from "@/types/internal";
@@ -20,6 +19,9 @@ import {
 } from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { useWalletStore } from "@/stores/walletStore";
+
+const wallet = useWalletStore();
 
 const loading = ref(true);
 const boxes = ref<ErgoBox[]>([]);
@@ -30,7 +32,7 @@ const fee = ref<FeeSettings>({
 });
 
 onMounted(loadBoxes);
-watch(() => store.state.currentWallet.id, loadBoxes);
+watch(() => wallet.id, loadBoxes);
 
 const size = computed(() => {
   let size = 0;
@@ -71,7 +73,7 @@ async function loadBoxes() {
   setLoading(true);
 
   const [ownBoxes, height] = await Promise.all([
-    fetchBoxes(store.state.currentWallet.id),
+    fetchBoxes(wallet.id),
     graphQLService.getCurrentHeight()
   ]);
 
@@ -101,10 +103,10 @@ function sendTransaction() {
 }
 
 async function createTransaction() {
-  return await createConsolidationTransaction(
+  return createConsolidationTransaction(
     toRaw(boxes.value),
     currentHeight.value,
-    store.state.currentWallet.type,
+    wallet.type,
     toRaw(fee.value)
   );
 }

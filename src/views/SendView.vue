@@ -97,7 +97,7 @@ import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { FeeSettings, StateAsset, StateWallet } from "@/types/internal";
+import { FeeSettings, StateAsset } from "@/types/internal";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { validErgoAddress } from "@/validators";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
@@ -138,9 +138,6 @@ export default defineComponent({
     };
   },
   computed: {
-    currentWallet(): StateWallet {
-      return this.$store.state.currentWallet;
-    },
     unselected(): StateAsset[] {
       return differenceBy(
         this.wallet.balance,
@@ -257,7 +254,7 @@ export default defineComponent({
         recipientAddress: this.recipient,
         assets: this.selected,
         fee: this.feeSettings,
-        walletType: this.currentWallet.type
+        walletType: this.wallet.type
       });
     },
     clear(): void {

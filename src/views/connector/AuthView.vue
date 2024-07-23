@@ -16,14 +16,17 @@ import type { AuthArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { signAuthMessage } from "@/chains/ergo/signing";
+import { useWalletStore } from "@/stores/walletStore";
+
+const wallet = useWalletStore();
 
 const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const errorMessage = ref("");
 const walletId = ref(0);
 
-const isReadonly = computed(() => store.state.currentWallet.type === WalletType.ReadOnly);
-const isLedger = computed(() => store.state.currentWallet.type === WalletType.Ledger);
+const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
+const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
 
 const removeEventListener = useEventListener(window, "beforeunload", refuse);
@@ -68,7 +71,7 @@ watch(
 
 function setWallet(loading: boolean, walletId: number) {
   if (loading || !walletId) return;
-  store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+  wallet.load(walletId);
 }
 
 async function authenticate() {

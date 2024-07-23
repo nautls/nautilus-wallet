@@ -26,7 +26,7 @@ export async function createConsolidationTransaction(
   const unsigned = new TransactionBuilder(creationHeight)
     .from(inputs)
     .configureSelector((x) => x.ensureInclusion((input) => input.value > 0n))
-    .sendChangeTo(await safeGetChangeAddress());
+    .sendChangeTo(safeGetChangeAddress());
 
   await setFee(unsigned, fee);
   setSelectionAndChangeStrategy(unsigned, walletType);

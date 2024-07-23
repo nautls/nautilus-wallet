@@ -10,7 +10,7 @@ import { useAssetsStore } from "./stores/assetsStore";
 import { useWalletStore } from "./stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { walletsDbService } from "@/database/walletsDbService";
-import HdKey, { DerivedAddress } from "@/chains/ergo/hdKey";
+import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import {
   AddressState,
   AddressType,
@@ -42,20 +42,6 @@ let wallet: ReturnType<typeof useWalletStore>;
 
 export default createStore({
   state: {
-    // wallets: [] as StateWallet[],
-    // currentWallet: {
-    //   id: 0,
-    //   name: "",
-    //   type: WalletType.Standard,
-    //   publicKey: "",
-    //   extendedPublicKey: "",
-    //   settings: {
-    //     avoidAddressReuse: false,
-    //     hideUsedAddresses: false,
-    //     defaultChangeIndex: 0
-    //   }
-    // } as StateWallet,
-    currentAddresses: [] as StateAddress[],
     loading: {
       addresses: true,
       balance: true,
@@ -63,33 +49,6 @@ export default createStore({
     }
   },
   mutations: {
-    [MUTATIONS.SET_CURRENT_ADDRESSES](
-      state,
-      content: { addresses: StateAddress[]; walletId?: number }
-    ) {
-      // don't commit if the default wallet gets changed
-      if (state.currentWallet.id !== content.walletId) {
-        return;
-      }
-
-      if (state.currentAddresses.length !== 0) {
-        for (const address of content.addresses) {
-          const stateAddr = state.currentAddresses.find((a) => a.script === address.script);
-          if (stateAddr && stateAddr.balance) {
-            address.balance = stateAddr.balance;
-          }
-        }
-      }
-
-      state.currentAddresses = sortBy(content.addresses, (a) => a.index);
-    },
-    [MUTATIONS.ADD_ADDRESS](state, content: { address: StateAddress; walletId: number }) {
-      if (state.currentWallet.id != content.walletId) {
-        return;
-      }
-
-      state.currentAddresses.push(content.address);
-    },
     [MUTATIONS.UPDATE_BALANCES](state, data: { assets: IDbAsset[]; walletId: number }) {
       if (
         !data.assets ||
@@ -104,11 +63,11 @@ export default createStore({
       for (const address of state.currentAddresses) {
         const group = groups[address.script];
         if (!group || group.length === 0) {
-          address.balance = [];
+          address.assets = [];
           continue;
         }
 
-        address.balance = group.map((x) => {
+        address.assets = group.map((x) => {
           const metadata = assets.metadata.get(x.tokenId);
           return {
             tokenId: x.tokenId,
@@ -214,39 +173,6 @@ export default createStore({
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET](_, id: number) {
       wallet.load(id);
     },
-    async [ACTIONS.NEW_ADDRESS]({ state, commit }) {
-      const lastUsedIndex = state.currentAddresses.findLastIndex(
-        (a) => a.state === AddressState.Used
-      );
-
-      if (state.currentAddresses.length - lastUsedIndex > CHUNK_DERIVE_LENGTH) {
-        throw Error(
-          `You cannot add more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
-        );
-      }
-
-      const walletId = state.currentWallet.id;
-      const pk = state.currentWallet.publicKey;
-      const index = (maxBy(state.currentAddresses, (a) => a.index)?.index || 0) + 1;
-      const address = hdKeyPool.get(pk).deriveAddress(index);
-      await addressesDbService.put({
-        type: AddressType.P2PK,
-        state: AddressState.Unused,
-        script: address.script,
-        index: address.index,
-        walletId: walletId
-      });
-
-      commit(MUTATIONS.ADD_ADDRESS, {
-        address: {
-          script: address.script,
-          state: AddressState.Unused,
-          index: address.index,
-          balance: undefined
-        },
-        walletId
-      });
-    },
     async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
       if (!state.currentWallet.id) return;
 
@@ -254,10 +180,10 @@ export default createStore({
       const pk = state.currentWallet.publicKey;
       const key = hdKeyPool.get(pk);
       const dbAddresses = await addressesDbService.getByWalletId(walletId);
-      let active = dbAddresses.map((a): StateAddress => ({ ...a, balance: [] }));
+      let active = dbAddresses.map((a): StateAddress => ({ ...a, assets: [] }));
       active = sortBy(active, (a) => a.index);
 
-      let derived: DerivedAddress[] = [];
+      let derived: IndexedAddress[] = [];
       let used: string[] = [];
       let usedChunk: string[] = [];
       let lastUsed: string | undefined;
@@ -329,7 +255,7 @@ export default createStore({
           balance: undefined
         };
       });
-      commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
+      // commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
 
       if (lastUsed !== null) {
         dispatch(ACTIONS.FETCH_BALANCES, {

@@ -6,13 +6,14 @@ import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "..
 import { fetchBoxes } from "../boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { ACTIONS } from "@/constants/store";
-import store from "@/store";
-import { AddressState, FeeSettings, StateAsset, WalletType } from "@/types/internal";
+import { FeeSettings, StateAsset, WalletType } from "@/types/internal";
 import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
+import { useWalletStore } from "@/stores/walletStore";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
+
+const wallet = useWalletStore();
 
 export type TxAssetAmount = {
   asset: StateAsset;
@@ -31,7 +32,7 @@ export async function createP2PTransaction({
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
   const [inputs, currentHeight] = await Promise.all([
-    fetchBoxes(store.state.currentWallet.id),
+    fetchBoxes(wallet.id),
     graphQLService.getCurrentHeight()
   ]);
 
@@ -60,7 +61,7 @@ export async function createP2PTransaction({
           }))
       )
     )
-    .sendChangeTo(await safeGetChangeAddress(recipientAddress));
+    .sendChangeTo(safeGetChangeAddress());
 
   await setFee(unsigned, fee);
   setSelectionAndChangeStrategy(unsigned, walletType);
@@ -136,24 +137,7 @@ function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
   }
 }
 
-export async function safeGetChangeAddress(recipientAddress = ""): Promise<string> {
-  const wallet = store.state.currentWallet;
-  const addresses = store.state.currentAddresses;
-
-  if (wallet.settings.avoidAddressReuse) {
-    const unused = addresses.find(
-      (a) => a.state === AddressState.Unused && a.script !== recipientAddress
-    );
-
-    if (isEmpty(unused)) {
-      await store.dispatch(ACTIONS.NEW_ADDRESS);
-    }
-  }
-
-  const index = wallet.settings.avoidAddressReuse
-    ? addresses.find((a) => a.state === AddressState.Unused && a.script !== recipientAddress)
-        ?.index ?? wallet.settings.defaultChangeIndex
-    : wallet.settings.defaultChangeIndex;
-
-  return hdKeyPool.get(wallet.publicKey).deriveAddress(index || 0).script;
+export function safeGetChangeAddress(): string {
+  const index = wallet.changeAddress.index ?? 0;
+  return hdKeyPool.get(wallet.publicKey).deriveAddress(index).script;
 }

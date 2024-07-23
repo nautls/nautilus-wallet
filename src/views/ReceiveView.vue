@@ -13,10 +13,10 @@
             <div class="skeleton h-3 w-1/2 rounded"></div>
           </template>
           <template v-else>
-            <a :href="urlFor(mainAddress)" target="_blank">
-              {{ mainAddress }}
+            <a :href="urlFor(wallet.changeAddress?.script)" target="_blank">
+              {{ wallet.changeAddress?.script }}
             </a>
-            <click-to-copy :content="mainAddress" class="mx-2" size="12" />
+            <click-to-copy :content="wallet.changeAddress?.script" class="mx-2" size="12" />
           </template>
         </div>
       </div>
@@ -52,8 +52,8 @@
           <tr>
             <th>
               <div class="flex-row justify-start flex gap-2 align-middle">
-                Address ({{ addresses.length
-                }}<template v-if="hideUsed">/{{ stateAddresses.length }}</template
+                Address ({{ wallet.filteredAddresses.length
+                }}<template v-if="hideUsed">/{{ wallet.addresses.length }}</template
                 >)
                 <tool-tip
                   :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
@@ -92,7 +92,7 @@
               </td>
             </tr>
           </template>
-          <tr v-for="address in addresses.slice().reverse()" v-else :key="address.script">
+          <tr v-for="address in reversedAddresses" v-else :key="address.script">
             <td class="font-mono">
               <div class="flex gap-2 text-gray-700">
                 <a
@@ -109,9 +109,9 @@
 
                 <click-to-copy :content="address.script" size="14" />
 
-                <template v-if="!currentWallet.settings.avoidAddressReuse">
+                <template v-if="!wallet.settings.avoidAddressReuse">
                   <vue-feather
-                    v-if="currentWallet.settings.defaultChangeIndex === address.index"
+                    v-if="wallet.settings.defaultChangeIndex === address.index"
                     type="check-circle"
                     class="text-green-600"
                     size="14"
@@ -150,7 +150,7 @@
 </template>
 
 <script lang="ts">
-import { isDefined, last } from "@fleet-sdk/common";
+import { isDefined } from "@fleet-sdk/common";
 import QRCode from "qrcode";
 import { defineComponent } from "vue";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
@@ -161,18 +161,18 @@ import { ACTIONS } from "@/constants/store";
 import {
   AddressState,
   StateAddress,
-  StateWallet,
   UpdateChangeIndexCommand,
   UpdateUsedAddressesFilterCommand,
   WalletType
 } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "ReceiveView",
   components: { MdiIcon },
   setup() {
-    return { app: useAppStore() };
+    return { app: useAppStore(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -181,66 +181,45 @@ export default defineComponent({
     };
   },
   computed: {
-    currentWallet(): StateWallet {
-      return this.$store.state.currentWallet;
-    },
     isLedger(): boolean {
-      return this.currentWallet.type === WalletType.Ledger;
+      return this.wallet.type === WalletType.Ledger;
     },
-    stateAddresses(): StateAddress[] {
-      return this.$store.state.currentAddresses;
-    },
-    addresses(): StateAddress[] {
-      const settings = this.currentWallet.settings;
-      if (settings.hideUsedAddresses) {
-        return this.stateAddresses.filter(
-          (a) =>
-            a.state === AddressState.Unused ||
-            (a.state === AddressState.Used && a.balance) ||
-            (!settings.avoidAddressReuse && a.index === settings.defaultChangeIndex)
-        );
-      }
-      return this.stateAddresses;
+    reversedAddresses(): StateAddress[] {
+      return this.wallet.filteredAddresses.slice().reverse();
     },
     hideUsed(): boolean {
-      return this.currentWallet.settings.hideUsedAddresses;
+      return this.wallet.settings.hideUsedAddresses;
     },
     loading(): boolean {
-      return this.addresses.length === 0 && this.$store.state.loading.addresses;
+      return this.wallet.addresses.length === 0 && this.wallet.loading;
     },
     avoidingReuse(): boolean {
-      return this.currentWallet.settings.avoidAddressReuse;
-    },
-    mainAddress(): string | undefined {
-      const settings = this.currentWallet.settings;
-      return this.avoidingReuse
-        ? last(this.addresses)?.script
-        : this.addresses.find((a) => a.index === settings.defaultChangeIndex)?.script;
+      return this.wallet.settings.avoidAddressReuse;
     },
     hideBalances(): boolean {
       return this.app.settings.hideBalances;
     }
   },
   watch: {
-    ["addresses.length"](newLen, oldLen) {
+    "wallet.addresses"(_, oldLen) {
       const length = oldLen || 1;
-      if (length > 1) {
-        this.prevCount = length;
-      }
+      if (length > 1) this.prevCount = length;
     },
-    mainAddress: {
+    "wallet.changeAddress": {
       immediate: true,
       handler() {
         this.errorMsg = "";
         this.$nextTick(() => {
-          if (!this.mainAddress) {
-            return;
-          }
-          QRCode.toCanvas(document.getElementById("primary-address-canvas"), this.mainAddress, {
-            errorCorrectionLevel: "low",
-            margin: 0,
-            scale: 4
-          });
+          if (!this.wallet.changeAddress) return;
+          QRCode.toCanvas(
+            document.getElementById("primary-address-canvas"),
+            this.wallet.changeAddress.script,
+            {
+              errorCorrectionLevel: "low",
+              margin: 0,
+              scale: 4
+            }
+          );
         });
       }
     }
@@ -248,26 +227,26 @@ export default defineComponent({
   methods: {
     updateDefaultChangeIndex(index: number) {
       this.$store.dispatch(ACTIONS.UPDATE_CHANGE_ADDRESS_INDEX, {
-        walletId: this.currentWallet.id,
+        walletId: this.wallet.id,
         index
       } as UpdateChangeIndexCommand);
     },
     updateUsedAddressesFilter() {
       this.$store.dispatch(ACTIONS.UPDATE_USED_ADDRESSES_FILTER, {
-        walletId: this.currentWallet.id,
+        walletId: this.wallet.id,
         filter: !this.hideUsed
       } as UpdateUsedAddressesFilterCommand);
     },
     async newAddress() {
       try {
-        await this.$store.dispatch(ACTIONS.NEW_ADDRESS);
+        await this.wallet.deriveNewAddress();
       } catch (e) {
         this.errorMsg = (e as Error).message;
       }
     },
     ergBalanceFor(address: StateAddress): string {
       return (
-        address.balance?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
+        address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
       );
     },
     isUsed(address: StateAddress): boolean {
@@ -275,9 +254,7 @@ export default defineComponent({
     },
     hasPendingBalance(address: StateAddress): boolean {
       return isDefined(
-        address.balance?.find(
-          (b) => isDefined(b.unconfirmedAmount) && !b.unconfirmedAmount.isZero()
-        )
+        address.assets?.find((b) => isDefined(b.unconfirmedAmount) && !b.unconfirmedAmount.isZero())
       );
     },
     urlFor(address: string | undefined): string {

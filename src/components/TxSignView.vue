@@ -136,7 +136,7 @@ import {
 } from "@fleet-sdk/common";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
-import { ProverStateType, SigningState, StateAddress, WalletType } from "@/types/internal";
+import { ProverStateType, SigningState, WalletType } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { LedgerDeviceModelId } from "@/constants/ledger";
@@ -146,6 +146,7 @@ import { signTransaction } from "@/chains/ergo/signing";
 import "vue-json-pretty/lib/styles.css";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "TxSignView",
@@ -166,7 +167,12 @@ export default defineComponent({
   },
   emits: ["success", "fail", "refused"],
   setup() {
-    return { v$: useVuelidate(), app: useAppStore(), assets: useAssetsStore() };
+    return {
+      v$: useVuelidate(),
+      app: useAppStore(),
+      assets: useAssetsStore(),
+      wallet: useWalletStore()
+    };
   },
   data() {
     return {
@@ -209,19 +215,16 @@ export default defineComponent({
       return this.isModal ? "modal" : "embedded";
     },
     isReadonly() {
-      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+      return this.wallet.type === WalletType.ReadOnly;
     },
     isLedger() {
-      return this.$store.state.currentWallet.type === WalletType.Ledger;
+      return this.wallet.type === WalletType.Ledger;
     },
     isMnemonicSigning() {
       return this.isModal && this.signing && !this.isLedger && !this.setExternalState;
     },
     currentWalletId() {
-      return this.$store.state.currentWallet.id;
-    },
-    addresses(): StateAddress[] {
-      return this.$store.state.currentAddresses;
+      return this.wallet.id;
     },
     canSign(): boolean {
       return (
@@ -230,13 +233,11 @@ export default defineComponent({
       );
     },
     tx(): TxInterpreter | undefined {
-      if (this.addresses.length === 0 || !this.transaction) {
-        return;
-      }
+      if (this.wallet.addresses.length === 0 || !this.transaction) return;
 
       return new TxInterpreter(
         this.transaction,
-        this.addresses.map((a) => a.script),
+        this.wallet.addresses.map((a) => a.script),
         this.assets.metadata
       );
     },
@@ -246,9 +247,7 @@ export default defineComponent({
   },
   methods: {
     async sign() {
-      if (!this.canSign) {
-        return;
-      }
+      if (!this.canSign) return;
 
       const isValid = await this.v$.$validate();
       if (!isValid || !this.transaction) {
