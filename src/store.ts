@@ -11,16 +11,7 @@ import { useWalletStore } from "./stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { walletsDbService } from "@/database/walletsDbService";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
-import {
-  AddressState,
-  AddressType,
-  Network,
-  StateAddress,
-  UpdateChangeIndexCommand,
-  UpdateUsedAddressesFilterCommand,
-  UpdateWalletSettingsCommand,
-  WalletType
-} from "@/types/internal";
+import { AddressState, AddressType, Network, StateAddress, WalletType } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
 import { ACTIONS, MUTATIONS } from "@/constants/store";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -80,49 +71,6 @@ export default createStore({
     },
     [MUTATIONS.SET_LOADING](state, obj) {
       state.loading = Object.assign(state.loading, obj);
-    },
-    [MUTATIONS.SET_WALLET_SETTINGS](state, command: UpdateWalletSettingsCommand) {
-      const wallet = state.wallets.find((w) => w.id === command.walletId);
-      if (!wallet) return;
-
-      wallet.name = command.name;
-      wallet.settings.avoidAddressReuse = command.avoidAddressReuse;
-      wallet.settings.hideUsedAddresses = command.hideUsedAddresses;
-    },
-    [MUTATIONS.SET_DEFAULT_CHANGE_INDEX](state, command: UpdateChangeIndexCommand) {
-      const wallet = state.wallets.find((w) => w.id === command.walletId);
-      if (!wallet) return;
-
-      wallet.settings.defaultChangeIndex = command.index;
-    },
-    [MUTATIONS.SET_USED_ADDRESSES_FILTER](state, command: UpdateUsedAddressesFilterCommand) {
-      const wallet = state.wallets.find((w) => w.id === command.walletId);
-      if (!wallet) return;
-
-      wallet.settings.hideUsedAddresses = command.filter;
-    },
-    [MUTATIONS.REMOVE_WALLET](state, walletId: number) {
-      if (state.currentWallet.id === walletId) {
-        state.currentWallet = state.wallets.find((w) => w.id !== walletId) ?? {
-          id: 0,
-          name: "",
-          type: WalletType.Standard,
-          publicKey: "",
-          extendedPublicKey: "",
-          settings: {
-            avoidAddressReuse: false,
-            hideUsedAddresses: false,
-            defaultChangeIndex: 0
-          }
-        };
-
-        state.currentAddresses = [];
-      }
-
-      const removeIndex = state.wallets.findIndex((w) => w.id === walletId);
-      if (removeIndex > -1) {
-        state.wallets.splice(removeIndex, 1);
-      }
     }
   },
   actions: {

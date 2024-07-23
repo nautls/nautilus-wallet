@@ -116,8 +116,3 @@ export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
-
-export type UpdateUsedAddressesFilterCommand = {
-  walletId: number;
-  filter: boolean;
-};
