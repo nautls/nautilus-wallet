@@ -20,6 +20,7 @@ import { assetsDbService } from "@/database/assetsDbService";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
 import { hdKeyPool } from "@/common/objectPool";
 import HdKey from "@/chains/ergo/hdKey";
+import router from "@/router";
 
 const usePrivateState = defineStore("_wallet", () => ({
   loading: ref(true),
@@ -47,9 +48,27 @@ export const useWalletStore = defineStore("wallet", () => {
     [name, settings],
     async () => {
       if (privateState.loading) return;
-      await walletsDbService.updateSettings(id.value, name.value, toRaw(settings.value));
+      app.patchWallet(id.value, { name: name.value, settings: toRaw(settings.value) });
     },
     { deep: true }
+  );
+
+  watch(
+    () => app.wallets.length,
+    () => {
+      if (loading.value || app.loading) return;
+
+      const stillExists = app.wallets.find((w) => w.id === id.value);
+      if (stillExists) return;
+
+      const wallet = app.wallets[0];
+      if (wallet) {
+        load(wallet.id);
+        router.push({ name: "assets-page" });
+      } else {
+        router.push({ name: "add-wallet" });
+      }
+    }
   );
 
   const id = computed(() => privateState.id);

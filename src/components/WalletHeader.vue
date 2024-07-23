@@ -1,40 +1,26 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef } from "vue";
+import { computed } from "vue";
 import WalletLogo from "./WalletLogo.vue";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
-import { IDbWallet, NotNullId } from "@/types/database";
-import { walletsDbService } from "@/database/walletsDbService";
 import { useWalletStore } from "@/stores/walletStore";
+import { useAppStore } from "@/stores/appStore";
 
 const wallet = useWalletStore();
-
-const wallets = shallowRef<NotNullId<IDbWallet>[]>([]);
+const app = useAppStore();
 
 const unselected = computed(() => {
-  if (!wallets.value) return [];
-  const currentId = wallet.id;
-  return wallets.value.filter((w) => w.id !== currentId);
+  if (!app.wallets) return [];
+  return app.wallets.filter((w) => w.id !== wallet.id);
 });
 
-const current = computed((): NotNullId<IDbWallet> | undefined => {
-  const dbWallet = wallets.value.find((w) => w.id === wallet.id);
-  if (!dbWallet) return;
-
-  return { ...dbWallet, name: wallet.name, settings: wallet.settings };
-});
-
-onMounted(async () => {
-  wallets.value = await walletsDbService.getAll();
-});
+const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
 
 async function expandView() {
   if (!browser?.tabs) return;
 
-  browser.tabs.create({
-    url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`),
-    active: true
-  });
+  const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
+  browser.tabs.create({ url, active: true });
   window.close();
 }
 </script>

@@ -6,6 +6,11 @@ import { IDbAddress, IDbWallet, NotNullId } from "@/types/database";
 import { AddressState, WalletSettings } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
 
+export type WalletPatch = {
+  name?: string;
+  settings?: WalletSettings;
+};
+
 class WalletsDbService {
   public async getById(id: number): Promise<NotNullId<IDbWallet> | undefined> {
     return (await dbContext.wallets.where("id").equals(id).first()) as NotNullId<IDbWallet>;
@@ -56,12 +61,8 @@ class WalletsDbService {
     return dbContext.wallets.put(wallet);
   }
 
-  public async updateSettings(
-    id: number,
-    name: string,
-    settings?: WalletSettings
-  ): Promise<number> {
-    return await dbContext.wallets.update(id, { name: name.trim(), settings });
+  public async updateSettings(id: number, patch: WalletPatch): Promise<number> {
+    return await dbContext.wallets.update(id, patch);
   }
 
   public async getAll(): Promise<NotNullId<IDbWallet>[]> {

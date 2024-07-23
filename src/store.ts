@@ -1,5 +1,5 @@
 import { createStore } from "vuex";
-import { clone, groupBy, last, maxBy, sortBy, take } from "lodash-es";
+import { clone, last, maxBy, sortBy, take } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
 import { isEmpty, uniq } from "@fleet-sdk/common";
@@ -13,8 +13,7 @@ import { walletsDbService } from "@/database/walletsDbService";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { AddressState, AddressType, Network, StateAddress, WalletType } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
-import { ACTIONS, MUTATIONS } from "@/constants/store";
-import { bn, decimalize } from "@/common/bigNumber";
+import { ACTIONS } from "@/constants/store";
 import { CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import router from "@/router";
@@ -32,47 +31,8 @@ let assets: ReturnType<typeof useAssetsStore>;
 let wallet: ReturnType<typeof useWalletStore>;
 
 export default createStore({
-  state: {
-    loading: {
-      addresses: true,
-      balance: true,
-      wallets: true
-    }
-  },
-  mutations: {
-    [MUTATIONS.UPDATE_BALANCES](state, data: { assets: IDbAsset[]; walletId: number }) {
-      if (
-        !data.assets ||
-        data.assets.length === 0 ||
-        state.currentAddresses.length === 0 ||
-        state.currentWallet.id !== data.walletId
-      ) {
-        return;
-      }
-
-      const groups = groupBy(data.assets, (a) => a.address);
-      for (const address of state.currentAddresses) {
-        const group = groups[address.script];
-        if (!group || group.length === 0) {
-          address.assets = [];
-          continue;
-        }
-
-        address.assets = group.map((x) => {
-          const metadata = assets.metadata.get(x.tokenId);
-          return {
-            tokenId: x.tokenId,
-            confirmedAmount: decimalize(bn(x.confirmedAmount) || bn(0), metadata?.decimals),
-            unconfirmedAmount: decimalize(bn(x.unconfirmedAmount), metadata?.decimals),
-            metadata
-          };
-        });
-      }
-    },
-    [MUTATIONS.SET_LOADING](state, obj) {
-      state.loading = Object.assign(state.loading, obj);
-    }
-  },
+  state: {},
+  mutations: {},
   actions: {
     async [ACTIONS.INIT]() {
       // workaround to keep everything working while refactoring and migrating to pinia
@@ -214,21 +174,6 @@ export default createStore({
 
       commit(MUTATIONS.SET_LOADING, { addresses: false });
     },
-    async [ACTIONS.REMOVE_WALLET]({ state, commit }, walletId: number) {
-      await walletsDbService.delete(walletId);
-
-      if (state.currentWallet.id === walletId) {
-        const wallet = state.wallets.find((w) => w.id !== walletId);
-        if (wallet) {
-          // await dispatch(ACTIONS.SET_CURRENT_WALLET, wallet);
-          router.push({ name: "assets-page" });
-        } else {
-          router.push({ name: "add-wallet" });
-        }
-      }
-
-      commit(MUTATIONS.REMOVE_WALLET, walletId);
-    },
     async [ACTIONS.FETCH_BALANCES](
       { commit, dispatch },
       data: { addresses: string[]; walletId: number }
@@ -240,8 +185,8 @@ export default createStore({
       );
 
       await assets.loadMetadataFor(balance.map((x) => x.tokenId));
-      commit(MUTATIONS.UPDATE_BALANCES, { balance, walletId: data.walletId });
-      commit(MUTATIONS.SET_LOADING, { balance: false });
+      // commit(MUTATIONS.UPDATE_BALANCES, { balance, walletId: data.walletId });
+      // commit(MUTATIONS.SET_LOADING, { balance: false });
       dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },
     async [ACTIONS.CHECK_PENDING_BOXES]() {

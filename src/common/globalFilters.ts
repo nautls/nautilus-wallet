@@ -18,11 +18,11 @@ function roundToSignificantFigures(num: number, n: number) {
 export const filters = {
   string: {
     uppercase(val?: string): string {
-      if (!val) return "";
+      if (!val || typeof val !== "string") return "";
       return val.toUpperCase();
     },
     lowercase(val?: string): string {
-      if (!val) return "";
+      if (!val || typeof val !== "string") return "";
       return val.toLowerCase();
     },
     shorten(

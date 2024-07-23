@@ -142,15 +142,8 @@ export default defineComponent({
       return this.app.settings.conversionCurrency;
     },
     loading(): boolean {
-      if (!this.$store.state.loading.balance) {
-        return false;
-      }
-
-      const assetList = this.wallet.nonArtworkBalance;
-      if (assetList.length === 0) {
-        return true;
-      }
-
+      if (!this.wallet.loading) return false;
+      if (this.wallet.nonArtworkBalance.length === 0) return true;
       return false;
     },
     assets(): StateAsset[] {

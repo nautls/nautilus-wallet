@@ -1,10 +1,12 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, shallowReactive, watch } from "vue";
 import { useStorage } from "@vueuse/core";
-import { getDefaultServerUrl, graphQLService } from "../chains/ergo/services/graphQlService";
-import { DEFAULT_EXPLORER_URL } from "../constants/explorer";
-import { MAINNET } from "../constants/ergo";
-import { sendBackendServerUrl } from "../rpc/uiRpcHandlers";
+import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
+import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
+import { MAINNET } from "@/constants/ergo";
+import { sendBackendServerUrl } from "@/rpc/uiRpcHandlers";
+import { IDbWallet, NotNullId } from "@/types/database";
+import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -17,7 +19,10 @@ export type Settings = {
   blacklistedTokensLists: string[];
 };
 
-const usePrivateState = defineStore("_app", { state: () => ({ loading: true }) });
+const usePrivateState = defineStore("_app", () => ({
+  loading: ref(true),
+  wallets: shallowReactive<NotNullId<IDbWallet>[]>([])
+}));
 
 export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
@@ -33,7 +38,8 @@ export const useAppStore = defineStore("app", () => {
     blacklistedTokensLists: ["nsfw", "scam"]
   });
 
-  onMounted(() => {
+  onMounted(async () => {
+    privateState.wallets = await walletsDbService.getAll();
     privateState.loading = false;
   });
 
@@ -46,10 +52,30 @@ export const useAppStore = defineStore("app", () => {
   );
 
   const loading = computed(() => privateState.loading);
+  const wallets = computed(() => privateState.wallets);
+
+  async function patchWallet(id: number, wallet: WalletPatch) {
+    const index = privateState.wallets.findIndex((w) => w.id === id);
+    if (index === -1) return;
+
+    await walletsDbService.updateSettings(id, wallet);
+    privateState.wallets[index] = { ...privateState.wallets[index], ...wallet };
+  }
+
+  async function deleteWallet(id: number) {
+    const index = privateState.wallets.findIndex((w) => w.id === id);
+    if (index === -1) return;
+
+    await walletsDbService.delete(id);
+    privateState.wallets.splice(index, 1);
+  }
 
   return {
     settings,
-    loading
+    wallets,
+    loading,
+    patchWallet,
+    deleteWallet
   };
 });
 

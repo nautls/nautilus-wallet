@@ -179,10 +179,8 @@
 import { defineComponent, Ref } from "vue";
 import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
-import { mapActions } from "vuex";
 import { clone, isEqual } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
-import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
@@ -336,12 +334,9 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({
-      removeWallet: ACTIONS.REMOVE_WALLET
-    }),
     async remove() {
       if (confirm(`Are you sure you want to remove '${this.wallet.name}'?`)) {
-        this.removeWallet(this.wallet.id);
+        this.app.deleteWallet(this.wallet.id);
       }
     },
     async updateWallet() {
