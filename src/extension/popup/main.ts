@@ -16,10 +16,8 @@ import {
   mdiWalletPlus
 } from "@mdi/js";
 import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next";
-import axios from "axios";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import JSONBig from "json-bigint";
 import mdiVue from "mdi-vue/v3";
 import { createApp } from "vue";
 import VueFeather from "vue-feather";
@@ -45,17 +43,6 @@ import "@/assets/styles/main.css";
 
 dayjs.extend(relativeTime);
 registerRpcHooks();
-
-axios.defaults.transformResponse = [
-  (data) => {
-    if (typeof data !== "string") return data;
-    try {
-      return JSONBig.parse(data);
-    } catch {
-      return data;
-    }
-  }
-];
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;

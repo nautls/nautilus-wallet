@@ -20,7 +20,6 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import JSONBig from "json-bigint";
 import {
   BoxCandidate,
   DeviceError,
@@ -126,7 +125,7 @@ export class Prover {
   #parseUnsignedTx(unsignedTx: EIP12UnsignedTransaction) {
     const inputs = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
     const dataInputs = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+    const tx = UnsignedTransaction.from_json(JSON.stringify(unsignedTx));
 
     return { tx, inputs, dataInputs };
   }
