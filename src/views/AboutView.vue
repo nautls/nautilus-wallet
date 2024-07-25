@@ -54,9 +54,13 @@ import { defineComponent } from "vue";
 import pkg from "../../package.json";
 import { MAINNET } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "AboutView",
+  setup() {
+    return { wallet: useWalletStore() };
+  },
   computed: {
     version(): string {
       return pkg.version;
@@ -74,7 +78,7 @@ export default defineComponent({
       return "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By";
     },
     readonly(): boolean {
-      return this.$store.state.currentWallet.type === WalletType.ReadOnly;
+      return this.wallet.type === WalletType.ReadOnly;
     },
     testnet() {
       return !MAINNET;
