@@ -1,4 +1,4 @@
-import { IDbAsset, NullableWalletId } from "@/types/database";
+import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
 
 class AssetsDbService {
@@ -18,12 +18,13 @@ class AssetsDbService {
     return await dbContext.assets.where({ walletId }).toArray();
   }
 
-  public async bulkPut(assets: NullableWalletId<IDbAsset>[], walletId: number): Promise<void> {
-    for (const asset of assets) asset.walletId = walletId;
+  public async bulkPut(assets: IDbAsset[]): Promise<void> {
+    if (assets.length === 0) return;
     await dbContext.assets.bulkPut(assets);
   }
 
-  public async bulkDelete(assets: NullableWalletId<IDbAsset>[]): Promise<void> {
+  public async bulkDelete(assets: IDbAsset[]): Promise<void> {
+    if (assets.length === 0) return;
     await dbContext.assets.bulkDelete(assets.map((a) => [a.tokenId, a.address]));
   }
 }

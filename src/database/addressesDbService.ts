@@ -1,5 +1,5 @@
 import { walletsDbService } from "./walletsDbService";
-import { IDbAddress, IDbWallet, NullableWalletId } from "@/types/database";
+import { IDbAddress, IDbWallet } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
 import { AddressState } from "@/types/internal";
 
@@ -27,7 +27,7 @@ class AddressesDbService {
   }
 
   async getByWalletId(walletId: number): Promise<IDbAddress[]> {
-    return await dbContext.addresses.where({ walletId }).toArray();
+    return await dbContext.addresses.where({ walletId }).sortBy("index");
   }
 
   async getByState(walletId: number, state: AddressState): Promise<IDbAddress[]> {
@@ -73,8 +73,8 @@ class AddressesDbService {
     return dbContext.addresses.put(address);
   }
 
-  async bulkPut(addresses: NullableWalletId<IDbAddress>[], walletId: number): Promise<void> {
-    for (const address of addresses) address.walletId = walletId;
+  async bulkPut(addresses: IDbAddress[]): Promise<void> {
+    if (addresses.length === 0) return;
     await dbContext.addresses.bulkPut(addresses);
   }
 }

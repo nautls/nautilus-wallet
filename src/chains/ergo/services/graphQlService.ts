@@ -3,22 +3,19 @@ import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@ur
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
-import { chunk, first, isDefined, isEmpty } from "@fleet-sdk/common";
+import { chunk, first, isEmpty } from "@fleet-sdk/common";
 import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { sigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";
-import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
+import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
 import { bn } from "@/common/bigNumber";
 
 export type AssetInfo = {
   tokenId: string;
-  name?: string;
-  decimals?: number;
-  standard?: AssetStandard;
   confirmedAmount: string;
   unconfirmedAmount?: string;
 };
@@ -557,9 +554,6 @@ function addressInfoMapper(gqlAddressInfo: Address): AddressInfo {
     used: gqlAddressInfo.used,
     assets: gqlAddressInfo.balance.assets.map((t) => ({
       tokenId: t.tokenId,
-      name: t.name ?? undefined,
-      decimals: t.decimals ?? 0,
-      standard: t.name || isDefined(t.decimals) ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
       confirmedAmount: t.amount
     }))
   };
@@ -567,9 +561,6 @@ function addressInfoMapper(gqlAddressInfo: Address): AddressInfo {
   if (bn(gqlAddressInfo.balance.nanoErgs).gt(0)) {
     mapped.assets.push({
       tokenId: ERG_TOKEN_ID,
-      name: "ERG",
-      decimals: ERG_DECIMALS,
-      standard: AssetStandard.Native,
       confirmedAmount: gqlAddressInfo.balance.nanoErgs?.toString() || "0"
     });
   }

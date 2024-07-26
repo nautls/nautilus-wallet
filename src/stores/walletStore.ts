@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, ref, ShallowReactive, shallowReactive, toRaw, watch } from "vue";
+import { computed, onMounted, ref, shallowRef, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
 import type { BigNumber } from "bignumber.js";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
@@ -24,6 +24,7 @@ import { hdKeyPool } from "@/common/objectPool";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import router from "@/router";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { patchArray } from "@/common/reactivity";
 
 export type StateAssetSummary = {
   tokenId: string;
@@ -32,21 +33,42 @@ export type StateAssetSummary = {
   metadata?: BasicAssetMetadata;
 };
 
-const usePrivateState = defineStore("_wallet", () => ({
-  loading: ref(true),
-  syncing: ref(true),
-  id: ref(0),
-  type: ref(WalletType.Standard),
-  publicKey: ref(""),
-  addresses: shallowReactive<IDbAddress[]>([]),
-  assets: shallowReactive<IDbAsset[]>([])
-}));
+const usePrivateStateStore = defineStore("_wallet", () => {
+  const addresses = shallowRef<IDbAddress[]>([]);
+  const assets = shallowRef<IDbAsset[]>([]);
+
+  function patchAddresses(changedAddresses: IDbAddress[], removedAddresses: IDbAddress[] = []) {
+    patchArray(addresses, changedAddresses, removedAddresses, (a, b) => a.script === b.script);
+  }
+
+  function patchAssets(changedAssets: IDbAsset[], removedAssets: IDbAsset[] = []) {
+    patchArray(
+      assets,
+      changedAssets,
+      removedAssets,
+      (a, b) => a.tokenId === b.tokenId && a.address === b.address
+    );
+  }
+
+  return {
+    loading: ref(true),
+    syncing: ref(true),
+    id: ref(0),
+    type: ref(WalletType.Standard),
+    publicKey: ref(""),
+    addresses,
+    assets,
+    patchAddresses,
+    patchAssets
+  };
+});
 
 export const useWalletStore = defineStore("wallet", () => {
-  const privateState = usePrivateState();
-  const app = useAppStore();
+  const appStore = useAppStore();
   const assetsStore = useAssetsStore();
+  const privateState = usePrivateStateStore();
 
+  // #region  state
   const name = ref("");
   const settings = ref<WalletSettings>({
     avoidAddressReuse: false,
@@ -54,24 +76,25 @@ export const useWalletStore = defineStore("wallet", () => {
     defaultChangeIndex: 0
   });
 
+  // #region watches
   watch(
     [name, settings],
     async () => {
       if (privateState.loading) return;
-      app.patchWallet(id.value, { name: name.value, settings: toRaw(settings.value) });
+      appStore.patchWallet(privateState.id, { name: name.value, settings: toRaw(settings.value) });
     },
     { deep: true }
   );
 
   watch(
-    () => app.wallets.length,
+    () => appStore.wallets.length,
     () => {
-      if (loading.value || app.loading) return;
+      if (privateState.loading || appStore.loading) return;
 
-      const stillExists = app.wallets.find((w) => w.id === id.value);
+      const stillExists = appStore.wallets.find((w) => w.id === privateState.id);
       if (stillExists) return;
 
-      const wallet = app.wallets[0];
+      const wallet = appStore.wallets[0];
       if (wallet) {
         load(wallet.id);
         router.push({ name: "assets-page" });
@@ -81,12 +104,7 @@ export const useWalletStore = defineStore("wallet", () => {
     }
   );
 
-  const id = computed(() => privateState.id);
-  const type = computed(() => privateState.type);
-  const publicKey = computed(() => privateState.publicKey);
-  const loading = computed(() => privateState.loading);
-  const syncing = computed(() => privateState.syncing);
-
+  // #region computed
   const assets = computed((): StateAsset[] => {
     return privateState.assets.map((x) => {
       const metadata = assetsStore.metadata.get(x.tokenId);
@@ -102,7 +120,7 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   const balance = computed((): StateAssetSummary[] => {
-    if (loading.value) return [];
+    if (privateState.loading) return [];
 
     const balance = [] as StateAssetSummary[];
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
@@ -169,11 +187,13 @@ export const useWalletStore = defineStore("wallet", () => {
   const artworkBalance = computed(() => balance.value.filter(artwork));
   const nonArtworkBalance = computed(() => balance.value.filter((x) => !artwork(x)));
 
+  // #region hooks
   onMounted(async () => {
-    await load(app.settings.lastOpenedWalletId);
+    await load(appStore.settings.lastOpenedWalletId);
     privateState.loading = false;
   });
 
+  // #region public actions
   async function load(walletId: number) {
     const dbWallet = await walletsDbService.getById(walletId);
     if (!dbWallet) throw new Error(`Wallet 'id:${walletId}' not found`);
@@ -191,7 +211,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
     privateState.addresses = dbAddresses;
     privateState.assets = dbAssets;
-    app.settings.lastOpenedWalletId = walletId;
+    appStore.settings.lastOpenedWalletId = walletId;
 
     assetsStore.loadMetadataFor(dbAssets.map((x) => x.tokenId));
     hdKeyPool.alloc(
@@ -216,23 +236,25 @@ export const useWalletStore = defineStore("wallet", () => {
       state: AddressState.Unused,
       script: address.script,
       index: address.index,
-      walletId: id.value
+      walletId: privateState.id
     };
+
     privateState.addresses.push(dbObj);
     await addressesDbService.put(dbObj);
   }
 
+  // #region private actions
   async function sync() {
     privateState.syncing = true;
 
-    const walletId = id.value;
+    const walletId = privateState.id;
     const deriver = hdKeyPool.get(privateState.publicKey);
-    let offset = 0;
-    let keepChecking = true;
     const addressesChunks = [] as IDbAddress[][];
     const assetsChunks = [] as IDbAsset[][];
+    let offset = 0;
+    let keepChecking = true;
 
-    while (keepChecking && walletId === id.value) {
+    while (keepChecking && walletId === privateState.id) {
       const derived = getOrDerive(privateState.addresses, deriver, CHUNK_DERIVE_LENGTH, offset);
       const info = await graphQLService.getAddressesInfo(derived.map((x) => x.script));
 
@@ -266,6 +288,7 @@ export const useWalletStore = defineStore("wallet", () => {
       keepChecking = info.some((x) => x.used);
     }
 
+    // detect changes
     const { changedAddresses, changedAssets, removedAssets } = getChanges(
       privateState.addresses,
       addressesChunks.flat(),
@@ -273,33 +296,31 @@ export const useWalletStore = defineStore("wallet", () => {
       assetsChunks.flat()
     );
 
-    console.log("changedAddresses", changedAddresses);
-    console.log("changedBalance", changedAssets);
-    console.log("removedAssets", removedAssets);
+    // persist data
+    await addressesDbService.bulkPut(changedAddresses);
+    await assetsDbService.bulkPut(changedAssets);
+    await assetsDbService.bulkDelete(removedAssets);
 
-    // await addressesDbService.bulkPut(changedAddresses, walletId);
-    // await assetsDbService.bulkPut(changedAssets, walletId);
-    // await assetsDbService.bulkDelete(removedAssets);
+    // load metadata for changed assets
+    if (changedAssets.length > 0) {
+      await assetsStore.loadMetadataFor(changedAssets.map((x) => x.tokenId));
+    }
 
-    await assetsStore.loadMetadataFor(changedAssets.map((x) => x.tokenId));
+    // update state
+    if (walletId !== privateState.id) return; // ensure we are still on the same wallet
+    privateState.patchAddresses(changedAddresses);
+    privateState.patchAssets(changedAssets, removedAssets);
 
-    if (walletId !== id.value) return; // wallet changed while syncing
-    // patch state
-    patchState(privateState.addresses, changedAddresses, [], (a, b) => a.script === b.script);
-    patchState(
-      privateState.assets,
-      changedAssets,
-      removedAssets,
-      (a, b) => a.tokenId === b.tokenId && a.address === b.address
-    );
     privateState.syncing = false;
   }
 
   return {
-    id,
+    id: computed(() => privateState.id),
+    type: computed(() => privateState.type),
+    publicKey: computed(() => privateState.publicKey),
+    loading: computed(() => privateState.loading),
+    syncing: computed(() => privateState.syncing),
     name,
-    type,
-    publicKey,
     settings,
     addresses,
     filteredAddresses,
@@ -307,36 +328,10 @@ export const useWalletStore = defineStore("wallet", () => {
     balance,
     nonArtworkBalance,
     artworkBalance,
-    loading,
-    syncing,
     load,
     deriveNewAddress
   };
 });
-
-function patchState<T>(
-  state: ShallowReactive<T[]>,
-  changes: T[],
-  removed: T[],
-  predicate: (current: T, changed: T) => boolean
-) {
-  for (const changed of changes) {
-    const index = state.findIndex((old) => predicate(old, changed));
-
-    if (index > -1) {
-      state[index] = changed;
-    } else {
-      state.push(changed);
-    }
-  }
-
-  if (removed.length > 0) {
-    for (const item of removed) {
-      const index = state.findIndex((old) => predicate(old, item));
-      if (index > -1) state.splice(index, 1);
-    }
-  }
-}
 
 function getChanges(
   currentAddresses: IDbAddress[],
@@ -348,27 +343,28 @@ function getChanges(
   const latUsedIndex = sortedAddresses.findLastIndex((a) => a.state === AddressState.Used);
   const prunedAddresses = sortedAddresses.slice(0, latUsedIndex + 2); // keep last used and next unused
 
-  const changedAddresses = prunedAddresses.filter((derivedAddress) => {
-    const stateAddress = currentAddresses.find((a) => a.script === derivedAddress.script);
-    if (!stateAddress) return true;
-    return stateAddress.state !== derivedAddress.state;
+  const changedAddresses = prunedAddresses.filter((newAddress) => {
+    const currentAddress = currentAddresses.find((x) => x.script === newAddress.script);
+    if (!currentAddress) return true;
+    return currentAddress.state !== newAddress.state;
   });
 
-  const changedAssets = newAssets.filter((asset) => {
-    if (!prunedAddresses.some((address) => asset.address === address.script)) return false;
-    const stateAsset = currentAssets.find(
-      (a) => a.tokenId === asset.tokenId && a.address === asset.address
-    );
+  const changedAssets = newAssets.filter((newAsset) => {
+    if (!prunedAddresses.some((x) => x.script === newAsset.address)) return false;
 
-    if (!stateAsset) return true;
+    const currentAsset = currentAssets.find(
+      (x) => x.tokenId === newAsset.tokenId && x.address === newAsset.address
+    );
+    if (!currentAsset) return true;
+
     return (
-      stateAsset.confirmedAmount !== asset.confirmedAmount ||
-      stateAsset.unconfirmedAmount !== asset.unconfirmedAmount
+      currentAsset.confirmedAmount !== newAsset.confirmedAmount ||
+      currentAsset.unconfirmedAmount !== newAsset.unconfirmedAmount
     );
   });
 
   const removedAssets = currentAssets.filter(
-    (c) => !newAssets.some((n) => c.address === n.address)
+    (c) => !newAssets.some((n) => n.address === c.address && n.tokenId === c.tokenId)
   );
 
   return { changedAddresses, changedAssets, removedAssets };
@@ -394,6 +390,6 @@ function artwork(asset: { metadata?: BasicAssetMetadata }) {
 }
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(usePrivateState, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(usePrivateStateStore, import.meta.hot));
   import.meta.hot.accept(acceptHMRUpdate(useWalletStore, import.meta.hot));
 }
