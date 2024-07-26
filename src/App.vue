@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import { useAppStore } from "@/stores/appStore";
+import { isPopup } from "@/common/browser";
+import KyaModal from "@/components/KYAModal.vue";
+import WalletLogo from "@/components/WalletLogo.vue";
+import WalletHeader from "@/components/WalletHeader.vue";
+import NavHeader from "@/components/NavHeader.vue";
+
+const app = useAppStore();
+const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
+</script>
+
 <template>
   <div class="app" :class="maxWidth">
     <div
@@ -22,61 +35,3 @@
     <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { mapActions } from "vuex";
-import { REFRESH_BALANCE_INTERVAL } from "./constants/intervals";
-import { ACTIONS } from "./constants/store/actions";
-import KyaModal from "./components/KYAModal.vue";
-import WalletLogo from "./components/WalletLogo.vue";
-import { useAppStore } from "./stores/appStore";
-import { isPopup } from "@/common/browser";
-import WalletHeader from "@/components/WalletHeader.vue";
-import NavHeader from "@/components/NavHeader.vue";
-
-export default defineComponent({
-  name: "App",
-  components: {
-    NavHeader,
-    WalletHeader,
-    KyaModal,
-    WalletLogo
-  },
-  setup() {
-    return { app: useAppStore() };
-  },
-  data: () => {
-    return {
-      syncTimerId: Object.freeze(0)
-    };
-  },
-  computed: {
-    maxWidth() {
-      if (isPopup()) {
-        return "max-w-365px";
-      }
-
-      return undefined;
-    }
-  },
-  async created() {
-    this.syncTimerId = Object.freeze(
-      setInterval(() => {
-        this.refresh();
-      }, REFRESH_BALANCE_INTERVAL) as unknown as number
-    );
-
-    await this.init();
-  },
-  deactivated() {
-    clearInterval(this.syncTimerId);
-  },
-  methods: {
-    ...mapActions({
-      init: ACTIONS.INIT,
-      refresh: ACTIONS.REFRESH_CURRENT_ADDRESSES
-    })
-  }
-});
-</script>
