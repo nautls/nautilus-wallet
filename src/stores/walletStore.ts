@@ -1,6 +1,7 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, ref, shallowReactive, toRaw, watch } from "vue";
+import { computed, onMounted, ref, ShallowReactive, shallowReactive, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
+import type { BigNumber } from "bignumber.js";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
@@ -9,6 +10,7 @@ import {
   AddressState,
   AddressType,
   AssetSubtype,
+  BasicAssetMetadata,
   StateAddress,
   StateAsset,
   WalletSettings,
@@ -19,8 +21,16 @@ import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
 import { hdKeyPool } from "@/common/objectPool";
-import HdKey from "@/chains/ergo/hdKey";
+import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import router from "@/router";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+
+export type StateAssetSummary = {
+  tokenId: string;
+  confirmedAmount: BigNumber;
+  unconfirmedAmount?: BigNumber;
+  metadata?: BasicAssetMetadata;
+};
 
 const usePrivateState = defineStore("_wallet", () => ({
   loading: ref(true),
@@ -35,7 +45,7 @@ const usePrivateState = defineStore("_wallet", () => ({
 export const useWalletStore = defineStore("wallet", () => {
   const privateState = usePrivateState();
   const app = useAppStore();
-  const assets = useAssetsStore();
+  const assetsStore = useAssetsStore();
 
   const name = ref("");
   const settings = ref<WalletSettings>({
@@ -77,28 +87,34 @@ export const useWalletStore = defineStore("wallet", () => {
   const loading = computed(() => privateState.loading);
   const syncing = computed(() => privateState.syncing);
 
-  const balance = computed((): StateAsset[] => {
+  const assets = computed((): StateAsset[] => {
+    return privateState.assets.map((x) => {
+      const metadata = assetsStore.metadata.get(x.tokenId);
+
+      return {
+        tokenId: x.tokenId,
+        address: x.address,
+        confirmedAmount: decimalize(bn(x.confirmedAmount), metadata?.decimals),
+        unconfirmedAmount: decimalize(bn(x.unconfirmedAmount), metadata?.decimals),
+        metadata
+      };
+    });
+  });
+
+  const balance = computed((): StateAssetSummary[] => {
     if (loading.value) return [];
 
-    const balance = [] as StateAsset[];
-    const groupedAssets = groupBy(privateState.assets, (x) => x.tokenId);
+    const balance = [] as StateAssetSummary[];
+    const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
     for (const tokenId in groupedAssets) {
-      if (assets.blacklist.includes(tokenId)) continue;
+      if (assetsStore.blacklist.includes(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
-      const metadata = assets.metadata.get(tokenId);
       balance.push({
         tokenId: assetGroup[0].tokenId,
-        address: assetGroup[0].address,
-        confirmedAmount: decimalize(
-          sumBy(assetGroup, (x) => x.confirmedAmount),
-          metadata?.decimals
-        ),
-        unconfirmedAmount: decimalize(
-          sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
-          metadata?.decimals
-        ),
-        metadata
+        confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount),
+        unconfirmedAmount: sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
+        metadata: assetGroup[0].metadata
       });
     }
 
@@ -106,9 +122,8 @@ export const useWalletStore = defineStore("wallet", () => {
       return [
         {
           tokenId: ERG_TOKEN_ID,
-          address: "",
           confirmedAmount: bn(0),
-          metadata: assets.metadata.get(ERG_TOKEN_ID)
+          metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
         }
       ];
     }
@@ -118,13 +133,16 @@ export const useWalletStore = defineStore("wallet", () => {
     );
   });
 
+  /**
+   * Returns all addresses with their assets, sorted by index
+   */
   const addresses = computed((): StateAddress[] =>
     privateState.addresses
       .map((address) => ({
         script: address.script,
         state: address.state,
         index: address.index,
-        assets: balance.value.filter((asset) => asset.address === address.script)
+        assets: assets.value.filter((asset) => asset.address === address.script)
       }))
       .sort((a, b) => a.index - b.index)
   );
@@ -175,11 +193,13 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.assets = dbAssets;
     app.settings.lastOpenedWalletId = walletId;
 
-    assets.loadMetadataFor(dbAssets.map((x) => x.tokenId));
+    assetsStore.loadMetadataFor(dbAssets.map((x) => x.tokenId));
     hdKeyPool.alloc(
       privateState.publicKey,
       HdKey.fromPublicKey({ publicKey: dbWallet.publicKey, chainCode: dbWallet.chainCode })
     );
+
+    sync();
   }
 
   async function deriveNewAddress() {
@@ -202,6 +222,79 @@ export const useWalletStore = defineStore("wallet", () => {
     await addressesDbService.put(dbObj);
   }
 
+  async function sync() {
+    privateState.syncing = true;
+
+    const walletId = id.value;
+    const deriver = hdKeyPool.get(privateState.publicKey);
+    let offset = 0;
+    let keepChecking = true;
+    const addressesChunks = [] as IDbAddress[][];
+    const assetsChunks = [] as IDbAsset[][];
+
+    while (keepChecking && walletId === id.value) {
+      const derived = getOrDerive(privateState.addresses, deriver, CHUNK_DERIVE_LENGTH, offset);
+      const info = await graphQLService.getAddressesInfo(derived.map((x) => x.script));
+
+      addressesChunks.push(
+        derived.map((d) => ({
+          index: d.index,
+          script: d.script,
+          state: info.find((x) => x.address === d.script)?.used
+            ? AddressState.Used
+            : AddressState.Unused,
+          type: AddressType.P2PK,
+          walletId
+        }))
+      );
+
+      assetsChunks.push(
+        info.flatMap((address) =>
+          address.assets.map(
+            (asset): IDbAsset => ({
+              address: address.address,
+              tokenId: asset.tokenId,
+              confirmedAmount: asset.confirmedAmount,
+              unconfirmedAmount: asset.unconfirmedAmount,
+              walletId
+            })
+          )
+        )
+      );
+
+      offset += derived.length;
+      keepChecking = info.some((x) => x.used);
+    }
+
+    const { changedAddresses, changedAssets, removedAssets } = getChanges(
+      privateState.addresses,
+      addressesChunks.flat(),
+      privateState.assets,
+      assetsChunks.flat()
+    );
+
+    console.log("changedAddresses", changedAddresses);
+    console.log("changedBalance", changedAssets);
+    console.log("removedAssets", removedAssets);
+
+    // await addressesDbService.bulkPut(changedAddresses, walletId);
+    // await assetsDbService.bulkPut(changedAssets, walletId);
+    // await assetsDbService.bulkDelete(removedAssets);
+
+    await assetsStore.loadMetadataFor(changedAssets.map((x) => x.tokenId));
+
+    if (walletId !== id.value) return; // wallet changed while syncing
+    // patch state
+    patchState(privateState.addresses, changedAddresses, [], (a, b) => a.script === b.script);
+    patchState(
+      privateState.assets,
+      changedAssets,
+      removedAssets,
+      (a, b) => a.tokenId === b.tokenId && a.address === b.address
+    );
+    privateState.syncing = false;
+  }
+
   return {
     id,
     name,
@@ -221,7 +314,77 @@ export const useWalletStore = defineStore("wallet", () => {
   };
 });
 
-function artwork(asset: StateAsset) {
+function patchState<T>(
+  state: ShallowReactive<T[]>,
+  changes: T[],
+  removed: T[],
+  predicate: (current: T, changed: T) => boolean
+) {
+  for (const changed of changes) {
+    const index = state.findIndex((old) => predicate(old, changed));
+
+    if (index > -1) {
+      state[index] = changed;
+    } else {
+      state.push(changed);
+    }
+  }
+
+  if (removed.length > 0) {
+    for (const item of removed) {
+      const index = state.findIndex((old) => predicate(old, item));
+      if (index > -1) state.splice(index, 1);
+    }
+  }
+}
+
+function getChanges(
+  currentAddresses: IDbAddress[],
+  newAddress: IDbAddress[],
+  currentAssets: IDbAsset[],
+  newAssets: IDbAsset[]
+) {
+  const sortedAddresses = newAddress.sort((a, b) => a.index - b.index);
+  const latUsedIndex = sortedAddresses.findLastIndex((a) => a.state === AddressState.Used);
+  const prunedAddresses = sortedAddresses.slice(0, latUsedIndex + 2); // keep last used and next unused
+
+  const changedAddresses = prunedAddresses.filter((derivedAddress) => {
+    const stateAddress = currentAddresses.find((a) => a.script === derivedAddress.script);
+    if (!stateAddress) return true;
+    return stateAddress.state !== derivedAddress.state;
+  });
+
+  const changedAssets = newAssets.filter((asset) => {
+    if (!prunedAddresses.some((address) => asset.address === address.script)) return false;
+    const stateAsset = currentAssets.find(
+      (a) => a.tokenId === asset.tokenId && a.address === asset.address
+    );
+
+    if (!stateAsset) return true;
+    return (
+      stateAsset.confirmedAmount !== asset.confirmedAmount ||
+      stateAsset.unconfirmedAmount !== asset.unconfirmedAmount
+    );
+  });
+
+  const removedAssets = currentAssets.filter(
+    (c) => !newAssets.some((n) => c.address === n.address)
+  );
+
+  return { changedAddresses, changedAssets, removedAssets };
+}
+
+function getOrDerive(derived: IndexedAddress[], deriver: HdKey, count: number, offset: number) {
+  const chunk = derived.slice(offset, offset + count);
+  if (chunk.length < count) {
+    const remaining = count - chunk.length;
+    chunk.push(...deriver.deriveAddresses(remaining, offset + chunk.length));
+  }
+
+  return chunk;
+}
+
+function artwork(asset: { metadata?: BasicAssetMetadata }) {
   return (
     asset.metadata &&
     (asset.metadata.type === AssetSubtype.PictureArtwork ||

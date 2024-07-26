@@ -10,7 +10,8 @@ import {
   WalletType
 } from "@/types/internal";
 
-export type NotNullId<T> = T & { id: number };
+export type NotNullId<T extends { id?: number }> = T & { id: number };
+export type NullableWalletId<T extends { walletId?: number }> = T & { walletId?: number };
 
 export interface IDbWallet {
   id?: number;

@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
-import { isEmpty, some, uniq } from "@fleet-sdk/common";
+import { some, uniq } from "@fleet-sdk/common";
 import { difference } from "lodash-es";
 import { useStorage } from "@vueuse/core";
 import { useAppStore } from "./appStore";
@@ -101,7 +101,7 @@ export const useAssetsStore = defineStore("assets", () => {
 
   async function loadMetadataFor(tokenIds: string[]) {
     const unloaded = difference(uniq(tokenIds), Array.from(metadata.keys()));
-    if (isEmpty(unloaded)) return;
+    if (unloaded.length === 0) return;
 
     const patch = await assetInfoDbService.getAnyOf(unloaded);
     if (unloaded.length > patch.length) {

@@ -1,5 +1,4 @@
 import { createStore } from "vuex";
-import { clone, last, maxBy, sortBy, take } from "lodash-es";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
 import { isEmpty, uniq } from "@fleet-sdk/common";
@@ -10,15 +9,11 @@ import { useAssetsStore } from "./stores/assetsStore";
 import { useWalletStore } from "./stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { walletsDbService } from "@/database/walletsDbService";
-import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
-import { AddressState, AddressType, Network, StateAddress, WalletType } from "@/types/internal";
+import HdKey from "@/chains/ergo/hdKey";
+import { Network, WalletType } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
 import { ACTIONS } from "@/constants/store";
-import { CHUNK_DERIVE_LENGTH } from "@/constants/ergo";
-import { IDbAddress, IDbAsset } from "@/types/database";
 import router from "@/router";
-import { addressesDbService } from "@/database/addressesDbService";
-import { assetsDbService } from "@/database/assetsDbService";
 
 function goTo(routerName: string) {
   const { redirect, popup } = router.currentRoute.value.query;
@@ -80,114 +75,6 @@ export default createStore({
     },
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET](_, id: number) {
       wallet.load(id);
-    },
-    async [ACTIONS.REFRESH_CURRENT_ADDRESSES]({ state, commit, dispatch }) {
-      if (!state.currentWallet.id) return;
-
-      const walletId = state.currentWallet.id;
-      const pk = state.currentWallet.publicKey;
-      const key = hdKeyPool.get(pk);
-      const dbAddresses = await addressesDbService.getByWalletId(walletId);
-      let active = dbAddresses.map((a): StateAddress => ({ ...a, assets: [] }));
-      active = sortBy(active, (a) => a.index);
-
-      let derived: IndexedAddress[] = [];
-      let used: string[] = [];
-      let usedChunk: string[] = [];
-      let lastUsed: string | undefined;
-      const lastStored = last(active)?.script;
-      const maxIndex = maxBy(active, (a) => a.index)?.index;
-      let offset = maxIndex !== undefined ? maxIndex + 1 : 0;
-
-      if (active.length > 0) {
-        if (state.currentAddresses.length === 0) {
-          commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: clone(active), walletId });
-        }
-
-        used = used.concat(await graphQLService.getUsedAddresses(active.map((a) => a.script)));
-        lastUsed = last(used);
-      }
-
-      do {
-        derived = key.deriveAddresses(CHUNK_DERIVE_LENGTH, offset);
-        offset += derived.length;
-        usedChunk = await graphQLService.getUsedAddresses(derived.map((a) => a.script));
-        used = used.concat(usedChunk);
-        active = active.concat(
-          derived.map((d) => ({
-            index: d.index,
-            script: d.script,
-            state: AddressState.Unused,
-            balance: []
-          }))
-        );
-        if (usedChunk.length > 0) {
-          lastUsed = last(usedChunk);
-        }
-      } while (usedChunk.length > 0);
-
-      const lastUsedIndex = active.findIndex((a) => a.script === lastUsed);
-      const lastStoredIndex = active.findIndex((a) => a.script === lastStored);
-      if (lastStoredIndex > lastUsedIndex) {
-        active = take(active, lastStoredIndex + 1);
-      } else if (lastUsedIndex > -1) {
-        active = take(active, lastUsedIndex + 2);
-      } else {
-        active = take(active, 1);
-      }
-
-      for (const addr of active) {
-        if (used.find((address) => addr.script === address)) {
-          addr.state = AddressState.Used;
-        }
-      }
-
-      await addressesDbService.bulkPut(
-        active.map((a) => {
-          return {
-            type: AddressType.P2PK,
-            state: a.state,
-            script: a.script,
-            index: a.index,
-            walletId: walletId
-          };
-        }),
-        walletId
-      );
-
-      const addr = (await addressesDbService.getByWalletId(walletId)).map((a: IDbAddress) => {
-        return {
-          script: a.script,
-          state: a.state,
-          index: a.index,
-          balance: undefined
-        };
-      });
-      // commit(MUTATIONS.SET_CURRENT_ADDRESSES, { addresses: addr, walletId: walletId });
-
-      if (lastUsed !== null) {
-        dispatch(ACTIONS.FETCH_BALANCES, {
-          addresses: active.map((a) => a.script),
-          walletId
-        });
-      }
-
-      commit(MUTATIONS.SET_LOADING, { addresses: false });
-    },
-    async [ACTIONS.FETCH_BALANCES](
-      { commit, dispatch },
-      data: { addresses: string[]; walletId: number }
-    ) {
-      const balance = await graphQLService.getAddressesBalance(data.addresses);
-      assetsDbService.sync(
-        balance.map((entry): IDbAsset => ({ ...entry, walletId: data.walletId })),
-        data.walletId
-      );
-
-      await assets.loadMetadataFor(balance.map((x) => x.tokenId));
-      // commit(MUTATIONS.UPDATE_BALANCES, { balance, walletId: data.walletId });
-      // commit(MUTATIONS.SET_LOADING, { balance: false });
-      dispatch(ACTIONS.CHECK_PENDING_BOXES);
     },
     async [ACTIONS.CHECK_PENDING_BOXES]() {
       const now = Date.now();

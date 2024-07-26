@@ -3,7 +3,7 @@ import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@ur
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
-import { chunk, first, isEmpty } from "@fleet-sdk/common";
+import { chunk, first, isDefined, isEmpty } from "@fleet-sdk/common";
 import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { sigmaDecode } from "@/chains/ergo/serialization";
@@ -14,14 +14,19 @@ import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
 import { bn } from "@/common/bigNumber";
 
-export type AssetBalance = {
+export type AssetInfo = {
   tokenId: string;
   name?: string;
   decimals?: number;
   standard?: AssetStandard;
   confirmedAmount: string;
   unconfirmedAmount?: string;
+};
+
+export type AddressInfo = {
+  used: boolean;
   address: string;
+  assets: AssetInfo[];
 };
 
 export type UnspentBoxesInfo = {
@@ -35,11 +40,11 @@ const MAX_PARAMS_PER_REQUEST = 20;
 
 const GRAPHQL_SERVERS = MAINNET
   ? [
+      "https://explore.sigmaspace.io/api/graphql",
       "https://gql.ergoplatform.com/",
-      "https://graphql.erg.zelcore.io/",
-      "https://explore.sigmaspace.io/api/graphql"
+      "https://graphql.erg.zelcore.io/"
     ]
-  : ["https://gql-testnet.ergoplatform.com/", "https://tn-ergo-explorer.anetabtc.io/graphql"];
+  : ["https://gql-testnet.ergoplatform.com/"];
 
 export function getDefaultServerUrl(): string {
   return GRAPHQL_SERVERS[0];
@@ -193,64 +198,22 @@ class GraphQLService {
     this.#txBroadcastClient = undefined;
   }
 
-  public async getAddressesBalance(addresses: string[]): Promise<AssetBalance[]> {
-    if (CHUNK_DERIVE_LENGTH >= addresses.length) {
-      const raw = await this.getAddressesBalanceFromChunk(addresses);
-      return this.#parseAddressesBalanceResponse(raw || []);
-    }
-
-    const chunks = chunk(addresses, CHUNK_DERIVE_LENGTH);
-    let balances: Address[] = [];
-    for (const chunk of chunks) {
-      balances = balances.concat((await this.getAddressesBalanceFromChunk(chunk)) || []);
-    }
-
-    return this.#parseAddressesBalanceResponse(balances);
+  public async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {
+    const info = await this.#fetchAddressesInfo(addresses);
+    return info?.map(addressInfoMapper) || [];
   }
 
-  #parseAddressesBalanceResponse(addressesInfo: Address[]): AssetBalance[] {
-    let assets: AssetBalance[] = [];
-
-    const nonZeroAddresses = addressesInfo.filter((x) => !bn(x.balance.nanoErgs).isZero());
-    for (const addressInfo of nonZeroAddresses) {
-      assets = assets.concat(
-        addressInfo.balance.assets.map((t) => {
-          return {
-            tokenId: t.tokenId,
-            name: t.name || undefined,
-            decimals: t.decimals || 0,
-            standard: t.name || t.decimals ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
-            confirmedAmount: t.amount,
-            address: addressInfo.address
-          };
-        })
-      );
-
-      assets.push({
-        tokenId: ERG_TOKEN_ID,
-        name: "ERG",
-        decimals: ERG_DECIMALS,
-        standard: AssetStandard.Native,
-        confirmedAmount: addressInfo.balance.nanoErgs?.toString() || "0",
-        address: addressInfo.address
-      });
-    }
-
-    return assets;
-  }
-
-  public async getAddressesBalanceFromChunk(addresses: string[]): Promise<Address[] | undefined> {
+  async #fetchAddressesInfo(addresses: string[]): Promise<Address[] | undefined> {
     const query = gql<{ addresses: Address[] }>`
       query Addresses($addresses: [String!]!) {
         addresses(addresses: $addresses) {
           address
+          used
           balance {
             nanoErgs
             assets {
               amount
               tokenId
-              name
-              decimals
             }
           }
         }
@@ -587,6 +550,32 @@ class GraphQLService {
 }
 
 export const graphQLService = new GraphQLService();
+
+function addressInfoMapper(gqlAddressInfo: Address): AddressInfo {
+  const mapped: AddressInfo = {
+    address: gqlAddressInfo.address,
+    used: gqlAddressInfo.used,
+    assets: gqlAddressInfo.balance.assets.map((t) => ({
+      tokenId: t.tokenId,
+      name: t.name ?? undefined,
+      decimals: t.decimals ?? 0,
+      standard: t.name || isDefined(t.decimals) ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
+      confirmedAmount: t.amount
+    }))
+  };
+
+  if (bn(gqlAddressInfo.balance.nanoErgs).gt(0)) {
+    mapped.assets.push({
+      tokenId: ERG_TOKEN_ID,
+      name: "ERG",
+      decimals: ERG_DECIMALS,
+      standard: AssetStandard.Native,
+      confirmedAmount: gqlAddressInfo.balance.nanoErgs?.toString() || "0"
+    });
+  }
+
+  return mapped;
+}
 
 export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
   if (!tokenInfo.box) return;

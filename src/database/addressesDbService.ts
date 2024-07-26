@@ -1,5 +1,5 @@
 import { walletsDbService } from "./walletsDbService";
-import { IDbAddress, IDbWallet } from "@/types/database";
+import { IDbAddress, IDbWallet, NullableWalletId } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
 import { AddressState } from "@/types/internal";
 
@@ -73,26 +73,9 @@ class AddressesDbService {
     return dbContext.addresses.put(address);
   }
 
-  async bulkPut(addresses: IDbAddress[], walletId: number): Promise<void> {
-    const dbAddresses = await this.getByWalletId(walletId);
-    const putAddresses: IDbAddress[] = [];
-
-    for (const address of addresses) {
-      const dbAddress = dbAddresses.find((a) => a.script == address.script);
-
-      if (this.isNewOrModified(address, dbAddress)) {
-        address.walletId = walletId;
-        putAddresses.push(address);
-      }
-    }
-
-    if (putAddresses.length > 0) {
-      await dbContext.addresses.bulkPut(putAddresses);
-    }
-  }
-
-  private isNewOrModified(address: IDbAddress, dbAddress: IDbAddress | undefined) {
-    return !dbAddress || address.state !== dbAddress.state;
+  async bulkPut(addresses: NullableWalletId<IDbAddress>[], walletId: number): Promise<void> {
+    for (const address of addresses) address.walletId = walletId;
+    await dbContext.addresses.bulkPut(addresses);
   }
 }
 
