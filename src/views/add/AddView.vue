@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import { useWalletStore } from "@/stores/walletStore";
+import { browser, isPopup } from "@/common/browser";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
+
+const wallet = useWalletStore();
+
+const hasWallets = computed(() => wallet.id !== 0);
+
+function navInTab(navigate: () => unknown, href: string) {
+  if (!isPopup() || !browser || !browser.tabs) {
+    navigate();
+    return;
+  }
+
+  browser.tabs.create({
+    url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`),
+    active: true
+  });
+  window.close();
+}
+</script>
+
 <template>
   <div class="flex flex-col gap-4 h-full">
     <div class="flex-grow"></div>
@@ -52,39 +77,3 @@
     <button v-if="hasWallets" class="btn outlined w-full" @click="$router.back()">Cancel</button>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { browser, isPopup } from "@/common/browser";
-import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
-import { EXT_ENTRY_ROOT } from "@/constants/extension";
-
-export default defineComponent({
-  name: "AddView",
-  components: {
-    LedgerLogo
-  },
-  props: {
-    backButton: { type: String, default: "false" }
-  },
-  computed: {
-    hasWallets() {
-      return this.$store.state.currentWallet.id !== 0;
-    }
-  },
-  methods: {
-    navInTab(navigate: () => unknown, href: string) {
-      if (!isPopup() || !browser || !browser.tabs) {
-        navigate();
-        return;
-      }
-
-      browser.tabs.create({
-        url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`),
-        active: true
-      });
-      window.close();
-    }
-  }
-});
-</script>
