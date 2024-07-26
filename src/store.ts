@@ -1,13 +1,9 @@
 import { createStore } from "vuex";
 import AES from "crypto-js/aes";
 import { hex } from "@fleet-sdk/crypto";
-import { isEmpty, uniq } from "@fleet-sdk/common";
-import { utxosDbService } from "./database/utxosDbService";
-import { MIN_UTXO_SPENT_CHECK_TIME } from "./constants/intervals";
 import { useAppStore } from "./stores/appStore";
 import { useAssetsStore } from "./stores/assetsStore";
 import { useWalletStore } from "./stores/walletStore";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { walletsDbService } from "@/database/walletsDbService";
 import HdKey from "@/chains/ergo/hdKey";
 import { Network, WalletType } from "@/types/internal";
@@ -75,18 +71,6 @@ export default createStore({
     },
     async [ACTIONS.FETCH_AND_SET_AS_CURRENT_WALLET](_, id: number) {
       wallet.load(id);
-    },
-    async [ACTIONS.CHECK_PENDING_BOXES]() {
-      const now = Date.now();
-      const boxes = (await utxosDbService.getAllPending()).filter(
-        (b) => b.spentTimestamp && now - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
-      );
-
-      if (isEmpty(boxes)) return;
-
-      const txIds = uniq(boxes.map((b) => b.spentTxId));
-      const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
-      await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
     }
   }
 });

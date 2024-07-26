@@ -1,12 +1,15 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive, watch } from "vue";
 import { useStorage } from "@vueuse/core";
+import { isEmpty, uniq } from "@fleet-sdk/common";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { MAINNET } from "@/constants/ergo";
 import { sendBackendServerUrl } from "@/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
+import { MIN_UTXO_SPENT_CHECK_TIME } from "@/constants/intervals";
+import { utxosDbService } from "@/database/utxosDbService";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -41,6 +44,9 @@ export const useAppStore = defineStore("app", () => {
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
     privateState.loading = false;
+
+    // todo: do this verification on chain height change
+    checkPendingBoxes();
   });
 
   watch(
@@ -68,6 +74,21 @@ export const useAppStore = defineStore("app", () => {
 
     await walletsDbService.delete(id);
     privateState.wallets.splice(index, 1);
+  }
+
+  async function checkPendingBoxes() {
+    const dbBoxes = await utxosDbService.getAllPending();
+    const boxesToCheck = dbBoxes.filter(
+      (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
+    );
+
+    if (boxesToCheck.length == 0) return;
+
+    const txIds = uniq(boxesToCheck.map((b) => b.spentTxId));
+    const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
+
+    if (isEmpty(mempoolResult)) return;
+    await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
   }
 
   return {
