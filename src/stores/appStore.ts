@@ -10,6 +10,7 @@ import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "@/constants/intervals";
 import { utxosDbService } from "@/database/utxosDbService";
+import router from "@/router";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -43,10 +44,11 @@ export const useAppStore = defineStore("app", () => {
 
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
-    privateState.loading = false;
+    if (!settings.value.lastOpenedWalletId) goTo("add-wallet");
 
     // todo: do this verification on chain height change
     checkPendingBoxes();
+    privateState.loading = false;
   });
 
   watch(
@@ -99,6 +101,11 @@ export const useAppStore = defineStore("app", () => {
     deleteWallet
   };
 });
+
+function goTo(routerName: string) {
+  const { redirect, popup } = router.currentRoute.value.query;
+  if (redirect !== "false" || popup !== "true") router.push({ name: routerName });
+}
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useAppStore, import.meta.hot));
