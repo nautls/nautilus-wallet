@@ -47,6 +47,12 @@ export default defineConfig(({ mode }) => ({
     })
   ],
   build: {
+    rollupOptions: {
+      output: {
+        // chromium: filenames starting with "_" are reserved for use by the system.
+        sanitizeFileName: (name) => (name.startsWith("_") ? name.replace("_", "") : name)
+      }
+    },
     chunkSizeWarningLimit: 2048,
     emptyOutDir: true,
     outDir: r("dist")
