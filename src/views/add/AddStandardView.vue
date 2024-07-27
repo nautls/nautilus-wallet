@@ -80,7 +80,6 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { generateMnemonic } from "@fleet-sdk/wallet";
-import { orderBy, take } from "lodash-es";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
@@ -149,24 +148,6 @@ export default defineComponent({
       }
 
       this.$router.push({ name: "assets-page" });
-    },
-    filterBy(text: string) {
-      if (text === "" || text.trim() === "") {
-        return Object.freeze(take(english, 10));
-      }
-
-      const lowerText = text.toLowerCase();
-      const filtered = orderBy(
-        take(
-          english.filter((w) => {
-            return w.includes(lowerText);
-          }),
-          10
-        ),
-        (w) => !w.startsWith(lowerText)
-      );
-
-      this.filteredWords = Object.freeze(filtered);
     }
   }
 });

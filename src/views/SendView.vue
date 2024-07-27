@@ -97,7 +97,7 @@ import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { FeeSettings, StateAsset } from "@/types/internal";
+import { FeeSettings } from "@/types/internal";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { validErgoAddress } from "@/validators";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
@@ -105,7 +105,7 @@ import AssetInput from "@/components/AssetInput.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 import { useAppStore } from "@/stores/appStore";
-import { useWalletStore } from "@/stores/walletStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 
 const validations = {
   recipient: {
@@ -138,7 +138,7 @@ export default defineComponent({
     };
   },
   computed: {
-    unselected(): StateAsset[] {
+    unselected() {
       return differenceBy(
         this.wallet.balance,
         this.selected.map((a) => a.asset),
@@ -275,7 +275,7 @@ export default defineComponent({
         this.selected.unshift({ asset: erg, amount: undefined });
       }
     },
-    add(asset: StateAsset) {
+    add(asset: StateAssetSummary) {
       this.removeDisposableSelections();
       this.selected.push({ asset });
 

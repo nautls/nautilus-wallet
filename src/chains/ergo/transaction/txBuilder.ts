@@ -6,17 +6,17 @@ import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "..
 import { fetchBoxes } from "../boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { FeeSettings, StateAsset, WalletType } from "@/types/internal";
+import { FeeSettings, WalletType } from "@/types/internal";
 import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
-import { useWalletStore } from "@/stores/walletStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 const wallet = useWalletStore();
 
 export type TxAssetAmount = {
-  asset: StateAsset;
+  asset: StateAssetSummary;
   amount?: BigNumber;
 };
 

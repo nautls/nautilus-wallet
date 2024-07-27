@@ -151,7 +151,7 @@ export const useAssetsStore = defineStore("assets", () => {
 });
 
 function unknownMetadata(id: string): IAssetInfo {
-  return { id, name: id, mintingBoxId: "", type: AssetType.Unknown };
+  return { id, mintingBoxId: "", type: AssetType.Unknown };
 }
 
 if (import.meta.hot) {

@@ -88,7 +88,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
-import { intersection, join, orderBy, take } from "lodash-es";
+import { intersection, orderBy } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
@@ -144,7 +144,7 @@ export default defineComponent({
       try {
         const walletId = await this.app.putWallet({
           name: this.walletName,
-          mnemonic: join(this.selectedWords, " "),
+          mnemonic: this.selectedWords.join(" "),
           password: this.password,
           type: WalletType.Standard
         });
@@ -160,18 +160,13 @@ export default defineComponent({
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
-        this.filteredWords = Object.freeze(take(english, 10));
+        this.filteredWords = Object.freeze(english.slice(0, 10));
       }
 
       const lowerText = text.toLowerCase();
-      const filtered = take(
-        orderBy(
-          english.filter((w) => {
-            return w.includes(lowerText);
-          }),
-          (w) => !w.startsWith(lowerText)
-        ),
-        10
+      const filtered = orderBy(
+        english.filter((w) => w.includes(lowerText)).slice(0, 10),
+        (w) => !w.startsWith(lowerText)
       );
 
       this.filteredWords = Object.freeze(filtered);
