@@ -88,20 +88,23 @@ export const useWalletStore = defineStore("wallet", () => {
 
   watch(
     () => appStore.loading,
-    async () => {
+    () => {
       if (appStore.loading) return;
-      if (appStore.settings.lastOpenedWalletId > 0) {
-        await load(appStore.settings.lastOpenedWalletId);
+      const walletId = appStore.settings.lastOpenedWalletId;
+      if (walletId > 0 && appStore.wallets.some((x) => x.id === walletId)) {
+        load(walletId);
+      } else {
+        router.push({ name: "add-wallet" });
+        setLoading(false);
       }
-
-      privateState.loading = false;
     }
   );
 
   watch(
     () => appStore.wallets.length,
-    () => {
+    (newLen, oldLen) => {
       if (privateState.loading || appStore.loading) return;
+      if (newLen > oldLen) return; // only care about removals
 
       const stillExists = appStore.wallets.find((w) => w.id === privateState.id);
       if (stillExists) return;
@@ -111,6 +114,7 @@ export const useWalletStore = defineStore("wallet", () => {
         load(wallet.id);
         router.push({ name: "assets-page" });
       } else {
+        appStore.settings.lastOpenedWalletId = 0;
         router.push({ name: "add-wallet" });
       }
     }
@@ -198,11 +202,11 @@ export const useWalletStore = defineStore("wallet", () => {
   const nonArtworkBalance = computed(() => balance.value.filter((x) => !artwork(x)));
 
   // #region public actions
-  async function load(walletId: number, opt = { awaitSync: false }) {
-    privateState.loading = true;
-
+  async function load(walletId: number, opt = { syncInBackground: true }) {
+    if (privateState.id === walletId) return;
     const wlt = appStore.wallets.find((w) => w.id === walletId);
     if (!wlt) throw new Error(`Wallet 'id:${walletId}' not found`);
+    setLoading(true);
 
     privateState.id = wlt.id!;
     privateState.type = wlt.type;
@@ -211,24 +215,29 @@ export const useWalletStore = defineStore("wallet", () => {
     name.value = wlt.name;
     settings.value = wlt.settings;
 
-    privateState.assets = await assetsDbService.getByWalletId(walletId);
-    privateState.addresses = await addressesDbService.getByWalletId(walletId);
-    appStore.settings.lastOpenedWalletId = walletId;
+    const dbAssets = await assetsDbService.getByWalletId(walletId);
+    const dbAddresses = await addressesDbService.getByWalletId(walletId);
 
-    assetsStore.loadMetadataFor(privateState.assets.map((x) => x.tokenId));
+    await assetsStore.loadMetadata(
+      dbAssets.map((x) => x.tokenId),
+      { fetchInBackground: true }
+    );
+    privateState.assets = dbAssets;
+    privateState.addresses = dbAddresses;
+    appStore.settings.lastOpenedWalletId = walletId;
 
     hdKeyPool.alloc(
       privateState.publicKey,
       HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
     );
 
-    if (opt.awaitSync) {
-      await sync();
-    } else {
+    if (opt.syncInBackground) {
       sync();
+    } else {
+      await sync();
     }
 
-    privateState.loading = false;
+    setLoading(false);
   }
 
   async function deriveNewAddress() {
@@ -254,7 +263,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
   // #region private actions
   async function sync() {
-    privateState.syncing = true;
+    setSyncing(true);
 
     const walletId = privateState.id;
     const deriver = hdKeyPool.get(privateState.publicKey);
@@ -297,6 +306,8 @@ export const useWalletStore = defineStore("wallet", () => {
       keepChecking = info.some((x) => x.used);
     }
 
+    if (walletId !== privateState.id) return; // ensure we are still on the same wallet
+
     // detect changes
     const { changedAddresses, changedAssets, removedAssets } = getChanges(
       privateState.addresses,
@@ -312,7 +323,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
     // load metadata for changed assets
     if (changedAssets.length > 0) {
-      await assetsStore.loadMetadataFor(changedAssets.map((x) => x.tokenId));
+      await assetsStore.loadMetadata(changedAssets.map((x) => x.tokenId));
     }
 
     // update state
@@ -320,7 +331,15 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.patchAddresses(changedAddresses);
     privateState.patchAssets(changedAssets, removedAssets);
 
-    privateState.syncing = false;
+    setSyncing(false);
+  }
+
+  function setSyncing(value: boolean) {
+    privateState.syncing = value;
+  }
+
+  function setLoading(value: boolean) {
+    privateState.loading = value;
   }
 
   return {

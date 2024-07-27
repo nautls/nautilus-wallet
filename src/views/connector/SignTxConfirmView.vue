@@ -43,7 +43,7 @@ watch(
       .map((x) => x.tokenId);
 
     if (some(tokenIds)) {
-      assets.loadMetadataFor(tokenIds);
+      assets.loadMetadata(tokenIds);
     }
   }
 );

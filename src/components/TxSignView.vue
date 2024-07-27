@@ -122,7 +122,6 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import { mapState } from "vuex";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import VueJsonPretty from "vue-json-pretty";
@@ -201,7 +200,6 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState({ wallets: "wallets", loading: "loading" }),
     signing() {
       return this.signState.type === ProverStateType.busy;
     },

@@ -149,7 +149,7 @@ export default defineComponent({
           type: WalletType.Standard
         });
 
-        await this.wallet.load(walletId, { awaitSync: true });
+        await this.wallet.load(walletId, { syncInBackground: false });
       } catch (e) {
         log.error(e);
         this.loading = false;

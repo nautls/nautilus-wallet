@@ -1,7 +1,6 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
 import { uniq } from "@fleet-sdk/common";
-import { difference } from "lodash-es";
 import { useStorage } from "@vueuse/core";
 import { useAppStore } from "./appStore";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
@@ -100,8 +99,8 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const prices = computed(() => privateState.prices.prices);
 
-  async function loadMetadataFor(tokenIds: string[]) {
-    const unloaded = difference(uniq(tokenIds), Array.from(metadata.keys()));
+  async function loadMetadata(tokenIds: string[], opt = { fetchInBackground: false }) {
+    const unloaded = uniq(tokenIds).filter((x) => !metadata.has(x));
     if (unloaded.length === 0) return;
 
     const dbMeta = await assetInfoDbService.getAnyOf(unloaded);
@@ -110,19 +109,29 @@ export const useAssetsStore = defineStore("assets", () => {
     // fetch data for non-persisted metadata
     if (unloaded.length > dbMeta.length) {
       const missing = unloaded.filter((id) => !dbMeta.some((x) => x.id === id));
-      const newMeta = await graphQLService.getAssetsInfo(missing);
-      if (!newMeta) return;
 
-      if (missing.length > newMeta.length) {
-        newMeta.push(
-          ...missing.filter((id) => !newMeta.some((x) => x.id === id)).map(unknownMetadata)
-        );
+      if (opt.fetchInBackground) {
+        loadRemoteMetadata(missing);
+      } else {
+        await loadRemoteMetadata(missing);
       }
+    }
+  }
 
-      if (newMeta.length > 0) {
-        patchMetadata(newMeta);
-        await assetInfoDbService.bulkPut(newMeta);
-      }
+  async function loadRemoteMetadata(missing: string[]) {
+    const newMeta = await graphQLService.getAssetsInfo(missing);
+    if (!newMeta) return;
+
+    if (missing.length > newMeta.length) {
+      // fill in missing metadata with unknown metadata
+      newMeta.push(
+        ...missing.filter((id) => !newMeta.some((x) => x.id === id)).map(unknownMetadata)
+      );
+    }
+
+    if (newMeta.length > 0) {
+      patchMetadata(newMeta);
+      await assetInfoDbService.bulkPut(newMeta);
     }
   }
 
@@ -138,7 +147,7 @@ export const useAssetsStore = defineStore("assets", () => {
     }
   }
 
-  return { blacklist, metadata, prices, loadMetadataFor };
+  return { blacklist, metadata, prices, loadMetadata };
 });
 
 function unknownMetadata(id: string): IAssetInfo {

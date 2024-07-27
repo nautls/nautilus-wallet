@@ -3,7 +3,7 @@ import { dbContext } from "@/database/dbContext";
 
 class AssetsDbService {
   public async getByTokenId(walletId: number, tokenId: string): Promise<IDbAsset[]> {
-    return await dbContext.assets.where({ walletId, tokenId }).toArray();
+    return dbContext.assets.where({ walletId, tokenId }).toArray();
   }
 
   public async getAddressesByTokenId(walletId: number, tokenId: string): Promise<string[]> {
@@ -11,11 +11,11 @@ class AssetsDbService {
   }
 
   public async getByAddress(address: string): Promise<IDbAsset[]> {
-    return await dbContext.assets.where({ address: address }).toArray();
+    return dbContext.assets.where({ address: address }).toArray();
   }
 
   public async getByWalletId(walletId: number): Promise<IDbAsset[]> {
-    return await dbContext.assets.where({ walletId }).toArray();
+    return dbContext.assets.where({ walletId }).toArray();
   }
 
   public async bulkPut(assets: IDbAsset[]): Promise<void> {

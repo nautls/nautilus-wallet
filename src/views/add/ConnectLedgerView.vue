@@ -181,7 +181,7 @@ export default defineComponent({
           type: WalletType.Ledger
         });
 
-        await this.wallet.load(walletId, { awaitSync: true });
+        await this.wallet.load(walletId, { syncInBackground: false });
       } catch (e) {
         log.error(e);
         this.loading = false;

@@ -5,7 +5,7 @@ import { AddressState } from "@/types/internal";
 
 class AddressesDbService {
   async getByScript(script: string): Promise<IDbAddress | undefined> {
-    return await dbContext.addresses.where({ script }).first();
+    return dbContext.addresses.where({ script }).first();
   }
 
   async getByWalletIdAndScripts(
@@ -27,7 +27,7 @@ class AddressesDbService {
   }
 
   async getByWalletId(walletId: number): Promise<IDbAddress[]> {
-    return await dbContext.addresses.where({ walletId }).sortBy("index");
+    return dbContext.addresses.where({ walletId }).sortBy("index");
   }
 
   async getByState(walletId: number, state: AddressState): Promise<IDbAddress[]> {
@@ -58,13 +58,13 @@ class AddressesDbService {
 
   private async _getChangeAddress(wallet: IDbWallet): Promise<IDbAddress | undefined> {
     if (wallet.settings.avoidAddressReuse) {
-      return await dbContext.addresses
+      return dbContext.addresses
         .orderBy("index")
         .filter((a) => a.walletId === wallet.id && a.state === AddressState.Unused)
         .first();
     }
 
-    return await dbContext.addresses
+    return dbContext.addresses
       .filter((a) => a.walletId === wallet.id && a.index === wallet.settings.defaultChangeIndex)
       .first();
   }

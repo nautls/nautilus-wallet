@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => ({
     outDir: r("dist")
   },
   optimizeDeps: {
-    include: ["vue", "vue-router", "vuex"]
+    include: ["vue", "vue-router", "pinia"]
   },
   server: {
     port,
