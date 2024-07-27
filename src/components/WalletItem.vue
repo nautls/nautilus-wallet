@@ -3,7 +3,6 @@ import { nextTick, onMounted, PropType, ref, shallowRef } from "vue";
 import { WalletChecksum, walletChecksum } from "@emurgo/cip4-js";
 import { renderIcon } from "@download/blockies";
 import { hex } from "@fleet-sdk/crypto";
-import LoadingIndicator from "./LoadingIndicator.vue";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
 import { mountExtendedPublicKey } from "@/common/serializer";

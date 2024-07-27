@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import WalletItem from "@/components/WalletItem.vue";
 import { AsyncRequest } from "@/rpc/asyncRequestQueue";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { InternalRequest } from "@/rpc/protocol";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { IDbWallet } from "@/types/database";
 import { walletsDbService } from "@/database/walletsDbService";
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import DappPlate from "@/components/DappPlate.vue";
+import WalletItem from "@/components/WalletItem.vue";
 import { IDbDAppConnection, IDbWallet } from "@/types/database";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { walletsDbService } from "@/database/walletsDbService";
@@ -46,7 +47,7 @@ async function remove(origin: string) {
           <vue-feather type="trash" class="p-1" size="12" />
         </button>
         <dapp-plate :origin="connection.origin" :favicon="connection.favicon" />
-        <wallet-item :key="i" class="block" :wallet="getWalletBy(connection.walletId)" />
+        <wallet-item :key="i" class="block" :wallet="getWalletBy(connection.walletId)!" />
       </div>
     </template>
   </div>

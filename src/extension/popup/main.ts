@@ -32,7 +32,6 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import LedgerDevice from "@/components/LedgerDevice.vue";
 import MdiIcon from "@/components/MdiIcon.vue";
 import ToolTip from "@/components/ToolTip.vue";
-import WalletItem from "@/components/WalletItem.vue";
 import { vueCleave } from "@/directives/cleave";
 import { registerRpcHooks } from "@/rpc/uiRpcHandlers";
 
@@ -94,7 +93,6 @@ app
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)
   .component("loading-indicator", LoadingIndicator)
-  .component("wallet-item", WalletItem)
   .component("ledger-device", LedgerDevice)
   .component("mdi-icon", MdiIcon)
   .component("asset-icon", AssetIcon)
