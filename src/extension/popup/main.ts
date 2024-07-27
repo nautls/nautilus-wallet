@@ -23,7 +23,6 @@ import { createApp } from "vue";
 import VueFeather from "vue-feather";
 import { createPinia } from "pinia";
 import App from "@/App.vue";
-import store from "@/store";
 import router from "@/router";
 import { filters } from "@/common/globalFilters";
 import AssetIcon from "@/components/AssetIcon.vue";
@@ -83,7 +82,6 @@ const pinia = createPinia();
 app
   .use(router)
   .use(pinia)
-  .use(store)
   .use(Inputitems)
   .use(Modal)
   .use(Slider)

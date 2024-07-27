@@ -55,6 +55,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     id: ref(0),
     type: ref(WalletType.Standard),
     publicKey: ref(""),
+    chainCode: ref(""),
     addresses,
     assets,
     patchAddresses,
@@ -206,6 +207,7 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.id = wlt.id!;
     privateState.type = wlt.type;
     privateState.publicKey = wlt.publicKey;
+    privateState.chainCode = wlt.chainCode;
     name.value = wlt.name;
     settings.value = wlt.settings;
 
@@ -325,6 +327,7 @@ export const useWalletStore = defineStore("wallet", () => {
     id: computed(() => privateState.id),
     type: computed(() => privateState.type),
     publicKey: computed(() => privateState.publicKey),
+    chainCode: computed(() => privateState.chainCode),
     loading: computed(() => privateState.loading),
     syncing: computed(() => privateState.syncing),
     name,

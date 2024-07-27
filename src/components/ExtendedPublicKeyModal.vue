@@ -17,8 +17,8 @@
         <canvas id="xpk-canvas" class="inline-block w-70 h-70 rounded"></canvas>
       </div>
       <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
-        {{ $store.state.currentWallet.extendedPublicKey }}
-        <click-to-copy :content="$store.state.currentWallet.extendedPublicKey" size="12" />
+        {{ extendedPublicKey }}
+        <click-to-copy :content="extendedPublicKey" size="12" />
       </div>
       <button class="btn !p-2 mt-2" @click="accept()">Done</button>
     </div>
@@ -28,11 +28,21 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import QRCode from "qrcode";
+import { mountExtendedPublicKey } from "@/common/serializer";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "KYAModal",
   props: {
     active: { type: Boolean, required: true }
+  },
+  setup() {
+    return { wallet: useWalletStore() };
+  },
+  computed: {
+    extendedPublicKey() {
+      return mountExtendedPublicKey(this.wallet.publicKey, this.wallet.chainCode);
+    }
   },
   watch: {
     active() {
@@ -40,10 +50,8 @@ export default defineComponent({
         return;
       }
 
-      const xpk = this.$store.state.currentWallet.extendedPublicKey;
-
       this.$nextTick(() => {
-        QRCode.toCanvas(document.getElementById("xpk-canvas"), xpk, {
+        QRCode.toCanvas(document.getElementById("xpk-canvas"), this.extendedPublicKey, {
           errorCorrectionLevel: "low",
           margin: 0,
           scale: 4

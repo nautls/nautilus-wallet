@@ -5,9 +5,7 @@ import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
-import store from "@/store";
 import { ProverStateType, WalletType } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
@@ -18,6 +16,7 @@ import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { signAuthMessage } from "@/chains/ergo/signing";
 import { useWalletStore } from "@/stores/walletStore";
 
+const app = useWalletStore();
 const wallet = useWalletStore();
 
 const request = ref<AsyncRequest<AuthArgs>>();
@@ -58,14 +57,14 @@ onMounted(async () => {
 });
 
 watch(
-  () => store.state.loading.wallets,
+  () => app.loading,
   (loading) => setWallet(loading, walletId.value),
   { immediate: true }
 );
 
 watch(
   () => walletId.value,
-  (walletId) => setWallet(store.state.loading.wallets, walletId),
+  (walletId) => setWallet(app.loading, walletId),
   { immediate: true }
 );
 

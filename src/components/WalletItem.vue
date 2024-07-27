@@ -6,6 +6,7 @@ import { hex } from "@fleet-sdk/crypto";
 import LoadingIndicator from "./LoadingIndicator.vue";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
+import { mountExtendedPublicKey } from "@/common/serializer";
 
 const COLORS = [
   ["#17d1aa", "#e1f2ff", "#a80b32"],
@@ -25,7 +26,7 @@ const checksum = shallowRef<WalletChecksum>();
 const canvasId = ref(`wlt-${props.wallet.id}-checksum`);
 
 onMounted(() => {
-  const xpk = `0488b21e000000000000000000${props.wallet.chainCode}${props.wallet.publicKey}`;
+  const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
   checksum.value = walletChecksum(xpk);
 
   const colorIdx = hex.decode(checksum.value.ImagePart)[0] % COLORS.length;
