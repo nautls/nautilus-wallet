@@ -2,6 +2,8 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive, watch } from "vue";
 import { useStorage } from "@vueuse/core";
 import { isEmpty, uniq } from "@fleet-sdk/common";
+import { hex } from "@fleet-sdk/crypto";
+import AES from "crypto-js/aes";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { MAINNET } from "@/constants/ergo";
@@ -11,6 +13,9 @@ import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { MIN_UTXO_SPENT_CHECK_TIME } from "@/constants/intervals";
 import { utxosDbService } from "@/database/utxosDbService";
 import router from "@/router";
+import HdKey from "@/chains/ergo/hdKey";
+import { Network, WalletType } from "@/types/internal";
+import { hdKeyPool } from "@/common/objectPool";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -23,6 +28,19 @@ export type Settings = {
   blacklistedTokensLists: string[];
 };
 
+type StandardWallet = {
+  name: string;
+  type: WalletType.Standard;
+  mnemonic: string;
+  password: string;
+};
+
+type ReadOnlyWallet = {
+  name: string;
+  type: WalletType.ReadOnly | WalletType.Ledger;
+  extendedPublicKey: string;
+};
+
 const usePrivateState = defineStore("_app", () => ({
   loading: ref(true),
   wallets: shallowReactive<NotNullId<IDbWallet>[]>([])
@@ -30,6 +48,7 @@ const usePrivateState = defineStore("_app", () => ({
 
 export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
+  // const wallet = useWalletStore();
 
   const settings = useStorage<Settings>("settings", {
     lastOpenedWalletId: 0,
@@ -62,7 +81,7 @@ export const useAppStore = defineStore("app", () => {
   const loading = computed(() => privateState.loading);
   const wallets = computed(() => privateState.wallets);
 
-  async function patchWallet(id: number, wallet: WalletPatch) {
+  async function updateWallet(id: number, wallet: WalletPatch) {
     const index = privateState.wallets.findIndex((w) => w.id === id);
     if (index === -1) return;
 
@@ -76,6 +95,37 @@ export const useAppStore = defineStore("app", () => {
 
     await walletsDbService.delete(id);
     privateState.wallets.splice(index, 1);
+  }
+
+  async function putWallet(data: StandardWallet | ReadOnlyWallet): Promise<number> {
+    const key =
+      data.type === WalletType.Standard
+        ? await HdKey.fromMnemonic(data.mnemonic)
+        : HdKey.fromPublicKey(data.extendedPublicKey);
+
+    hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
+    const dbObj: IDbWallet = {
+      name: data.name.trim(),
+      network: Network.ErgoMainnet,
+      type: data.type,
+      publicKey: hex.encode(key.publicKey),
+      chainCode: hex.encode(key.chainCode),
+      mnemonic:
+        data.type === WalletType.Standard
+          ? AES.encrypt(data.mnemonic, data.password).toString()
+          : undefined,
+      settings: {
+        avoidAddressReuse: false,
+        hideUsedAddresses: false,
+        defaultChangeIndex: 0
+      }
+    };
+
+    const walletId = await walletsDbService.put(dbObj);
+    dbObj.id = walletId;
+    privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
+
+    return walletId;
   }
 
   async function checkPendingBoxes() {
@@ -97,8 +147,9 @@ export const useAppStore = defineStore("app", () => {
     settings,
     wallets,
     loading,
-    patchWallet,
-    deleteWallet
+    updateWallet,
+    deleteWallet,
+    putWallet
   };
 });
 

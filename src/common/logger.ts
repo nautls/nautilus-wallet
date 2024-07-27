@@ -13,19 +13,19 @@ class Logger {
   }
 
   info(...data: unknown[]): void {
-    this.#output.info(data);
+    this.#output.info(...data);
   }
 
   debug(...data: unknown[]): void {
-    this.#output.debug(data);
+    this.#output.debug(...data);
   }
 
   error(...data: unknown[]): void {
-    this.#output.error(data);
+    this.#output.error(...data);
   }
 
   warn(...data: unknown[]): void {
-    this.#output.warn(data);
+    this.#output.warn(...data);
   }
 }
 

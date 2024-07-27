@@ -90,17 +90,18 @@ import { defineComponent } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { intersection, join, orderBy, take } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
-import { mapActions } from "vuex";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
-import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";
 import { validMnemonic } from "@/validators";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import { log } from "@/common/logger";
 
 export default defineComponent({
   name: "RestoreView",
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate(), app: useAppStore(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -135,25 +136,23 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
+      const valid = await this.v$.$validate();
+      if (!valid) return;
 
       this.loading = true;
       try {
-        await this.putWallet({
+        const walletId = await this.app.putWallet({
           name: this.walletName,
           mnemonic: join(this.selectedWords, " "),
           password: this.password,
           type: WalletType.Standard
         });
+
+        await this.wallet.load(walletId, { awaitSync: true });
       } catch (e) {
+        log.error(e);
         this.loading = false;
-        // eslint-disable-next-line no-console
-        console.error(e);
         return;
       }
 

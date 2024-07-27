@@ -9,16 +9,11 @@ const wallet = useWalletStore();
 
 const hasWallets = computed(() => wallet.id !== 0);
 
-function navInTab(navigate: () => unknown, href: string) {
-  if (!isPopup() || !browser || !browser.tabs) {
-    navigate();
-    return;
-  }
+function navigateInTab(navigate: () => unknown, href: string) {
+  if (!isPopup() || !browser || !browser.tabs) return navigate();
 
-  browser.tabs.create({
-    url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`),
-    active: true
-  });
+  const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`);
+  browser.tabs.create({ url, active: true });
   window.close();
 }
 </script>
@@ -52,8 +47,8 @@ function navInTab(navigate: () => unknown, href: string) {
       <button
         type="button"
         class="nav-btn"
-        @click="navInTab(navigate, href)"
-        @keypress.enter="navInTab(navigate, href)"
+        @click="navigateInTab(navigate, href)"
+        @keypress.enter="navigateInTab(navigate, href)"
       >
         <div class="h-full float-left flex w-8 mr-4">
           <ledger-logo class="w-6 h-6 m-auto fill-gray-600" />

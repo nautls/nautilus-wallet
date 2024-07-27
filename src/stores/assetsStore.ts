@@ -1,18 +1,19 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
-import { some, uniq } from "@fleet-sdk/common";
+import { uniq } from "@fleet-sdk/common";
 import { difference } from "lodash-es";
 import { useStorage } from "@vueuse/core";
 import { useAppStore } from "./appStore";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
-import { BasicAssetMetadata } from "@/types/internal";
+import { AssetType, BasicAssetMetadata } from "@/types/internal";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import {
   ErgoTokenBlacklist,
   ergoTokenBlacklistService
 } from "@/chains/ergo/services/tokenBlacklistService";
+import { IAssetInfo } from "@/types/database";
 
 const _ = undefined;
 const ERG_METADATA: BasicAssetMetadata = { name: "ERG", decimals: ERG_DECIMALS };
@@ -103,20 +104,30 @@ export const useAssetsStore = defineStore("assets", () => {
     const unloaded = difference(uniq(tokenIds), Array.from(metadata.keys()));
     if (unloaded.length === 0) return;
 
-    const patch = await assetInfoDbService.getAnyOf(unloaded);
-    if (unloaded.length > patch.length) {
-      const missing = difference(
-        unloaded,
-        patch.map((x) => x.id)
-      );
+    const dbMeta = await assetInfoDbService.getAnyOf(unloaded);
+    patchMetadata(dbMeta);
 
-      const newMetadata = await graphQLService.getAssetsInfo(missing);
-      if (some(newMetadata)) {
-        await assetInfoDbService.bulkPut(newMetadata);
-        patch.push(...newMetadata);
+    // fetch data for non-persisted metadata
+    if (unloaded.length > dbMeta.length) {
+      const missing = unloaded.filter((id) => !dbMeta.some((x) => x.id === id));
+      const newMeta = await graphQLService.getAssetsInfo(missing);
+      if (!newMeta) return;
+
+      if (missing.length > newMeta.length) {
+        newMeta.push(
+          ...missing.filter((id) => !newMeta.some((x) => x.id === id)).map(unknownMetadata)
+        );
+      }
+
+      if (newMeta.length > 0) {
+        patchMetadata(newMeta);
+        await assetInfoDbService.bulkPut(newMeta);
       }
     }
+  }
 
+  function patchMetadata(patch: IAssetInfo[]) {
+    if (patch.length === 0) return;
     for (const info of patch) {
       metadata.set(info.id, {
         name: info.name,
@@ -129,6 +140,10 @@ export const useAssetsStore = defineStore("assets", () => {
 
   return { blacklist, metadata, prices, loadMetadataFor };
 });
+
+function unknownMetadata(id: string): IAssetInfo {
+  return { id, name: id, mintingBoxId: "", type: AssetType.Unknown };
+}
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useAssetsStore, import.meta.hot));

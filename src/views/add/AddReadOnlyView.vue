@@ -4,14 +4,14 @@
       <label
         >Wallet name
         <input
+          v-model.lazy="walletName"
           :disabled="loading"
           maxlength="50"
           type="text"
-          @blur="v$.walletName.$touch()"
-          v-model.lazy="walletName"
           class="w-full control block"
+          @blur="v$.walletName.$touch()"
         />
-        <p class="input-error" v-if="v$.walletName.$error">
+        <p v-if="v$.walletName.$error" class="input-error">
           {{ v$.walletName.$errors[0].$message }}
         </p>
       </label>
@@ -19,22 +19,22 @@
       <label class="mt-3">
         Extended public key
         <textarea
-          @blur="v$.publicKey.$touch()"
+          v-model.lazy="publicKey"
           maxlength="156"
           :disabled="loading"
           class="font-mono w-full control block resize-none"
           rows="6"
-          v-model.lazy="publicKey"
+          @blur="v$.publicKey.$touch()"
         ></textarea>
-        <p class="input-error" v-if="v$.publicKey.$error">
+        <p v-if="v$.publicKey.$error" class="input-error">
           {{ v$.publicKey.$errors[0].$message }}
         </p>
       </label>
-      <p class="input-error" v-if="pkError !== ''">{{ pkError }}</p>
+      <p v-if="pkError !== ''" class="input-error">{{ pkError }}</p>
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
-      <button type="button" :disabled="loading" @click="add()" class="w-full btn">
+      <button type="button" :disabled="loading" class="w-full btn" @click="add()">
         <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />
         <span v-else>Confirm</span>
       </button>
@@ -44,17 +44,18 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mapActions } from "vuex";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
 import { WalletType } from "@/types/internal";
-import { ACTIONS } from "@/constants/store/actions";
-import useVuelidate from "@vuelidate/core";
-import { required, helpers } from "@vuelidate/validators";
 import { validPublicKey } from "@/validators";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import { log } from "@/common/logger";
 
 export default defineComponent({
   name: "AddReadOnlyView",
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate(), app: useAppStore(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -74,22 +75,23 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
       this.pkError = "";
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
+      const valid = await this.v$.$validate();
+      if (!valid) return;
 
       this.loading = true;
       try {
-        await this.putWallet({
+        const walletId = await this.app.putWallet({
           name: this.walletName,
           extendedPublicKey: this.publicKey,
           type: WalletType.ReadOnly
         });
+
+        await this.wallet.load(walletId, { awaitSync: true });
       } catch (e) {
+        log.error(e);
+
         this.pkError = e instanceof Error ? e.message : "Unknown error.";
         this.loading = false;
         return;

@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, ref, shallowRef, toRaw, watch } from "vue";
+import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
 import type { BigNumber } from "bignumber.js";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
@@ -16,7 +16,6 @@ import {
   WalletSettings,
   WalletType
 } from "@/types/internal";
-import { walletsDbService } from "@/database/walletsDbService";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
@@ -81,9 +80,21 @@ export const useWalletStore = defineStore("wallet", () => {
     [name, settings],
     async () => {
       if (privateState.loading) return;
-      appStore.patchWallet(privateState.id, { name: name.value, settings: toRaw(settings.value) });
+      appStore.updateWallet(privateState.id, { name: name.value, settings: toRaw(settings.value) });
     },
     { deep: true }
+  );
+
+  watch(
+    () => appStore.loading,
+    async () => {
+      if (appStore.loading) return;
+      if (appStore.settings.lastOpenedWalletId > 0) {
+        await load(appStore.settings.lastOpenedWalletId);
+      }
+
+      privateState.loading = false;
+    }
   );
 
   watch(
@@ -120,15 +131,13 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   const balance = computed((): StateAssetSummary[] => {
-    if (privateState.loading) return [];
-
-    const balance = [] as StateAssetSummary[];
+    const summary = [] as StateAssetSummary[];
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
     for (const tokenId in groupedAssets) {
       if (assetsStore.blacklist.includes(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
-      balance.push({
+      summary.push({
         tokenId: assetGroup[0].tokenId,
         confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount),
         unconfirmedAmount: sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
@@ -136,7 +145,7 @@ export const useWalletStore = defineStore("wallet", () => {
       });
     }
 
-    if (balance.length === 0) {
+    if (summary.length === 0) {
       return [
         {
           tokenId: ERG_TOKEN_ID,
@@ -146,8 +155,8 @@ export const useWalletStore = defineStore("wallet", () => {
       ];
     }
 
-    return balance.sort((a, b) =>
-      a.tokenId === ERG_TOKEN_ID ? 1 : a.tokenId.localeCompare(b.tokenId)
+    return summary.sort((a, b) =>
+      a.tokenId === ERG_TOKEN_ID ? Number.MIN_SAFE_INTEGER : a.tokenId.localeCompare(b.tokenId)
     );
   });
 
@@ -187,39 +196,37 @@ export const useWalletStore = defineStore("wallet", () => {
   const artworkBalance = computed(() => balance.value.filter(artwork));
   const nonArtworkBalance = computed(() => balance.value.filter((x) => !artwork(x)));
 
-  // #region hooks
-  onMounted(async () => {
-    await load(appStore.settings.lastOpenedWalletId);
-    privateState.loading = false;
-  });
-
   // #region public actions
-  async function load(walletId: number) {
-    const dbWallet = await walletsDbService.getById(walletId);
-    if (!dbWallet) throw new Error(`Wallet 'id:${walletId}' not found`);
+  async function load(walletId: number, opt = { awaitSync: false }) {
+    privateState.loading = true;
 
-    privateState.id = dbWallet.id!;
-    privateState.type = dbWallet.type;
-    privateState.publicKey = dbWallet.publicKey;
-    name.value = dbWallet.name;
-    settings.value = dbWallet.settings;
+    const wlt = appStore.wallets.find((w) => w.id === walletId);
+    if (!wlt) throw new Error(`Wallet 'id:${walletId}' not found`);
 
-    const [dbAddresses, dbAssets] = await Promise.all([
-      addressesDbService.getByWalletId(walletId),
-      assetsDbService.getByWalletId(walletId)
-    ]);
+    privateState.id = wlt.id!;
+    privateState.type = wlt.type;
+    privateState.publicKey = wlt.publicKey;
+    name.value = wlt.name;
+    settings.value = wlt.settings;
 
-    privateState.addresses = dbAddresses;
-    privateState.assets = dbAssets;
+    privateState.assets = await assetsDbService.getByWalletId(walletId);
+    privateState.addresses = await addressesDbService.getByWalletId(walletId);
     appStore.settings.lastOpenedWalletId = walletId;
 
-    assetsStore.loadMetadataFor(dbAssets.map((x) => x.tokenId));
+    assetsStore.loadMetadataFor(privateState.assets.map((x) => x.tokenId));
+
     hdKeyPool.alloc(
       privateState.publicKey,
-      HdKey.fromPublicKey({ publicKey: dbWallet.publicKey, chainCode: dbWallet.chainCode })
+      HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
     );
 
-    sync();
+    if (opt.awaitSync) {
+      await sync();
+    } else {
+      sync();
+    }
+
+    privateState.loading = false;
   }
 
   async function deriveNewAddress() {

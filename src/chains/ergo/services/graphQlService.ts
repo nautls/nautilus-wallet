@@ -13,6 +13,7 @@ import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
 import { bn } from "@/common/bigNumber";
+import { log } from "@/common/logger";
 
 export type AssetInfo = {
   tokenId: string;
@@ -402,6 +403,7 @@ class GraphQLService {
   }
 
   public async getTokenInfo(tokenId: string): Promise<Token | undefined> {
+    // todo: add support for multiple tokens in one request
     const query = gql<{ tokens: Token[] }>`
       query Tokens($tokenId: String) {
         tokens(tokenId: $tokenId) {
@@ -427,9 +429,7 @@ class GraphQLService {
   public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
     try {
       const tokenInfo = await this.getTokenInfo(tokenId);
-      if (!tokenInfo) {
-        return;
-      }
+      if (!tokenInfo) return;
 
       return parseEIP4Asset(tokenInfo);
     } catch {
@@ -437,13 +437,20 @@ class GraphQLService {
     }
   }
 
-  public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[]> {
+  public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[] | undefined> {
     const info: (IAssetInfo | undefined)[] = [];
-    for (const tokenId of tokenIds) {
-      info.push(await this.getAssetInfo(tokenId));
+
+    try {
+      for (const tokenId of tokenIds) {
+        info.push(await this.getAssetInfo(tokenId));
+      }
+
+      return info.filter((assetInfo) => assetInfo) as IAssetInfo[];
+    } catch (e) {
+      log.error("Failed to fetch metadata", tokenIds, e);
     }
 
-    return info.filter((assetInfo) => assetInfo) as IAssetInfo[];
+    return undefined;
   }
 
   public async getBlockHeaders(options: { take: number } = { take: 10 }): Promise<Header[]> {

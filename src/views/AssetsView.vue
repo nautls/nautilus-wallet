@@ -33,19 +33,17 @@
         </thead>
         <tbody>
           <template v-if="loading">
-            <tr v-for="i in prevCount" :key="i">
-              <td class="w-14 align-middle">
+            <tr v-for="i in prevCount" :key="i" class="h-19">
+              <td class="w-14 min-w-14 align-middle">
                 <empty-logo class="h-8 w-8 animate-pulse fill-gray-300" />
               </td>
               <td class="align-middle">
                 <div class="skeleton h-3 w-2/3 rounded"></div>
               </td>
               <td class="text-right w-50 align-middle">
-                <div class="skeleton h-3 w-3/5 rounded"></div>
-                <template v-if="i === 1">
-                  <br />
-                  <div class="skeleton h-3 w-2/5 rounded"></div>
-                </template>
+                <div class="skeleton h-3 w-3/5 rounded float-right"></div>
+                <br />
+                <div class="skeleton h-3 w-2/5 rounded float-right"></div>
               </td>
             </tr>
           </template>
@@ -108,13 +106,12 @@
 import { defineComponent } from "vue";
 import { BigNumber } from "bignumber.js";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { StateAsset } from "@/types/internal";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import StorageRentBox from "@/components/StorageRentBox.vue";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { useWalletStore } from "@/stores/walletStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 
 export default defineComponent({
@@ -131,7 +128,7 @@ export default defineComponent({
     return {
       filter: "",
       prevCount: 1,
-      selectedAsset: undefined as StateAsset | undefined
+      selectedAsset: undefined as StateAssetSummary | undefined
     };
   },
   computed: {
@@ -142,15 +139,13 @@ export default defineComponent({
       return this.app.settings.conversionCurrency;
     },
     loading(): boolean {
-      if (!this.wallet.loading) return false;
-      if (this.wallet.nonArtworkBalance.length === 0) return true;
-      return false;
+      return this.wallet.loading && this.wallet.nonArtworkBalance.length === 0;
     },
-    assets(): StateAsset[] {
+    assets() {
       const assetList = this.wallet.nonArtworkBalance;
 
       if (this.filter !== "" && assetList.length > 0) {
-        return assetList.filter((a: StateAsset) =>
+        return assetList.filter((a) =>
           a.metadata?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
         );
       }
@@ -162,11 +157,9 @@ export default defineComponent({
     }
   },
   watch: {
-    ["assets.length"](newLen, oldLen) {
+    ["assets.length"](_, oldLen) {
       const length = oldLen || 1;
-      if (length > 1) {
-        this.prevCount = length;
-      }
+      if (length > 1) this.prevCount = length;
     }
   },
   methods: {
