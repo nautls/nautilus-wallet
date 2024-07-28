@@ -16,7 +16,7 @@ export const P2PK_TREE_PREFIX = "0008cd";
 export const PK_HEX_LENGTH = 66;
 export const TOKEN_ID_LENGTH = 64;
 
-const MINUTES_IN_A_YEAR = 525960;
+const MINUTES_IN_A_YEAR = 365 * 24 * 60;
 export const BLOCK_TIME_IN_MINUTES = 2;
 export const BLOCKS_IN_A_YEAR = MINUTES_IN_A_YEAR / BLOCK_TIME_IN_MINUTES;
 export const HEALTHY_BLOCKS_AGE = BLOCKS_IN_A_YEAR * 3;

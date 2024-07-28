@@ -3,6 +3,7 @@ import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
 import type { BigNumber } from "bignumber.js";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
+import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
@@ -56,6 +57,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     type: ref(WalletType.Standard),
     publicKey: ref(""),
     chainCode: ref(""),
+    lastSynced: ref(0),
     addresses,
     assets,
     patchAddresses,
@@ -78,10 +80,14 @@ export const useWalletStore = defineStore("wallet", () => {
 
   // #region watches
   watch(
-    [name, settings],
+    [name, settings, () => privateState.lastSynced],
     async () => {
       if (privateState.loading) return;
-      appStore.updateWallet(privateState.id, { name: name.value, settings: toRaw(settings.value) });
+      appStore.updateWallet(privateState.id, {
+        name: name.value,
+        lastSynced: privateState.lastSynced,
+        settings: toRaw(settings.value)
+      });
     },
     { deep: true }
   );
@@ -212,6 +218,7 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.type = wlt.type;
     privateState.publicKey = wlt.publicKey;
     privateState.chainCode = wlt.chainCode;
+    privateState.lastSynced = wlt.lastSynced ?? 0;
     name.value = wlt.name;
     settings.value = wlt.settings;
 
@@ -263,6 +270,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
   // #region private actions
   async function sync() {
+    if (Date.now() - privateState.lastSynced < MIN_SYNC_INTERVAL) return setSyncing(false);
     setSyncing(true);
 
     const walletId = privateState.id;
@@ -330,6 +338,7 @@ export const useWalletStore = defineStore("wallet", () => {
     if (walletId !== privateState.id) return; // ensure we are still on the same wallet
     privateState.patchAddresses(changedAddresses);
     privateState.patchAssets(changedAssets, removedAssets);
+    privateState.lastSynced = Date.now();
 
     setSyncing(false);
   }

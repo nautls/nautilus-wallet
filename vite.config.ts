@@ -49,11 +49,16 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        // chromium: filenames starting with "_" are reserved for use by the system.
-        sanitizeFileName: (name) => (name.startsWith("_") ? name.replace("_", "") : name)
+        sanitizeFileName(name) {
+          // chromium: filenames starting with "_" are reserved for use by the system.
+          if (name.startsWith("_")) return name.replace("_", "");
+          // avoid invalid filenames such as FeeSelector.vue?vue&type=script&setup=true&lang.js
+          if (name.includes(".vue?")) return name.slice(0, name.indexOf(".vue?"));
+          return name;
+        }
       }
     },
-    chunkSizeWarningLimit: 2048,
+    chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
     outDir: r("dist")
   },

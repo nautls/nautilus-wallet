@@ -21,6 +21,7 @@ export interface IDbWallet {
   chainCode: string;
   mnemonic?: string;
   settings: WalletSettings;
+  lastSynced?: number;
 }
 
 export interface IDbAddress {

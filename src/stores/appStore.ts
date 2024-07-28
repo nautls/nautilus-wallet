@@ -10,7 +10,7 @@ import { MAINNET } from "@/constants/ergo";
 import { sendBackendServerUrl } from "@/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
-import { MIN_UTXO_SPENT_CHECK_TIME } from "@/constants/intervals";
+import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
 import { utxosDbService } from "@/database/utxosDbService";
 import router from "@/router";
 import HdKey from "@/chains/ergo/hdKey";
@@ -131,7 +131,7 @@ export const useAppStore = defineStore("app", () => {
   async function checkPendingBoxes() {
     const dbBoxes = await utxosDbService.getAllPending();
     const boxesToCheck = dbBoxes.filter(
-      (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= MIN_UTXO_SPENT_CHECK_TIME
+      (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= UTXO_CHECK_INTERVAL
     );
 
     if (boxesToCheck.length == 0) return;
