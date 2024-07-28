@@ -220,11 +220,17 @@ class GraphQLService {
 
   async getCurrentHeight(): Promise<number | undefined> {
     const query = "query query { blockHeaders(take: 1) { height } }";
-    const response = await this.#queryClient
-      .query<{ blockHeaders: Header[] }>(query, {})
-      .toPromise();
 
-    return response.data?.blockHeaders[0]?.height;
+    try {
+      const response = await this.#queryClient
+        .query<{ blockHeaders: Header[] }>(query, {})
+        .toPromise();
+
+      return response.data?.blockHeaders[0]?.height;
+    } catch (e) {
+      log.error("Failed to fetch current height", e);
+      return;
+    }
   }
 
   async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {

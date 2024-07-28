@@ -6,6 +6,7 @@ import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
+import { useChainStore } from "./chainStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
   AddressState,
@@ -69,6 +70,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const appStore = useAppStore();
   const assetsStore = useAssetsStore();
   const privateState = usePrivateStateStore();
+  const chain = useChainStore();
 
   // #region  state
   const name = ref("");
@@ -123,6 +125,14 @@ export const useWalletStore = defineStore("wallet", () => {
         appStore.settings.lastOpenedWalletId = 0;
         router.push({ name: "add-wallet" });
       }
+    }
+  );
+
+  watch(
+    () => chain.height,
+    () => {
+      if (appStore.loading || privateState.loading) return;
+      sync();
     }
   );
 
