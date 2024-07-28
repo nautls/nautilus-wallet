@@ -119,7 +119,7 @@ export const useAssetsStore = defineStore("assets", () => {
   }
 
   async function loadRemoteMetadata(missing: string[]) {
-    const newMeta = await graphQLService.getAssetsInfo(missing);
+    const newMeta = await graphQLService.getAssetsMetadata(missing);
     if (!newMeta) return;
 
     if (missing.length > newMeta.length) {

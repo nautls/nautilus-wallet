@@ -52,7 +52,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
 
   return {
     loading: ref(true),
-    syncing: ref(true),
+    syncing: ref(false),
     id: ref(0),
     type: ref(WalletType.Standard),
     publicKey: ref(""),
