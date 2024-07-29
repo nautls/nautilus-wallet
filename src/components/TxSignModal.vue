@@ -5,8 +5,10 @@ import TxSignView from "./TxSignView.vue";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { ProverStateType, TransactionBuilderFunction, WalletType } from "@/types/internal";
 import { submitTx } from "@/chains/ergo/submitTx";
-import store from "@/store";
 import { PartialSignState } from "@/chains/ergo/transaction/prover";
+import { useWalletStore } from "@/stores/walletStore";
+
+const wallet = useWalletStore();
 
 const props = defineProps({
   submit: { type: Boolean, default: true },
@@ -27,16 +29,11 @@ const signState = reactive({
   animate: true
 });
 
-const isLedger = computed(() => {
-  return store.state.currentWallet.type === WalletType.Ledger;
-});
+const isLedger = computed(() => wallet.type === WalletType.Ledger);
 
 onMounted(async () => {
   transaction.value = await buildTransaction();
-
-  if (signState.type === ProverStateType.busy) {
-    setState();
-  }
+  if (signState.type === ProverStateType.busy) setState();
 });
 
 async function buildTransaction() {
@@ -79,7 +76,7 @@ async function success(
   setStateEx(ProverStateType.busy, { statusText: "Sending transaction..." });
 
   try {
-    const txId = await submitTx(signedTx, store.state.currentWallet.id);
+    const txId = await submitTx(signedTx, wallet.id);
     setStateEx(ProverStateType.success, { statusText: "Sent!" });
     setState(ProverStateType.success, "", txId);
 

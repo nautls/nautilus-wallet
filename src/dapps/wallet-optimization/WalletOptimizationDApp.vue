@@ -3,14 +3,12 @@ import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
-import { BigNumber } from "bignumber.js";
 import { createConsolidationTransaction } from "./transactionFactory";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import store from "@/store";
 import { ErgoBox } from "@/types/connector";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { FeeSettings } from "@/types/internal";
-import { decimalize } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -20,19 +18,21 @@ import {
   SAFE_MIN_FEE_VALUE
 } from "@/constants/ergo";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { filters } from "@/common/globalFilters";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { useWalletStore } from "@/stores/walletStore";
+
+const wallet = useWalletStore();
 
 const loading = ref(true);
 const boxes = ref<ErgoBox[]>([]);
 const currentHeight = ref(0);
 const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
-  value: decimalize(BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+  value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
 });
 
 onMounted(loadBoxes);
-watch(() => store.state.currentWallet.id, loadBoxes);
+watch(() => wallet.id, loadBoxes);
 
 const size = computed(() => {
   let size = 0;
@@ -73,7 +73,7 @@ async function loadBoxes() {
   setLoading(true);
 
   const [ownBoxes, height] = await Promise.all([
-    fetchBoxes(store.state.currentWallet.id),
+    fetchBoxes(wallet.id),
     graphQLService.getCurrentHeight()
   ]);
 
@@ -103,12 +103,23 @@ function sendTransaction() {
 }
 
 async function createTransaction() {
-  return await createConsolidationTransaction(
+  return createConsolidationTransaction(
     toRaw(boxes.value),
     currentHeight.value,
-    store.state.currentWallet.type,
+    wallet.type,
     toRaw(fee.value)
   );
+}
+
+function formatBytes(bytes: number, decimals = 1) {
+  if (!+bytes) return "0 bytes";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 </script>
 
@@ -154,7 +165,7 @@ async function createTransaction() {
       <p>Wallet size</p>
 
       <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
-      <h1 v-else>{{ filters.formatBytes(size) }}</h1>
+      <h1 v-else>{{ formatBytes(size) }}</h1>
     </div>
   </div>
   <div>

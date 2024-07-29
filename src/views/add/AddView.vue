@@ -1,3 +1,23 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import { useWalletStore } from "@/stores/walletStore";
+import { browser, isPopup } from "@/common/browser";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
+
+const wallet = useWalletStore();
+
+const hasWallets = computed(() => wallet.id !== 0);
+
+function navigateInTab(navigate: () => unknown, href: string) {
+  if (!isPopup() || !browser || !browser.tabs) return navigate();
+
+  const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`);
+  browser.tabs.create({ url, active: true });
+  window.close();
+}
+</script>
+
 <template>
   <div class="flex flex-col gap-4 h-full">
     <div class="flex-grow"></div>
@@ -27,8 +47,8 @@
       <button
         type="button"
         class="nav-btn"
-        @click="navInTab(navigate, href)"
-        @keypress.enter="navInTab(navigate, href)"
+        @click="navigateInTab(navigate, href)"
+        @keypress.enter="navigateInTab(navigate, href)"
       >
         <div class="h-full float-left flex w-8 mr-4">
           <ledger-logo class="w-6 h-6 m-auto fill-gray-600" />
@@ -52,40 +72,3 @@
     <button v-if="hasWallets" class="btn outlined w-full" @click="$router.back()">Cancel</button>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { isEmpty } from "@fleet-sdk/common";
-import { browser, isPopup } from "@/common/browser";
-import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
-import { EXT_ENTRY_ROOT } from "@/constants/extension";
-
-export default defineComponent({
-  name: "AddView",
-  components: {
-    LedgerLogo
-  },
-  props: {
-    backButton: { type: String, default: "false" }
-  },
-  computed: {
-    hasWallets() {
-      return !isEmpty(this.$store.state.wallets);
-    }
-  },
-  methods: {
-    navInTab(navigate: () => unknown, href: string) {
-      if (!isPopup() || !browser || !browser.tabs) {
-        navigate();
-        return;
-      }
-
-      browser.tabs.create({
-        url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html${href}?redirect=false`),
-        active: true
-      });
-      window.close();
-    }
-  }
-});
-</script>

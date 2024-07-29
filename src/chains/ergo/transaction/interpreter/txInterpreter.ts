@@ -13,8 +13,8 @@ import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
-import { StateAssetInfo } from "@/types/internal";
-import { decimalize, sumBigNumberBy, toBigNumber } from "@/common/bigNumbers";
+import { AssetsMetadataMap } from "@/types/internal";
+import { bn, decimalize, sumBy } from "@/common/bigNumber";
 import {
   boxCandidateToBoxAmounts,
   sortByTokenId,
@@ -32,7 +32,7 @@ export class TxInterpreter {
   private _changeBoxes: ErgoBoxCandidate[];
   private _feeBox?: ErgoBoxCandidate;
   private _sendingBoxes!: ErgoBoxCandidate[];
-  private _assetInfo!: StateAssetInfo;
+  private _metadata!: AssetsMetadataMap;
   private _addresses!: string[];
   private _burningBalance!: OutputAsset[];
   private _ownInputs!: EIP12UnsignedInput[];
@@ -40,10 +40,10 @@ export class TxInterpreter {
   private _totalIncoming!: OutputAsset[];
   private _totalLeaving!: OutputAsset[];
 
-  constructor(tx: EIP12UnsignedTransaction, ownAddresses: string[], assetInfo: StateAssetInfo) {
+  constructor(tx: EIP12UnsignedTransaction, ownAddresses: string[], metadata: AssetsMetadataMap) {
     this._tx = tx;
     this._addresses = ownAddresses;
-    this._assetInfo = assetInfo;
+    this._metadata = metadata;
     this._feeBox = tx.outputs.find((b) => isMinerFeeContract(b.ergoTree));
 
     const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
@@ -91,7 +91,7 @@ export class TxInterpreter {
 
   public get sending(): OutputInterpreter[] | undefined {
     return this._sendingBoxes.map((b) => {
-      return new OutputInterpreter(b, this._tx.inputs, this._assetInfo, this._addresses);
+      return new OutputInterpreter(b, this._tx.inputs, this._metadata, this._addresses);
     });
   }
 
@@ -108,7 +108,7 @@ export class TxInterpreter {
       return;
     }
 
-    return new OutputInterpreter(this._feeBox, this._tx.inputs, this._assetInfo);
+    return new OutputInterpreter(this._feeBox, this._tx.inputs, this._metadata);
   }
 
   public get totalIncoming(): OutputAsset[] {
@@ -137,10 +137,10 @@ export class TxInterpreter {
     // Handle non-ERG tokens
     const totalIncomingTokens = outputsMinusInputs.tokens
       .filter((t) => t.amount > 0n)
-      .map((t) => tokenAmountToToken(t, this._assetInfo));
+      .map((t) => tokenAmountToToken(t, this._metadata));
     const totalLeavingTokens = outputsMinusInputs.tokens
       .filter((t) => t.amount < 0n)
-      .map((t) => tokenAmountToToken({ tokenId: t.tokenId, amount: -t.amount }, this._assetInfo));
+      .map((t) => tokenAmountToToken({ tokenId: t.tokenId, amount: -t.amount }, this._metadata));
 
     // Handle ERG
     if (outputsMinusInputs.nanoErgs !== 0n) {
@@ -152,7 +152,7 @@ export class TxInterpreter {
               ? outputsMinusInputs.nanoErgs
               : -outputsMinusInputs.nanoErgs
         },
-        this._assetInfo
+        this._metadata
       );
 
       if (outputsMinusInputs.nanoErgs > 0n) {
@@ -163,8 +163,8 @@ export class TxInterpreter {
     }
 
     // Sort to make ERG first
-    this._totalIncoming = tokensToOutputAssets(sortByTokenId(totalIncomingTokens), this._assetInfo);
-    this._totalLeaving = tokensToOutputAssets(sortByTokenId(totalLeavingTokens), this._assetInfo);
+    this._totalIncoming = tokensToOutputAssets(sortByTokenId(totalIncomingTokens), this._metadata);
+    this._totalLeaving = tokensToOutputAssets(sortByTokenId(totalLeavingTokens), this._metadata);
   }
 
   private _calcBurningBalance() {
@@ -198,10 +198,8 @@ export class TxInterpreter {
       .map((key) => {
         return {
           tokenId: key,
-          name: this._assetInfo[key]?.name,
-          amount: this._assetInfo[key]?.decimals
-            ? decimalize(inputTotals[key], this._assetInfo[key].decimals ?? 0)
-            : inputTotals[key]
+          name: this._metadata.get(key)?.name,
+          amount: decimalize(inputTotals[key], this._metadata.get(key)?.decimals ?? 0)
         };
       })
       .filter((x) => x.amount.isGreaterThan(0));
@@ -214,14 +212,14 @@ export class TxInterpreter {
 
     const groups = groupBy(
       assets.map((x) => {
-        return { tokenId: x.tokenId, amount: toBigNumber(x.amount) };
+        return { tokenId: x.tokenId, amount: bn(x.amount) };
       }),
       (x) => x.tokenId
     );
 
     const totals: { [tokenId: string]: BigNumber } = {};
     for (const key in groups) {
-      totals[key] = sumBigNumberBy(groups[key], (x) => x.amount);
+      totals[key] = sumBy(groups[key], (x) => x.amount);
     }
 
     return totals;

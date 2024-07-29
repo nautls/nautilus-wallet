@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import { computed } from "vue";
+import WalletLogo from "./WalletLogo.vue";
+import WalletItem from "@/components/WalletItem.vue";
+import { browser } from "@/common/browser";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
+import { useWalletStore } from "@/stores/walletStore";
+import { useAppStore } from "@/stores/appStore";
+
+const wallet = useWalletStore();
+const app = useAppStore();
+
+const unselected = computed(() => {
+  if (!app.wallets) return [];
+  return app.wallets.filter((w) => w.id !== wallet.id);
+});
+
+const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
+
+async function expandView() {
+  if (!browser?.tabs) return;
+
+  const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
+  browser.tabs.create({ url, active: true });
+  window.close();
+}
+</script>
+
 <template>
   <div
     class="flex flex-row px-4 py-2 gap-0 items-center bg-gray-100"
@@ -9,21 +37,22 @@
       <drop-down discrete :disabled="$route.query.popup === 'true'" list-class="max-h-110">
         <template #trigger="{ active }">
           <wallet-item
+            v-if="current"
             :key="wallet.id"
-            :wallet="wallet"
+            :wallet="current"
             :reverse="!active"
-            :loading="loading.addresses || loading.balance"
+            :loading="wallet.loading || wallet.syncing"
           />
         </template>
         <template #items>
           <div class="group">
             <a
-              v-for="unselected in unselectedWallets"
-              :key="unselected.id"
+              v-for="walletItem in unselected"
+              :key="walletItem.id"
               class="group-item"
-              @click="setCurrentWallet(unselected)"
+              @click="wallet.load(walletItem.id)"
             >
-              <wallet-item :key="wallet.id" :wallet="unselected" />
+              <wallet-item :key="wallet.id" :wallet="walletItem" />
             </a>
           </div>
           <div class="group">
@@ -32,16 +61,12 @@
               <span class="align-middle">Add new wallet</span></router-link
             >
           </div>
-          <div class="group" :class="{ 'mt-1': unselectedWallets.length === 0 }">
+          <div class="group" :class="{ 'mt-1': unselected.length === 0 }">
             <a class="group-item narrow-y" @click="expandView()">
               <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
               <span class="align-middle">Expand view</span></a
             >
-            <router-link
-              v-if="connections.length > 0"
-              :to="{ name: 'connector-connected' }"
-              class="group-item narrow-y"
-            >
+            <router-link :to="{ name: 'connector-connected' }" class="group-item narrow-y">
               <vue-feather type="list" size="16" class="align-middle pr-2" />
               <span class="align-middle">Connected dApps</span></router-link
             >
@@ -61,47 +86,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { mapActions, mapState } from "vuex";
-import WalletLogo from "./WalletLogo.vue";
-import { StateWallet } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
-import { browser } from "@/common/browser";
-import { EXT_ENTRY_ROOT } from "@/constants/extension";
-
-export default defineComponent({
-  name: "WalletHeader",
-  components: { WalletLogo },
-  data() {
-    return {
-      checksum: ""
-    };
-  },
-  computed: {
-    ...mapState({
-      wallet: "currentWallet",
-      loading: "loading",
-      connections: "connections",
-      wallets: "wallets"
-    }),
-    unselectedWallets(): StateWallet[] {
-      const currentId = this.wallet?.id;
-      return this.wallets.filter((w: StateWallet) => w.id !== currentId);
-    }
-  },
-  methods: {
-    ...mapActions({ setCurrentWallet: ACTIONS.SET_CURRENT_WALLET }),
-    async expandView() {
-      if (!browser?.tabs) return;
-
-      browser.tabs.create({
-        url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`),
-        active: true
-      });
-      window.close();
-    }
-  }
-});
-</script>

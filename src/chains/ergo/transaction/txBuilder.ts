@@ -6,17 +6,18 @@ import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "..
 import { fetchBoxes } from "../boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { ACTIONS } from "@/constants/store";
-import store from "@/store";
-import { AddressState, BigNumberType, FeeSettings, StateAsset, WalletType } from "@/types/internal";
-import { undecimalize } from "@/common/bigNumbers";
+import { FeeSettings, WalletType } from "@/types/internal";
+import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
+const wallet = useWalletStore();
+
 export type TxAssetAmount = {
-  asset: StateAsset;
-  amount?: BigNumberType;
+  asset: StateAssetSummary;
+  amount?: BigNumber;
 };
 
 export async function createP2PTransaction({
@@ -31,7 +32,7 @@ export async function createP2PTransaction({
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
   const [inputs, currentHeight] = await Promise.all([
-    fetchBoxes(store.state.currentWallet.id),
+    fetchBoxes(wallet.id),
     graphQLService.getCurrentHeight()
   ]);
 
@@ -56,14 +57,11 @@ export async function createP2PTransaction({
           .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
           .map((token) => ({
             tokenId: token.asset.tokenId,
-            amount: undecimalize(
-              token.amount || BigNumber(0),
-              token.asset.info?.decimals
-            ).toString()
+            amount: undecimalize(token.amount || bn(0), token.asset.metadata?.decimals).toString()
           }))
       )
     )
-    .sendChangeTo(await safeGetChangeAddress(recipientAddress));
+    .sendChangeTo(safeGetChangeAddress());
 
   await setFee(unsigned, fee);
   setSelectionAndChangeStrategy(unsigned, walletType);
@@ -92,7 +90,7 @@ export async function setFee(
 ): Promise<TransactionBuilder> {
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
   let feeNanoErgs = undecimalize(fee.value, ERG_DECIMALS);
-  let sendingNanoErgs = BigNumber(builder.outputs.sum().nanoErgs.toString());
+  let sendingNanoErgs = bn(builder.outputs.sum().nanoErgs.toString());
 
   if (isBabelFee) {
     const tokenUnits = undecimalize(fee.value, fee.assetInfo?.decimals);
@@ -115,7 +113,7 @@ export async function setFee(
       sendingNanoErgs.lte(MIN_BOX_VALUE) &&
       sendingNanoErgs.lte(feeNanoErgs.minus(SAFE_MIN_FEE_VALUE))
     ) {
-      sendingNanoErgs = BigNumber(MIN_BOX_VALUE);
+      sendingNanoErgs = bn(MIN_BOX_VALUE);
       feeNanoErgs = feeNanoErgs.minus(sendingNanoErgs);
     }
 
@@ -135,28 +133,11 @@ function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
   if (erg && erg.amount) {
     return undecimalize(erg.amount, ERG_DECIMALS);
   } else {
-    return new BigNumber(0);
+    return bn(0);
   }
 }
 
-export async function safeGetChangeAddress(recipientAddress = ""): Promise<string> {
-  const wallet = store.state.currentWallet;
-  const addresses = store.state.currentAddresses;
-
-  if (wallet.settings.avoidAddressReuse) {
-    const unused = addresses.find(
-      (a) => a.state === AddressState.Unused && a.script !== recipientAddress
-    );
-
-    if (isEmpty(unused)) {
-      await store.dispatch(ACTIONS.NEW_ADDRESS);
-    }
-  }
-
-  const index = wallet.settings.avoidAddressReuse
-    ? addresses.find((a) => a.state === AddressState.Unused && a.script !== recipientAddress)
-        ?.index ?? wallet.settings.defaultChangeIndex
-    : wallet.settings.defaultChangeIndex;
-
-  return hdKeyPool.get(wallet.publicKey).deriveAddress(index || 0).script;
+export function safeGetChangeAddress(): string {
+  const index = wallet.changeAddress.index ?? 0;
+  return hdKeyPool.get(wallet.publicKey).deriveAddress(index).script;
 }

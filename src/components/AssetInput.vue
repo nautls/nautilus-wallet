@@ -21,7 +21,7 @@
             ref="val-input"
             v-cleave="{
               numeral: true,
-              numeralDecimalScale: asset.info?.decimals ?? 0,
+              numeralDecimalScale: asset.metadata?.decimals ?? 0,
               onValueChanged
             }"
             class="w-full outline-none"
@@ -31,27 +31,27 @@
         </div>
         <div class="w-5/12">
           <div class="flex flex-row text-right items-center gap-1">
-            <span v-if="asset.info?.name" class="flex-grow text-sm"
+            <span v-if="asset.metadata?.name" class="flex-grow text-sm"
               ><tool-tip
-                v-if="asset.info?.name.length > 10"
+                v-if="asset.metadata?.name.length > 10"
                 tip-class="max-w-35"
-                :label="asset.info?.name"
+                :label="asset.metadata?.name"
               >
-                {{ $filters.compactString(asset.info?.name, 10) }}
+                {{ $filters.string.shorten(asset.metadata?.name, 10) }}
               </tool-tip>
               <template v-else>
-                {{ asset.info?.name }}
+                {{ asset.metadata?.name }}
               </template></span
             >
-            <span v-else class="flex-grow">{{ $filters.compactString(asset.tokenId, 10) }}</span>
-            <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.info?.type" />
+            <span v-else class="flex-grow">{{ $filters.string.shorten(asset.tokenId, 10) }}</span>
+            <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.metadata?.type" />
           </div>
         </div>
       </div>
       <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
           <span v-if="ergPrice && rate(asset.tokenId)" class="text-xs text-gray-400"
-            >≈ {{ price }} {{ $filters.uppercase(conversionCurrency) }}</span
+            >≈ {{ price }} {{ $filters.string.uppercase(conversionCurrency) }}</span
           >
           <span v-else class="text-xs text-gray-400">No conversion rate</span>
         </div>
@@ -59,7 +59,7 @@
           <a
             class="text-xs cursor-pointer underline-transparent text-gray-400"
             @click="setMaxValue()"
-            >Balance: {{ $filters.formatBigNumber(confirmedAmount) }}</a
+            >Balance: {{ $filters.bn.format(confirmedAmount) }}</a
           >
         </div>
       </div>
@@ -77,20 +77,24 @@ import { BigNumber } from "bignumber.js";
 import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
-import { BigNumberType } from "@/types/internal";
+import { StateAsset } from "@/types/internal";
+import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { bn } from "@/common/bigNumber";
 
 export default defineComponent({
   name: "AssetInput",
   props: {
     label: { type: String, required: false },
     disposable: { type: Boolean, default: false },
-    asset: { type: Object, required: true },
+    asset: { type: Object as PropType<StateAsset>, required: true },
     modelValue: { type: Object, required: false },
-    reservedAmount: { type: Object as PropType<BigNumberType>, required: false },
-    minAmount: { type: Object as PropType<BigNumberType>, required: false }
+    reservedAmount: { type: Object as PropType<BigNumber>, required: false },
+    minAmount: { type: Object as PropType<BigNumber>, required: false }
   },
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate(), app: useAppStore(), assets: useAssetsStore() };
   },
   data() {
     return {
@@ -100,7 +104,7 @@ export default defineComponent({
   },
   computed: {
     conversionCurrency(): string {
-      return this.$store.state.settings.conversionCurrency;
+      return this.app.settings.conversionCurrency;
     },
     confirmedAmount(): BigNumber {
       return this.asset.confirmedAmount;
@@ -124,20 +128,20 @@ export default defineComponent({
         return "0.00";
       }
 
-      return this.$filters.formatBigNumber(
+      return this.$filters.bn.format(
         this.parsedValue.multipliedBy(this.priceFor(this.asset.tokenId)),
         2
       );
     },
-    minRequired(): BigNumberType {
+    minRequired(): BigNumber {
       if (this.reservedAmount && this.minAmount) {
         return this.reservedAmount.plus(this.minAmount);
       }
 
-      return this.minAmount || this.reservedAmount || new BigNumber(0);
+      return this.minAmount || this.reservedAmount || bn(0);
     },
     ergPrice(): number {
-      return this.$store.state.ergPrice;
+      return this.assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0;
     }
   },
   watch: {
@@ -161,7 +165,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (!this.asset.info?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
+    if (!this.asset.metadata?.decimals && this.asset.confirmedAmount.isEqualTo(1)) {
       this.$emit("update:modelValue", this.asset.confirmedAmount);
     }
   },
@@ -170,13 +174,13 @@ export default defineComponent({
       confirmedAmount: {
         minValue: helpers.withMessage(
           ({ $params }) =>
-            `You need at least ${$params.min} ${this.asset.info?.name} to send this transaction`,
+            `You need at least ${$params.min} ${this.asset.metadata?.name} to send this transaction`,
           bigNumberMinValue(this.minRequired)
         )
       },
       parsedValue: {
         required: helpers.withMessage("Amount is required.", required),
-        minValue: bigNumberMinValue(this.minAmount || new BigNumber(0)),
+        minValue: bigNumberMinValue(this.minAmount || bn(0)),
         maxValue: bigNumberMaxValue(this.available)
       }
     };
@@ -190,7 +194,7 @@ export default defineComponent({
         return undefined;
       }
 
-      const n = new BigNumber(val.replaceAll(",", ""));
+      const n = bn(val.replaceAll(",", ""));
       if (!n.isNaN()) {
         return n;
       }
@@ -213,14 +217,11 @@ export default defineComponent({
     },
     priceFor(tokenId: string): BigNumber {
       const rate = this.rate(tokenId);
-      if (!rate || !this.ergPrice) {
-        return new BigNumber(0);
-      }
-
-      return new BigNumber(rate).multipliedBy(this.ergPrice);
+      if (!rate || !this.ergPrice) return bn(0);
+      return bn(rate).multipliedBy(this.ergPrice);
     },
     rate(tokenId: string): number {
-      return this.$store.state.assetMarketRates[tokenId]?.erg ?? 0;
+      return this.assets.prices.get(tokenId)?.erg ?? 0;
     }
   }
 });

@@ -74,11 +74,11 @@
               class="w-full !py-1 appearance-none control cursor-pointer"
             >
               <option v-for="currency in currencies" :key="currency" :value="currency">
-                {{ $filters.uppercase(currency) }}
+                {{ $filters.string.uppercase(currency) }}
               </option>
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-              <loading-indicator v-if="loading" type="circle" class="w-4 h-4 mr-1" />
+              <loading-indicator v-if="loading" type="circular" class="w-4 h-4 mr-1" />
               <vue-feather v-else type="chevron-down" class="w-4 h-4" />
             </div>
           </div>
@@ -179,11 +179,8 @@
 import { defineComponent, Ref } from "vue";
 import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
-import { mapActions, mapState } from "vuex";
 import { clone, isEqual } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
-import { StateWallet, UpdateWalletSettingsCommand } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
@@ -195,12 +192,19 @@ import {
 } from "@/chains/ergo/services/graphQlService";
 import { validUrl } from "@/validators";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
+import { Settings, useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import { log } from "@/common/logger";
 
 export default defineComponent({
   name: "SettingsView",
   components: { ExtendedPublicKeyModal },
   setup() {
-    return { v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>> };
+    return {
+      v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>>,
+      app: useAppStore(),
+      wallet: useWalletStore()
+    };
   },
   data() {
     return {
@@ -215,7 +219,7 @@ export default defineComponent({
         graphQLServer: "",
         explorerUrl: "",
         blacklistedTokensLists: [] as string[]
-      },
+      } as Settings,
       tokensBlacklists: {
         nsfw: true,
         scam: true
@@ -225,12 +229,6 @@ export default defineComponent({
       currencies: [] as string[],
       xpkModalActive: false
     };
-  },
-  computed: {
-    ...mapState({
-      currentWallet: "currentWallet",
-      settings: "settings"
-    })
   },
   watch: {
     walletSettings: {
@@ -269,28 +267,33 @@ export default defineComponent({
         this.globalSettings.blacklistedTokensLists = lists;
       }
     },
-    ["currentWallet"]: {
+    ["wallet.id"]: {
       immediate: true,
       deep: true,
-      handler(newVal: StateWallet) {
+      handler() {
         this.walletSettings = {
-          name: newVal.name,
-          ...newVal.settings
+          name: this.wallet.name,
+          ...this.wallet.settings
         };
         this.walletChanged = true;
       }
     }
   },
   created() {
-    this.currencies = [this.settings.conversionCurrency];
-    this.globalSettings = clone(this.settings);
+    this.currencies = [this.app.settings.conversionCurrency];
+    this.globalSettings = clone(this.app.settings);
     this.tokensBlacklists = {
       nsfw: this.globalSettings.blacklistedTokensLists.includes("nsfw"),
       scam: this.globalSettings.blacklistedTokensLists.includes("scam")
     };
   },
   async mounted() {
-    this.currencies = await coinGeckoService.getSupportedCurrencyConversion();
+    try {
+      this.currencies = await coinGeckoService.getSupportedCurrencyConversion();
+    } catch (e) {
+      log.error(e);
+    }
+
     this.loading = false;
   },
   validations() {
@@ -331,28 +334,21 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({
-      updateWalletSettings: ACTIONS.UPDATE_WALLET_SETTINGS,
-      saveSettings: ACTIONS.SAVE_SETTINGS,
-      fetchPrices: ACTIONS.FETCH_CURRENT_PRICES,
-      removeWallet: ACTIONS.REMOVE_WALLET,
-      loadTokensBlacklist: ACTIONS.LOAD_TOKEN_BLACKLIST
-    }),
     async remove() {
-      if (confirm(`Are you sure you want to remove '${this.currentWallet.name}'?`)) {
-        this.removeWallet(this.currentWallet.id);
+      if (confirm(`Are you sure you want to remove '${this.wallet.name}'?`)) {
+        this.app.deleteWallet(this.wallet.id);
       }
     },
     async updateWallet() {
-      if (!(await this.v$.walletSettings.$validate())) {
-        return;
-      }
+      if (!(await this.v$.walletSettings.$validate())) return;
 
-      const command = {
-        walletId: this.currentWallet.id,
-        ...this.walletSettings
-      } as UpdateWalletSettingsCommand;
-      await this.updateWalletSettings(command);
+      this.wallet.$patch({
+        name: this.walletSettings.name,
+        settings: {
+          avoidAddressReuse: this.walletSettings.avoidAddressReuse,
+          hideUsedAddresses: this.walletSettings.hideUsedAddresses
+        }
+      });
     },
     async updateGlobal() {
       if (isEmpty(this.globalSettings.graphQLServer)) {
@@ -367,10 +363,8 @@ export default defineComponent({
         return;
       }
 
-      if (!isEqual(this.settings, this.globalSettings)) {
-        await this.saveSettings(this.globalSettings);
-        this.fetchPrices();
-        this.loadTokensBlacklist();
+      if (!isEqual(this.app.settings, this.globalSettings)) {
+        this.app.$patch({ settings: this.globalSettings });
       }
     }
   }

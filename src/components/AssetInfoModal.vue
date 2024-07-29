@@ -25,7 +25,7 @@
       >
         <div>
           <h1 class="font-bold text-lg">
-            {{ asset?.name ?? $filters.compactString(asset?.id, 20) }}
+            {{ asset?.name ?? $filters.string.shorten(asset?.id, 20) }}
           </h1>
           <p v-if="description" class="whitespace-pre-wrap">{{ description }}</p>
         </div>
@@ -38,7 +38,7 @@
             <small class="uppercase text-gray-500">Balance</small>
             <p v-if="hideBalances" class="skeleton animate-none h-4.5 w-2/4 block rounded"></p>
             <p v-else class="text-sm font-bold">
-              {{ $filters.formatBigNumber(confirmedBalance) ?? 0 }}
+              {{ $filters.bn.format(confirmedBalance) ?? 0 }}
             </p>
           </div>
         </div>
@@ -46,14 +46,14 @@
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Token Id</small>
             <p class="text-sm font-bold">
-              {{ $filters.compactString(asset?.id, 12) }}
+              {{ $filters.string.shorten(asset?.id, 12) }}
               <click-to-copy class="pl-1" :content="tokenId" size="12" />
             </p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Minting Transaction</small>
             <p class="text-sm font-bold">
-              {{ $filters.compactString(asset?.mintingTransactionId, 12) }}
+              {{ $filters.string.shorten(asset?.mintingTransactionId, 12) }}
               <click-to-copy class="pl-1" :content="asset?.mintingTransactionId" size="12" />
             </p>
           </div>
@@ -71,8 +71,9 @@ import ImageSandbox from "./ImageSandbox.vue";
 import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { decimalize, toBigNumber } from "@/common/bigNumbers";
+import { bn, decimalize } from "@/common/bigNumber";
 import { AssetSubtype } from "@/types/internal";
+import { useAppStore } from "@/stores/appStore";
 
 export default defineComponent({
   name: "AssetInfoModal",
@@ -81,7 +82,10 @@ export default defineComponent({
   },
   props: {
     tokenId: { type: String, required: false },
-    confirmedBalance: { type: Object as PropType<BigNumber.Instance>, required: false }
+    confirmedBalance: { type: Object as PropType<BigNumber>, required: false }
+  },
+  setup() {
+    return { app: useAppStore() };
   },
   data() {
     return {
@@ -96,16 +100,12 @@ export default defineComponent({
         return "";
       }
 
-      let amount = toBigNumber(this.asset.emissionAmount);
+      let amount = bn(this.asset.emissionAmount);
       if (this.asset.decimals) {
         amount = decimalize(amount, this.asset.decimals);
       }
 
-      return this.$filters.formatBigNumber(
-        amount ?? new BigNumber(0),
-        undefined,
-        Number.MAX_SAFE_INTEGER
-      );
+      return this.$filters.bn.format(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
     },
     isImageNft(): boolean {
       return this.asset?.subtype === AssetSubtype.PictureArtwork;
@@ -136,7 +136,7 @@ export default defineComponent({
       return this.asset.description;
     },
     hideBalances(): boolean {
-      return this.$store.state.settings.hideBalances;
+      return this.app.settings.hideBalances;
     }
   },
   watch: {

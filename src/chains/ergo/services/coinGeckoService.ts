@@ -1,16 +1,26 @@
-import axios from "axios";
+import { safeFetch } from "@/common/networking";
 
-const BASE_URI = "https://api.coingecko.com/api/v3";
+const BASE_URL = "https://api.coingecko.com/api/v3/";
+type CoinGeckoResponse = {
+  ergo: Record<string, number>;
+};
 
 class CoinGeckoService {
   async getPrice(currency: string): Promise<number> {
-    const response = await axios.get(`${BASE_URI}/simple/price?ids=ergo&vs_currencies=${currency}`);
-    return response.data.ergo[currency];
+    const response = await safeFetch<CoinGeckoResponse>("simple/price", {
+      baseURL: BASE_URL,
+      query: { ids: "ergo", vs_currencies: currency }
+    });
+
+    return response?.ergo[currency] ?? 0;
   }
 
   async getSupportedCurrencyConversion(): Promise<string[]> {
-    const response = await axios.get(`${BASE_URI}/simple/supported_vs_currencies`);
-    return response.data;
+    const response = await safeFetch<string[]>("simple/supported_vs_currencies", {
+      baseURL: BASE_URL
+    });
+
+    return response ?? [];
   }
 }
 

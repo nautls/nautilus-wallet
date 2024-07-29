@@ -47,9 +47,9 @@
             <div class="flex-grow items-center align-middle">
               <span class="align-middle">
                 <template v-if="asset.name">{{
-                  $filters.compactString(asset.name, 20, "end")
+                  $filters.string.shorten(asset.name, 20, "end")
                 }}</template>
-                <template v-else>{{ $filters.compactString(asset.tokenId, 20) }}</template>
+                <template v-else>{{ $filters.string.shorten(asset.tokenId, 20) }}</template>
               </span>
               <tool-tip v-if="asset.minting" class="align-middle">
                 <template #label>
@@ -58,7 +58,7 @@
                     <div class="text-left pt-2">
                       <p v-if="asset.description">
                         <span class="font-bold">Description</span>:
-                        {{ $filters.compactString(asset.description, 50, "end") }}
+                        {{ $filters.string.shorten(asset.description, 50, "end") }}
                       </p>
                       <p v-if="asset.decimals">
                         <span class="font-bold">Decimals</span>: {{ asset.decimals }}
@@ -70,7 +70,7 @@
               </tool-tip>
             </div>
             <div>
-              {{ $filters.formatBigNumber(asset.amount) }}
+              {{ $filters.bn.format(asset.amount) }}
             </div>
           </div>
         </li>

@@ -2,7 +2,7 @@ import { ErgoHDKey } from "@fleet-sdk/wallet";
 import { base58check, hex } from "@fleet-sdk/crypto";
 import { NETWORK } from "@/constants/ergo";
 
-export type DerivedAddress = { index: number; script: string };
+export type IndexedAddress = { index: number; script: string };
 type PublicKeyOptions = string | { publicKey: string; chainCode: string };
 
 export default class HdKey {
@@ -74,13 +74,13 @@ export default class HdKey {
     return sk;
   }
 
-  public deriveAddress(index: number): DerivedAddress {
+  public deriveAddress(index: number): IndexedAddress {
     const script = this.#change.deriveChild(index).address.encode(NETWORK);
     return { index, script };
   }
 
-  public deriveAddresses(count: number, offset = 0): DerivedAddress[] {
-    const addresses: DerivedAddress[] = [];
+  public deriveAddresses(count: number, offset = 0): IndexedAddress[] {
+    const addresses: IndexedAddress[] = [];
     for (let i = offset; i < count + offset; i++) {
       addresses.push(this.deriveAddress(i));
     }

@@ -2,26 +2,29 @@ import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@er
 import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
-import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
-import { chunk, first, isEmpty } from "@fleet-sdk/common";
+import { SConstant } from "@fleet-sdk/serializer";
+import { chunk, isEmpty, some } from "@fleet-sdk/common";
 import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
-import { sigmaDecode } from "@/chains/ergo/serialization";
+import { safeSigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";
-import { isZero } from "@/common/bigNumbers";
-import { CHUNK_DERIVE_LENGTH, ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
+import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
+import { bn } from "@/common/bigNumber";
+import { log } from "@/common/logger";
 
-export type AssetBalance = {
+export type AssetInfo = {
   tokenId: string;
-  name?: string;
-  decimals?: number;
-  standard?: AssetStandard;
   confirmedAmount: string;
   unconfirmedAmount?: string;
+};
+
+export type AddressInfo = {
+  used: boolean;
   address: string;
+  assets: AssetInfo[];
 };
 
 export type UnspentBoxesInfo = {
@@ -35,11 +38,11 @@ const MAX_PARAMS_PER_REQUEST = 20;
 
 const GRAPHQL_SERVERS = MAINNET
   ? [
+      "https://explore.sigmaspace.io/api/graphql",
       "https://gql.ergoplatform.com/",
-      "https://graphql.erg.zelcore.io/",
-      "https://explore.sigmaspace.io/api/graphql"
+      "https://graphql.erg.zelcore.io/"
     ]
-  : ["https://gql-testnet.ergoplatform.com/", "https://tn-ergo-explorer.anetabtc.io/graphql"];
+  : ["https://gql-testnet.ergoplatform.com/"];
 
 export function getDefaultServerUrl(): string {
   return GRAPHQL_SERVERS[0];
@@ -51,7 +54,7 @@ export function getRandomServerUrl(): string {
 
 export async function getServerInfo(url: string): Promise<{ network: string; version: string }> {
   const client = createClient({ url, exchanges: [fetchExchange] });
-  const query = gql<{ info: Info; state: State }>`
+  const query = gql`
     query Info {
       info {
         version
@@ -62,10 +65,8 @@ export async function getServerInfo(url: string): Promise<{ network: string; ver
     }
   `;
 
-  const response = await client.query(query, {}).toPromise();
-  if (!response.data) {
-    throw new Error(`No data returned from ${url}.`);
-  }
+  const response = await client.query<{ info: Info; state: State }>(query, {}).toPromise();
+  if (!response.data) throw new Error(`No data returned from ${url}.`);
 
   return {
     network: response.data.state.network,
@@ -193,93 +194,19 @@ class GraphQLService {
     this.#txBroadcastClient = undefined;
   }
 
-  public async getAddressesBalance(addresses: string[]): Promise<AssetBalance[]> {
-    if (CHUNK_DERIVE_LENGTH >= addresses.length) {
-      const raw = await this.getAddressesBalanceFromChunk(addresses);
-      return this.#parseAddressesBalanceResponse(raw || []);
-    }
-
-    const chunks = chunk(addresses, CHUNK_DERIVE_LENGTH);
-    let balances: Address[] = [];
-    for (const chunk of chunks) {
-      balances = balances.concat((await this.getAddressesBalanceFromChunk(chunk)) || []);
-    }
-
-    return this.#parseAddressesBalanceResponse(balances);
-  }
-
-  #parseAddressesBalanceResponse(addressesInfo: Address[]): AssetBalance[] {
-    let assets: AssetBalance[] = [];
-
-    for (const addressInfo of addressesInfo.filter((r) => !isZero(r.balance.nanoErgs))) {
-      assets = assets.concat(
-        addressInfo.balance.assets.map((t) => {
-          return {
-            tokenId: t.tokenId,
-            name: t.name || undefined,
-            decimals: t.decimals || 0,
-            standard: t.name || t.decimals ? AssetStandard.EIP4 : AssetStandard.Unstandardized,
-            confirmedAmount: t.amount,
-            address: addressInfo.address
-          };
-        })
-      );
-
-      assets.push({
-        tokenId: ERG_TOKEN_ID,
-        name: "ERG",
-        decimals: ERG_DECIMALS,
-        standard: AssetStandard.Native,
-        confirmedAmount: addressInfo.balance.nanoErgs?.toString() || "0",
-        address: addressInfo.address
-      });
-    }
-
-    return assets;
-  }
-
-  public async getAddressesBalanceFromChunk(addresses: string[]): Promise<Address[] | undefined> {
-    const query = gql<{ addresses: Address[] }>`
-      query Addresses($addresses: [String!]!) {
-        addresses(addresses: $addresses) {
-          address
-          balance {
-            nanoErgs
-            assets {
-              amount
-              tokenId
-              name
-              decimals
-            }
-          }
-        }
-      }
-    `;
-
-    const response = await this.#queryClient.query(query, { addresses }).toPromise();
-    return response.data?.addresses;
-  }
-
-  public async getUsedAddresses(addresses: string[]): Promise<string[]> {
-    if (CHUNK_DERIVE_LENGTH >= addresses.length) {
-      return this.getUsedAddressesFromChunk(addresses);
-    }
-
-    const chunks = chunk(addresses, CHUNK_DERIVE_LENGTH);
-    let used: string[] = [];
-    for (const c of chunks) {
-      used = used.concat(await this.getUsedAddressesFromChunk(c));
-    }
-
-    return used;
-  }
-
-  private async getUsedAddressesFromChunk(addresses: string[]): Promise<string[]> {
+  async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {
     const query = gql`
       query Addresses($addresses: [String!]!) {
         addresses(addresses: $addresses) {
           address
           used
+          balance {
+            nanoErgs
+            assets {
+              amount
+              tokenId
+            }
+          }
         }
       }
     `;
@@ -288,25 +215,25 @@ class GraphQLService {
       .query<{ addresses: Address[] }>(query, { addresses })
       .toPromise();
 
-    return response.data?.addresses.filter((x) => x.used).map((x) => x.address) || [];
+    return response.data?.addresses.map(addressInfoMapper) || [];
   }
 
   async getCurrentHeight(): Promise<number | undefined> {
-    const query = gql`
-      query query {
-        blockHeaders(take: 1) {
-          height
-        }
-      }
-    `;
+    const query = "query query { blockHeaders(take: 1) { height } }";
 
-    const response = await this.#queryClient
-      .query<{ blockHeaders: Header[] }>(query, {})
-      .toPromise();
-    return response.data?.blockHeaders[0]?.height;
+    try {
+      const response = await this.#queryClient
+        .query<{ blockHeaders: Header[] }>(query, {})
+        .toPromise();
+
+      return response.data?.blockHeaders[0]?.height;
+    } catch (e) {
+      log.error("Failed to fetch current height", e);
+      return;
+    }
   }
 
-  public async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
+  async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
     const query = gql`
       query Boxes($addresses: [String!], $skip: Int, $take: Int) {
         boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
@@ -343,7 +270,7 @@ class GraphQLService {
     return boxes;
   }
 
-  public async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
+  async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
     const query = gql`
       query BoxesCreationHeight($addresses: [String!], $skip: Int, $take: Int) {
         boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
@@ -352,7 +279,7 @@ class GraphQLService {
       }
     `;
 
-    let heights: number[] = [];
+    const heights: number[][] = [];
     const addressesChunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
 
     for (const addresses of addressesChunks) {
@@ -362,13 +289,14 @@ class GraphQLService {
         (box) => box.creationHeight
       );
 
-      heights = heights.concat(chunk);
+      heights.push(chunk);
     }
 
-    return { oldest: min(heights), count: heights.length };
+    const flatten = heights.flat();
+    return { oldest: min(flatten), count: flatten.length };
   }
 
-  public async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
+  async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
     const query = gql<{ mempool: { boxes: Box[] } }>`
       query MempoolBoxes($address: String!, $skip: Int, $take: Int) {
         mempool {
@@ -440,10 +368,10 @@ class GraphQLService {
     return boxes.map(map) || [];
   }
 
-  public async getTokenInfo(tokenId: string): Promise<Token | undefined> {
-    const query = gql<{ tokens: Token[] }>`
-      query Tokens($tokenId: String) {
-        tokens(tokenId: $tokenId) {
+  async #getTokensChunkedMetadata(tokenIds: string[]) {
+    const query = gql`
+      query Tokens($tokenIds: [String!]) {
+        tokens(tokenIds: $tokenIds) {
           tokenId
           type
           emissionAmount
@@ -459,34 +387,37 @@ class GraphQLService {
       }
     `;
 
-    const response = await this.#queryClient.query(query, { tokenId }).toPromise();
-    return first(response.data?.tokens);
+    const response = await this.#queryClient
+      .query<{ tokens: Token[] }>(query, { tokenIds })
+      .toPromise();
+
+    return response.data?.tokens;
   }
 
-  public async getAssetInfo(tokenId: string): Promise<IAssetInfo | undefined> {
-    try {
-      const tokenInfo = await this.getTokenInfo(tokenId);
-      if (!tokenInfo) {
-        return;
-      }
+  async getAssetsMetadata(tokenIds: string[]): Promise<IAssetInfo[] | undefined> {
+    const metadataChunks: Token[][] = [];
+    const chunks = chunk(tokenIds, MAX_PARAMS_PER_REQUEST);
 
-      return parseEIP4Asset(tokenInfo);
-    } catch {
+    try {
+      for (const tokenIds of chunks) {
+        const chunkMetadata = await this.#getTokensChunkedMetadata(tokenIds);
+        if (!chunkMetadata) return;
+
+        metadataChunks.push(chunkMetadata);
+      }
+    } catch (e) {
+      log.error("Failed to fetch metadata", tokenIds, e);
       return;
     }
+
+    return metadataChunks
+      .flat()
+      .map(parseEIP4Asset)
+      .filter((assetInfo) => assetInfo) as IAssetInfo[];
   }
 
-  public async getAssetsInfo(tokenIds: string[]): Promise<IAssetInfo[]> {
-    const info: (IAssetInfo | undefined)[] = [];
-    for (const tokenId of tokenIds) {
-      info.push(await this.getAssetInfo(tokenId));
-    }
-
-    return info.filter((assetInfo) => assetInfo) as IAssetInfo[];
-  }
-
-  public async getBlockHeaders(options: { take: number } = { take: 10 }): Promise<Header[]> {
-    const query = gql<{ blockHeaders: Header[] }>`
+  async getBlockHeaders(options: { take: number } = { take: 10 }): Promise<Header[]> {
+    const query = gql`
       query Headers($take: Int) {
         blockHeaders(take: $take) {
           headerId
@@ -506,12 +437,14 @@ class GraphQLService {
       }
     `;
 
-    const response = await this.#queryClient.query(query, options).toPromise();
+    const response = await this.#queryClient
+      .query<{ blockHeaders: Header[] }>(query, options)
+      .toPromise();
     return response.data?.blockHeaders ?? [];
   }
 
-  public async checkTx(signedTx: SignedTransaction): Promise<string> {
-    const query = gql<{ checkTransaction: string }>`
+  async checkTx(signedTx: SignedTransaction): Promise<string> {
+    const query = gql`
       mutation Mutation($signedTransaction: SignedTransaction!) {
         checkTransaction(signedTransaction: $signedTransaction)
       }
@@ -521,15 +454,12 @@ class GraphQLService {
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
-    if (response.error) {
-      throw Error(response.error.message);
-    }
-
+    if (response.error) throw Error(response.error.message);
     return response.data?.checkTransaction || "";
   }
 
-  public async sendTx(signedTx: SignedTransaction): Promise<string> {
-    const query = gql<{ submitTransaction: string }>`
+  async sendTx(signedTx: SignedTransaction): Promise<string> {
+    const query = gql`
       mutation Mutation($signedTransaction: SignedTransaction!) {
         submitTransaction(signedTransaction: $signedTransaction)
       }
@@ -539,14 +469,11 @@ class GraphQLService {
       .mutation(query, { signedTransaction: signedTx })
       .toPromise();
 
-    if (response.error) {
-      throw Error(response.error.message);
-    }
-
+    if (response.error) throw Error(response.error.message);
     return response.data?.submitTransaction || "";
   }
 
-  public async isTransactionInMempool(transactionId: string): Promise<boolean | undefined> {
+  async isTransactionInMempool(transactionId: string): Promise<boolean | undefined> {
     try {
       const query = gql<{ mempool: { transactions: { transactionId: string }[] } }>`
         query Mempool($transactionId: String) {
@@ -572,7 +499,7 @@ class GraphQLService {
     }
   }
 
-  public async areTransactionsInMempool(
+  async areTransactionsInMempool(
     txIds: string[]
   ): Promise<{ [txId: string]: boolean | undefined }> {
     return asDict(
@@ -587,11 +514,31 @@ class GraphQLService {
 
 export const graphQLService = new GraphQLService();
 
-export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
-  if (!tokenInfo.box) return;
+function addressInfoMapper(gqlAddressInfo: Address): AddressInfo {
+  const mapped: AddressInfo = {
+    address: gqlAddressInfo.address,
+    used: gqlAddressInfo.used,
+    assets: gqlAddressInfo.balance.assets.map((t) => ({
+      tokenId: t.tokenId,
+      confirmedAmount: t.amount
+    }))
+  };
+
+  if (bn(gqlAddressInfo.balance.nanoErgs).gt(0)) {
+    mapped.assets.push({
+      tokenId: ERG_TOKEN_ID,
+      confirmedAmount: gqlAddressInfo.balance.nanoErgs?.toString() || "0"
+    });
+  }
+
+  return mapped;
+}
+
+export function parseEIP4Asset(tokenInfo: Token): IAssetInfo {
+  if (!tokenInfo.box) throw new Error("Asset box info is missing");
 
   const registers = tokenInfo.box.additionalRegisters as Registers;
-  const type = sigmaDecode<string>(registers.R7, hex);
+  const type = safeSigmaDecode<Uint8Array>(registers.R7);
   const assetInfo: IAssetInfo = {
     id: tokenInfo.tokenId,
     mintingBoxId: tokenInfo.boxId,
@@ -600,41 +547,42 @@ export function parseEIP4Asset(tokenInfo: Token): IAssetInfo | undefined {
     name: tokenInfo.name ?? undefined,
     description: tokenInfo.description ?? undefined,
     decimals: tokenInfo.decimals ?? 0,
-    type: parseType(type),
-    subtype: parseSubtype(type),
+    type: decodeType(type),
+    subtype: decodeSubtype(type),
     standard:
       tokenInfo.type === AssetStandard.EIP4 ? AssetStandard.EIP4 : AssetStandard.Unstandardized
   };
 
   if (assetInfo.type === AssetType.NFT) {
-    assetInfo.artworkHash = sigmaDecode(registers.R8, hex);
+    const r8 = safeSigmaDecode<Uint8Array>(registers.R8);
+    if (r8 && r8.type.toString() === "SColl[SByte]") {
+      assetInfo.artworkHash = hex.encode(r8.data);
+    }
 
-    const r9 = SConstant.from<Uint8Array | [Uint8Array, Uint8Array]>(registers.R9);
-    if (r9.type instanceof SColl) {
+    const r9 = safeSigmaDecode(registers.R9);
+    if (!r9) {
+      return assetInfo;
+    } else if (r9.type.toString() === "SColl[SByte]") {
       assetInfo.artworkUrl = utf8.encode(r9.data as Uint8Array);
-    } else if (r9.type instanceof SPair) {
+    } else if (r9.type.toString() === "(SColl[SByte], SColl[SByte])") {
       const [url, cover] = r9.data as [Uint8Array, Uint8Array];
-      assetInfo.artworkUrl = url ? utf8.encode(url) : undefined;
-      assetInfo.artworkCover = cover ? utf8.encode(cover) : undefined;
+      assetInfo.artworkUrl = some(url) ? utf8.encode(url) : undefined;
+      assetInfo.artworkCover = some(cover) ? utf8.encode(cover) : undefined;
     }
   }
 
   return assetInfo;
 }
 
-function parseSubtype(r7Register?: string): AssetSubtype | undefined {
-  if (!r7Register || isEmpty(r7Register)) return;
-  return r7Register as AssetSubtype;
+function decodeSubtype(r7?: SConstant<Uint8Array>): AssetSubtype | undefined {
+  if (!r7 || r7.type.toString() !== "SColl[SByte]") return;
+  return hex.encode(r7.data) as AssetSubtype;
 }
 
-function parseType(r7Register?: string): AssetType {
-  if (!r7Register || isEmpty(r7Register)) return AssetType.Unknown;
-
-  if (r7Register.startsWith(AssetType.NFT)) {
-    return AssetType.NFT;
-  } else if (r7Register.startsWith(AssetType.MembershipToken)) {
-    return AssetType.MembershipToken;
-  }
-
+function decodeType(r7?: SConstant<Uint8Array>): AssetType {
+  if (!r7 || r7.type.toString() !== "SColl[SByte]") return AssetType.Unknown;
+  const encoded = hex.encode(r7.data);
+  if (encoded.startsWith(AssetType.NFT)) return AssetType.NFT;
+  if (encoded.startsWith(AssetType.MembershipToken)) return AssetType.MembershipToken;
   return AssetType.Unknown;
 }

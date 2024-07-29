@@ -9,24 +9,27 @@ import { queue } from "@/rpc/uiRpcHandlers";
 import { SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import store from "@/store";
-import { ACTIONS } from "@/constants/store";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { useAssetsStore } from "@/stores/assetsStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
+
+const assets = useAssetsStore();
+const wallet = useWalletStore();
 
 const request = ref<RequestType>();
 const walletId = ref(0);
 
 watch(
-  () => store.state.loading.wallets,
+  () => wallet.loading,
   (loading) => setWallet(loading, walletId.value),
   { immediate: true }
 );
 
 watch(
   () => walletId.value,
-  (walletId) => setWallet(store.state.loading.wallets, walletId),
+  (walletId) => setWallet(wallet.loading, walletId),
   { immediate: true }
 );
 
@@ -40,14 +43,14 @@ watch(
       .map((x) => x.tokenId);
 
     if (some(tokenIds)) {
-      store.dispatch(ACTIONS.LOAD_ASSETS_INFO, tokenIds);
+      assets.loadMetadata(tokenIds);
     }
   }
 );
 
 function setWallet(loading: boolean, walletId: number) {
   if (loading || !walletId) return;
-  store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+  wallet.load(walletId);
 }
 
 const inputsToSign = computed(() => {

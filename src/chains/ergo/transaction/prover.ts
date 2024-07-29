@@ -20,7 +20,6 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import JSONBig from "json-bigint";
 import {
   BoxCandidate,
   DeviceError,
@@ -32,11 +31,11 @@ import {
 } from "ledger-ergo-js";
 import { hex } from "@fleet-sdk/crypto";
 import { addressFromErgoTree } from "../addresses";
-import HdKey from "../hdKey";
+import HdKey, { IndexedAddress } from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverDeviceState, ProverStateType, SigningState, StateAddress } from "@/types/internal";
-import { toBigNumber } from "@/common/bigNumbers";
+import { ProverDeviceState, ProverStateType, SigningState } from "@/types/internal";
+import { bn } from "@/common/bigNumber";
 import { walletsDbService } from "@/database/walletsDbService";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
@@ -44,7 +43,7 @@ export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
 };
 
 export class Prover {
-  #from!: StateAddress[];
+  #from!: IndexedAddress[];
   #useLedger!: boolean;
   #changeIndex!: number;
   #deriver!: HdKey;
@@ -57,7 +56,7 @@ export class Prover {
     this.#useLedger = false;
   }
 
-  from(addresses: StateAddress[]): Prover {
+  from(addresses: IndexedAddress[]): Prover {
     this.#from = addresses;
     return this;
   }
@@ -85,8 +84,8 @@ export class Prover {
       headers.map((x) => ({
         ...x,
         id: x.headerId,
-        timestamp: toBigNumber(x.timestamp).toNumber(),
-        nBits: toBigNumber(x.nBits).toNumber(),
+        timestamp: bn(x.timestamp).toNumber(),
+        nBits: bn(x.nBits).toNumber(),
         votes: hex.encode(Uint8Array.from(x.votes))
       }))
     );
@@ -126,7 +125,7 @@ export class Prover {
   #parseUnsignedTx(unsignedTx: EIP12UnsignedTransaction) {
     const inputs = ErgoBoxes.from_boxes_json(unsignedTx.inputs);
     const dataInputs = ErgoBoxes.from_boxes_json(unsignedTx.dataInputs);
-    const tx = UnsignedTransaction.from_json(JSONBig.stringify(unsignedTx));
+    const tx = UnsignedTransaction.from_json(JSON.stringify(unsignedTx));
 
     return { tx, inputs, dataInputs };
   }
@@ -272,7 +271,7 @@ function mapTokens(wasmTokens: Tokens) {
   return tokens;
 }
 
-function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: StateAddress[]) {
+function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: IndexedAddress[]) {
   const mappedInputs: UnsignedBox[] = [];
   for (let i = 0; i < tx.inputs().len(); i++) {
     const input = tx.inputs().get(i);

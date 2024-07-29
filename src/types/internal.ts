@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
 import { ErgoBox } from "./connector";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 
@@ -48,7 +48,7 @@ export type StateAddress = {
   script: string;
   state: AddressState;
   index: number;
-  balance?: StateAsset[];
+  assets: StateAsset[];
 };
 
 export type WalletSettings = {
@@ -69,43 +69,27 @@ export type StateWallet = {
 
 export type StateAsset = {
   tokenId: string;
-  confirmedAmount: BigNumberType;
-  unconfirmedAmount?: BigNumberType;
-  info?: BasicAssetInfo;
+  address: string;
+  confirmedAmount: BigNumber;
+  unconfirmedAmount?: BigNumber;
+  metadata?: BasicAssetMetadata;
 };
 
-export type BasicAssetInfo = {
+export type BasicAssetMetadata = {
   name?: string;
   decimals?: number;
   type?: AssetSubtype;
   artworkUrl?: string;
 };
 
-export type StateAssetInfo = {
-  [tokenId: string]: BasicAssetInfo;
-};
-
-export type BigNumberType = Omit<BigNumber, "_isBigNumber">;
+export type AssetsMetadataMap = Map<TokenId, BasicAssetMetadata>;
 
 export type FeeSettings = {
   tokenId: string;
-  readonly value: BigNumberType;
-  readonly nanoErgsPerToken?: BigNumberType;
-  readonly assetInfo?: BasicAssetInfo;
+  readonly value: BigNumber;
+  readonly nanoErgsPerToken?: BigNumber;
+  readonly assetInfo?: BasicAssetMetadata;
   box?: ErgoBox;
-};
-
-export type UpdateWalletSettingsCommand = {
-  walletId: number;
-  name: string;
-  avoidAddressReuse: boolean;
-  hideUsedAddresses: boolean;
-  devMode: boolean;
-};
-
-export type UpdateChangeIndexCommand = {
-  walletId: number;
-  index: number;
 };
 
 export const enum ProverStateType {
@@ -132,8 +116,3 @@ export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
-
-export type UpdateUsedAddressesFilterCommand = {
-  walletId: number;
-  filter: boolean;
-};

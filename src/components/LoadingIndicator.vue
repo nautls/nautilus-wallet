@@ -4,7 +4,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import PulseLoader from "@/assets/images/loaders/pulse.svg";
 import CircularLoader from "@/assets/images/loaders/circular.svg";
 
@@ -17,7 +17,7 @@ export default defineComponent({
   props: {
     class: { type: String, require: false },
     type: {
-      type: String,
+      type: String as PropType<"pulse" | "circular">,
       default: "pulse",
       validator(value: string) {
         return ["pulse", "circular"].includes(value);

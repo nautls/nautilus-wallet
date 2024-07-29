@@ -5,9 +5,7 @@ import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
-import store from "@/store";
 import { ProverStateType, WalletType } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
@@ -16,14 +14,18 @@ import type { AuthArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { signAuthMessage } from "@/chains/ergo/signing";
+import { useWalletStore } from "@/stores/walletStore";
+
+const app = useWalletStore();
+const wallet = useWalletStore();
 
 const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const errorMessage = ref("");
 const walletId = ref(0);
 
-const isReadonly = computed(() => store.state.currentWallet.type === WalletType.ReadOnly);
-const isLedger = computed(() => store.state.currentWallet.type === WalletType.Ledger);
+const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
+const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
 
 const removeEventListener = useEventListener(window, "beforeunload", refuse);
@@ -55,20 +57,20 @@ onMounted(async () => {
 });
 
 watch(
-  () => store.state.loading.wallets,
+  () => app.loading,
   (loading) => setWallet(loading, walletId.value),
   { immediate: true }
 );
 
 watch(
   () => walletId.value,
-  (walletId) => setWallet(store.state.loading.wallets, walletId),
+  (walletId) => setWallet(app.loading, walletId),
   { immediate: true }
 );
 
 function setWallet(loading: boolean, walletId: number) {
   if (loading || !walletId) return;
-  store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+  wallet.load(walletId);
 }
 
 async function authenticate() {

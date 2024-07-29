@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import store from "@/store";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { addressesDbService } from "@/database/addressesDbService";
 import { HEALTHY_BLOCKS_AGE, HEALTHY_UTXO_COUNT } from "@/constants/ergo";
+import { useWalletStore } from "@/stores/walletStore";
+
+const wallet = useWalletStore();
 
 const oldestBoxAge = ref<number | undefined>(undefined);
 const boxCount = ref(0);
 let walletId = 0;
 
-watch(() => store.state.currentWallet, loadBoxInfo);
+watch(() => wallet.id, loadBoxInfo);
 onMounted(loadBoxInfo);
 
 async function loadBoxInfo() {
-  if (!store.state.currentWallet.id || store.state.currentWallet.id === walletId) {
-    return;
-  }
+  if (!wallet.id || wallet.id === walletId) return;
 
-  walletId = store.state.currentWallet.id;
+  walletId = wallet.id;
   oldestBoxAge.value = undefined;
   boxCount.value = 0;
 
@@ -27,9 +27,7 @@ async function loadBoxInfo() {
   );
 
   const boxes = await graphQLService.getUnspentBoxesInfo(addresses);
-  if (!boxes.oldest) {
-    return;
-  }
+  if (!boxes.oldest) return;
 
   oldestBoxAge.value = currentHeight - boxes.oldest;
   boxCount.value = boxes.count;

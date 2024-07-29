@@ -51,19 +51,19 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { defineComponent } from "vue";
-import { mapActions } from "vuex";
 import { hex } from "@fleet-sdk/crypto";
 import HdKey from "@/chains/ergo/hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ACTIONS } from "@/constants/store/actions";
 import { ProverStateType, WalletType } from "@/types/internal";
 import { log } from "@/common/logger";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "ConnectLedgerView",
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate(), app: useAppStore(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -84,12 +84,9 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
+      const valid = await this.v$.$validate();
+      if (!valid) return;
 
       this.loading = true;
       this.state = undefined;
@@ -98,6 +95,7 @@ export default defineComponent({
       let app!: ErgoLedgerApp;
 
       try {
+        // @ts-expect-error - It looks like the type definitions are not up to date in @ledgerhq/hw-transport@6.31.0.
         app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
         this.appId = app.authToken ?? 0;
         this.model =
@@ -115,10 +113,10 @@ export default defineComponent({
         this.connected = true;
         this.screenContent = "Extended Public Key Export";
       } catch (e) {
+        log.error(e);
         this.state = ProverStateType.unavailable;
         this.loading = false;
         this.caption = "";
-        log.error(e);
 
         return;
       }
@@ -177,12 +175,15 @@ export default defineComponent({
       this.caption = "Syncing...";
 
       try {
-        await this.putWallet({
+        const walletId = await this.app.putWallet({
           name: this.walletName,
           extendedPublicKey: pk,
           type: WalletType.Ledger
         });
+
+        await this.wallet.load(walletId, { syncInBackground: false });
       } catch (e) {
+        log.error(e);
         this.loading = false;
         return;
       }

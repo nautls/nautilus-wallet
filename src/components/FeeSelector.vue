@@ -14,21 +14,26 @@ import {
 } from "@/chains/ergo/babelFees";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { GETTERS } from "@/constants/store/getters";
-import store from "@/store";
-import { BasicAssetInfo, BigNumberType, FeeSettings, StateAsset } from "@/types/internal";
-import { decimalize } from "@/common/bigNumbers";
+import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
+import { bn, decimalize } from "@/common/bigNumber";
 import { bigNumberMinValue } from "@/validators";
 import { filters } from "@/common/globalFilters";
+import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
+import { useWalletStore } from "@/stores/walletStore";
 
 type FeeAsset = {
   tokenId: string;
-  nanoErgsPerToken: BigNumberType;
-  info?: BasicAssetInfo;
+  nanoErgsPerToken: BigNumber;
+  metadata?: BasicAssetMetadata;
 };
 
-const bigMinErgFee = new BigNumber(SAFE_MIN_FEE_VALUE);
-const bigMinBoxValue = new BigNumber(MIN_BOX_VALUE);
+const appStore = useAppStore();
+const assetsStore = useAssetsStore();
+const wallet = useWalletStore();
+
+const bigMinErgFee = bn(SAFE_MIN_FEE_VALUE);
+const bigMinBoxValue = bn(MIN_BOX_VALUE);
 
 const props = defineProps({
   selected: { type: Object as PropType<FeeSettings>, required: true },
@@ -40,20 +45,18 @@ const emit = defineEmits<{ (event: "update:selected", feeState: FeeSettings): vo
 const state = reactive({
   multiplier: 1,
   assets: [] as FeeAsset[],
-  internalSelected: { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: BigNumber(0) } as FeeAsset,
-  cachedMinRequired: new BigNumber(0)
+  internalSelected: { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) } as FeeAsset,
+  cachedMinRequired: bn(0)
 });
 
 const conversionCurrency = computed(() => {
-  if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return store.state.settings.conversionCurrency;
-  } else {
-    return "ERG";
-  }
+  return state.internalSelected.tokenId === ERG_TOKEN_ID
+    ? appStore.settings.conversionCurrency
+    : "ERG";
 });
 
 const ergPrice = computed(() => {
-  return store.state.ergPrice;
+  return assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0;
 });
 
 const minTokenFee = computed(() => {
@@ -61,34 +64,28 @@ const minTokenFee = computed(() => {
 });
 
 const nanoErgsFee = computed(() => {
-  return bigMinErgFee.multipliedBy(state.multiplier);
+  return bigMinErgFee.times(state.multiplier);
 });
 
 const tokenUnitsFee = computed(() => {
-  return minTokenFee.value.multipliedBy(state.multiplier);
+  return minTokenFee.value.times(state.multiplier);
 });
 
 const feeAmount = computed(() => {
-  if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return decimalize(nanoErgsFee.value, state.internalSelected.info?.decimals || 0);
-  }
-
-  return decimalize(tokenUnitsFee.value, state.internalSelected.info?.decimals || 0);
+  const value =
+    state.internalSelected.tokenId === ERG_TOKEN_ID ? nanoErgsFee.value : tokenUnitsFee.value;
+  return decimalize(value, state.internalSelected.metadata?.decimals || 0);
 });
 
 const price = computed(() => {
   if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    return decimalize(nanoErgsFee.value, ERG_DECIMALS).multipliedBy(ergPrice.value);
+    return decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value);
   }
 
   return decimalize(
-    state.internalSelected.nanoErgsPerToken.multipliedBy(tokenUnitsFee.value),
+    state.internalSelected.nanoErgsPerToken.times(tokenUnitsFee.value),
     ERG_DECIMALS
   );
-});
-
-const nonNftAssets = computed((): StateAsset[] => {
-  return store.getters[GETTERS.NON_NFT_BALANCE];
 });
 
 const unselected = computed((): FeeAsset[] => {
@@ -153,7 +150,7 @@ watch(
 );
 
 watch(
-  () => ({ walletId: store.state.currentWallet.id, assets: nonNftAssets.value }),
+  () => ({ walletId: wallet.id, assets: wallet.nonArtworkBalance }),
   (newVal, oldVal) => {
     if (areEqualBy(newVal.assets, oldVal.assets, (asset) => asset.tokenId)) {
       return;
@@ -167,17 +164,17 @@ onMounted(loadAssets);
 async function loadAssets() {
   const erg: FeeAsset = {
     tokenId: ERG_TOKEN_ID,
-    nanoErgsPerToken: new BigNumber(1),
-    info: store.state.assetInfo[ERG_TOKEN_ID]
+    nanoErgsPerToken: bn(1),
+    metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
   };
 
   state.multiplier = 1;
   state.assets = [erg];
-  state.internalSelected = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: BigNumber(0) };
-  state.cachedMinRequired = new BigNumber(0);
+  state.internalSelected = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) };
+  state.cachedMinRequired = bn(0);
   select(erg);
 
-  const addresses = nonNftAssets.value
+  const addresses = wallet.nonArtworkBalance
     .filter((x) => x.tokenId !== ERG_TOKEN_ID)
     .map((x) => addressFromErgoTree(buildBabelContractFor(x.tokenId)));
 
@@ -192,7 +189,7 @@ async function loadAssets() {
   );
 
   const assets = Object.keys(groups)
-    .map((tokenId) => {
+    .map((tokenId): FeeAsset => {
       const price = maxBy(
         groups[tokenId].map((box) => getNanoErgsPerTokenRate(box)),
         (p) => p.toNumber()
@@ -200,8 +197,8 @@ async function loadAssets() {
 
       return {
         tokenId,
-        info: store.state.assetInfo[tokenId],
-        nanoErgsPerToken: price || new BigNumber(0)
+        metadata: assetsStore.metadata.get(tokenId),
+        nanoErgsPerToken: price || bn(0)
       };
     })
     .filter((asset) => !asset.nanoErgsPerToken.isZero());
@@ -221,12 +218,10 @@ function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
     !state.internalSelected.nanoErgsPerToken ||
     state.internalSelected.nanoErgsPerToken.isZero()
   ) {
-    return new BigNumber(0);
+    return bn(0);
   }
 
-  return nanoErgs
-    .dividedBy(state.internalSelected.nanoErgsPerToken)
-    .integerValue(BigNumber.ROUND_UP);
+  return nanoErgs.div(state.internalSelected.nanoErgsPerToken).integerValue(BigNumber.ROUND_UP);
 }
 
 function recalculateMinRequired() {
@@ -237,10 +232,8 @@ function recalculateMinRequired() {
     }
   } else {
     state.cachedMinRequired = decimalize(
-      getTokenUnitsFor(
-        bigMinErgFee.plus(bigMinBoxValue.multipliedBy(props.includeMinAmountPerBox))
-      ),
-      state.internalSelected.info?.decimals || 0
+      getTokenUnitsFor(bigMinErgFee.plus(bigMinBoxValue.times(props.includeMinAmountPerBox))),
+      state.internalSelected.metadata?.decimals || 0
     );
 
     if (state.cachedMinRequired.isGreaterThan(feeAmount.value)) {
@@ -263,7 +256,7 @@ function emitSelectedUpdate() {
     tokenId: state.internalSelected.tokenId,
     nanoErgsPerToken: state.internalSelected.nanoErgsPerToken,
     value: feeAmount.value,
-    assetInfo: state.internalSelected.info
+    assetInfo: state.internalSelected.metadata
   });
 }
 </script>
@@ -286,7 +279,7 @@ function emitSelectedUpdate() {
               <span>{{ feeAmount.toString() }}</span>
             </div>
             <small v-if="ergPrice" class="text-gray-400"
-              >≈ {{ price.toString() }} {{ filters.uppercase(conversionCurrency) }}</small
+              >≈ {{ price.toString() }} {{ filters.string.uppercase(conversionCurrency) }}</small
             >
           </div>
         </template>
@@ -317,14 +310,14 @@ function emitSelectedUpdate() {
           <asset-icon
             class="h-5 w-5 min-w-5"
             :token-id="state.internalSelected.tokenId"
-            :type="state.internalSelected.info?.type"
+            :type="state.internalSelected.metadata?.type"
           />
           <div class="whitespace-nowrap flex-grow text-gray-600">
-            <template v-if="state.internalSelected.info?.name">{{
-              filters.compactString(state.internalSelected.info.name, 10)
+            <template v-if="state.internalSelected.metadata?.name">{{
+              filters.string.shorten(state.internalSelected.metadata.name, 10)
             }}</template>
             <template v-else>{{
-              filters.compactString(state.internalSelected.tokenId, 10)
+              filters.string.shorten(state.internalSelected.tokenId, 10)
             }}</template>
           </div>
           <vue-feather type="chevron-down" size="18" />
@@ -342,13 +335,13 @@ function emitSelectedUpdate() {
                 <asset-icon
                   class="h-5 w-5 min-w-5"
                   :token-id="asset.tokenId"
-                  :type="asset.info?.type"
+                  :type="asset.metadata?.type"
                 />
                 <div class="flex-grow">
-                  <template v-if="asset.info?.name">{{
-                    filters.compactString(asset.info?.name, 10)
+                  <template v-if="asset.metadata?.name">{{
+                    filters.string.shorten(asset.metadata?.name, 10)
                   }}</template>
-                  <template v-else>{{ filters.compactString(asset.tokenId, 10) }}</template>
+                  <template v-else>{{ filters.string.shorten(asset.tokenId, 10) }} </template>
                 </div>
               </div>
             </a>

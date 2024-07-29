@@ -80,19 +80,19 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { generateMnemonic } from "@fleet-sdk/wallet";
-import { orderBy, take } from "lodash-es";
-import { mapActions } from "vuex";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
-import { ACTIONS } from "@/constants/store/actions";
 import { WalletType } from "@/types/internal";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
+import { useAppStore } from "@/stores/appStore";
+import { log } from "@/common/logger";
+import { useWalletStore } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "AddStandardView",
   setup() {
-    return { v$: useVuelidate() };
+    return { v$: useVuelidate(), app: useAppStore(), wallet: useWalletStore() };
   },
   data() {
     return {
@@ -127,47 +127,27 @@ export default defineComponent({
     };
   },
   methods: {
-    ...mapActions({ putWallet: ACTIONS.PUT_WALLET }),
     async add() {
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
+      const valid = await this.v$.$validate();
+      if (!valid) return;
 
       this.loading = true;
       try {
-        await this.putWallet({
+        const walletId = await this.app.putWallet({
           name: this.walletName,
           mnemonic: this.mnemonic,
           password: this.password,
           type: WalletType.Standard
         });
+
+        await this.wallet.load(walletId, { syncInBackground: false });
       } catch (e) {
+        log.error(e);
         this.loading = false;
-        // eslint-disable-next-line no-console
-        console.error(e);
         return;
       }
 
       this.$router.push({ name: "assets-page" });
-    },
-    filterBy(text: string) {
-      if (text === "" || text.trim() === "") {
-        return Object.freeze(take(english, 10));
-      }
-
-      const lowerText = text.toLowerCase();
-      const filtered = orderBy(
-        take(
-          english.filter((w) => {
-            return w.includes(lowerText);
-          }),
-          10
-        ),
-        (w) => !w.startsWith(lowerText)
-      );
-
-      this.filteredWords = Object.freeze(filtered);
     }
   }
 });

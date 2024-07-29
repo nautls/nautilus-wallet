@@ -1,3 +1,4 @@
+import { ErgoBox } from "./connector";
 import {
   AddressState,
   AddressType,
@@ -8,7 +9,8 @@ import {
   WalletSettings,
   WalletType
 } from "@/types/internal";
-import { ErgoBox } from "./connector";
+
+export type NotNullId<T extends { id?: number }> = T & { id: number };
 
 export interface IDbWallet {
   id?: number;
@@ -19,6 +21,7 @@ export interface IDbWallet {
   chainCode: string;
   mnemonic?: string;
   settings: WalletSettings;
+  lastSynced?: number;
 }
 
 export interface IDbAddress {

@@ -9,9 +9,7 @@ import VueJsonPretty from "vue-json-pretty";
 import type { JsonObject } from "type-fest";
 import { queue } from "@/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/rpc/protocol";
-import store from "@/store";
 import { ProverStateType, WalletType } from "@/types/internal";
-import { ACTIONS } from "@/constants/store";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
@@ -20,8 +18,13 @@ import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { signMessage } from "@/chains/ergo/signing";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { useWalletStore } from "@/stores/walletStore";
+import { useAppStore } from "@/stores/appStore";
 
 import "vue-json-pretty/lib/styles.css";
+
+const app = useAppStore();
+const wallet = useWalletStore();
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
@@ -32,8 +35,8 @@ const messageType = ref<string>();
 const encodedMessage = ref<string>();
 let ergoMessage: ErgoMessage;
 
-const isReadonly = computed(() => store.state.currentWallet.type === WalletType.ReadOnly);
-const isLedger = computed(() => store.state.currentWallet.type === WalletType.Ledger);
+const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
+const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
 
 const removeEventListener = useEventListener(window, "beforeunload", refuse);
@@ -94,20 +97,20 @@ function decodeMessageType(message: ErgoMessage) {
 }
 
 watch(
-  () => store.state.loading.wallets,
+  () => app.loading,
   (loading) => setWallet(loading, walletId.value),
   { immediate: true }
 );
 
 watch(
   () => walletId.value,
-  (walletId) => setWallet(store.state.loading.wallets, walletId),
+  (walletId) => setWallet(app.loading, walletId),
   { immediate: true }
 );
 
 function setWallet(loading: boolean, walletId: number) {
   if (loading || !walletId) return;
-  store.dispatch(ACTIONS.SET_CURRENT_WALLET, walletId);
+  wallet.load(walletId);
 }
 
 async function authenticate() {

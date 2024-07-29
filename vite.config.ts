@@ -47,12 +47,23 @@ export default defineConfig(({ mode }) => ({
     })
   ],
   build: {
-    chunkSizeWarningLimit: 2048,
+    rollupOptions: {
+      output: {
+        sanitizeFileName(name) {
+          // chromium: filenames starting with "_" are reserved for use by the system.
+          if (name.startsWith("_")) return name.replace("_", "");
+          // avoid invalid filenames such as FeeSelector.vue?vue&type=script&setup=true&lang.js
+          if (name.includes(".vue?")) return name.slice(0, name.indexOf(".vue?"));
+          return name;
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
     outDir: r("dist")
   },
   optimizeDeps: {
-    include: ["vue", "vue-router", "vuex"]
+    include: ["vue", "vue-router", "pinia"]
   },
   server: {
     port,

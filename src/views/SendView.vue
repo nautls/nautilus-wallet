@@ -42,20 +42,24 @@
                 @click="add(asset)"
               >
                 <div class="flex flex-row items-center gap-2">
-                  <asset-icon class="h-8 w-8" :token-id="asset.tokenId" :type="asset.info?.type" />
+                  <asset-icon
+                    class="h-8 w-8"
+                    :token-id="asset.tokenId"
+                    :type="asset.metadata?.type"
+                  />
                   <div class="flex-grow">
-                    <template v-if="asset.info?.name">{{
-                      $filters.compactString(asset.info?.name, 26)
+                    <template v-if="asset.metadata?.name">{{
+                      $filters.string.shorten(asset.metadata?.name, 26)
                     }}</template>
-                    <template v-else>{{ $filters.compactString(asset.tokenId, 10) }}</template>
+                    <template v-else>{{ $filters.string.shorten(asset.tokenId, 10) }}</template>
                     <p
                       v-if="devMode && !isErg(asset.tokenId)"
                       class="text-gray-400 text-xs font-mono"
                     >
-                      {{ $filters.compactString(asset.tokenId, 16) }}
+                      {{ $filters.string.shorten(asset.tokenId, 16) }}
                     </p>
                   </div>
-                  <div>{{ $filters.formatBigNumber(asset.confirmedAmount) }}</div>
+                  <div>{{ $filters.bn.format(asset.confirmedAmount) }}</div>
                 </div>
               </a>
             </div>
@@ -92,15 +96,16 @@ import { helpers, required } from "@vuelidate/validators";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
-import { GETTERS } from "@/constants/store/getters";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BigNumberType, FeeSettings, StateAsset, StateWallet } from "@/types/internal";
-import { decimalize, undecimalize } from "@/common/bigNumbers";
+import { FeeSettings } from "@/types/internal";
+import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { validErgoAddress } from "@/validators";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import AssetInput from "@/components/AssetInput.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { useAppStore } from "@/stores/appStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 
 const validations = {
   recipient: {
@@ -119,31 +124,23 @@ export default defineComponent({
   name: "SendView",
   components: { AssetInput, FeeSelector },
   setup() {
-    return {
-      v$: useVuelidate()
-    };
+    return { app: useAppStore(), v$: useVuelidate(), wallet: useWalletStore() };
   },
   data() {
     return {
       selected: [] as TxAssetAmount[],
       feeSettings: {
         tokenId: ERG_TOKEN_ID,
-        value: decimalize(new BigNumber(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
+        value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
       } as FeeSettings,
       password: "",
       recipient: ""
     };
   },
   computed: {
-    currentWallet(): StateWallet {
-      return this.$store.state.currentWallet;
-    },
-    assets(): StateAsset[] {
-      return this.$store.getters[GETTERS.BALANCE];
-    },
-    unselected(): StateAsset[] {
+    unselected() {
       return differenceBy(
-        this.assets,
+        this.wallet.balance,
         this.selected.map((a) => a.asset),
         (a) => a.tokenId
       );
@@ -175,40 +172,31 @@ export default defineComponent({
 
       return false;
     },
-    reservedFeeAssetAmount(): BigNumberType {
+    reservedFeeAssetAmount(): BigNumber {
       const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
-      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) {
-        return new BigNumber(0);
-      }
-
-      if (!this.changeValue) {
-        return this.fee;
-      }
-
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
-        return this.fee.plus(this.changeValue);
-      }
-
+      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) return bn(0);
+      if (!this.changeValue) return this.fee;
+      if (this.feeSettings.tokenId === ERG_TOKEN_ID) return this.fee.plus(this.changeValue);
       return this.fee;
     },
-    fee(): BigNumberType {
+    fee(): BigNumber {
       return this.feeSettings.value;
     },
     isFeeInErg(): boolean {
       return this.isErg(this.feeSettings.tokenId);
     },
-    changeValue(): BigNumberType | undefined {
+    changeValue(): BigNumber | undefined {
       if (!this.hasChange) {
         return;
       }
 
       return this.minBoxValue;
     },
-    minBoxValue(): BigNumberType {
-      return decimalize(new BigNumber(MIN_BOX_VALUE), ERG_DECIMALS);
+    minBoxValue(): BigNumber {
+      return decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
     },
     devMode(): boolean {
-      return this.$store.state.settings.devMode;
+      return this.app.settings.devMode;
     }
   },
   watch: {
@@ -243,7 +231,7 @@ export default defineComponent({
     return validations;
   },
   methods: {
-    getReserveAmountFor(tokenId: string): BigNumberType | undefined {
+    getReserveAmountFor(tokenId: string): BigNumber | undefined {
       if (this.isFeeAsset(tokenId)) {
         return this.reservedFeeAssetAmount;
       } else if (this.isErg(tokenId) && this.hasChange) {
@@ -266,7 +254,7 @@ export default defineComponent({
         recipientAddress: this.recipient,
         assets: this.selected,
         fee: this.feeSettings,
-        walletType: this.currentWallet.type
+        walletType: this.wallet.type
       });
     },
     clear(): void {
@@ -282,12 +270,12 @@ export default defineComponent({
       const selected = this.selected.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
       if (selected) return;
 
-      const erg = this.assets.find((a) => a.tokenId === ERG_TOKEN_ID);
+      const erg = this.wallet.balance.find((a) => a.tokenId === ERG_TOKEN_ID);
       if (erg) {
         this.selected.unshift({ asset: erg, amount: undefined });
       }
     },
-    add(asset: StateAsset) {
+    add(asset: StateAssetSummary) {
       this.removeDisposableSelections();
       this.selected.push({ asset });
 
@@ -313,7 +301,7 @@ export default defineComponent({
       if (!erg) return;
 
       if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
-        erg.amount = new BigNumber(this.minBoxValue);
+        erg.amount = bn(this.minBoxValue);
       }
     },
     removeDisposableSelections() {

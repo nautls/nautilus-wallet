@@ -17,7 +17,7 @@ import { SigningState, WalletType } from "@/types/internal";
 import { addressesDbService } from "@/database/addressesDbService";
 import { walletsDbService } from "@/database/walletsDbService";
 import { IDbAddress } from "@/types/database";
-import store from "@/store";
+import { useWalletStore } from "@/stores/walletStore";
 
 export type UnsignedAuthMessage = {
   message: string;
@@ -28,6 +28,8 @@ export type AuthSignedMessage = {
   signedMessage: string;
   proof: string;
 };
+
+const wallet = useWalletStore();
 
 /**
  * Creates a EIP-28 signing message
@@ -96,7 +98,7 @@ export async function signTransaction(
     .map((a) => dbAddressMapper(a));
 
   if (addresses.length === 0) {
-    const changeIndex = store.state.currentWallet.settings.defaultChangeIndex;
+    const changeIndex = wallet.settings.defaultChangeIndex;
     const change = (a: IDbAddress): boolean => a.index === changeIndex;
     const firstIndex = (a: IDbAddress): boolean => a.index === 0;
 
@@ -109,9 +111,9 @@ export async function signTransaction(
 
   if (callback) callback({ statusText: "Loading context data..." });
 
-  const isLedger = store.state.currentWallet.type === WalletType.Ledger;
+  const isLedger = wallet.type === WalletType.Ledger;
   const deriver = isLedger
-    ? hdKeyPool.get(store.state.currentWallet.publicKey)
+    ? hdKeyPool.get(wallet.publicKey)
     : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
 
   const encodedAddresses = ownAddresses.map((a) => a.script);

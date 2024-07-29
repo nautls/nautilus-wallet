@@ -1,55 +1,26 @@
 import HdKey from "@/chains/ergo/hdKey";
 
-type PoolItem<ObjectType, Key> = {
-  key: Key;
-  object: ObjectType;
-  alive: boolean;
-};
-
-class ObjectPool<ObjectType, KeyType> {
-  #pool: PoolItem<ObjectType, KeyType>[];
+class ObjectPool<K, V> {
+  #pool: Map<K, V>;
 
   constructor() {
-    this.#pool = [];
+    this.#pool = new Map();
   }
 
-  public alloc(object: ObjectType, key: KeyType): ObjectType {
-    const item = this.getPoolItem(key);
-    if (item) {
-      item.alive = true;
-      item.object = object;
-    } else {
-      const index = this.#pool.findIndex((item) => !item.alive);
-
-      if (index > -1) {
-        this.#pool[index].object = object;
-        this.#pool[index].key = key;
-        this.#pool[index].alive = true;
-      }
-      this.#pool.push({ key, object, alive: true });
-    }
-
+  public alloc(key: K, object: V): V {
+    this.#pool.set(key, object);
     return object;
   }
 
-  public free(key: KeyType): void {
-    const item = this.getPoolItem(key);
-    if (!item) return;
-
-    item.alive = false;
+  public free(key: K): boolean {
+    return this.#pool.delete(key);
   }
 
-  public get(key: KeyType): ObjectType {
-    const item = this.getPoolItem(key);
-    if (!item) throw Error("object not found");
-    if (!item.alive) throw Error("object is not alive");
-
-    return item.object;
-  }
-
-  public getPoolItem(key: KeyType): PoolItem<ObjectType, KeyType> | undefined {
-    return this.#pool.find((item) => item.key === key);
+  public get(key: K): V {
+    const object = this.#pool.get(key);
+    if (!object) throw Error(`Object with key ${key} not found in pool`);
+    return object;
   }
 }
 
-export const hdKeyPool = new ObjectPool<HdKey, string>();
+export const hdKeyPool = new ObjectPool<string, HdKey>();

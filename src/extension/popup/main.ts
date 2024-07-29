@@ -16,15 +16,13 @@ import {
   mdiWalletPlus
 } from "@mdi/js";
 import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next";
-import axios from "axios";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import JSONBig from "json-bigint";
 import mdiVue from "mdi-vue/v3";
 import { createApp } from "vue";
 import VueFeather from "vue-feather";
+import { createPinia } from "pinia";
 import App from "@/App.vue";
-import store from "@/store";
 import router from "@/router";
 import { filters } from "@/common/globalFilters";
 import AssetIcon from "@/components/AssetIcon.vue";
@@ -34,7 +32,6 @@ import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import LedgerDevice from "@/components/LedgerDevice.vue";
 import MdiIcon from "@/components/MdiIcon.vue";
 import ToolTip from "@/components/ToolTip.vue";
-import WalletItem from "@/components/WalletItem.vue";
 import { vueCleave } from "@/directives/cleave";
 import { registerRpcHooks } from "@/rpc/uiRpcHandlers";
 
@@ -44,17 +41,6 @@ import "@/assets/styles/main.css";
 
 dayjs.extend(relativeTime);
 registerRpcHooks();
-
-axios.defaults.transformResponse = [
-  (data) => {
-    if (typeof data !== "string") return data;
-    try {
-      return JSONBig.parse(data);
-    } catch {
-      return data;
-    }
-  }
-];
 
 const app = createApp(App);
 app.config.globalProperties.$filters = filters;
@@ -90,9 +76,11 @@ const orugaSettings = {
   }
 };
 
+const pinia = createPinia();
+
 app
-  .use(store)
   .use(router)
+  .use(pinia)
   .use(Inputitems)
   .use(Modal)
   .use(Slider)
@@ -105,7 +93,6 @@ app
   .component("tool-tip", ToolTip)
   .component("drop-down", DropDown)
   .component("loading-indicator", LoadingIndicator)
-  .component("wallet-item", WalletItem)
   .component("ledger-device", LedgerDevice)
   .component("mdi-icon", MdiIcon)
   .component("asset-icon", AssetIcon)
