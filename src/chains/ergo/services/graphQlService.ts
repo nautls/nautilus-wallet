@@ -3,7 +3,7 @@ import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@ur
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
-import { chunk, isEmpty } from "@fleet-sdk/common";
+import { chunk, isEmpty, some } from "@fleet-sdk/common";
 import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { safeSigmaDecode, sigmaDecode } from "@/chains/ergo/serialization";
@@ -554,15 +554,20 @@ export function parseEIP4Asset(tokenInfo: Token): IAssetInfo {
   };
 
   if (assetInfo.type === AssetType.NFT) {
-    assetInfo.artworkHash = sigmaDecode(registers.R8, hex);
+    const r8 = safeSigmaDecode<Uint8Array>(registers.R8);
+    if (r8 && r8.type.toString() === "SColl[SByte]") {
+      assetInfo.artworkHash = hex.encode(r8.data);
+    }
 
-    const r9 = SConstant.from<Uint8Array | [Uint8Array, Uint8Array]>(registers.R9);
-    if (r9.type instanceof SColl) {
+    const r9 = safeSigmaDecode(registers.R9);
+    if (!r9) {
+      return assetInfo;
+    } else if (r9.type.toString() === "SColl[SByte]") {
       assetInfo.artworkUrl = utf8.encode(r9.data as Uint8Array);
-    } else if (r9.type instanceof SPair) {
+    } else if (r9.type.toString() === "(SColl[SByte], SColl[SByte])") {
       const [url, cover] = r9.data as [Uint8Array, Uint8Array];
-      assetInfo.artworkUrl = url ? utf8.encode(url) : undefined;
-      assetInfo.artworkCover = cover ? utf8.encode(cover) : undefined;
+      assetInfo.artworkUrl = some(url) ? utf8.encode(url) : undefined;
+      assetInfo.artworkCover = some(cover) ? utf8.encode(cover) : undefined;
     }
   }
 

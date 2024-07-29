@@ -131,7 +131,7 @@ export const useWalletStore = defineStore("wallet", () => {
   watch(
     () => chain.height,
     () => {
-      if (appStore.loading || privateState.loading) return;
+      if (appStore.loading || privateState.loading || !appStore.settings.lastOpenedWalletId) return;
       sync();
     }
   );
