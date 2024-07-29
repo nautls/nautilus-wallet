@@ -12,11 +12,7 @@ const aboutView = () => import("@/views/AboutView.vue");
 const settingsView = () => import("@/views/SettingsView.vue");
 const connectionsView = () => import("@/views/connector/ConnectionsView.vue");
 const dAppsView = () => import("@/views/DAppsView.vue");
-const connectView = () => import("@/views/connector/ConnectView.vue");
 const assetsView = () => import("@/views/AssetsView.vue");
-const authView = () => import("@/views/connector/AuthView.vue");
-const signDataView = () => import("@/views/connector/SignDataView.vue");
-const signTxView = () => import("@/views/connector/SignTxConfirmView.vue");
 const ledgerConnectView = () => import("@/views/add/ConnectLedgerView.vue");
 
 // dApps
@@ -98,33 +94,9 @@ const routes: Array<RouteRecordRaw> = [
     component: aboutView
   },
   {
-    path: "/connector/connect",
-    name: "connector-connect",
-    component: connectView,
-    meta: { title: "Access request", fullPage: true }
-  },
-  {
     path: "/connector/connections",
     name: "connector-connected",
     component: connectionsView
-  },
-  {
-    path: "/connector/sign/tx",
-    name: "connector-sign-tx",
-    component: signTxView,
-    meta: { title: "Transaction signature" }
-  },
-  {
-    path: "/connector/sign/data",
-    name: "connector-sign-data",
-    component: signDataView,
-    meta: { title: "Data signature" }
-  },
-  {
-    path: "/connector/auth",
-    name: "connector-auth",
-    component: authView,
-    meta: { title: "Authorization" }
   },
   {
     path: "/wallet/settings",
