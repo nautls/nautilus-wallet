@@ -7,7 +7,7 @@
     "nightwatch.conf.*",
     "playwright.config.*",
     "windi.config.ts",
-    "src/manifest.ts",
+    "src/extension/manifest.ts",
     "src/constants/extension.ts"
   ],
   "compilerOptions": {

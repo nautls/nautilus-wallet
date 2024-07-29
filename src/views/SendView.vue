@@ -49,17 +49,17 @@
                   />
                   <div class="flex-grow">
                     <template v-if="asset.metadata?.name">{{
-                      $filters.string.shorten(asset.metadata?.name, 26)
+                      format.string.shorten(asset.metadata?.name, 26)
                     }}</template>
-                    <template v-else>{{ $filters.string.shorten(asset.tokenId, 10) }}</template>
+                    <template v-else>{{ format.string.shorten(asset.tokenId, 10) }}</template>
                     <p
                       v-if="devMode && !isErg(asset.tokenId)"
                       class="text-gray-400 text-xs font-mono"
                     >
-                      {{ $filters.string.shorten(asset.tokenId, 16) }}
+                      {{ format.string.shorten(asset.tokenId, 16) }}
                     </p>
                   </div>
-                  <div>{{ $filters.bn.format(asset.confirmedAmount) }}</div>
+                  <div>{{ format.bn.format(asset.confirmedAmount) }}</div>
                 </div>
               </a>
             </div>
@@ -106,6 +106,7 @@ import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 import { useAppStore } from "@/stores/appStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
+import { useFormat } from "@/composables/useFormat";
 
 const validations = {
   recipient: {
@@ -124,7 +125,12 @@ export default defineComponent({
   name: "SendView",
   components: { AssetInput, FeeSelector },
   setup() {
-    return { app: useAppStore(), v$: useVuelidate(), wallet: useWalletStore() };
+    return {
+      app: useAppStore(),
+      v$: useVuelidate(),
+      wallet: useWalletStore(),
+      format: useFormat()
+    };
   },
   data() {
     return {

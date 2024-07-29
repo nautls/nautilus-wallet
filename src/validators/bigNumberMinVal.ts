@@ -1,6 +1,8 @@
 import { ValidationRuleWithParams } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
-import { filters } from "@/common/globalFilters";
+import { useFormat } from "../composables/useFormat";
+
+const format = useFormat();
 
 function validator(min: BigNumber) {
   return (value?: BigNumber) => {
@@ -16,7 +18,7 @@ export default function (min: BigNumber): ValidationRuleWithParams<{ min: BigNum
   return {
     $validator: validator(min),
     $message: ({ $params }) =>
-      `The amount should be greater than or equal to ${filters.bn.format($params.min)}`,
+      `The amount should be greater than or equal to ${format.bn.format($params.min)}`,
     $params: { min }
   };
 }

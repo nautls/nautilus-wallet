@@ -28,12 +28,12 @@
         <template v-if="!output.isBabelBoxSwap" #subheader>
           <div class="font-mono text-sm break-all flex flex-col gap-2">
             <p>
-              {{ $filters.string.shorten(output.receiver, 60) }}
+              {{ format.string.shorten(output.receiver, 60) }}
               <click-to-copy :content="output.receiver" size="11" />
             </p>
             <p v-if="isLedger && isP2S(output)">
               <span class="font-semibold font-sans">Script Hash:</span>
-              {{ $filters.string.shorten(output.scriptHash, 20) }}
+              {{ format.string.shorten(output.scriptHash, 20) }}
             </p>
           </div>
         </template>
@@ -146,6 +146,7 @@ import "vue-json-pretty/lib/styles.css";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "TxSignView",
@@ -170,7 +171,8 @@ export default defineComponent({
       v$: useVuelidate(),
       app: useAppStore(),
       assets: useAssetsStore(),
-      wallet: useWalletStore()
+      wallet: useWalletStore(),
+      format: useFormat()
     };
   },
   data() {

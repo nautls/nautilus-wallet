@@ -1,5 +1,9 @@
 import { BigNumber } from "bignumber.js";
-import { bn } from "./bigNumber";
+import { bn } from "@/common/bigNumber";
+
+export function useFormat() {
+  return FORMATTERS;
+}
 
 const DEFAULT_FORMATTER = Intl.NumberFormat("en", {
   notation: "compact",
@@ -15,7 +19,7 @@ function roundToSignificantFigures(num: number, n: number) {
   return bn(shift / magnitude);
 }
 
-export const filters = {
+const FORMATTERS = {
   string: {
     uppercase(val?: string): string {
       if (!val || typeof val !== "string") return "";

@@ -25,7 +25,7 @@
       >
         <div>
           <h1 class="font-bold text-lg">
-            {{ asset?.name ?? $filters.string.shorten(asset?.id, 20) }}
+            {{ asset?.name ?? format.string.shorten(asset?.id, 20) }}
           </h1>
           <p v-if="description" class="whitespace-pre-wrap">{{ description }}</p>
         </div>
@@ -38,7 +38,7 @@
             <small class="uppercase text-gray-500">Balance</small>
             <p v-if="hideBalances" class="skeleton animate-none h-4.5 w-2/4 block rounded"></p>
             <p v-else class="text-sm font-bold">
-              {{ $filters.bn.format(confirmedBalance) ?? 0 }}
+              {{ format.bn.format(confirmedBalance) ?? 0 }}
             </p>
           </div>
         </div>
@@ -46,14 +46,14 @@
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Token Id</small>
             <p class="text-sm font-bold">
-              {{ $filters.string.shorten(asset?.id, 12) }}
+              {{ format.string.shorten(asset?.id, 12) }}
               <click-to-copy class="pl-1" :content="tokenId" size="12" />
             </p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Minting Transaction</small>
             <p class="text-sm font-bold">
-              {{ $filters.string.shorten(asset?.mintingTransactionId, 12) }}
+              {{ format.string.shorten(asset?.mintingTransactionId, 12) }}
               <click-to-copy class="pl-1" :content="asset?.mintingTransactionId" size="12" />
             </p>
           </div>
@@ -74,6 +74,7 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { bn, decimalize } from "@/common/bigNumber";
 import { AssetSubtype } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "AssetInfoModal",
@@ -85,7 +86,7 @@ export default defineComponent({
     confirmedBalance: { type: Object as PropType<BigNumber>, required: false }
   },
   setup() {
-    return { app: useAppStore() };
+    return { app: useAppStore(), format: useFormat() };
   },
   data() {
     return {
@@ -105,7 +106,7 @@ export default defineComponent({
         amount = decimalize(amount, this.asset.decimals);
       }
 
-      return this.$filters.bn.format(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
+      return this.format.bn.format(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
     },
     isImageNft(): boolean {
       return this.asset?.subtype === AssetSubtype.PictureArtwork;

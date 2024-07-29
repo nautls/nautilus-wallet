@@ -22,7 +22,6 @@ import mdiVue from "mdi-vue/v3";
 import { App } from "vue";
 import VueFeather from "vue-feather";
 import { createPinia } from "pinia";
-import { filters } from "@/common/globalFilters";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import DropDown from "@/components/DropDown.vue";
@@ -70,8 +69,6 @@ const ORUGA_SETTINGS = {
 };
 
 export function setupApp(app: App): App {
-  app.config.globalProperties.$filters = filters;
-
   return app
     .use(createPinia())
     .use(Inputitems)

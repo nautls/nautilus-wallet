@@ -99,7 +99,7 @@
                   :href="urlFor(address.script)"
                   :class="{ 'text-gray-400': isUsed(address) }"
                   target="_blank"
-                  >{{ $filters.string.shorten(address.script, 10) }}</a
+                  >{{ format.string.shorten(address.script, 10) }}</a
                 >
                 <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
                   <a class="cursor-pointer" @click="showOnLedger(address)">
@@ -160,12 +160,13 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState, StateAddress, WalletType } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "ReceiveView",
   components: { MdiIcon },
   setup() {
-    return { app: useAppStore(), wallet: useWalletStore() };
+    return { app: useAppStore(), wallet: useWalletStore(), format: useFormat() };
   },
   data() {
     return {
