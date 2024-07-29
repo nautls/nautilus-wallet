@@ -41,7 +41,10 @@ export default defineConfig(({ mode }) => ({
     webExtension({
       manifest: () => buildManifest(network, mode),
       watchFilePaths: [r("src/manifest.ts")],
-      additionalInputs: [`${EXT_ENTRY_ROOT}/content-scripts/injected.ts`],
+      additionalInputs: [
+        `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
+        `${EXT_ENTRY_ROOT}/connector/index.html`
+      ],
       disableAutoLaunch: true,
       htmlViteConfig: { plugins }
     })

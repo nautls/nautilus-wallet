@@ -9,9 +9,7 @@ import { useAppStore } from "@/stores/appStore";
 const connections = ref<IDbDAppConnection[]>([]);
 const app = useAppStore();
 
-onMounted(async () => {
-  loadConnections();
-});
+onMounted(loadConnections);
 
 async function loadConnections() {
   connections.value = await connectedDAppsDbService.getAll();

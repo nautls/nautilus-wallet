@@ -22,7 +22,7 @@ const props = defineProps({
 });
 
 const checksum = shallowRef<WalletChecksum>();
-const canvasId = ref(`wlt-${props.wallet.id}-checksum`);
+const canvasId = ref(`wlt-${props.wallet.id}-${crypto.randomUUID()}-checksum`);
 
 onMounted(() => {
   const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);

@@ -4,6 +4,8 @@ import { useStorage } from "@vueuse/core";
 import { isEmpty, uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import AES from "crypto-js/aes";
+import { useRouter } from "vue-router";
+import { useChainStore } from "./chainStore";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { MAINNET } from "@/constants/ergo";
@@ -12,7 +14,6 @@ import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
 import { utxosDbService } from "@/database/utxosDbService";
-import router from "@/router";
 import HdKey from "@/chains/ergo/hdKey";
 import { Network, WalletType } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
@@ -48,7 +49,8 @@ const usePrivateState = defineStore("_app", () => ({
 
 export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
-  // const wallet = useWalletStore();
+  const chain = useChainStore();
+  const router = useRouter();
 
   const settings = useStorage<Settings>("settings", {
     lastOpenedWalletId: 0,
@@ -77,6 +79,8 @@ export const useAppStore = defineStore("app", () => {
       sendBackendServerUrl(newServerUrl);
     }
   );
+
+  watch(() => chain.height, checkPendingBoxes);
 
   const loading = computed(() => privateState.loading);
   const wallets = computed(() => privateState.wallets);
@@ -143,6 +147,13 @@ export const useAppStore = defineStore("app", () => {
     await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
   }
 
+  function goTo(name: string) {
+    const { redirect, popup } = router.currentRoute.value.query;
+    if (redirect === "false" || popup === "true") return;
+
+    router.push({ name });
+  }
+
   return {
     settings,
     wallets,
@@ -152,11 +163,6 @@ export const useAppStore = defineStore("app", () => {
     putWallet
   };
 });
-
-function goTo(routerName: string) {
-  const { redirect, popup } = router.currentRoute.value.query;
-  if (redirect !== "false" || popup !== "true") router.push({ name: routerName });
-}
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useAppStore, import.meta.hot));

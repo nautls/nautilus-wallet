@@ -14,7 +14,7 @@ const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
 <template>
   <div class="app" :class="maxWidth">
     <div
-      v-if="$route.meta.fullPage || $route.query.auth === 'true'"
+      v-if="$route.meta.fullPage"
       class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100 border-b-1 border-gray-200"
     >
       <wallet-logo root-class="ml-2" content-class="w-11 h-11" />
@@ -24,8 +24,8 @@ const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
       </h1>
     </div>
     <template v-else>
-      <wallet-header v-show="!$route.meta.fullPage && $route.query.auth !== 'true'" />
-      <nav-header v-if="!$route.meta.fullPage && $route.query.popup !== 'true'" />
+      <wallet-header />
+      <nav-header v-if="$route.query.popup !== 'true'" />
     </template>
 
     <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">

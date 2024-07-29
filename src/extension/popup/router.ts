@@ -101,7 +101,7 @@ const routes: Array<RouteRecordRaw> = [
     path: "/connector/connect",
     name: "connector-connect",
     component: connectView,
-    meta: { title: "Access request" }
+    meta: { title: "Access request", fullPage: true }
   },
   {
     path: "/connector/connections",
@@ -133,9 +133,7 @@ const routes: Array<RouteRecordRaw> = [
   }
 ];
 
-const router = createRouter({
+export const router = createRouter({
   history: createWebHashHistory(),
   routes
 });
-
-export default router;

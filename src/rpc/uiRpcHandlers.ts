@@ -1,10 +1,11 @@
 import { onMessage, sendMessage } from "webext-bridge/popup";
-import { RouteLocationRaw } from "vue-router";
+import { RouteLocationRaw, useRouter } from "vue-router";
 import { AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
-import router from "@/router";
 import { DataWithPayload, InternalEvent, InternalRequest } from "@/rpc/protocol";
 
 export const queue = new AsyncRequestQueue();
+
+const router = useRouter();
 const BACKGROUND = "background";
 const _ = undefined;
 
@@ -26,7 +27,6 @@ async function handle<T>(type: AsyncRequestType, data: DataWithPayload) {
   const { origin, favicon } = data.payload;
   const promise = queue.push<T>({ type, origin, favicon, data });
   const route: RouteLocationRaw = { name: getRoute(type), query: { popup: "true" } };
-  if (type === InternalRequest.Connect) route.query!.auth = "true";
   await router.replace(route);
 
   return promise;
