@@ -1,25 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import AssetsView from "@/views/AssetsView.vue";
 
-// Views
-const addView = () => import("@/views/add/AddView.vue");
-const nftGalleryView = () => import("@/views/NftGalleryView.vue");
-const receiveView = () => import("@/views/ReceiveView.vue");
-const addReadOnlyView = () => import("@/views/add/AddReadOnlyView.vue");
-const restoreView = () => import("@/views/add/RestoreView.vue");
-const addStandardView = () => import("@/views/add/AddStandardView.vue");
-const sendView = () => import("@/views/SendView.vue");
-const aboutView = () => import("@/views/AboutView.vue");
-const settingsView = () => import("@/views/SettingsView.vue");
-const connectionsView = () => import("@/views/ConnectionsView.vue");
-const dAppsView = () => import("@/views/DAppsView.vue");
-const ledgerConnectView = () => import("@/views/add/ConnectLedgerView.vue");
-
-// dApps
-const walletOptimizationDApp = () =>
-  import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue");
-const dAppsList = () => import("@/dapps/DappsList.vue");
-
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
@@ -29,79 +10,79 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/add",
     name: "add-wallet",
-    component: addView,
+    component: () => import("@/views/add/AddView.vue"),
     props: true,
     meta: { fullPage: true, title: "Add new wallet" }
   },
   {
     path: "/add/read-only",
     name: "add-read-only-wallet",
-    component: addReadOnlyView,
+    component: () => import("@/views/add/AddReadOnlyView.vue"),
     meta: { fullPage: true, title: "Add read-only wallet" }
   },
   {
     path: "/add/restore",
     name: "restore-wallet",
-    component: restoreView,
+    component: () => import("@/views/add/RestoreView.vue"),
     meta: { fullPage: true, title: "Restore a standard wallet" }
   },
   {
     path: "/add/new",
     name: "add-standard-wallet",
-    component: addStandardView,
+    component: () => import("@/views/add/AddStandardView.vue"),
     meta: { fullPage: true, title: "Add new standard wallet" }
   },
   {
     path: "/add/hw/ledger",
     name: "add-hw-ledger",
-    component: ledgerConnectView,
+    component: () => import("@/views/add/ConnectLedgerView.vue"),
     meta: { fullPage: true, title: "Connect a hardware wallet" }
   },
   {
     path: "/nft",
     name: "nft-gallery",
-    component: nftGalleryView
+    component: () => import("@/views/NftGalleryView.vue")
   },
   {
     path: "/receive",
     name: "receive-page",
-    component: receiveView
+    component: () => import("@/views/ReceiveView.vue")
   },
   {
     path: "/send",
     name: "send-page",
-    component: sendView
+    component: () => import("@/views/SendView.vue")
   },
   {
     path: "/dapps",
-    component: dAppsView,
+    component: () => import("@/views/DAppsView.vue"),
     children: [
       {
         path: "",
         name: "dapps",
-        component: dAppsList
+        component: () => import("@/dapps/DappsList.vue")
       },
       {
         path: "wallet-optimization",
         name: "wallet-optimization",
-        component: walletOptimizationDApp
+        component: import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue")
       }
     ]
   },
   {
     path: "/about",
     name: "about-nautilus",
-    component: aboutView
+    component: () => import("@/views/AboutView.vue")
   },
   {
     path: "/connector/connections",
     name: "connector-connected",
-    component: connectionsView
+    component: () => import("@/views/ConnectionsView.vue")
   },
   {
     path: "/wallet/settings",
     name: "wallet-settings",
-    component: settingsView
+    component: () => import("@/views/SettingsView.vue")
   }
 ];
 
