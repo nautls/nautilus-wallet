@@ -2,16 +2,15 @@
 import { onMounted, ref } from "vue";
 import DappPlate from "@/components/DappPlate.vue";
 import WalletItem from "@/components/WalletItem.vue";
-import { IDbDAppConnection, IDbWallet } from "@/types/database";
+import { IDbDAppConnection } from "@/types/database";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { walletsDbService } from "@/database/walletsDbService";
+import { useAppStore } from "@/stores/appStore";
 
 const connections = ref<IDbDAppConnection[]>([]);
-const wallets = ref<IDbWallet[]>([]);
+const app = useAppStore();
 
 onMounted(async () => {
   loadConnections();
-  wallets.value = await walletsDbService.getAll();
 });
 
 async function loadConnections() {
@@ -19,7 +18,7 @@ async function loadConnections() {
 }
 
 function getWalletBy(walletId: number) {
-  return wallets.value.find((w) => w.id === walletId);
+  return app.wallets.find((w) => w.id === walletId);
 }
 
 async function remove(origin: string) {
@@ -30,7 +29,7 @@ async function remove(origin: string) {
 
 <template>
   <div class="flex flex-col h-max gap-4 text-center">
-    <h1 v-if="connections.length > 0" class="text-lg font-bold text-gray-500 pt-4">
+    <h1 v-if="connections.length === 0" class="text-lg font-bold text-gray-500 pt-4">
       No connected dApps
     </h1>
     <template v-else>
