@@ -199,7 +199,8 @@ export const useWalletStore = defineStore("wallet", () => {
     if (!settings.value.hideUsedAddresses) return addresses.value;
     return addresses.value.filter(
       (address) =>
-        address.index === settings.value.defaultChangeIndex || // default address
+        (!settings.value.avoidAddressReuse &&
+          address.index === settings.value.defaultChangeIndex) || // default address if not avoiding reuse
         address.state === AddressState.Unused || // unused addresses
         privateState.assets.findIndex((x) => x.address === address.script) > -1 // addresses with assets
     );

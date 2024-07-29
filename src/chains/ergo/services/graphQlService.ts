@@ -2,11 +2,11 @@ import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@er
 import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
 import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
-import { SColl, SConstant, SPair } from "@fleet-sdk/serializer";
+import { SConstant } from "@fleet-sdk/serializer";
 import { chunk, isEmpty, some } from "@fleet-sdk/common";
 import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
-import { safeSigmaDecode, sigmaDecode } from "@/chains/ergo/serialization";
+import { safeSigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
 import { asDict } from "@/common/serializer";
 import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
