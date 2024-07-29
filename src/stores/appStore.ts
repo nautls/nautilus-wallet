@@ -146,9 +146,7 @@ export const useAppStore = defineStore("app", () => {
   }
 
   function goTo(name: string) {
-    const { redirect, popup } = router.currentRoute.value.query;
-    if (redirect === "false" || popup === "true") return;
-
+    if (router.currentRoute.value.query.redirect === "false") return;
     router.push({ name });
   }
 

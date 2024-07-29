@@ -28,14 +28,11 @@ async function expandView() {
 </script>
 
 <template>
-  <div
-    class="flex flex-row px-4 py-2 gap-0 items-center bg-gray-100"
-    :class="$route.query.popup === 'true' ? 'border-b-1 border-gray-200' : ''"
-  >
+  <div class="flex flex-row px-4 py-2 gap-0 items-center bg-gray-100">
     <wallet-logo class="ml-2" content-class="w-11 h-11" />
     <div class="flex-grow"></div>
     <div class="w-min">
-      <drop-down discrete :disabled="$route.query.popup === 'true'" list-class="max-h-110">
+      <drop-down discrete list-class="max-h-110">
         <template #trigger="{ active }">
           <wallet-item
             v-if="current"

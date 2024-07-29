@@ -25,7 +25,7 @@ const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
     </div>
     <template v-else>
       <wallet-header />
-      <nav-header v-if="$route.query.popup !== 'true'" />
+      <nav-header />
     </template>
 
     <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
