@@ -134,6 +134,7 @@ import {
   SignedTransaction
 } from "@fleet-sdk/common";
 import TxBoxDetails from "./TxBoxDetails.vue";
+import LedgerDevice from "./LedgerDevice.vue";
 import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
 import { ProverStateType, SigningState, WalletType } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
@@ -154,7 +155,8 @@ export default defineComponent({
     TxSignSummary,
     SignStateModal,
     TxBoxDetails,
-    VueJsonPretty
+    VueJsonPretty,
+    LedgerDevice
   },
   props: {
     transaction: { type: Object as PropType<Readonly<EIP12UnsignedTransaction>>, required: false },

@@ -24,9 +24,7 @@ import VueFeather from "vue-feather";
 import { createPinia } from "pinia";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
-import DropDown from "@/components/DropDown.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
-import LedgerDevice from "@/components/LedgerDevice.vue";
 import MdiIcon from "@/components/MdiIcon.vue";
 import ToolTip from "@/components/ToolTip.vue";
 import { vueCleave } from "@/directives/cleave";
@@ -81,9 +79,7 @@ export function setupApp(app: App): App {
     .component("vue-feather", VueFeather)
     .component("click-to-copy", ClickToCopy)
     .component("tool-tip", ToolTip)
-    .component("drop-down", DropDown)
     .component("loading-indicator", LoadingIndicator)
-    .component("ledger-device", LedgerDevice)
     .component("mdi-icon", MdiIcon)
     .component("asset-icon", AssetIcon);
 }

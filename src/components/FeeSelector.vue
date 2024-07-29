@@ -5,6 +5,7 @@ import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
 import { computed, onMounted, PropType, reactive, watch } from "vue";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
+import DropDown from "./DropDown.vue";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
 import {
   buildBabelContractFor,

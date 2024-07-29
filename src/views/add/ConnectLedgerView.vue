@@ -59,9 +59,11 @@ import { ProverStateType, WalletType } from "@/types/internal";
 import { log } from "@/common/logger";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import LedgerDevice from "@/components/LedgerDevice.vue";
 
 export default defineComponent({
   name: "ConnectLedgerView",
+  components: { LedgerDevice },
   setup() {
     return { v$: useVuelidate(), app: useAppStore(), wallet: useWalletStore() };
   },

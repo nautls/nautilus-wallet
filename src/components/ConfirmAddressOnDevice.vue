@@ -3,6 +3,7 @@ import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { computed, onMounted, reactive } from "vue";
 import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
+import LedgerDevice from "./LedgerDevice.vue";
 import { log } from "@/common/logger";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverStateType } from "@/types/internal";
@@ -34,6 +35,7 @@ async function confirmAddress() {
   let app!: ErgoLedgerApp;
 
   try {
+    // @ts-expect-error ergo-ledger-js types are not up-to-date
     app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
     state.appId = app.authToken ?? 0;
     state.model =

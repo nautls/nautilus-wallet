@@ -107,6 +107,7 @@ import { openTransactionSigningModal } from "@/common/componentUtils";
 import { useAppStore } from "@/stores/appStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { useFormat } from "@/composables/useFormat";
+import DropDown from "@/components/DropDown.vue";
 
 const validations = {
   recipient: {
@@ -123,7 +124,7 @@ const validations = {
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, FeeSelector },
+  components: { AssetInput, FeeSelector, DropDown },
   setup() {
     return {
       app: useAppStore(),

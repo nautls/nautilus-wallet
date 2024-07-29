@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import WalletLogo from "./WalletLogo.vue";
+import DropDown from "./DropDown.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
