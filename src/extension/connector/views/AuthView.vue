@@ -3,37 +3,26 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
-import { ErgoMessage, MessageType } from "@fleet-sdk/core";
-import { hex } from "@fleet-sdk/crypto";
-import VueJsonPretty from "vue-json-pretty";
-import type { JsonObject } from "type-fest";
-import { queue } from "@/rpc/uiRpcHandlers";
-import { error, InternalRequest, success } from "@/rpc/protocol";
+import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
+import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
 import { ProverStateType, WalletType } from "@/types/internal";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import { AsyncRequest } from "@/rpc/asyncRequestQueue";
-import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
+import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
+import type { AuthArgs } from "@/types/d.ts/webext-rpc";
 import SignStateModal from "@/components/SignStateModal.vue";
-import { signMessage } from "@/chains/ergo/signing";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { signAuthMessage } from "@/chains/ergo/signing";
 import { useWalletStore } from "@/stores/walletStore";
-import { useAppStore } from "@/stores/appStore";
 
-import "vue-json-pretty/lib/styles.css";
-
-const app = useAppStore();
+const app = useWalletStore();
 const wallet = useWalletStore();
 
-const request = ref<AsyncRequest<SignDataArgs>>();
+const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const errorMessage = ref("");
 const walletId = ref(0);
-const messageData = ref<string | JsonObject>();
-const messageType = ref<string>();
-const encodedMessage = ref<string>();
-let ergoMessage: ErgoMessage;
 
 const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
@@ -54,47 +43,18 @@ const $v = useVuelidate(
 );
 
 onMounted(async () => {
-  const req = queue.pop(InternalRequest.SignData);
-  if (!req) return;
+  request.value = queue.pop(InternalRequest.Auth);
+  if (!request.value) return;
 
-  const connection = await connectedDAppsDbService.getByOrigin(req.origin);
+  const connection = await connectedDAppsDbService.getByOrigin(request.value.origin);
   if (!connection || !connection.walletId) {
-    req.resolve(error(APIErrorCode.Refused, "Unauthorized."));
+    request.value.resolve(error(APIErrorCode.Refused, "Unauthorized."));
     window.close();
     return;
   }
 
-  request.value = req;
   walletId.value = connection.walletId;
-
-  ergoMessage = ErgoMessage.fromData(req.data.message);
-  messageData.value = decodeMessageData(ergoMessage);
-  messageType.value = decodeMessageType(ergoMessage);
-  encodedMessage.value = ergoMessage.encode();
 });
-
-function decodeMessageData(message: ErgoMessage) {
-  const data = message.getData();
-
-  if (!data) return "";
-  if (message.type === MessageType.String) return data as string;
-  if (message.type === MessageType.Json) return data as JsonObject;
-  return hex.encode(data as Uint8Array);
-}
-
-function decodeMessageType(message: ErgoMessage) {
-  switch (message.type) {
-    case MessageType.String:
-      return "Text";
-    case MessageType.Json:
-      return "JSON";
-    case MessageType.Hash:
-      return "Hash";
-    default:
-    case MessageType.Binary:
-      return "Binary";
-  }
-}
 
 watch(
   () => app.loading,
@@ -118,15 +78,16 @@ async function authenticate() {
   if (!(await $v.value.$validate())) return;
 
   try {
-    const proof = await signMessage(
-      ergoMessage,
+    const messageData = { message: request.value.data.message, origin: request.value.origin };
+    const result = await signAuthMessage(
+      messageData,
       [request.value.data.address],
       walletId.value,
       password.value
     );
 
     if (!request.value) return proverError("Prover returned undefined.");
-    request.value.resolve(success(proof));
+    request.value.resolve(success(result));
 
     removeEventListener();
     window.close();
@@ -157,36 +118,21 @@ function refuse() {
 
 <template>
   <div class="flex flex-col h-full text-sm gap-2 pt-2">
-    <dapp-plate-header :favicon="request?.favicon" :origin="request?.origin"
-      >requests to sign a message
+    <dapp-plate-header :favicon="request?.favicon" :origin="request?.origin">
+      requests a proof that the selected address belongs to you
     </dapp-plate-header>
 
     <div class="flex-grow"></div>
 
     <div class="flex shadow-sm flex-col border rounded">
       <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none">
-        <div class="flex w-full">{{ messageType }} message</div>
-        <div class="text-xs font-normal pt-1 break-all">{{ encodedMessage }}</div>
+        <div class="flex w-full">Selected address</div>
       </div>
-      <template v-if="messageData">
-        <div
-          v-if="typeof messageData === 'string'"
-          class="block bg-gray-700 rounded-b py-2 px-2 break-all max-h-64 overflow-y-auto font-mono text-xs text-white"
-        >
-          {{ messageData }}
-        </div>
-        <div v-else class="block bg-gray-700 rounded-b py-2 px-2 max-h-64 overflow-y-auto">
-          <vue-json-pretty
-            class="!font-mono !text-xs text-white"
-            :highlight-selected-node="false"
-            :show-double-quotes="true"
-            :show-length="true"
-            :show-line="false"
-            :deep="3"
-            :data="messageData"
-          ></vue-json-pretty>
-        </div>
-      </template>
+      <div
+        class="block bg-gray-700 rounded-b py-2 px-2 break-all max-h-64 overflow-y-auto font-mono text-white"
+      >
+        {{ request?.data.address }}
+      </div>
     </div>
 
     <div class="flex-grow"></div>
@@ -213,7 +159,7 @@ function refuse() {
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="cancel()">Cancel</button>
       <button class="btn w-full" :disabled="isReadonly || isLedger" @click="authenticate()">
-        Sign
+        Authenticate
       </button>
     </div>
 

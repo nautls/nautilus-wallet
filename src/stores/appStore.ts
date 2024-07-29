@@ -9,7 +9,7 @@ import { useChainStore } from "./chainStore";
 import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { MAINNET } from "@/constants/ergo";
-import { sendBackendServerUrl } from "@/rpc/uiRpcHandlers";
+import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
@@ -67,8 +67,6 @@ export const useAppStore = defineStore("app", () => {
     privateState.wallets = await walletsDbService.getAll();
     if (!settings.value.lastOpenedWalletId) goTo("add-wallet");
 
-    // todo: do this verification on chain height change
-    checkPendingBoxes();
     privateState.loading = false;
   });
 

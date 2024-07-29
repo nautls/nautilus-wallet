@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+import AssetsView from "@/views/AssetsView.vue";
 
 // Views
 const addView = () => import("@/views/add/AddView.vue");
@@ -10,9 +11,8 @@ const addStandardView = () => import("@/views/add/AddStandardView.vue");
 const sendView = () => import("@/views/SendView.vue");
 const aboutView = () => import("@/views/AboutView.vue");
 const settingsView = () => import("@/views/SettingsView.vue");
-const connectionsView = () => import("@/views/connector/ConnectionsView.vue");
+const connectionsView = () => import("@/views/ConnectionsView.vue");
 const dAppsView = () => import("@/views/DAppsView.vue");
-const assetsView = () => import("@/views/AssetsView.vue");
 const ledgerConnectView = () => import("@/views/add/ConnectLedgerView.vue");
 
 // dApps
@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "assets-page",
-    component: assetsView
+    component: AssetsView
   },
   {
     path: "/add",

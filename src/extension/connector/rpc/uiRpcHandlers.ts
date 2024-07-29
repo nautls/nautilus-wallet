@@ -1,11 +1,10 @@
 import { onMessage, sendMessage } from "webext-bridge/popup";
-import { RouteLocationRaw, useRouter } from "vue-router";
+import { router } from "../router";
 import { AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
-import { DataWithPayload, InternalEvent, InternalRequest } from "@/rpc/protocol";
+import { DataWithPayload, InternalEvent, InternalRequest } from "./protocol";
 
 export const queue = new AsyncRequestQueue();
 
-const router = useRouter();
 const BACKGROUND = "background";
 const _ = undefined;
 
@@ -26,8 +25,7 @@ export function sendBackendServerUrl(url: string) {
 async function handle<T>(type: AsyncRequestType, data: DataWithPayload) {
   const { origin, favicon } = data.payload;
   const promise = queue.push<T>({ type, origin, favicon, data });
-  const route: RouteLocationRaw = { name: getRoute(type), query: { popup: "true" } };
-  await router.replace(route);
+  await router.replace({ name: getRoute(type), query: { popup: "true" } });
 
   return promise;
 }
@@ -36,6 +34,6 @@ function getRoute(requestType: AsyncRequestType) {
   if (requestType === InternalRequest.Connect) return "connector-connect";
   if (requestType === InternalRequest.Auth) return "connector-auth";
   if (requestType === InternalRequest.SignTx) return "connector-sign-tx";
-  if (requestType === InternalRequest.SignTxInputs) return "connector-sign-tx-input";
+  if (requestType === InternalRequest.SignTxInputs) return "connector-sign-tx";
   if (requestType === InternalRequest.SignData) return "connector-sign-data";
 }
