@@ -42,8 +42,8 @@ watch(
       .flatMap((x) => x.assets)
       .map((x) => x.tokenId);
 
-    if (some(tokenIds)) {
-      assets.loadMetadata(tokenIds);
+    if (tokenIds.length > 0) {
+      assets.loadMetadata(tokenIds, { persist: false });
     }
   }
 );

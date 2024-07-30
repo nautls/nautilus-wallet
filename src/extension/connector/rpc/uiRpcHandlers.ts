@@ -25,7 +25,7 @@ export function sendBackendServerUrl(url: string) {
 async function handle<T>(type: AsyncRequestType, data: DataWithPayload) {
   const { origin, favicon } = data.payload;
   const promise = queue.push<T>({ type, origin, favicon, data });
-  await router.replace({ name: getRoute(type), query: { popup: "true" } });
+  await router.replace({ name: getRoute(type) });
 
   return promise;
 }
