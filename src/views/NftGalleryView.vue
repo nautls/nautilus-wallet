@@ -22,7 +22,7 @@
           <div class="h-39 w-full bg-transparent absolute top-0 left-0"></div>
         </div>
         <p class="text-sm p-2">
-          {{ $filters.string.shorten(nft.metadata?.name ?? nft.tokenId, 30) }}
+          {{ format.string.shorten(nft.metadata?.name ?? nft.tokenId, 30) }}
         </p>
       </div>
     </div>
@@ -36,10 +36,10 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { StateAsset } from "@/types/internal";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
-import { useWalletStore } from "@/stores/walletStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "NftGalleryView",
@@ -48,20 +48,20 @@ export default defineComponent({
     ImageSandbox
   },
   setup() {
-    return { wallet: useWalletStore() };
+    return { wallet: useWalletStore(), format: useFormat() };
   },
   data() {
     return {
       filter: "",
-      selectedAsset: undefined as StateAsset | undefined
+      selectedAsset: undefined as StateAssetSummary | undefined
     };
   },
   computed: {
-    assets(): StateAsset[] {
+    assets() {
       const assetList = this.wallet.artworkBalance;
 
       if (this.filter !== "" && assetList.length > 0) {
-        return assetList.filter((a: StateAsset) =>
+        return assetList.filter((a) =>
           a.metadata?.name?.toLocaleLowerCase().includes(this.filter.toLocaleLowerCase())
         );
       }

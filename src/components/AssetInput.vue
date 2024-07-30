@@ -37,13 +37,13 @@
                 tip-class="max-w-35"
                 :label="asset.metadata?.name"
               >
-                {{ $filters.string.shorten(asset.metadata?.name, 10) }}
+                {{ format.string.shorten(asset.metadata?.name, 10) }}
               </tool-tip>
               <template v-else>
                 {{ asset.metadata?.name }}
               </template></span
             >
-            <span v-else class="flex-grow">{{ $filters.string.shorten(asset.tokenId, 10) }}</span>
+            <span v-else class="flex-grow">{{ format.string.shorten(asset.tokenId, 10) }}</span>
             <asset-icon class="h-5 w-5" :token-id="asset.tokenId" :type="asset.metadata?.type" />
           </div>
         </div>
@@ -51,7 +51,7 @@
       <div class="flex flex-row gap-2 -mb-1.5">
         <div class="flex-grow">
           <span v-if="ergPrice && rate(asset.tokenId)" class="text-xs text-gray-400"
-            >≈ {{ price }} {{ $filters.string.uppercase(conversionCurrency) }}</span
+            >≈ {{ price }} {{ format.string.uppercase(conversionCurrency) }}</span
           >
           <span v-else class="text-xs text-gray-400">No conversion rate</span>
         </div>
@@ -59,7 +59,7 @@
           <a
             class="text-xs cursor-pointer underline-transparent text-gray-400"
             @click="setMaxValue()"
-            >Balance: {{ $filters.bn.format(confirmedAmount) }}</a
+            >Balance: {{ format.bn.format(confirmedAmount) }}</a
           >
         </div>
       </div>
@@ -77,24 +77,30 @@ import { BigNumber } from "bignumber.js";
 import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
-import { StateAsset } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { bn } from "@/common/bigNumber";
+import { useFormat } from "@/composables/useFormat";
+import { StateAssetSummary } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "AssetInput",
   props: {
     label: { type: String, required: false },
     disposable: { type: Boolean, default: false },
-    asset: { type: Object as PropType<StateAsset>, required: true },
+    asset: { type: Object as PropType<StateAssetSummary>, required: true },
     modelValue: { type: Object, required: false },
     reservedAmount: { type: Object as PropType<BigNumber>, required: false },
     minAmount: { type: Object as PropType<BigNumber>, required: false }
   },
   setup() {
-    return { v$: useVuelidate(), app: useAppStore(), assets: useAssetsStore() };
+    return {
+      v$: useVuelidate(),
+      app: useAppStore(),
+      assets: useAssetsStore(),
+      format: useFormat()
+    };
   },
   data() {
     return {
@@ -128,7 +134,7 @@ export default defineComponent({
         return "0.00";
       }
 
-      return this.$filters.bn.format(
+      return this.format.bn.format(
         this.parsedValue.multipliedBy(this.priceFor(this.asset.tokenId)),
         2
       );

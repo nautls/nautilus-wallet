@@ -47,9 +47,9 @@
             <div class="flex-grow items-center align-middle">
               <span class="align-middle">
                 <template v-if="asset.name">{{
-                  $filters.string.shorten(asset.name, 20, "end")
+                  format.string.shorten(asset.name, 20, "end")
                 }}</template>
-                <template v-else>{{ $filters.string.shorten(asset.tokenId, 20) }}</template>
+                <template v-else>{{ format.string.shorten(asset.tokenId, 20) }}</template>
               </span>
               <tool-tip v-if="asset.minting" class="align-middle">
                 <template #label>
@@ -58,7 +58,7 @@
                     <div class="text-left pt-2">
                       <p v-if="asset.description">
                         <span class="font-bold">Description</span>:
-                        {{ $filters.string.shorten(asset.description, 50, "end") }}
+                        {{ format.string.shorten(asset.description, 50, "end") }}
                       </p>
                       <p v-if="asset.decimals">
                         <span class="font-bold">Decimals</span>: {{ asset.decimals }}
@@ -70,7 +70,7 @@
               </tool-tip>
             </div>
             <div>
-              {{ $filters.bn.format(asset.amount) }}
+              {{ format.bn.format(asset.amount) }}
             </div>
           </div>
         </li>
@@ -85,6 +85,7 @@ import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpr
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import BabelBadge from "@/assets/images/babel-badge.svg";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "TxBoxDetails",
@@ -100,6 +101,9 @@ export default defineComponent({
       type: String as PropType<"default" | "danger" | "warning" | "info" | "success">,
       default: "default"
     }
+  },
+  setup() {
+    return { format: useFormat() };
   },
   computed: {
     boxStyles() {

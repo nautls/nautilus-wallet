@@ -1,6 +1,6 @@
 import type { Manifest } from "webextension-polyfill";
-import pkg from "../package.json" assert { type: "json" };
-import { EXT_ENTRY_ROOT } from "./constants/extension";
+import pkg from "../../package.json" assert { type: "json" };
+import { EXT_ENTRY_ROOT } from "../constants/extension";
 
 type Network = "mainnet" | "testnet";
 

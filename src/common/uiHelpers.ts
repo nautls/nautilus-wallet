@@ -24,7 +24,7 @@ export async function createWindow(tabId?: number) {
     ...POPUP_SIZE,
     focused: true,
     type: "popup",
-    url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`),
+    url: browser.runtime.getURL(`${EXT_ENTRY_ROOT}/connector/index.html`),
     left:
       isDefined(bounds?.width) && isDefined(bounds.left)
         ? bounds?.width + bounds?.left - (POPUP_SIZE.width + 10)

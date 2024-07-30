@@ -3,6 +3,18 @@ import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "w
 import { isEmpty } from "@fleet-sdk/common";
 import { JsonValue } from "type-fest";
 import {
+  AsyncRequest,
+  AsyncRequestQueue,
+  AsyncRequestType
+} from "../connector/rpc/asyncRequestQueue";
+import {
+  DataWithPayload,
+  error,
+  InternalEvent,
+  InternalRequest,
+  success
+} from "../connector/rpc/protocol";
+import {
   checkConnection,
   getAddresses,
   getBalance,
@@ -13,8 +25,6 @@ import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { createWindow } from "@/common/uiHelpers";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { browser } from "@/common/browser";
-import { DataWithPayload, error, InternalEvent, InternalRequest, success } from "@/rpc/protocol";
-import { AsyncRequest, AsyncRequestQueue, AsyncRequestType } from "@/rpc/asyncRequestQueue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { submitTx } from "@/chains/ergo/submitTx";

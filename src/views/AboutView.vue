@@ -22,11 +22,11 @@
     <p class="text-sm">
       Support the development by donating to:
       <span v-if="readonly">
-        {{ $filters.string.shorten(donationAddress, 20) }}
+        {{ format.string.shorten(donationAddress, 20) }}
         <click-to-copy :content="donationAddress" size="14" class="align-middle" />
       </span>
       <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
-        $filters.string.shorten(donationAddress, 20)
+        format.string.shorten(donationAddress, 20)
       }}</a>
     </p>
 
@@ -55,11 +55,12 @@ import pkg from "../../package.json";
 import { MAINNET } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
 import { useWalletStore } from "@/stores/walletStore";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "AboutView",
   setup() {
-    return { wallet: useWalletStore() };
+    return { wallet: useWalletStore(), format: useFormat() };
   },
   computed: {
     version(): string {

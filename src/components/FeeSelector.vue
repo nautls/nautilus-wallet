@@ -5,6 +5,7 @@ import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
 import { computed, onMounted, PropType, reactive, watch } from "vue";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
+import DropDown from "./DropDown.vue";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
 import {
   buildBabelContractFor,
@@ -17,10 +18,10 @@ import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@
 import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
 import { bigNumberMinValue } from "@/validators";
-import { filters } from "@/common/globalFilters";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { useFormat } from "@/composables/useFormat";
 
 type FeeAsset = {
   tokenId: string;
@@ -28,6 +29,7 @@ type FeeAsset = {
   metadata?: BasicAssetMetadata;
 };
 
+const format = useFormat();
 const appStore = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
@@ -279,7 +281,7 @@ function emitSelectedUpdate() {
               <span>{{ feeAmount.toString() }}</span>
             </div>
             <small v-if="ergPrice" class="text-gray-400"
-              >≈ {{ price.toString() }} {{ filters.string.uppercase(conversionCurrency) }}</small
+              >≈ {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}</small
             >
           </div>
         </template>
@@ -314,10 +316,10 @@ function emitSelectedUpdate() {
           />
           <div class="whitespace-nowrap flex-grow text-gray-600">
             <template v-if="state.internalSelected.metadata?.name">{{
-              filters.string.shorten(state.internalSelected.metadata.name, 10)
+              format.string.shorten(state.internalSelected.metadata.name, 10)
             }}</template>
             <template v-else>{{
-              filters.string.shorten(state.internalSelected.tokenId, 10)
+              format.string.shorten(state.internalSelected.tokenId, 10)
             }}</template>
           </div>
           <vue-feather type="chevron-down" size="18" />
@@ -339,9 +341,9 @@ function emitSelectedUpdate() {
                 />
                 <div class="flex-grow">
                   <template v-if="asset.metadata?.name">{{
-                    filters.string.shorten(asset.metadata?.name, 10)
+                    format.string.shorten(asset.metadata?.name, 10)
                   }}</template>
-                  <template v-else>{{ filters.string.shorten(asset.tokenId, 10) }} </template>
+                  <template v-else>{{ format.string.shorten(asset.tokenId, 10) }} </template>
                 </div>
               </div>
             </a>

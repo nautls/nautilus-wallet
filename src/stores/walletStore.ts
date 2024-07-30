@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
 import type { BigNumber } from "bignumber.js";
+import { useRouter } from "vue-router";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
@@ -23,7 +24,6 @@ import { assetsDbService } from "@/database/assetsDbService";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
 import { hdKeyPool } from "@/common/objectPool";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
-import router from "@/router";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { patchArray } from "@/common/reactivity";
 
@@ -67,6 +67,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
 });
 
 export const useWalletStore = defineStore("wallet", () => {
+  const router = useRouter();
   const appStore = useAppStore();
   const assetsStore = useAssetsStore();
   const privateState = usePrivateStateStore();

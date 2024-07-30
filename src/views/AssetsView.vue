@@ -61,9 +61,9 @@
               </p>
               <a v-else class="break-anywhere cursor-pointer" @click="selectedAsset = asset">
                 <template v-if="asset.metadata?.name">{{
-                  $filters.string.shorten(asset.metadata?.name, 40)
+                  format.string.shorten(asset.metadata?.name, 40)
                 }}</template>
-                <template v-else>{{ $filters.string.shorten(asset.tokenId, 12) }}</template>
+                <template v-else>{{ format.string.shorten(asset.tokenId, 12) }}</template>
               </a>
             </td>
             <td class="text-right align-middle whitespace-nowrap">
@@ -73,19 +73,19 @@
               </div>
               <template v-else>
                 <p>
-                  {{ $filters.bn.format(asset.confirmedAmount) }}
+                  {{ format.bn.format(asset.confirmedAmount) }}
                 </p>
                 <tool-tip
                   v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${$filters.bn.format(
+                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${format.bn.format(
                     price(asset.tokenId),
                     2
-                  )} ${$filters.string.uppercase(conversionCurrency)}`"
+                  )} ${format.string.uppercase(conversionCurrency)}`"
                 >
                   <p class="text-xs text-gray-500">
                     ≈
-                    {{ $filters.bn.format(asset.confirmedAmount.times(price(asset.tokenId)), 2) }}
-                    {{ $filters.string.uppercase(conversionCurrency) }}
+                    {{ format.bn.format(asset.confirmedAmount.times(price(asset.tokenId)), 2) }}
+                    {{ format.string.uppercase(conversionCurrency) }}
                   </p>
                 </tool-tip>
               </template>
@@ -113,6 +113,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "AssetsView",
@@ -122,7 +123,12 @@ export default defineComponent({
     StorageRentBox
   },
   setup() {
-    return { app: useAppStore(), assetsStore: useAssetsStore(), wallet: useWalletStore() };
+    return {
+      app: useAppStore(),
+      assetsStore: useAssetsStore(),
+      wallet: useWalletStore(),
+      format: useFormat()
+    };
   },
   data() {
     return {

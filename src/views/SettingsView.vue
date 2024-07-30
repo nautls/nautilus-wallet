@@ -74,7 +74,7 @@
               class="w-full !py-1 appearance-none control cursor-pointer"
             >
               <option v-for="currency in currencies" :key="currency" :value="currency">
-                {{ $filters.string.uppercase(currency) }}
+                {{ format.string.uppercase(currency) }}
               </option>
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
@@ -195,6 +195,7 @@ import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { Settings, useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { log } from "@/common/logger";
+import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "SettingsView",
@@ -203,7 +204,8 @@ export default defineComponent({
     return {
       v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>>,
       app: useAppStore(),
-      wallet: useWalletStore()
+      wallet: useWalletStore(),
+      format: useFormat()
     };
   },
   data() {

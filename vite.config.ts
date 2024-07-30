@@ -8,7 +8,7 @@ import windiCSS from "vite-plugin-windicss";
 import topLevelAwait from "vite-plugin-top-level-await";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import webExtension from "vite-plugin-web-extension";
-import { buildManifest } from "./src/manifest.ts";
+import { buildManifest } from "./src/extension/manifest.ts";
 import { EXT_ENTRY_ROOT } from "./src/constants/extension.ts";
 
 const gitHash = execSync("git rev-parse HEAD").toString().trim();
@@ -41,7 +41,10 @@ export default defineConfig(({ mode }) => ({
     webExtension({
       manifest: () => buildManifest(network, mode),
       watchFilePaths: [r("src/manifest.ts")],
-      additionalInputs: [`${EXT_ENTRY_ROOT}/content-scripts/injected.ts`],
+      additionalInputs: [
+        `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
+        `${EXT_ENTRY_ROOT}/connector/index.html`
+      ],
       disableAutoLaunch: true,
       htmlViteConfig: { plugins }
     })

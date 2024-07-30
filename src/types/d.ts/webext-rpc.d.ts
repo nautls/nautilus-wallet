@@ -15,7 +15,7 @@ import type {
   InternalRequest,
   Result,
   DataWithPayload as WithPayload
-} from "@/rpc/protocol";
+} from "@/extension/connector/rpc/protocol";
 
 type UTxOsTarget = { target: SelectionTarget | undefined };
 type UTxOResult = Result<Box<string>[]>;
