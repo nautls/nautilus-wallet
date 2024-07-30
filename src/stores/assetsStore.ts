@@ -101,7 +101,7 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const prices = computed(() => privateState.prices.prices);
 
-  async function loadMetadata(tokenIds: string[], options?: LoadMetadataOptions) {
+  async function loadMetadata(tokenIds: string[], options?: Partial<LoadMetadataOptions>) {
     const { fetchInBackground, persist } = ensureDefaults(options, {
       fetchInBackground: false,
       persist: true
