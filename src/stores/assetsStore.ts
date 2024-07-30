@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
-import { uniq } from "@fleet-sdk/common";
+import { ensureDefaults, uniq } from "@fleet-sdk/common";
 import { useStorage } from "@vueuse/core";
 import { useAppStore } from "./appStore";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
@@ -13,6 +13,8 @@ import {
   ergoTokenBlacklistService
 } from "@/chains/ergo/services/tokenBlacklistService";
 import { IAssetInfo } from "@/types/database";
+
+export type LoadMetadataOptions = { fetchInBackground: boolean; persist: boolean };
 
 const _ = undefined;
 const ERG_METADATA: BasicAssetMetadata = { name: "ERG", decimals: ERG_DECIMALS };
@@ -99,7 +101,12 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const prices = computed(() => privateState.prices.prices);
 
-  async function loadMetadata(tokenIds: string[], opt = { fetchInBackground: false }) {
+  async function loadMetadata(tokenIds: string[], options?: LoadMetadataOptions) {
+    const { fetchInBackground, persist } = ensureDefaults(options, {
+      fetchInBackground: false,
+      persist: true
+    });
+
     const unloaded = uniq(tokenIds).filter((x) => !metadata.has(x));
     if (unloaded.length === 0) return;
 
@@ -110,15 +117,15 @@ export const useAssetsStore = defineStore("assets", () => {
     if (unloaded.length > dbMeta.length) {
       const missing = unloaded.filter((id) => !dbMeta.some((x) => x.id === id));
 
-      if (opt.fetchInBackground) {
-        loadRemoteMetadata(missing);
+      if (fetchInBackground) {
+        loadRemoteMetadata(missing, persist);
       } else {
-        await loadRemoteMetadata(missing);
+        await loadRemoteMetadata(missing, persist);
       }
     }
   }
 
-  async function loadRemoteMetadata(missing: string[]) {
+  async function loadRemoteMetadata(missing: string[], persist: boolean) {
     const newMeta = await graphQLService.getAssetsMetadata(missing);
     if (!newMeta) return;
 
@@ -131,7 +138,7 @@ export const useAssetsStore = defineStore("assets", () => {
 
     if (newMeta.length > 0) {
       patchMetadata(newMeta);
-      await assetInfoDbService.bulkPut(newMeta);
+      if (persist) await assetInfoDbService.bulkPut(newMeta);
     }
   }
 
