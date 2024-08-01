@@ -46,5 +46,6 @@ export const assetIconMap: { [tokenId: string]: string } = {
   "abe0a3c2f646dcd430aac9c29d80feee865bd8b5231edb545a41105d4c8e4985": "Buns.png",
   "a9beb1e13364cbbbdac4a456658477862f140725854803dfdcd8e0f4863e7a26": "Mustard.png",
   "ccaac3de4098aa63de90c56973bb1bff7563e8c58594b2075dd04005dac13ae6": "ketchup.png",
-  "ca0ed0092eaaa22b6bfcc407d221b3aaa5c8f643e843cb6aafff6af955947675": "pandav.png"
+  "ca0ed0092eaaa22b6bfcc407d221b3aaa5c8f643e843cb6aafff6af955947675": "pandav.png",
+  "24c380b40c934db2273affc782e091df28c965f1e513f8f5f09fc1d12646ecf2": "OINK.png"
 };
