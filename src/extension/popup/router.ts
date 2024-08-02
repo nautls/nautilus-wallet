@@ -65,7 +65,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "wallet-optimization",
         name: "wallet-optimization",
-        component: import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue")
+        component: () => import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue")
       }
     ]
   },

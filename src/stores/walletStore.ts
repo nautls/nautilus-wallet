@@ -21,7 +21,7 @@ import {
 } from "@/types/internal";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
-import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID } from "@/constants/ergo";
+import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
 import { hdKeyPool } from "@/common/objectPool";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -59,6 +59,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     publicKey: ref(""),
     chainCode: ref(""),
     lastSynced: ref(0),
+    hasOldUtxos: ref(false),
     addresses,
     assets,
     patchAddresses,
@@ -182,6 +183,11 @@ export const useWalletStore = defineStore("wallet", () => {
     );
   });
 
+  const health = computed(() => ({
+    utxoCount: privateState.addresses.reduce((acc, address) => acc + address.utxoCount, 0),
+    hasOldUtxos: privateState.hasOldUtxos
+  }));
+
   /**
    * Returns all addresses with their assets, sorted by index
    */
@@ -231,6 +237,7 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.publicKey = wlt.publicKey;
     privateState.chainCode = wlt.chainCode;
     privateState.lastSynced = wlt.lastSynced ?? 0;
+    privateState.hasOldUtxos = false;
     name.value = wlt.name;
     settings.value = wlt.settings;
 
@@ -281,19 +288,19 @@ export const useWalletStore = defineStore("wallet", () => {
     await addressesDbService.put(dbObj);
   }
 
-  // async function healthCheck() {
-  //   const hasOldBoxes = await graphQLService.checkIfThereBoxesOlderThan(
-  //     chain.height,
-  //     privateState.addresses.map((x) => x.script)
-  //   );
-
-  //   return hasOldBoxes;
-  // }
+  async function checkOldUtxos() {
+    privateState.hasOldUtxos = await graphQLService.checkIfThereBoxesOlderThan(
+      chain.height - HEALTHY_BLOCKS_AGE,
+      privateState.addresses.map((x) => x.script)
+    );
+  }
 
   // #region private actions
   async function sync() {
     if (Date.now() - privateState.lastSynced < MIN_SYNC_INTERVAL) return setSyncing(false);
     setSyncing(true);
+
+    checkOldUtxos();
 
     const walletId = privateState.id;
     const deriver = hdKeyPool.get(privateState.publicKey);
@@ -382,6 +389,7 @@ export const useWalletStore = defineStore("wallet", () => {
     chainCode: computed(() => privateState.chainCode),
     loading: computed(() => privateState.loading),
     syncing: computed(() => privateState.syncing),
+    health,
     name,
     settings,
     addresses,
