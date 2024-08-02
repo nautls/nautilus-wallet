@@ -33,10 +33,9 @@ function buildDescription(mode: string, network: Network) {
 
 function buildVersion() {
   const [major, minor, patch, label] = pkg.version
-    // can only contain digits, dots, or dash
-    .replace(/[^\d.-]+/g, "")
-    // split into version parts
-    .split(/[.-]/);
+    // can only contain digits or dots
+    .replace(/[^\d.]+/g, "")
+    .split(".");
 
   return label ? `${major}.${minor}.${patch}.${label}` : `${major}.${minor}.${patch}`;
 }
