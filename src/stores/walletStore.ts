@@ -273,12 +273,22 @@ export const useWalletStore = defineStore("wallet", () => {
       state: AddressState.Unused,
       script: address.script,
       index: address.index,
+      utxoCount: 0,
       walletId: privateState.id
     };
 
     privateState.addresses.push(dbObj);
     await addressesDbService.put(dbObj);
   }
+
+  // async function healthCheck() {
+  //   const hasOldBoxes = await graphQLService.checkIfThereBoxesOlderThan(
+  //     chain.height,
+  //     privateState.addresses.map((x) => x.script)
+  //   );
+
+  //   return hasOldBoxes;
+  // }
 
   // #region private actions
   async function sync() {
@@ -297,15 +307,17 @@ export const useWalletStore = defineStore("wallet", () => {
       const info = await graphQLService.getAddressesInfo(derived.map((x) => x.script));
 
       addressesChunks.push(
-        derived.map((d) => ({
-          index: d.index,
-          script: d.script,
-          state: info.find((x) => x.address === d.script)?.used
-            ? AddressState.Used
-            : AddressState.Unused,
-          type: AddressType.P2PK,
-          walletId
-        }))
+        derived.map((d) => {
+          const i = info.find((x) => x.address === d.script);
+          return {
+            type: AddressType.P2PK,
+            state: i?.used ? AddressState.Used : AddressState.Unused,
+            script: d.script,
+            index: d.index,
+            utxoCount: i?.utxoCount ?? 0,
+            walletId
+          };
+        })
       );
 
       assetsChunks.push(
@@ -396,7 +408,9 @@ function getChanges(
   const changedAddresses = prunedAddresses.filter((newAddress) => {
     const currentAddress = currentAddresses.find((x) => x.script === newAddress.script);
     if (!currentAddress) return true;
-    return currentAddress.state !== newAddress.state;
+    return (
+      currentAddress.state !== newAddress.state || currentAddress.utxoCount !== newAddress.utxoCount
+    );
   });
 
   const changedAssets = newAssets.filter((newAsset) => {

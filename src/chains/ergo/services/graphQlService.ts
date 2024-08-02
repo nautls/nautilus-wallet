@@ -24,6 +24,7 @@ export type AssetInfo = {
 export type AddressInfo = {
   used: boolean;
   address: string;
+  utxoCount: number;
   assets: AssetInfo[];
 };
 
@@ -200,6 +201,7 @@ class GraphQLService {
         addresses(addresses: $addresses) {
           address
           used
+          boxesCount
           balance {
             nanoErgs
             assets {
@@ -268,6 +270,34 @@ class GraphQLService {
     }
 
     return boxes;
+  }
+
+  async checkIfThereBoxesOlderThan(height: number, addresses: string[]): Promise<boolean> {
+    const query = gql`
+      query Boxes($maxHeight: Int, $addresses: [String!]) {
+        boxes(
+          maxHeight: $maxHeight
+          addresses: $addresses
+          heightType: creation
+          spent: false
+          take: 1
+        ) {
+          creationHeight
+        }
+      }
+    `;
+
+    const chunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
+
+    for (const addresses of chunks) {
+      const response = await this.#queryClient
+        .query<{ boxes: Box[] }>(query, { maxHeight: height, addresses })
+        .toPromise();
+
+      if (response.data?.boxes.length) return true;
+    }
+
+    return false;
   }
 
   async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
@@ -518,6 +548,7 @@ function addressInfoMapper(gqlAddressInfo: Address): AddressInfo {
   const mapped: AddressInfo = {
     address: gqlAddressInfo.address,
     used: gqlAddressInfo.used,
+    utxoCount: gqlAddressInfo.boxesCount,
     assets: gqlAddressInfo.balance.assets.map((t) => ({
       tokenId: t.tokenId,
       confirmedAmount: t.amount

@@ -52,7 +52,7 @@ async function loadBoxInfo() {
       >, UTxOs containing tokens must have enough ERG to cover rent or you risk losing them. Please
       consider consolidating your assets avoid this.
     </div>
-    <router-link to="/dapps/wallet-optimization" custom v-slot="{ navigate }">
+    <router-link v-slot="{ navigate }" to="/dapps/wallet-optimization" custom>
       <button class="btn w-full mt-4" @click="navigate">Consolidate</button>
     </router-link>
   </div>
@@ -64,7 +64,7 @@ async function loadBoxInfo() {
       <strong>Your wallet looks fragmented.</strong> Consider optimizing your wallet for improved
       performance and efficiency.
     </div>
-    <router-link to="/dapps/wallet-optimization" custom v-slot="{ navigate }">
+    <router-link v-slot="{ navigate }" to="/dapps/wallet-optimization" custom>
       <button class="btn w-full mt-4" @click="navigate">Optimize</button>
     </router-link>
   </div>

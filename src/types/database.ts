@@ -29,6 +29,7 @@ export interface IDbAddress {
   state: AddressState;
   script: string;
   index: number;
+  utxoCount: number;
   walletId: number;
 }
 
