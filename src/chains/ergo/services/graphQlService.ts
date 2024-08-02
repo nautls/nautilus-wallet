@@ -4,7 +4,6 @@ import { retryExchange } from "@urql/exchange-retry";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SConstant } from "@fleet-sdk/serializer";
 import { chunk, isEmpty, some } from "@fleet-sdk/common";
-import { min } from "lodash-es";
 import { browser, hasBrowserContext } from "@/common/browser";
 import { safeSigmaDecode } from "@/chains/ergo/serialization";
 import { ErgoBox, Registers } from "@/types/connector";
@@ -270,30 +269,32 @@ class GraphQLService {
     return boxes;
   }
 
-  async getUnspentBoxesInfo(addresses: string[]): Promise<UnspentBoxesInfo> {
+  async checkBoxesOlderThan(height: number, addresses: string[]): Promise<boolean> {
     const query = gql`
-      query BoxesCreationHeight($addresses: [String!], $skip: Int, $take: Int) {
-        boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
+      query Boxes($maxHeight: Int, $addresses: [String!]) {
+        boxes(
+          maxHeight: $maxHeight
+          addresses: $addresses
+          heightType: creation
+          spent: false
+          take: 1
+        ) {
           creationHeight
         }
       }
     `;
 
-    const heights: number[][] = [];
-    const addressesChunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
+    const chunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
 
-    for (const addresses of addressesChunks) {
-      const chunk = await this.queryAddressesChunkUnspentBoxes(
-        addresses,
-        query,
-        (box) => box.creationHeight
-      );
+    for (const addresses of chunks) {
+      const response = await this.#queryClient
+        .query<{ boxes: Box[] }>(query, { maxHeight: height, addresses })
+        .toPromise();
 
-      heights.push(chunk);
+      if (response.data?.boxes.length) return true;
     }
 
-    const flatten = heights.flat();
-    return { oldest: min(flatten), count: flatten.length };
+    return false;
   }
 
   async getMempoolBoxes(address: string): Promise<ErgoBox[]> {

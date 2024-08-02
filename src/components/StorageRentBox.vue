@@ -1,42 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { addressesDbService } from "@/database/addressesDbService";
-import { HEALTHY_BLOCKS_AGE, HEALTHY_UTXO_COUNT } from "@/constants/ergo";
+import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 import { useWalletStore } from "@/stores/walletStore";
 
 const wallet = useWalletStore();
-
-const oldestBoxAge = ref<number | undefined>(undefined);
-const boxCount = ref(0);
-let walletId = 0;
-
-watch(() => wallet.id, loadBoxInfo);
-onMounted(loadBoxInfo);
-
-async function loadBoxInfo() {
-  if (!wallet.id || wallet.id === walletId) return;
-
-  walletId = wallet.id;
-  oldestBoxAge.value = undefined;
-  boxCount.value = 0;
-
-  const currentHeight = (await graphQLService.getCurrentHeight()) || 0;
-  const addresses = (await addressesDbService.getByWalletId(walletId)).map(
-    (address) => address.script
-  );
-
-  const boxes = await graphQLService.getUnspentBoxesInfo(addresses);
-  if (!boxes.oldest) return;
-
-  oldestBoxAge.value = currentHeight - boxes.oldest;
-  boxCount.value = boxes.count;
-}
 </script>
 
 <template>
   <div
-    v-if="oldestBoxAge !== undefined && oldestBoxAge > HEALTHY_BLOCKS_AGE"
+    v-if="wallet.health.hasOldUtxos"
     class="rounded rounded border-1 bg-red-100 border-red-300 text-sm py-3 px-4"
   >
     <div>
@@ -52,19 +23,19 @@ async function loadBoxInfo() {
       >, UTxOs containing tokens must have enough ERG to cover rent or you risk losing them. Please
       consider consolidating your assets avoid this.
     </div>
-    <router-link to="/dapps/wallet-optimization" custom v-slot="{ navigate }">
+    <router-link v-slot="{ navigate }" to="/dapps/wallet-optimization" custom>
       <button class="btn w-full mt-4" @click="navigate">Consolidate</button>
     </router-link>
   </div>
   <div
-    v-else-if="boxCount > HEALTHY_UTXO_COUNT"
+    v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT"
     class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
   >
     <div>
       <strong>Your wallet looks fragmented.</strong> Consider optimizing your wallet for improved
       performance and efficiency.
     </div>
-    <router-link to="/dapps/wallet-optimization" custom v-slot="{ navigate }">
+    <router-link v-slot="{ navigate }" to="/dapps/wallet-optimization" custom>
       <button class="btn w-full mt-4" @click="navigate">Optimize</button>
     </router-link>
   </div>
