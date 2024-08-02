@@ -270,6 +270,8 @@ class GraphQLService {
   }
 
   async checkBoxesOlderThan(height: number, addresses: string[]): Promise<boolean> {
+    if (isEmpty(addresses)) return false;
+
     const query = gql`
       query Boxes($maxHeight: Int, $addresses: [String!]) {
         boxes(

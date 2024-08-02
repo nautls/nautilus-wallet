@@ -299,8 +299,6 @@ export const useWalletStore = defineStore("wallet", () => {
     if (Date.now() - privateState.lastSynced < MIN_SYNC_INTERVAL) return setSyncing(false);
     setSyncing(true);
 
-    checkOldUtxos();
-
     const walletId = privateState.id;
     const deriver = hdKeyPool.get(privateState.publicKey);
     const addressesChunks = [] as IDbAddress[][];
@@ -369,6 +367,7 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.patchAssets(changedAssets, removedAssets);
     privateState.lastSynced = Date.now();
 
+    checkOldUtxos();
     setSyncing(false);
   }
 
