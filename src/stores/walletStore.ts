@@ -290,7 +290,7 @@ export const useWalletStore = defineStore("wallet", () => {
   async function checkOldUtxos() {
     privateState.hasOldUtxos = await graphQLService.checkBoxesOlderThan(
       chain.height - HEALTHY_BLOCKS_AGE,
-      privateState.addresses.map((x) => x.script)
+      privateState.addresses.filter((x) => x.state === AddressState.Used).map((x) => x.script)
     );
   }
 
@@ -320,7 +320,6 @@ export const useWalletStore = defineStore("wallet", () => {
             state: i?.used ? AddressState.Used : AddressState.Unused,
             script: d.script,
             index: d.index,
-            utxoCount: i?.utxoCount ?? 0,
             walletId
           };
         })
