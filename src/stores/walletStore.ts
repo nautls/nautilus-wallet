@@ -184,7 +184,7 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   const health = computed(() => ({
-    utxoCount: privateState.addresses.reduce((acc, address) => acc + address.utxoCount, 0),
+    utxoCount: 0, // see: https://github.com/nautls/nautilus-wallet/issues/176
     hasOldUtxos: privateState.hasOldUtxos
   }));
 
@@ -280,7 +280,6 @@ export const useWalletStore = defineStore("wallet", () => {
       state: AddressState.Unused,
       script: address.script,
       index: address.index,
-      utxoCount: 0,
       walletId: privateState.id
     };
 
@@ -289,7 +288,7 @@ export const useWalletStore = defineStore("wallet", () => {
   }
 
   async function checkOldUtxos() {
-    privateState.hasOldUtxos = await graphQLService.checkIfThereBoxesOlderThan(
+    privateState.hasOldUtxos = await graphQLService.checkBoxesOlderThan(
       chain.height - HEALTHY_BLOCKS_AGE,
       privateState.addresses.map((x) => x.script)
     );
@@ -416,9 +415,7 @@ function getChanges(
   const changedAddresses = prunedAddresses.filter((newAddress) => {
     const currentAddress = currentAddresses.find((x) => x.script === newAddress.script);
     if (!currentAddress) return true;
-    return (
-      currentAddress.state !== newAddress.state || currentAddress.utxoCount !== newAddress.utxoCount
-    );
+    return currentAddress.state !== newAddress.state;
   });
 
   const changedAssets = newAssets.filter((newAsset) => {
