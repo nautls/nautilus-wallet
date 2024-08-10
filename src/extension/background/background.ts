@@ -27,7 +27,6 @@ import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { browser } from "@/common/browser";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
-import { submitTx } from "@/chains/ergo/submitTx";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (
@@ -103,8 +102,8 @@ onMessageAuth(InternalRequest.SubmitTransaction, async (msg, walletId) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
 
   try {
-    const response = await submitTx(msg.data.transaction, walletId);
-    return success(response);
+    const response = await graphQLService.submitTransaction(msg.data.transaction, walletId);
+    return success(response.transactionId);
   } catch (e) {
     return error(TxSendErrorCode.Refused, (e as Error).message);
   }
@@ -152,7 +151,7 @@ onMessage(InternalEvent.Loaded, async ({ sender }) => {
 
 onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
   if (!isInternalEndpoint(msg.sender) || !msg.data) return;
-  graphQLService.updateServerUrl(msg.data);
+  graphQLService.setUrl(msg.data);
 });
 
 async function openWindow<T extends AsyncRequestType>(

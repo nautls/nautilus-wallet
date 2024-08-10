@@ -1,18 +1,21 @@
-import { Address, Box, Header, Info, SignedTransaction, State, Token } from "@ergo-graphql/types";
-import { Client, createClient, fetchExchange, gql, TypedDocumentNode } from "@urql/core";
-import { retryExchange } from "@urql/exchange-retry";
+import { Address, Info, State, Token } from "@ergo-graphql/types";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SConstant } from "@fleet-sdk/serializer";
-import { chunk, isEmpty, some } from "@fleet-sdk/common";
-import { browser, hasBrowserContext } from "@/common/browser";
+import { chunk, isEmpty, SignedTransaction, some } from "@fleet-sdk/common";
+import {
+  createGqlOperation,
+  ErgoGraphQLProvider,
+  TransactionEvaluationResult,
+  TransactionEvaluationSuccess
+} from "@fleet-sdk/blockchain-providers";
 import { safeSigmaDecode } from "@/chains/ergo/serialization";
-import { ErgoBox, Registers } from "@/types/connector";
-import { asDict } from "@/common/serializer";
+import { Registers } from "@/types/connector";
 import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 import { IAssetInfo } from "@/types/database";
 import { bn } from "@/common/bigNumber";
 import { log } from "@/common/logger";
+import { utxosDbService } from "@/database/utxosDbService";
 
 export type AssetInfo = {
   tokenId: string;
@@ -32,39 +35,22 @@ export type UnspentBoxesInfo = {
 };
 
 export const MIN_SERVER_VERSION = [0, 4, 4];
-const MAX_RESULTS_PER_REQUEST = 50;
 const MAX_PARAMS_PER_REQUEST = 20;
 
-const GRAPHQL_SERVERS = MAINNET
-  ? [
-      "https://explore.sigmaspace.io/api/graphql",
-      "https://gql.ergoplatform.com/",
-      "https://graphql.erg.zelcore.io/"
-    ]
-  : ["https://gql-testnet.ergoplatform.com/"];
+const FALLBACK_GRAPHQL_SERVERS = MAINNET
+  ? ["https://gql.ergoplatform.com/", "https://graphql.erg.zelcore.io/"]
+  : [];
 
-export function getDefaultServerUrl(): string {
-  return GRAPHQL_SERVERS[0];
-}
+export const DEFAULT_SERVER_URL = MAINNET
+  ? "https://explore.sigmaspace.io/api/graphql"
+  : "https://gql-testnet.ergoplatform.com/";
 
-export function getRandomServerUrl(): string {
-  return GRAPHQL_SERVERS[Math.floor(Math.random() * GRAPHQL_SERVERS.length)];
-}
+const checkServerInfo = createGqlOperation<{ info: Info; state: State }>(
+  "query Info { info { version } state { network } }"
+);
 
 export async function getServerInfo(url: string): Promise<{ network: string; version: string }> {
-  const client = createClient({ url, exchanges: [fetchExchange] });
-  const query = gql`
-    query Info {
-      info {
-        version
-      }
-      state {
-        network
-      }
-    }
-  `;
-
-  const response = await client.query<{ info: Info; state: State }>(query, {}).toPromise();
+  const response = await checkServerInfo(undefined, url);
   if (!response.data) throw new Error(`No data returned from ${url}.`);
 
   return {
@@ -97,304 +83,72 @@ export async function validateServerNetwork(url: string): Promise<boolean> {
   }
 }
 
-class GraphQLService {
-  #queryClient!: Client;
-  #txBroadcastClient?: Client;
-  #url!: string;
+const ADDRESS_INFO_QUERY = `query addresses($addresses: [String!]!) { addresses(addresses: $addresses) { address used balance { nanoErgs assets { amount tokenId } } } }`;
+const CURRENT_HEIGHT_QUERY = `query currentHeight { blockHeaders(take: 1) { height } }`;
+const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 1 ) { creationHeight } }`;
+const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
+const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
+
+class GraphQLService extends ErgoGraphQLProvider<string> {
+  #getAddressInfo;
+  #getCurrentHeight;
+  #checkOldBoxes;
+  #getTokenMetadata;
+  #checkMempoolTxs;
 
   constructor() {
+    super({
+      url: DEFAULT_SERVER_URL,
+      retry: { attempts: 5, delay: 500, fallbacks: FALLBACK_GRAPHQL_SERVERS }
+    });
+
+    this.setBigIntMapper((value) => value);
     this.#loadServerUrl();
-    this.#queryClient = this.#createQueryClient();
-  }
 
-  #createTxBroadcastClient(): Client {
-    const defaultUrl = this.#url;
-
-    return createClient({
-      url: defaultUrl,
-      requestPolicy: "network-only",
-      exchanges: [
-        retryExchange({
-          initialDelayMs: 1000,
-          maxDelayMs: 5000,
-          randomDelay: true,
-          maxNumberAttempts: 6,
-          retryWith(error, operation) {
-            const context = {
-              ...operation.context,
-              url:
-                error.message && !error.message.match(/.*[iI]nput.*not found$/gm)
-                  ? getRandomServerUrl()
-                  : defaultUrl
-            };
-            return { ...operation, context };
-          }
-        }),
-        fetchExchange
-      ]
-    });
-  }
-
-  #createQueryClient(): Client {
-    return createClient({
-      url: this.#url,
-      requestPolicy: "network-only",
-      exchanges: [
-        retryExchange({
-          initialDelayMs: 100,
-          maxDelayMs: 5000,
-          randomDelay: true,
-          maxNumberAttempts: 3,
-          retryWith(error, operation) {
-            if (error.networkError) {
-              const context = { ...operation.context, url: getRandomServerUrl() };
-              return { ...operation, context };
-            }
-
-            return null;
-          }
-        }),
-        fetchExchange
-      ]
-    });
+    this.#getAddressInfo = this.createOperation<{ addresses: Address[] }>(ADDRESS_INFO_QUERY);
+    this.#getCurrentHeight = this.createOperation<{ blockHeaders: { height: number }[] }>(
+      CURRENT_HEIGHT_QUERY
+    );
+    this.#checkOldBoxes = this.createOperation<{ boxes: { creationHeight: number }[] }>(
+      OLD_BOXES_CHECK_QUERY
+    );
+    this.#getTokenMetadata = this.createOperation<{ tokens: Token[] }>(TOKEN_METADATA_QUERY);
+    this.#checkMempoolTxs = this.createOperation<{
+      mempool: { transactions: { transactionId: string }[] };
+    }>(MEMPOOL_TXS_QUERY);
   }
 
   #loadServerUrl() {
-    if (hasBrowserContext()) {
-      this.updateServerUrl(getDefaultServerUrl());
-      browser?.storage.local.get("settings", (s) =>
-        this.updateServerUrl(s.graphQLServer ?? getDefaultServerUrl())
-      );
-
-      return;
-    }
-
-    const rawSettings = localStorage.getItem("settings");
-    if (!rawSettings) return;
-    const url = JSON.parse(rawSettings).graphQLServer;
-    this.updateServerUrl(url ?? getDefaultServerUrl());
-  }
-
-  #getTxBroadcastClient(): Client {
-    if (!this.#txBroadcastClient) {
-      this.#txBroadcastClient = this.#createTxBroadcastClient();
-    }
-
-    return this.#txBroadcastClient;
-  }
-
-  updateServerUrl(url: string) {
-    if (this.#url === url) {
-      return;
-    }
-
-    this.#url = url;
-    this.#queryClient = this.#createQueryClient();
-    this.#txBroadcastClient = undefined;
+    chrome?.storage.local
+      .get("settings")
+      .then((s) => this.setUrl(s.graphQLServer ?? DEFAULT_SERVER_URL));
   }
 
   async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {
-    const query = gql`
-      query Addresses($addresses: [String!]!) {
-        addresses(addresses: $addresses) {
-          address
-          used
-          balance {
-            nanoErgs
-            assets {
-              amount
-              tokenId
-            }
-          }
-        }
-      }
-    `;
-
-    const response = await this.#queryClient
-      .query<{ addresses: Address[] }>(query, { addresses })
-      .toPromise();
-
-    return response.data?.addresses.map(addressInfoMapper) || [];
+    const response = await this.#getAddressInfo({ addresses });
+    return response.data.addresses.map(addressInfoMapper);
   }
 
-  async getCurrentHeight(): Promise<number | undefined> {
-    const query = "query query { blockHeaders(take: 1) { height } }";
-
+  async getHeight(): Promise<number | undefined> {
     try {
-      const response = await this.#queryClient
-        .query<{ blockHeaders: Header[] }>(query, {})
-        .toPromise();
-
-      return response.data?.blockHeaders[0]?.height;
+      const response = await this.#getCurrentHeight();
+      return response.data.blockHeaders[0]?.height;
     } catch (e) {
       log.error("Failed to fetch current height", e);
       return;
     }
   }
 
-  async getUnspentBoxes(addresses: string[]): Promise<ErgoBox[]> {
-    const query = gql`
-      query Boxes($addresses: [String!], $skip: Int, $take: Int) {
-        boxes(addresses: $addresses, skip: $skip, take: $take, spent: false) {
-          boxId
-          transactionId
-          value
-          creationHeight
-          index
-          ergoTree
-          additionalRegisters
-          assets {
-            tokenId
-            amount
-          }
-        }
-      }
-    `;
-
-    let boxes: ErgoBox[] = [];
-    const addressesChunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
-
-    for (const addresses of addressesChunks) {
-      boxes = boxes.concat(
-        await this.queryAddressesChunkUnspentBoxes<ErgoBox>(addresses, query, (box) => {
-          return {
-            ...box,
-            confirmed: true,
-            additionalRegisters: box.additionalRegisters as Registers
-          };
-        })
-      );
-    }
-
-    return boxes;
-  }
-
   async checkBoxesOlderThan(height: number, addresses: string[]): Promise<boolean> {
     if (isEmpty(addresses)) return false;
 
-    const query = gql`
-      query Boxes($maxHeight: Int, $addresses: [String!]) {
-        boxes(
-          maxHeight: $maxHeight
-          addresses: $addresses
-          heightType: creation
-          spent: false
-          take: 1
-        ) {
-          creationHeight
-        }
-      }
-    `;
-
     const chunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
-
     for (const addresses of chunks) {
-      const response = await this.#queryClient
-        .query<{ boxes: Box[] }>(query, { maxHeight: height, addresses })
-        .toPromise();
-
-      if (response.data?.boxes.length) return true;
+      const response = await this.#checkOldBoxes({ maxHeight: height, addresses });
+      if (response.data.boxes.length) return true;
     }
 
     return false;
-  }
-
-  async getMempoolBoxes(address: string): Promise<ErgoBox[]> {
-    const query = gql<{ mempool: { boxes: Box[] } }>`
-      query MempoolBoxes($address: String!, $skip: Int, $take: Int) {
-        mempool {
-          boxes(address: $address, skip: $skip, take: $take) {
-            boxId
-            transactionId
-            value
-            creationHeight
-            index
-            ergoTree
-            additionalRegisters
-            assets {
-              tokenId
-              amount
-            }
-          }
-        }
-      }
-    `;
-
-    let boxes: Box[] = [];
-    let lastChunkLength = 0;
-    let skip = 0;
-
-    do {
-      const response = await this.#queryClient
-        .query(query, { address, skip, take: MAX_RESULTS_PER_REQUEST })
-        .toPromise();
-      skip += MAX_RESULTS_PER_REQUEST;
-      lastChunkLength = response.data?.mempool.boxes.length || 0;
-
-      if (response.data && !isEmpty(response.data?.mempool.boxes)) {
-        boxes = boxes.concat(response.data.mempool.boxes);
-      }
-    } while (lastChunkLength === MAX_RESULTS_PER_REQUEST);
-
-    return (
-      boxes.map((box) => {
-        return {
-          ...box,
-          confirmed: false,
-          additionalRegisters: box.additionalRegisters as Registers
-        };
-      }) || []
-    );
-  }
-
-  private async queryAddressesChunkUnspentBoxes<T>(
-    addresses: string[],
-    query: TypedDocumentNode<{ boxes: Box[] }>,
-    map: (box: Box) => T
-  ): Promise<T[]> {
-    let boxes: Box[] = [];
-    let lastChunkLength = 0;
-    let skip = 0;
-
-    do {
-      const response = await this.#queryClient
-        .query(query, { addresses, skip, take: MAX_RESULTS_PER_REQUEST })
-        .toPromise();
-      skip += MAX_RESULTS_PER_REQUEST;
-      lastChunkLength = response.data?.boxes.length || 0;
-
-      if (response.data && !isEmpty(response.data?.boxes)) {
-        boxes = boxes.concat(response.data.boxes);
-      }
-    } while (lastChunkLength === MAX_RESULTS_PER_REQUEST);
-
-    return boxes.map(map) || [];
-  }
-
-  async #getTokensChunkedMetadata(tokenIds: string[]) {
-    const query = gql`
-      query Tokens($tokenIds: [String!]) {
-        tokens(tokenIds: $tokenIds) {
-          tokenId
-          type
-          emissionAmount
-          name
-          description
-          decimals
-          boxId
-          box {
-            transactionId
-            additionalRegisters
-          }
-        }
-      }
-    `;
-
-    const response = await this.#queryClient
-      .query<{ tokens: Token[] }>(query, { tokenIds })
-      .toPromise();
-
-    return response.data?.tokens;
   }
 
   async getAssetsMetadata(tokenIds: string[]): Promise<IAssetInfo[] | undefined> {
@@ -403,10 +157,10 @@ class GraphQLService {
 
     try {
       for (const tokenIds of chunks) {
-        const chunkMetadata = await this.#getTokensChunkedMetadata(tokenIds);
-        if (!chunkMetadata) return;
+        const chunkMetadata = await this.#getTokenMetadata({ tokenIds });
+        if (isEmpty(chunkMetadata.data.tokens)) return;
 
-        metadataChunks.push(chunkMetadata);
+        metadataChunks.push(chunkMetadata.data.tokens);
       }
     } catch (e) {
       log.error("Failed to fetch metadata", tokenIds, e);
@@ -419,99 +173,45 @@ class GraphQLService {
       .filter((assetInfo) => assetInfo) as IAssetInfo[];
   }
 
-  async getBlockHeaders(options: { take: number } = { take: 10 }): Promise<Header[]> {
-    const query = gql`
-      query Headers($take: Int) {
-        blockHeaders(take: $take) {
-          headerId
-          parentId
-          version
-          height
-          difficulty
-          adProofsRoot
-          stateRoot
-          transactionsRoot
-          timestamp
-          nBits
-          extensionHash
-          powSolutions
-          votes
-        }
-      }
-    `;
-
-    const response = await this.#queryClient
-      .query<{ blockHeaders: Header[] }>(query, options)
-      .toPromise();
-    return response.data?.blockHeaders ?? [];
-  }
-
-  async checkTx(signedTx: SignedTransaction): Promise<string> {
-    const query = gql`
-      mutation Mutation($signedTransaction: SignedTransaction!) {
-        checkTransaction(signedTransaction: $signedTransaction)
-      }
-    `;
-
-    const response = await this.#queryClient
-      .mutation(query, { signedTransaction: signedTx })
-      .toPromise();
-
-    if (response.error) throw Error(response.error.message);
-    return response.data?.checkTransaction || "";
-  }
-
-  async sendTx(signedTx: SignedTransaction): Promise<string> {
-    const query = gql`
-      mutation Mutation($signedTransaction: SignedTransaction!) {
-        submitTransaction(signedTransaction: $signedTransaction)
-      }
-    `;
-
-    const response = await this.#getTxBroadcastClient()
-      .mutation(query, { signedTransaction: signedTx })
-      .toPromise();
-
-    if (response.error) throw Error(response.error.message);
-    return response.data?.submitTransaction || "";
-  }
-
-  async isTransactionInMempool(transactionId: string): Promise<boolean | undefined> {
-    try {
-      const query = gql<{ mempool: { transactions: { transactionId: string }[] } }>`
-        query Mempool($transactionId: String) {
-          mempool {
-            transactions(transactionId: $transactionId) {
-              transactionId
-            }
-          }
-        }
-      `;
-
-      const response = await this.#getTxBroadcastClient()
-        .query(query, { transactionId })
-        .toPromise();
-
-      if (response.error || !response.data) {
-        return undefined;
-      }
-
-      return response.data.mempool.transactions.length > 0;
-    } catch {
-      return undefined;
-    }
-  }
-
-  async areTransactionsInMempool(
-    txIds: string[]
-  ): Promise<{ [txId: string]: boolean | undefined }> {
-    return asDict(
-      await Promise.all(
-        txIds.map(async (txId) => ({
-          [txId]: await this.isTransactionInMempool(txId)
-        }))
-      )
+  override async submitTransaction(
+    signedTransaction: SignedTransaction,
+    walletId?: number
+  ): Promise<TransactionEvaluationSuccess> {
+    let result!: TransactionEvaluationResult;
+    const shouldRetry = await utxosDbService.containsAtLeastOneOf(
+      signedTransaction.inputs.map((i) => i.boxId)
     );
+
+    if (shouldRetry) {
+      let attempts = 3;
+      while (attempts > 0) {
+        console.log("Submitting transaction with retry...");
+        const result = await super.submitTransaction(signedTransaction);
+        if (result.success) break;
+        attempts--;
+      }
+    } else {
+      console.log("Submitting transaction without retry...");
+      result = await super.submitTransaction(signedTransaction);
+    }
+
+    if (!result.success) throw new Error(result.message);
+    else if (walletId) utxosDbService.addFromTx(signedTransaction, walletId);
+
+    return result;
+  }
+
+  async mempoolTransactionsLookup(txIds: string[]): Promise<Set<string>> {
+    const set = new Set<string>();
+    const chunks = chunk(txIds, MAX_PARAMS_PER_REQUEST);
+
+    for (const txIds of chunks) {
+      const { data } = await this.#checkMempoolTxs({ transactionIds: txIds });
+      if (data?.mempool?.transactions?.length === 0) continue;
+      for (const tx of data.mempool.transactions) set.add(tx.transactionId);
+    }
+
+    return set;
   }
 }
 

@@ -6,7 +6,7 @@ import { hex } from "@fleet-sdk/crypto";
 import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
 import { useChainStore } from "./chainStore";
-import { getDefaultServerUrl, graphQLService } from "@/chains/ergo/services/graphQlService";
+import { DEFAULT_SERVER_URL, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { MAINNET } from "@/constants/ergo";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
@@ -57,7 +57,7 @@ export const useAppStore = defineStore("app", () => {
     isKyaAccepted: false,
     conversionCurrency: "usd",
     devMode: !MAINNET,
-    graphQLServer: getDefaultServerUrl(),
+    graphQLServer: DEFAULT_SERVER_URL,
     explorerUrl: DEFAULT_EXPLORER_URL,
     hideBalances: false,
     blacklistedTokensLists: ["nsfw", "scam"]
@@ -73,7 +73,7 @@ export const useAppStore = defineStore("app", () => {
   watch(
     () => settings.value.graphQLServer,
     (newServerUrl) => {
-      graphQLService.updateServerUrl(newServerUrl);
+      graphQLService.setUrl(newServerUrl);
       sendBackendServerUrl(newServerUrl);
     }
   );
@@ -139,10 +139,10 @@ export const useAppStore = defineStore("app", () => {
     if (boxesToCheck.length == 0) return;
 
     const txIds = uniq(boxesToCheck.map((b) => b.spentTxId));
-    const mempoolResult = await graphQLService.areTransactionsInMempool(txIds);
+    const mempool = await graphQLService.mempoolTransactionsLookup(txIds);
 
-    if (isEmpty(mempoolResult)) return;
-    await utxosDbService.removeByTxId(txIds.filter((id) => mempoolResult[id] === false));
+    if (isEmpty(mempool)) return;
+    await utxosDbService.removeByTxIds(txIds.filter((id) => !mempool.has(id)));
   }
 
   function goTo(name: string) {

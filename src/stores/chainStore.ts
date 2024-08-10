@@ -29,7 +29,7 @@ export const useChainStore = defineStore("chain", () => {
     if (fetchingHeight) return;
     fetchingHeight = true;
 
-    const height = await graphQLService.getCurrentHeight();
+    const height = await graphQLService.getHeight();
     if (height && height > privateState.state.height) {
       privateState.state.height = height;
     }

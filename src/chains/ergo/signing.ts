@@ -119,7 +119,7 @@ export async function signTransaction(
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);
 
-  const blockHeaders = isLedger ? [] : await graphQLService.getBlockHeaders({ take: 10 });
+  const blockHeaders = isLedger ? [] : await graphQLService.getHeaders({ take: 10 });
   const changeIndex = ownAddresses.find((a) => a.script === changeAddress)?.index ?? 0;
   const prover = new Prover(deriver)
     .from(addresses)

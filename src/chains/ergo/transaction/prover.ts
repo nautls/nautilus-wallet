@@ -1,5 +1,5 @@
-import { Header } from "@ergo-graphql/types";
 import {
+  BlockHeader,
   EIP12UnsignedTransaction,
   first,
   isEmpty,
@@ -29,13 +29,11 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { hex } from "@fleet-sdk/crypto";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverDeviceState, ProverStateType, SigningState } from "@/types/internal";
-import { bn } from "@/common/bigNumber";
 import { walletsDbService } from "@/database/walletsDbService";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
@@ -79,17 +77,8 @@ export class Prover {
     return this;
   }
 
-  setHeaders(headers: Header[]): Prover {
-    this.#headers = BlockHeaders.from_json(
-      headers.map((x) => ({
-        ...x,
-        id: x.headerId,
-        timestamp: bn(x.timestamp).toNumber(),
-        nBits: bn(x.nBits).toNumber(),
-        votes: hex.encode(Uint8Array.from(x.votes))
-      }))
-    );
-
+  setHeaders(headers: BlockHeader[]): Prover {
+    this.#headers = BlockHeaders.from_json(headers.map((h) => ({ ...h, votes: h.votes })));
     return this;
   }
 

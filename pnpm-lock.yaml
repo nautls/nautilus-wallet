@@ -22,6 +22,9 @@ importers:
       '@fleet-sdk/babel-fees-plugin':
         specifier: ^0.1.13
         version: 0.1.13
+      '@fleet-sdk/blockchain-providers':
+        specifier: link:../fleet/packages/blockchain-providers
+        version: link:../fleet/packages/blockchain-providers
       '@fleet-sdk/common':
         specifier: ^0.4.1
         version: 0.4.1
@@ -46,12 +49,6 @@ importers:
       '@oruga-ui/oruga-next':
         specifier: 0.6.0
         version: 0.6.0(vue@3.4.34(typescript@5.5.4))
-      '@urql/core':
-        specifier: ^5.0.4
-        version: 5.0.5
-      '@urql/exchange-retry':
-        specifier: ^1.3.0
-        version: 1.3.0(@urql/core@5.0.5)
       '@vuelidate/core':
         specifier: ^2.0.3
         version: 2.0.3(vue@3.4.34(typescript@5.5.4))
@@ -214,14 +211,6 @@ importers:
         version: 9.4.3(eslint@8.57.0)
 
 packages:
-
-  '@0no-co/graphql.web@1.0.7':
-    resolution: {integrity: sha512-E3Qku4mTzdrlwVWGPxklDnME5ANrEGetvYw4i2GCRlppWXXE4QD66j7pwb8HelZwS6LnqEChhrSOGCXpbiu6MQ==}
-    peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-    peerDependenciesMeta:
-      graphql:
-        optional: true
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -879,14 +868,6 @@ packages:
 
   '@ungap/structured-clone@1.2.0':
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
-
-  '@urql/core@5.0.5':
-    resolution: {integrity: sha512-KmWRlN8dJz+XU21wmhcHcTV11n1K7zxaMtVwOhkH7b8H5Z5nuFKY5EkUsWqPlZl53YPiKwTtOMpptz5hamVVNQ==}
-
-  '@urql/exchange-retry@1.3.0':
-    resolution: {integrity: sha512-FLt+d81gP4oiHah4hWFDApimc+/xABWMU1AMYsZ1PVB0L0YPtrMCjbOp9WMM7hBzy4gbTDrG24sio0dCfSh/HQ==}
-    peerDependencies:
-      '@urql/core': ^5.0.0
 
   '@vitejs/plugin-vue@5.1.1':
     resolution: {integrity: sha512-sDckXxlHpMsjRQbAH9WanangrfrblsOd3pNifePs+FOHjJg1jfWq5L/P0PsBRndEt3nmdUnmvieP8ULDeX5AvA==}
@@ -3281,9 +3262,6 @@ packages:
   winreg@0.0.12:
     resolution: {integrity: sha512-typ/+JRmi7RqP1NanzFULK36vczznSNN8kWVA9vIqXyv8GhghUlwhGp1Xj3Nms1FsPcNnsQrJOR10N58/nQ9hQ==}
 
-  wonka@6.3.4:
-    resolution: {integrity: sha512-CjpbqNtBGNAeyNS/9W6q3kSkKE52+FjIj7AkFlLr11s/VWGUu6a2CdYSdGxocIhIVjaW/zchesBQUKPVU69Cqg==}
-
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
@@ -3358,8 +3336,6 @@ packages:
     resolution: {integrity: sha512-uhlsJZWz26FLYXOD6WVuq+fIcZ3aBPGo/cFdiLlv3KNwpa52IF3ISV8fLhQLiqVu5No3VhlqlgthN6gehil1Dg==}
 
 snapshots:
-
-  '@0no-co/graphql.web@1.0.7': {}
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -3926,18 +3902,6 @@ snapshots:
       eslint-visitor-keys: 3.4.3
 
   '@ungap/structured-clone@1.2.0': {}
-
-  '@urql/core@5.0.5':
-    dependencies:
-      '@0no-co/graphql.web': 1.0.7
-      wonka: 6.3.4
-    transitivePeerDependencies:
-      - graphql
-
-  '@urql/exchange-retry@1.3.0(@urql/core@5.0.5)':
-    dependencies:
-      '@urql/core': 5.0.5
-      wonka: 6.3.4
 
   '@vitejs/plugin-vue@5.1.1(vite@5.3.5(@types/node@22.0.0))(vue@3.4.34(typescript@5.5.4))':
     dependencies:
@@ -6683,8 +6647,6 @@ snapshots:
   windicss@3.5.6: {}
 
   winreg@0.0.12: {}
-
-  wonka@6.3.4: {}
 
   word-wrap@1.2.5: {}
 
