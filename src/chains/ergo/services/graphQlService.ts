@@ -183,15 +183,26 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     );
 
     if (shouldRetry) {
-      let attempts = 3;
+      let attempts = 5;
+      let delay = 500;
       while (attempts > 0) {
-        console.log("Submitting transaction with retry...");
-        const result = await super.submitTransaction(signedTransaction);
-        if (result.success) break;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        result = await super.submitTransaction(signedTransaction);
+
+        if (
+          result.success ||
+          (!result.success &&
+            !result.message.startsWith(
+              "Malformed transaction: Every input of the transaction should be in UTXO."
+            ))
+        ) {
+          break;
+        }
+
         attempts--;
+        delay *= 2;
       }
     } else {
-      console.log("Submitting transaction without retry...");
       result = await super.submitTransaction(signedTransaction);
     }
 

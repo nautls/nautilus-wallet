@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive, watch } from "vue";
 import { useStorage } from "@vueuse/core";
-import { isEmpty, uniq } from "@fleet-sdk/common";
+import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
@@ -135,13 +135,10 @@ export const useAppStore = defineStore("app", () => {
     const boxesToCheck = dbBoxes.filter(
       (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= UTXO_CHECK_INTERVAL
     );
-
     if (boxesToCheck.length == 0) return;
 
     const txIds = uniq(boxesToCheck.map((b) => b.spentTxId));
     const mempool = await graphQLService.mempoolTransactionsLookup(txIds);
-
-    if (isEmpty(mempool)) return;
     await utxosDbService.removeByTxIds(txIds.filter((id) => !mempool.has(id)));
   }
 

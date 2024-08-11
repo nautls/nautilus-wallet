@@ -1,4 +1,3 @@
-import { isEmpty } from "@fleet-sdk/common";
 import { SignedTransaction } from "@ergo-graphql/types";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
@@ -24,7 +23,6 @@ class UTxOsDbService {
   }
 
   async removeByTxIds(txIds: string[]): Promise<void> {
-    if (isEmpty(txIds)) return;
     await dbContext.utxos.where("spentTxId").anyOf(txIds).delete();
   }
 
