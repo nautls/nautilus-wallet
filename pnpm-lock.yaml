@@ -109,6 +109,9 @@ importers:
       webext-bridge:
         specifier: ^6.0.1
         version: 6.0.1
+      webextension-polyfill:
+        specifier: ^0.12.0
+        version: 0.12.0
       yaml:
         specifier: ^2.5.0
         version: 2.5.0
@@ -3219,6 +3222,9 @@ packages:
 
   webextension-polyfill@0.10.0:
     resolution: {integrity: sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==}
+
+  webextension-polyfill@0.12.0:
+    resolution: {integrity: sha512-97TBmpoWJEE+3nFBQ4VocyCdLKfw54rFaJ6EVQYLBCXqCIpLSZkwGgASpv4oPt9gdKCJ80RJlcmNzNn008Ag6Q==}
 
   webextension-polyfill@0.9.0:
     resolution: {integrity: sha512-LTtHb0yR49xa9irkstDxba4GATDAcDw3ncnFH9RImoFwDlW47U95ME5sn5IiQX2ghfaECaf6xyXM8yvClIBkkw==}
@@ -6603,6 +6609,8 @@ snapshots:
       webextension-polyfill: 0.9.0
 
   webextension-polyfill@0.10.0: {}
+
+  webextension-polyfill@0.12.0: {}
 
   webextension-polyfill@0.9.0: {}
 

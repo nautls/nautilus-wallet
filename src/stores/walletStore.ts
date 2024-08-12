@@ -101,8 +101,8 @@ export const useWalletStore = defineStore("wallet", () => {
     () => {
       if (appStore.loading) return;
       const walletId = appStore.settings.lastOpenedWalletId;
-      if (walletId > 0 && appStore.wallets.some((x) => x.id === walletId)) {
-        load(walletId);
+      if (appStore.wallets.length > 0) {
+        load(appStore.wallets.some((x) => x.id === walletId) ? walletId : appStore.wallets[0].id);
       } else {
         router.push({ name: "add-wallet" });
         setLoading(false);

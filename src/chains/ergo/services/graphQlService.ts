@@ -8,6 +8,7 @@ import {
   TransactionEvaluationResult,
   TransactionEvaluationSuccess
 } from "@fleet-sdk/blockchain-providers";
+import { storage } from "webextension-polyfill";
 import { safeSigmaDecode } from "@/chains/ergo/serialization";
 import { Registers } from "@/types/connector";
 import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
@@ -46,7 +47,7 @@ export const DEFAULT_SERVER_URL = MAINNET
   : "https://gql-testnet.ergoplatform.com/";
 
 const checkServerInfo = createGqlOperation<{ info: Info; state: State }>(
-  "query Info { info { version } state { network } }"
+  "query info { info { version } state { network } }"
 );
 
 export async function getServerInfo(url: string): Promise<{ network: string; version: string }> {
@@ -89,6 +90,12 @@ const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: 
 const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
 const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
 
+type AddressInfoResponse = { addresses: Address[] };
+type CurrentHeightResponse = { blockHeaders: { height: number }[] };
+type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
+type TokensResponse = { tokens: Token[] };
+type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
+
 class GraphQLService extends ErgoGraphQLProvider<string> {
   #getAddressInfo;
   #getCurrentHeight;
@@ -105,23 +112,15 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     this.setBigIntMapper((value) => value);
     this.#loadServerUrl();
 
-    this.#getAddressInfo = this.createOperation<{ addresses: Address[] }>(ADDRESS_INFO_QUERY);
-    this.#getCurrentHeight = this.createOperation<{ blockHeaders: { height: number }[] }>(
-      CURRENT_HEIGHT_QUERY
-    );
-    this.#checkOldBoxes = this.createOperation<{ boxes: { creationHeight: number }[] }>(
-      OLD_BOXES_CHECK_QUERY
-    );
-    this.#getTokenMetadata = this.createOperation<{ tokens: Token[] }>(TOKEN_METADATA_QUERY);
-    this.#checkMempoolTxs = this.createOperation<{
-      mempool: { transactions: { transactionId: string }[] };
-    }>(MEMPOOL_TXS_QUERY);
+    this.#getAddressInfo = this.createOperation<AddressInfoResponse>(ADDRESS_INFO_QUERY);
+    this.#getCurrentHeight = this.createOperation<CurrentHeightResponse>(CURRENT_HEIGHT_QUERY);
+    this.#checkOldBoxes = this.createOperation<OldBoxesCheckResponse>(OLD_BOXES_CHECK_QUERY);
+    this.#getTokenMetadata = this.createOperation<TokensResponse>(TOKEN_METADATA_QUERY);
+    this.#checkMempoolTxs = this.createOperation<MempoolTransactionsResponse>(MEMPOOL_TXS_QUERY);
   }
 
   #loadServerUrl() {
-    chrome?.storage.local
-      .get("settings")
-      .then((s) => this.setUrl(s.graphQLServer ?? DEFAULT_SERVER_URL));
+    storage.local.get("settings").then((s) => this.setUrl(s.graphQLServer ?? DEFAULT_SERVER_URL));
   }
 
   async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {
@@ -135,7 +134,6 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
       return response.data.blockHeaders[0]?.height;
     } catch (e) {
       log.error("Failed to fetch current height", e);
-      return;
     }
   }
 
