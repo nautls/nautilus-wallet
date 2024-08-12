@@ -1,11 +1,11 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive, watch } from "vue";
-import { useStorage } from "@vueuse/core";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
 import { useChainStore } from "./chainStore";
+import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { DEFAULT_SERVER_URL, graphQLService } from "@/chains/ergo/services/graphQlService";
 import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
 import { MAINNET } from "@/constants/ergo";
@@ -42,6 +42,17 @@ type ReadOnlyWallet = {
   extendedPublicKey: string;
 };
 
+const DEFAULT_SETTINGS = {
+  lastOpenedWalletId: 0,
+  isKyaAccepted: false,
+  conversionCurrency: "usd",
+  devMode: !MAINNET,
+  graphQLServer: DEFAULT_SERVER_URL,
+  explorerUrl: DEFAULT_EXPLORER_URL,
+  hideBalances: false,
+  blacklistedTokensLists: ["nsfw", "scam"]
+};
+
 const usePrivateState = defineStore("_app", () => ({
   loading: ref(true),
   wallets: shallowReactive<NotNullId<IDbWallet>[]>([])
@@ -51,21 +62,27 @@ export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
   const chain = useChainStore();
   const router = useRouter();
-
-  const settings = useStorage<Settings>("settings", {
-    lastOpenedWalletId: 0,
-    isKyaAccepted: false,
-    conversionCurrency: "usd",
-    devMode: !MAINNET,
-    graphQLServer: DEFAULT_SERVER_URL,
-    explorerUrl: DEFAULT_EXPLORER_URL,
-    hideBalances: false,
-    blacklistedTokensLists: ["nsfw", "scam"]
-  });
+  const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS);
 
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
-    if (!settings.value.lastOpenedWalletId) goTo("add-wallet");
+
+    // If KYA is not accepted and there are wallets, migrate settings from localStorage
+    if (!settings.value.isKyaAccepted && privateState.wallets.length > 0) {
+      const oldSettings = localStorage.getItem("settings");
+      if (oldSettings) {
+        settings.value = JSON.parse(oldSettings);
+        localStorage.removeItem("settings");
+      } else {
+        settings.value = {
+          ...DEFAULT_SETTINGS,
+          isKyaAccepted: true, // if there are wallets, KYA is accepted
+          lastOpenedWalletId: privateState.wallets[0].id
+        };
+      }
+    }
+
+    if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
 
     privateState.loading = false;
   });
