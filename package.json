@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "0.13.0-beta.1",
+  "version": "0.13.0-beta.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -38,7 +38,7 @@
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.12",
     "dexie": "^4.0.8",
-    "ergo-lib-wasm-browser": "^0.26.0",
+    "ergo-lib-wasm-browser": "^0.28.0",
     "feather-icons": "^4.29.2",
     "ledger-ergo-js": "^0.1.17",
     "lodash-es": "^4.17.21",
@@ -86,10 +86,5 @@
     "vite-svg-loader": "^5.1.0",
     "vitest": "^2.0.5",
     "vue-eslint-parser": "^9.4.3"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "ergo-lib-wasm-browser@0.26.0": "patches/ergo-lib-wasm-browser@0.26.0.patch"
-    }
   }
 }

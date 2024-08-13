@@ -18,7 +18,8 @@ import {
   Tokens,
   Transaction,
   UnsignedTransaction,
-  Wallet
+  Wallet,
+  Parameters
 } from "ergo-lib-wasm-browser";
 import {
   BoxCandidate,
@@ -229,7 +230,7 @@ export class Prover {
     if (isEmpty(this.#headers)) throw Error("Headers are not set.");
 
     const preHeader = PreHeader.from_block_header(this.#headers.get(0));
-    return new ErgoStateContext(preHeader, this.#headers);
+    return new ErgoStateContext(preHeader, this.#headers, Parameters.default_parameters());
   }
 
   #buildWallet() {
