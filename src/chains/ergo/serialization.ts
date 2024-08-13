@@ -9,7 +9,8 @@ export function sigmaDecode<T>(value: string, coder?: Coder<unknown, T>) {
   return coder ? coder.encode(v) : v;
 }
 
-export function safeSigmaDecode<T>(value: string): SConstant<T> | undefined {
+export function safeSigmaDecode<T>(value?: string): SConstant<T> | undefined {
+  if (!value) return;
   try {
     return SConstant.from<T>(value);
   } catch {

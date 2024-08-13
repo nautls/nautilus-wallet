@@ -36,18 +36,6 @@ export type ErgoBoxCandidate = {
   additionalRegisters: Registers;
 };
 
-export type ErgoBox = {
-  boxId: string;
-  transactionId: string;
-  index: number;
-  ergoTree: string;
-  creationHeight: number;
-  value: string;
-  assets: Token[];
-  additionalRegisters: Registers;
-  confirmed?: boolean;
-};
-
 export type DataInput = {
   boxId: string;
 };

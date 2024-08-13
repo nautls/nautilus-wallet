@@ -8,8 +8,8 @@ import {
   utxoDiff,
   utxoSum
 } from "@fleet-sdk/common";
+import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
 import { addressFromErgoTree } from "../../addresses";
-import { isBabelContract } from "../../babelFees";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
@@ -62,7 +62,7 @@ export class TxInterpreter {
         this._changeBoxes = [];
       } else if (
         this._sendingBoxes.length === 1 &&
-        isBabelContract(this._sendingBoxes[0].ergoTree) &&
+        isValidBabelContract(this._sendingBoxes[0].ergoTree) &&
         !isEmpty(this._sendingBoxes[0].assets)
       ) {
         this._sendingBoxes = [...this._changeBoxes, ...this._sendingBoxes];

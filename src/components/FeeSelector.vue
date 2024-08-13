@@ -5,15 +5,9 @@ import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
 import { computed, onMounted, PropType, reactive, watch } from "vue";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
+import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import DropDown from "./DropDown.vue";
-import { addressFromErgoTree } from "@/chains/ergo/addresses";
-import {
-  buildBabelContractFor,
-  extractTokenIdFromBabelContract,
-  getNanoErgsPerTokenRate,
-  isValidBabelBox
-} from "@/chains/ergo/babelFees";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -176,18 +170,14 @@ async function loadAssets() {
   state.cachedMinRequired = bn(0);
   select(erg);
 
-  const addresses = wallet.nonArtworkBalance
+  const tokenIds = wallet.nonArtworkBalance
     .filter((x) => x.tokenId !== ERG_TOKEN_ID)
-    .map((x) => addressFromErgoTree(buildBabelContractFor(x.tokenId)));
+    .map((x) => x.tokenId);
+  if (isEmpty(tokenIds)) return;
 
-  if (isEmpty(addresses)) {
-    return;
-  }
-
-  const allBoxes = await graphQLService.getUnspentBoxes(addresses);
-  const groups = groupBy(
-    allBoxes.filter((box) => isValidBabelBox(box)),
-    (box) => extractTokenIdFromBabelContract(box.ergoTree)
+  const allBoxes = await fetchBabelBoxes(tokenIds);
+  const groups = groupBy(allBoxes.filter(isValidBabelBox), (box) =>
+    extractTokenIdFromBabelContract(box.ergoTree)
   );
 
   const assets = Object.keys(groups)

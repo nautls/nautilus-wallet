@@ -101,8 +101,8 @@ export const useWalletStore = defineStore("wallet", () => {
     () => {
       if (appStore.loading) return;
       const walletId = appStore.settings.lastOpenedWalletId;
-      if (walletId > 0 && appStore.wallets.some((x) => x.id === walletId)) {
-        load(walletId);
+      if (appStore.wallets.length > 0) {
+        load(appStore.wallets.some((x) => x.id === walletId) ? walletId : appStore.wallets[0].id);
       } else {
         router.push({ name: "add-wallet" });
         setLoading(false);
@@ -242,14 +242,13 @@ export const useWalletStore = defineStore("wallet", () => {
     settings.value = wlt.settings;
 
     const dbAssets = await assetsDbService.getByWalletId(walletId);
-    const dbAddresses = await addressesDbService.getByWalletId(walletId);
-
-    await assetsStore.loadMetadata(
-      dbAssets.map((x) => x.tokenId),
-      { fetchInBackground: true }
-    );
+    const tokenIds = dbAssets.map((x) => x.tokenId);
+    await assetsStore.loadMetadata(tokenIds, { fetchInBackground: opt.syncInBackground });
     privateState.assets = dbAssets;
+
+    const dbAddresses = await addressesDbService.getByWalletId(walletId);
     privateState.addresses = dbAddresses;
+
     appStore.settings.lastOpenedWalletId = walletId;
 
     hdKeyPool.alloc(

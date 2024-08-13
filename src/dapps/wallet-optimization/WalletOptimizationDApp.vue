@@ -3,9 +3,9 @@ import { computed, onMounted, ref, toRaw, watch } from "vue";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
+import { Box } from "@fleet-sdk/common";
 import { createConsolidationTransaction } from "./transactionFactory";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import { ErgoBox } from "@/types/connector";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { FeeSettings } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -24,7 +24,7 @@ import { useWalletStore } from "@/stores/walletStore";
 const wallet = useWalletStore();
 
 const loading = ref(true);
-const boxes = ref<ErgoBox[]>([]);
+const boxes = ref<Box[]>([]);
 const currentHeight = ref(0);
 const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
@@ -72,10 +72,7 @@ const utxoHealth = computed(() => {
 async function loadBoxes() {
   setLoading(true);
 
-  const [ownBoxes, height] = await Promise.all([
-    fetchBoxes(wallet.id),
-    graphQLService.getCurrentHeight()
-  ]);
+  const [ownBoxes, height] = await Promise.all([fetchBoxes(wallet.id), graphQLService.getHeight()]);
 
   boxes.value = ownBoxes;
 

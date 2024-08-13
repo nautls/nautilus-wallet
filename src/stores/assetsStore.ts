@@ -1,7 +1,6 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
 import { ensureDefaults, uniq } from "@fleet-sdk/common";
-import { useStorage } from "@vueuse/core";
 import { useAppStore } from "./appStore";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -13,10 +12,10 @@ import {
   ergoTokenBlacklistService
 } from "@/chains/ergo/services/tokenBlacklistService";
 import { IAssetInfo } from "@/types/database";
+import { useWebExtStorage } from "@/composables/useWebExtStorage";
 
 export type LoadMetadataOptions = { fetchInBackground: boolean; persist: boolean };
 
-const _ = undefined;
 const ERG_METADATA: BasicAssetMetadata = { name: "ERG", decimals: ERG_DECIMALS };
 
 const PRICE_RATES_UPDATE_INTERVAL = 5 * 30 * 1000;
@@ -49,8 +48,8 @@ const DEFAULT_DB_CONFIG = { shallow: true, mergeDefaults: true };
 const elapsed = (interval: number, lastUpdated: number) => Date.now() - lastUpdated >= interval;
 
 const usePrivateState = defineStore("_assets", () => ({
-  blacklist: useStorage("ergoTokensBlacklist", BLACKLIST_DEFAULTS, _, DEFAULT_DB_CONFIG),
-  prices: useStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, _, {
+  blacklist: useWebExtStorage("ergoTokensBlacklist", BLACKLIST_DEFAULTS, DEFAULT_DB_CONFIG),
+  prices: useWebExtStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, {
     ...DEFAULT_DB_CONFIG,
     serializer: PRICE_RATES_SERIALIZER
   })

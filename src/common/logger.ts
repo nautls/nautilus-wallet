@@ -1,4 +1,4 @@
-interface LogOutput {
+interface ConsoleLike {
   info(...data: unknown[]): void;
   debug(...data: unknown[]): void;
   error(...data: unknown[]): void;
@@ -6,26 +6,30 @@ interface LogOutput {
 }
 
 class Logger {
-  #output: LogOutput;
+  #output: ConsoleLike;
 
-  constructor(output: LogOutput) {
+  constructor(output: ConsoleLike) {
     this.#output = output;
   }
 
-  info(...data: unknown[]): void {
+  info<T>(...data: unknown[]): T {
     this.#output.info(...data);
+    return data[0] as T;
   }
 
-  debug(...data: unknown[]): void {
+  debug<T>(...data: unknown[]): T {
     this.#output.debug(...data);
+    return data[0] as T;
   }
 
-  error(...data: unknown[]): void {
+  error<T>(...data: unknown[]): T {
     this.#output.error(...data);
+    return data[0] as T;
   }
 
-  warn(...data: unknown[]): void {
+  warn<T>(...data: unknown[]): T {
     this.#output.warn(...data);
+    return data[0] as T;
   }
 }
 

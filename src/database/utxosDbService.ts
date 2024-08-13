@@ -1,4 +1,3 @@
-import { isEmpty } from "@fleet-sdk/common";
 import { SignedTransaction } from "@ergo-graphql/types";
 import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
@@ -6,31 +5,28 @@ import { IDbUtxo } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
 
 class UTxOsDbService {
-  public async getAllPending(): Promise<IDbUtxo[]> {
+  async getAllPending(): Promise<IDbUtxo[]> {
     return await dbContext.utxos.where("spentTxId").notEqual("").toArray();
   }
 
-  public async getByBoxId(boxId: string): Promise<IDbUtxo | undefined> {
-    return await dbContext.utxos.where({ boxId }).first();
+  async containsAtLeastOneOf(ids: string[]): Promise<boolean> {
+    const result = await dbContext.utxos.where("id").anyOf(ids).first();
+    return !!result;
   }
 
-  public async getByTxId(txId: string): Promise<IDbUtxo[]> {
+  async getByTxId(txId: string): Promise<IDbUtxo[]> {
     return await dbContext.utxos.where({ spentTxId: txId }).toArray();
   }
 
-  public async getByWalletId(walletId: number): Promise<IDbUtxo[]> {
+  async getByWalletId(walletId: number): Promise<IDbUtxo[]> {
     return await dbContext.utxos.where({ walletId }).toArray();
   }
 
-  public async removeByTxId(txIds: string[]): Promise<void> {
-    if (isEmpty(txIds)) {
-      return;
-    }
-
+  async removeByTxIds(txIds: string[]): Promise<void> {
     await dbContext.utxos.where("spentTxId").anyOf(txIds).delete();
   }
 
-  public async addFromTx(signedTx: SignedTransaction, walletId: number) {
+  async addFromTx(signedTx: SignedTransaction, walletId: number) {
     const addresses = (await addressesDbService.getByWalletId(walletId)).map((a) => a.script);
 
     const boxes = signedTx.inputs

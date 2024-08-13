@@ -81,5 +81,5 @@ export async function getAddresses(walletId: number, filter: AddressType) {
 }
 
 export async function getCurrentHeight() {
-  return graphQLService.getCurrentHeight();
+  return graphQLService.getHeight();
 }

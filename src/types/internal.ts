@@ -1,6 +1,6 @@
 import { BigNumber } from "bignumber.js";
 import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
-import { ErgoBox } from "./connector";
+import { BabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 
 export enum AddressState {
@@ -89,7 +89,7 @@ export type FeeSettings = {
   readonly value: BigNumber;
   readonly nanoErgsPerToken?: BigNumber;
   readonly assetInfo?: BasicAssetMetadata;
-  box?: ErgoBox;
+  box?: BabelBox;
 };
 
 export const enum ProverStateType {
