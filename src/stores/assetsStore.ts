@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
-import { ensureDefaults, uniq } from "@fleet-sdk/common";
+import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
 import { useAppStore } from "./appStore";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -90,6 +90,8 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const blacklist = computed(() => {
     let tokenIds = [] as string[];
+    if (isEmpty(privateState.blacklist)) return tokenIds;
+
     for (const listName of app.settings.blacklistedTokensLists) {
       const list = privateState.blacklist[listName as keyof ErgoTokenBlacklist];
       if (Array.isArray(list) && list.length > 0) tokenIds = tokenIds.concat(list);

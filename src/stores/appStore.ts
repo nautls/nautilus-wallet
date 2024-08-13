@@ -71,7 +71,7 @@ export const useAppStore = defineStore("app", () => {
     if (!settings.value.isKyaAccepted && privateState.wallets.length > 0) {
       const oldSettings = localStorage.getItem("settings");
       if (oldSettings) {
-        settings.value = JSON.parse(oldSettings); // migrate settings
+        settings.value = { ...DEFAULT_SETTINGS, ...JSON.parse(oldSettings) }; // migrate settings
         localStorage.clear(); // clear old settings
       } else {
         settings.value = {
