@@ -33,7 +33,7 @@ export async function createP2PTransaction({
 }): Promise<EIP12UnsignedTransaction> {
   const [inputs, currentHeight] = await Promise.all([
     fetchBoxes(wallet.id),
-    graphQLService.getCurrentHeight()
+    graphQLService.getHeight()
   ]);
 
   if (isEmpty(inputs)) {
@@ -95,7 +95,7 @@ export async function setFee(
   if (isBabelFee) {
     const tokenUnits = undecimalize(fee.value, fee.assetInfo?.decimals);
     const selectedBox = selectBestBabelBox(
-      await fetchBabelBoxes(fee.tokenId, fee.nanoErgsPerToken),
+      await fetchBabelBoxes([fee.tokenId], fee.nanoErgsPerToken),
       tokenUnits
     );
 

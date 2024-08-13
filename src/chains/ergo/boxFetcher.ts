@@ -1,59 +1,34 @@
 import { difference, sortBy, unionBy } from "lodash-es";
-import { isEmpty } from "@fleet-sdk/common";
+import { ChainProviderBox } from "@fleet-sdk/blockchain-providers";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { utxosDbService } from "@/database/utxosDbService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { ErgoBox } from "@/types/connector";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 
-export async function fetchBoxes(
-  walletId: number,
-  options: { tokenId?: string; useAllAddressesAsFallback: boolean; includeUnconfirmed: boolean } = {
-    tokenId: ERG_TOKEN_ID,
-    useAllAddressesAsFallback: true,
-    includeUnconfirmed: true
+export async function fetchBoxes(walletId: number): Promise<ChainProviderBox<string>[]> {
+  const addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
+  const localUnconfirmedBoxes = await utxosDbService.getByWalletId(walletId);
+
+  let boxes = await graphQLService.getBoxes({ where: { addresses } });
+
+  if (boxes.length === 0 && !localUnconfirmedBoxes.find((b) => !b.locked && b.content)) {
+    boxes = await graphQLService.getBoxes({
+      where: { addresses: difference(await getAllAddresses(walletId), addresses) }
+    });
   }
-): Promise<ErgoBox[]> {
-  const addresses = await assetsDbService.getAddressesByTokenId(
-    walletId,
-    options.tokenId ?? ERG_TOKEN_ID
-  );
-  const pendingBoxes = options.includeUnconfirmed
-    ? await utxosDbService.getByWalletId(walletId)
-    : [];
 
-  let boxes = await fetchBoxesFromExplorer(addresses);
+  if (localUnconfirmedBoxes.length > 0) {
+    const lockedIds = localUnconfirmedBoxes.filter((x) => x.locked).map((x) => x.id);
+    const unconfirmed = localUnconfirmedBoxes
+      .filter((b) => !b.locked && b.content)
+      .map((b) => b.content!);
 
-  if (
-    options.useAllAddressesAsFallback &&
-    isEmpty(boxes) &&
-    !pendingBoxes.find((b) => !b.locked && b.content)
-  ) {
-    boxes = await fetchBoxesFromExplorer(difference(await getAllAddresses(walletId), addresses));
-  }
-  if (!isEmpty(pendingBoxes)) {
-    const lockedIds = pendingBoxes.filter((x) => x.locked).map((x) => x.id);
-    const unconfirmed = pendingBoxes.filter((b) => !b.locked && b.content).map((b) => b.content!);
-
-    if (!isEmpty(lockedIds)) {
-      boxes = boxes.filter((b) => !lockedIds.includes(b.boxId));
-    }
-    if (!isEmpty(unconfirmed)) {
-      boxes = unionBy(boxes, unconfirmed, (b) => b.boxId);
-    }
+    if (lockedIds.length > 0) boxes = boxes.filter((b) => !lockedIds.includes(b.boxId));
+    if (unconfirmed.length > 0) boxes = unionBy(boxes, unconfirmed, (b) => b.boxId);
   }
 
   return sortBy(boxes, (x) => x.creationHeight).reverse();
-}
-
-async function fetchBoxesFromExplorer(addresses: string[]): Promise<ErgoBox[]> {
-  if (isEmpty(addresses)) {
-    return [];
-  }
-
-  const boxes = await graphQLService.getUnspentBoxes(addresses);
-  return boxes;
 }
 
 async function getAllAddresses(walletId: number): Promise<string[]> {

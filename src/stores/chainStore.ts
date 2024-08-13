@@ -1,11 +1,11 @@
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, onUnmounted } from "vue";
-import { useStorage } from "@vueuse/core";
 import { HEIGHT_CHECK_INTERVAL } from "../constants/intervals";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { useWebExtStorage } from "@/composables/useWebExtStorage";
 
 const usePrivateState = defineStore("_chain", () => {
-  const state = useStorage("ergoChainState", { height: 0 });
+  const state = useWebExtStorage("ergoChainState", { height: 0 });
   return { state };
 });
 
@@ -29,7 +29,7 @@ export const useChainStore = defineStore("chain", () => {
     if (fetchingHeight) return;
     fetchingHeight = true;
 
-    const height = await graphQLService.getCurrentHeight();
+    const height = await graphQLService.getHeight();
     if (height && height > privateState.state.height) {
       privateState.state.height = height;
     }

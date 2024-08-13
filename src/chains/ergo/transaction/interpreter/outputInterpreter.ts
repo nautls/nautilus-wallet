@@ -2,7 +2,7 @@ import { BigNumber } from "bignumber.js";
 import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
 import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
 import { utf8 } from "@fleet-sdk/crypto";
-import { isBabelContract } from "../../babelFees";
+import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -55,7 +55,7 @@ export class OutputInterpreter {
 
   public get isBabelBoxSwap(): boolean {
     return (
-      isBabelContract(this._box.ergoTree) &&
+      isValidBabelContract(this._box.ergoTree) &&
       this._inputs.find((input) => input.ergoTree === this._box.ergoTree) !== undefined
     );
   }

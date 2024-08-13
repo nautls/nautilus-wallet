@@ -4,9 +4,9 @@ import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 import TxSignView from "./TxSignView.vue";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { ProverStateType, TransactionBuilderFunction, WalletType } from "@/types/internal";
-import { submitTx } from "@/chains/ergo/submitTx";
 import { PartialSignState } from "@/chains/ergo/transaction/prover";
 import { useWalletStore } from "@/stores/walletStore";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 
 const wallet = useWalletStore();
 
@@ -76,9 +76,9 @@ async function success(
   setStateEx(ProverStateType.busy, { statusText: "Sending transaction..." });
 
   try {
-    const txId = await submitTx(signedTx, wallet.id);
+    const result = await graphQLService.submitTransaction(signedTx, wallet.id);
     setStateEx(ProverStateType.success, { statusText: "Sent!" });
-    setState(ProverStateType.success, "", txId);
+    setState(ProverStateType.success, "", result.transactionId);
 
     emit("success", signedTx);
   } catch (e) {

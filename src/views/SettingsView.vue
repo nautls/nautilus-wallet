@@ -185,7 +185,7 @@ import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
 import {
-  getDefaultServerUrl,
+  DEFAULT_SERVER_URL,
   MIN_SERVER_VERSION,
   validateServerNetwork,
   validateServerVersion
@@ -354,7 +354,7 @@ export default defineComponent({
     },
     async updateGlobal() {
       if (isEmpty(this.globalSettings.graphQLServer)) {
-        this.globalSettings.graphQLServer = getDefaultServerUrl();
+        this.globalSettings.graphQLServer = DEFAULT_SERVER_URL;
       }
 
       if (isEmpty(this.globalSettings.explorerUrl)) {

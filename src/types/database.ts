@@ -1,4 +1,4 @@
-import { ErgoBox } from "./connector";
+import { Box } from "@fleet-sdk/common";
 import {
   AddressState,
   AddressType,
@@ -68,7 +68,7 @@ export interface IDbUtxo {
   locked: boolean;
   spentTxId: string;
   spentTimestamp?: number;
-  content?: ErgoBox;
+  content?: Box<string> & { confirmed: boolean };
   address?: string;
   walletId: number;
 }
