@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex flex-row gap-4">
-      <div class="flex-grow">
+      <div class="w-full">
         <label
           ><span v-if="avoidingReuse">Your current address</span>
           <span v-else>Your default address</span></label
@@ -20,13 +20,13 @@
           </template>
         </div>
       </div>
-      <div class="text-right w-auto">
-        <div v-show="loading" class="skeleton rounded h-3 w-25 h-25"></div>
-        <canvas
-          v-show="!loading"
-          id="primary-address-canvas"
-          class="inline-block max-w-25 max-h-25 rounded"
-        ></canvas>
+      <div class="text-right">
+        <div v-if="loading" class="skeleton rounded h-3 w-25 h-25"></div>
+        <qr-code
+          v-else
+          :data="wallet.changeAddress?.script"
+          class="inline-block w-25 h-25 rounded"
+        />
       </div>
     </div>
     <div
@@ -151,7 +151,6 @@
 
 <script lang="ts">
 import { isDefined } from "@fleet-sdk/common";
-import QRCode from "qrcode";
 import { defineComponent } from "vue";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
 import { openModal } from "@/common/componentUtils";
@@ -160,11 +159,11 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState, StateAddress, WalletType } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
-import { useFormat } from "@/composables/useFormat";
+import { useFormat, useQrCode } from "@/composables";
 
 export default defineComponent({
   name: "ReceiveView",
-  components: { MdiIcon },
+  components: { MdiIcon, qrCode: useQrCode({ border: 0 }) },
   setup() {
     return { app: useAppStore(), wallet: useWalletStore(), format: useFormat() };
   },
@@ -198,24 +197,6 @@ export default defineComponent({
     "wallet.addresses"(_, oldLen) {
       const length = oldLen || 1;
       if (length > 1) this.prevCount = length;
-    },
-    "wallet.changeAddress": {
-      immediate: true,
-      handler() {
-        this.errorMsg = "";
-        this.$nextTick(() => {
-          if (!this.wallet.changeAddress) return;
-          QRCode.toCanvas(
-            document.getElementById("primary-address-canvas"),
-            this.wallet.changeAddress.script,
-            {
-              errorCorrectionLevel: "low",
-              margin: 0,
-              scale: 4
-            }
-          );
-        });
-      }
     }
   },
   methods: {

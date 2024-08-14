@@ -14,7 +14,7 @@
         does not allow to spend or move the funds in any way.
       </p>
       <div class="text-center">
-        <canvas id="xpk-canvas" class="inline-block w-70 h-70 rounded"></canvas>
+        <qr-code :data="extendedPublicKey" class="inline-block w-70 h-70 rounded" />
       </div>
       <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
         {{ extendedPublicKey }}
@@ -27,12 +27,13 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import QRCode from "qrcode";
 import { mountExtendedPublicKey } from "@/common/serializer";
 import { useWalletStore } from "@/stores/walletStore";
+import { useQrCode } from "@/composables";
 
 export default defineComponent({
   name: "KYAModal",
+  components: { qrCode: useQrCode({ border: 0 }) },
   props: {
     active: { type: Boolean, required: true }
   },
@@ -42,21 +43,6 @@ export default defineComponent({
   computed: {
     extendedPublicKey() {
       return mountExtendedPublicKey(this.wallet.publicKey, this.wallet.chainCode);
-    }
-  },
-  watch: {
-    active() {
-      if (!this.active) {
-        return;
-      }
-
-      this.$nextTick(() => {
-        QRCode.toCanvas(document.getElementById("xpk-canvas"), this.extendedPublicKey, {
-          errorCorrectionLevel: "low",
-          margin: 0,
-          scale: 4
-        });
-      });
     }
   },
   methods: {
