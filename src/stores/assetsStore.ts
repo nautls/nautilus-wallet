@@ -90,7 +90,9 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const blacklist = computed(() => {
     let tokenIds = [] as string[];
-    if (isEmpty(privateState.blacklist)) return tokenIds;
+    if (isEmpty(app.settings.blacklistedTokensLists) || isEmpty(privateState.blacklist)) {
+      return tokenIds;
+    }
 
     for (const listName of app.settings.blacklistedTokensLists) {
       const list = privateState.blacklist[listName as keyof ErgoTokenBlacklist];
