@@ -135,9 +135,6 @@ importers:
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
-      '@types/qrcode':
-        specifier: ^1.5.5
-        version: 1.5.5
       '@types/webextension-polyfill':
         specifier: ^0.12.0
         version: 0.12.0
@@ -798,9 +795,6 @@ packages:
 
   '@types/prop-types@15.7.12':
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
-
-  '@types/qrcode@1.5.5':
-    resolution: {integrity: sha512-CdfBi/e3Qk+3Z/fXYShipBT13OJ2fDO2Q2w5CIP5anLTLIndQG9z6P1cnm+8zCWSpm5dnxMFd/uREtb0EXuQzg==}
 
   '@types/react@18.3.3':
     resolution: {integrity: sha512-hti/R0pS0q1/xx+TsI73XIqk26eBsISZ2R0wUijXIngRK9R/e7Xw/cXVxQK7R5JjW+SV4zGcn5hXjudkN/pLIw==}
@@ -3756,10 +3750,6 @@ snapshots:
       undici-types: 6.11.1
 
   '@types/prop-types@15.7.12': {}
-
-  '@types/qrcode@1.5.5':
-    dependencies:
-      '@types/node': 22.0.0
 
   '@types/react@18.3.3':
     dependencies:
