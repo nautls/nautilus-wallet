@@ -12,14 +12,14 @@ import {
   BlockHeaders,
   ErgoBoxes,
   ErgoStateContext,
+  Parameters,
   PreHeader,
   SecretKey,
   SecretKeys,
   Tokens,
   Transaction,
   UnsignedTransaction,
-  Wallet,
-  Parameters
+  Wallet
 } from "ergo-lib-wasm-browser";
 import {
   BoxCandidate,
@@ -125,7 +125,6 @@ export class Prover {
       let ledgerApp!: ErgoLedgerApp;
 
       try {
-        // @ts-expect-error - It looks like the type definitions are not up to date in @ledgerhq/hw-transport@6.31.0.
         ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create())
           .useAuthToken()
           .enableDebugMode();

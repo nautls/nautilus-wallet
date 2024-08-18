@@ -40,7 +40,7 @@
     "dexie": "^4.0.8",
     "ergo-lib-wasm-browser": "^0.28.0",
     "feather-icons": "^4.29.2",
-    "ledger-ergo-js": "^0.1.17",
+    "ledger-ergo-js": "^0.1.18",
     "lodash-es": "^4.17.21",
     "mdi-vue": "^3.0.13",
     "pinia": "^2.2.1",

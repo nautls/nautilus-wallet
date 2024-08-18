@@ -97,7 +97,6 @@ export default defineComponent({
       let app!: ErgoLedgerApp;
 
       try {
-        // @ts-expect-error - It looks like the type definitions are not up to date in @ledgerhq/hw-transport@6.31.0.
         app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
         this.appId = app.authToken ?? 0;
         this.model =
