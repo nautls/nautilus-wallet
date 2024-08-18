@@ -75,8 +75,8 @@ importers:
         specifier: ^4.29.2
         version: 4.29.2
       ledger-ergo-js:
-        specifier: ^0.1.17
-        version: 0.1.17
+        specifier: ^0.1.18
+        version: 0.1.18
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -432,10 +432,6 @@ packages:
   '@fleet-sdk/common@0.4.1':
     resolution: {integrity: sha512-jivyBz7kAye1FrS2gDlZkVpu7rrWAw1aySX+OkIWJA703P9BrrAEmBGU0jz4tKL+3LY2CsJhulOlpSAuc3/ivQ==}
     engines: {node: '>=14'}
-
-  '@fleet-sdk/core@0.5.0':
-    resolution: {integrity: sha512-uPWd3p4E+Feh1qXYe56WwSd98uB/bDzjziKOJWZBD1NJ2gd0F5TN+w9p31tp65xALAjZNRrztuslULCGbZOAZA==}
-    engines: {node: '>=18'}
 
   '@fleet-sdk/core@0.6.1':
     resolution: {integrity: sha512-c1xEXrrOg6Etr0VligsYf2uyxbKA8IQdVF0yQlb+aeUDcJWXDb2uQ/Wc7o6XqqpYfk8xN9BL6LiSTNa0GxS+Aw==}
@@ -2165,8 +2161,8 @@ packages:
     resolution: {integrity: sha512-KvNT4XqAMzdcL6ka6Tl3i2lYeFDgXNCuIX+xNx6ZMVR1dFq+idXd9FLKNMOIx0t9mJ9/HudyX4oZWXZQ0UJHeg==}
     engines: {node: '>=14.16'}
 
-  ledger-ergo-js@0.1.17:
-    resolution: {integrity: sha512-LeqY+U4g/jqt2khK+8x/fTb6duiLrcSpXgTHDIg2mcW1rV2QA+rgog7EjD8SMxBXpKto5DlgA68e69PiYboCPQ==}
+  ledger-ergo-js@0.1.18:
+    resolution: {integrity: sha512-EsVIT1pT030hZ432rT3YC+IkvhvjhrjxjM+mS4IgyuF9Dv2zStCgRvGt57SY6h+W0DOjzQ6WmL4iaUvdD8EcBA==}
     engines: {node: '>=18', pnpm: '>=9'}
 
   levn@0.4.1:
@@ -3439,12 +3435,6 @@ snapshots:
       '@fleet-sdk/core': 0.6.1
 
   '@fleet-sdk/common@0.4.1': {}
-
-  '@fleet-sdk/core@0.5.0':
-    dependencies:
-      '@fleet-sdk/common': 0.4.1
-      '@fleet-sdk/crypto': 0.5.0
-      '@fleet-sdk/serializer': 0.5.0
 
   '@fleet-sdk/core@0.6.1':
     dependencies:
@@ -5387,10 +5377,10 @@ snapshots:
     dependencies:
       package-json: 8.1.1
 
-  ledger-ergo-js@0.1.17:
+  ledger-ergo-js@0.1.18:
     dependencies:
       '@fleet-sdk/common': 0.4.1
-      '@fleet-sdk/core': 0.5.0
+      '@fleet-sdk/core': 0.6.1
       '@fleet-sdk/crypto': 0.5.0
       bip32-path: 0.4.2
 

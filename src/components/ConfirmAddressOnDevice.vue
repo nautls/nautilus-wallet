@@ -35,7 +35,6 @@ async function confirmAddress() {
   let app!: ErgoLedgerApp;
 
   try {
-    // @ts-expect-error ergo-ledger-js types are not up-to-date
     app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
     state.appId = app.authToken ?? 0;
     state.model =
