@@ -4,8 +4,8 @@ import {
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
 import { onMounted, shallowRef } from "vue";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { useWalletStore } from "@/stores/walletStore";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 
 const wallet = useWalletStore();
 
