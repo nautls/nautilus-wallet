@@ -46,6 +46,7 @@ export function buildManifest(network: Network, mode: string): Manifest.WebExten
     name: buildTitle(mode, network),
     short_name: "Nautilus",
     description: buildDescription(mode, network),
+    version_name: pkg.version,
     version: buildVersion(),
     icons: buildIcons(mode, network),
     content_security_policy: {
