@@ -4,7 +4,7 @@ import {
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
 import { computed, onMounted, shallowRef } from "vue";
-import { BoxSummary, chunk, orderBy, some, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
+import { BoxSummary, orderBy, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { ErgoAddress, FEE_CONTRACT } from "@fleet-sdk/core";
 import { formatTimeAgo } from "@vueuse/core";
@@ -68,22 +68,12 @@ onMounted(async () => {
     await graphQLService.getUnconfirmedTransactions({ where: { addresses } })
   ).map((x) => summarizeTransaction(x, ergoTrees));
 
-  for await (const chunk of loadConfirmedTransactions(addresses)) {
+  for await (const chunk of graphQLService.streamConfirmedTransactions({
+    where: { addresses, onlyRelevantOutputs: true }
+  })) {
     confirmed.value = [...confirmed.value, ...chunk.map((x) => summarizeTransaction(x, ergoTrees))];
   }
 });
-
-async function* loadConfirmedTransactions(addresses: string[]) {
-  const chucks = chunk(addresses, 20);
-  for (const chunk of chucks) {
-    for await (const data of graphQLService.streamConfirmedTransactions({
-      where: { addresses: chunk, onlyRelevantOutputs: true }
-    })) {
-      if (some(data)) yield data;
-      break; // only takes the first batch
-    }
-  }
-}
 
 function summarizeTransaction(
   transaction: ChainProviderConfirmedTransaction<string>,
@@ -127,11 +117,17 @@ function mapDelta(utxoSummary: BoxSummary): TokenAmount<BigNumber>[] {
     amount: bn(x.amount.toString())
   }));
 
-  return [{ tokenId: ERG_TOKEN_ID, amount: bn(utxoSummary.nanoErgs.toString()) }, ...tokens];
+  return utxoSummary.nanoErgs === 0n
+    ? tokens
+    : [{ tokenId: ERG_TOKEN_ID, amount: bn(utxoSummary.nanoErgs.toString()) }, ...tokens];
 }
 
 function getTransactionExplorerUrl(txId: string): string {
   return new URL(`/transactions/${txId}`, app.settings.explorerUrl).toString();
+}
+
+function positive(n: BigNumber): BigNumber {
+  return n.isNegative() ? n.negated() : n;
 }
 </script>
 
@@ -175,9 +171,7 @@ function getTransactionExplorerUrl(txId: string): string {
             {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
           </div>
           <div>
-            {{
-              formatter.bn.format(asset.amount.isNegative() ? asset.amount.negated() : asset.amount)
-            }}
+            {{ formatter.bn.format(positive(asset.amount)) }}
           </div>
         </div>
       </div>
