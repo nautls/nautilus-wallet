@@ -68,10 +68,22 @@ onMounted(async () => {
     await graphQLService.getUnconfirmedTransactions({ where: { addresses } })
   ).map((x) => summarizeTransaction(x, ergoTrees));
 
+  if (unconfirmed.value.length > 0) {
+    assets.loadMetadata(
+      unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)),
+      { fetchInBackground: true }
+    );
+  }
+
   for await (const chunk of graphQLService.streamConfirmedTransactions({
     where: { addresses, onlyRelevantOutputs: true }
   })) {
-    confirmed.value = [...confirmed.value, ...chunk.map((x) => summarizeTransaction(x, ergoTrees))];
+    const mappedChunk = chunk.map((x) => summarizeTransaction(x, ergoTrees));
+    confirmed.value = [...confirmed.value, ...mappedChunk];
+    assets.loadMetadata(
+      mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)),
+      { fetchInBackground: true }
+    );
   }
 });
 
