@@ -62,28 +62,20 @@ const history = computed(() =>
 onMounted(async () => {
   const addresses = wallet.addresses.map((x) => x.script);
   if (addresses.length === 0) return;
+
+  const query = { where: { addresses } };
   const ergoTrees = new Set(addresses.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree));
+  graphQLService.getUnconfirmedTransactions(query).then((data) => {
+    unconfirmed.value = data.map((x) => summarizeTransaction(x, ergoTrees));
+    if (unconfirmed.value.length > 0) {
+      assets.loadMetadata(unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)));
+    }
+  });
 
-  unconfirmed.value = (
-    await graphQLService.getUnconfirmedTransactions({ where: { addresses } })
-  ).map((x) => summarizeTransaction(x, ergoTrees));
-
-  if (unconfirmed.value.length > 0) {
-    assets.loadMetadata(
-      unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)),
-      { fetchInBackground: true }
-    );
-  }
-
-  for await (const chunk of graphQLService.streamConfirmedTransactions({
-    where: { addresses, onlyRelevantOutputs: true }
-  })) {
+  for await (const chunk of graphQLService.streamConfirmedTransactions(query)) {
     const mappedChunk = chunk.map((x) => summarizeTransaction(x, ergoTrees));
     confirmed.value = [...confirmed.value, ...mappedChunk];
-    assets.loadMetadata(
-      mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)),
-      { fetchInBackground: true }
-    );
+    assets.loadMetadata(mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)));
   }
 });
 
@@ -191,7 +183,7 @@ function positive(n: BigNumber): BigNumber {
         <div class="h-tag">Fee {{ formatter.bn.format(tx.fee) }} ERG</div>
         <div
           class="h-tag text-light-200 font-semibold"
-          :class="{ 'bg-yellow-500': !tx.confirmed, 'bg-green-500': tx.confirmed }"
+          :class="tx.confirmed ? 'bg-green-500' : 'bg-yellow-500'"
         >
           <template v-if="tx.confirmed"
             >{{ (chain.height - tx.height).toLocaleString() }} confirmations</template
