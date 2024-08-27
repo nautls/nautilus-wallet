@@ -1,4 +1,4 @@
-import { Box } from "@fleet-sdk/common";
+import { Box, TokenAmount } from "@fleet-sdk/common";
 import {
   AddressState,
   AddressType,
@@ -71,4 +71,14 @@ export interface IDbUtxo {
   content?: Box<string> & { confirmed: boolean };
   address?: string;
   walletId: number;
+}
+
+export interface ITransactionSummary {
+  id: string;
+  walletId: number;
+  timestamp: number;
+  height: number;
+  confirmed: boolean;
+  delta: TokenAmount<string>[];
+  fee: TokenAmount<string>;
 }

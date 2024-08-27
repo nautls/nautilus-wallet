@@ -6,7 +6,8 @@ import {
   IDbAsset,
   IDbDAppConnection,
   IDbUtxo,
-  IDbWallet
+  IDbWallet,
+  ITransactionSummary
 } from "@/types/database";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 
@@ -17,6 +18,7 @@ class NautilusDb extends Dexie {
   connectedDApps!: Table<IDbDAppConnection, string>;
   utxos!: Table<IDbUtxo, string>;
   assetInfo!: Table<IAssetInfo, string>;
+  txSummaries!: Table<ITransactionSummary, string>;
 
   constructor() {
     super("nautilusDb");
@@ -66,6 +68,8 @@ class NautilusDb extends Dexie {
         );
         await t.table("assetInfo").bulkAdd(assetInfo);
       });
+
+    this.version(7).stores({ txSummaries: "&id, walletId, height, confirmed" });
   }
 }
 
