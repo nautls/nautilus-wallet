@@ -3,11 +3,11 @@ import {
   ChainProviderConfirmedTransaction,
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
-import { computed, onMounted, shallowRef } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { BoxSummary, orderBy, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { ErgoAddress, FEE_CONTRACT } from "@fleet-sdk/core";
-import { formatTimeAgo } from "@vueuse/core";
+import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
 import { useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -41,8 +41,32 @@ const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
 
+const txEl = ref<HTMLElement | null>(null);
+
 const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
+
+const _addresses = wallet.addresses.map((x) => x.script);
+const _ergoTrees = new Set(_addresses.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree));
+
+const _generator = graphQLService.streamConfirmedTransactions({
+  where: { addresses: _addresses }
+}) as AsyncGenerator<ChainProviderConfirmedTransaction<string>[]>;
+
+const { isLoading } = useInfiniteScroll(
+  txEl,
+  async () => {
+    const response = await _generator.next();
+    if (response.done) return;
+
+    console.log("ok");
+    const chunk = response.value;
+    const mappedChunk = chunk.map((x) => summarizeTransaction(x, _ergoTrees));
+    confirmed.value = [...confirmed.value, ...mappedChunk];
+    assets.loadMetadata(mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)));
+  },
+  { distance: 10 }
+);
 
 const history = computed(() =>
   orderBy(
@@ -72,11 +96,11 @@ onMounted(async () => {
     }
   });
 
-  for await (const chunk of graphQLService.streamConfirmedTransactions(query)) {
-    const mappedChunk = chunk.map((x) => summarizeTransaction(x, ergoTrees));
-    confirmed.value = [...confirmed.value, ...mappedChunk];
-    assets.loadMetadata(mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)));
-  }
+  // for await (const chunk of graphQLService.streamConfirmedTransactions(query)) {
+  //   const mappedChunk = chunk.map((x) => summarizeTransaction(x, ergoTrees));
+  //   confirmed.value = [...confirmed.value, ...mappedChunk];
+  //   assets.loadMetadata(mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)));
+  // }
 });
 
 function summarizeTransaction(
@@ -136,59 +160,63 @@ function positive(n: BigNumber): BigNumber {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 text-sm pt-4">
-    <div
-      v-for="tx in history"
-      :key="tx.transactionId"
-      class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4"
-    >
-      <div class="flex text-xs mb-2">
-        <div>
-          <a
-            :href="getTransactionExplorerUrl(tx.transactionId)"
-            target="_blank"
-            rel="noopener noreferrer"
-            ><span class="h-tag font-bold bg-gray-100">{{
-              formatter.string.shorten(tx.transactionId, 20)
-            }}</span></a
-          >
-        </div>
-        <div class="text-right w-full">
-          <span>{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
-        </div>
-      </div>
-      <div class="p-2 flex flex-col gap-2">
-        <div
-          v-for="asset in tx.delta"
-          :key="asset.tokenId"
-          class="flex flex-row items-center gap-2"
-        >
-          <vue-feather
-            v-if="asset.amount.isNegative()"
-            type="corner-left-up"
-            class="min-w-4 text-red-500"
-            size="16"
-          />
-          <vue-feather v-else type="corner-right-down" class="min-w-4 text-green-500" size="16" />
-          <asset-icon class="h-6 w-6 min-w-6" :token-id="asset.tokenId" />
-          <div class="w-full">
-            {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
-          </div>
+  <div ref="txEl" class="-mx-4 -mt-4 overflow-y-auto overflow-x-hidden h-full">
+    <p v-if="isLoading">loading</p>
+
+    <div class="flex flex-col gap-4 text-sm pt-4 px-4">
+      <div
+        v-for="tx in history"
+        :key="tx.transactionId"
+        class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4"
+      >
+        <div class="flex text-xs mb-2">
           <div>
-            {{ formatter.bn.format(positive(asset.amount)) }}
+            <a
+              :href="getTransactionExplorerUrl(tx.transactionId)"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span class="h-tag font-bold bg-gray-100">{{
+                formatter.string.shorten(tx.transactionId, 20)
+              }}</span></a
+            >
+          </div>
+          <div class="text-right w-full">
+            <span>{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
           </div>
         </div>
-      </div>
-      <div class="flex flex-row items-center gap-2 justify-between mt-2">
-        <div class="h-tag">Fee {{ formatter.bn.format(tx.fee) }} ERG</div>
-        <div
-          class="h-tag text-light-200 font-semibold"
-          :class="tx.confirmed ? 'bg-green-500' : 'bg-yellow-500'"
-        >
-          <template v-if="tx.confirmed"
-            >{{ (chain.height - tx.height).toLocaleString() }} confirmations</template
+        <div class="p-2 flex flex-col gap-2">
+          <div
+            v-for="asset in tx.delta"
+            :key="asset.tokenId"
+            class="flex flex-row items-center gap-2"
           >
-          <template v-else>Pending</template>
+            <vue-feather
+              v-if="asset.amount.isNegative()"
+              type="corner-left-up"
+              class="min-w-4 text-red-500"
+              size="16"
+            />
+            <vue-feather v-else type="corner-right-down" class="min-w-4 text-green-500" size="16" />
+            <asset-icon class="h-6 w-6 min-w-6" :token-id="asset.tokenId" />
+            <div class="w-full">
+              {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
+            </div>
+            <div>
+              {{ formatter.bn.format(positive(asset.amount)) }}
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row items-center gap-2 justify-between mt-2">
+          <div class="h-tag">Fee {{ formatter.bn.format(tx.fee) }} ERG</div>
+          <div
+            class="h-tag text-light-200 font-semibold"
+            :class="tx.confirmed ? 'bg-green-500' : 'bg-yellow-500'"
+          >
+            <template v-if="tx.confirmed"
+              >{{ (chain.height - tx.height).toLocaleString() }} confirmations</template
+            >
+            <template v-else>Pending</template>
+          </div>
         </div>
       </div>
     </div>
