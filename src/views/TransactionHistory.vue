@@ -48,7 +48,6 @@ const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 
 const _addresses = wallet.addresses.map((x) => x.script);
 const _ergoTrees = new Set(_addresses.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree));
-
 const _generator = graphQLService.streamConfirmedTransactions({
   where: { addresses: _addresses }
 }) as AsyncGenerator<ChainProviderConfirmedTransaction<string>[]>;
@@ -59,7 +58,6 @@ const { isLoading } = useInfiniteScroll(
     const response = await _generator.next();
     if (response.done) return;
 
-    console.log("ok");
     const chunk = response.value;
     const mappedChunk = chunk.map((x) => summarizeTransaction(x, _ergoTrees));
     confirmed.value = [...confirmed.value, ...mappedChunk];
@@ -95,12 +93,6 @@ onMounted(async () => {
       assets.loadMetadata(unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)));
     }
   });
-
-  // for await (const chunk of graphQLService.streamConfirmedTransactions(query)) {
-  //   const mappedChunk = chunk.map((x) => summarizeTransaction(x, ergoTrees));
-  //   confirmed.value = [...confirmed.value, ...mappedChunk];
-  //   assets.loadMetadata(mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)));
-  // }
 });
 
 function summarizeTransaction(
