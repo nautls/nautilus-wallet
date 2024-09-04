@@ -20,11 +20,11 @@
           </li>
           <li>
             - Every transaction can be viewed via
-            <a href="https://explorer.ergoplatform.com" target="_blank" class="url">explorer</a>;
+            <a href="https://sigmaspace.io" target="_blank" class="url">explorer</a>;
           </li>
           <li>
             -
-            <a href="https://github.com/capt-nemo429/nautilus-wallet" target="_blank" class="url"
+            <a href="https://github.com/nautls/nautilus-wallet" target="_blank" class="url"
               >All code is open source and available</a
             >
             for public review.
