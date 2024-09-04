@@ -152,7 +152,7 @@ function positive(n: BigNumber): BigNumber {
 </script>
 
 <template>
-  <div ref="txEl" class="-mx-4 -mt-4 overflow-y-auto overflow-x-hidden h-full">
+  <div ref="txEl" class="-mx-4 overflow-y-auto overflow-x-hidden h-full">
     <p v-if="isLoading">loading</p>
 
     <div class="flex flex-col gap-4 text-sm pt-4 px-4">
