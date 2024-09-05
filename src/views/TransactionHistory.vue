@@ -46,25 +46,17 @@ const txEl = ref<HTMLElement | null>(null);
 const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 
-const _addresses = wallet.addresses.map((x) => x.script);
-const _ergoTrees = new Set(_addresses.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree));
-const _generator = graphQLService.streamConfirmedTransactions({
-  where: { addresses: _addresses }
-}) as AsyncGenerator<ChainProviderConfirmedTransaction<string>[]>;
-
-const { isLoading } = useInfiniteScroll(
-  txEl,
-  async () => {
-    const response = await _generator.next();
-    if (response.done) return;
-
-    const chunk = response.value;
-    const mappedChunk = chunk.map((x) => summarizeTransaction(x, _ergoTrees));
-    confirmed.value = [...confirmed.value, ...mappedChunk];
-    assets.loadMetadata(mappedChunk.flatMap((x) => x.delta.map((y) => y.tokenId)));
-  },
-  { distance: 10 }
+const addresses = computed(() => wallet.addresses.map((x) => x.script));
+const ergoTrees = computed(
+  () => new Set(addresses.value.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree))
 );
+const generator = computed(() => {
+  if (!addresses.value.length) return;
+
+  return graphQLService.streamConfirmedTransactions({
+    where: { addresses: addresses.value, onlyRelevantOutputs: true }
+  }) as AsyncGenerator<ChainProviderConfirmedTransaction<string>[]>;
+});
 
 const history = computed(() =>
   orderBy(
@@ -80,6 +72,17 @@ const history = computed(() =>
     }))
   }))
 );
+
+const { isLoading, reset } = useInfiniteScroll(txEl, async () => {
+  if (!generator.value) return;
+
+  const response = await generator.value.next();
+  if (response.done) return;
+
+  const mapped = response.value.map((x) => summarizeTransaction(x, ergoTrees.value));
+  confirmed.value = [...confirmed.value, ...mapped];
+  assets.loadMetadata(mapped.flatMap((x) => x.delta.map((y) => y.tokenId)));
+});
 
 onMounted(async () => {
   const addresses = wallet.addresses.map((x) => x.script);
@@ -205,7 +208,7 @@ function positive(n: BigNumber): BigNumber {
             :class="tx.confirmed ? 'bg-green-500' : 'bg-yellow-500'"
           >
             <template v-if="tx.confirmed"
-              >{{ (chain.height - tx.height).toLocaleString() }} confirmations</template
+              >{{ (chain.height - tx.height + 1).toLocaleString() }} confirmations</template
             >
             <template v-else>Pending</template>
           </div>
