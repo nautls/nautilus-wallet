@@ -41,8 +41,6 @@ const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
 
-// const txEl = ref<HTMLElement | null>(null);
-
 const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 
@@ -113,13 +111,16 @@ watch(
   () => wallet.loading,
   (loading) => {
     if (loading) return;
-
-    confirmed.value = [];
-    unconfirmed.value = [];
-    resetScrolling();
-    fetchUnconfirmedTransactions();
+    reset();
   }
 );
+
+function reset() {
+  confirmed.value = [];
+  unconfirmed.value = [];
+  resetScrolling();
+  fetchUnconfirmedTransactions();
+}
 
 onMounted(fetchUnconfirmedTransactions);
 
