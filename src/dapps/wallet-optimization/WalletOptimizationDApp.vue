@@ -48,14 +48,8 @@ const minBoxHeight = computed(() => {
 });
 
 const oldestBox = computed(() => {
-  if (loading.value) {
-    return "Loading...";
-  }
-
-  if (!minBoxHeight.value) {
-    return "N/A";
-  }
-
+  if (loading.value) return "Loading...";
+  if (!minBoxHeight.value) return "N/A";
   return dayjs()
     .add(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES), "minutes")
     .fromNow(true);
@@ -73,12 +67,8 @@ async function loadBoxes() {
   setLoading(true);
 
   const [ownBoxes, height] = await Promise.all([fetchBoxes(wallet.id), graphQLService.getHeight()]);
-
   boxes.value = ownBoxes;
-
-  if (height) {
-    currentHeight.value = height;
-  }
+  if (height) currentHeight.value = height;
 
   setLoading(false);
 }

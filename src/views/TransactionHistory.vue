@@ -3,7 +3,7 @@ import {
   ChainProviderConfirmedTransaction,
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
-import { computed, onMounted, shallowRef, useTemplateRef } from "vue";
+import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue";
 import { BoxSummary, orderBy, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { ErgoAddress, FEE_CONTRACT } from "@fleet-sdk/core";
@@ -14,7 +14,7 @@ import { bn, decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { useFormat } from "@/composables";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { BasicAssetMetadata } from "@/types/internal";
+import { AddressState, BasicAssetMetadata } from "@/types/internal";
 import { useChainStore } from "@/stores/chainStore";
 import { useAppStore } from "@/stores/appStore";
 
@@ -46,15 +46,18 @@ const app = useAppStore();
 const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 
-const addresses = computed(() => wallet.addresses.map((x) => x.script));
-const ergoTrees = computed(
-  () => new Set(addresses.value.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree))
+const allAddresses = computed(() => wallet.addresses.map((x) => x.script));
+const usedAddresses = computed(() =>
+  wallet.addresses.filter((x) => x.state === AddressState.Used).map((x) => x.script)
 );
-const generator = computed(() => {
-  if (!addresses.value.length) return;
+const ergoTrees = computed(
+  () => new Set(allAddresses.value.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree))
+);
 
+const confirmedGenerator = computed(() => {
+  if (!usedAddresses.value.length) return;
   return graphQLService.streamConfirmedTransactions({
-    where: { addresses: addresses.value, onlyRelevantOutputs: true }
+    where: { addresses: usedAddresses.value, onlyRelevantOutputs: true }
   });
 });
 
@@ -73,30 +76,52 @@ const history = computed(() =>
   }))
 );
 
-const { isLoading } = useInfiniteScroll(useTemplateRef("txEl"), async () => {
-  if (!generator.value) return;
+const { isLoading, reset: resetScrolling } = useInfiniteScroll(
+  useTemplateRef("txEl"),
+  fetchConfirmedTransactions
+);
 
-  const response = await generator.value.next();
+async function fetchUnconfirmedTransactions() {
+  if (allAddresses.value.length === 0) return;
+
+  const response = await graphQLService.getUnconfirmedTransactions({
+    where: { addresses: allAddresses.value }
+  });
+
+  unconfirmed.value = response.map((x) => summarizeTransaction(x, ergoTrees.value));
+  if (unconfirmed.value.length > 0) {
+    assets.loadMetadata(unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)));
+  }
+}
+
+async function fetchConfirmedTransactions() {
+  if (!confirmedGenerator.value) return;
+
+  const response = await confirmedGenerator.value.next();
   if (response.done) return;
 
   const mapped = response.value.map((x) => summarizeTransaction(x, ergoTrees.value));
   confirmed.value = [...confirmed.value, ...mapped];
-  assets.loadMetadata(mapped.flatMap((x) => x.delta.map((y) => y.tokenId)));
-});
+  if (mapped.length > 0) {
+    assets.loadMetadata(mapped.flatMap((x) => x.delta.map((y) => y.tokenId)));
+  }
+}
 
-onMounted(async () => {
-  const addresses = wallet.addresses.map((x) => x.script);
-  if (addresses.length === 0) return;
+// listening to wallet loading state ensures that wallet is
+// fully loaded before fetching transactions
+watch(
+  () => wallet.loading,
+  (loading) => {
+    if (loading) return;
 
-  const query = { where: { addresses } };
-  const ergoTrees = new Set(addresses.map((x) => ErgoAddress.decodeUnsafe(x).ergoTree));
-  graphQLService.getUnconfirmedTransactions(query).then((data) => {
-    unconfirmed.value = data.map((x) => summarizeTransaction(x, ergoTrees));
-    if (unconfirmed.value.length > 0) {
-      assets.loadMetadata(unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)));
-    }
-  });
-});
+    confirmed.value = [];
+    unconfirmed.value = [];
+    resetScrolling();
+    fetchUnconfirmedTransactions();
+  }
+);
+
+onMounted(fetchUnconfirmedTransactions);
 
 function summarizeTransaction(
   transaction: ChainProviderConfirmedTransaction<string>,
