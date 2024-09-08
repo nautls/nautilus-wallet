@@ -3,7 +3,7 @@ import {
   ChainProviderConfirmedTransaction,
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
-import { computed, onMounted, ref, shallowRef } from "vue";
+import { computed, onMounted, shallowRef, useTemplateRef } from "vue";
 import { BoxSummary, orderBy, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { ErgoAddress, FEE_CONTRACT } from "@fleet-sdk/core";
@@ -41,7 +41,7 @@ const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
 
-const txEl = ref<HTMLElement | null>(null);
+// const txEl = ref<HTMLElement | null>(null);
 
 const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
@@ -55,7 +55,7 @@ const generator = computed(() => {
 
   return graphQLService.streamConfirmedTransactions({
     where: { addresses: addresses.value, onlyRelevantOutputs: true }
-  }) as AsyncGenerator<ChainProviderConfirmedTransaction<string>[]>;
+  });
 });
 
 const history = computed(() =>
@@ -73,7 +73,7 @@ const history = computed(() =>
   }))
 );
 
-const { isLoading, reset } = useInfiniteScroll(txEl, async () => {
+const { isLoading } = useInfiniteScroll(useTemplateRef("txEl"), async () => {
   if (!generator.value) return;
 
   const response = await generator.value.next();
