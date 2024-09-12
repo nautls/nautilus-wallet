@@ -79,7 +79,7 @@ const history = computed(() =>
 const { isLoading, reset: resetScrolling } = useInfiniteScroll(
   useTemplateRef("txEl"),
   fetchConfirmedTransactions,
-  { canLoadMore: () => !allLoaded.value }
+  { canLoadMore: () => !allLoaded.value, distance: 2_000 }
 );
 
 async function fetchUnconfirmedTransactions() {
