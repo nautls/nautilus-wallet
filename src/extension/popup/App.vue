@@ -28,7 +28,7 @@ const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
       <nav-header />
     </template>
 
-    <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
+    <div class="flex-grow overflow-y-auto overflow-x-hidden px-4">
       <router-view />
     </div>
 

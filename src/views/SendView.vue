@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-4 min-h-full">
+  <div class="flex flex-col gap-4 min-h-full py-4">
     <label>
       Receiver
       <input

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-col flex gap-4 h-full pt-2">
+  <div class="flex-col flex gap-4 h-full pt-6 pb-4">
     <div class="flex flex-col gap-4 flex-grow">
       <label
         >Wallet name

@@ -19,7 +19,7 @@ function navigateInTab(navigate: () => unknown, href: string) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 h-full">
+  <div class="flex flex-col gap-4 h-full py-4">
     <div class="flex-grow"></div>
     <router-link v-slot="{ navigate }" to="/add/new" custom>
       <button type="button" class="nav-btn" @click="navigate">

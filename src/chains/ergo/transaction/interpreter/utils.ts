@@ -1,6 +1,6 @@
-import { Amount, Box, TokenAmount } from "@fleet-sdk/common";
+import { Amount, TokenAmount } from "@fleet-sdk/common";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
-import { ErgoBoxCandidate, Token } from "@/types/connector";
+import { Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
 
@@ -19,13 +19,6 @@ export const tokensToOutputAssets = (
   });
 };
 
-export const boxCandidateToBoxAmounts = (b: ErgoBoxCandidate | Box) => {
-  return {
-    value: b.value.toString(),
-    assets: b.assets
-  };
-};
-
 export const tokenAmountToToken = (
   tokenAmount: TokenAmount<Amount>,
   metadata: AssetsMetadataMap
@@ -37,6 +30,3 @@ export const tokenAmountToToken = (
     name: metadata.get(tokenAmount.tokenId)?.name
   };
 };
-
-export const sortByTokenId = (tokens: Token[]) =>
-  tokens.sort((a, b) => (a.tokenId < b.tokenId ? -1 : 1));

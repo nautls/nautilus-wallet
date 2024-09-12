@@ -25,7 +25,7 @@ const plugins = [
   svgLoader(),
   topLevelAwait(),
   wasmLoader(),
-  nodePolyfills({ include: ["buffer"] })
+  nodePolyfills({ include: ["buffer"] }) // required by @ledgerhq/* packages
 ];
 
 // https://vitejs.dev/config/

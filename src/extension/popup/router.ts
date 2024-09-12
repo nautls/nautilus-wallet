@@ -44,6 +44,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/NftGalleryView.vue")
   },
   {
+    path: "/history",
+    name: "tx-history",
+    component: () => import("@/views/TransactionHistory.vue")
+  },
+  {
     path: "/receive",
     name: "receive-page",
     component: () => import("@/views/ReceiveView.vue")

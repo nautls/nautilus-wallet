@@ -1,5 +1,5 @@
 import type { Manifest } from "webextension-polyfill";
-import pkg from "../../package.json" assert { type: "json" };
+import pkg from "../../package.json";
 import { EXT_ENTRY_ROOT } from "../constants/extension";
 
 type Network = "mainnet" | "testnet";
@@ -46,6 +46,7 @@ export function buildManifest(network: Network, mode: string): Manifest.WebExten
     name: buildTitle(mode, network),
     short_name: "Nautilus",
     description: buildDescription(mode, network),
+    version_name: pkg.version,
     version: buildVersion(),
     icons: buildIcons(mode, network),
     content_security_policy: {

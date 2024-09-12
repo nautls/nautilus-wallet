@@ -22,6 +22,11 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
         <vue-feather type="image" class="m-3" size="22" />
       </tool-tip>
     </router-link>
+    <router-link to="/history" active-class="active" class="w-full tab-item">
+      <tool-tip position="bottom" label="History">
+        <vue-feather type="clock" class="m-3" size="22" />
+      </tool-tip>
+    </router-link>
     <router-link to="/receive" active-class="active" class="w-full tab-item">
       <tool-tip position="bottom" label="Receive">
         <vue-feather type="download" class="m-3" size="22" />

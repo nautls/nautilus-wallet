@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { difference, groupBy } from "lodash-es";
+import { groupBy } from "lodash-es";
 import {
   EIP12UnsignedInput,
   EIP12UnsignedTransaction,
@@ -16,8 +16,6 @@ import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";
 import { bn, decimalize, sumBy } from "@/common/bigNumber";
 import {
-  boxCandidateToBoxAmounts,
-  sortByTokenId,
   tokenAmountToToken,
   tokensToOutputAssets
 } from "@/chains/ergo/transaction/interpreter/utils";
@@ -96,18 +94,12 @@ export class TxInterpreter {
   }
 
   public get burning(): OutputAsset[] | undefined {
-    if (isEmpty(this._burningBalance)) {
-      return;
-    }
-
+    if (isEmpty(this._burningBalance)) return;
     return this._burningBalance;
   }
 
   public get fee(): OutputInterpreter | undefined {
-    if (!this._feeBox) {
-      return;
-    }
-
+    if (!this._feeBox) return;
     return new OutputInterpreter(this._feeBox, this._tx.inputs, this._metadata);
   }
 
@@ -120,51 +112,36 @@ export class TxInterpreter {
   }
 
   private _calcIncomingLeavingTotals() {
-    const ownInputAssets = utxoSum(this._ownInputs.map(boxCandidateToBoxAmounts));
-    const ownOutputAssets = utxoSum(this._ownOutputs.map(boxCandidateToBoxAmounts));
+    const diff = utxoDiff(utxoSum(this._ownOutputs), utxoSum(this._ownInputs));
 
-    // Set amounts of tokens that are in own inputs, but not on own outputs to 0 in outputs,
-    // so utxoDiff will calculate delta correctly instead of ignoring those tokens
-    const tokenIdsExclusiveToOwnInputs = difference(
-      ownInputAssets.tokens.map((t) => t.tokenId),
-      ownOutputAssets.tokens.map((t) => t.tokenId)
-    );
-    ownOutputAssets.tokens = ownOutputAssets.tokens.concat(
-      tokenIdsExclusiveToOwnInputs.map((id) => ({ tokenId: id, amount: 0n }))
-    );
-    const outputsMinusInputs = utxoDiff(ownOutputAssets, ownInputAssets);
-
-    // Handle non-ERG tokens
-    const totalIncomingTokens = outputsMinusInputs.tokens
+    // Handle tokens
+    const totalIncoming = diff.tokens
       .filter((t) => t.amount > 0n)
       .map((t) => tokenAmountToToken(t, this._metadata));
-    const totalLeavingTokens = outputsMinusInputs.tokens
+    const totalLeaving = diff.tokens
       .filter((t) => t.amount < 0n)
       .map((t) => tokenAmountToToken({ tokenId: t.tokenId, amount: -t.amount }, this._metadata));
 
     // Handle ERG
-    if (outputsMinusInputs.nanoErgs !== 0n) {
+    if (diff.nanoErgs !== 0n) {
       const ergToken = tokenAmountToToken(
         {
           tokenId: ERG_TOKEN_ID,
-          amount:
-            outputsMinusInputs.nanoErgs > 0n
-              ? outputsMinusInputs.nanoErgs
-              : -outputsMinusInputs.nanoErgs
+          amount: diff.nanoErgs > 0n ? diff.nanoErgs : -diff.nanoErgs
         },
         this._metadata
       );
 
-      if (outputsMinusInputs.nanoErgs > 0n) {
-        totalIncomingTokens.push(ergToken);
+      if (diff.nanoErgs > 0n) {
+        totalIncoming.unshift(ergToken);
       } else {
-        totalLeavingTokens.push(ergToken);
+        totalLeaving.unshift(ergToken);
       }
     }
 
     // Sort to make ERG first
-    this._totalIncoming = tokensToOutputAssets(sortByTokenId(totalIncomingTokens), this._metadata);
-    this._totalLeaving = tokensToOutputAssets(sortByTokenId(totalLeavingTokens), this._metadata);
+    this._totalIncoming = tokensToOutputAssets(totalIncoming, this._metadata);
+    this._totalLeaving = tokensToOutputAssets(totalLeaving, this._metadata);
   }
 
   private _calcBurningBalance() {
@@ -174,6 +151,7 @@ export class TxInterpreter {
         .map((x) => x.assets)
         .flat()
     );
+
     if (!inputTotals) {
       this._burningBalance = [];
       return;
@@ -187,9 +165,7 @@ export class TxInterpreter {
     );
     if (outputTotals) {
       for (const key in outputTotals) {
-        if (!inputTotals[key]) {
-          continue;
-        }
+        if (!inputTotals[key]) continue;
         inputTotals[key] = inputTotals[key].minus(outputTotals[key]);
       }
     }
@@ -206,9 +182,7 @@ export class TxInterpreter {
   }
 
   private _sumTokens(assets: Token[]) {
-    if (isEmpty(assets)) {
-      return;
-    }
+    if (isEmpty(assets)) return;
 
     const groups = groupBy(
       assets.map((x) => {
@@ -226,9 +200,7 @@ export class TxInterpreter {
   }
 
   private _determineChangeBoxes(): ErgoBoxCandidate[] {
-    if (isEmpty(this._ownInputs) || isEmpty(this._ownOutputs)) {
-      return [];
-    }
+    if (isEmpty(this._ownInputs) || isEmpty(this._ownOutputs)) return [];
 
     const inputAssets = utxoSum(this._ownInputs);
     const outputAssets = utxoSum(this._ownOutputs);
@@ -259,9 +231,7 @@ export class TxInterpreter {
     const changeBoxes: ErgoBoxCandidate[] = [];
     for (const output of this._ownOutputs) {
       const outputValue = BigInt(output.value);
-      if (remainingInputErg < outputValue) {
-        continue;
-      }
+      if (remainingInputErg < outputValue) continue;
 
       const containsNonChangeAssets = !!output.assets.find(
         (token) =>

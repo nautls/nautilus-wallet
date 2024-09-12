@@ -120,7 +120,9 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
   }
 
   #loadServerUrl() {
-    storage.local.get("settings").then((s) => this.setUrl(s.graphQLServer ?? DEFAULT_SERVER_URL));
+    storage.local
+      .get("settings")
+      .then((s) => this.setUrl((s.graphQLServer as string) ?? DEFAULT_SERVER_URL));
   }
 
   async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {

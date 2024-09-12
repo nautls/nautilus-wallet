@@ -26,9 +26,7 @@ class NautilusDb extends Dexie {
       assets: "&[tokenId+address], &[address+tokenId], walletId"
     });
 
-    this.version(2).stores({
-      addresses: "&script, type, state, walletId"
-    });
+    this.version(2).stores({ addresses: "&script, type, state, walletId" });
 
     this.version(3).stores({
       connectedDApps: "&origin, walletId",
@@ -36,7 +34,7 @@ class NautilusDb extends Dexie {
     });
 
     this.version(4).upgrade(async (t) => {
-      t.table("wallets").each((obj, k) => {
+      t.table("wallets").each((_, k) => {
         t.table("wallets").update(k.primaryKey, {
           "settings.avoidAddressReuse": false,
           "settings.hideUsedAddresses": false,
@@ -45,19 +43,13 @@ class NautilusDb extends Dexie {
       });
     });
 
-    this.version(5).stores({
-      utxos: "&id, spentTxId, address, walletId"
-    });
+    this.version(5).stores({ utxos: "&id, spentTxId, address, walletId" });
 
     this.version(6)
-      .stores({
-        assetInfo: "&id, mintingBoxId, type, subtype"
-      })
+      .stores({ assetInfo: "&id, mintingBoxId, type, subtype" })
       .upgrade(async (t) => {
         const assets = await t.table("assets").toArray();
-        if (assets.length === 0) {
-          return;
-        }
+        if (assets.length === 0) return;
 
         const assetInfo = uniqBy(
           assets

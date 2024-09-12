@@ -26,7 +26,7 @@ async function remove(origin: string) {
 </script>
 
 <template>
-  <div class="flex flex-col h-max gap-4 text-center">
+  <div class="flex flex-col h-max gap-4 text-center py-4">
     <h1 v-if="connections.length === 0" class="text-lg font-bold text-gray-500 pt-4">
       No connected dApps
     </h1>
