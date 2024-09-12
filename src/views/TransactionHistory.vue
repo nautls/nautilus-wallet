@@ -3,11 +3,12 @@ import {
   ChainProviderConfirmedTransaction,
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
-import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { BoxSummary, orderBy, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { ErgoAddress, FEE_CONTRACT } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
+import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import { useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -43,6 +44,7 @@ const app = useAppStore();
 
 const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
+const allLoaded = ref(false);
 
 const allAddresses = computed(() => wallet.addresses.map((x) => x.script));
 const usedAddresses = computed(() =>
@@ -76,7 +78,8 @@ const history = computed(() =>
 
 const { isLoading, reset: resetScrolling } = useInfiniteScroll(
   useTemplateRef("txEl"),
-  fetchConfirmedTransactions
+  fetchConfirmedTransactions,
+  { canLoadMore: () => !allLoaded.value }
 );
 
 async function fetchUnconfirmedTransactions() {
@@ -96,7 +99,10 @@ async function fetchConfirmedTransactions() {
   if (!confirmedGenerator.value) return;
 
   const response = await confirmedGenerator.value.next();
-  if (response.done) return;
+  if (response.done) {
+    allLoaded.value = true;
+    return;
+  }
 
   const mapped = response.value.map((x) => summarizeTransaction(x, ergoTrees.value));
   confirmed.value = [...confirmed.value, ...mapped];
@@ -118,6 +124,7 @@ watch(
 function reset() {
   confirmed.value = [];
   unconfirmed.value = [];
+  allLoaded.value = false;
   resetScrolling();
   fetchUnconfirmedTransactions();
 }
@@ -182,8 +189,6 @@ function positive(n: BigNumber): BigNumber {
 
 <template>
   <div ref="txEl" class="-mx-4 overflow-y-auto overflow-x-hidden h-full">
-    <p v-if="isLoading">loading</p>
-
     <div class="flex flex-col gap-4 text-sm pt-4 px-4">
       <div
         v-for="tx in history"
@@ -238,6 +243,32 @@ function positive(n: BigNumber): BigNumber {
             >
             <template v-else>Pending</template>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 text-sm pt-4 px-4">
+      <div class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4">
+        <div class="flex mb-2 justify-between">
+          <div class="skeleton h-5 w-6/12 rounded"></div>
+          <div class="skeleton h-4 rounded w-3/12"></div>
+        </div>
+        <div class="p-2 flex flex-col gap-2">
+          <div class="flex flex-row items-center gap-2">
+            <vue-feather
+              type="corner-right-down"
+              class="min-w-4 text-gray-300 animate-pulse"
+              size="16"
+            />
+            <empty-logo class="h-7 w-7 min-w-7 animate-pulse fill-gray-300" />
+            <div class="skeleton h-4 rounded w-5/12"></div>
+            <div class="w-full"></div>
+            <div class="skeleton h-4 rounded w-4/12"></div>
+          </div>
+        </div>
+        <div class="flex flex-row items-center gap-2 justify-between mt-2">
+          <div class="skeleton h-5 w-4/12 rounded"></div>
+          <div class="skeleton h-5 w-5/12 rounded"></div>
         </div>
       </div>
     </div>
