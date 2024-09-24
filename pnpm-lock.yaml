@@ -15,26 +15,26 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@fleet-sdk/babel-fees-plugin':
-        specifier: ^0.1.15
-        version: 0.1.15
+        specifier: ^0.1.16
+        version: 0.1.16
       '@fleet-sdk/blockchain-providers':
-        specifier: ^0.6.5
-        version: 0.6.5
+        specifier: ^0.7.0
+        version: 0.7.0
       '@fleet-sdk/common':
         specifier: ^0.6.4
         version: 0.6.4
       '@fleet-sdk/core':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.7.0
+        version: 0.7.0
       '@fleet-sdk/crypto':
         specifier: ^0.6.4
         version: 0.6.4
       '@fleet-sdk/serializer':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.7.0
+        version: 0.7.0
       '@fleet-sdk/wallet':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.7.0
+        version: 0.7.0
       '@ledgerhq/hw-transport-webusb':
         specifier: ^6.29.2
         version: 6.29.2
@@ -417,12 +417,12 @@ packages:
     resolution: {integrity: sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fleet-sdk/babel-fees-plugin@0.1.15':
-    resolution: {integrity: sha512-+okB/riC1MiLIOg5B00Gx0iGY8Dhj5VJOZTv3Honld6I+8xjco/indzYC8gDy19Bt1WVa/tNUGNVOnDflmgV1A==}
+  '@fleet-sdk/babel-fees-plugin@0.1.16':
+    resolution: {integrity: sha512-qMV7s50yCOabPRqg+W/CUWeUDNQVsee/9ZU2hHYTSMV+EL6IJor4pf9p+fwL16gCivVKQ5GkSVLNLyUALdsScg==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/blockchain-providers@0.6.5':
-    resolution: {integrity: sha512-bsWmfLNLwVmBe95zi7/dc68uTBSbcWC6cFik5ELkhPm8Ttg75JgW0DuEYaxN8awrZoX2K6GPtL3dPUM+XR0CYw==}
+  '@fleet-sdk/blockchain-providers@0.7.0':
+    resolution: {integrity: sha512-N9vAgnfNHlPwN5XtlTxKB5eAHtmJCBx18Kkui98BlHDP6OARaYy8pGIz1i+FWIRyIKGpW3ytiHdXrkkqZZK65Q==}
     engines: {node: '>=18'}
 
   '@fleet-sdk/common@0.4.1':
@@ -437,8 +437,8 @@ packages:
     resolution: {integrity: sha512-c1xEXrrOg6Etr0VligsYf2uyxbKA8IQdVF0yQlb+aeUDcJWXDb2uQ/Wc7o6XqqpYfk8xN9BL6LiSTNa0GxS+Aw==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/core@0.6.4':
-    resolution: {integrity: sha512-UMjyoKgeYRjjnIB/O8+UIWMjtfIyCZYe5wDJpyQsb/rdNS3fyqwWuaOG0KE10ngaFai5L5cQchvnuW5ylx6Yfw==}
+  '@fleet-sdk/core@0.7.0':
+    resolution: {integrity: sha512-DHsQs2vPZ3laDVhpxA6gREDRAP6gEZKvH/sGhBNEyLF1gVkAFvq1XkTjgwXcJiQOyORKXeibK2nNzNfYk8EV0Q==}
     engines: {node: '>=18'}
 
   '@fleet-sdk/crypto@0.5.0':
@@ -453,12 +453,12 @@ packages:
     resolution: {integrity: sha512-pQsebhoJKhdmj9jZSh5pqwiVn/S+FkYdltdYDoWLTTR8x4zAxNyB4OORybnMojJTpjoUyEO+kK+LiA+7OrbpCg==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/serializer@0.6.4':
-    resolution: {integrity: sha512-3kNe7nGkW5GS9S57EDmKB84LH3AMsXywvOJIuv/XKA8oi4YcrekAQ7E8DKEjpjjNH8VbezK6v/LEm8cHGJJwMw==}
+  '@fleet-sdk/serializer@0.7.0':
+    resolution: {integrity: sha512-yI5huij2i6fUjFKMNmjVihgUnwSVYx8damx+Iiuvv0q+87aumy/rcixpRAC6H2I+KCbsASjOSIkRTBYrX738Ww==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/wallet@0.6.4':
-    resolution: {integrity: sha512-AKffD9cSL2bWWCNbrjitIJ+EnKq15APykh/4hSqFS2sem/OYsCBkkRjlpGr1eqjatdHXEbSjmAxYGLvsG0+xYw==}
+  '@fleet-sdk/wallet@0.7.0':
+    resolution: {integrity: sha512-W1FDiSY2SDLbeb25IwPxgnJ1fxFgMsxDgc4ntr4hdjjxoXAiqywXsjDDBPnoh1ydI9DTMiDVKVazOVTjZY0n2w==}
     engines: {node: '>=18'}
 
   '@humanwhocodes/config-array@0.11.14':
@@ -3458,16 +3458,16 @@ snapshots:
 
   '@eslint/js@8.57.0': {}
 
-  '@fleet-sdk/babel-fees-plugin@0.1.15':
+  '@fleet-sdk/babel-fees-plugin@0.1.16':
     dependencies:
       '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/core': 0.6.4
-      '@fleet-sdk/serializer': 0.6.4
+      '@fleet-sdk/core': 0.7.0
+      '@fleet-sdk/serializer': 0.7.0
 
-  '@fleet-sdk/blockchain-providers@0.6.5':
+  '@fleet-sdk/blockchain-providers@0.7.0':
     dependencies:
       '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/core': 0.6.4
+      '@fleet-sdk/core': 0.7.0
 
   '@fleet-sdk/common@0.4.1': {}
 
@@ -3479,11 +3479,11 @@ snapshots:
       '@fleet-sdk/crypto': 0.5.0
       '@fleet-sdk/serializer': 0.5.0
 
-  '@fleet-sdk/core@0.6.4':
+  '@fleet-sdk/core@0.7.0':
     dependencies:
       '@fleet-sdk/common': 0.6.4
       '@fleet-sdk/crypto': 0.6.4
-      '@fleet-sdk/serializer': 0.6.4
+      '@fleet-sdk/serializer': 0.7.0
 
   '@fleet-sdk/crypto@0.5.0':
     dependencies:
@@ -3502,17 +3502,17 @@ snapshots:
       '@fleet-sdk/common': 0.4.1
       '@fleet-sdk/crypto': 0.5.0
 
-  '@fleet-sdk/serializer@0.6.4':
+  '@fleet-sdk/serializer@0.7.0':
     dependencies:
       '@fleet-sdk/common': 0.6.4
       '@fleet-sdk/crypto': 0.6.4
 
-  '@fleet-sdk/wallet@0.6.4':
+  '@fleet-sdk/wallet@0.7.0':
     dependencies:
       '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/core': 0.6.4
+      '@fleet-sdk/core': 0.7.0
       '@fleet-sdk/crypto': 0.6.4
-      '@fleet-sdk/serializer': 0.6.4
+      '@fleet-sdk/serializer': 0.7.0
       '@noble/curves': 1.4.2
       '@scure/bip32': 1.4.0
       '@scure/bip39': 1.3.0
