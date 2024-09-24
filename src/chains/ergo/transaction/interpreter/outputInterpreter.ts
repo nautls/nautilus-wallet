@@ -3,6 +3,7 @@ import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
 import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
 import { utf8 } from "@fleet-sdk/crypto";
 import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
+import { decode } from "@fleet-sdk/serializer";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -155,8 +156,7 @@ export class OutputInterpreter {
       };
     }
 
-    const decodedDecimals = sigmaDecode(this._box.additionalRegisters["R6"], utf8);
-    const decimals = decodedDecimals ? parseInt(decodedDecimals) : undefined;
+    const decimals = decodeDecimals(this._box.additionalRegisters["R6"]);
     return {
       tokenId: token.tokenId,
       name: sigmaDecode(this._box.additionalRegisters["R4"], utf8) ?? "",
@@ -166,4 +166,15 @@ export class OutputInterpreter {
       minting: true
     };
   }
+}
+
+function decodeDecimals(value: string): number | undefined {
+  const r6 = decode(value);
+  if (!r6) return;
+
+  if (r6.type.toString() === "SColl[SByte]") {
+    return Number.parseInt(utf8.encode(r6.data as Uint8Array), 10);
+  }
+
+  return typeof r6.data === "number" ? r6.data : Number(r6.data);
 }

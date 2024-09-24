@@ -248,7 +248,7 @@ function addressInfoMapper(gqlAddressInfo: Address): AddressInfo {
   return mapped;
 }
 
-export function parseEIP4Asset(tokenInfo: Token): IAssetInfo {
+function parseEIP4Asset(tokenInfo: Token): IAssetInfo {
   if (!tokenInfo.box) throw new Error("Asset box info is missing");
 
   const registers = tokenInfo.box.additionalRegisters as Registers;
