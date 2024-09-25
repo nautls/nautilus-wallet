@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -45,7 +45,7 @@
     "mdi-vue": "^3.0.13",
     "pinia": "^2.2.2",
     "uqr": "^0.1.2",
-    "vue": "^3.5.4",
+    "vue": "^3.5.8",
     "vue-feather": "^2.0.0",
     "vue-json-pretty": "2.4.0",
     "vue-router": "^4.4.4",
