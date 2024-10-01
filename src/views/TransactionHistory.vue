@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { orderBy, uniqBy } from "@fleet-sdk/common";
-import { BigNumber } from "bignumber.js";
+import type { BigNumber } from "bignumber.js";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
@@ -13,7 +13,7 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { AddressState } from "@/types/internal";
 import { useChainStore } from "@/stores/chainStore";
 import { useAppStore } from "@/stores/appStore";
-import { ConfirmedTransactionSummary } from "@/types/transactions";
+import type { ConfirmedTransactionSummary } from "@/types/transactions";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 
 const wallet = useWalletStore();
