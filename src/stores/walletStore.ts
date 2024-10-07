@@ -3,7 +3,6 @@ import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { groupBy, maxBy } from "lodash-es";
 import type { BigNumber } from "bignumber.js";
 import { useRouter } from "vue-router";
-import { ErgoAddress } from "@fleet-sdk/core";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
@@ -27,8 +26,6 @@ import { hdKeyPool } from "@/common/objectPool";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { patchArray } from "@/common/reactivity";
-import { UnconfirmedTransactionSummary } from "@/types/transactions";
-import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 
 export type StateAssetSummary = {
   tokenId: string;
@@ -38,7 +35,6 @@ export type StateAssetSummary = {
 };
 
 const usePrivateStateStore = defineStore("_wallet", () => {
-  const pendingTransactions = shallowRef<UnconfirmedTransactionSummary[]>([]);
   const addresses = shallowRef<IDbAddress[]>([]);
   const assets = shallowRef<IDbAsset[]>([]);
 
@@ -64,7 +60,6 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     chainCode: ref(""),
     lastSynced: ref(0),
     hasOldUtxos: ref(false),
-    pendingTransactions,
     addresses,
     assets,
     patchAddresses,
@@ -229,10 +224,6 @@ export const useWalletStore = defineStore("wallet", () => {
 
   const artworkBalance = computed(() => balance.value.filter(artwork));
   const nonArtworkBalance = computed(() => balance.value.filter((x) => !artwork(x)));
-  const addressesStr = computed(() => addresses.value.map((x) => x.script));
-  const ergoTrees = computed(
-    () => new Set(addresses.value.map((x) => ErgoAddress.decodeUnsafe(x.script).ergoTree))
-  );
 
   // #region public actions
   async function load(walletId: number, opt = { syncInBackground: true }) {
@@ -247,7 +238,6 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.chainCode = wlt.chainCode;
     privateState.lastSynced = wlt.lastSynced ?? 0;
     privateState.hasOldUtxos = false;
-    privateState.pendingTransactions = [];
     name.value = wlt.name;
     settings.value = wlt.settings;
 
@@ -271,7 +261,6 @@ export const useWalletStore = defineStore("wallet", () => {
     } else {
       await sync();
     }
-    fetchUnconfirmedTransactions();
 
     setLoading(false);
   }
@@ -381,21 +370,6 @@ export const useWalletStore = defineStore("wallet", () => {
     setSyncing(false);
   }
 
-  async function fetchUnconfirmedTransactions() {
-    if (addressesStr.value.length === 0) return;
-
-    const response = await graphQLService.getUnconfirmedTransactions({
-      where: { addresses: addressesStr.value }
-    });
-
-    const txns = response.map((x) => summarizeTransaction(x, ergoTrees.value));
-    privateState.pendingTransactions = txns;
-
-    if (txns.length > 0) {
-      assetsStore.loadMetadata(txns.flatMap((x) => x.delta.map((y) => y.tokenId)));
-    }
-  }
-
   function setSyncing(value: boolean) {
     privateState.syncing = value;
   }
@@ -411,7 +385,6 @@ export const useWalletStore = defineStore("wallet", () => {
     chainCode: computed(() => privateState.chainCode),
     loading: computed(() => privateState.loading),
     syncing: computed(() => privateState.syncing),
-    pendingTransactions: computed(() => privateState.pendingTransactions),
     health,
     name,
     settings,

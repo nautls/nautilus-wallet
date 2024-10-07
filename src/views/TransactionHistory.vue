@@ -15,12 +15,15 @@ import { useChainStore } from "@/stores/chainStore";
 import { useAppStore } from "@/stores/appStore";
 import type { ConfirmedTransactionSummary } from "@/types/transactions";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
+import { usePoolStore } from "@/stores/poolStore";
+
+const formatter = useFormat();
 
 const wallet = useWalletStore();
-const formatter = useFormat();
 const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
+const pool = usePoolStore();
 
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 const allLoaded = ref(false);
@@ -42,11 +45,7 @@ const confirmedGenerator = computed(() => {
 
 const history = computed(() =>
   orderBy(
-    uniqBy(
-      [...wallet.pendingTransactions, ...confirmed.value],
-      (x) => x.transactionId,
-      "keep-last"
-    ),
+    uniqBy([...pool.transactions, ...confirmed.value], (x) => x.transactionId, "keep-last"),
     (x) => x.timestamp,
     "desc"
   ).map((x) => ({
