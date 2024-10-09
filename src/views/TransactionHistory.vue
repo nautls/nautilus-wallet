@@ -57,7 +57,6 @@ const history = computed(() =>
 
 function mapDelta(utxoSummary: BoxSummary) {
   const tokens = utxoSummary.tokens.map((x) => token(x.tokenId, x.amount));
-
   return utxoSummary.nanoErgs === 0n
     ? tokens
     : [token(ERG_TOKEN_ID, utxoSummary.nanoErgs), ...tokens];
@@ -68,7 +67,7 @@ function token(tokenId: string, amount: bigint) {
   return {
     tokenId,
     amount: decimalize(bn(amount.toString()), metadata?.decimals),
-    metadata: metadata
+    metadata
   };
 }
 
