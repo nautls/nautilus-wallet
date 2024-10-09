@@ -1,4 +1,4 @@
-import { Amount, BoxSummary, TokenAmount, utxoDiff } from "@fleet-sdk/common";
+import { Amount, TokenAmount, utxoDiff } from "@fleet-sdk/common";
 import {
   ChainProviderConfirmedTransaction,
   ChainProviderUnconfirmedTransaction
@@ -9,7 +9,7 @@ import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpr
 import { Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { ERG_DECIMALS } from "@/constants/ergo";
 import { ConfirmedTransactionSummary, UnconfirmedTransactionSummary } from "@/types/transactions";
 
 export const tokensToOutputAssets = (
@@ -63,7 +63,7 @@ export function summarizeTransaction(
       new BigNumber(transaction.outputs.find((x) => x.ergoTree === FEE_CONTRACT)?.value ?? 0),
       ERG_DECIMALS
     ),
-    delta: mapDelta(utxoDiff(ownOutputs, ownInputs)),
+    delta: utxoDiff(ownOutputs, ownInputs),
     confirmed: transaction.confirmed,
     height: "height" in transaction ? transaction.height : undefined
   };
@@ -71,15 +71,4 @@ export function summarizeTransaction(
   return transaction.confirmed
     ? (summary as ConfirmedTransactionSummary)
     : ({ ...summary, transaction } as UnconfirmedTransactionSummary);
-}
-
-function mapDelta(utxoSummary: BoxSummary): TokenAmount<BigNumber>[] {
-  const tokens = utxoSummary.tokens.map((x) => ({
-    tokenId: x.tokenId,
-    amount: bn(x.amount.toString())
-  }));
-
-  return utxoSummary.nanoErgs === 0n
-    ? tokens
-    : [{ tokenId: ERG_TOKEN_ID, amount: bn(utxoSummary.nanoErgs.toString()) }, ...tokens];
 }

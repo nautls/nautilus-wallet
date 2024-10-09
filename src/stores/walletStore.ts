@@ -8,6 +8,7 @@ import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { useChainStore } from "./chainStore";
+import { usePoolStore } from "./poolStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
   AddressState,
@@ -73,6 +74,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const assetsStore = useAssetsStore();
   const privateState = usePrivateStateStore();
   const chain = useChainStore();
+  const pool = usePoolStore();
 
   // #region  state
   const name = ref("");
@@ -154,18 +156,35 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   const balance = computed((): StateAssetSummary[] => {
-    const summary = [] as StateAssetSummary[];
+    const poolBalance = new Map(pool.balance);
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
+    let summary = [] as StateAssetSummary[];
+    let patched = false;
+
     for (const tokenId in groupedAssets) {
       if (assetsStore.blacklist.includes(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
+      const unconfirmedAmount = poolBalance.get(tokenId) ?? 0;
+      if (poolBalance.delete(tokenId)) patched = true;
+
       summary.push({
-        tokenId: assetGroup[0].tokenId,
-        confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount),
+        tokenId,
+        confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount).plus(unconfirmedAmount),
         unconfirmedAmount: sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
         metadata: assetGroup[0].metadata
       });
+    }
+
+    if (poolBalance.size > 0) {
+      for (const [tokenId, amount] of poolBalance) {
+        summary.push({
+          tokenId,
+          confirmedAmount: amount,
+          unconfirmedAmount: bn(0),
+          metadata: assetsStore.metadata.get(tokenId)
+        });
+      }
     }
 
     if (summary.length === 0) {
@@ -173,9 +192,14 @@ export const useWalletStore = defineStore("wallet", () => {
         {
           tokenId: ERG_TOKEN_ID,
           confirmedAmount: bn(0),
+          unconfirmedAmount: bn(0),
           metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
         }
       ];
+    }
+
+    if (patched) {
+      summary = summary.filter((x) => x.confirmedAmount.gt(0));
     }
 
     return summary.sort((a, b) =>

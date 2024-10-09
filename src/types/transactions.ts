@@ -1,13 +1,12 @@
 import { ChainProviderUnconfirmedTransaction } from "@fleet-sdk/blockchain-providers";
 import { BigNumber } from "bignumber.js";
-import { TokenAmount } from "@fleet-sdk/common";
-import { BasicAssetMetadata } from "./internal";
+import { BoxSummary } from "@fleet-sdk/common";
 
 export type TransactionSummary = {
   transactionId: string;
   timestamp: number;
   fee: BigNumber;
-  delta: (TokenAmount<BigNumber> & { metadata?: BasicAssetMetadata })[];
+  delta: BoxSummary;
 };
 
 export type ConfirmedTransactionSummary = TransactionSummary & {

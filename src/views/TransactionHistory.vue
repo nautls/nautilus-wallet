@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
-import { orderBy, uniqBy } from "@fleet-sdk/common";
+import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import type { BigNumber } from "bignumber.js";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import { useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { decimalize } from "@/common/bigNumber";
+import { bn, decimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AddressState } from "@/types/internal";
@@ -16,6 +16,7 @@ import { useAppStore } from "@/stores/appStore";
 import type { ConfirmedTransactionSummary } from "@/types/transactions";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 import { usePoolStore } from "@/stores/poolStore";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 const formatter = useFormat();
 
@@ -50,13 +51,26 @@ const history = computed(() =>
     "desc"
   ).map((x) => ({
     ...x,
-    delta: x.delta.map((x) => ({
-      tokenId: x.tokenId,
-      amount: decimalize(x.amount, assets.metadata.get(x.tokenId)?.decimals),
-      metadata: assets.metadata.get(x.tokenId)
-    }))
+    delta: mapDelta(x.delta)
   }))
 );
+
+function mapDelta(utxoSummary: BoxSummary) {
+  const tokens = utxoSummary.tokens.map((x) => token(x.tokenId, x.amount));
+
+  return utxoSummary.nanoErgs === 0n
+    ? tokens
+    : [token(ERG_TOKEN_ID, utxoSummary.nanoErgs), ...tokens];
+}
+
+function token(tokenId: string, amount: bigint) {
+  const metadata = assets.metadata.get(tokenId);
+  return {
+    tokenId,
+    amount: decimalize(bn(amount.toString()), metadata?.decimals),
+    metadata: metadata
+  };
+}
 
 const { isLoading, reset: resetScrolling } = useInfiniteScroll(
   useTemplateRef("txEl"),
@@ -76,7 +90,7 @@ async function fetchConfirmedTransactions() {
   const mapped = response.value.map((x) => summarizeTransaction(x, ergoTrees.value));
   confirmed.value = [...confirmed.value, ...mapped];
   if (mapped.length > 0) {
-    assets.loadMetadata(mapped.flatMap((x) => x.delta.map((y) => y.tokenId)));
+    assets.loadMetadata(mapped.flatMap((x) => x.delta.tokens.map((y) => y.tokenId)));
   }
 }
 
