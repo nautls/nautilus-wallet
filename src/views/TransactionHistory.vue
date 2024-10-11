@@ -49,10 +49,7 @@ const history = computed(() =>
     uniqBy([...pool.transactions, ...confirmed.value], (x) => x.transactionId, "keep-last"),
     (x) => x.timestamp,
     "desc"
-  ).map((x) => ({
-    ...x,
-    delta: mapDelta(x.delta)
-  }))
+  ).map((x) => ({ ...x, delta: mapDelta(x.delta) }))
 );
 
 function mapDelta(utxoSummary: BoxSummary) {
