@@ -12,12 +12,19 @@
         <a :href="commitUrl" target="_blank" class="url">{{ shortGitHash }}</a>
       </p>
     </div>
-    <p class="italic text-gray-600 text-base">
+    <p class="italic text-gray-600 text-sm">
       Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of
       land-based governments.
     </p>
 
     <div class="flex-grow"></div>
+
+    <a
+      class="m-auto url text-sm"
+      target="_blank"
+      href="https://github.com/nautls/nautilus-wallet/blob/master/privacy-policy.md"
+      >Privacy Policy</a
+    >
 
     <p class="text-sm">
       Support the development by donating to:
@@ -41,11 +48,6 @@
         ><vue-feather type="send" class="m-auto"
       /></a>
     </div>
-
-    <p class="text-sm text-gray-500">
-      Pricing rates powered by
-      <a class="url" target="_blank" href="https://www.coingecko.com/en/api">CoinGecko API</a>
-    </p>
   </div>
 </template>
 
