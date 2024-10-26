@@ -5,7 +5,7 @@ At **Nautilus Wallet**, we take your privacy seriously. This privacy policy outl
 1. **Data Collection**
 
    - We do not collect any personal data.
-   - Our extension queries public nodes for balance and transaction history but **does not store any information**.
+   - Our extension uses wallet addresses to query public nodes for balance and transaction history but **does not store any of this information**.
 
 2. **Data Sharing**
 
@@ -21,7 +21,7 @@ At **Nautilus Wallet**, we take your privacy seriously. This privacy policy outl
 
 5. **Third-Party Services**
 
-   - Our extension queries public nodes to retrieve balance and transaction history.
+   - Our extension uses wallet addresses to query public nodes to retrieve balance and transaction history.
 
 6. **Changes to This Privacy Policy**
    - Any changes to our privacy policy will be communicated directly through updates to this document within the extension.
