@@ -156,7 +156,7 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   const balance = computed((): StateAssetSummary[] => {
-    const poolBalance = new Map(pool.balance);
+    const poolBalance = appStore.settings.enableZeroConf ? new Map(pool.balance) : new Map();
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
     let summary = [] as StateAssetSummary[];
     let patched = false;

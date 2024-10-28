@@ -21,7 +21,7 @@ const storageInterface: StorageLikeAsync = {
   },
   async getItem(key: string) {
     const storedData = await storage.local.get(key);
-    return storedData[key];
+    return storedData[key] as string;
   }
 };
 

@@ -6,11 +6,17 @@ import { utxosDbService } from "@/database/utxosDbService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 
-export async function fetchBoxes(walletId: number): Promise<ChainProviderBox<string>[]> {
+export async function fetchBoxes(
+  walletId: number,
+  includeUnconf = true
+): Promise<ChainProviderBox<string>[]> {
   const addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
   const localUnconfirmedBoxes = await utxosDbService.getByWalletId(walletId);
 
-  let boxes = await graphQLService.getBoxes({ where: { addresses } });
+  let boxes = await graphQLService.getBoxes({
+    where: { addresses },
+    from: includeUnconf ? "blockchain+mempool" : "blockchain"
+  });
 
   if (boxes.length === 0 && !localUnconfirmedBoxes.find((b) => !b.locked && b.content)) {
     boxes = await graphQLService.getBoxes({

@@ -10,10 +10,12 @@ import { FeeSettings, WalletType } from "@/types/internal";
 import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
+import { useAppStore } from "@/stores/appStore";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 const wallet = useWalletStore();
+const app = useAppStore();
 
 export type TxAssetAmount = {
   asset: StateAssetSummary;
@@ -32,7 +34,7 @@ export async function createP2PTransaction({
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
   const [inputs, currentHeight] = await Promise.all([
-    fetchBoxes(wallet.id),
+    fetchBoxes(wallet.id, app.settings.enableZeroConf),
     graphQLService.getHeight()
   ]);
 

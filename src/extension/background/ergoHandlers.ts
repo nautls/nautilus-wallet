@@ -2,6 +2,7 @@ import { groupBy } from "lodash-es";
 import { Box, isDefined, some } from "@fleet-sdk/common";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
+import { getSettings } from "./settings";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -19,7 +20,8 @@ export async function checkConnection(origin: string) {
 }
 
 export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
-  const boxes = await fetchBoxes(walletId);
+  const settings = await getSettings();
+  const boxes = await fetchBoxes(walletId, settings.enableZeroConf);
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
     (box) => box.creationHeight
   );
