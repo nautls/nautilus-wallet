@@ -18,11 +18,31 @@ export const usePoolStore = defineStore("pool", () => {
   const assets = useAssetsStore();
 
   const transactions = shallowRef<UnconfirmedTransactionSummary[]>([]);
-  const interval = useIntervalFn(fetchTransactions, REFRESH_INTERVAL, { immediateCallback: true });
+  const interval = useIntervalFn(fetchTransactions, REFRESH_INTERVAL);
 
   const addresses = computed(() => wallet.addresses.map((x) => x.script));
   const ergoTrees = computed(
     () => new Set(wallet.addresses.map((x) => ErgoAddress.decodeUnsafe(x.script).ergoTree))
+  );
+
+  watch(
+    () => wallet.loading,
+    (loading) => {
+      if (loading && interval.isActive) {
+        interval.pause();
+      } else if (!loading && !interval.isActive) {
+        fetchTransactions();
+        interval.resume();
+      }
+    }
+  );
+
+  watch(
+    () => wallet.addresses,
+    (addresses) => {
+      if (!addresses.length) return;
+      resetInterval();
+    }
   );
 
   const balance = computed(() => {
@@ -47,14 +67,6 @@ export const usePoolStore = defineStore("pool", () => {
   });
 
   onUnmounted(() => interval.pause());
-
-  watch(
-    () => wallet.addresses,
-    (addresses) => {
-      if (!addresses.length) return;
-      resetInterval();
-    }
-  );
 
   function resetInterval() {
     interval.pause();
