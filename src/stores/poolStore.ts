@@ -28,9 +28,10 @@ export const usePoolStore = defineStore("pool", () => {
   watch(
     () => wallet.loading,
     (loading) => {
-      if (loading && interval.isActive) {
+      if (loading) {
         interval.pause();
-      } else if (!loading && !interval.isActive) {
+      } else if (!loading) {
+        transactions.value = [];
         fetchTransactions();
         interval.resume();
       }
