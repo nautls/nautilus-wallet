@@ -76,10 +76,13 @@ export const usePoolStore = defineStore("pool", () => {
 
   async function fetchTransactions() {
     if (addresses.value.length === 0) return;
+    const wId = wallet.id;
 
     const response = await graphQLService.getUnconfirmedTransactions({
       where: { addresses: addresses.value }
     });
+
+    if (wId !== wallet.id) return;
 
     const txns = response.map((x) => summarizeTransaction(x, ergoTrees.value));
     transactions.value = txns;
