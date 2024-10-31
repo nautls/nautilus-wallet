@@ -44,7 +44,7 @@ const confirmedGenerator = computed(() => {
   });
 });
 
-const history = computed(() =>
+const txHistory = computed(() =>
   orderBy(
     uniqBy([...pool.transactions, ...confirmed.value], (x) => x.transactionId, "keep-last"),
     (x) => x.timestamp,
@@ -119,7 +119,7 @@ function positive(n: BigNumber): BigNumber {
   <div ref="txEl" class="-mx-4 overflow-y-auto overflow-x-hidden h-full">
     <div class="flex flex-col gap-4 text-sm pt-4 px-4">
       <div
-        v-for="tx in history"
+        v-for="tx in txHistory"
         :key="tx.transactionId"
         class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4"
       >
