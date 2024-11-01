@@ -6,21 +6,29 @@ export default defineConfig({
   description: "Nautilus Technical Docs",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: "Home", link: "/" },
-      { text: "Examples", link: "/markdown-examples" }
-    ],
+    // nav: [
+    //   { text: "Home", link: "/" },
+    //   { text: "Examples", link: "/markdown-examples" }
+    // ],
 
     sidebar: [
       {
-        text: "Examples",
+        text: "dApp Connector API",
         items: [
-          { text: "Markdown Examples", link: "/markdown-examples" },
-          { text: "Runtime API Examples", link: "/api-examples" }
+          {
+            text: "Getting Started",
+            link: "dapp-connector/getting-started"
+          },
+          {
+            text: "Connecting to a Wallet",
+            link: "/dapp-connector/wallet-connection"
+          },
+          { text: "Signing a Transaction", link: "/dapp-connector/transaction-signing" },
+          { text: "Signing Arbitrary Data", link: "/dapp-connector/data-signing" }
         ]
       }
     ],
 
-    socialLinks: [{ icon: "github", link: "https://github.com/vuejs/vitepress" }]
+    socialLinks: [{ icon: "github", link: "https://github.com/nautls/nautilus-wallet" }]
   }
 });
