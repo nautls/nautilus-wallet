@@ -10,11 +10,9 @@
   "scripts": {
     "dev:mainnet": "vite",
     "dev:testnet": "VITE_NETWORK=testnet vite",
-    "dev:docs": "vitepress dev docs",
     "build:mainnet": "vite build",
     "build:testnet": "VITE_NETWORK=testnet vite build",
     "build:mainnet:stage": "vite build --mode staging",
-    "build:docs": "vitepress build docs",
     "test:unit": "vitest run",
     "test:lint": "echo not implemented",
     "fix:lint": "echo not implemented"
@@ -85,7 +83,6 @@
     "vite-plugin-web-extension": "^4.1.6",
     "vite-plugin-windicss": "^1.9.3",
     "vite-svg-loader": "^5.1.0",
-    "vitepress": "^1.4.3",
     "vitest": "^2.1.0",
     "vue-eslint-parser": "^9.4.3"
   }
