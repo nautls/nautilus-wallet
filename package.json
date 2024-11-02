@@ -16,7 +16,7 @@
     "build:mainnet:stage": "vite build --mode staging",
     "build:docs": "vitepress build docs",
     "test:unit": "vitest run",
-    "test:lint": "eslint",
+    "test:lint": "eslint .",
     "test:format": "prettier . --check"
   },
   "dependencies": {
