@@ -6,7 +6,11 @@ export default defineConfig({
   description: "Nautilus Technical Docs",
   cleanUrls: true,
   lastUpdated: true,
-  head: [["link", { rel: "icon", href: "/logo.svg" }]],
+  lang: "en-US",
+  head: [
+    ["link", { rel: "icon", href: "/logo.svg" }] // favicon
+  ],
+
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     editLink: {
