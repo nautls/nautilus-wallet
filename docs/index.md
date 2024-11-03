@@ -4,8 +4,11 @@ layout: home
 
 hero:
   name: "Nautilus Wallet"
-  # text: "Technical Docs"
-  tagline: Technical Docs
+  text: "Ergo Platform"
+  tagline: Technical Documentation
+  image:
+    src: /logo.svg
+    alt: Nautilus Wallet
   actions:
     - theme: brand
       text: dApp Connector API

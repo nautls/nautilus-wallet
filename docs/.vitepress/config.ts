@@ -4,8 +4,16 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Nautilus Wallet",
   description: "Nautilus Technical Docs",
+  cleanUrls: true,
+  lastUpdated: true,
+  head: [["link", { rel: "icon", href: "/logo.svg" }]],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    editLink: {
+      pattern: "https://github.com/nautls/nautilus-wallet/edit/master/docs/:path"
+    },
+    logo: { src: "/logo.svg", alt: "Nautilus Wallet Logo" },
+
     sidebar: [
       {
         text: "dApp Connector API",
