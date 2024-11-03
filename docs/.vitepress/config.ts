@@ -6,18 +6,13 @@ export default defineConfig({
   description: "Nautilus Technical Docs",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    // nav: [
-    //   { text: "Home", link: "/" },
-    //   { text: "Examples", link: "/markdown-examples" }
-    // ],
-
     sidebar: [
       {
         text: "dApp Connector API",
         items: [
           {
             text: "Getting Started",
-            link: "dapp-connector/getting-started"
+            link: "/dapp-connector/getting-started"
           },
           {
             text: "Connecting to a Wallet",

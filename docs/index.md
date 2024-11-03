@@ -4,8 +4,8 @@ layout: home
 
 hero:
   name: "Nautilus Wallet"
-  text: "Technical Docs"
-  tagline: My great project tagline
+  # text: "Technical Docs"
+  tagline: Technical Docs
   actions:
     - theme: brand
       text: dApp Connector API
