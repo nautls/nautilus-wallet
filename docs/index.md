@@ -12,7 +12,7 @@ hero:
   actions:
     - theme: brand
       text: dApp Connector API
-      link: /dapp-connector/getting-started
+      link: /dapp-connector/api-overview
 features:
   - title: Private
     details: Nautilus Wallet is designed with privacy at its core. It doesn’t log, collect, share, or sell any personal or transactional data, ensuring that your crypto activities remain completely confidential and anonymous.

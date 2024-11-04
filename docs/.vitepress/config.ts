@@ -23,8 +23,8 @@ export default defineConfig({
         text: "dApp Connector API",
         items: [
           {
-            text: "Getting Started",
-            link: "/dapp-connector/getting-started"
+            text: "API Overview",
+            link: "/dapp-connector/api-overview"
           },
           {
             text: "Connecting to a Wallet",
