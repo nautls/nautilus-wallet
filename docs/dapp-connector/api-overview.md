@@ -1,8 +1,8 @@
 # API Overview
 
-Nautilus provides a convenient and easy way for dApps to interact with wallets through its dApp Connector API, also known as EIP-12.
+Nautilus provides a convenient and easy way for dApps to interact with wallets through its dApp Connector API, also known as EIP-12 protocol.
 
-The dApp Connector API is an asynchronous wrapper on top of the `JSON-RPC` protocol that is injected into the browser's JavaScript context by the Nautilus Wallet extension. It's divided into two main parts: the **Connection API** and the **Context API**, as described below.
+The dApp Connector API is an asynchronous wrapper on top of a `JSON-RPC` protocol that is injected into the browser's page context by the Nautilus Wallet extension. It's divided into two main parts: the **Connection API** and the **Context API**, as described below.
 
 ## Connection API
 
