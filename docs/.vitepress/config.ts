@@ -36,6 +36,10 @@ export default defineConfig({
       }
     ],
 
-    socialLinks: [{ icon: "github", link: "https://github.com/nautls/nautilus-wallet" }]
+    socialLinks: [
+      { icon: "github", link: "https://github.com/nautls/nautilus-wallet" },
+      { icon: "x", link: "https://x.com/nautiluswallet" },
+      { icon: "discord", link: "https://discord.gg/ergo-platform-668903786361651200" }
+    ]
   }
 });
