@@ -6,6 +6,10 @@ outline: deep
 
 The first step in interacting with Nautilus is to request the access to the user. This is done using the `ergoConnector` object, which is automatically injected into the page context by the Nautilus Wallet web extension.
 
+:::warning
+**Work-in-Progress**: Non-reviewed text. You may find numerous writing errors throughout this guide.
+:::
+
 ## Check if Nautilus is running
 
 To check if the user has the Nautilus Wallet installed and running, check for the presence of the `ergoConnector` and then for `ergoConnector.nautilus`.

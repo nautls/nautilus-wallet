@@ -8,6 +8,10 @@ Nautilus provides a convenient and easy way for dApps to interact with wallets t
 
 The dApp Connector API is an asynchronous wrapper on top of a `JSON-RPC` protocol that is injected into the browser's page context by the Nautilus Wallet extension. It's divided into two main parts: the **Connection API** and the **Context API**, as described below.
 
+:::warning
+**Work-in-Progress**: Non-reviewed text. You may find numerous writing errors throughout this guide.
+:::
+
 ## Connection API
 
 The Connection API is responsible for handling wallet connection requests and providing initial information about available EIP-12 compatible wallet applications.
