@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # API Overview
 
 Nautilus provides a convenient and easy way for dApps to interact with wallets through its dApp Connector API, also known as EIP-12 protocol. The protocol provides a seamless bridge between your dApp and the user's wallet, enabling secure and efficient communication. This ensures that your dApp can perform necessary operations such as balance checks and transaction signing with the user's permission.
@@ -24,8 +28,49 @@ The Context API is responsible for handling wallet-related requests such as retr
 
 Once the connection request is accepted by the user, this API will be injected similarly to the Connection API, allowing interaction through the `ergo` object. Alternatively it can be returned by the `ergoConnector.nautilus.connect()` method as demonstrated in the [Wallet connection](/dapp-connector/wallet-connection) section.
 
-#### Example
-
 ```ts
 await ergo.get_balance();
+```
+
+## Types
+
+For a better development experience, Nautilus maintains a static typing library for the dApp Connector protocol. Follow the steps below to get types working in your TypeScript project.
+
+### Step. 1: Install the package
+
+Add `@nautilus-js/eip12-types` as a `dev-dependency`for your project.
+
+::: code-group
+
+```bash [npm]
+npm i @nautilus-js/eip12-types -D
+```
+
+```bash [pnpm]
+pnpm add @nautilus-js/eip12-types -D
+```
+
+```bash [bun]
+bun add @nautilus-js/eip12-types -D
+```
+
+```bash [yarn]
+yarn add @nautilus-js/eip12-types -D
+```
+
+:::
+
+### Step. 2: Tweak the `tsconfig.json` file
+
+Add `@nautilus-js/eip12-types` to the `compilerOptions.types` array.
+
+```jsonc
+// tsconfig.json
+{
+  "compilerOptions": {
+    // ...
+    // Add "@nautilus-js/eip12-types" to the types array
+    "types": ["@nautilus-js/eip12-types"]
+  }
+}
 ```
