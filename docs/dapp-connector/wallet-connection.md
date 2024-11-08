@@ -12,11 +12,11 @@ To check if the user has the Nautilus Wallet installed and running, check for th
 
 <!-- prettier-ignore-start -->
 ```ts
-if (ergoConnector) { // check if Connection API is injected // [!code focus]
-  if (ergoConnector.nautilus) { // check if Nautilus Wallet is available // [!code focus]
-    console.log("Nautilus Wallet is ready to use");
+if (ergoConnector) { // check if the Connection API is injected // [!code focus]
+  if (ergoConnector.nautilus) { // check if the Nautilus Wallet is available // [!code focus]
+    console.log("Nautilus is ready to use");
   } else {
-    console.log("Nautilus Wallet is not active");
+    console.log("Nautilus is not available");
   }
 } else {
   console.log("No wallet available");
