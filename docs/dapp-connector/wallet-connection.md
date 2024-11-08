@@ -6,7 +6,7 @@ outline: deep
 
 The first step in interacting with Nautilus is to request the access to the user. This is done using the `ergoConnector` object, which is automatically injected into the page context by the Nautilus Wallet web extension.
 
-## Step. 1: Check if Nautilus is running
+## Check if Nautilus is running
 
 To check if the user has the Nautilus Wallet installed and running, check for the presence of the `ergoConnector` and then for `ergoConnector.nautilus`.
 
@@ -24,7 +24,7 @@ if (ergoConnector) { // check if Connection API is injected // [!code focus]
 ```
 <!-- prettier-ignore-end -->
 
-## Step. 2: Request access
+## Request access
 
 After making sure that the Nautilus Wallet is installed and running, now it's time to request access to the user's wallet. This is done by calling the `ergoConnector.nautilus.connect()` method, as shown below.
 
@@ -45,3 +45,5 @@ The first time the `ergoConnector.nautilus.connect()` method is called, Nautilus
 ### Check if your dApp is authorized
 
 ### Check if your dApp is connected
+
+## Disconnect from the Wallet
