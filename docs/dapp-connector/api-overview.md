@@ -1,7 +1,3 @@
----
-outline: deep
----
-
 # API Overview
 
 Nautilus provides a convenient and easy way for dApps to interact with wallets through its dApp Connector API, also known as EIP-12 protocol. The protocol provides a seamless bridge between your dApp and the user's wallet, enabling secure and efficient communication. This ensures that your dApp can perform necessary operations such as balance checks and transaction signing with the user's permission.

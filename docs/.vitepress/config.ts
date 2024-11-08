@@ -16,6 +16,7 @@ export default defineConfig({
     editLink: {
       pattern: "https://github.com/nautls/nautilus-wallet/edit/master/docs/:path"
     },
+    outline: "deep",
     logo: { src: "/logo.svg", alt: "Nautilus Wallet Logo" },
 
     sidebar: [
