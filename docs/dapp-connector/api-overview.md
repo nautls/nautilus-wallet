@@ -34,7 +34,7 @@ await ergo.get_balance();
 
 ## Types
 
-For a better development experience, Nautilus maintains a static typing library for the dApp Connector protocol. Follow the steps below to get types working in your TypeScript project.
+For a better development experience, Nautilus [maintains a static typing library](https://github.com/capt-nemo429/eip12-types) for the dApp Connector protocol. Follow the steps below to get types working in your TypeScript project.
 
 ### Step. 1: Install the package
 
