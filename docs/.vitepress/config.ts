@@ -22,18 +22,19 @@ export default defineConfig({
     sidebar: [
       {
         text: "dApp Connector API",
+        base: "/dapp-connector/",
         items: [
           {
             text: "API Overview",
-            link: "/dapp-connector/api-overview"
+            link: "/api-overview"
           },
           {
             text: "Connecting to a Wallet",
-            link: "/dapp-connector/wallet-connection"
+            link: "/wallet-connection"
           },
           {
             text: "Interacting with a Wallet",
-            link: "/dapp-connector/wallet-interaction"
+            link: "/wallet-interaction"
           }
         ]
       }
