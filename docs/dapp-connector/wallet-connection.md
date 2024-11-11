@@ -38,12 +38,22 @@ if (connected) {
 }
 ```
 
-The first time the `ergoConnector.nautilus.connect()` method is called, Nautilus will pop up and prompt the user to allow or deny access to your dApp. By default, it will return `false` if the user declines, otherwise, it will return `true` and globally inject the `ergo` object which you can use to interact with the [Context API](/dapp-connector/api-overview#context-api). For the subsequent calls, if the dApp is previously authorized, the Nautilus pop-up prompt will be bypassed.
+The first time the `ergoConnector.nautilus.connect()` method is called, Nautilus will pop up and prompt the user to allow or deny access to your dApp. By default, it will return `false` if the user declines, otherwise, it will return `true` and globally inject the `ergo` object which you can use to interact with the [Context API](/dapp-connector/api-overview#context-api). For the subsequent calls, if the dApp is previously, the Nautilus pop-up prompt will be bypassed.
 
-### Avoid global instantiation of the `ergo` object
+### Avoid globally instantiating of the `ergo` object
 
-### Check if your dApp is authorized
+Sometimes we need to avoid instantiating the `ergo` object globally, especially when handling multiple wallets. To achieve this, follow these steps:
 
-### Check if your dApp is connected
+1. Call `ergoConnector.nautilus.connect({ createErgoObject: false })`. Calling the `connect` method with the parameter `{ createErgoObject: false }` will request a connection with the user's wallet without automatically instantiating the `ergo` object.
+2. Get the context object by calling the `ergoConnector.nautilus.getContext()` method.
+
+```ts
+const isConnected = await ergoConnector.nautilus.connect({ createErgoObject: false });
+if (isConnected) {
+  const ergo = await ergoConnector.nautilus.getContext();
+}
+```
+
+### Check for authorization and connection status
 
 ## Disconnect from the Wallet
