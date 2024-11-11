@@ -31,8 +31,10 @@ export default defineConfig({
             text: "Connecting to a Wallet",
             link: "/dapp-connector/wallet-connection"
           },
-          { text: "Signing a Transaction", link: "/dapp-connector/transaction-signing" },
-          { text: "Signing Arbitrary Data", link: "/dapp-connector/data-signing" }
+          {
+            text: "Interacting with a Wallet",
+            link: "/dapp-connector/wallet-interaction"
+          }
         ]
       }
     ],
