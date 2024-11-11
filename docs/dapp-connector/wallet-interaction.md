@@ -39,3 +39,11 @@ The code above returns an `array` with the balance of all assets owned by the co
 ```ts
 { tokenId: string, balance: string }[];
 ```
+
+## Get addresses
+
+To retrieve wallet addresses, you can use the following methods:
+
+- **`ergo.get_change_address()`**: this method returns the wallet's primary address.
+- **`ergo.get_used_addresses()`**: this method returns an `array` of used addresses.
+- **`ergo.get_unused_addresses()`**: this method returns an `array` of unused addresses.
