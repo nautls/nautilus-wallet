@@ -38,7 +38,7 @@ if (connected) {
 }
 ```
 
-The first time the `ergoConnector.nautilus.connect()` method is called, Nautilus will pop up and prompt the user to allow or deny access to the dApp. By default, it will return `false` if the user declines, otherwise, it will return `true` and globally inject the `ergo` object which you can use to interact with the [Context API](/dapp-connector/api-overview#context-api). For the subsequent calls, if the dApp is previously, the Nautilus pop-up prompt will be bypassed.
+The first time the `ergoConnector.nautilus.connect()` method is called, Nautilus will pop up and prompt the user to allow or deny access to your dApp. By default, it will return `false` if the user declines, otherwise, it will return `true` and globally inject the `ergo` object which you can use to interact with the [Context API](/dapp-connector/api-overview#context-api). For the subsequent calls, if the dApp is previously, the Nautilus pop-up prompt will be bypassed.
 
 ### Avoid globally instantiating of the `ergo` object
 
@@ -56,9 +56,11 @@ if (isConnected) {
 
 ### Check for authorization and connection status
 
-Nautilus provides methods to check both the authorization and connection status of the dApp with the wallet.
+Nautilus provides methods to check both the authorization and connection status of your dApp with the wallet.
 
-- `ergoConnector.nautilus.isConnected()`: Checks if there is an active connection between the dApp and Nautilus.
-- `ergoConnector.nautilus.isAuthorized()`: Checks if the dApp has been previously authorized by the user.
+- `ergoConnector.nautilus.isConnected()`: Checks if there is an active connection between your dApp and Nautilus.
+- `ergoConnector.nautilus.isAuthorized()`: Checks if your dApp has been previously authorized by the user.
 
 ## Disconnect from the Wallet
+
+You can disconnect from a wallet using the `ergoConnector.nautilus.disconnect()` method, which will revoke your dApp's authorization token. If you need to connect again in the future, the user will be prompted with a new connection request.
