@@ -82,7 +82,7 @@ const sigUsdUtxos = await ergo.get_utxos({
 ```
 
 :::tip
-Note that the `tokens` field is an `array`, which means you can filter by various tokens in the same call.
+Note that the `tokens` property is an `array`, which means you can filter by various tokens in the same call.
 :::
 
 ## Get the current height
@@ -94,3 +94,35 @@ You can make use of `ergo.get_current_height()` to get it.
 ```ts
 const currentHeight = await ergo.get_current_height();
 ```
+
+## Sign a transaction
+
+You can request a transaction signature by calling the `ergo.sign_tx()` method and passing an unsigned transaction object as parameter.
+
+```ts
+const unsignedTransaction = new TransactionBuilder(currentHeight)
+  .from(inputs)
+  .to(new OutputBuilder(1000000n, recipientAddress))
+  .sendChangeTo(changeAddress)
+  .payMinFee()
+  .build()
+  .toEIP12Object();
+
+const signedTransaction = await ergo.sign_tx(unsignedTransaction); // [!code focus]
+```
+
+When `ergo.sign_tx()` is called, a pop-up window will be displayed to the user, asking them to review and sign the transaction. If the user signs it successfully, the method will return a signed transaction `object` that can be submitted to the blockchain. Otherwise, it will throw an exception.
+
+:::info
+As the focus of this guide is specifically on the **dApp Connector** protocol, we will not cover the details of the transaction-building process. For more information on transaction building, please refer to the [Fleet SDK documentation](https://fleet-sdk.github.io/docs/transaction-building).
+:::
+
+## Submit a transaction
+
+Now you have a signed transaction you can submit it to the blockchain using the `ergo.submit_tx()` method.
+
+```ts
+const transactionId = await ergo.submit_tx(signedTransaction);
+```
+
+If the transaction is successfully accepted by the mempool, a `string` containing the `Transaction ID` will be returned otherwise, it will throw an exception.
