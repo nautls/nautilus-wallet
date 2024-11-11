@@ -47,3 +47,50 @@ To retrieve wallet addresses, you can use the following methods:
 - **`ergo.get_change_address()`**: this method returns the wallet's primary address.
 - **`ergo.get_used_addresses()`**: this method returns an `array` of used addresses.
 - **`ergo.get_unused_addresses()`**: this method returns an `array` of unused addresses.
+
+## Get UTxOs
+
+You can use the `ergo.get_utxos()` method to fetch unspent UTxOs owned by the selected wallet.
+
+```ts
+const utxos = await ergo.get_utxos();
+```
+
+The code above returns an array of all UTxOs owned by the selected wallet.
+
+### Filter UTxOs
+
+The `get_utxos()` method supports filters by `Token ID` and `amount`. The code below fetches all UTxOs containing the SigUSD token.
+
+```ts
+const sigUSDTokenId = "03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04";
+const sigUsdUtxos = await ergo.get_utxos({ tokens: [{ tokenId: sigUSDTokenId }] }); // [!code focus]
+```
+
+If needed, a target amount can be specified, so that the wallet returns UTxOs until the target is met.
+
+```ts
+const sigUSDTokenId = "03faf2cb329f2e90d6d23b58d91bbb6c046aa143261cc21f52fbe2824bfcbf04";
+const sigUsdUtxos = await ergo.get_utxos({
+  tokens: [
+    {
+      tokenId: sigUSDTokenId,
+      amount: "100" // [!code focus]
+    }
+  ]
+});
+```
+
+:::tip
+Note that the `tokens` field is an `array`, which means you can filter by various tokens in the same call.
+:::
+
+## Get the current height
+
+The current height stands for the latest block number included in the blockchain. This is necessary for transaction building.
+
+You can make use of `ergo.get_current_height()` to get it.
+
+```ts
+const currentHeight = await ergo.get_current_height();
+```
