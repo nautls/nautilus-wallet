@@ -26,15 +26,15 @@ export default defineConfig({
         items: [
           {
             text: "API Overview",
-            link: "/api-overview"
+            link: "api-overview"
           },
           {
             text: "Connecting to a Wallet",
-            link: "/wallet-connection"
+            link: "wallet-connection"
           },
           {
             text: "Interacting with a Wallet",
-            link: "/wallet-interaction"
+            link: "wallet-interaction"
           }
         ]
       }
