@@ -16,7 +16,7 @@ By default the `get_balance()` method returns the ERG balance as a `string`, but
 To avoid data loss due to limitations of JavaScript's default JSON parser, please note that all amounts returned by the dApp Connector are encoded as `strings`, even though they represent `integers`. This ensures the accuracy and integrity of the data being processed.
 :::
 
-### Get balance by Token ID
+### Get Balance by `Token ID`
 
 You can pass a `Token ID` as the parameter of the `get_balance()` method to get the balance of a specific token.
 
@@ -26,7 +26,7 @@ const sigUsdBalance = await ergo.get_balance(
 );
 ```
 
-### Get balance for all assets
+### Get Balance for All Assets
 
 To get the balance off all assets held by the connected wallet, pass the constant `all` as the parameter of the `get_balance()` method.
 
@@ -40,7 +40,7 @@ The code above returns an `array` with the balance of all assets owned by the co
 { tokenId: string, balance: string }[];
 ```
 
-## Get addresses
+## Get Addresses
 
 To retrieve wallet addresses, you can use the following methods:
 
@@ -85,7 +85,7 @@ const sigUsdUtxos = await ergo.get_utxos({
 Note that the `tokens` property is an `array`, which means you can filter by various tokens in the same call.
 :::
 
-## Get the current height
+## Get the Current Height
 
 The current height stands for the latest block number included in the blockchain. This is necessary for transaction building.
 
@@ -95,7 +95,7 @@ You can make use of `ergo.get_current_height()` to get it.
 const currentHeight = await ergo.get_current_height();
 ```
 
-## Sign a transaction
+## Sign a Transaction
 
 You can request a transaction signature by calling the `ergo.sign_tx()` method and passing an unsigned transaction object as parameter.
 
@@ -117,7 +117,7 @@ When `ergo.sign_tx()` is called, a pop-up window will be displayed to the user, 
 As the focus of this guide is specifically on the **dApp Connector** protocol, we will not cover the details of the transaction-building process. For more information on transaction building, please refer to the [Fleet SDK documentation](https://fleet-sdk.github.io/docs/transaction-building).
 :::
 
-## Submit a transaction
+### Submit a Transaction
 
 Now you have a signed transaction you can submit it to the blockchain using the `ergo.submit_tx()` method.
 
@@ -126,3 +126,7 @@ const transactionId = await ergo.submit_tx(signedTransaction);
 ```
 
 If the transaction is successfully accepted by the mempool, a `string` containing the `Transaction ID` will be returned otherwise, it will throw an exception.
+
+## Sign Arbitrary Data
+
+### Verify Signature
