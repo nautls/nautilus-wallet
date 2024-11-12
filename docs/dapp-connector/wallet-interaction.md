@@ -133,7 +133,7 @@ If the transaction is successfully accepted by the mempool, a `string` containin
 Nautilus supports arbitrary data signing through the `ergo.sign_data()` method. This method takes two arguments to prompt the user for a signature:
 
 1. **`address`**: The address from which the data should be signed.
-2. **`data`**: The data to be signed, which can be either a `string`, `number`, or a `JSON` object.
+2. **`data`**: The data to be signed, which can be either a `string`, a `number`, a `JSON` object, or an `array` or them.
 
 ```ts
 const address = await ergo.get_change_address();
