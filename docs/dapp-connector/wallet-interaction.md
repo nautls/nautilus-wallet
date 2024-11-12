@@ -154,9 +154,9 @@ import { ErgoAddress, ErgoMessage } from "@fleet-sdk/core";
 // note that the address, data, and proof must be the
 // same as in the signing step.
 
-const data = ErgoMessage.fromData({ foo: "bar", baz: 1 });
-const publicKey = ErgoAddress.decode(address).getPublicKeys()[0];
 const prover = new Prover();
+const data = ErgoMessage.fromData({ foo: "bar", baz: 1 });
+const [publicKey] = ErgoAddress.decode(address).getPublicKeys();
 
 const verified = prover.verify(data, proof, publicKey);
 ```
