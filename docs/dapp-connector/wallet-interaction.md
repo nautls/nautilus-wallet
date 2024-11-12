@@ -151,12 +151,13 @@ The `sign_data()` method uses the [EIP-44](https://github.com/ergoplatform/eips/
 import { Prover } from "@fleet-sdk/wallet";
 import { ErgoAddress, ErgoMessage } from "@fleet-sdk/core";
 
-// note that the address, data, and proof must be the
-// same as in the signing step.
-
 const prover = new Prover();
 const data = ErgoMessage.fromData({ foo: "bar", baz: 1 });
 const [publicKey] = ErgoAddress.decode(address).getPublicKeys();
 
 const verified = prover.verify(data, proof, publicKey);
 ```
+
+:::info
+Note that the `address`, `data`, and `proof` must be the same as in the signing step.
+:::
