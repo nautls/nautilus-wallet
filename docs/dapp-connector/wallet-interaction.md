@@ -2,6 +2,10 @@
 
 Once we gain access to the wallet, we can interact with it through the [Context API](/dapp-connector/api-overview#context-api). [As explained earlier](wallet-connection#avoid-globally-instantiating-of-the-ergo-object), this API may or may not be globally injected into your dApp's context, depending on your implementation.
 
+:::warning
+**Work-in-Progress**: Non-reviewed text. You may find numerous writing errors throughout this guide.
+:::
+
 ## Get Balance
 
 Let's start by getting the wallet's balance. To do this, use the `ergo.get_balance()` method.
