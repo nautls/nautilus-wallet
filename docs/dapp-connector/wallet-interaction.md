@@ -1,4 +1,4 @@
-# Interacting with a wallet
+# Interacting With a Wallet
 
 Once we gain access to the wallet, we can interact with it through the [Context API](/dapp-connector/api-overview#context-api). [As explained earlier](wallet-connection#avoid-globally-instantiating-of-the-ergo-object), this API may or may not be globally injected into your dApp's context, depending on your implementation.
 
