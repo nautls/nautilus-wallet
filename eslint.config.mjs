@@ -5,10 +5,8 @@ import parser from "vue-eslint-parser";
 import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
-  baseDirectory: __dirname,
+  baseDirectory: path.dirname(fileURLToPath(import.meta.url)),
   recommendedConfig: js.configs.recommended,
   allConfig: js.configs.all
 });
