@@ -17,7 +17,8 @@
     "build:docs": "vitepress build docs",
     "test:unit": "vitest run",
     "test:lint": "eslint .",
-    "test:format": "prettier . --check"
+    "test:format": "prettier . --check",
+    "fix:format": "prettier . --write"
   },
   "dependencies": {
     "@download/blockies": "^1.0.3",
