@@ -24,6 +24,7 @@ jobs:
         with:
           version: 9
 
+      - name: Lint and Format
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -48,7 +49,7 @@ jobs:
         with:
           version: 9
 
-      - name: Build and test using Node.js v${{ matrix.node-version }}
+      - name: Unit test using Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
@@ -72,7 +73,7 @@ jobs:
         with:
           version: 9
 
-      - name: Build and test using Node.js v${{ matrix.node-version }}
+      - name: Build using Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
