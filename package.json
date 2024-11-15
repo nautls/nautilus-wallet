@@ -16,9 +16,9 @@
     "build:mainnet:stage": "vite build --mode staging",
     "build:docs": "vitepress build docs",
     "test:unit": "vitest run",
-    "test:lint": "eslint .",
-    "test:format": "prettier . --check",
-    "fix:format": "prettier . --write"
+    "test:lint": "eslint ./src",
+    "test:format": "prettier ./src --check",
+    "fix:format": "prettier ./src --write"
   },
   "dependencies": {
     "@download/blockies": "^1.0.3",
