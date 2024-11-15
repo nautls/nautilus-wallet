@@ -3,6 +3,11 @@ import { useFormat } from "../composables/useFormat";
 
 const format = useFormat();
 
+interface Params {
+  max: BigNumber;
+  type: string;
+}
+
 function validator(max: BigNumber) {
   return (value?: BigNumber) => {
     if (!value) {
@@ -16,8 +21,8 @@ function validator(max: BigNumber) {
 export default function (max: BigNumber) {
   return {
     $validator: validator(max),
-    $message: ({ $params }: any) =>
+    $message: ({ $params }: { $params: Params }) =>
       `The amount should be less than or equal to ${format.bn.format($params.max)}`,
-    $params: { max, type: "maxValue" }
+    $params: { max, type: "maxValue" } as Params
   };
 }
