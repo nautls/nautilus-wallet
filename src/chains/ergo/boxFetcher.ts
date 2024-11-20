@@ -10,7 +10,8 @@ export async function fetchBoxes(
   walletId: number,
   includeUnconf = true
 ): Promise<ChainProviderBox<string>[]> {
-  const addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
+  let addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
+  if (!addresses.length) addresses = await getAllAddresses(walletId);
   const localUnconfirmedBoxes = await utxosDbService.getByWalletId(walletId);
 
   let boxes = await graphQLService.getBoxes({
@@ -20,7 +21,8 @@ export async function fetchBoxes(
 
   if (boxes.length === 0 && !localUnconfirmedBoxes.find((b) => !b.locked && b.content)) {
     boxes = await graphQLService.getBoxes({
-      where: { addresses: difference(await getAllAddresses(walletId), addresses) }
+      where: { addresses: difference(await getAllAddresses(walletId), addresses) },
+      from: includeUnconf ? "blockchain+mempool" : "blockchain"
     });
   }
 

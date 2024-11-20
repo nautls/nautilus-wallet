@@ -66,7 +66,18 @@ export default defineConfig(({ mode }) => ({
     outDir: r("dist")
   },
   optimizeDeps: {
-    include: ["vue", "vue-router", "pinia"]
+    include: [
+      "vue",
+      "vue-router",
+      "pinia",
+      "@ledgerhq/hw-transport-webusb",
+      "ledger-ergo-js",
+      "@vuelidate/core",
+      "@vuelidate/validators",
+      "vue-json-pretty",
+      "@fleet-sdk/babel-fees-plugin",
+      "ergo-lib-wasm-browser"
+    ]
   },
   server: {
     port,

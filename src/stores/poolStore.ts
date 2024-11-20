@@ -11,7 +11,7 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { bn, decimalize } from "@/common/bigNumber";
 
-const REFRESH_INTERVAL = 10000; // 10 seconds
+const REFRESH_INTERVAL = 10000; // ten seconds
 
 export const usePoolStore = defineStore("pool", () => {
   const wallet = useWalletStore();
@@ -67,7 +67,7 @@ export const usePoolStore = defineStore("pool", () => {
     return balance;
   });
 
-  onUnmounted(() => interval.pause());
+  onUnmounted(interval.pause);
 
   function resetInterval() {
     interval.pause();
@@ -76,12 +76,13 @@ export const usePoolStore = defineStore("pool", () => {
 
   async function fetchTransactions() {
     if (addresses.value.length === 0) return;
-    const wId = wallet.id;
 
+    const wId = wallet.id;
     const response = await graphQLService.getUnconfirmedTransactions({
       where: { addresses: addresses.value }
     });
 
+    // Check if wallet has changed since the request was made
     if (wId !== wallet.id) return;
 
     const txns = response.map((x) => summarizeTransaction(x, ergoTrees.value));
@@ -92,10 +93,7 @@ export const usePoolStore = defineStore("pool", () => {
     }
   }
 
-  return {
-    transactions,
-    balance
-  };
+  return { transactions, balance };
 });
 
 if (import.meta.hot) {
