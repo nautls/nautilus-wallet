@@ -1,5 +1,5 @@
 import { groupBy } from "lodash-es";
-import { Box, isDefined, some } from "@fleet-sdk/common";
+import { Box, isDefined, some, utxoSum } from "@fleet-sdk/common";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import { getSettings } from "./settings";
@@ -47,7 +47,20 @@ export async function getUTxOs(walletId: number, target?: SelectionTarget): Prom
   }));
 }
 
-export async function getBalance(walletId: number, tokenId: string) {
+export async function getBalance(
+  walletId: number,
+  tokenId: string
+): Promise<AssetBalance[] | string> {
+  const settings = await getSettings();
+  return settings.enableZeroConf
+    ? getRemoteBalance(walletId, tokenId)
+    : getLocalBalance(walletId, tokenId);
+}
+
+export async function getLocalBalance(
+  walletId: number,
+  tokenId: string
+): Promise<AssetBalance[] | string> {
   if (tokenId !== "all") {
     const assets = await assetsDbService.getByTokenId(walletId, tokenId);
     return some(assets)
@@ -69,6 +82,35 @@ export async function getBalance(walletId: number, tokenId: string) {
   }
 
   return balances;
+}
+
+async function getRemoteBalance(
+  walletId: number,
+  tokenId: string
+): Promise<AssetBalance[] | string> {
+  const addresses = await addressesDbService
+    .getByWalletId(walletId)
+    .then((addresses) => addresses.map((x) => x.script));
+
+  const utxos = await graphQLService.getBoxes({
+    where: {
+      addresses,
+      tokenId: tokenId === "all" || tokenId === ERG_TOKEN_ID ? undefined : tokenId
+    },
+    from: "blockchain+mempool"
+  });
+  const summary = utxoSum(utxos);
+
+  if (tokenId === "all") {
+    return [
+      { tokenId: "ERG", balance: summary.nanoErgs.toString() },
+      ...summary.tokens.map((x) => ({ tokenId: x.tokenId, balance: x.amount.toString() }))
+    ];
+  } else if (tokenId === ERG_TOKEN_ID) {
+    return summary.nanoErgs.toString();
+  } else {
+    return summary.tokens.find((x) => x.tokenId === tokenId)?.amount.toString() || "0";
+  }
 }
 
 export async function getAddresses(walletId: number, filter: AddressType) {
