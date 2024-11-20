@@ -21,7 +21,7 @@ export async function checkConnection(origin: string) {
 
 export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
   const settings = await getSettings();
-  const boxes = await fetchBoxes(walletId, settings.enableZeroConf);
+  const boxes = await fetchBoxes(walletId, settings.zeroConf);
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
     (box) => box.creationHeight
   );
@@ -52,7 +52,7 @@ export async function getBalance(
   tokenId: string
 ): Promise<AssetBalance[] | string> {
   const settings = await getSettings();
-  return settings.enableZeroConf
+  return settings.zeroConf
     ? getRemoteBalance(walletId, tokenId)
     : getLocalBalance(walletId, tokenId);
 }

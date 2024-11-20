@@ -135,7 +135,7 @@
           <p>Enable 0-conf</p>
         </div>
         <div>
-          <o-switch v-model="globalSettings.enableZeroConf" class="align-middle float-right" />
+          <o-switch v-model="globalSettings.zeroConf" class="align-middle float-right" />
         </div>
       </label>
       <div class="text-gray-500 text-xs font-normal mt-1 space-y-2">
@@ -248,7 +248,7 @@ export default defineComponent({
         graphQLServer: "",
         explorerUrl: "",
         blacklistedTokensLists: [] as string[],
-        enableZeroConf: false
+        zeroConf: false
       } as Settings,
       tokensBlacklists: {
         nsfw: true,

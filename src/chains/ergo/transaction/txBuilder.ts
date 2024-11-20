@@ -34,7 +34,7 @@ export async function createP2PTransaction({
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
   const [inputs, currentHeight] = await Promise.all([
-    fetchBoxes(wallet.id, app.settings.enableZeroConf),
+    fetchBoxes(wallet.id, app.settings.zeroConf),
     graphQLService.getHeight()
   ]);
 

@@ -69,7 +69,7 @@ async function loadBoxes() {
   setLoading(true);
 
   const [ownBoxes, height] = await Promise.all([
-    fetchBoxes(wallet.id, app.settings.enableZeroConf),
+    fetchBoxes(wallet.id, app.settings.zeroConf),
     graphQLService.getHeight()
   ]);
   boxes.value = ownBoxes;

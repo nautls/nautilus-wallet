@@ -26,7 +26,7 @@ export type Settings = {
   explorerUrl: string;
   hideBalances: boolean;
   blacklistedTokensLists: string[];
-  enableZeroConf: boolean;
+  zeroConf: boolean;
 };
 
 type StandardWallet = {
