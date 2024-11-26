@@ -12,7 +12,7 @@ export function getChangeAddress(
     .map((o) => addressFromErgoTree(o.ergoTree))
     .filter((a) => ownAddresses.includes(a));
 
-    if (addresses.length) return last(addresses);
+  if (addresses.length) return last(addresses);
 }
 
 export function addressFromPk(pk: string) {
