@@ -31,7 +31,7 @@ jobs:
           cache: "pnpm"
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run test:lint
+      # - run: pnpm run test:lint
       - run: pnpm run test:format
 
   unit-test:

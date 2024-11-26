@@ -97,6 +97,7 @@
           <p>Enable advanced tools.</p>
         </div>
       </div>
+
       <label>
         GraphQL server
         <input
@@ -123,6 +124,32 @@
           {{ (v$.globalSettings as any).explorerUrl.$errors[0]?.$message }}
         </p>
       </label>
+    </div>
+
+    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
+      Experimental ⚠️
+    </div>
+    <div>
+      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+        <div class="flex-grow">
+          <p>Enable 0-conf</p>
+        </div>
+        <div>
+          <o-switch v-model="globalSettings.zeroConf" class="align-middle float-right" />
+        </div>
+      </label>
+      <div class="text-gray-500 text-xs font-normal mt-1 space-y-2">
+        <p>
+          0-conf, short for zero-confirmations, lets you to spend assets without waiting for
+          confirmations. It's fast but carries a risk of being double-spent until confirmed by the
+          blockchain.
+        </p>
+        <p>
+          ⚠️ <strong>This functionality is marked as experimental</strong>, meaning it's not stable.
+          Use with caution as it may contain bugs or undergo significant changes. It's a
+          work-in-progress, so expect some rough edges.
+        </p>
+      </div>
     </div>
 
     <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
@@ -220,7 +247,8 @@ export default defineComponent({
         devMode: !MAINNET,
         graphQLServer: "",
         explorerUrl: "",
-        blacklistedTokensLists: [] as string[]
+        blacklistedTokensLists: [] as string[],
+        zeroConf: false
       } as Settings,
       tokensBlacklists: {
         nsfw: true,

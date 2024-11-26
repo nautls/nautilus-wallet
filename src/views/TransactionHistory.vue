@@ -1,48 +1,31 @@
 <script setup lang="ts">
-import {
-  ChainProviderConfirmedTransaction,
-  ChainProviderUnconfirmedTransaction
-} from "@fleet-sdk/blockchain-providers";
-import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
-import { BoxSummary, orderBy, TokenAmount, uniqBy, utxoDiff } from "@fleet-sdk/common";
-import { BigNumber } from "bignumber.js";
-import { ErgoAddress, FEE_CONTRACT } from "@fleet-sdk/core";
+import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
+import type { BigNumber } from "bignumber.js";
+import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import { useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
 import { useFormat } from "@/composables";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { AddressState, BasicAssetMetadata } from "@/types/internal";
+import { AddressState } from "@/types/internal";
 import { useChainStore } from "@/stores/chainStore";
 import { useAppStore } from "@/stores/appStore";
+import type { ConfirmedTransactionSummary } from "@/types/transactions";
+import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
+import { usePoolStore } from "@/stores/poolStore";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
-type TransactionSummary = {
-  transactionId: string;
-  timestamp: number;
-  fee: BigNumber;
-  delta: (TokenAmount<BigNumber> & { metadata?: BasicAssetMetadata })[];
-};
-
-type ConfirmedTransactionSummary = TransactionSummary & {
-  confirmed: true;
-  height: number;
-};
-
-type UnconfirmedTransactionSummary = TransactionSummary & {
-  confirmed: false;
-  transaction: ChainProviderUnconfirmedTransaction<string>;
-};
+const formatter = useFormat();
 
 const wallet = useWalletStore();
-const formatter = useFormat();
 const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
+const pool = usePoolStore();
 
-const unconfirmed = shallowRef<UnconfirmedTransactionSummary[]>([]);
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 const allLoaded = ref(false);
 
@@ -61,39 +44,35 @@ const confirmedGenerator = computed(() => {
   });
 });
 
-const history = computed(() =>
+const txHistory = computed(() =>
   orderBy(
-    uniqBy([...unconfirmed.value, ...confirmed.value], (x) => x.transactionId, "keep-last"),
+    uniqBy([...pool.transactions, ...confirmed.value], (x) => x.transactionId, "keep-last"),
     (x) => x.timestamp,
     "desc"
-  ).map((x) => ({
-    ...x,
-    delta: x.delta.map((x) => ({
-      tokenId: x.tokenId,
-      amount: decimalize(x.amount, assets.metadata.get(x.tokenId)?.decimals),
-      metadata: assets.metadata.get(x.tokenId)
-    }))
-  }))
+  ).map((x) => ({ ...x, delta: mapDelta(x.delta) }))
 );
+
+function mapDelta(utxoSummary: BoxSummary) {
+  const tokens = utxoSummary.tokens.map((x) => token(x.tokenId, x.amount));
+  return utxoSummary.nanoErgs === 0n
+    ? tokens
+    : [token(ERG_TOKEN_ID, utxoSummary.nanoErgs), ...tokens];
+}
+
+function token(tokenId: string, amount: bigint) {
+  const metadata = assets.metadata.get(tokenId);
+  return {
+    tokenId,
+    amount: decimalize(bn(amount.toString()), metadata?.decimals),
+    metadata
+  };
+}
 
 const { isLoading, reset: resetScrolling } = useInfiniteScroll(
   useTemplateRef("txEl"),
   fetchConfirmedTransactions,
   { canLoadMore: () => !allLoaded.value, distance: 2_000 }
 );
-
-async function fetchUnconfirmedTransactions() {
-  if (allAddresses.value.length === 0) return;
-
-  const response = await graphQLService.getUnconfirmedTransactions({
-    where: { addresses: allAddresses.value }
-  });
-
-  unconfirmed.value = response.map((x) => summarizeTransaction(x, ergoTrees.value));
-  if (unconfirmed.value.length > 0) {
-    assets.loadMetadata(unconfirmed.value.flatMap((x) => x.delta.map((y) => y.tokenId)));
-  }
-}
 
 async function fetchConfirmedTransactions() {
   if (!confirmedGenerator.value) return;
@@ -107,7 +86,7 @@ async function fetchConfirmedTransactions() {
   const mapped = response.value.map((x) => summarizeTransaction(x, ergoTrees.value));
   confirmed.value = [...confirmed.value, ...mapped];
   if (mapped.length > 0) {
-    assets.loadMetadata(mapped.flatMap((x) => x.delta.map((y) => y.tokenId)));
+    assets.loadMetadata(mapped.flatMap((x) => x.delta.tokens.map((y) => y.tokenId)));
   }
 }
 
@@ -123,59 +102,8 @@ watch(
 
 function reset() {
   confirmed.value = [];
-  unconfirmed.value = [];
   allLoaded.value = false;
   resetScrolling();
-  fetchUnconfirmedTransactions();
-}
-
-onMounted(fetchUnconfirmedTransactions);
-
-function summarizeTransaction(
-  transaction: ChainProviderConfirmedTransaction<string>,
-  ergoTrees: Set<string>
-): ConfirmedTransactionSummary;
-// eslint-disable-next-line no-redeclare
-function summarizeTransaction(
-  transaction: ChainProviderUnconfirmedTransaction<string>,
-  ergoTrees: Set<string>
-): UnconfirmedTransactionSummary;
-// eslint-disable-next-line no-redeclare
-function summarizeTransaction(
-  transaction:
-    | ChainProviderConfirmedTransaction<string>
-    | ChainProviderUnconfirmedTransaction<string>,
-  ergoTrees: Set<string>
-): ConfirmedTransactionSummary | UnconfirmedTransactionSummary {
-  const ownInputs = transaction.inputs.filter((x) => ergoTrees.has(x.ergoTree));
-  const ownOutputs = transaction.outputs.filter((x) => ergoTrees.has(x.ergoTree));
-
-  const summary = {
-    transactionId: transaction.transactionId,
-    timestamp: transaction.timestamp,
-    fee: decimalize(
-      new BigNumber(transaction.outputs.find((x) => x.ergoTree === FEE_CONTRACT)?.value ?? 0),
-      ERG_DECIMALS
-    ),
-    delta: mapDelta(utxoDiff(ownOutputs, ownInputs)),
-    confirmed: transaction.confirmed,
-    height: "height" in transaction ? transaction.height : undefined
-  };
-
-  return transaction.confirmed
-    ? (summary as ConfirmedTransactionSummary)
-    : ({ ...summary, transaction } as UnconfirmedTransactionSummary);
-}
-
-function mapDelta(utxoSummary: BoxSummary): TokenAmount<BigNumber>[] {
-  const tokens = utxoSummary.tokens.map((x) => ({
-    tokenId: x.tokenId,
-    amount: bn(x.amount.toString())
-  }));
-
-  return utxoSummary.nanoErgs === 0n
-    ? tokens
-    : [{ tokenId: ERG_TOKEN_ID, amount: bn(utxoSummary.nanoErgs.toString()) }, ...tokens];
 }
 
 function getTransactionExplorerUrl(txId: string): string {
@@ -191,7 +119,7 @@ function positive(n: BigNumber): BigNumber {
   <div ref="txEl" class="-mx-4 overflow-y-auto overflow-x-hidden h-full">
     <div class="flex flex-col gap-4 text-sm pt-4 px-4">
       <div
-        v-for="tx in history"
+        v-for="tx in txHistory"
         :key="tx.transactionId"
         class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4"
       >

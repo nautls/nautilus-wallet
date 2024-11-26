@@ -1,5 +1,4 @@
 import { BigNumber } from "bignumber.js";
-import { bn } from "@/common/bigNumber";
 
 export function useFormat() {
   return FORMATTERS;
@@ -10,14 +9,6 @@ const DEFAULT_FORMATTER = Intl.NumberFormat("en", {
   compactDisplay: "short",
   maximumFractionDigits: 2
 });
-
-function roundToSignificantFigures(num: number, n: number) {
-  if (num === 0) return bn(0);
-  const d = Math.ceil(Math.log10(num < 0 ? -num : num));
-  const magnitude = Math.pow(10, n - d);
-  const shift = Math.round(num * magnitude);
-  return bn(shift / magnitude);
-}
 
 const FORMATTERS = {
   string: {
@@ -52,9 +43,7 @@ const FORMATTERS = {
     format(value?: BigNumber, decimalPlaces?: number, shortenThreshold = 1_000_000) {
       if (!value) return "";
       if (value.gte(shortenThreshold)) return DEFAULT_FORMATTER.format(value.toNumber());
-      return value.isLessThan(0.1)
-        ? roundToSignificantFigures(value.toNumber(), decimalPlaces ?? 2).toFormat()
-        : value.toFormat(decimalPlaces);
+      return value.toFormat(decimalPlaces);
     }
   }
 };

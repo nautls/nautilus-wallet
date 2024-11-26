@@ -20,8 +20,10 @@ import {
 import FeeSelector from "@/components/FeeSelector.vue";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 import { useWalletStore } from "@/stores/walletStore";
+import { useAppStore } from "@/stores/appStore";
 
 const wallet = useWalletStore();
+const app = useAppStore();
 
 const loading = ref(true);
 const boxes = ref<Box[]>([]);
@@ -66,7 +68,10 @@ const utxoHealth = computed(() => {
 async function loadBoxes() {
   setLoading(true);
 
-  const [ownBoxes, height] = await Promise.all([fetchBoxes(wallet.id), graphQLService.getHeight()]);
+  const [ownBoxes, height] = await Promise.all([
+    fetchBoxes(wallet.id, app.settings.zeroConf),
+    graphQLService.getHeight()
+  ]);
   boxes.value = ownBoxes;
   if (height) currentHeight.value = height;
 
