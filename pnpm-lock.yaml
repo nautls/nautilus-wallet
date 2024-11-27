@@ -15,26 +15,26 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@fleet-sdk/babel-fees-plugin':
-        specifier: ^0.1.16
-        version: 0.1.16
+        specifier: ^0.1.17
+        version: 0.1.17
       '@fleet-sdk/blockchain-providers':
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       '@fleet-sdk/common':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.8.0
+        version: 0.8.0
       '@fleet-sdk/core':
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       '@fleet-sdk/crypto':
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.8.0
+        version: 0.8.0
       '@fleet-sdk/serializer':
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       '@fleet-sdk/wallet':
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       '@ledgerhq/hw-transport-webusb':
         specifier: ^6.29.4
         version: 6.29.4
@@ -51,8 +51,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4(vue@3.5.13(typescript@5.6.3))
       '@vueuse/core':
-        specifier: ^11.2.0
-        version: 11.2.0(vue@3.5.13(typescript@5.6.3))
+        specifier: ^11.3.0
+        version: 11.3.0(vue@3.5.13(typescript@5.6.3))
       bignumber.js:
         specifier: ^9.1.2
         version: 9.1.2
@@ -75,8 +75,8 @@ importers:
         specifier: ^4.29.2
         version: 4.29.2
       ledger-ergo-js:
-        specifier: ^0.1.18
-        version: 0.1.18
+        specifier: ^0.1.19
+        version: 0.1.19
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -99,8 +99,8 @@ importers:
         specifier: 2.4.0
         version: 2.4.0(vue@3.5.13(typescript@5.6.3))
       vue-router:
-        specifier: ^4.4.5
-        version: 4.4.5(vue@3.5.13(typescript@5.6.3))
+        specifier: ^4.5.0
+        version: 4.5.0(vue@3.5.13(typescript@5.6.3))
       webext-bridge:
         specifier: ^6.0.1
         version: 6.0.1
@@ -124,8 +124,8 @@ importers:
         specifier: ^20.1.4
         version: 20.1.4
       '@types/chrome':
-        specifier: ^0.0.283
-        version: 0.0.283
+        specifier: ^0.0.287
+        version: 0.0.287
       '@types/cleave.js':
         specifier: ^1.4.12
         version: 1.4.12
@@ -149,7 +149,7 @@ importers:
         version: 5.2.0(vite@5.4.11(@types/node@22.0.0))(vue@3.5.13(typescript@5.6.3))
       '@vue/eslint-config-prettier':
         specifier: ^10.1.0
-        version: 10.1.0(eslint@9.15.0(jiti@1.21.6))(prettier@3.3.3)
+        version: 10.1.0(eslint@9.15.0(jiti@1.21.6))(prettier@3.4.1)
       '@vue/eslint-config-typescript':
         specifier: ^14.1.3
         version: 14.1.3(@typescript-eslint/parser@8.15.0(eslint@9.15.0(jiti@1.21.6))(typescript@5.6.3))(eslint-plugin-vue@9.31.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(typescript@5.6.3)
@@ -167,16 +167,16 @@ importers:
         version: 2.31.0(@typescript-eslint/parser@8.15.0(eslint@9.15.0(jiti@1.21.6))(typescript@5.6.3))(eslint-import-resolver-typescript@3.6.3)(eslint@9.15.0(jiti@1.21.6))
       eslint-plugin-prettier:
         specifier: ^5.2.1
-        version: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(prettier@3.3.3)
+        version: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(prettier@3.4.1)
       eslint-plugin-vue:
         specifier: ^9.31.0
         version: 9.31.0(eslint@9.15.0(jiti@1.21.6))
       prettier:
-        specifier: ^3.3.3
-        version: 3.3.3
+        specifier: ^3.4.1
+        version: 3.4.1
       type-fest:
-        specifier: ^4.27.0
-        version: 4.27.0
+        specifier: ^4.29.0
+        version: 4.29.0
       typescript:
         specifier: 5.6.3
         version: 5.6.3
@@ -549,48 +549,32 @@ packages:
     resolution: {integrity: sha512-2b/g5hRmpbb1o4GnTZax9N9m0FXzz9OV42ZzI4rDDMDuHUqigAiQCEWChBWCY4ztAGVRjoWT19v0yMmc5/L5kA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fleet-sdk/babel-fees-plugin@0.1.16':
-    resolution: {integrity: sha512-qMV7s50yCOabPRqg+W/CUWeUDNQVsee/9ZU2hHYTSMV+EL6IJor4pf9p+fwL16gCivVKQ5GkSVLNLyUALdsScg==}
+  '@fleet-sdk/babel-fees-plugin@0.1.17':
+    resolution: {integrity: sha512-p8lqZPo+1rsog645tdS5JSTK7M7vQG6jxj2DyhnVUjatY4gmPslhbfNWT5jjMzCGsXqZHl689eWf+oPZ21Vang==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/blockchain-providers@0.7.0':
-    resolution: {integrity: sha512-N9vAgnfNHlPwN5XtlTxKB5eAHtmJCBx18Kkui98BlHDP6OARaYy8pGIz1i+FWIRyIKGpW3ytiHdXrkkqZZK65Q==}
+  '@fleet-sdk/blockchain-providers@0.8.0':
+    resolution: {integrity: sha512-pG/OSdhiYJCAxJ5fhub0t40r5sPAcv0hhHuI2iJyzTcMSrWxevG29Z78Seihs/UZeP/FgMJWMQTuMDVbirq/Aw==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/common@0.4.1':
-    resolution: {integrity: sha512-jivyBz7kAye1FrS2gDlZkVpu7rrWAw1aySX+OkIWJA703P9BrrAEmBGU0jz4tKL+3LY2CsJhulOlpSAuc3/ivQ==}
-    engines: {node: '>=14'}
-
-  '@fleet-sdk/common@0.6.4':
-    resolution: {integrity: sha512-zCae5GwPHBdIpkSvTKYzagHeQgTaeRQSKrVp7e7h7gLUBF5qznEuG98s8XwEddCUYrd5Nm1eNrPU+ZToHucgnQ==}
+  '@fleet-sdk/common@0.8.0':
+    resolution: {integrity: sha512-Fv4NqkoqnfysKTLlXKIVnuojXL76Yac7pXFDFxhK4Mw+R5ARm8e/wzs50nSB426uxvnCOTQQgdgTOvxbwHHp0Q==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/core@0.6.1':
-    resolution: {integrity: sha512-c1xEXrrOg6Etr0VligsYf2uyxbKA8IQdVF0yQlb+aeUDcJWXDb2uQ/Wc7o6XqqpYfk8xN9BL6LiSTNa0GxS+Aw==}
+  '@fleet-sdk/core@0.8.0':
+    resolution: {integrity: sha512-tuxoQI3rDrDP3NAvtADYKvdOxeJsDKuLEEbMjly5HFPhReQiAviLlM2pLID1wI7StOxIGt9enTPDD/7SxJvixg==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/core@0.7.0':
-    resolution: {integrity: sha512-DHsQs2vPZ3laDVhpxA6gREDRAP6gEZKvH/sGhBNEyLF1gVkAFvq1XkTjgwXcJiQOyORKXeibK2nNzNfYk8EV0Q==}
+  '@fleet-sdk/crypto@0.8.0':
+    resolution: {integrity: sha512-w4b82Kqcsc+d8yIdbcPPdVDgAqThebGmOBXqoln6UuAU0S4xuyjaORc+ORT1+XCkZeC7UJ3DuZanWoLShW0hgw==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/crypto@0.5.0':
-    resolution: {integrity: sha512-ktfhO8r/SFYQfz3QcPWvRkvm5qZHLMT/zXXs4jVIbt7jQUSXvEX5f90YzO1n6eqs3G3xeb/fg0wMI5dYb4QXMA==}
+  '@fleet-sdk/serializer@0.8.0':
+    resolution: {integrity: sha512-ZLLSoNALxt0BK6UBv0yEolNa8lTPn8Sog9fgy9CUpuS42K1Dp/ACk3RySQsQrbWBvr8Fz7Dfkc7sPpZcxk55pg==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/crypto@0.6.4':
-    resolution: {integrity: sha512-5YKAcD3axlwR/MAIvHdJcM/Dp+ej2dQ6NAzPdyiAKvhBdFSG6gFtJXB3B62F+m4TBJOiNd+drkQpqlN+3nKQcA==}
-    engines: {node: '>=18'}
-
-  '@fleet-sdk/serializer@0.5.0':
-    resolution: {integrity: sha512-pQsebhoJKhdmj9jZSh5pqwiVn/S+FkYdltdYDoWLTTR8x4zAxNyB4OORybnMojJTpjoUyEO+kK+LiA+7OrbpCg==}
-    engines: {node: '>=18'}
-
-  '@fleet-sdk/serializer@0.7.0':
-    resolution: {integrity: sha512-yI5huij2i6fUjFKMNmjVihgUnwSVYx8damx+Iiuvv0q+87aumy/rcixpRAC6H2I+KCbsASjOSIkRTBYrX738Ww==}
-    engines: {node: '>=18'}
-
-  '@fleet-sdk/wallet@0.7.0':
-    resolution: {integrity: sha512-W1FDiSY2SDLbeb25IwPxgnJ1fxFgMsxDgc4ntr4hdjjxoXAiqywXsjDDBPnoh1ydI9DTMiDVKVazOVTjZY0n2w==}
+  '@fleet-sdk/wallet@0.8.0':
+    resolution: {integrity: sha512-1nC4ZBooSKxqDkc4hUIvv4vebFFF2covNk5J6OASvj7/vS2Ec0Nwdcl+rDQkaLH7/D+DQ9nMG1V5zY7BmWJ0ig==}
     engines: {node: '>=18'}
 
   '@humanfs/core@0.19.1':
@@ -643,12 +627,17 @@ packages:
   '@nautilus-js/eip12-types@0.1.11':
     resolution: {integrity: sha512-2KNUHUe5Gtmgyo9g+wZronQGXUYap57CpER9msV2mveMk7i4Lrn3t7Xth8HE2jviOSlZ970arDvbVmrxyv5Q6g==}
 
-  '@noble/curves@1.4.2':
-    resolution: {integrity: sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==}
+  '@noble/curves@1.7.0':
+    resolution: {integrity: sha512-UTMhXK9SeDhFJVrHeUJ5uZlI6ajXg10O6Ddocf9S6GjbSBVZsJo88HzKwXznNfGpMTRDyJkqMjNDPYgf0qFWnw==}
+    engines: {node: ^14.21.3 || >=16}
 
-  '@noble/hashes@1.4.0':
-    resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
-    engines: {node: '>= 16'}
+  '@noble/hashes@1.6.0':
+    resolution: {integrity: sha512-YUULf0Uk4/mAA89w+k3+yUYh6NrEvxZa5T6SY3wlMvE2chHkxFUUIDI8/XW1QSC357iA5pSnqt7XEhvFOqmDyQ==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@noble/hashes@1.6.1':
+    resolution: {integrity: sha512-pq5D8h10hHBjyqX+cfBm0i8JUXJ0UhczFc4r74zbuT9XgewFo2E3J1cOaGtdZynILNmQ685YWGzGE1Zv6io50w==}
+    engines: {node: ^14.21.3 || >=16}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -807,14 +796,14 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@scure/base@1.1.7':
-    resolution: {integrity: sha512-PPNYBslrLNNUQ/Yad37MHYsNQtK67EhWb6WtSvNLLPo7SdVZgkUjD6Dg+5On7zNwmskf8OX7I7Nx5oN+MIWE0g==}
+  '@scure/base@1.2.1':
+    resolution: {integrity: sha512-DGmGtC8Tt63J5GfHgfl5CuAXh96VF/LD8K9Hr/Gv0J2lAoRGlPOMpqMpMbCTOoOJMZCk2Xt+DskdDyn6dEFdzQ==}
 
-  '@scure/bip32@1.4.0':
-    resolution: {integrity: sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==}
+  '@scure/bip32@1.6.0':
+    resolution: {integrity: sha512-82q1QfklrUUdXJzjuRU7iG7D7XiFx5PHYVS0+oeNKhyDLT7WPqs6pBcM2W5ZdwOwKCwoE1Vy1se+DHjcXwCYnA==}
 
-  '@scure/bip39@1.3.0':
-    resolution: {integrity: sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==}
+  '@scure/bip39@1.5.0':
+    resolution: {integrity: sha512-Dop+ASYhnrwm9+HA/HwXg7j2ZqM6yk2fyLWb5znexjctFY3+E+eU8cIWI0Pql0Qx4hPZCijlGq4OL71g+Uz30A==}
 
   '@shikijs/core@1.22.2':
     resolution: {integrity: sha512-bvIQcd8BEeR1yFvOYv6HDiyta2FFVePbzeowf5pPS1avczrPK+cjmaxxh0nx5QzbON7+Sv0sQfQVciO7bN72sg==}
@@ -924,8 +913,8 @@ packages:
   '@tsconfig/node20@20.1.4':
     resolution: {integrity: sha512-sqgsT69YFeLWf5NtJ4Xq/xAF8p4ZQHlmGW74Nu2tD4+g5fAsposc4ZfaaPixVu4y01BEiDCWLRDCvDM5JOsRxg==}
 
-  '@types/chrome@0.0.283':
-    resolution: {integrity: sha512-bPnu1JqeQxMceRP0oxFYrauoe0BlWxxQxhYL58gWLg5Ywsd3i3Dd6By9OW7BdkNQMokodWzBLR5FHDIeQZvJWg==}
+  '@types/chrome@0.0.287':
+    resolution: {integrity: sha512-wWhBNPNXZHwycHKNYnexUcpSbrihVZu++0rdp6GEk5ZgAglenLx+RwdEouh6FrHS0XQiOxSd62yaujM1OoQlZQ==}
 
   '@types/cleave.js@1.4.12':
     resolution: {integrity: sha512-d+TDoy5wsWfG/lTLNV4CCziGzJovbX5RCrYzrfG2iB5F6yvrzeTtGEgoXW3/7oRj0H6gAzLxuvwmgNEx4Og4QA==}
@@ -1225,6 +1214,9 @@ packages:
   '@vueuse/core@11.2.0':
     resolution: {integrity: sha512-JIUwRcOqOWzcdu1dGlfW04kaJhW3EXnnjJJfLTtddJanymTL7lF1C0+dVVZ/siLfc73mWn+cGP1PE1PKPruRSA==}
 
+  '@vueuse/core@11.3.0':
+    resolution: {integrity: sha512-7OC4Rl1f9G8IT6rUfi9JrKiXy4bfmHhZ5x2Ceojy0jnd3mHNEvV4JaRygH362ror6/NZ+Nl+n13LPzGiPN8cKA==}
+
   '@vueuse/integrations@11.2.0':
     resolution: {integrity: sha512-zGXz3dsxNHKwiD9jPMvR3DAxQEOV6VWIEYTGVSB9PNpk4pTWR+pXrHz9gvXWcP2sTk3W2oqqS6KwWDdntUvNVA==}
     peerDependencies:
@@ -1269,8 +1261,14 @@ packages:
   '@vueuse/metadata@11.2.0':
     resolution: {integrity: sha512-L0ZmtRmNx+ZW95DmrgD6vn484gSpVeRbgpWevFKXwqqQxW9hnSi2Ppuh2BzMjnbv4aJRiIw8tQatXT9uOB23dQ==}
 
+  '@vueuse/metadata@11.3.0':
+    resolution: {integrity: sha512-pwDnDspTqtTo2HwfLw4Rp6yywuuBdYnPYDq+mO38ZYKGebCUQC/nVj/PXSiK9HX5otxLz8Fn7ECPbjiRz2CC3g==}
+
   '@vueuse/shared@11.2.0':
     resolution: {integrity: sha512-VxFjie0EanOudYSgMErxXfq6fo8vhr5ICI+BuE3I9FnX7ePllEsVrRQ7O6Q1TLgApeLuPKcHQxAXpP+KnlrJsg==}
+
+  '@vueuse/shared@11.3.0':
+    resolution: {integrity: sha512-P8gSSWQeucH5821ek2mn/ciCk+MS/zoRKqdQIM3bHq6p7GXDAJLmnRRKmF5F65sAVJIfzQlwR3aDzwCn10s8hA==}
 
   '@windicss/config@1.9.3':
     resolution: {integrity: sha512-u8GUjsfC9r5X1AGYhzb1lX3zZj8wqk6SH1DYex8XUGmZ1M2UpvnUPOFi63XFViduspQ6l2xTX84QtG+lUzhEoQ==}
@@ -2546,8 +2544,8 @@ packages:
     resolution: {integrity: sha512-KvNT4XqAMzdcL6ka6Tl3i2lYeFDgXNCuIX+xNx6ZMVR1dFq+idXd9FLKNMOIx0t9mJ9/HudyX4oZWXZQ0UJHeg==}
     engines: {node: '>=14.16'}
 
-  ledger-ergo-js@0.1.18:
-    resolution: {integrity: sha512-EsVIT1pT030hZ432rT3YC+IkvhvjhrjxjM+mS4IgyuF9Dv2zStCgRvGt57SY6h+W0DOjzQ6WmL4iaUvdD8EcBA==}
+  ledger-ergo-js@0.1.19:
+    resolution: {integrity: sha512-0mF5VamRJWflWxhtJlWiPZuUXwno+N9DjZpw1Vl1+vnM+AJxTcc8gIXfd6V3WqEl9zYhmrjhpV6lbHjo8tGT5w==}
     engines: {node: '>=18', pnpm: '>=9'}
 
   levn@0.4.1:
@@ -2929,8 +2927,8 @@ packages:
     resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
     engines: {node: '>=6.0.0'}
 
-  prettier@3.3.3:
-    resolution: {integrity: sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==}
+  prettier@3.4.1:
+    resolution: {integrity: sha512-G+YdqtITVZmOJje6QkXQWzl3fSfMxFwm1tjTyo9exhkmWSqC4Yhd1+lug++IlR2mvRVAxEDDWYkQdeSztajqgg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3362,8 +3360,8 @@ packages:
     resolution: {integrity: sha512-tLq3bSNx+xSpwvAJnzrK0Ep5CLNWjvFTOp71URMaAEWBfRb9nnJiBoUe0tF8bI4ZFO3omgBR6NvnbzVUT3Ly4g==}
     engines: {node: '>=14.16'}
 
-  type-fest@4.27.0:
-    resolution: {integrity: sha512-3IMSWgP7C5KSQqmo1wjhKrwsvXAtF33jO3QY+Uy++ia7hqvgSK6iXbbg5PbDBc1P2ZbNEDgejOrN4YooXvhwCw==}
+  type-fest@4.29.0:
+    resolution: {integrity: sha512-RPYt6dKyemXJe7I6oNstcH24myUGSReicxcHTvCLgzm4e0n8y05dGvcGB15/SoPRBmhlMthWQ9pvKyL81ko8nQ==}
     engines: {node: '>=16'}
 
   typed-array-buffer@1.0.2:
@@ -3617,8 +3615,8 @@ packages:
     peerDependencies:
       vue: '>=3.0.0'
 
-  vue-router@4.4.5:
-    resolution: {integrity: sha512-4fKZygS8cH1yCyuabAXGUAsyi1b2/o/OKgu/RUb+znIYOxPRxdkytJEx+0wGcpBE1pX6vUgh5jwWOKRGvuA/7Q==}
+  vue-router@4.5.0:
+    resolution: {integrity: sha512-HDuk+PuH5monfNuY+ct49mNmkCRK4xJAV9Ts4z9UFc4rzdDnxQLyCMGGc8pKhZhHTVzfanpNwB/lwqevcBwI4w==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -4054,64 +4052,45 @@ snapshots:
     dependencies:
       levn: 0.4.1
 
-  '@fleet-sdk/babel-fees-plugin@0.1.16':
+  '@fleet-sdk/babel-fees-plugin@0.1.17':
     dependencies:
-      '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/core': 0.7.0
-      '@fleet-sdk/serializer': 0.7.0
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/core': 0.8.0
+      '@fleet-sdk/serializer': 0.8.0
 
-  '@fleet-sdk/blockchain-providers@0.7.0':
+  '@fleet-sdk/blockchain-providers@0.8.0':
     dependencies:
-      '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/core': 0.7.0
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/core': 0.8.0
 
-  '@fleet-sdk/common@0.4.1': {}
+  '@fleet-sdk/common@0.8.0': {}
 
-  '@fleet-sdk/common@0.6.4': {}
-
-  '@fleet-sdk/core@0.6.1':
+  '@fleet-sdk/core@0.8.0':
     dependencies:
-      '@fleet-sdk/common': 0.4.1
-      '@fleet-sdk/crypto': 0.5.0
-      '@fleet-sdk/serializer': 0.5.0
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/crypto': 0.8.0
+      '@fleet-sdk/serializer': 0.8.0
 
-  '@fleet-sdk/core@0.7.0':
+  '@fleet-sdk/crypto@0.8.0':
     dependencies:
-      '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/crypto': 0.6.4
-      '@fleet-sdk/serializer': 0.7.0
+      '@fleet-sdk/common': 0.8.0
+      '@noble/hashes': 1.6.1
+      '@scure/base': 1.2.1
 
-  '@fleet-sdk/crypto@0.5.0':
+  '@fleet-sdk/serializer@0.8.0':
     dependencies:
-      '@fleet-sdk/common': 0.4.1
-      '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.7
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/crypto': 0.8.0
 
-  '@fleet-sdk/crypto@0.6.4':
+  '@fleet-sdk/wallet@0.8.0':
     dependencies:
-      '@fleet-sdk/common': 0.6.4
-      '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.7
-
-  '@fleet-sdk/serializer@0.5.0':
-    dependencies:
-      '@fleet-sdk/common': 0.4.1
-      '@fleet-sdk/crypto': 0.5.0
-
-  '@fleet-sdk/serializer@0.7.0':
-    dependencies:
-      '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/crypto': 0.6.4
-
-  '@fleet-sdk/wallet@0.7.0':
-    dependencies:
-      '@fleet-sdk/common': 0.6.4
-      '@fleet-sdk/core': 0.7.0
-      '@fleet-sdk/crypto': 0.6.4
-      '@fleet-sdk/serializer': 0.7.0
-      '@noble/curves': 1.4.2
-      '@scure/bip32': 1.4.0
-      '@scure/bip39': 1.3.0
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/core': 0.8.0
+      '@fleet-sdk/crypto': 0.8.0
+      '@fleet-sdk/serializer': 0.8.0
+      '@noble/curves': 1.7.0
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
 
   '@humanfs/core@0.19.1': {}
 
@@ -4163,11 +4142,13 @@ snapshots:
 
   '@nautilus-js/eip12-types@0.1.11': {}
 
-  '@noble/curves@1.4.2':
+  '@noble/curves@1.7.0':
     dependencies:
-      '@noble/hashes': 1.4.0
+      '@noble/hashes': 1.6.0
 
-  '@noble/hashes@1.4.0': {}
+  '@noble/hashes@1.6.0': {}
+
+  '@noble/hashes@1.6.1': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -4277,18 +4258,18 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@scure/base@1.1.7': {}
+  '@scure/base@1.2.1': {}
 
-  '@scure/bip32@1.4.0':
+  '@scure/bip32@1.6.0':
     dependencies:
-      '@noble/curves': 1.4.2
-      '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.7
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/base': 1.2.1
 
-  '@scure/bip39@1.3.0':
+  '@scure/bip39@1.5.0':
     dependencies:
-      '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.7
+      '@noble/hashes': 1.6.1
+      '@scure/base': 1.2.1
 
   '@shikijs/core@1.22.2':
     dependencies:
@@ -4383,7 +4364,7 @@ snapshots:
 
   '@tsconfig/node20@20.1.4': {}
 
-  '@types/chrome@0.0.283':
+  '@types/chrome@0.0.287':
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.15
@@ -4694,12 +4675,12 @@ snapshots:
     dependencies:
       rfdc: 1.4.1
 
-  '@vue/eslint-config-prettier@10.1.0(eslint@9.15.0(jiti@1.21.6))(prettier@3.3.3)':
+  '@vue/eslint-config-prettier@10.1.0(eslint@9.15.0(jiti@1.21.6))(prettier@3.4.1)':
     dependencies:
       eslint: 9.15.0(jiti@1.21.6)
       eslint-config-prettier: 9.1.0(eslint@9.15.0(jiti@1.21.6))
-      eslint-plugin-prettier: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(prettier@3.3.3)
-      prettier: 3.3.3
+      eslint-plugin-prettier: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(prettier@3.4.1)
+      prettier: 3.4.1
     transitivePeerDependencies:
       - '@types/eslint'
 
@@ -4768,6 +4749,16 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
+  '@vueuse/core@11.3.0(vue@3.5.13(typescript@5.6.3))':
+    dependencies:
+      '@types/web-bluetooth': 0.0.20
+      '@vueuse/metadata': 11.3.0
+      '@vueuse/shared': 11.3.0(vue@3.5.13(typescript@5.6.3))
+      vue-demi: 0.14.10(vue@3.5.13(typescript@5.6.3))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
+
   '@vueuse/integrations@11.2.0(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3))':
     dependencies:
       '@vueuse/core': 11.2.0(vue@3.5.13(typescript@5.6.3))
@@ -4781,7 +4772,16 @@ snapshots:
 
   '@vueuse/metadata@11.2.0': {}
 
+  '@vueuse/metadata@11.3.0': {}
+
   '@vueuse/shared@11.2.0(vue@3.5.13(typescript@5.6.3))':
+    dependencies:
+      vue-demi: 0.14.10(vue@3.5.13(typescript@5.6.3))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
+
+  '@vueuse/shared@11.3.0(vue@3.5.13(typescript@5.6.3))':
     dependencies:
       vue-demi: 0.14.10(vue@3.5.13(typescript@5.6.3))
     transitivePeerDependencies:
@@ -5625,10 +5625,10 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(prettier@3.3.3):
+  eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0(eslint@9.15.0(jiti@1.21.6)))(eslint@9.15.0(jiti@1.21.6))(prettier@3.4.1):
     dependencies:
       eslint: 9.15.0(jiti@1.21.6)
-      prettier: 3.3.3
+      prettier: 3.4.1
       prettier-linter-helpers: 1.0.0
       synckit: 0.9.1
     optionalDependencies:
@@ -6247,11 +6247,11 @@ snapshots:
     dependencies:
       package-json: 8.1.1
 
-  ledger-ergo-js@0.1.18:
+  ledger-ergo-js@0.1.19:
     dependencies:
-      '@fleet-sdk/common': 0.4.1
-      '@fleet-sdk/core': 0.6.1
-      '@fleet-sdk/crypto': 0.5.0
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/core': 0.8.0
+      '@fleet-sdk/crypto': 0.8.0
       bip32-path: 0.4.2
 
   levn@0.4.1:
@@ -6668,7 +6668,7 @@ snapshots:
     dependencies:
       fast-diff: 1.3.0
 
-  prettier@3.3.3: {}
+  prettier@3.4.1: {}
 
   process-nextick-args@2.0.1: {}
 
@@ -7116,7 +7116,7 @@ snapshots:
 
   type-fest@3.13.1: {}
 
-  type-fest@4.27.0: {}
+  type-fest@4.29.0: {}
 
   typed-array-buffer@1.0.2:
     dependencies:
@@ -7366,7 +7366,7 @@ snapshots:
       '@vitejs/plugin-vue': 5.2.0(vite@5.4.11(@types/node@22.0.0))(vue@3.5.13(typescript@5.6.3))
       '@vue/devtools-api': 7.6.2
       '@vue/shared': 3.5.12
-      '@vueuse/core': 11.2.0(vue@3.5.13(typescript@5.6.3))
+      '@vueuse/core': 11.3.0(vue@3.5.13(typescript@5.6.3))
       '@vueuse/integrations': 11.2.0(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3))
       focus-trap: 7.6.0
       mark.js: 8.11.1
@@ -7471,7 +7471,7 @@ snapshots:
     dependencies:
       vue: 3.5.13(typescript@5.6.3)
 
-  vue-router@4.4.5(vue@3.5.13(typescript@5.6.3)):
+  vue-router@4.5.0(vue@3.5.13(typescript@5.6.3)):
     dependencies:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.6.3)

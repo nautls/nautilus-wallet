@@ -204,7 +204,7 @@ function positive(n: BigNumber): BigNumber {
       </div>
     </div>
     <div
-      v-else-if="!txHistory?.length"
+      v-else-if="allLoaded && !txHistory?.length"
       class="flex flex-col gap-4 pt-20 px-4 text-center items-center text-gray-500"
     >
       <vue-feather type="clock" size="64" class="text-gray-400" />
