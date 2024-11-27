@@ -75,7 +75,10 @@ const { isLoading, reset: resetScrolling } = useInfiniteScroll(
 );
 
 async function fetchConfirmedTransactions() {
-  if (!confirmedGenerator.value) return;
+  if (!confirmedGenerator.value) {
+    allLoaded.value = true;
+    return;
+  }
 
   const response = await confirmedGenerator.value.next();
   if (response.done) {
@@ -199,6 +202,13 @@ function positive(n: BigNumber): BigNumber {
           <div class="skeleton h-5 w-5/12 rounded"></div>
         </div>
       </div>
+    </div>
+    <div
+      v-else-if="!txHistory?.length"
+      class="flex flex-col gap-4 pt-20 px-4 text-center items-center text-gray-500"
+    >
+      <vue-feather type="clock" size="64" class="text-gray-400" />
+      You have no transaction history.
     </div>
   </div>
 </template>

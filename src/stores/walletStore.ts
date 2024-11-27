@@ -201,7 +201,7 @@ export const useWalletStore = defineStore("wallet", () => {
     }
 
     if (patched) {
-      summary = summary.filter((x) => x.confirmedAmount.gt(0));
+      summary = summary.filter((x) => x.tokenId === ERG_TOKEN_ID || x.confirmedAmount.gt(0));
     }
 
     return summary.sort((a, b) =>
