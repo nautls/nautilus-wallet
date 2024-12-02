@@ -27,6 +27,7 @@ import { hdKeyPool } from "@/common/objectPool";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { patchArray } from "@/common/reactivity";
+import { assetIconMap } from "@/mappers/assetIconMap";
 
 export type StateAssetSummary = {
   tokenId: string;
@@ -34,6 +35,8 @@ export type StateAssetSummary = {
   unconfirmedAmount?: BigNumber;
   metadata?: BasicAssetMetadata;
 };
+
+const KNOWN_ASSETS = new Set(Object.keys(assetIconMap));
 
 const usePrivateStateStore = defineStore("_wallet", () => {
   const addresses = shallowRef<IDbAddress[]>([]);
@@ -204,9 +207,24 @@ export const useWalletStore = defineStore("wallet", () => {
       summary = summary.filter((x) => x.tokenId === ERG_TOKEN_ID || x.confirmedAmount.gt(0));
     }
 
-    return summary.sort((a, b) =>
-      a.tokenId === ERG_TOKEN_ID ? Number.MIN_SAFE_INTEGER : a.tokenId.localeCompare(b.tokenId)
+    if (summary.length <= 1) return summary;
+
+    // sort alphabetically
+    summary = summary.sort((a, b) =>
+      a.metadata?.name && b.metadata?.name
+        ? a.metadata.name.localeCompare(b.metadata.name)
+        : a.tokenId.localeCompare(b.tokenId)
     );
+
+    // rank by known assets
+    summary = summary.sort((a, b) =>
+      KNOWN_ASSETS.has(a.tokenId) && !KNOWN_ASSETS.has(b.tokenId) ? -1 : 1
+    );
+
+    // put ERG first
+    summary = summary.sort((a) => (a.tokenId === ERG_TOKEN_ID ? -1 : 1));
+
+    return summary;
   });
 
   const health = computed(() => ({
