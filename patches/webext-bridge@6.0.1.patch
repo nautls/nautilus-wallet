@@ -1,0 +1,20 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+deleted file mode 100644
+index 6e87c8895a7af535c8fc7f6b9f5ac3c06c30e0b7..0000000000000000000000000000000000000000
+diff --git a/dist/content-script.js b/dist/content-script.js
+index f9567f525d8d80ef645826cb84eb251f16e27be1..a86b21ce7c4b3a38a13ff4ca49e4b4749920efde 100644
+--- a/dist/content-script.js
++++ b/dist/content-script.js
+@@ -21,11 +21,7 @@ var endpointRuntime = createEndpointRuntime("content-script", (message) => {
+     port.postMessage(message);
+ });
+ win.onMessage((message) => {
+-  message.origin = {
+-    context: "window",
+-    tabId: null
+-  };
+-  endpointRuntime.handleMessage(message);
++  endpointRuntime.handleMessage(Object.assign({}, message, { origin: { context: "window", tabId: null } }));
+ });
+ port.onMessage(endpointRuntime.handleMessage);
+ port.onFailure((message) => {
