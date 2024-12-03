@@ -3,6 +3,7 @@ import pkg from "../../package.json";
 import { EXT_ENTRY_ROOT } from "../constants/extension";
 
 type Network = "mainnet" | "testnet";
+type Browser = "chrome" | "firefox";
 
 const r = (path: string) => `${EXT_ENTRY_ROOT}/${path}`;
 
@@ -40,13 +41,12 @@ function buildVersion() {
   return label ? `${major}.${minor}.${patch}.${label}` : `${major}.${minor}.${patch}`;
 }
 
-export function buildManifest(network: Network, mode: string): Manifest.WebExtensionManifest {
-  return {
+export function buildManifest(network: Network, browser: Browser, mode: string) {
+  const manifest = {
     manifest_version: 3,
     name: buildTitle(mode, network),
     short_name: "Nautilus",
     description: buildDescription(mode, network),
-    version_name: pkg.version,
     version: buildVersion(),
     icons: buildIcons(mode, network),
     content_security_policy: {
@@ -64,9 +64,6 @@ export function buildManifest(network: Network, mode: string): Manifest.WebExten
         extension_ids: []
       }
     ],
-    background: {
-      service_worker: r("background/background.ts")
-    },
     content_scripts: [
       {
         js: [r("content-scripts/contentScript.ts")],
@@ -75,5 +72,14 @@ export function buildManifest(network: Network, mode: string): Manifest.WebExten
         all_frames: true
       }
     ]
-  };
+  } as Manifest.WebExtensionManifest;
+
+  if (browser === "chrome") {
+    manifest.version_name = pkg.version;
+    manifest.background = { service_worker: r("background/background.ts") };
+  } else if (browser === "firefox") {
+    manifest.background = { scripts: [r("background/background.ts")] };
+  }
+
+  return manifest;
 }

@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     ...(mode === "development" ? plugins : []),
     webExtension({
-      manifest: () => buildManifest(env.NETWORK, mode),
+      manifest: () => buildManifest(env.NETWORK, env.TARGET, mode),
       watchFilePaths: [r("src/manifest.ts")],
       additionalInputs: [
         `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
@@ -95,9 +95,7 @@ export default defineConfig(({ mode }) => ({
 }));
 
 function envLoggerPlugin(): PluginOption {
-  function li(title: string, content: string): string {
-    return `\x1b[32m➜\x1b[0m ${title} \x1b[36m${content}\x1b[0m`;
-  }
+  const li = (t: string, c: string) => `\x1b[32m➜\x1b[0m ${t} \x1b[36m${c}\x1b[0m`;
 
   return {
     name: "target-logger",
