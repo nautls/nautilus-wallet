@@ -101,9 +101,7 @@ function envLoggerPlugin(): PluginOption {
     name: "target-logger",
     buildStart() {
       console.log();
-      for (const key in env) {
-        console.log(li(key, env[key as keyof typeof env]));
-      }
+      for (const key in env) console.log(li(key, env[key as keyof typeof env]));
       console.log();
     }
   };
