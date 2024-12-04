@@ -33,7 +33,7 @@ const plugins = [
   svgLoader(),
   topLevelAwait(),
   wasmLoader(),
-  envLoggerPlugin(),
+  objectLogger(env),
   nodePolyfills({ include: ["buffer"] }) // required by @ledgerhq/* packages
 ];
 
@@ -94,14 +94,14 @@ export default defineConfig(({ mode }) => ({
   }
 }));
 
-function envLoggerPlugin(): PluginOption {
-  const li = (t: string, c: string) => `\x1b[32m➜\x1b[0m ${t} \x1b[36m${c}\x1b[0m`;
+function objectLogger(obj: Record<string, string>): PluginOption {
+  const li = (k: string, v: string) => `\x1b[32m➜\x1b[0m ${k} \x1b[36m${v}\x1b[0m`;
 
   return {
     name: "target-logger",
     buildStart() {
       console.log();
-      for (const key in env) console.log(li(key, env[key as keyof typeof env]));
+      for (const key in obj) console.log(li(key, obj[key]));
       console.log();
     }
   };
