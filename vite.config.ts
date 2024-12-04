@@ -98,7 +98,7 @@ function objectLogger(obj: Record<string, string>): PluginOption {
   const li = (k: string, v: string) => `\x1b[32m➜\x1b[0m ${k} \x1b[36m${v}\x1b[0m`;
 
   return {
-    name: "target-logger",
+    name: "object-logger",
     buildStart() {
       console.log();
       for (const key in obj) console.log(li(key, obj[key]));
