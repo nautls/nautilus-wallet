@@ -52,22 +52,28 @@ pnpm i
 
 ```bash
 # Mainnet
-pnpm run dev:mainnet
+pnpm run dev:mainnet:chrome
 ```
 
 ```bash
 # Testnet
-pnpm run dev:testnet
+pnpm run dev:testnet:chrome
 ```
 
 ### Build for production
 
 ```bash
-# Mainnet
-pnpm run build:mainnet
+# Mainnet for Chrome
+pnpm run build:mainnet:chrome
+
+# Mainnet for Firefox
+pnpm run build:mainnet:firefox
 ```
 
 ```bash
-# Testnet
-pnpm run build:testnet
+# Testnet for Chrome
+pnpm run build:testnet:chrome
+
+# Testnet for Firefox
+pnpm run build:testnet:firefox
 ```
