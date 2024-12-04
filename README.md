@@ -50,14 +50,16 @@ pnpm i
 
 ### Build and start in development mode
 
+Development mode is currently only supported in Chrome due to [a bug in Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1864284) that prevents scripts to be leaded from localhost.
+
 ```bash
 # Mainnet
-pnpm run dev:mainnet:chrome
+pnpm run dev:mainnet
 ```
 
 ```bash
 # Testnet
-pnpm run dev:testnet:chrome
+pnpm run dev:testnet
 ```
 
 ### Build for production

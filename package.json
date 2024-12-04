@@ -8,10 +8,8 @@
     "pnpm": ">=9"
   },
   "scripts": {
-    "dev:mainnet:chrome": "vite",
-    "dev:mainnet:firefox": "TARGET=firefox vite",
-    "dev:testnet:chrome": "NETWORK=testnet vite",
-    "dev:testnet:firefox": "TARGET=firefox NETWORK=testnet vite",
+    "dev:mainnet": "vite",
+    "dev:testnet": "NETWORK=testnet vite",
     "dev:docs": "vitepress dev docs",
     "build:mainnet:chrome": "vite build",
     "build:mainnet:firefox": "TARGET=firefox vite build",
