@@ -218,28 +218,6 @@ export const useWalletStore = defineStore("wallet", () => {
     return summary.sort(rankAssets);
   });
 
-  /**
-   * Compares two assets and ranks them based on predefined criteria.
-   *
-   * The ranking criteria are as follows:
-   * 1. The asset with the token ID matching `ERG_TOKEN_ID` is ranked higher.
-   * 2. If one asset's token ID is in the `KNOWN_ASSETS` set and the other is not, the known asset is ranked higher.
-   * 3. If both assets are either known or unknown, they are compared alphabetically by their metadata name.
-   *    If the metadata name is not available, the token ID is used for comparison.
-   *
-   * @param a - The first asset to compare.
-   * @param b - The second asset to compare.
-   * @returns A negative number if `a` should be ranked higher, a positive number if `b` should be ranked higher,
-   *          or zero if they are considered equal in ranking.
-   */
-  function rankAssets(a: StateAssetSummary, b: StateAssetSummary) {
-    if (a.tokenId === ERG_TOKEN_ID) return -1;
-    if (b.tokenId === ERG_TOKEN_ID) return 1;
-    if (KNOWN_ASSETS.has(a.tokenId) && !KNOWN_ASSETS.has(b.tokenId)) return -1;
-    if (KNOWN_ASSETS.has(b.tokenId) && !KNOWN_ASSETS.has(a.tokenId)) return 1;
-    return (a.metadata?.name ?? a.tokenId).localeCompare(b.metadata?.name ?? b.tokenId);
-  }
-
   const health = computed(() => ({
     utxoCount: 0, // see: https://github.com/nautls/nautilus-wallet/issues/176
     hasOldUtxos: privateState.hasOldUtxos
@@ -491,6 +469,28 @@ function getChanges(
   );
 
   return { changedAddresses, changedAssets, removedAssets };
+}
+
+/**
+ * Compares two assets and ranks them based on predefined criteria.
+ *
+ * The ranking criteria are as follows:
+ * 1. The asset with the token ID matching `ERG_TOKEN_ID` is ranked higher.
+ * 2. If one asset's token ID is in the `KNOWN_ASSETS` set and the other is not, the known asset is ranked higher.
+ * 3. If both assets are either known or unknown, they are compared alphabetically by their metadata name.
+ *    If the metadata name is not available, the token ID is used for comparison.
+ *
+ * @param a - The first asset to compare.
+ * @param b - The second asset to compare.
+ * @returns A negative number if `a` should be ranked higher, a positive number if `b` should be ranked higher,
+ *          or zero if they are considered equal in ranking.
+ */
+function rankAssets(a: StateAssetSummary, b: StateAssetSummary) {
+  if (a.tokenId === ERG_TOKEN_ID) return -1;
+  if (b.tokenId === ERG_TOKEN_ID) return 1;
+  if (KNOWN_ASSETS.has(a.tokenId) && !KNOWN_ASSETS.has(b.tokenId)) return -1;
+  if (KNOWN_ASSETS.has(b.tokenId) && !KNOWN_ASSETS.has(a.tokenId)) return 1;
+  return (a.metadata?.name ?? a.tokenId).localeCompare(b.metadata?.name ?? b.tokenId);
 }
 
 function getOrDerive(derived: IndexedAddress[], deriver: HdKey, count: number, offset: number) {
