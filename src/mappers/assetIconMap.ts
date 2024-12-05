@@ -25,7 +25,7 @@ export const assetIconMap: { [tokenId: string]: string } = {
   "59ee24951ce668f0ed32bdb2e2e5731b6c36128748a3b23c28407c5f8ccbf0f6": "walrus.png",
   "3405d8f709a19479839597f9a22a7553bdfc1a590a427572787d7c44a88b6386": "love.png",
   "4c8ac00a28b198219042af9c03937eecb422b34490d55537366dc9245e85d4e1": "woodennickels.svg",
-  "fcfca7654fb0da57ecf9a3f489bcbeb1d43b56dce7e73b352f7bc6f2561d2a1b": "ergone.svg",
+  "fcfca7654fb0da57ecf9a3f489bcbeb1d43b56dce7e73b352f7bc6f2561d2a1b": "ergone.png",
   "9a06d9e545a41fd51eeffc5e20d818073bf820c635e2a9d922269913e0de369d": "spf.svg",
   "01dce8a5632d19799950ff90bca3b5d0ca3ebfa8aaafd06f0cc6dd1e97150e7f": "cypx.png",
   "01ddcc3d0205c2da8a067ffe047a2ccfc3e8241bc3fcc6f6ebc96b7f7363bb36": "proxie.png",
@@ -51,5 +51,7 @@ export const assetIconMap: { [tokenId: string]: string } = {
   "886b7721bef42f60c6317d37d8752da8aca01898cae7dae61808c4a14225edc8": "GAU.png",
   "9944ff273ff169f32b851b96bbecdbb67f223101c15ae143de82b3e7f75b19d2": "GAUC.png",
   "3e0b62c7bc36bc7abf2bf76303722c31788aa579d771e427a0b2c8357da160ba": "ergonaut.png",
-  "91289d5cefb9d78e3ea248d4e9c5b0e3c3de54f64bfae85c0070580961995262": "peperg.png"
+  "91289d5cefb9d78e3ea248d4e9c5b0e3c3de54f64bfae85c0070580961995262": "peperg.png",
+  "6c35aa395c7c75b0f67f7804d6930f0e11ef93c3387dc1faa86498d54af7962c": "mew.png",
+  "80075ae9a6545eb1fc4473d3d7a7feab571fa1e444baf6816021af3a78d8bca3": "bulls.png"
 };

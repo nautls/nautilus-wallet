@@ -22,13 +22,9 @@
 
 &nbsp;
 
-&nbsp;
-
-<img width="320" alt="Nautilus UI" align="right" src="https://user-images.githubusercontent.com/96133754/196059869-4639b60a-efa1-4eb3-aa5b-4bd0f38c582d.png">
-
 ## Description
 
-Nautilus Wallet is a community driven wallet designed for Ergo Platform with focus on privacy, security and user experience.
+Nautilus Wallet is a community-driven wallet built for the Ergo platform with a focus on privacy, security, and user experience.
 
 - Easy to use
 - Blazing fast
@@ -41,6 +37,10 @@ Nautilus Wallet is a community driven wallet designed for Ergo Platform with foc
 
 - [From Chrome Store](https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai)
 - [From GitHub](https://github.com/capt-nemo429/nautilus-wallet/releases/latest)
+
+# dApp Integration
+
+- [Thechnical documentation](https://docs.nautiluswallet.com/)
 
 ## Project setup
 

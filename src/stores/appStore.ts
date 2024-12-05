@@ -6,9 +6,7 @@ import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
 import { useChainStore } from "./chainStore";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
-import { DEFAULT_SERVER_URL, graphQLService } from "@/chains/ergo/services/graphQlService";
-import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
-import { MAINNET } from "@/constants/ergo";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
@@ -17,6 +15,7 @@ import { utxosDbService } from "@/database/utxosDbService";
 import HdKey from "@/chains/ergo/hdKey";
 import { Network, WalletType } from "@/types/internal";
 import { hdKeyPool } from "@/common/objectPool";
+import { DEFAULT_SETTINGS } from "@/constants/settings";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -27,6 +26,7 @@ export type Settings = {
   explorerUrl: string;
   hideBalances: boolean;
   blacklistedTokensLists: string[];
+  zeroConf: boolean;
 };
 
 type StandardWallet = {
@@ -40,17 +40,6 @@ type ReadOnlyWallet = {
   name: string;
   type: WalletType.ReadOnly | WalletType.Ledger;
   extendedPublicKey: string;
-};
-
-const DEFAULT_SETTINGS = {
-  lastOpenedWalletId: 0,
-  isKyaAccepted: false,
-  conversionCurrency: "usd",
-  devMode: !MAINNET,
-  graphQLServer: DEFAULT_SERVER_URL,
-  explorerUrl: DEFAULT_EXPLORER_URL,
-  hideBalances: false,
-  blacklistedTokensLists: ["nsfw", "scam"]
 };
 
 const usePrivateState = defineStore("_app", () => ({

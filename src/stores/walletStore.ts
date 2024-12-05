@@ -8,6 +8,7 @@ import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { useChainStore } from "./chainStore";
+import { usePoolStore } from "./poolStore";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
   AddressState,
@@ -26,6 +27,7 @@ import { hdKeyPool } from "@/common/objectPool";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { patchArray } from "@/common/reactivity";
+import { assetIconMap } from "@/mappers/assetIconMap";
 
 export type StateAssetSummary = {
   tokenId: string;
@@ -33,6 +35,8 @@ export type StateAssetSummary = {
   unconfirmedAmount?: BigNumber;
   metadata?: BasicAssetMetadata;
 };
+
+const KNOWN_ASSETS = new Set(Object.keys(assetIconMap));
 
 const usePrivateStateStore = defineStore("_wallet", () => {
   const addresses = shallowRef<IDbAddress[]>([]);
@@ -73,8 +77,9 @@ export const useWalletStore = defineStore("wallet", () => {
   const assetsStore = useAssetsStore();
   const privateState = usePrivateStateStore();
   const chain = useChainStore();
+  const pool = usePoolStore();
 
-  // #region  state
+  // #region state
   const name = ref("");
   const settings = ref<WalletSettings>({
     avoidAddressReuse: false,
@@ -154,18 +159,37 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   const balance = computed((): StateAssetSummary[] => {
-    const summary = [] as StateAssetSummary[];
+    const poolBalance = appStore.settings.zeroConf ? new Map(pool.balance) : new Map();
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
+    let summary = [] as StateAssetSummary[];
+    let patched = false;
+
     for (const tokenId in groupedAssets) {
       if (assetsStore.blacklist.includes(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
+      const unconfirmedAmount = poolBalance.get(tokenId) ?? 0;
+      if (poolBalance.delete(tokenId)) patched = true;
+
       summary.push({
-        tokenId: assetGroup[0].tokenId,
-        confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount),
+        tokenId,
+        confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount).plus(unconfirmedAmount),
         unconfirmedAmount: sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
         metadata: assetGroup[0].metadata
       });
+    }
+
+    if (poolBalance.size > 0) {
+      for (const [tokenId, amount] of poolBalance) {
+        summary.push({
+          tokenId,
+          confirmedAmount: amount,
+          unconfirmedAmount: bn(0),
+          metadata: assetsStore.metadata.get(tokenId)
+        });
+      }
+
+      patched = true;
     }
 
     if (summary.length === 0) {
@@ -173,14 +197,34 @@ export const useWalletStore = defineStore("wallet", () => {
         {
           tokenId: ERG_TOKEN_ID,
           confirmedAmount: bn(0),
+          unconfirmedAmount: bn(0),
           metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
         }
       ];
     }
 
-    return summary.sort((a, b) =>
-      a.tokenId === ERG_TOKEN_ID ? Number.MIN_SAFE_INTEGER : a.tokenId.localeCompare(b.tokenId)
+    if (patched) {
+      summary = summary.filter((x) => x.tokenId === ERG_TOKEN_ID || x.confirmedAmount.gt(0));
+    }
+
+    if (summary.length <= 1) return summary;
+
+    // sort alphabetically
+    summary = summary.sort((a, b) =>
+      a.metadata?.name && b.metadata?.name
+        ? a.metadata.name.localeCompare(b.metadata.name)
+        : a.tokenId.localeCompare(b.tokenId)
     );
+
+    // rank by known assets
+    summary = summary.sort((a, b) =>
+      KNOWN_ASSETS.has(a.tokenId) && !KNOWN_ASSETS.has(b.tokenId) ? -1 : 1
+    );
+
+    // put ERG first
+    summary = summary.sort((a) => (a.tokenId === ERG_TOKEN_ID ? -1 : 1));
+
+    return summary;
   });
 
   const health = computed(() => ({

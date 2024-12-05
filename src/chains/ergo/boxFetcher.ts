@@ -1,20 +1,25 @@
 import { difference, sortBy, unionBy } from "lodash-es";
-import { ChainProviderBox } from "@fleet-sdk/blockchain-providers";
+import { BoxSource, ChainProviderBox } from "@fleet-sdk/blockchain-providers";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { utxosDbService } from "@/database/utxosDbService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 
-export async function fetchBoxes(walletId: number): Promise<ChainProviderBox<string>[]> {
-  const addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
+export async function fetchBoxes(
+  walletId: number,
+  includeUnconf = true
+): Promise<ChainProviderBox<string>[]> {
+  let addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
+  if (!addresses.length) addresses = await getAllAddresses(walletId);
   const localUnconfirmedBoxes = await utxosDbService.getByWalletId(walletId);
+  let from: BoxSource = includeUnconf ? "blockchain+mempool" : "blockchain";
 
-  let boxes = await graphQLService.getBoxes({ where: { addresses } });
-
+  let boxes = await graphQLService.getBoxes({ where: { addresses }, from });
   if (boxes.length === 0 && !localUnconfirmedBoxes.find((b) => !b.locked && b.content)) {
     boxes = await graphQLService.getBoxes({
-      where: { addresses: difference(await getAllAddresses(walletId), addresses) }
+      where: { addresses: difference(await getAllAddresses(walletId), addresses) },
+      from
     });
   }
 

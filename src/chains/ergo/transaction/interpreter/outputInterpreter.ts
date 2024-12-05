@@ -3,10 +3,10 @@ import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
 import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
 import { utf8 } from "@fleet-sdk/crypto";
 import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
+import { decode } from "@fleet-sdk/serializer";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
 import { bn, decimalize } from "@/common/bigNumber";
-import { sigmaDecode } from "@/chains/ergo/serialization";
 import { AssetsMetadataMap } from "@/types/internal";
 
 export type OutputAsset = {
@@ -112,9 +112,7 @@ export class OutputInterpreter {
       amount: decimalize(bn(this._box.value), ERG_DECIMALS)
     });
 
-    if (isEmpty(this._box.assets)) {
-      return assets;
-    }
+    if (isEmpty(this._box.assets)) return assets;
 
     const tokens = this._box.assets.map((t) => {
       return {
@@ -139,31 +137,41 @@ export class OutputInterpreter {
 
   private getMintingToken(): OutputAsset | undefined {
     const firstInputId = first(this._inputs)?.boxId;
-    if (!firstInputId) {
-      return undefined;
-    }
+    if (!firstInputId) return undefined;
 
     const token = this._box.assets.find((b) => b.tokenId === firstInputId);
-    if (!token) {
-      return undefined;
-    }
+    if (!token) return undefined;
 
     if (isEmpty(this._box.additionalRegisters)) {
-      return {
-        tokenId: token.tokenId,
-        amount: bn(token.amount)
-      };
+      return { tokenId: token.tokenId, amount: bn(token.amount) };
     }
 
-    const decodedDecimals = sigmaDecode(this._box.additionalRegisters["R6"], utf8);
-    const decimals = decodedDecimals ? parseInt(decodedDecimals) : undefined;
+    const decimals = decodeDecimals(this._box.additionalRegisters["R6"]);
     return {
       tokenId: token.tokenId,
-      name: sigmaDecode(this._box.additionalRegisters["R4"], utf8) ?? "",
+      name: decodeUtf8(this._box.additionalRegisters["R4"]) ?? "",
       decimals,
       amount: decimals ? decimalize(bn(token.amount), decimals) : bn(token.amount),
-      description: sigmaDecode(this._box.additionalRegisters["R5"], utf8) ?? "",
+      description: decodeUtf8(this._box.additionalRegisters["R5"]) ?? "",
       minting: true
     };
   }
+}
+
+function decodeUtf8(value: string): string | undefined {
+  const r = decode(value);
+  if (!r || r.type.toString() !== "SColl[SByte]") return;
+
+  return utf8.encode(r.data as Uint8Array);
+}
+
+function decodeDecimals(value: string): number | undefined {
+  const r6 = decode(value);
+  if (!r6) return;
+
+  if (r6.type.toString() === "SColl[SByte]") {
+    return Number.parseInt(utf8.encode(r6.data as Uint8Array), 10);
+  }
+
+  return typeof r6.data === "number" ? r6.data : Number(r6.data);
 }
