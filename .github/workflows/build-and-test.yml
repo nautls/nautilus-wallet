@@ -79,5 +79,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build:mainnet
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for Chrome
+        run: pnpm run build:mainnet:chrome
+
+      - name: Build for Firefox
+        run: pnpm run build:mainnet:firefox

@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import path from "node:path";
-import { defineConfig } from "vite";
+import { defineConfig, PluginOption } from "vite";
 import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 import wasmLoader from "vite-plugin-wasm";
@@ -11,12 +11,20 @@ import webExtension from "vite-plugin-web-extension";
 import { buildManifest } from "./src/extension/manifest.ts";
 import { EXT_ENTRY_ROOT } from "./src/constants/extension.ts";
 
-const gitHash = execSync("git rev-parse HEAD").toString().trim();
-const network = (process.env.VITE_NETWORK as "mainnet" | "testnet") ?? "mainnet";
 const port = 5173;
+const env = {
+  NETWORK: (process.env.NETWORK as "mainnet" | "testnet") ?? "mainnet",
+  TARGET: (process.env.TARGET as "firefox" | "chrome") ?? "chrome",
+  GIT_COMMIT_HASH: execSync("git rev-parse HEAD").toString().trim()
+};
 
 function r(...paths: string[]): string {
   return path.resolve(import.meta.dirname, ...paths);
+}
+
+function defEnv(obj: Record<string, unknown>): Record<string, string> {
+  const entries = Object.entries(obj).map(([k, v]) => [`import.meta.env.${k}`, JSON.stringify(v)]);
+  return Object.fromEntries(entries);
 }
 
 const plugins = [
@@ -25,6 +33,7 @@ const plugins = [
   svgLoader(),
   topLevelAwait(),
   wasmLoader(),
+  objectLogger(env),
   nodePolyfills({ include: ["buffer"] }) // required by @ledgerhq/* packages
 ];
 
@@ -33,19 +42,18 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { "@": "/src" }
   },
-  define: {
-    "import.meta.env.GIT_COMMIT_HASH": JSON.stringify(gitHash)
-  },
+  define: defEnv(env),
   plugins: [
     ...(mode === "development" ? plugins : []),
     webExtension({
-      manifest: () => buildManifest(network, mode),
+      manifest: () => buildManifest(env.NETWORK, env.TARGET, mode),
       watchFilePaths: [r("src/manifest.ts")],
       additionalInputs: [
         `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
         `${EXT_ENTRY_ROOT}/connector/index.html`
       ],
       disableAutoLaunch: true,
+      browser: env.TARGET,
       htmlViteConfig: { plugins }
     })
   ],
@@ -85,3 +93,16 @@ export default defineConfig(({ mode }) => ({
     hmr: { port }
   }
 }));
+
+function objectLogger(obj: Record<string, string>): PluginOption {
+  const li = (k: string, v: string) => `\x1b[32m➜\x1b[0m ${k} \x1b[36m${v}\x1b[0m`;
+
+  return {
+    name: "object-logger",
+    buildStart() {
+      console.log();
+      for (const key in obj) console.log(li(key, obj[key]));
+      console.log();
+    }
+  };
+}
