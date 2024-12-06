@@ -80,7 +80,7 @@ export function buildManifest(network: Network, browser: Browser, mode: string) 
   } else if (browser === "firefox") {
     manifest.background = { scripts: [r("background/background.ts")] };
     manifest.browser_specific_settings = {
-      gecko: { id: "dbeafd3777d14d1160429696d70bbeb91e0998fb@nautilus" }
+      gecko: { id: "{35bc2a66-11b8-410d-8c0e-463db6744795}" }
     };
   }
 
