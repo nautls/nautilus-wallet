@@ -33,9 +33,10 @@ Nautilus Wallet is a community-driven wallet built for the Ergo platform with a 
 - Multi-wallet support
 - dApp Connector
 
-## Download
+## Download and install
 
 - [From Chrome Store](https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai)
+- [From Firefox Store](https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/)
 - [From GitHub](https://github.com/capt-nemo429/nautilus-wallet/releases/latest)
 
 # dApp Integration
