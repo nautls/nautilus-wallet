@@ -182,6 +182,12 @@ label {
     active:bg-red-800;
 }
 
+.btn.default {
+  @apply bg-gray-50 border-gray-400 text-dark-200
+    hover:(bg-gray-200) focus:(ring-gray-300)
+    active:bg-gray-300;
+}
+
 .btn.outlined {
   @apply bg-transparent outline-none text-blue-800 
     hover:(bg-blue-700 text-light-300) focus:(outline-none ring-2 ring-blue-300)

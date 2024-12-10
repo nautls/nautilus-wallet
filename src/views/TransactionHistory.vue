@@ -13,10 +13,15 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { AddressState } from "@/types/internal";
 import { useChainStore } from "@/stores/chainStore";
 import { useAppStore } from "@/stores/appStore";
-import type { ConfirmedTransactionSummary } from "@/types/transactions";
+import type {
+  ConfirmedTransactionSummary,
+  UnconfirmedTransactionSummary
+} from "@/types/transactions";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 import { usePoolStore } from "@/stores/poolStore";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { openTransactionSigningModal } from "@/common/componentUtils";
+import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/txBuilder";
 
 const formatter = useFormat();
 
@@ -116,6 +121,10 @@ function getTransactionExplorerUrl(txId: string): string {
 function positive(n: BigNumber): BigNumber {
   return n.isNegative() ? n.negated() : n;
 }
+
+function cancelTransaction(tx: UnconfirmedTransactionSummary) {
+  openTransactionSigningModal({ onTransactionBuild: () => createRBFCancellationTransaction(tx) });
+}
 </script>
 
 <template>
@@ -175,6 +184,14 @@ function positive(n: BigNumber): BigNumber {
             <template v-else>Pending</template>
           </div>
         </div>
+        <template v-if="!tx.confirmed && tx.cancelable">
+          <button
+            @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
+            class="btn default !py-1 mt-4"
+          >
+            Cancel
+          </button>
+        </template>
       </div>
     </div>
 
