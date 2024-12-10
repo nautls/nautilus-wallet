@@ -1,4 +1,3 @@
-import { ChainProviderUnconfirmedTransaction } from "@fleet-sdk/blockchain-providers";
 import { BigNumber } from "bignumber.js";
 import { Box, BoxSummary } from "@fleet-sdk/common";
 
