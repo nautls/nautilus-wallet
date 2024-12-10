@@ -1,6 +1,6 @@
 import { ChainProviderUnconfirmedTransaction } from "@fleet-sdk/blockchain-providers";
 import { BigNumber } from "bignumber.js";
-import { BoxSummary } from "@fleet-sdk/common";
+import { Box, BoxSummary } from "@fleet-sdk/common";
 
 export type TransactionSummary = {
   transactionId: string;
@@ -16,5 +16,6 @@ export type ConfirmedTransactionSummary = TransactionSummary & {
 
 export type UnconfirmedTransactionSummary = TransactionSummary & {
   confirmed: false;
-  transaction: ChainProviderUnconfirmedTransaction<string>;
+  cancelable: boolean;
+  ownInputs: Box<string>[];
 };

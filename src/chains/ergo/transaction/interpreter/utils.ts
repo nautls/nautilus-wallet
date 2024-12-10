@@ -70,5 +70,9 @@ export function summarizeTransaction(
 
   return transaction.confirmed
     ? (summary as ConfirmedTransactionSummary)
-    : ({ ...summary, transaction } as UnconfirmedTransactionSummary);
+    : ({
+        ...summary,
+        ownInputs,
+        cancelable: ownInputs.length > 0 && ownOutputs.length < transaction.outputs.length - 1 // -1 for fee box
+      } as UnconfirmedTransactionSummary);
 }
