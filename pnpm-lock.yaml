@@ -20,17 +20,17 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       '@fleet-sdk/babel-fees-plugin':
-        specifier: ^0.1.17
-        version: 0.1.17
+        specifier: ^0.1.18
+        version: 0.1.18
       '@fleet-sdk/blockchain-providers':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.8.1
+        version: 0.8.1
       '@fleet-sdk/common':
         specifier: ^0.8.0
         version: 0.8.0
       '@fleet-sdk/core':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.8.1
+        version: 0.8.1
       '@fleet-sdk/crypto':
         specifier: ^0.8.0
         version: 0.8.0
@@ -38,8 +38,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0
       '@fleet-sdk/wallet':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.8.1
+        version: 0.8.1
       '@ledgerhq/hw-transport-webusb':
         specifier: ^6.29.4
         version: 6.29.4
@@ -89,8 +89,8 @@ importers:
         specifier: ^3.0.13
         version: 3.0.13(@mdi/js@7.4.47)(vue@3.5.13(typescript@5.6.3))
       pinia:
-        specifier: ^2.2.8
-        version: 2.2.8(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
+        specifier: ^2.3.0
+        version: 2.3.0(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
       uqr:
         specifier: ^0.1.2
         version: 0.1.2
@@ -554,12 +554,12 @@ packages:
     resolution: {integrity: sha512-2b/g5hRmpbb1o4GnTZax9N9m0FXzz9OV42ZzI4rDDMDuHUqigAiQCEWChBWCY4ztAGVRjoWT19v0yMmc5/L5kA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fleet-sdk/babel-fees-plugin@0.1.17':
-    resolution: {integrity: sha512-p8lqZPo+1rsog645tdS5JSTK7M7vQG6jxj2DyhnVUjatY4gmPslhbfNWT5jjMzCGsXqZHl689eWf+oPZ21Vang==}
+  '@fleet-sdk/babel-fees-plugin@0.1.18':
+    resolution: {integrity: sha512-P173PUYFVGxlYxNTReWapfar2MJoepYe6KIxFrNFygjh+YauaAKpIfmxWN3V43eooOlOwjGAjSZOGOiLf3RpHA==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/blockchain-providers@0.8.0':
-    resolution: {integrity: sha512-pG/OSdhiYJCAxJ5fhub0t40r5sPAcv0hhHuI2iJyzTcMSrWxevG29Z78Seihs/UZeP/FgMJWMQTuMDVbirq/Aw==}
+  '@fleet-sdk/blockchain-providers@0.8.1':
+    resolution: {integrity: sha512-G3tEO9fgXQg0iG7S+dyGdsdINZhEtCFaSPwiQVKhY3LRsovWKI6yVYsPkeDE8Zf1raT8kHhxpjhcjZA2ZWOTJw==}
     engines: {node: '>=18'}
 
   '@fleet-sdk/common@0.8.0':
@@ -570,6 +570,10 @@ packages:
     resolution: {integrity: sha512-tuxoQI3rDrDP3NAvtADYKvdOxeJsDKuLEEbMjly5HFPhReQiAviLlM2pLID1wI7StOxIGt9enTPDD/7SxJvixg==}
     engines: {node: '>=18'}
 
+  '@fleet-sdk/core@0.8.1':
+    resolution: {integrity: sha512-4OjtZ/UmNvunSYD1yh12DeBlZE+X47iKw3BKKrmqqFweK3LATDmx7U85LYg+z9tshaZ017wHEsglNrPeLmWdTQ==}
+    engines: {node: '>=18'}
+
   '@fleet-sdk/crypto@0.8.0':
     resolution: {integrity: sha512-w4b82Kqcsc+d8yIdbcPPdVDgAqThebGmOBXqoln6UuAU0S4xuyjaORc+ORT1+XCkZeC7UJ3DuZanWoLShW0hgw==}
     engines: {node: '>=18'}
@@ -578,8 +582,8 @@ packages:
     resolution: {integrity: sha512-ZLLSoNALxt0BK6UBv0yEolNa8lTPn8Sog9fgy9CUpuS42K1Dp/ACk3RySQsQrbWBvr8Fz7Dfkc7sPpZcxk55pg==}
     engines: {node: '>=18'}
 
-  '@fleet-sdk/wallet@0.8.0':
-    resolution: {integrity: sha512-1nC4ZBooSKxqDkc4hUIvv4vebFFF2covNk5J6OASvj7/vS2Ec0Nwdcl+rDQkaLH7/D+DQ9nMG1V5zY7BmWJ0ig==}
+  '@fleet-sdk/wallet@0.8.1':
+    resolution: {integrity: sha512-5cn19uvuQeNRMTr/4ovQicduHVT+xEzo75yK1PBXLui5gw0c+MNKoAnPLJKKgvabgGYmGACahahncZ7wS6oJXA==}
     engines: {node: '>=18'}
 
   '@humanfs/core@0.19.1':
@@ -2898,15 +2902,12 @@ packages:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
 
-  pinia@2.2.8:
-    resolution: {integrity: sha512-NRTYy2g+kju5tBRe0oNlriZIbMNvma8ZJrpHsp3qudyiMEA8jMmPPKQ2QMHg0Oc4BkUyQYWagACabrwriCK9HQ==}
+  pinia@2.3.0:
+    resolution: {integrity: sha512-ohZj3jla0LL0OH5PlLTDMzqKiVw2XARmC1XYLdLWIPBMdhDW/123ZWr4zVAhtJm+aoSkFa13pYXskAvAscIkhQ==}
     peerDependencies:
-      '@vue/composition-api': ^1.4.0
       typescript: '>=4.4.4'
-      vue: ^2.6.14 || ^3.5.11
+      vue: ^2.7.0 || ^3.5.11
     peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
       typescript:
         optional: true
 
@@ -4066,20 +4067,26 @@ snapshots:
     dependencies:
       levn: 0.4.1
 
-  '@fleet-sdk/babel-fees-plugin@0.1.17':
+  '@fleet-sdk/babel-fees-plugin@0.1.18':
     dependencies:
       '@fleet-sdk/common': 0.8.0
-      '@fleet-sdk/core': 0.8.0
+      '@fleet-sdk/core': 0.8.1
       '@fleet-sdk/serializer': 0.8.0
 
-  '@fleet-sdk/blockchain-providers@0.8.0':
+  '@fleet-sdk/blockchain-providers@0.8.1':
     dependencies:
       '@fleet-sdk/common': 0.8.0
-      '@fleet-sdk/core': 0.8.0
+      '@fleet-sdk/core': 0.8.1
 
   '@fleet-sdk/common@0.8.0': {}
 
   '@fleet-sdk/core@0.8.0':
+    dependencies:
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/crypto': 0.8.0
+      '@fleet-sdk/serializer': 0.8.0
+
+  '@fleet-sdk/core@0.8.1':
     dependencies:
       '@fleet-sdk/common': 0.8.0
       '@fleet-sdk/crypto': 0.8.0
@@ -4096,10 +4103,10 @@ snapshots:
       '@fleet-sdk/common': 0.8.0
       '@fleet-sdk/crypto': 0.8.0
 
-  '@fleet-sdk/wallet@0.8.0':
+  '@fleet-sdk/wallet@0.8.1':
     dependencies:
       '@fleet-sdk/common': 0.8.0
-      '@fleet-sdk/core': 0.8.0
+      '@fleet-sdk/core': 0.8.1
       '@fleet-sdk/crypto': 0.8.0
       '@fleet-sdk/serializer': 0.8.0
       '@noble/curves': 1.7.0
@@ -6660,13 +6667,15 @@ snapshots:
 
   picomatch@2.3.1: {}
 
-  pinia@2.2.8(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3)):
+  pinia@2.3.0(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3)):
     dependencies:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.6.3)
       vue-demi: 0.14.10(vue@3.5.13(typescript@5.6.3))
     optionalDependencies:
       typescript: 5.6.3
+    transitivePeerDependencies:
+      - '@vue/composition-api'
 
   pkg-dir@5.0.0:
     dependencies:
