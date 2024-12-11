@@ -11,6 +11,7 @@ import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { useAppStore } from "@/stores/appStore";
+import { UnconfirmedTransactionSummary } from "@/types/transactions";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
@@ -21,6 +22,42 @@ export type TxAssetAmount = {
   asset: StateAssetSummary;
   amount?: BigNumber;
 };
+
+export async function createRBFCancellationTransaction(
+  unconfirmedTx: UnconfirmedTransactionSummary
+): Promise<EIP12UnsignedTransaction> {
+  const { inputs, currentHeight } = await getContext();
+  const ownBoxIds = new Set(unconfirmedTx.ownInputs.map((input) => input.boxId));
+  const unsigned = new TransactionBuilder(currentHeight)
+    .from(unconfirmedTx.ownInputs, { ensureInclusion: true })
+    .and.from(inputs.filter((input) => !ownBoxIds.has(input.boxId)))
+    .payFee(undecimalize(unconfirmedTx.fee, ERG_DECIMALS).plus(SAFE_MIN_FEE_VALUE).toString())
+    .sendChangeTo(safeGetChangeAddress());
+
+  setSelectionAndChangeStrategy(unsigned, wallet.type);
+
+  return unsigned.build().toEIP12Object();
+}
+
+async function getContext() {
+  const [inputs, currentHeight] = await Promise.all([
+    fetchBoxes(wallet.id, app.settings.zeroConf),
+    graphQLService.getHeight()
+  ]);
+
+  if (isEmpty(inputs)) {
+    throw Error("Unable to fetch inputs, please check your connection.");
+  }
+
+  if (!currentHeight) {
+    throw Error("Unable to fetch current height, please check your connection.");
+  }
+
+  return {
+    inputs,
+    currentHeight
+  };
+}
 
 export async function createP2PTransaction({
   recipientAddress,
@@ -33,18 +70,7 @@ export async function createP2PTransaction({
   fee: FeeSettings;
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
-  const [inputs, currentHeight] = await Promise.all([
-    fetchBoxes(wallet.id, app.settings.zeroConf),
-    graphQLService.getHeight()
-  ]);
-
-  if (isEmpty(inputs)) {
-    throw Error("Unable to fetch inputs, please check your connection.");
-  }
-  if (!currentHeight) {
-    throw Error("Unable to fetch current height, please check your connection.");
-  }
-
+  const { inputs, currentHeight } = await getContext();
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
   const sendingNanoErgs = getSendingNanoErgs(assets);
 
@@ -124,19 +150,12 @@ export async function setFee(
     );
   }
 
-  builder.payFee(feeNanoErgs.toString());
-
-  return builder;
+  return builder.payFee(feeNanoErgs.toString());
 }
 
 function getSendingNanoErgs(assets: TxAssetAmount[]): BigNumber {
   const erg = assets.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
-
-  if (erg && erg.amount) {
-    return undecimalize(erg.amount, ERG_DECIMALS);
-  } else {
-    return bn(0);
-  }
+  return erg && erg.amount ? undecimalize(erg.amount, ERG_DECIMALS) : bn(0);
 }
 
 export function safeGetChangeAddress(): string {
