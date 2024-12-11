@@ -184,14 +184,13 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             <template v-else>Pending</template>
           </div>
         </div>
-        <template v-if="!tx.confirmed && tx.cancelable">
-          <button
-            @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
-            class="btn default !py-1 mt-4"
-          >
-            Cancel
-          </button>
-        </template>
+        <button
+          v-if="!tx.confirmed && tx.cancelable"
+          @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
+          class="btn default !py-1 mt-4"
+        >
+          Cancel
+        </button>
       </div>
     </div>
 
