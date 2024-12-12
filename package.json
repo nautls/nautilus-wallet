@@ -96,6 +96,9 @@
   "pnpm": {
     "patchedDependencies": {
       "webext-bridge@6.0.1": "patches/webext-bridge@6.0.1.patch"
+    },
+    "overrides": {
+      "nanoid@<3.3.8": ">=3.3.8"
     }
   }
 }
