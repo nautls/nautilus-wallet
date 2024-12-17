@@ -67,7 +67,7 @@
 
     <template v-if="!isLedger">
       <p v-if="isReadonly" class="text-sm text-center">
-        <triangle-alert-icon class="text-yellow-500 align-middle" :size="20" />
+        <triangle-alert-icon class="text-yellow-500 align-middle inline" :size="20" />
         <span class="align-middle"> This wallet cannot sign transactions.</span>
       </p>
       <div v-else class="text-left">

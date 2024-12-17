@@ -70,7 +70,7 @@ function isSignInputsRequest(req?: RequestType): req is AsyncRequest<SignTxInput
   return req?.type === InternalRequest.SignTxInputs;
 }
 
-const removeEventListener = useEventListener(window, "beforeunload", refuse);
+const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 
 onMounted(async () => {
   request.value = queue.pop(InternalRequest.SignTx) || queue.pop(InternalRequest.SignTxInputs);
@@ -92,21 +92,21 @@ function refuse() {
 
 function onSuccess(signedTx: SignedTransaction) {
   request.value?.resolve(success(signedTx));
-  close();
+  closeWindow();
 }
 
 function onRefused(info: string) {
   request.value?.resolve(error(SignErrorCode.UserDeclined, info));
-  close();
+  closeWindow();
 }
 
 function onFail(info: string) {
   request.value?.resolve(error(SignErrorCode.ProofGeneration, info));
-  close();
+  closeWindow();
 }
 
-function close() {
-  removeEventListener();
+function closeWindow() {
+  detachBeforeUnloadListener();
   window.close();
 }
 </script>
