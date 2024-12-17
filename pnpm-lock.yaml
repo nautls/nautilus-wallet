@@ -43,9 +43,6 @@ importers:
       '@ledgerhq/hw-transport-webusb':
         specifier: ^6.29.4
         version: 6.29.4
-      '@mdi/js':
-        specifier: ^7.4.47
-        version: 7.4.47
       '@oruga-ui/oruga-next':
         specifier: 0.6.0
         version: 0.6.0(vue@3.5.13(typescript@5.7.2))
@@ -88,9 +85,6 @@ importers:
       lucide-vue-next:
         specifier: ^0.468.0
         version: 0.468.0(vue@3.5.13(typescript@5.7.2))
-      mdi-vue:
-        specifier: ^3.0.13
-        version: 3.0.13(@mdi/js@7.4.47)(vue@3.5.13(typescript@5.7.2))
       pinia:
         specifier: ^2.3.0
         version: 2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2))
@@ -632,9 +626,6 @@ packages:
 
   '@ledgerhq/logs@6.12.0':
     resolution: {integrity: sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==}
-
-  '@mdi/js@7.4.47':
-    resolution: {integrity: sha512-KPnNOtm5i2pMabqZxpUz7iQf+mfrYZyKCZ8QNz85czgEt7cuHcGorWfdzUMWYA0SD+a6Hn4FmJ+YhzzzjkTZrQ==}
 
   '@nautilus-js/eip12-types@0.1.11':
     resolution: {integrity: sha512-2KNUHUe5Gtmgyo9g+wZronQGXUYap57CpER9msV2mveMk7i4Lrn3t7Xth8HE2jviOSlZ970arDvbVmrxyv5Q6g==}
@@ -2585,12 +2576,6 @@ packages:
   mdast-util-to-hast@13.2.0:
     resolution: {integrity: sha512-QGYKEuUsYT9ykKBCMOEDLsU5JRObWQusAolFMeko/tYPufNkRffBAQjIE+99jbA87xv6FgmjLtwjh9wBWajwAA==}
 
-  mdi-vue@3.0.13:
-    resolution: {integrity: sha512-QHfRJZfhTA4FLqxBh4Gzxq+U+V/XQLw9l8lSIwJGMY4L+7oP+5HkAd+rsySIGfcHLEZakN3xcYpcroLZAoh0cw==}
-    peerDependencies:
-      '@mdi/js': '*'
-      vue: '*'
-
   mdn-data@2.0.28:
     resolution: {integrity: sha512-aylIc7Z9y4yzHYAJNuESG3hfhC+0Ibp/MAMiaOZgNv4pmEdFyfZhhhny4MNiAfWdBQ1RQ2mfDWmM1x8SvGyp8g==}
 
@@ -4102,8 +4087,6 @@ snapshots:
       events: 3.3.0
 
   '@ledgerhq/logs@6.12.0': {}
-
-  '@mdi/js@7.4.47': {}
 
   '@nautilus-js/eip12-types@0.1.11': {}
 
@@ -6254,11 +6237,6 @@ snapshots:
       unist-util-position: 5.0.0
       unist-util-visit: 5.0.0
       vfile: 6.0.3
-
-  mdi-vue@3.0.13(@mdi/js@7.4.47)(vue@3.5.13(typescript@5.7.2)):
-    dependencies:
-      '@mdi/js': 7.4.47
-      vue: 3.5.13(typescript@5.7.2)
 
   mdn-data@2.0.28: {}
 

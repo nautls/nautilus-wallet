@@ -7,7 +7,7 @@
     content-class="max-h-95vh bg-transparent relative overflow-hidden !max-w-100 !w-90vw"
   >
     <button type="button" class="fixed top-0 right-0 m-2 text-light-300" @click="close()">
-      <mdi-icon name="close" size="24" />
+      <circle-x-icon />
     </button>
 
     <div v-if="!isImageNft" class="h-10" @click="close()"></div>
@@ -67,6 +67,7 @@
 import { defineComponent, PropType } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
+import { CircleXIcon } from "lucide-vue-next";
 import ImageSandbox from "./ImageSandbox.vue";
 import { IAssetInfo } from "@/types/database";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
@@ -79,7 +80,8 @@ import { useFormat } from "@/composables/useFormat";
 export default defineComponent({
   name: "AssetInfoModal",
   components: {
-    ImageSandbox
+    ImageSandbox,
+    CircleXIcon
   },
   props: {
     tokenId: { type: String, required: false },

@@ -3,22 +3,23 @@
     <loading-indicator type="circular" class="w-1/3 h-1/3 m-auto !stroke-gray-500" />
   </div>
   <div v-else-if="!contentUrl" :class="class" class="text-center flex">
-    <mdi-icon class="m-auto text-orange-400" name="alert-circle-outline" size="48" />
+    <circle-alert-icon class="m-auto text-orange-400" :size="48" />
   </div>
   <iframe
     v-show="!loading && contentUrl"
-    @load="loading = false"
-    sandbox=""
     :key="contentUrl"
-    :class="class"
     :src="contentUrl"
+    sandbox=""
+    :class="class"
     class="m-0 p-0"
     frameborder="0"
+    @load="loading = false"
   ></iframe>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { CircleAlertIcon } from "lucide-vue-next";
 import {
   CONTENT_SANDBOX_URL,
   IPFS_GENERAL_GATEWAY,
@@ -44,6 +45,9 @@ function resolveIpfs(url?: string, isVideo = false): string {
 
 export default defineComponent({
   name: "ImageSandbox",
+  components: {
+    CircleAlertIcon
+  },
   props: {
     src: { type: String },
     class: { type: String },
@@ -55,11 +59,6 @@ export default defineComponent({
     return {
       loading: true
     };
-  },
-  watch: {
-    src() {
-      this.loading = true;
-    }
   },
   computed: {
     contentUrl() {
@@ -79,6 +78,11 @@ export default defineComponent({
       }
 
       return `${CONTENT_SANDBOX_URL}/?url=${encodeURIComponent(resolveIpfs(this.src))}${query}`;
+    }
+  },
+  watch: {
+    src() {
+      this.loading = true;
     }
   }
 });

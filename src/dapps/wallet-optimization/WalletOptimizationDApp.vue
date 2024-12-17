@@ -4,6 +4,8 @@ import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
 import { Box } from "@fleet-sdk/common";
+import { AlertCircleIcon, CircleCheckIcon } from "lucide-vue-next";
+import { createReusableTemplate } from "@vueuse/core";
 import { createConsolidationTransaction } from "./transactionFactory";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -32,6 +34,12 @@ const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
   value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
 });
+
+const [DefineDataPointTemplate, DataPoint] = createReusableTemplate<{
+  title: string;
+  content: string | number;
+  healthy: boolean;
+}>();
 
 onMounted(loadBoxes);
 watch(() => wallet.id, loadBoxes);
@@ -82,10 +90,6 @@ function setLoading(load = true) {
   loading.value = load;
 }
 
-function successIcon(success: boolean) {
-  return success ? "check-circle-outline" : "alert-circle-outline";
-}
-
 function successColor(success: boolean) {
   return success ? "text-green-500" : "text-orange-500";
 }
@@ -116,49 +120,29 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
+  <define-data-point-template v-slot="{ title, content, healthy }">
+    <div class="stats-card">
+      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
+      <template v-else>
+        <circle-check-icon
+          v-if="healthy"
+          class="inline h-5 w-5 mb-2"
+          :class="successColor(healthy)"
+        />
+        <alert-circle-icon v-else class="inline h-5 w-5 mb-2" :class="successColor(healthy)" />
+      </template>
+
+      <p>{{ title }}</p>
+
+      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
+      <h1 v-else>{{ content }}</h1>
+    </div>
+  </define-data-point-template>
+
   <div class="stats">
-    <div class="stats-card">
-      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
-      <mdi-icon
-        v-else
-        :name="successIcon(utxoHealth.count)"
-        :class="successColor(utxoHealth.count)"
-        size="22"
-      />
-
-      <p>UTxO count</p>
-
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
-      <h1 v-else>{{ boxes.length }}</h1>
-    </div>
-    <div class="stats-card">
-      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
-      <mdi-icon
-        v-else
-        :name="successIcon(utxoHealth.age)"
-        :class="successColor(utxoHealth.age)"
-        size="22"
-      />
-
-      <p>Oldest UTxO</p>
-
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
-      <h1 v-else>{{ oldestBox }}</h1>
-    </div>
-    <div class="stats-card">
-      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
-      <mdi-icon
-        v-else
-        :name="successIcon(utxoHealth.size)"
-        :class="successColor(utxoHealth.size)"
-        size="22"
-      />
-
-      <p>Wallet size</p>
-
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
-      <h1 v-else>{{ formatBytes(size) }}</h1>
-    </div>
+    <data-point title="UTxO count" :content="boxes.length" :healthy="utxoHealth.count" />
+    <data-point title="Oldest UTxO" :content="oldestBox" :healthy="utxoHealth.age" />
+    <data-point title="Wallet size" :content="formatBytes(size)" :healthy="utxoHealth.size" />
   </div>
   <div>
     <div class="text-gray-600 text-xs">

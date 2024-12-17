@@ -16,7 +16,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
           class="cursor-pointer border border-gray-200 rounded w-full m-auto py-4 bg-white transition duration-250 hover:bg-gray-100 active:bg-gray-200"
           @click="navigate"
         >
-          <mdi-icon :name="dapp.icon.name" size="64" :class="dapp.icon.color || 'text-gray-500'" />
+          <img :src="`/icons/dapps/${dapp.icon}`" class="w-16 h-16 m-auto" />
           <p class="text-xs leading-tight pt-2 px-2">
             {{ dapp.name }}
           </p>

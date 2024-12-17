@@ -105,7 +105,7 @@
                 >
                 <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
                   <a class="cursor-pointer" @click="showOnLedger(address)">
-                    <mdi-icon name="shield-check-outline" size="15" />
+                    <shield-check-icon class="inline" :size="14" />
                   </a>
                 </tool-tip>
 
@@ -145,14 +145,14 @@ import { defineComponent } from "vue";
 import {
   CheckCircleIcon,
   CircleIcon,
+  EyeIcon,
+  EyeOffIcon,
   FilterIcon,
   FilterXIcon,
-  EyeIcon,
-  EyeOffIcon
+  ShieldCheckIcon
 } from "lucide-vue-next";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
 import { openModal } from "@/common/componentUtils";
-import MdiIcon from "@/components/MdiIcon.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState, StateAddress, WalletType } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
@@ -162,14 +162,14 @@ import { useFormat, useQrCode } from "@/composables";
 export default defineComponent({
   name: "ReceiveView",
   components: {
-    MdiIcon,
     qrCode: useQrCode({ border: 0 }),
     CheckCircleIcon,
     CircleIcon,
     FilterIcon,
     FilterXIcon,
     EyeIcon,
-    EyeOffIcon
+    EyeOffIcon,
+    ShieldCheckIcon
   },
   setup() {
     return { app: useAppStore(), wallet: useWalletStore(), format: useFormat() };

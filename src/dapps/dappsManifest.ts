@@ -1,19 +1,13 @@
-type DAppManifestIcon = {
-  name: string;
-  source: "mdi" | "file";
-  color?: string;
-};
-
 export type DAppManifestItem = {
   name: string;
-  icon: DAppManifestIcon;
+  icon: string;
   path: string;
 };
 
 export const dappsManifest: DAppManifestItem[] = [
   {
     name: "Wallet Optimization",
-    icon: { name: "consolidate", source: "mdi", color: "text-purple-500" },
+    icon: "optimizer.svg",
     path: "/dapps/wallet-optimization"
   }
 ];
