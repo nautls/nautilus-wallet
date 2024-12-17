@@ -47,6 +47,7 @@
     "feather-icons": "^4.29.2",
     "ledger-ergo-js": "^0.1.20",
     "lodash-es": "^4.17.21",
+    "lucide-vue-next": "^0.468.0",
     "mdi-vue": "^3.0.13",
     "pinia": "^2.3.0",
     "uqr": "^0.1.2",
