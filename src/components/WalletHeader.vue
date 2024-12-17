@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { InfoIcon, ListIcon, Maximize2Icon, PlusCircleIcon, SettingsIcon } from "lucide-vue-next";
+import { InfoIcon, ListIcon, PlusCircleIcon, SettingsIcon } from "lucide-vue-next";
 import WalletLogo from "./WalletLogo.vue";
 import DropDown from "./DropDown.vue";
 import WalletItem from "@/components/WalletItem.vue";
