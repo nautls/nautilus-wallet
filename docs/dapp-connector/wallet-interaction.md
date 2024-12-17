@@ -62,6 +62,22 @@ const utxos = await ergo.get_utxos();
 
 The code above returns an array of all UTxOs owned by the selected wallet.
 
+### UTxO Type Definitions
+
+```ts
+interface Box = {
+  boxId: string;
+  transactionId: string;
+  index: number;
+  ergoTree: string;
+  creationHeight: number;
+  value: string;
+  assets: { tokenId: string; amount: string }[];
+  additionalRegisters: Partial<Record<"R4" | "R5" | "R6" | "R7" | "R8" | "R9", string>>;
+  confirmed?: boolean; // false if the UTxO is still unconfirmed
+};
+```
+
 ### Filter UTxOs
 
 The `get_utxos()` method supports filters by `Token ID` and `amount`. The code below fetches all UTxOs containing the SigUSD token.
@@ -120,6 +136,25 @@ When `ergo.sign_tx()` is called, a pop-up window will be displayed to the user, 
 :::info
 As the focus of this guide is specifically on the **dApp Connector** protocol, we will not cover the details of the transaction-building process. For more information on transaction building, please refer to the [Fleet SDK documentation](https://fleet-sdk.github.io/docs/transaction-building).
 :::
+
+### Unsigned Transaction Type Definitions
+
+The `sign_tx()` method requires the transaction object to be structured in a slightly different way than what's required by the node: the `inputs` and `dataInputs` properties must be full [Box objects](#utxo-type-definitions), instead of an object containing the `BoxID`.
+
+```ts
+interface UnsignedTransaction = {
+  inputs: Box[]; // see "UTxO Type Definitions" for Box type details.
+  dataInputs: Box[];
+  outputs: {
+    index: number;
+    ergoTree: string;
+    creationHeight: number;
+    value: string;
+    assets: { tokenId: string; amount: string }[];
+    additionalRegisters: Partial<Record<"R4" | "R5" | "R6" | "R7" | "R8" | "R9", string>>;
+  };
+};
+```
 
 ### Submit a Transaction
 
