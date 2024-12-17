@@ -35,7 +35,7 @@ const fee = ref<FeeSettings>({
   value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
 });
 
-const [DefineDataPointTemplate, DataPoint] = createReusableTemplate<{
+const [DefineDataPoint, DataPoint] = createReusableTemplate<{
   title: string;
   content: string | number;
   healthy: boolean;
@@ -120,7 +120,7 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <define-data-point-template v-slot="{ title, content, healthy }">
+  <define-data-point v-slot="{ title, content, healthy }">
     <div class="stats-card">
       <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
       <template v-else>
@@ -137,7 +137,7 @@ function formatBytes(bytes: number, decimals = 1) {
       <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
       <h1 v-else>{{ content }}</h1>
     </div>
-  </define-data-point-template>
+  </define-data-point>
 
   <div class="stats">
     <data-point title="UTxO count" :content="boxes.length" :healthy="utxoHealth.count" />
