@@ -13,7 +13,7 @@
         class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
         @click.prevent.stop="onRemoveClicked()"
       >
-        <vue-feather type="trash" class="p-1" size="12" />
+        <trash-icon class="p-1" :size="20" />
       </button>
       <div class="flex flex-row gap-2 text-base">
         <div class="w-7/12">
@@ -76,6 +76,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { isEmpty } from "@fleet-sdk/common";
 import { defineComponent, PropType } from "vue";
+import { TrashIcon } from "lucide-vue-next";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -86,6 +87,9 @@ import { StateAssetSummary } from "@/stores/walletStore";
 
 export default defineComponent({
   name: "AssetInput",
+  components: {
+    TrashIcon
+  },
   props: {
     label: { type: String, required: false },
     disposable: { type: Boolean, default: false },

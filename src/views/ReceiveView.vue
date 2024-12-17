@@ -16,7 +16,7 @@
             <a :href="urlFor(wallet.changeAddress?.script)" target="_blank">
               {{ wallet.changeAddress?.script }}
             </a>
-            <click-to-copy :content="wallet.changeAddress?.script" class="mx-2" size="12" />
+            <click-to-copy :content="wallet.changeAddress?.script" class="mx-2" />
           </template>
         </div>
       </div>
@@ -107,7 +107,7 @@
                   </a>
                 </tool-tip>
 
-                <click-to-copy :content="address.script" size="14" />
+                <click-to-copy :content="address.script" :size="14" />
 
                 <template v-if="!wallet.settings.avoidAddressReuse">
                   <vue-feather

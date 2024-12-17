@@ -29,7 +29,7 @@
           <div class="font-mono text-sm break-all flex flex-col gap-2">
             <p>
               {{ format.string.shorten(output.receiver, 60) }}
-              <click-to-copy :content="output.receiver" size="11" />
+              <click-to-copy :content="output.receiver" :size="11" />
             </p>
             <p v-if="isLedger && isP2S(output)">
               <span class="font-semibold font-sans">Script Hash:</span>

@@ -30,7 +30,7 @@
       Support the development by donating to:
       <span v-if="readonly">
         {{ format.string.shorten(donationAddress, 20) }}
-        <click-to-copy :content="donationAddress" size="14" class="align-middle" />
+        <click-to-copy :content="donationAddress" :size="14" class="align-middle" />
       </span>
       <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
         format.string.shorten(donationAddress, 20)

@@ -47,14 +47,14 @@
             <small class="uppercase text-gray-500">Token Id</small>
             <p class="text-sm font-bold">
               {{ format.string.shorten(asset?.id, 12) }}
-              <click-to-copy class="pl-1" :content="tokenId" size="12" />
+              <click-to-copy class="pl-1" :content="tokenId" />
             </p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Minting Transaction</small>
             <p class="text-sm font-bold">
               {{ format.string.shorten(asset?.mintingTransactionId, 12) }}
-              <click-to-copy class="pl-1" :content="asset?.mintingTransactionId" size="12" />
+              <click-to-copy class="pl-1" :content="asset?.mintingTransactionId" />
             </p>
           </div>
         </div>
