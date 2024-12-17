@@ -31,7 +31,7 @@
         >
           <template #trigger>
             <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
-            <vue-feather type="chevron-down" size="18" />
+            <chevron-down-icon :size="18" />
           </template>
           <template #items>
             <div class="group">
@@ -66,7 +66,7 @@
             <div class="group">
               <a class="group-item narrow" @click="addAll()">
                 <div class="flex flex-row items-center gap-2">
-                  <mdi-icon name="check-all" class="text-yellow-500 w-8 h-8" size="32" />
+                  <check-check-icon class="text-yellow-500 w-8 h-8" :size="32" />
                   <div class="flex-grow">
                     Add all
                     <p class="text-gray-400 text-xs">
@@ -96,6 +96,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { BigNumber } from "bignumber.js";
+import { CheckCheckIcon, ChevronDownIcon } from "lucide-vue-next";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
@@ -124,7 +125,7 @@ const validations = {
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, FeeSelector, DropDown },
+  components: { AssetInput, FeeSelector, DropDown, ChevronDownIcon, CheckCheckIcon },
   setup() {
     return {
       app: useAppStore(),
