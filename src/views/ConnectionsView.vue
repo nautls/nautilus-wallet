@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { TrashIcon } from "lucide-vue-next";
 import DappPlate from "@/components/DappPlate.vue";
 import WalletItem from "@/components/WalletItem.vue";
 import { IDbDAppConnection } from "@/types/database";
@@ -41,7 +42,7 @@ async function remove(origin: string) {
           class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
           @click="remove(connection.origin)"
         >
-          <vue-feather type="trash" class="p-1" size="12" />
+          <trash-icon class="p-1" :size="20" />
         </button>
         <dapp-plate :origin="connection.origin" :favicon="connection.favicon" />
         <wallet-item :key="i" class="block" :wallet="getWalletBy(connection.walletId)!" />

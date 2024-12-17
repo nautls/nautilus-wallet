@@ -1,7 +1,7 @@
 <template>
   <tool-tip :label="copied ? 'Copied' : 'Copy'" :type="type">
     <a @click="copy()" class="cursor-pointer">
-      <copy-icon :size="size" />
+      <copy-icon :size="size" class="inline" />
     </a>
   </tool-tip>
 </template>

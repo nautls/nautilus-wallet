@@ -60,7 +60,8 @@
                   tip-class="normal-case"
                 >
                   <a class="cursor-pointer inline-flex" @click="toggleUsedAddressesFilter()">
-                    <mdi-icon :name="hideUsed ? 'filter-off' : 'filter'" size="16" />
+                    <filter-x-icon v-if="hideUsed" :size="16" />
+                    <filter-icon v-else :size="16" />
                   </a>
                 </tool-tip>
               </div>
@@ -73,7 +74,8 @@
                   class="align-middle"
                 >
                   <a class="cursor-pointer inline-flex" @click="toggleHideBalance()">
-                    <mdi-icon :name="hideBalances ? 'eye-off' : 'eye'" size="16" />
+                    <eye-off-icon v-if="hideBalances" :size="16" />
+                    <eye-icon v-else :size="16" />
                   </a>
                 </tool-tip>
                 Balance
@@ -110,26 +112,15 @@
                 <click-to-copy :content="address.script" :size="14" />
 
                 <template v-if="!wallet.settings.avoidAddressReuse">
-                  <vue-feather
-                    v-if="wallet.settings.defaultChangeIndex === address.index"
-                    type="check-circle"
-                    class="text-green-600"
-                    size="14"
-                  />
+                  <span v-if="wallet.settings.defaultChangeIndex === address.index">
+                    <check-circle-icon class="inline text-green-600" :size="14" />
+                  </span>
                   <tool-tip v-else label="Set as default<br />address">
                     <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
-                      <vue-feather type="circle" size="14" />
+                      <circle-icon class="inline" :size="14" />
                     </a>
                   </tool-tip>
                 </template>
-
-                <tool-tip
-                  v-if="hasPendingBalance(address)"
-                  label="Pending transaction<br />for this address"
-                  class="pl-2"
-                >
-                  <loading-indicator class="w-3 h-3" />
-                </tool-tip>
               </div>
             </td>
             <td class="text-right">
@@ -150,8 +141,15 @@
 </template>
 
 <script lang="ts">
-import { isDefined } from "@fleet-sdk/common";
 import { defineComponent } from "vue";
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  FilterIcon,
+  FilterXIcon,
+  EyeIcon,
+  EyeOffIcon
+} from "lucide-vue-next";
 import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
 import { openModal } from "@/common/componentUtils";
 import MdiIcon from "@/components/MdiIcon.vue";
@@ -163,7 +161,16 @@ import { useFormat, useQrCode } from "@/composables";
 
 export default defineComponent({
   name: "ReceiveView",
-  components: { MdiIcon, qrCode: useQrCode({ border: 0 }) },
+  components: {
+    MdiIcon,
+    qrCode: useQrCode({ border: 0 }),
+    CheckCircleIcon,
+    CircleIcon,
+    FilterIcon,
+    FilterXIcon,
+    EyeIcon,
+    EyeOffIcon
+  },
   setup() {
     return { app: useAppStore(), wallet: useWalletStore(), format: useFormat() };
   },
@@ -220,11 +227,6 @@ export default defineComponent({
     },
     isUsed(address: StateAddress): boolean {
       return address.state === AddressState.Used;
-    },
-    hasPendingBalance(address: StateAddress): boolean {
-      return isDefined(
-        address.assets?.find((b) => isDefined(b.unconfirmedAmount) && !b.unconfirmedAmount.isZero())
-      );
     },
     urlFor(address: string | undefined): string {
       return new URL(`/addresses/${address}`, this.app.settings.explorerUrl).toString();
