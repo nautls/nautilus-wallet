@@ -4,6 +4,7 @@ import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import type { BigNumber } from "bignumber.js";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
+import { ClockIcon, DownloadIcon, UploadIcon } from "lucide-vue-next";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import { useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -156,13 +157,9 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             :key="asset.tokenId"
             class="flex flex-row items-center gap-2"
           >
-            <vue-feather
-              v-if="asset.amount.isNegative()"
-              type="corner-left-up"
-              class="min-w-4 text-red-500"
-              size="16"
-            />
-            <vue-feather v-else type="corner-right-down" class="min-w-4 text-green-500" size="16" />
+            <upload-icon v-if="asset.amount.isNegative()" class="min-w-4 text-red-500" :size="16" />
+            <download-icon v-else class="min-w-4 text-green-500" :size="16" />
+
             <asset-icon class="h-6 w-6 min-w-6" :token-id="asset.tokenId" />
             <div class="w-full">
               {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
@@ -186,8 +183,8 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         </div>
         <button
           v-if="!tx.confirmed && tx.cancelable"
-          @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
           class="btn default !py-1 mt-4"
+          @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
         >
           Cancel
         </button>
@@ -202,11 +199,8 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         </div>
         <div class="p-2 flex flex-col gap-2">
           <div class="flex flex-row items-center gap-2">
-            <vue-feather
-              type="corner-right-down"
-              class="min-w-4 text-gray-300 animate-pulse"
-              size="16"
-            />
+            <download-icon class="min-w-4 text-gray-300 animate-pulse" :size="16" />
+
             <empty-logo class="h-7 w-7 min-w-7 animate-pulse fill-gray-300" />
             <div class="skeleton h-4 rounded w-5/12"></div>
             <div class="w-full"></div>
@@ -223,7 +217,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
       v-else-if="allLoaded && !txHistory?.length"
       class="flex flex-col gap-4 pt-20 px-4 text-center items-center text-gray-500"
     >
-      <vue-feather type="clock" size="64" class="text-gray-400" />
+      <clock-icon :size="64" class="text-gray-400" />
       You have no transaction history.
     </div>
   </div>

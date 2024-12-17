@@ -79,7 +79,7 @@
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
               <loading-indicator v-if="loading" type="circular" class="w-4 h-4 mr-1" />
-              <vue-feather v-else type="chevron-down" class="w-4 h-4" />
+              <chevron-down-icon v-else class="w-4 h-4" />
             </div>
           </div>
         </div>
@@ -208,6 +208,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { clone, isEqual } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
+import { ChevronDownIcon } from "lucide-vue-next";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
@@ -226,7 +227,7 @@ import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "SettingsView",
-  components: { ExtendedPublicKeyModal },
+  components: { ExtendedPublicKeyModal, ChevronDownIcon },
   setup() {
     return {
       v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>>,

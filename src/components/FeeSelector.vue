@@ -6,6 +6,7 @@ import { groupBy, maxBy, sortBy } from "lodash-es";
 import { computed, onMounted, PropType, reactive, watch } from "vue";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
+import { ChevronDownIcon } from "lucide-vue-next";
 import DropDown from "./DropDown.vue";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -312,7 +313,7 @@ function emitSelectedUpdate() {
               format.string.shorten(state.internalSelected.tokenId, 10)
             }}</template>
           </div>
-          <vue-feather type="chevron-down" size="18" />
+          <chevron-down-icon :size="18" />
         </template>
 
         <template #items>

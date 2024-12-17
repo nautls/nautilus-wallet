@@ -36,11 +36,7 @@
             v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1"
             class="text-center py-2"
           >
-            <mdi-icon
-              name="swap-vertical-variant"
-              size="24"
-              class="align-middle text-gray-600 transform-flip"
-            />
+            <arrow-down-up-icon class="align-middle text-gray-600 inline" />
           </div>
           <div class="flex flex-row items-center gap-2 py-1">
             <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />
@@ -66,7 +62,7 @@
                     </div>
                   </div>
                 </template>
-                <vue-feather type="git-commit" class="align-middle pl-2" size="18" />
+                <git-commit-vertical-icon class="align-middle pl-2" />
               </tool-tip>
             </div>
             <div>
@@ -81,6 +77,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
+import { ArrowDownUpIcon, GitCommitVerticalIcon } from "lucide-vue-next";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import BabelBadge from "@/assets/images/babel-badge.svg";
@@ -91,7 +88,9 @@ export default defineComponent({
   name: "TxBoxDetails",
   components: {
     BabelBadge,
-    EmptyLogo
+    EmptyLogo,
+    ArrowDownUpIcon,
+    GitCommitVerticalIcon
   },
   props: {
     assets: { type: Array as PropType<Array<OutputAsset>>, default: () => [] },

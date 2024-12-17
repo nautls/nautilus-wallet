@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue";
 import { isDefined } from "@fleet-sdk/common";
+import { CircleAlertIcon, CircleCheckIcon } from "lucide-vue-next";
 import { ProverStateType } from "../types/internal";
 import { useAppStore } from "@/stores/appStore";
 
@@ -58,16 +59,8 @@ function getTransactionExplorerUrl(txId: string): string {
   >
     <div class="p-5 min-w-60 max-w-85 text-center">
       <div :class="stateClass" class="w-full h-26">
-        <vue-feather
-          v-if="state === ProverStateType.success"
-          type="check-circle"
-          class="w-25 h-25"
-        />
-        <vue-feather
-          v-else-if="state === ProverStateType.error"
-          type="alert-circle"
-          class="w-25 h-25"
-        />
+        <circle-check-icon v-if="state === ProverStateType.success" class="w-25 h-25 inline" />
+        <circle-alert-icon v-else-if="state === ProverStateType.error" class="w-25 h-25 inline" />
         <loading-indicator v-else type="circular" class="w-25 h-25 !stroke-gray-500" />
       </div>
       <h1 class="pt-4 font-semibold text-xl" :class="stateClass">{{ titleText }}</h1>

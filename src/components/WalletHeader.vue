@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { InfoIcon, ListIcon, PlusCircleIcon, SettingsIcon } from "lucide-vue-next";
 import WalletLogo from "./WalletLogo.vue";
 import DropDown from "./DropDown.vue";
 import WalletItem from "@/components/WalletItem.vue";
@@ -55,27 +56,27 @@ async function expandView() {
           </div>
           <div class="group">
             <router-link :to="{ name: 'add-wallet' }" class="group-item narrow-y">
-              <vue-feather type="plus-circle" size="16" class="align-middle pr-2" />
+              <plus-circle-icon class="inline pr-2" />
               <span class="align-middle">Add new wallet</span></router-link
             >
           </div>
           <div class="group" :class="{ 'mt-1': unselected.length === 0 }">
             <a class="group-item narrow-y" @click="expandView()">
-              <vue-feather type="maximize-2" size="16" class="align-middle pr-2" />
+              <maximize-2-icon class="inline pr-2" />
               <span class="align-middle">Expand view</span></a
             >
             <router-link :to="{ name: 'connector-connected' }" class="group-item narrow-y">
-              <vue-feather type="list" size="16" class="align-middle pr-2" />
+              <list-icon class="inline pr-2" />
               <span class="align-middle">Connected dApps</span></router-link
             >
             <router-link :to="{ name: 'wallet-settings' }" class="group-item narrow-y">
-              <vue-feather type="settings" size="16" class="align-middle pr-2" />
+              <settings-icon class="inline pr-2" />
               <span class="align-middle">Settings</span></router-link
             >
           </div>
           <div class="group">
             <router-link :to="{ name: 'about-nautilus' }" class="group-item narrow-y">
-              <vue-feather type="info" size="16" class="align-middle pr-2" />
+              <info-icon class="inline pr-2" />
               <span class="align-middle">About</span></router-link
             >
           </div>

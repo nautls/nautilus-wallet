@@ -3,6 +3,7 @@ import { nextTick, onMounted, PropType, ref, shallowRef } from "vue";
 import { WalletChecksum, walletChecksum } from "@emurgo/cip4-js";
 import { renderIcon } from "@download/blockies";
 import { hex } from "@fleet-sdk/crypto";
+import { VenetianMaskIcon } from "lucide-vue-next";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
 import { mountExtendedPublicKey } from "@/common/serializer";
@@ -74,12 +75,7 @@ function walletTypeToString(type: WalletType): string {
         <small class="rounded bg-gray-200 px-1 font-normal text-dark-200 uppercase">{{
           walletTypeToString(wallet.type)
         }}</small>
-        <mdi-icon
-          v-if="wallet.settings.avoidAddressReuse"
-          class="align-middle"
-          name="incognito"
-          size="16"
-        />
+        <venetian-mask-icon v-if="wallet.settings.avoidAddressReuse" class="h-4 w-4" />
         <loading-indicator v-if="loading" class="w-4 h-4" />
       </div>
     </div>

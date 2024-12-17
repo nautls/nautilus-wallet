@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { RotateCcwIcon, WalletIcon, WalletMinimalIcon } from "lucide-vue-next";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { useWalletStore } from "@/stores/walletStore";
 import { browser, isPopup } from "@/common/browser";
@@ -24,7 +25,7 @@ function navigateInTab(navigate: () => unknown, href: string) {
     <router-link v-slot="{ navigate }" to="/add/new" custom>
       <button type="button" class="nav-btn" @click="navigate">
         <div class="h-full float-left flex w-8 mr-4">
-          <mdi-icon name="wallet-plus" size="32" class="m-auto text-gray-500" />
+          <wallet-icon class="m-auto text-gray-500" :size="32" />
         </div>
         <span class="title">Create wallet</span>
         <span class="subtitle"
@@ -35,7 +36,7 @@ function navigateInTab(navigate: () => unknown, href: string) {
     <router-link v-slot="{ navigate }" to="/add/restore" custom>
       <button type="button" class="nav-btn" @click="navigate">
         <div class="h-full float-left flex w-8 mr-4">
-          <mdi-icon name="backup-restore" size="32" class="m-auto text-gray-500" />
+          <rotate-ccw-icon class="m-auto text-gray-500" :size="32" />
         </div>
         <span class="title">Restore wallet</span>
         <span class="subtitle"
@@ -62,7 +63,7 @@ function navigateInTab(navigate: () => unknown, href: string) {
     <router-link v-slot="{ navigate }" to="/add/read-only" custom>
       <button role="button" type="button" class="nav-btn" @click="navigate">
         <div class="h-full float-left flex w-8 mr-4">
-          <mdi-icon name="wallet-outline" size="32" class="m-auto text-gray-500" />
+          <wallet-minimal-icon class="m-auto text-gray-500" :size="32" />
         </div>
         <span class="title">Load read-only wallet</span>
         <span class="subtitle">Enter a public key to load an Ergo wallet in read-only mode.</span>

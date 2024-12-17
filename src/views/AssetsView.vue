@@ -23,7 +23,8 @@
                   class="align-middle"
                 >
                   <a class="cursor-pointer inline-flex" @click="toggleHideBalance()">
-                    <mdi-icon :name="hideBalances ? 'eye-off' : 'eye'" size="16" />
+                    <eye-off-icon v-if="hideBalances" :size="16" />
+                    <eye-icon v-else :size="16" />
                   </a>
                 </tool-tip>
                 Balance
@@ -105,6 +106,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { BigNumber } from "bignumber.js";
+import { EyeIcon, EyeOffIcon } from "lucide-vue-next";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
@@ -120,7 +122,9 @@ export default defineComponent({
   components: {
     EmptyLogo,
     AssetInfoModal,
-    StorageRentBox
+    StorageRentBox,
+    EyeIcon,
+    EyeOffIcon
   },
   setup() {
     return {

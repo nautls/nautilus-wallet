@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { isDefined } from "@fleet-sdk/common";
 import { computed, PropType } from "vue";
+import { CheckIcon, CircleAlertIcon, XIcon } from "lucide-vue-next";
 import ledgerS from "@/assets/images/hw-devices/ledger-s.svg";
 import ledgerX from "@/assets/images/hw-devices/ledger-x.svg";
 import { LedgerDeviceModelId } from "@/constants/ledger";
@@ -44,16 +45,8 @@ const screenPosition = computed(() =>
               type="circular"
               class="w-5 h-5 min-w-5"
             />
-            <vue-feather
-              v-else-if="state === ProverStateType.success"
-              type="check"
-              class="text-green-300"
-            />
-            <vue-feather
-              v-else-if="state === ProverStateType.error"
-              type="x"
-              class="text-red-300"
-            />
+            <check-icon v-else-if="state === ProverStateType.success" class="text-green-300" />
+            <x-icon v-else-if="state === ProverStateType.error" class="text-red-300" />
 
             <span v-if="screenText" class="font-semibold">{{ screenText }}</span>
           </div>
@@ -69,7 +62,7 @@ const screenPosition = computed(() =>
     </div>
     <div v-else-if="!validState">
       <p class="text-center text-red-600">
-        <vue-feather type="alert-circle" size="64" />
+        <circle-alert-icon :size="64" />
       </p>
       <p class="text-center font-semibold">Ledger device not found!</p>
       <p class="px-1 pt-4 text-sm text-gray-500">

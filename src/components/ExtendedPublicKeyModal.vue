@@ -18,7 +18,7 @@
       </div>
       <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
         {{ extendedPublicKey }}
-        <click-to-copy :content="extendedPublicKey" size="12" />
+        <click-to-copy :content="extendedPublicKey" />
       </div>
       <button class="btn !p-2 mt-2" @click="accept()">Done</button>
     </div>

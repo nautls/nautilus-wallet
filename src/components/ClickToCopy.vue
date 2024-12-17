@@ -1,18 +1,22 @@
 <template>
   <tool-tip :label="copied ? 'Copied' : 'Copy'" :type="type">
     <a @click="copy()" class="cursor-pointer">
-      <vue-feather type="copy" :size="size" />
+      <copy-icon :size="size" class="inline" />
     </a>
   </tool-tip>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { CopyIcon } from "lucide-vue-next";
 
 export default defineComponent({
   name: "ClickToCopy",
+  components: {
+    CopyIcon
+  },
   props: {
-    size: { type: String, default: "16" },
+    size: { type: Number, default: 12 },
     content: { type: String, required: false }
   },
   data: () => {

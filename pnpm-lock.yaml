@@ -43,9 +43,6 @@ importers:
       '@ledgerhq/hw-transport-webusb':
         specifier: ^6.29.4
         version: 6.29.4
-      '@mdi/js':
-        specifier: ^7.4.47
-        version: 7.4.47
       '@oruga-ui/oruga-next':
         specifier: 0.6.0
         version: 0.6.0(vue@3.5.13(typescript@5.7.2))
@@ -76,18 +73,15 @@ importers:
       ergo-lib-wasm-browser:
         specifier: ^0.28.0
         version: 0.28.0
-      feather-icons:
-        specifier: ^4.29.2
-        version: 4.29.2
       ledger-ergo-js:
         specifier: ^0.1.20
         version: 0.1.20
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
-      mdi-vue:
-        specifier: ^3.0.13
-        version: 3.0.13(@mdi/js@7.4.47)(vue@3.5.13(typescript@5.7.2))
+      lucide-vue-next:
+        specifier: ^0.468.0
+        version: 0.468.0(vue@3.5.13(typescript@5.7.2))
       pinia:
         specifier: ^2.3.0
         version: 2.3.0(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2))
@@ -97,9 +91,6 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.7.2)
-      vue-feather:
-        specifier: ^2.0.0
-        version: 2.0.0(feather-icons@4.29.2)(vue@3.5.13(typescript@5.7.2))
       vue-json-pretty:
         specifier: 2.4.0
         version: 2.4.0(vue@3.5.13(typescript@5.7.2))
@@ -629,9 +620,6 @@ packages:
 
   '@ledgerhq/logs@6.12.0':
     resolution: {integrity: sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==}
-
-  '@mdi/js@7.4.47':
-    resolution: {integrity: sha512-KPnNOtm5i2pMabqZxpUz7iQf+mfrYZyKCZ8QNz85czgEt7cuHcGorWfdzUMWYA0SD+a6Hn4FmJ+YhzzzjkTZrQ==}
 
   '@nautilus-js/eip12-types@0.1.11':
     resolution: {integrity: sha512-2KNUHUe5Gtmgyo9g+wZronQGXUYap57CpER9msV2mveMk7i4Lrn3t7Xth8HE2jviOSlZ970arDvbVmrxyv5Q6g==}
@@ -1527,9 +1515,6 @@ packages:
   cipher-base@1.0.4:
     resolution: {integrity: sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==}
 
-  classnames@2.5.1:
-    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
-
   cleave.js@1.6.0:
     resolution: {integrity: sha512-ivqesy3j5hQVG3gywPfwKPbi/7ZSftY/UNp5uphnqjr25yI2CP8FS2ODQPzuLXXnNLi29e2+PgPkkiKUXLs/Nw==}
 
@@ -1588,9 +1573,6 @@ packages:
   copy-anything@3.0.5:
     resolution: {integrity: sha512-yCEafptTtb4bk7GLEQoM8KVJpxAfdBJYaXyzQEgQQQgYrZiDp8SJmGKlYza6CYjEDNstAdNdKA3UuoULlEbS6w==}
     engines: {node: '>=12.13'}
-
-  core-js@3.39.0:
-    resolution: {integrity: sha512-raM0ew0/jJUqkJ0E6e8UDtl+y/7ktFivgWvqw8dNSQeNWoSDLvQ1H/RN3aPXB9tBd4/FhyR4RDPGhsNIMsAn7g==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -2015,9 +1997,6 @@ packages:
 
   fastq@1.17.1:
     resolution: {integrity: sha512-sRVD3lWVIXWg6By68ZN7vho9a1pQcN/WBFaAAsDDFzlJjvoGx0P8z7V1t72grFJfJhu3YPZBuu25f7Kaw2jN1w==}
-
-  feather-icons@4.29.2:
-    resolution: {integrity: sha512-0TaCFTnBTVCz6U+baY2UJNKne5ifGh7sMG4ZC2LoBWCZdIyPa+y6UiR4lEYGws1JOFWdee8KAsAIvu0VcXqiqA==}
 
   file-entry-cache@8.0.0:
     resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
@@ -2550,6 +2529,11 @@ packages:
     resolution: {integrity: sha512-ozCC6gdQ+glXOQsveKD0YsDy8DSQFjDTz4zyzEHNV5+JP5D62LmfDZ6o1cycFx9ouG940M5dE8C8CTewdj2YWQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
+  lucide-vue-next@0.468.0:
+    resolution: {integrity: sha512-quV/6T8YB1XK0VOEnebg3Byd8Rsan5/m95cvjnuHV4vcS3qEnLAybkrSh0hk3ppavx+V7R1PjNW+mGDvcBdz4A==}
+    peerDependencies:
+      vue: '>=3.0.1'
+
   magic-string@0.30.11:
     resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
 
@@ -2576,12 +2560,6 @@ packages:
 
   mdast-util-to-hast@13.2.0:
     resolution: {integrity: sha512-QGYKEuUsYT9ykKBCMOEDLsU5JRObWQusAolFMeko/tYPufNkRffBAQjIE+99jbA87xv6FgmjLtwjh9wBWajwAA==}
-
-  mdi-vue@3.0.13:
-    resolution: {integrity: sha512-QHfRJZfhTA4FLqxBh4Gzxq+U+V/XQLw9l8lSIwJGMY4L+7oP+5HkAd+rsySIGfcHLEZakN3xcYpcroLZAoh0cw==}
-    peerDependencies:
-      '@mdi/js': '*'
-      vue: '*'
 
   mdn-data@2.0.28:
     resolution: {integrity: sha512-aylIc7Z9y4yzHYAJNuESG3hfhC+0Ibp/MAMiaOZgNv4pmEdFyfZhhhny4MNiAfWdBQ1RQ2mfDWmM1x8SvGyp8g==}
@@ -3559,12 +3537,6 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
 
-  vue-feather@2.0.0:
-    resolution: {integrity: sha512-GBvxJWu2ycGTpB8duYWnc5S/TwWPPb2G5Ft2NbkwK1vZkUDUOTYqIb4Nh1HOL6A37Isfrd0Guun0lesS97PfxA==}
-    peerDependencies:
-      feather-icons: ^4.28.0
-      vue: ^3.0.0
-
   vue-json-pretty@2.4.0:
     resolution: {integrity: sha512-e9bP41DYYIc2tWaB6KuwqFJq5odZ8/GkE6vHQuGcbPn37kGk4a3n1RNw3ZYeDrl66NWXgTlOfS+M6NKkowmkWw==}
     engines: {node: '>= 10.0.0', npm: '>= 5.0.0'}
@@ -4094,8 +4066,6 @@ snapshots:
       events: 3.3.0
 
   '@ledgerhq/logs@6.12.0': {}
-
-  '@mdi/js@7.4.47': {}
 
   '@nautilus-js/eip12-types@0.1.11': {}
 
@@ -5058,8 +5028,6 @@ snapshots:
       inherits: 2.0.4
       safe-buffer: 5.2.1
 
-  classnames@2.5.1: {}
-
   cleave.js@1.6.0: {}
 
   cli-boxes@3.0.0: {}
@@ -5115,8 +5083,6 @@ snapshots:
   copy-anything@3.0.5:
     dependencies:
       is-what: 4.1.16
-
-  core-js@3.39.0: {}
 
   core-util-is@1.0.3: {}
 
@@ -5663,11 +5629,6 @@ snapshots:
     dependencies:
       reusify: 1.0.4
 
-  feather-icons@4.29.2:
-    dependencies:
-      classnames: 2.5.1
-      core-js: 3.39.0
-
   file-entry-cache@8.0.0:
     dependencies:
       flat-cache: 4.0.1
@@ -6201,6 +6162,10 @@ snapshots:
 
   lowercase-keys@3.0.0: {}
 
+  lucide-vue-next@0.468.0(vue@3.5.13(typescript@5.7.2)):
+    dependencies:
+      vue: 3.5.13(typescript@5.7.2)
+
   magic-string@0.30.11:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -6242,11 +6207,6 @@ snapshots:
       unist-util-position: 5.0.0
       unist-util-visit: 5.0.0
       vfile: 6.0.3
-
-  mdi-vue@3.0.13(@mdi/js@7.4.47)(vue@3.5.13(typescript@5.7.2)):
-    dependencies:
-      '@mdi/js': 7.4.47
-      vue: 3.5.13(typescript@5.7.2)
 
   mdn-data@2.0.28: {}
 
@@ -7367,11 +7327,6 @@ snapshots:
       semver: 7.6.3
     transitivePeerDependencies:
       - supports-color
-
-  vue-feather@2.0.0(feather-icons@4.29.2)(vue@3.5.13(typescript@5.7.2)):
-    dependencies:
-      feather-icons: 4.29.2
-      vue: 3.5.13(typescript@5.7.2)
 
   vue-json-pretty@2.4.0(vue@3.5.13(typescript@5.7.2)):
     dependencies:
