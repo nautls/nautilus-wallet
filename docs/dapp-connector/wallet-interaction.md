@@ -65,7 +65,7 @@ The code above returns an array of all UTxOs owned by the selected wallet.
 ### UTxO Type Definitions
 
 ```ts
-interface Box = {
+interface Box {
   boxId: string;
   transactionId: string;
   index: number;
@@ -74,8 +74,8 @@ interface Box = {
   value: string;
   assets: { tokenId: string; amount: string }[];
   additionalRegisters: Partial<Record<"R4" | "R5" | "R6" | "R7" | "R8" | "R9", string>>;
-  confirmed?: boolean; // false if the UTxO is still unconfirmed
-};
+  confirmed?: boolean; // true if included in the blockchain
+}
 ```
 
 ### Filter UTxOs
@@ -142,18 +142,41 @@ As the focus of this guide is specifically on the **dApp Connector** protocol, w
 The `sign_tx()` method requires the transaction object to be structured in a slightly different way than what's required by the node: the `inputs` and `dataInputs` properties must be full [Box objects](#utxo-type-definitions), instead of an object containing the `BoxID`.
 
 ```ts
-interface UnsignedTransaction = {
-  inputs: Box[]; // see "UTxO Type Definitions" for Box type details.
-  dataInputs: Box[];
-  outputs: {
+interface UnsignedTransaction {
+  inputs: Array<{
+    boxId: string;
+    transactionId: string;
     index: number;
     ergoTree: string;
     creationHeight: number;
     value: string;
-    assets: { tokenId: string; amount: string }[];
-    additionalRegisters: Partial<Record<"R4" | "R5" | "R6" | "R7" | "R8" | "R9", string>>;
-  };
-};
+    assets: TokenAmount[];
+    additionalRegisters: NonMandatoryRegisters;
+    extension: { values?: Record<string, string> };
+  }>;
+
+  dataInputs: Array<{
+    boxId: string;
+    transactionId: string;
+    index: number;
+    ergoTree: string;
+    creationHeight: number;
+    value: string;
+    assets: TokenAmount[];
+    additionalRegisters: NonMandatoryRegisters;
+  }>;
+
+  outputs: Array<{
+    ergoTree: string;
+    creationHeight: number;
+    value: string;
+    assets: TokenAmount[];
+    additionalRegisters: NonMandatoryRegisters;
+  }>;
+}
+
+type TokenAmount = Array<{ tokenId: string; amount: string }>;
+type NonMandatoryRegisters = Partial<Record<"R4" | "R5" | "R6" | "R7" | "R8" | "R9", string>>;
 ```
 
 ### Submit a Transaction
