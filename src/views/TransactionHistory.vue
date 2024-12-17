@@ -4,7 +4,7 @@ import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import type { BigNumber } from "bignumber.js";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
-import { DownloadIcon, UploadIcon } from "lucide-vue-next";
+import { ClockIcon, DownloadIcon, UploadIcon } from "lucide-vue-next";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import { useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -217,7 +217,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
       v-else-if="allLoaded && !txHistory?.length"
       class="flex flex-col gap-4 pt-20 px-4 text-center items-center text-gray-500"
     >
-      <vue-feather type="clock" size="64" class="text-gray-400" />
+      <clock-icon :size="64" class="text-gray-400" />
       You have no transaction history.
     </div>
   </div>

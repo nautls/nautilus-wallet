@@ -67,7 +67,7 @@
 
     <template v-if="!isLedger">
       <p v-if="isReadonly" class="text-sm text-center">
-        <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
+        <triangle-alert-icon class="text-yellow-500 align-middle" :size="20" />
         <span class="align-middle"> This wallet cannot sign transactions.</span>
       </p>
       <div v-else class="text-left">
@@ -133,6 +133,7 @@ import {
   SignedInput,
   SignedTransaction
 } from "@fleet-sdk/common";
+import { TriangleAlertIcon } from "lucide-vue-next";
 import TxBoxDetails from "./TxBoxDetails.vue";
 import LedgerDevice from "./LedgerDevice.vue";
 import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
@@ -156,7 +157,8 @@ export default defineComponent({
     SignStateModal,
     TxBoxDetails,
     VueJsonPretty,
-    LedgerDevice
+    LedgerDevice,
+    TriangleAlertIcon
   },
   props: {
     transaction: { type: Object as PropType<Readonly<EIP12UnsignedTransaction>>, required: false },

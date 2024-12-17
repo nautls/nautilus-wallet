@@ -73,9 +73,6 @@ importers:
       ergo-lib-wasm-browser:
         specifier: ^0.28.0
         version: 0.28.0
-      feather-icons:
-        specifier: ^4.29.2
-        version: 4.29.2
       ledger-ergo-js:
         specifier: ^0.1.20
         version: 0.1.20
@@ -94,9 +91,6 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.7.2)
-      vue-feather:
-        specifier: ^2.0.0
-        version: 2.0.0(feather-icons@4.29.2)(vue@3.5.13(typescript@5.7.2))
       vue-json-pretty:
         specifier: 2.4.0
         version: 2.4.0(vue@3.5.13(typescript@5.7.2))
@@ -1521,9 +1515,6 @@ packages:
   cipher-base@1.0.4:
     resolution: {integrity: sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==}
 
-  classnames@2.5.1:
-    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
-
   cleave.js@1.6.0:
     resolution: {integrity: sha512-ivqesy3j5hQVG3gywPfwKPbi/7ZSftY/UNp5uphnqjr25yI2CP8FS2ODQPzuLXXnNLi29e2+PgPkkiKUXLs/Nw==}
 
@@ -1582,9 +1573,6 @@ packages:
   copy-anything@3.0.5:
     resolution: {integrity: sha512-yCEafptTtb4bk7GLEQoM8KVJpxAfdBJYaXyzQEgQQQgYrZiDp8SJmGKlYza6CYjEDNstAdNdKA3UuoULlEbS6w==}
     engines: {node: '>=12.13'}
-
-  core-js@3.39.0:
-    resolution: {integrity: sha512-raM0ew0/jJUqkJ0E6e8UDtl+y/7ktFivgWvqw8dNSQeNWoSDLvQ1H/RN3aPXB9tBd4/FhyR4RDPGhsNIMsAn7g==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -2009,9 +1997,6 @@ packages:
 
   fastq@1.17.1:
     resolution: {integrity: sha512-sRVD3lWVIXWg6By68ZN7vho9a1pQcN/WBFaAAsDDFzlJjvoGx0P8z7V1t72grFJfJhu3YPZBuu25f7Kaw2jN1w==}
-
-  feather-icons@4.29.2:
-    resolution: {integrity: sha512-0TaCFTnBTVCz6U+baY2UJNKne5ifGh7sMG4ZC2LoBWCZdIyPa+y6UiR4lEYGws1JOFWdee8KAsAIvu0VcXqiqA==}
 
   file-entry-cache@8.0.0:
     resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
@@ -3552,12 +3537,6 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
 
-  vue-feather@2.0.0:
-    resolution: {integrity: sha512-GBvxJWu2ycGTpB8duYWnc5S/TwWPPb2G5Ft2NbkwK1vZkUDUOTYqIb4Nh1HOL6A37Isfrd0Guun0lesS97PfxA==}
-    peerDependencies:
-      feather-icons: ^4.28.0
-      vue: ^3.0.0
-
   vue-json-pretty@2.4.0:
     resolution: {integrity: sha512-e9bP41DYYIc2tWaB6KuwqFJq5odZ8/GkE6vHQuGcbPn37kGk4a3n1RNw3ZYeDrl66NWXgTlOfS+M6NKkowmkWw==}
     engines: {node: '>= 10.0.0', npm: '>= 5.0.0'}
@@ -5049,8 +5028,6 @@ snapshots:
       inherits: 2.0.4
       safe-buffer: 5.2.1
 
-  classnames@2.5.1: {}
-
   cleave.js@1.6.0: {}
 
   cli-boxes@3.0.0: {}
@@ -5106,8 +5083,6 @@ snapshots:
   copy-anything@3.0.5:
     dependencies:
       is-what: 4.1.16
-
-  core-js@3.39.0: {}
 
   core-util-is@1.0.3: {}
 
@@ -5653,11 +5628,6 @@ snapshots:
   fastq@1.17.1:
     dependencies:
       reusify: 1.0.4
-
-  feather-icons@4.29.2:
-    dependencies:
-      classnames: 2.5.1
-      core-js: 3.39.0
 
   file-entry-cache@8.0.0:
     dependencies:
@@ -7357,11 +7327,6 @@ snapshots:
       semver: 7.6.3
     transitivePeerDependencies:
       - supports-color
-
-  vue-feather@2.0.0(feather-icons@4.29.2)(vue@3.5.13(typescript@5.7.2)):
-    dependencies:
-      feather-icons: 4.29.2
-      vue: 3.5.13(typescript@5.7.2)
 
   vue-json-pretty@2.4.0(vue@3.5.13(typescript@5.7.2)):
     dependencies:

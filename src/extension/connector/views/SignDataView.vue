@@ -7,6 +7,7 @@ import { ErgoMessage, MessageType } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
 import VueJsonPretty from "vue-json-pretty";
 import type { JsonObject } from "type-fest";
+import { TriangleAlertIcon } from "lucide-vue-next";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
 import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
 import { ProverStateType, WalletType } from "@/types/internal";
@@ -39,7 +40,8 @@ const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
 
-const removeEventListener = useEventListener(window, "beforeunload", refuse);
+const detachUnloadListener = useEventListener(window, "beforeunload", refuse);
+
 const $v = useVuelidate(
   {
     password: {
@@ -128,7 +130,7 @@ async function authenticate() {
     if (!request.value) return proverError("Prover returned undefined.");
     request.value.resolve(success(proof));
 
-    removeEventListener();
+    detachUnloadListener();
     window.close();
   } catch (e) {
     if (e instanceof PasswordError) {
@@ -145,7 +147,7 @@ function proverError(message: string) {
 
 function cancel() {
   refuse();
-  removeEventListener();
+  detachUnloadListener();
   window.close();
 }
 
@@ -192,7 +194,7 @@ function refuse() {
     <div class="flex-grow"></div>
 
     <p v-if="isReadonly || isLedger" class="text-sm text-center space-x-2">
-      <vue-feather type="alert-triangle" class="text-yellow-500 align-middle" size="20" />
+      <triangle-alert-icon class="text-yellow-500 align-middle inline" :size="20" />
       <span class="align-middle">This wallet cannot sign messages.</span>
     </p>
     <div v-else class="text-left">

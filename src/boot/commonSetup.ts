@@ -2,7 +2,6 @@ import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next"
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { App } from "vue";
-import VueFeather from "vue-feather";
 import { createPinia } from "pinia";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
@@ -36,7 +35,6 @@ export function setupApp(app: App): App {
     .use(Switch)
     .use(Config, ORUGA_SETTINGS)
     .directive("cleave", vueCleave)
-    .component("vue-feather", VueFeather)
     .component("click-to-copy", ClickToCopy)
     .component("tool-tip", ToolTip)
     .component("loading-indicator", LoadingIndicator)

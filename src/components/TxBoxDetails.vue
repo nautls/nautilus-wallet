@@ -62,7 +62,7 @@
                     </div>
                   </div>
                 </template>
-                <vue-feather type="git-commit" class="align-middle pl-2" size="18" />
+                <git-commit-vertical-icon class="align-middle pl-2" />
               </tool-tip>
             </div>
             <div>
@@ -77,7 +77,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import { ArrowDownUpIcon } from "lucide-vue-next";
+import { ArrowDownUpIcon, GitCommitVerticalIcon } from "lucide-vue-next";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import BabelBadge from "@/assets/images/babel-badge.svg";
@@ -89,7 +89,8 @@ export default defineComponent({
   components: {
     BabelBadge,
     EmptyLogo,
-    ArrowDownUpIcon
+    ArrowDownUpIcon,
+    GitCommitVerticalIcon
   },
   props: {
     assets: { type: Array as PropType<Array<OutputAsset>>, default: () => [] },
