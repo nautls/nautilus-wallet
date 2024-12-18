@@ -10,7 +10,6 @@ import ToolTip from "@/components/ToolTip.vue";
 import { vueCleave } from "@/directives/cleave";
 
 import "@oruga-ui/oruga-next/dist/oruga.css";
-import "windi.css";
 import "@/assets/styles/main.css";
 
 dayjs.extend(relativeTime);

@@ -1,10 +1,10 @@
+/* eslint-disable no-console */
 import { execSync } from "child_process";
 import path from "node:path";
 import { defineConfig, PluginOption } from "vite";
 import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 import wasmLoader from "vite-plugin-wasm";
-import windiCSS from "vite-plugin-windicss";
 import topLevelAwait from "vite-plugin-top-level-await";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import webExtension from "vite-plugin-web-extension";
@@ -29,7 +29,6 @@ function defEnv(obj: Record<string, unknown>): Record<string, string> {
 
 const plugins = [
   vue(),
-  windiCSS(),
   svgLoader(),
   topLevelAwait(),
   wasmLoader(),
