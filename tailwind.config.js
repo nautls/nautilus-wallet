@@ -1,15 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    // "./src/extension/connector/index.html",
-    // "./src/extension/popup/index.html"
-    "./src/**/*.{html,vue,js,ts,jsx,tsx}"
+    "./src/extension/connector/index.html",
+    "./src/extension/popup/index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ["OpenSans"],
-        mono: ["RobotoMono"]
+        sans: ["OpenSans"]
       },
       colors: {
         dark: {

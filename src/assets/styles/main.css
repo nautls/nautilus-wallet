@@ -1,9 +1,11 @@
+@import "./fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply overflow-x-hidden bg-gray-200 text-base leading-normal tracking-wide text-dark-500 antialiased;
+  @apply overflow-x-hidden bg-gray-200 font-sans text-base leading-normal tracking-wide text-dark-500 antialiased;
 }
 
 .app {
