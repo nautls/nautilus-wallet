@@ -1,13 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
-  @apply bg-gray-200 overflow-x-hidden text-base leading-normal tracking-wide text-dark-500 antialiased;
+  @apply overflow-x-hidden bg-gray-200 text-base leading-normal tracking-wide text-dark-500 antialiased;
 }
 
 .app {
-  @apply bg-light-50 overflow-x-hidden flex flex-col min-h-600px h-600px h-screen min-w-365px gap-0 mx-auto md:(max-w-4/12 shadow-lg);
+  @apply mx-auto flex h-[600px] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden bg-light-50 md:w-4/12 md:shadow-lg;
 }
 
 a {
-  @apply hover:underline underline-current;
+  @apply hover:underline;
 }
 
 input {
@@ -19,7 +23,7 @@ input {
 }
 
 ::-webkit-scrollbar {
-  @apply w-5px;
+  @apply w-[5px];
 }
 
 /* scrollbar track */
@@ -38,11 +42,11 @@ input {
 }
 
 .input-error {
-  @apply text-xs text-red-600 font-normal px-1;
+  @apply px-1 text-xs font-normal text-red-600;
 }
 
 label {
-  @apply font-semibold text-sm;
+  @apply text-sm font-semibold;
 }
 
 .transform-flip {
@@ -53,35 +57,31 @@ label {
 }
 
 .default-transition {
-  @apply transition-all ease-linear duration-150;
+  @apply transition-all duration-150 ease-linear;
 }
 
 .control {
-  @apply rounded border-1 border-gray-400 my-1 p-2 default-transition text-sm
-  focus:(outline-none border-blue-800 ring-2 ring-blue-300)
-  hover:border-blue-800 outline-none;
+  @apply default-transition my-1 rounded border border-gray-400 p-2 text-sm outline-none hover:border-blue-800 focus:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300;
 }
 
 .tabs {
-  @apply flex flex-row text-sm text-gray-500 bg-gray-100 p-0;
+  @apply flex flex-row bg-gray-100 p-0 text-sm text-gray-500;
 }
 
 .tabs .tab-item {
-  @apply outline-none text-center block default-transition max-w-20
-     border-b-2 border-gray-200
-    hover:text-blue-700 focus:outline-none active:(outline-none text-blue-800);
+  @apply default-transition block max-w-20 border-b-2 border-gray-200 text-center outline-none hover:text-blue-700 focus:outline-none active:text-blue-800 active:outline-none;
 }
 
 .tabs .tab-item.spacing {
-  @apply flex-grow max-w-full;
+  @apply max-w-full flex-grow;
 }
 
 .tabs .tab-item.active {
-  @apply text-blue-700 border-blue-600 border-b-2;
+  @apply border-b-2 border-blue-600 text-blue-700;
 }
 
 .table {
-  @apply divide-y min-w-full divide-gray-200;
+  @apply min-w-full divide-y divide-gray-200;
 }
 
 .table thead {
@@ -89,15 +89,15 @@ label {
 }
 
 .table thead th {
-  @apply font-medium text-xs tracking-wider py-3 text-gray-500 uppercase;
+  @apply py-3 text-xs font-medium uppercase tracking-wider text-gray-500;
 }
 
 .table tbody {
-  @apply divide-y bg-white divide-gray-200;
+  @apply divide-y divide-gray-200 bg-white;
 }
 
 .table tbody td {
-  @apply text-sm py-4 align-middle;
+  @apply py-4 align-middle text-sm;
 }
 
 .table tbody td:first-child,
@@ -137,23 +137,23 @@ label {
 
 .zoom-out-enter-active,
 .zoom-out-leave-active {
-  @apply transition duration-250;
+  @apply transition duration-200;
 }
 
 .zoom-out-enter,
 .zoom-out-enter-from,
 .zoom-out-leave-active {
-  @apply opacity-0 transform scale-110;
+  @apply scale-110 transform opacity-0;
 }
 
 .fade-slide-up-enter-active,
 .fade-slide-up-leave-active {
-  @apply transition duration-250;
+  @apply transition duration-200;
 }
 
 .fade-slide-up-enter-active .animation-content,
 .fade-slide-up-leave-active .animation-content {
-  @apply transition duration-250;
+  @apply transition duration-200;
 }
 
 .fade-slide-up-enter,
@@ -165,46 +165,32 @@ label {
 .fade-slide-up-enter .animation-content,
 .fade-slide-up-enter-from .animation-content,
 .fade-slide-up-leave-active .animation-content {
-  @apply transform translate-y-10;
+  @apply translate-y-10 transform;
 }
 
 .btn {
-  @apply bg-blue-600 border border-solid rounded font-semibold
-    outline-none border-blue-800 text-sm mb-1 py-2 
-    px-4 uppercase default-transition text-light-300
-    hover:(bg-blue-700) focus:(outline-none ring-2 ring-blue-300)
-    active:bg-blue-800;
+  @apply default-transition mb-1 rounded border border-solid border-blue-800 bg-blue-600 px-4 py-2 text-sm font-semibold uppercase text-light-300 outline-none hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800;
 }
 
 .btn.danger {
-  @apply bg-red-600 border-red-800 text-light-300
-    hover:(bg-red-700) focus:(ring-red-300)
-    active:bg-red-800;
+  @apply border-red-800 bg-red-600 text-light-300 hover:bg-red-700 focus:ring-red-300 active:bg-red-800;
 }
 
 .btn.default {
-  @apply bg-gray-50 border-gray-400 text-dark-200
-    hover:(bg-gray-200) focus:(ring-gray-300)
-    active:bg-gray-300;
+  @apply border-gray-400 bg-gray-50 text-dark-200 hover:bg-gray-200 focus:ring-gray-300 active:bg-gray-300;
 }
 
 .btn.outlined {
-  @apply bg-transparent outline-none text-blue-800 
-    hover:(bg-blue-700 text-light-300) focus:(outline-none ring-2 ring-blue-300)
-    active:(bg-blue-800 text-light-300);
+  @apply bg-transparent text-blue-800 outline-none hover:bg-blue-700 hover:text-light-300 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800 active:text-light-300;
 }
 
 button:disabled,
 input:disabled {
-  @apply bg-gray-50 text-gray-400 cursor-not-allowed border-gray-700 
-  outline-none hover:bg-gray-50 hover:text-gray-400 hover:border-gray-700;
+  @apply cursor-not-allowed border-gray-700 bg-gray-50 text-gray-400 outline-none hover:border-gray-700 hover:bg-gray-50 hover:text-gray-400;
 }
 
 .nav-btn {
-  @apply bg-transparent border border-solid rounded text-left
-    font-semibold outline-none border-blue-800 text-sm mr-1
-    w-full p-4 text-blue-800 default-transition
-    hover:bg-blue-50 focus:outline-none active:bg-blue-100;
+  @apply default-transition mr-1 w-full rounded border border-solid border-blue-800 bg-transparent p-4 text-left text-sm font-semibold text-blue-800 outline-none hover:bg-blue-50 focus:outline-none active:bg-blue-100;
 }
 
 .nav-btn .title {
@@ -212,11 +198,11 @@ input:disabled {
 }
 
 .nav-btn .subtitle {
-  @apply font-normal text-xs mt-0.5 text-gray-500 block mx-4;
+  @apply mx-4 mt-0.5 block text-xs font-normal text-gray-500;
 }
 
 .dropdown {
-  @apply text-left relative inline-block;
+  @apply relative inline-block text-left;
 }
 
 .dropdown.active {
@@ -232,19 +218,15 @@ input:disabled {
 }
 
 .group .dropdown:first-child .items-list {
-  @apply w-[calc(100%+1px)] -mx-1px;
+  @apply mx-[-1px] w-[calc(100%+1px)];
 }
 
 .dropdown .trigger {
-  @apply outline-none w-full text-gray-700 gap-2 default-transition 
-  items-center inline-flex justify-between bg-gray-100 border rounded border-gray-300 
-  focus:outline-none hover:bg-gray-200 active:bg-gray-300;
+  @apply default-transition inline-flex w-full items-center justify-between gap-2 rounded border border-gray-300 bg-gray-100 text-gray-700 outline-none hover:bg-gray-200 focus:outline-none active:bg-gray-300;
 }
 
 .dropdown.discrete .trigger {
-  @apply bg-transparent border border-transparent rounded outline-none w-full py-2 px-4
-  text-gray-700 gap-2 default-transition items-center inline-flex justify-between
-  hover:(bg-gray-100 border-gray-300) focus:outline-none active:(outline-none bg-gray-200);
+  @apply default-transition inline-flex w-full items-center justify-between gap-2 rounded border border-transparent bg-transparent px-4 py-2 text-gray-700 outline-none hover:border-gray-300 hover:bg-gray-100 focus:outline-none active:bg-gray-200 active:outline-none;
 }
 
 .dropdown .trigger.active {
@@ -252,8 +234,7 @@ input:disabled {
 }
 
 .dropdown .trigger:disabled {
-  @apply bg-gray-50 text-gray-400 cursor-not-allowed 
-  outline-none hover:bg-gray-50 hover:text-gray-400 hover:border-gray-300;
+  @apply cursor-not-allowed bg-gray-50 text-gray-400 outline-none hover:border-gray-300 hover:bg-gray-50 hover:text-gray-400;
 }
 
 .dropdown.discrete .trigger:disabled {
@@ -261,27 +242,23 @@ input:disabled {
 }
 
 .dropdown .trigger.active.bottom {
-  @apply border-b-transparent rounded-b-none;
+  @apply rounded-b-none border-b-transparent;
 }
 
 .dropdown .trigger.active.top {
-  @apply border-t-transparent rounded-t-none;
+  @apply rounded-t-none border-t-transparent;
 }
 
 .dropdown .items-list {
-  @apply divide-y bg-white border rounded divide-gray-100
-    border-gray-300 text-sm w-full right-0 shadow-lg
-    overflow-y-auto absolute z-50 focus:outline-none;
+  @apply absolute right-0 z-50 w-full divide-y divide-gray-100 overflow-y-auto rounded border border-gray-300 bg-white text-sm shadow-lg focus:outline-none;
 }
 
 .dropdown .items-list.bottom {
-  @apply top-full bottom-auto origin-top
-    rounded-t-none border-t-gray-100 origin-top -mt-1px;
+  @apply bottom-auto top-full mt-[-1px] origin-top rounded-t-none border-t-gray-100;
 }
 
 .dropdown .items-list.top {
-  @apply top-auto bottom-full origin-bottom
-    rounded-b-none border-b-gray-100 origin-bottom shadow-none -mb-1px;
+  @apply bottom-full top-auto mb-[-1px] origin-bottom rounded-b-none border-b-gray-100 shadow-none;
 }
 
 .dropdown.discrete .items-list.bottom {
@@ -305,12 +282,11 @@ input:disabled {
 }
 
 .dropdown .items-list .group .group-item {
-  @apply py-3 px-4 block cursor-pointer underline-transparent hover:bg-gray-100
-  active:(outline-none bg-gray-200);
+  @apply block cursor-pointer px-4 py-3 no-underline hover:bg-gray-100 active:bg-gray-200 active:outline-none;
 }
 
 .dropdown .items-list .group .group-item.narrow {
-  @apply py-2 px-3;
+  @apply px-3 py-2;
 }
 
 .dropdown .items-list .group .group-item.narrow-y {
@@ -322,21 +298,19 @@ input:disabled {
 }
 
 .items-select .o-inputit__container {
-  @apply border-none gap-2;
+  @apply gap-2 border-none;
 }
 
 .input-wrap {
-  @apply cursor-text rounded border-1 border-gray-400
-  default-transition text-sm outline-none hover:border-blue-600 my-1 p-2
-  focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
+  @apply default-transition my-1 cursor-text rounded border border-gray-400 p-2 text-sm outline-none focus-within:border-blue-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-300 hover:border-blue-600;
 }
 
 .items-select {
-  @apply min-h-30 h-auto;
+  @apply h-auto min-h-32;
 }
 
 .items-select .o-inputit__container {
-  @apply border-none gap-2;
+  @apply gap-2 border-none;
 }
 
 .vjs-tree .vjs-value {
@@ -354,16 +328,15 @@ input:disabled {
 }
 
 .items-select .tag {
-  @apply inline-flex rounded bg-gray-200 font-normal text-dark-400 px-1 m-0;
+  @apply m-0 inline-flex rounded bg-gray-200 px-1 font-normal text-dark-400;
 }
 
 .autocomplete-list {
-  @apply shadow-lg block border border-1 border-gray-200 mt-2 rounded max-h-40 overflow-auto;
+  @apply mt-2 block max-h-40 overflow-auto rounded border border-gray-200 shadow-lg;
 }
 
 .autocomplete-list .item {
-  @apply p-2 px-4 font-normal block cursor-pointer underline-transparent
-  hover:bg-gray-100 active:(outline-none bg-gray-200);
+  @apply block cursor-pointer p-2 px-4 font-normal hover:bg-gray-100 active:bg-gray-200 active:outline-none;
 }
 
 .autocomplete-list .item.selected {
@@ -371,15 +344,11 @@ input:disabled {
 }
 
 .asset-input {
-  @apply cursor-text rounded border-1 border-gray-400 font-normal
-  default-transition text-sm outline-none hover:border-blue-600 my-1 p-2
-  focus-within: (outline-none border-blue-800 ring-2 ring-blue-300);
+  @apply default-transition my-1 cursor-text rounded border border-gray-400 p-2 text-sm font-normal outline-none focus-within:border-blue-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-300 hover:border-blue-600;
 }
 
 .checkbox {
-  @apply h-4 w-4 border-gray-300 rounded-sm bg-white
-  focus:outline-none checked:(bg-blue-600 border-blue-600)
-  mr-2 cursor-pointer outline-none my-auto;
+  @apply my-auto mr-2 h-4 w-4 cursor-pointer rounded-sm border-gray-300 bg-white outline-none checked:border-blue-600 checked:bg-blue-600 focus:outline-none;
 }
 
 .url {
@@ -387,11 +356,11 @@ input:disabled {
 }
 
 .stats {
-  @apply flex flex-row gap-0 text-center bg-white;
+  @apply flex flex-row gap-0 bg-white text-center;
 }
 
 .stats-card {
-  @apply border border-gray-200 w-full p-2;
+  @apply w-full border border-gray-200 p-2;
 }
 
 .stats-card:last-child {
