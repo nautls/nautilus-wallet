@@ -112,7 +112,7 @@ function closeWindow() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-4 text-sm">
+  <div class="flex h-full flex-col gap-4 text-sm">
     <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon" class="pt-2">
       <template v-if="isPartialSign"
         >requests to <span class="font-semibold">partially</span> sign a transaction</template

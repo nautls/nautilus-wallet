@@ -1,6 +1,6 @@
 <template>
-  <pulse-loader v-if="type === 'pulse'" :class="class" class="stroke-current inline-block" />
-  <circular-loader v-else :class="class" class="stroke-current inline-block" />
+  <pulse-loader v-if="type === 'pulse'" :class="class" class="inline-block stroke-current" />
+  <circular-loader v-else :class="class" class="inline-block stroke-current" />
 </template>
 
 <script lang="ts">

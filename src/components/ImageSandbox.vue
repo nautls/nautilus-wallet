@@ -1,8 +1,8 @@
 <template>
-  <div v-if="loading" :class="class" class="text-center flex">
-    <loading-indicator type="circular" class="w-1/3 h-1/3 m-auto !stroke-gray-500" />
+  <div v-if="loading" :class="class" class="flex text-center">
+    <loading-indicator type="circular" class="m-auto h-1/3 w-1/3 !stroke-gray-500" />
   </div>
-  <div v-else-if="!contentUrl" :class="class" class="text-center flex">
+  <div v-else-if="!contentUrl" :class="class" class="flex text-center">
     <circle-alert-icon class="m-auto text-orange-400" :size="48" />
   </div>
   <iframe

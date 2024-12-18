@@ -106,9 +106,9 @@ function onLoadingModalClose() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-4">
+  <div class="flex h-full flex-col gap-4">
     <div class="mb-2 text-center">
-      <h1 class="font-bold text-lg">Transaction Review</h1>
+      <h1 class="text-lg font-bold">Transaction Review</h1>
       <p class="text-xs">Please review your transaction before you sign it.</p>
     </div>
 

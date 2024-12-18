@@ -1,12 +1,12 @@
 <template>
-  <div class="flex flex-col gap-4 min-h-full py-4">
+  <div class="flex min-h-full flex-col gap-4 py-4">
     <label>
       Receiver
       <input
         v-model.lazy="recipient"
         type="text"
         spellcheck="false"
-        class="w-full control block"
+        class="control block w-full"
         @blur="v$.recipient.$touch()"
       />
       <p v-if="v$.recipient.$error" class="input-error">{{ v$.recipient.$errors[0].$message }}</p>
@@ -54,7 +54,7 @@
                     <template v-else>{{ format.string.shorten(asset.tokenId, 10) }}</template>
                     <p
                       v-if="devMode && !isErg(asset.tokenId)"
-                      class="text-gray-400 text-xs font-mono"
+                      class="font-mono text-xs text-gray-400"
                     >
                       {{ format.string.shorten(asset.tokenId, 16) }}
                     </p>
@@ -66,10 +66,10 @@
             <div class="group">
               <a class="group-item narrow" @click="addAll()">
                 <div class="flex flex-row items-center gap-2">
-                  <check-check-icon class="text-yellow-500 w-8 h-8" :size="32" />
+                  <check-check-icon class="h-8 w-8 text-yellow-500" :size="32" />
                   <div class="flex-grow">
                     Add all
-                    <p class="text-gray-400 text-xs">
+                    <p class="text-xs text-gray-400">
                       Use this option to include all your assets in the sending list.
                     </p>
                   </div>

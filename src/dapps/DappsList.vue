@@ -3,7 +3,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
 </script>
 
 <template>
-  <div class="flex flex-wrap items-top justify-start">
+  <div class="items-top flex flex-wrap justify-start">
     <router-link
       v-for="dapp in dappsManifest"
       :key="dapp.path"
@@ -11,13 +11,13 @@ import { dappsManifest } from "@/dapps/dappsManifest";
       :to="dapp.path"
       custom
     >
-      <div class="w-1/2 text-center p-2">
+      <div class="w-1/2 p-2 text-center">
         <button
-          class="cursor-pointer border border-gray-200 rounded w-full m-auto py-4 bg-white transition duration-250 hover:bg-gray-100 active:bg-gray-200"
+          class="duration-250 m-auto w-full cursor-pointer rounded border border-gray-200 bg-white py-4 transition hover:bg-gray-100 active:bg-gray-200"
           @click="navigate"
         >
-          <img :src="`/icons/dapps/${dapp.icon}`" class="w-16 h-16 m-auto" />
-          <p class="text-xs leading-tight pt-2 px-2">
+          <img :src="`/icons/dapps/${dapp.icon}`" class="m-auto h-16 w-16" />
+          <p class="px-2 pt-2 text-xs leading-tight">
             {{ dapp.name }}
           </p>
         </button>

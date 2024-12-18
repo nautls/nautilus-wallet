@@ -8,7 +8,7 @@ const wallet = useWalletStore();
 <template>
   <div
     v-if="wallet.health.hasOldUtxos"
-    class="rounded rounded border-1 bg-red-100 border-red-300 text-sm py-3 px-4"
+    class="border-1 rounded border-red-300 bg-red-100 px-4 py-3 text-sm"
   >
     <div>
       <strong
@@ -24,19 +24,19 @@ const wallet = useWalletStore();
       consider consolidating your assets avoid this.
     </div>
     <router-link v-slot="{ navigate }" to="/dapps/wallet-optimization" custom>
-      <button class="btn w-full mt-4" @click="navigate">Consolidate</button>
+      <button class="btn mt-4 w-full" @click="navigate">Consolidate</button>
     </router-link>
   </div>
   <div
     v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT"
-    class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
+    class="border-1 rounded border-yellow-300 bg-yellow-100 px-4 py-3 text-sm"
   >
     <div>
       <strong>Your wallet looks fragmented.</strong> Consider optimizing your wallet for improved
       performance and efficiency.
     </div>
     <router-link v-slot="{ navigate }" to="/dapps/wallet-optimization" custom>
-      <button class="btn w-full mt-4" @click="navigate">Optimize</button>
+      <button class="btn mt-4 w-full" @click="navigate">Optimize</button>
     </router-link>
   </div>
 </template>

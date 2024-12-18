@@ -24,7 +24,7 @@ const logo = staging
 
     <span
       v-if="staging || testnet"
-      class="text-xs rounded px-1 py-0 uppercase select-none"
+      class="select-none rounded px-1 py-0 text-xs uppercase"
       :class="{ 'bg-yellow-300 text-gray-700': testnet, 'bg-indigo-600 text-light-100': staging }"
     >
       {{ displayName }}

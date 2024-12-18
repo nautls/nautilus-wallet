@@ -1,6 +1,6 @@
 <template>
   <div
-    class="shadow-scroll text-sm flex-grow flex flex-col gap-4 leading-relaxed overflow-auto px-4 -mx-4 py-1"
+    class="shadow-scroll -mx-4 flex flex-grow flex-col gap-4 overflow-auto px-4 py-1 text-sm leading-relaxed"
   >
     <template v-if="!transaction">
       <tx-box-details v-for="i in 3" :key="i" loading />
@@ -10,9 +10,9 @@
       <tx-sign-summary v-if="tx" :tx="tx" />
 
       <div class="flex items-center pt-2">
-        <div class="flex-grow border-t border-gray-300 mx-2"></div>
+        <div class="mx-2 flex-grow border-t border-gray-300"></div>
         <span class="flex-shrink text-xs text-gray-400">Transaction details</span>
-        <div class="flex-grow border-t border-gray-300 mx-2"></div>
+        <div class="mx-2 flex-grow border-t border-gray-300"></div>
       </div>
 
       <tx-box-details
@@ -26,13 +26,13 @@
           {{ getOutputTitle(output) }}
         </p>
         <template v-if="!output.isBabelBoxSwap" #subheader>
-          <div class="font-mono text-sm break-all flex flex-col gap-2">
+          <div class="flex flex-col gap-2 break-all font-mono text-sm">
             <p>
               {{ format.string.shorten(output.receiver, 60) }}
               <click-to-copy :content="output.receiver" :size="11" />
             </p>
             <p v-if="isLedger && isP2S(output)">
-              <span class="font-semibold font-sans">Script Hash:</span>
+              <span class="font-sans font-semibold">Script Hash:</span>
               {{ format.string.shorten(output.scriptHash, 20) }}
             </p>
           </div>
@@ -41,7 +41,7 @@
       <tx-box-details v-if="tx?.fee" :assets="tx.fee.assets">
         <p>Network fee</p>
       </tx-box-details>
-      <div v-if="devMode && tx" class="block bg-gray-700 shadow-sm rounded py-2 px-2">
+      <div v-if="devMode && tx" class="block rounded bg-gray-700 px-2 py-2 shadow-sm">
         <vue-json-pretty
           class="!font-mono !text-xs text-white"
           :highlight-selected-node="false"
@@ -59,15 +59,15 @@
   <div>
     <label
       v-if="tx?.burning"
-      class="inline-flex items-center font-normal cursor-pointer bg-red-100 border-1 border-red-300 mb-2 py-1 px-3 rounded w-full"
+      class="border-1 mb-2 inline-flex w-full cursor-pointer items-center rounded border-red-300 bg-red-100 px-3 py-1 font-normal"
     >
       <input v-model="burnAgreement" class="checkbox" type="checkbox" />
       <span class="text-red-900">I understand that I'm burning token(s).</span>
     </label>
 
     <template v-if="!isLedger">
-      <p v-if="isReadonly" class="text-sm text-center">
-        <triangle-alert-icon class="text-yellow-500 align-middle inline" :size="20" />
+      <p v-if="isReadonly" class="text-center text-sm">
+        <triangle-alert-icon class="inline align-middle text-yellow-500" :size="20" />
         <span class="align-middle"> This wallet cannot sign transactions.</span>
       </p>
       <div v-else class="text-left">
@@ -77,7 +77,7 @@
             placeholder="Spending password"
             type="password"
             :disabled="!canSign || isMnemonicSigning || !transaction"
-            class="w-full control block"
+            class="control block w-full"
             @blur="v$.password.$touch()"
           />
           <p v-if="v$.password.$error" class="input-error">

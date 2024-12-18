@@ -62,27 +62,27 @@ function walletTypeToString(type: WalletType): string {
 </script>
 
 <template>
-  <div class="flex flex-row gap-3 items-center w-full h-10">
-    <div class="flex flex-col gap-0.5 h-full w-full text-left whitespace-nowrap">
-      <div class="font-semibold text-sm w-40 h-full truncate" :class="{ 'text-right': reverse }">
+  <div class="flex h-10 w-full flex-row items-center gap-3">
+    <div class="flex h-full w-full flex-col gap-0.5 whitespace-nowrap text-left">
+      <div class="h-full w-40 truncate text-sm font-semibold" :class="{ 'text-right': reverse }">
         {{ wallet.name }}
       </div>
       <div
-        class="h-full text-xs flex items-center flex-row gap-1"
+        class="flex h-full flex-row items-center gap-1 text-xs"
         :class="{ 'flex-row-reverse': reverse }"
       >
         <small class="align-middle font-normal">{{ checksum?.TextPart }}</small>
-        <small class="rounded bg-gray-200 px-1 font-normal text-dark-200 uppercase">{{
+        <small class="rounded bg-gray-200 px-1 font-normal uppercase text-dark-200">{{
           walletTypeToString(wallet.type)
         }}</small>
         <venetian-mask-icon v-if="wallet.settings.avoidAddressReuse" class="h-4 w-4" />
-        <loading-indicator v-if="loading" class="w-4 h-4" />
+        <loading-indicator v-if="loading" class="h-4 w-4" />
       </div>
     </div>
 
     <canvas
       :id="canvasId"
-      class="rounded w-9 h-9 ring-1 ring-gray-300 ring-offset-1 inline-block"
+      class="inline-block h-9 w-9 rounded ring-1 ring-gray-300 ring-offset-1"
     ></canvas>
   </div>
 </template>

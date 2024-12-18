@@ -122,19 +122,19 @@ function formatBytes(bytes: number, decimals = 1) {
 <template>
   <define-data-point v-slot="{ title, content, healthy }">
     <div class="stats-card">
-      <div v-if="loading" class="skeleton h-5 w-5 rounded-full m-auto block mb-2"></div>
+      <div v-if="loading" class="skeleton m-auto mb-2 block h-5 w-5 rounded-full"></div>
       <template v-else>
         <circle-check-icon
           v-if="healthy"
-          class="inline h-5 w-5 mb-2"
+          class="mb-2 inline h-5 w-5"
           :class="successColor(healthy)"
         />
-        <alert-circle-icon v-else class="inline h-5 w-5 mb-2" :class="successColor(healthy)" />
+        <alert-circle-icon v-else class="mb-2 inline h-5 w-5" :class="successColor(healthy)" />
       </template>
 
       <p>{{ title }}</p>
 
-      <h1 v-if="loading" class="skeleton w-20 h-4 rounded inline-block"></h1>
+      <h1 v-if="loading" class="skeleton inline-block h-4 w-20 rounded"></h1>
       <h1 v-else>{{ content }}</h1>
     </div>
   </define-data-point>
@@ -145,7 +145,7 @@ function formatBytes(bytes: number, decimals = 1) {
     <data-point title="Wallet size" :content="formatBytes(size)" :healthy="utxoHealth.size" />
   </div>
   <div>
-    <div class="text-gray-600 text-xs">
+    <div class="text-xs text-gray-600">
       <p>
         The Wallet Optimization Tool aims to renew and consolidate your UTxOs (Unspent Transaction
         Outputs) into a smaller number of new UTxOs. By doing so, it enhances the performance of

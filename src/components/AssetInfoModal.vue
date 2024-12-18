@@ -6,37 +6,37 @@
     scroll="clip"
     content-class="max-h-95vh bg-transparent relative overflow-hidden !max-w-100 !w-90vw"
   >
-    <button type="button" class="fixed top-0 right-0 m-2 text-light-300" @click="close()">
+    <button type="button" class="fixed right-0 top-0 m-2 text-light-300" @click="close()">
       <circle-x-icon />
     </button>
 
     <div v-if="!isImageNft" class="h-10" @click="close()"></div>
-    <div class="text-xs tracking-normal rounded bg-light-50" :class="{ 'pt-10': !isImageNft }">
+    <div class="rounded bg-light-50 text-xs tracking-normal" :class="{ 'pt-10': !isImageNft }">
       <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-83.1 w-full rounded-t" />
       <asset-icon
         v-else
-        class="w-20 h-20 mx-auto absolute left-0 right-0 top-0"
+        class="absolute left-0 right-0 top-0 mx-auto h-20 w-20"
         :token-id="asset?.id ?? tokenId"
         :type="asset?.subtype"
       />
       <div
-        class="p-4 gap-4 flex flex-col overflow-x-hidden overflow-y-auto"
+        class="flex flex-col gap-4 overflow-y-auto overflow-x-hidden p-4"
         :class="isImageNft ? 'max-h-52' : 'max-h-100'"
       >
         <div>
-          <h1 class="font-bold text-lg">
+          <h1 class="text-lg font-bold">
             {{ asset?.name ?? format.string.shorten(asset?.id, 20) }}
           </h1>
           <p v-if="description" class="whitespace-pre-wrap">{{ description }}</p>
         </div>
-        <div class="flex flex-row gap-4 mt-2">
+        <div class="mt-2 flex flex-row gap-4">
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Emission Amount</small>
             <p class="text-sm font-bold">{{ emissionAmount }}</p>
           </div>
           <div class="w-1/2">
             <small class="uppercase text-gray-500">Balance</small>
-            <p v-if="hideBalances" class="skeleton animate-none h-4.5 w-2/4 block rounded"></p>
+            <p v-if="hideBalances" class="skeleton h-4.5 block w-2/4 animate-none rounded"></p>
             <p v-else class="text-sm font-bold">
               {{ format.bn.format(confirmedBalance) ?? 0 }}
             </p>

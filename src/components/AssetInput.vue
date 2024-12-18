@@ -10,7 +10,7 @@
         v-if="disposable"
         v-show="hovered"
         tabindex="-1"
-        class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
+        class="border-1 w-5.5 h-5.5 absolute -right-2.5 -top-2.5 inline-flex cursor-pointer rounded-full border-gray-400 bg-gray-100 ring-2 ring-light-50"
         @click.prevent.stop="onRemoveClicked()"
       >
         <trash-icon class="p-1" :size="20" />
@@ -30,7 +30,7 @@
           />
         </div>
         <div class="w-5/12">
-          <div class="flex flex-row text-right items-center gap-1">
+          <div class="flex flex-row items-center gap-1 text-right">
             <span v-if="asset.metadata?.name" class="flex-grow text-sm"
               ><tool-tip
                 v-if="asset.metadata?.name.length > 10"
@@ -48,7 +48,7 @@
           </div>
         </div>
       </div>
-      <div class="flex flex-row gap-2 -mb-1.5">
+      <div class="-mb-1.5 flex flex-row gap-2">
         <div class="flex-grow">
           <span v-if="ergPrice && rate(asset.tokenId)" class="text-xs text-gray-400"
             >≈ {{ price }} {{ format.string.uppercase(conversionCurrency) }}</span
@@ -57,7 +57,7 @@
         </div>
         <div class="flex-grow text-right">
           <a
-            class="text-xs cursor-pointer underline-transparent text-gray-400"
+            class="underline-transparent cursor-pointer text-xs text-gray-400"
             @click="setMaxValue()"
             >Balance: {{ format.bn.format(confirmedAmount) }}</a
           >

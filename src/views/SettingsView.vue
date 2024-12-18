@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col gap-5 py-4">
-    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase">Wallet settings</div>
+    <div class="border-b-1 border-b-gray-300 text-xs uppercase text-gray-500">Wallet settings</div>
     <label>
       Wallet name
       <input
         v-model.lazy="walletSettings.name"
         type="text"
         spellcheck="false"
-        class="w-full control block"
+        class="control block w-full"
         @blur="(v$.walletSettings as any).name.$touch()"
       />
       <p v-if="(v$.walletSettings as any).name.$error" class="input-error">
@@ -15,15 +15,15 @@
       </p>
     </label>
     <div>
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+      <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
           <p>Privacy mode</p>
         </div>
         <div>
-          <o-switch v-model="walletSettings.avoidAddressReuse" class="align-middle float-right" />
+          <o-switch v-model="walletSettings.avoidAddressReuse" class="float-right align-middle" />
         </div>
       </label>
-      <div class="text-gray-500 text-xs font-normal mt-1">
+      <div class="mt-1 text-xs font-normal text-gray-500">
         <p>
           This option enables address reuse avoidance. Address reuse creates a common point of use.
           It makes tracking and linking actors on blockchains a simpler task. Avoiding address reuse
@@ -33,36 +33,36 @@
       </div>
     </div>
     <div>
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+      <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
           <p>Hide used addresses</p>
         </div>
         <div>
-          <o-switch v-model="walletSettings.hideUsedAddresses" class="align-middle float-right" />
+          <o-switch v-model="walletSettings.hideUsedAddresses" class="float-right align-middle" />
         </div>
       </label>
-      <div class="text-gray-500 text-xs font-normal mt-1">
+      <div class="mt-1 text-xs font-normal text-gray-500">
         <p>Hide empty used addresses from Receive page.</p>
       </div>
     </div>
     <div>
-      <div class="w-full align-middle flex flex-row items-center gap-5">
+      <div class="flex w-full flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
-          <p class="font-semibold text-sm">Export wallet</p>
+          <p class="text-sm font-semibold">Export wallet</p>
         </div>
         <button class="btn outlined !p-2 !py-1.5 !text-xs" @click="xpkModalActive = true">
           Export
         </button>
       </div>
-      <div class="text-gray-500 text-xs font-normal mt-1">
+      <div class="mt-1 text-xs font-normal text-gray-500">
         <p>Use this option to export your Extended Public Key.</p>
       </div>
     </div>
-    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
+    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
       Global settings
     </div>
     <div class="flex flex-col gap-5">
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+      <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
           <p>Currency conversion</p>
         </div>
@@ -71,29 +71,29 @@
             <select
               v-model="globalSettings.conversionCurrency"
               :disabled="loading"
-              class="w-full !py-1 appearance-none control cursor-pointer"
+              class="control w-full cursor-pointer appearance-none !py-1"
             >
               <option v-for="currency in currencies" :key="currency" :value="currency">
                 {{ format.string.uppercase(currency) }}
               </option>
             </select>
-            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-              <loading-indicator v-if="loading" type="circular" class="w-4 h-4 mr-1" />
-              <chevron-down-icon v-else class="w-4 h-4" />
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+              <loading-indicator v-if="loading" type="circular" class="mr-1 h-4 w-4" />
+              <chevron-down-icon v-else class="h-4 w-4" />
             </div>
           </div>
         </div>
       </label>
       <div>
-        <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+        <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
           <div class="flex-grow">
             <p>Developer mode</p>
           </div>
           <div>
-            <o-switch v-model="globalSettings.devMode" class="align-middle float-right" />
+            <o-switch v-model="globalSettings.devMode" class="float-right align-middle" />
           </div>
         </label>
-        <div class="text-gray-500 text-xs font-normal mt-1">
+        <div class="mt-1 text-xs font-normal text-gray-500">
           <p>Enable advanced tools.</p>
         </div>
       </div>
@@ -104,7 +104,7 @@
           v-model.lazy="globalSettings.graphQLServer"
           type="text"
           spellcheck="false"
-          class="w-full control block"
+          class="control block w-full"
           @blur="(v$.globalSettings as any).graphQLServer.$touch()"
         />
         <p v-if="(v$.globalSettings as any).graphQLServer.$error" class="input-error">
@@ -117,7 +117,7 @@
           v-model.lazy="globalSettings.explorerUrl"
           type="text"
           spellcheck="false"
-          class="w-full control block"
+          class="control block w-full"
           @blur="(v$.globalSettings as any).explorerUrl.$touch()"
         />
         <p v-if="(v$.globalSettings as any).explorerUrl.$error" class="input-error">
@@ -126,19 +126,19 @@
       </label>
     </div>
 
-    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
+    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
       Experimental ⚠️
     </div>
     <div>
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+      <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
           <p>Enable 0-conf</p>
         </div>
         <div>
-          <o-switch v-model="globalSettings.zeroConf" class="align-middle float-right" />
+          <o-switch v-model="globalSettings.zeroConf" class="float-right align-middle" />
         </div>
       </label>
-      <div class="text-gray-500 text-xs font-normal mt-1 space-y-2">
+      <div class="mt-1 space-y-2 text-xs font-normal text-gray-500">
         <p>
           0-conf, short for zero-confirmations, lets you to spend assets without waiting for
           confirmations. It's fast but carries a risk of being double-spent until confirmed by the
@@ -152,10 +152,10 @@
       </div>
     </div>
 
-    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">
+    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
       Token blacklists
     </div>
-    <p class="text-gray-500 text-xs font-normal -mt-2">
+    <p class="-mt-2 text-xs font-normal text-gray-500">
       Ergo
       <a target="_blank" href="https://github.com/sigmanauts/token-id-blacklist" class="url"
         >tokens blacklists</a
@@ -163,34 +163,34 @@
       are maintained by the Sigmanauts community.
     </p>
     <div>
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5">
+      <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
           <p>Hide NSFW tokens</p>
         </div>
         <div>
-          <o-switch v-model="tokensBlacklists.nsfw" class="align-middle float-right" />
+          <o-switch v-model="tokensBlacklists.nsfw" class="float-right align-middle" />
         </div>
       </label>
 
-      <label class="w-full cursor-pointer align-middle flex flex-row items-center gap-5 mt-3">
+      <label class="mt-3 flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
           <p>Hide Scam tokens</p>
         </div>
         <div>
-          <o-switch v-model="tokensBlacklists.scam" class="align-middle float-right" />
+          <o-switch v-model="tokensBlacklists.scam" class="float-right align-middle" />
         </div>
       </label>
     </div>
 
-    <div class="text-xs text-gray-500 border-b-gray-300 border-b-1 uppercase pt-5">Danger zone</div>
+    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">Danger zone</div>
     <div>
-      <div class="w-full align-middle flex flex-row items-center gap-5">
+      <div class="flex w-full flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
-          <p class="font-semibold text-sm">Remove Wallet</p>
+          <p class="text-sm font-semibold">Remove Wallet</p>
         </div>
         <button class="btn danger !p-2 !py-1.5 !text-xs" @click="remove()">Remove</button>
       </div>
-      <div class="text-gray-500 text-xs font-normal mt-1">
+      <div class="mt-1 text-xs font-normal text-gray-500">
         <p>
           Removing a wallet does not affect the wallet balance. Your wallet can be restored again at
           any time. Please double-check you still have the means to restore access to this wallet.
