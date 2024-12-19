@@ -38,7 +38,9 @@
     "@vuelidate/validators": "^2.0.4",
     "@vueuse/core": "^12.0.0",
     "bignumber.js": "^9.1.2",
+    "class-variance-authority": "^0.7.1",
     "cleave.js": "^1.6.0",
+    "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
     "dexie": "^4.0.10",
@@ -47,6 +49,9 @@
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.468.0",
     "pinia": "^2.3.0",
+    "radix-vue": "^1.9.11",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7",
     "uqr": "^0.1.2",
     "vue": "^3.5.13",
     "vue-json-pretty": "2.4.0",
@@ -97,5 +102,6 @@
     "patchedDependencies": {
       "webext-bridge@6.0.1": "patches/webext-bridge@6.0.1.patch"
     }
-  }
+  },
+  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
 }
