@@ -13,7 +13,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
     >
       <div class="w-1/2 p-2 text-center">
         <button
-          class="duration-250 m-auto w-full cursor-pointer rounded border border-gray-200 bg-white py-4 transition hover:bg-gray-100 active:bg-gray-200"
+          class="m-auto w-full cursor-pointer rounded border border-gray-200 bg-white py-4 transition duration-200 hover:bg-gray-100 active:bg-gray-200"
           @click="navigate"
         >
           <img :src="`/icons/dapps/${dapp.icon}`" class="m-auto h-16 w-16" />

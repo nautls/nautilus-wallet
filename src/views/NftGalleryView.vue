@@ -3,23 +3,23 @@
     <div>
       <input v-model="filter" type="text" placeholder="Search" class="control block w-full" />
     </div>
-    <div class="flex flex-wrap justify-between gap-4">
+    <div class="grid grid-cols-2 justify-stretch gap-4 sm:grid-cols-4 md:grid-cols-2">
       <div
         v-for="nft in assets"
         :key="nft.tokenId"
-        class="w-39 duration-250 cursor-pointer rounded border border-gray-300 transition hover:bg-gray-100 active:bg-gray-200"
+        class="cursor-pointer rounded border border-gray-300 transition duration-200 hover:bg-gray-100 active:bg-gray-200"
         @click="selectedAsset = nft"
       >
         <div class="relative">
           <image-sandbox
             :src="nft.metadata?.artworkUrl"
-            class="h-39 w-full rounded-t"
+            class="h-40 w-full rounded-t"
             height="9.6rem"
             object-fit="contain"
             overflow="hidden"
           />
           <!-- clickable overlay -->
-          <div class="h-39 absolute left-0 top-0 w-full bg-transparent"></div>
+          <div class="absolute left-0 top-0 h-40 w-full bg-transparent"></div>
         </div>
         <p class="p-2 text-sm">
           {{ format.string.shorten(nft.metadata?.name ?? nft.tokenId, 30) }}
