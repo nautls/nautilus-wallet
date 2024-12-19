@@ -4,7 +4,7 @@
     :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
-    content-class="!max-w-96 rounded !w-110 max-h-[90vh]"
+    content-class="!w-11/12 rounded max-h-[90vh]"
     @on-close="emitOnClose()"
   >
     <div class="flex flex-col gap-4 p-4 text-xs tracking-normal">
@@ -14,7 +14,7 @@
         does not allow to spend or move the funds in any way.
       </p>
       <div class="text-center">
-        <qr-code :data="extendedPublicKey" class="w-70 h-70 inline-block rounded" />
+        <qr-code :data="extendedPublicKey" class="inline-block h-48 w-48" />
       </div>
       <div class="break-all rounded border border-gray-200 bg-gray-100 p-2 font-mono text-sm">
         {{ extendedPublicKey }}

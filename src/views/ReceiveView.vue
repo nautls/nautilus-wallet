@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-4 py-4">
     <div class="flex flex-row gap-4">
-      <div class="w-full">
+      <div class="w-8/12">
         <label
           ><span v-if="avoidingReuse">Your current address</span>
           <span v-else>Your default address</span></label
@@ -20,13 +20,9 @@
           </template>
         </div>
       </div>
-      <div class="text-right">
-        <div v-if="loading" class="skeleton w-25 h-25 h-3 rounded"></div>
-        <qr-code
-          v-else
-          :data="wallet.changeAddress?.script"
-          class="w-25 h-25 inline-block rounded"
-        />
+      <div class="w-4/12">
+        <div v-if="loading" class="skeleton h-full w-full p-0.5"></div>
+        <qr-code v-else :data="wallet.changeAddress?.script" class="h-full w-full p-0.5" />
       </div>
     </div>
     <div v-if="isLedger" class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
@@ -123,7 +119,7 @@
             <td class="text-right">
               <div
                 v-if="hideBalances"
-                class="skeleton h-4.5 inline-block w-2/4 animate-none rounded align-middle"
+                class="skeleton inline-block h-5 w-2/4 animate-none rounded align-middle"
               ></div>
               <template v-else>
                 <span class="float-left">Σ</span>

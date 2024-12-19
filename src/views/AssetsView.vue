@@ -69,7 +69,7 @@
             </td>
             <td class="whitespace-nowrap text-right align-middle">
               <div v-if="hideBalances" class="flex flex-col items-end gap-1">
-                <div class="skeleton h-4.5 w-full animate-none rounded"></div>
+                <div class="skeleton h-5 w-full animate-none rounded"></div>
                 <div class="skeleton h-3 w-3/4 animate-none rounded"></div>
               </div>
               <template v-else>
