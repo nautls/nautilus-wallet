@@ -11,9 +11,9 @@ const domain = computed(() => props.origin || "???");
 
 <template>
   <div class="text-center">
-    <img v-if="favicon" :src="favicon" class="inline w-6 h-6 mr-2" />
+    <img v-if="favicon" :src="favicon" class="mr-2 inline h-6 w-6" />
     <span>
-      <span class="font-semibold pr-1">{{ domain }}</span>
+      <span class="pr-1 font-semibold">{{ domain }}</span>
       <span>
         <slot />
       </span>

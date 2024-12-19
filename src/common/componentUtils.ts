@@ -9,9 +9,9 @@ const DEFAULT_PROPS: Partial<ModalParams<Component>> = {
   autoFocus: true,
   animation: isPopup() ? "fade-slide-up" : "zoom-out",
   scroll: "clip",
-  rootClass: "outline-none <sm:justify-end",
+  rootClass: "outline-none xs:justify-end",
   contentClass:
-    "animation-content max-h-90vh p-4 rounded !max-w-100 !w-90vw <sm:rounded-t-xl <sm:rounded-none max-h-90vh !<sm:w-100vw"
+    "animation-content xs:w-[100vw] xs:rounded-none xs:rounded-t-xl max-h-[90vh] !max-w-96 rounded p-4"
 };
 
 const { oruga } = useProgrammatic();

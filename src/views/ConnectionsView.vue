@@ -27,19 +27,19 @@ async function remove(origin: string) {
 </script>
 
 <template>
-  <div class="flex flex-col h-max gap-4 text-center py-4">
-    <h1 v-if="connections.length === 0" class="text-lg font-bold text-gray-500 pt-4">
+  <div class="flex h-max flex-col gap-4 py-4 text-center">
+    <h1 v-if="connections.length === 0" class="pt-4 text-lg font-bold text-gray-500">
       No connected dApps
     </h1>
     <template v-else>
       <div
         v-for="(connection, i) in connections"
         :key="i"
-        class="relative p-4 border-gray-300 border-1 rounded flex flex-col gap-2 items-center block cursor-default hover:bg-gray-100"
+        class="relative flex cursor-default flex-col items-center gap-2 rounded border border-gray-300 p-4 hover:bg-gray-100"
       >
         <button
           tabindex="-1"
-          class="inline-flex cursor-pointer border-1 border-gray-400 bg-gray-100 w-5.5 h-5.5 -top-2.5 -right-2.5 absolute rounded-full ring-2 ring-light-50"
+          class="w-5.5 h-5.5 absolute -right-2.5 -top-2.5 inline-flex cursor-pointer rounded-full border border-gray-400 bg-gray-100 ring-2 ring-light-50"
           @click="remove(connection.origin)"
         >
           <trash-icon class="p-1" :size="20" />

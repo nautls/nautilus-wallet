@@ -57,17 +57,17 @@ function getTransactionExplorerUrl(txId: string): string {
     scroll="clip"
     @close="emit('close')"
   >
-    <div class="p-5 min-w-60 max-w-85 text-center">
-      <div :class="stateClass" class="w-full h-26">
-        <circle-check-icon v-if="state === ProverStateType.success" class="w-25 h-25 inline" />
-        <circle-alert-icon v-else-if="state === ProverStateType.error" class="w-25 h-25 inline" />
-        <loading-indicator v-else type="circular" class="w-25 h-25 !stroke-gray-500" />
+    <div class="max-w-85 min-w-60 p-5 text-center">
+      <div :class="stateClass" class="h-26 w-full">
+        <circle-check-icon v-if="state === ProverStateType.success" class="inline h-24 w-24" />
+        <circle-alert-icon v-else-if="state === ProverStateType.error" class="inline h-24 w-24" />
+        <loading-indicator v-else type="circular" class="h-24 w-24 !stroke-gray-500" />
       </div>
-      <h1 class="pt-4 font-semibold text-xl" :class="stateClass">{{ titleText }}</h1>
-      <p v-if="caption" class="pt-2 font-normal text-sm">{{ caption }}</p>
+      <h1 class="pt-4 text-xl font-semibold" :class="stateClass">{{ titleText }}</h1>
+      <p v-if="caption" class="pt-2 text-sm font-normal">{{ caption }}</p>
       <a
         v-if="state === ProverStateType.success && txId"
-        class="url pt-2 font-normal text-sm"
+        class="url pt-2 text-sm font-normal"
         :href="getTransactionExplorerUrl(txId)"
         target="_blank"
         rel="noopener noreferrer"

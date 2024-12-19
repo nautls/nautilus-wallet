@@ -1,6 +1,6 @@
 <template>
-  <div class="flex-col flex gap-4 h-full pt-6 pb-4">
-    <div class="flex-col flex gap-4 flex-grow">
+  <div class="flex h-full flex-col gap-4 pb-4 pt-6">
+    <div class="flex flex-grow flex-col gap-4">
       <label
         >Wallet name
         <input
@@ -8,7 +8,7 @@
           :disabled="loading"
           maxlength="50"
           type="text"
-          class="w-full control block"
+          class="control block w-full"
           @blur="v$.walletName.$touch()"
         />
         <p v-if="v$.walletName.$error" class="input-error">
@@ -53,7 +53,7 @@
             v-model.lazy="password"
             :disabled="loading"
             type="password"
-            class="w-full control block"
+            class="control block w-full"
             @blur="v$.password.$touch()"
           />
           <p v-if="v$.password.$error" class="input-error">
@@ -66,7 +66,7 @@
             v-model.lazy="confirmPassword"
             :disabled="loading"
             type="password"
-            class="w-full control block"
+            class="control block w-full"
             @blur="v$.confirmPassword.$touch()"
           />
           <p v-if="v$.confirmPassword.$error" class="input-error">
@@ -77,7 +77,7 @@
     </div>
     <div class="flex flex-row gap-4">
       <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
-      <button :disabled="loading" type="button" class="w-full btn" @click="add()">
+      <button :disabled="loading" type="button" class="btn w-full" @click="add()">
         <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />
         <span v-else>Confirm</span>
       </button>

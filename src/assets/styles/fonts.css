@@ -51,8 +51,3 @@
   src: url("../fonts/OpenSans.ttf");
   font-weight: 900;
 }
-
-@font-face {
-  font-family: "RobotoMono";
-  src: url("../fonts/RobotoMono.ttf");
-}

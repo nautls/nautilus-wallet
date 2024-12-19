@@ -1,12 +1,12 @@
 <template>
   <div class="flex flex-col gap-4 py-4">
     <div class="flex flex-row gap-4">
-      <div class="w-full">
+      <div class="w-8/12">
         <label
           ><span v-if="avoidingReuse">Your current address</span>
           <span v-else>Your default address</span></label
         >
-        <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
+        <div class="break-all rounded border border-gray-200 bg-gray-100 p-2 font-mono text-sm">
           <template v-if="loading">
             <div class="skeleton h-3 w-full rounded"></div>
             <div class="skeleton h-3 w-full rounded"></div>
@@ -20,38 +20,31 @@
           </template>
         </div>
       </div>
-      <div class="text-right">
-        <div v-if="loading" class="skeleton rounded h-3 w-25 h-25"></div>
-        <qr-code
-          v-else
-          :data="wallet.changeAddress?.script"
-          class="inline-block w-25 h-25 rounded"
-        />
+      <div class="w-4/12">
+        <div v-if="loading" class="skeleton h-full w-full p-0.5"></div>
+        <qr-code v-else :data="wallet.changeAddress?.script" class="h-full w-full p-0.5" />
       </div>
     </div>
-    <div
-      v-if="isLedger"
-      class="rounded rounded border-1 bg-yellow-100 border-yellow-300 text-sm py-3 px-4"
-    >
+    <div v-if="isLedger" class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
       <strong
         >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
       >
       Due to device's memory limitations, your funds may get stuck in your wallet.
     </div>
     <div>
-      <button class="w-full btn" :disabled="loading || errorMsg != ''" @click="newAddress()">
+      <button class="btn w-full" :disabled="loading || errorMsg != ''" @click="newAddress()">
         New address
       </button>
       <p v-if="errorMsg != ''" class="input-error">
         {{ errorMsg }}
       </p>
     </div>
-    <div class="border rounded">
+    <div class="rounded border">
       <table class="table">
         <thead>
           <tr>
             <th>
-              <div class="flex-row justify-start flex gap-2 align-middle">
+              <div class="flex flex-row justify-start gap-2 align-middle">
                 Address ({{ wallet.filteredAddresses.length
                 }}<template v-if="hideUsed">/{{ wallet.addresses.length }}</template
                 >)
@@ -59,7 +52,7 @@
                   :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
                   tip-class="normal-case"
                 >
-                  <a class="cursor-pointer inline-flex" @click="toggleUsedAddressesFilter()">
+                  <a class="inline-flex cursor-pointer" @click="toggleUsedAddressesFilter()">
                     <filter-x-icon v-if="hideUsed" :size="16" />
                     <filter-icon v-else :size="16" />
                   </a>
@@ -67,13 +60,13 @@
               </div>
             </th>
             <th>
-              <div class="flex-row justify-end flex gap-2 align-middle">
+              <div class="flex flex-row justify-end gap-2 align-middle">
                 <tool-tip
                   :label="hideBalances ? 'Show' : 'Hide'"
                   tip-class="normal-case"
                   class="align-middle"
                 >
-                  <a class="cursor-pointer inline-flex" @click="toggleHideBalance()">
+                  <a class="inline-flex cursor-pointer" @click="toggleHideBalance()">
                     <eye-off-icon v-if="hideBalances" :size="16" />
                     <eye-icon v-else :size="16" />
                   </a>
@@ -126,7 +119,7 @@
             <td class="text-right">
               <div
                 v-if="hideBalances"
-                class="skeleton animate-none h-4.5 w-2/4 rounded align-middle inline-block"
+                class="skeleton inline-block h-5 w-2/4 animate-none rounded align-middle"
               ></div>
               <template v-else>
                 <span class="float-left">Σ</span>

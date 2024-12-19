@@ -129,29 +129,29 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 </script>
 
 <template>
-  <div ref="txEl" class="-mx-4 overflow-y-auto overflow-x-hidden h-full">
-    <div class="flex flex-col gap-4 text-sm pt-4 px-4">
+  <div ref="txEl" class="-mx-4 h-full overflow-y-auto overflow-x-hidden">
+    <div class="flex flex-col gap-4 px-4 pt-4 text-sm">
       <div
         v-for="tx in txHistory"
         :key="tx.transactionId"
-        class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4"
+        class="mb-2 flex flex-col gap-2 rounded border p-4 shadow-sm"
       >
-        <div class="flex text-xs mb-2">
+        <div class="mb-2 flex text-xs">
           <div>
             <a
               :href="getTransactionExplorerUrl(tx.transactionId)"
               target="_blank"
               rel="noopener noreferrer"
-              ><span class="h-tag font-bold bg-gray-100">{{
+              ><span class="h-tag bg-gray-100 font-bold">{{
                 formatter.string.shorten(tx.transactionId, 20)
               }}</span></a
             >
           </div>
-          <div class="text-right w-full">
+          <div class="w-full text-right">
             <span>{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
           </div>
         </div>
-        <div class="p-2 flex flex-col gap-2">
+        <div class="flex flex-col gap-2 p-2">
           <div
             v-for="asset in tx.delta"
             :key="asset.tokenId"
@@ -169,10 +169,10 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             </div>
           </div>
         </div>
-        <div class="flex flex-row items-center gap-2 justify-between mt-2">
+        <div class="mt-2 flex flex-row items-center justify-between gap-2">
           <div class="h-tag">Fee {{ formatter.bn.format(tx.fee) }} ERG</div>
           <div
-            class="h-tag text-light-200 font-semibold"
+            class="h-tag font-semibold text-light-200"
             :class="tx.confirmed ? 'bg-green-500' : 'bg-yellow-500'"
           >
             <template v-if="tx.confirmed"
@@ -183,7 +183,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         </div>
         <button
           v-if="!tx.confirmed && tx.cancelable"
-          class="btn default !py-1 mt-4"
+          class="btn default mt-4 !py-1"
           @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
         >
           Cancel
@@ -191,23 +191,23 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
       </div>
     </div>
 
-    <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 text-sm pt-4 px-4">
-      <div class="flex flex-col gap-2 mb-2 shadow-sm border rounded p-4">
-        <div class="flex mb-2 justify-between">
+    <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 px-4 pt-4 text-sm">
+      <div class="mb-2 flex flex-col gap-2 rounded border p-4 shadow-sm">
+        <div class="mb-2 flex justify-between">
           <div class="skeleton h-5 w-6/12 rounded"></div>
-          <div class="skeleton h-4 rounded w-3/12"></div>
+          <div class="skeleton h-4 w-3/12 rounded"></div>
         </div>
-        <div class="p-2 flex flex-col gap-2">
+        <div class="flex flex-col gap-2 p-2">
           <div class="flex flex-row items-center gap-2">
-            <download-icon class="min-w-4 text-gray-300 animate-pulse" :size="16" />
+            <download-icon class="min-w-4 animate-pulse text-gray-300" :size="16" />
 
             <empty-logo class="h-7 w-7 min-w-7 animate-pulse fill-gray-300" />
-            <div class="skeleton h-4 rounded w-5/12"></div>
+            <div class="skeleton h-4 w-5/12 rounded"></div>
             <div class="w-full"></div>
-            <div class="skeleton h-4 rounded w-4/12"></div>
+            <div class="skeleton h-4 w-4/12 rounded"></div>
           </div>
         </div>
-        <div class="flex flex-row items-center gap-2 justify-between mt-2">
+        <div class="mt-2 flex flex-row items-center justify-between gap-2">
           <div class="skeleton h-5 w-4/12 rounded"></div>
           <div class="skeleton h-5 w-5/12 rounded"></div>
         </div>
@@ -215,7 +215,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
     </div>
     <div
       v-else-if="allLoaded && !txHistory?.length"
-      class="flex flex-col gap-4 pt-20 px-4 text-center items-center text-gray-500"
+      class="flex flex-col items-center gap-4 px-4 pt-20 text-center text-gray-500"
     >
       <clock-icon :size="64" class="text-gray-400" />
       You have no transaction history.
@@ -225,6 +225,6 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 
 <style scoped>
 .h-tag {
-  @apply rounded-md px-2 py-0.5 ring-1 ring-gray-200 text-xs whitespace-nowrap;
+  @apply whitespace-nowrap rounded-md px-2 py-0.5 text-xs ring-1 ring-gray-200;
 }
 </style>

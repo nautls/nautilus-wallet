@@ -8,17 +8,17 @@ import WalletHeader from "@/components/WalletHeader.vue";
 import NavHeader from "@/components/NavHeader.vue";
 
 const app = useAppStore();
-const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
+const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
 </script>
 
 <template>
   <div class="app" :class="maxWidth">
     <div
       v-if="$route.meta.fullPage"
-      class="flex flex-row p-4 gap-4 items-center justify-between bg-gray-100 border-b-1 border-gray-200"
+      class="border-b-1 flex flex-row items-center justify-between gap-4 border-gray-200 bg-gray-100 p-4"
     >
       <wallet-logo root-class="ml-2" content-class="w-11 h-11" />
-      <h1 class="text-base font-semibold w-full pl-2">
+      <h1 class="w-full pl-2 text-base font-semibold">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>
       </h1>

@@ -1,27 +1,27 @@
 <template>
   <div class="flex flex-col gap-4 py-4">
     <div>
-      <input v-model="filter" type="text" placeholder="Search" class="w-full control block" />
+      <input v-model="filter" type="text" placeholder="Search" class="control block w-full" />
     </div>
-    <div class="flex flex-wrap gap-4 justify-between">
+    <div class="grid grid-cols-2 justify-stretch gap-4 sm:grid-cols-4 md:grid-cols-2">
       <div
         v-for="nft in assets"
         :key="nft.tokenId"
-        class="border cursor-pointer border-gray-300 rounded w-39 transition duration-250 hover:bg-gray-100 active:bg-gray-200"
+        class="cursor-pointer rounded border border-gray-300 transition duration-200 hover:bg-gray-100 active:bg-gray-200"
         @click="selectedAsset = nft"
       >
         <div class="relative">
           <image-sandbox
             :src="nft.metadata?.artworkUrl"
-            class="w-full rounded-t h-39"
+            class="h-40 w-full rounded-t"
             height="9.6rem"
             object-fit="contain"
             overflow="hidden"
           />
           <!-- clickable overlay -->
-          <div class="h-39 w-full bg-transparent absolute top-0 left-0"></div>
+          <div class="absolute left-0 top-0 h-40 w-full bg-transparent"></div>
         </div>
-        <p class="text-sm p-2">
+        <p class="p-2 text-sm">
           {{ format.string.shorten(nft.metadata?.name ?? nft.tokenId, 30) }}
         </p>
       </div>

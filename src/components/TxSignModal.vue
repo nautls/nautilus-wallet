@@ -56,12 +56,12 @@ function setState(stateType?: ProverStateType, message?: string, txId?: string) 
 
 function fail(info: string) {
   emit("fail", info);
-  close();
+  closeWindow();
 }
 
 function refused(info: string) {
   emit("refused", info);
-  close();
+  closeWindow();
 }
 
 async function success(
@@ -86,7 +86,7 @@ async function success(
   }
 }
 
-function close(): void {
+function closeWindow(): void {
   emit("close");
 }
 
@@ -100,15 +100,15 @@ function onLoadingModalClose() {
   setState();
 
   nextTick(() => {
-    close();
+    closeWindow();
   });
 }
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-4">
+  <div class="flex h-full flex-col gap-4">
     <div class="mb-2 text-center">
-      <h1 class="font-bold text-lg">Transaction Review</h1>
+      <h1 class="text-lg font-bold">Transaction Review</h1>
       <p class="text-xs">Please review your transaction before you sign it.</p>
     </div>
 

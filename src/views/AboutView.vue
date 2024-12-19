@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col h-full gap-4 text-center text-sm py-4">
-    <img src="/icons/app/logo-mainnet.svg?url" class="w-23 m-auto pt-2" />
+  <div class="flex h-full flex-col gap-4 py-4 text-center text-sm">
+    <img src="/icons/app/logo-mainnet.svg?url" class="m-auto w-24 pt-2" />
     <div>
-      <h1 v-once class="text-2xl m-auto">
+      <h1 v-once class="m-auto text-2xl">
         <span v-if="testnet">Nautilus Testnet Wallet</span>
         <span v-else>Nautilus Wallet</span>
       </h1>
@@ -12,7 +12,7 @@
         <a :href="commitUrl" target="_blank" class="url">{{ shortGitHash }}</a>
       </p>
     </div>
-    <p class="italic text-gray-600 text-sm">
+    <p class="text-sm italic text-gray-600">
       Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of
       land-based governments.
     </p>
@@ -20,7 +20,7 @@
     <div class="flex-grow"></div>
 
     <a
-      class="m-auto url text-sm"
+      class="url m-auto text-sm"
       target="_blank"
       href="https://github.com/nautls/nautilus-wallet/blob/master/privacy-policy.md"
       >Privacy Policy</a
@@ -32,12 +32,12 @@
         {{ format.string.shorten(donationAddress, 20) }}
         <click-to-copy :content="donationAddress" :size="14" class="align-middle" />
       </span>
-      <a v-else class="font-mono url cursor-pointer" @click="goDonate()">{{
+      <a v-else class="url cursor-pointer font-mono" @click="goDonate()">{{
         format.string.shorten(donationAddress, 20)
       }}</a>
     </p>
 
-    <div class="flex flex-row mx-20 gap-1 items-center">
+    <div class="mx-20 flex flex-row items-center gap-1">
       <a class="m-auto" target="_blank" href="https://github.com/capt-nemo429/nautilus-wallet"
         ><svg role="img" class="h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <title>GitHub</title>
