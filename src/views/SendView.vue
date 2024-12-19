@@ -26,7 +26,7 @@
         />
         <drop-down
           :disabled="unselected.length === 0"
-          list-class="max-h-50"
+          list-class="max-h-52"
           trigger-class="px-2 py-3 text-sm uppercase"
         >
           <template #trigger>
