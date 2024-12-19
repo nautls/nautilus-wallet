@@ -8,7 +8,7 @@ import WalletHeader from "@/components/WalletHeader.vue";
 import NavHeader from "@/components/NavHeader.vue";
 
 const app = useAppStore();
-const maxWidth = computed(() => (isPopup() ? "max-w-365px" : undefined));
+const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
 </script>
 
 <template>

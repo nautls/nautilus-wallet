@@ -9,7 +9,7 @@ body {
 }
 
 .app {
-  @apply mx-auto flex h-[600px] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden bg-light-50 md:w-4/12 md:shadow-lg;
+  @apply mx-auto flex h-[100vh] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden bg-light-50 md:w-4/12 md:shadow-lg;
 }
 
 a {
