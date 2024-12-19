@@ -104,7 +104,7 @@
           v-model.lazy="globalSettings.graphQLServer"
           type="text"
           spellcheck="false"
-          class="control block w-full"
+          class="control block w-full font-normal"
           @blur="(v$.globalSettings as any).graphQLServer.$touch()"
         />
         <p v-if="(v$.globalSettings as any).graphQLServer.$error" class="input-error">
@@ -117,7 +117,7 @@
           v-model.lazy="globalSettings.explorerUrl"
           type="text"
           spellcheck="false"
-          class="control block w-full"
+          class="control block w-full font-normal"
           @blur="(v$.globalSettings as any).explorerUrl.$touch()"
         />
         <p v-if="(v$.globalSettings as any).explorerUrl.$error" class="input-error">
