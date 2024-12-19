@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-full flex-col gap-4 py-4 text-center text-sm">
-    <img src="/icons/app/logo-mainnet.svg?url" class="w-23 m-auto pt-2" />
+    <img src="/icons/app/logo-mainnet.svg?url" class="m-auto w-24 pt-2" />
     <div>
       <h1 v-once class="m-auto text-2xl">
         <span v-if="testnet">Nautilus Testnet Wallet</span>

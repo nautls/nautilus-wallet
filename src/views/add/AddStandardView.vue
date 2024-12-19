@@ -54,7 +54,7 @@
         </p>
       </label>
       <label
-        class="border-1 mb-2 inline-flex w-full cursor-pointer items-center rounded border-yellow-300 bg-yellow-100 px-3 py-1 font-normal"
+        class="mb-2 inline-flex w-full cursor-pointer items-center rounded border border-yellow-300 bg-yellow-100 px-3 py-1 font-normal"
       >
         <input v-model="mnemonicStoreAgreement" class="checkbox" type="checkbox" />
         <span class="text-yellow-900">I've stored the secret phrase in a secure place.</span>

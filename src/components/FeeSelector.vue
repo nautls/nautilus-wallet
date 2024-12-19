@@ -259,7 +259,7 @@ function emitSelectedUpdate() {
     <div class="group flex flex-row pt-4">
       <drop-down
         trigger-class="px-2 py-1 h-12 text-sm whitespace-nowrap text-left"
-        list-class="max-h-50"
+        list-class="max-h-52"
         root-class="flex-grow"
       >
         <template #trigger>
@@ -296,8 +296,8 @@ function emitSelectedUpdate() {
       </drop-down>
       <drop-down
         :disabled="unselected.length === 0"
-        list-class="max-h-37"
-        trigger-class="px-2 py-1 h-12 min-w-35 whitespace-nowrap text-sm text-left"
+        list-class="max-h-36"
+        trigger-class="px-2 py-1 h-12 min-w-36 whitespace-nowrap text-sm text-left"
       >
         <template #trigger>
           <asset-icon

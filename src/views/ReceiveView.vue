@@ -29,7 +29,7 @@
         />
       </div>
     </div>
-    <div v-if="isLedger" class="border-1 rounded border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
+    <div v-if="isLedger" class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
       <strong
         >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
       >

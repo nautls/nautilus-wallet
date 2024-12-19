@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-5 py-4">
-    <div class="border-b-1 border-b-gray-300 text-xs uppercase text-gray-500">Wallet settings</div>
+    <div class="border-b border-b-gray-300 text-xs uppercase text-gray-500">Wallet settings</div>
     <label>
       Wallet name
       <input
@@ -58,7 +58,7 @@
         <p>Use this option to export your Extended Public Key.</p>
       </div>
     </div>
-    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
+    <div class="border-b border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
       Global settings
     </div>
     <div class="flex flex-col gap-5">
@@ -126,8 +126,14 @@
       </label>
     </div>
 
-    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
-      Experimental ⚠️
+    <div class="border-b border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
+      Experimental
+      <triangle-alert-icon class="inline-block h-auto w-auto pb-0.5 text-yellow-500" :size="14" />
+    </div>
+    <div class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-xs">
+      <strong>The features in this section are marked as experimental</strong>, which means they're
+      not stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a
+      work in progress, so expect some rough edges.
     </div>
     <div>
       <label class="flex w-full cursor-pointer flex-row items-center gap-5 align-middle">
@@ -144,15 +150,10 @@
           confirmations. It's fast but carries a risk of being double-spent until confirmed by the
           blockchain.
         </p>
-        <p>
-          ⚠️ <strong>This functionality is marked as experimental</strong>, meaning it's not stable.
-          Use with caution as it may contain bugs or undergo significant changes. It's a
-          work-in-progress, so expect some rough edges.
-        </p>
       </div>
     </div>
 
-    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
+    <div class="border-b border-b-gray-300 pt-5 text-xs uppercase text-gray-500">
       Token blacklists
     </div>
     <p class="-mt-2 text-xs font-normal text-gray-500">
@@ -182,7 +183,7 @@
       </label>
     </div>
 
-    <div class="border-b-1 border-b-gray-300 pt-5 text-xs uppercase text-gray-500">Danger zone</div>
+    <div class="border-b border-b-gray-300 pt-5 text-xs uppercase text-gray-500">Danger zone</div>
     <div>
       <div class="flex w-full flex-row items-center gap-5 align-middle">
         <div class="flex-grow">
@@ -208,7 +209,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
 import { clone, isEqual } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
-import { ChevronDownIcon } from "lucide-vue-next";
+import { ChevronDownIcon, TriangleAlertIcon } from "lucide-vue-next";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
 import { MAINNET } from "@/constants/ergo";
@@ -227,7 +228,7 @@ import { useFormat } from "@/composables/useFormat";
 
 export default defineComponent({
   name: "SettingsView",
-  components: { ExtendedPublicKeyModal, ChevronDownIcon },
+  components: { ExtendedPublicKeyModal, ChevronDownIcon, TriangleAlertIcon },
   setup() {
     return {
       v$: useVuelidate() as Ref<Validation<ValidationArgs<unknown>, unknown>>,

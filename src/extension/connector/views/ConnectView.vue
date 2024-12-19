@@ -55,11 +55,11 @@ function refuse() {
       requests to connect with Nautilus
     </dapp-plate-header>
 
-    <div class="border-1 flex-grow overflow-auto rounded border-gray-300">
+    <div class="flex-grow overflow-auto rounded border border-gray-300">
       <label
         v-for="wallet in wallets"
         :key="wallet.id"
-        class="block flex cursor-pointer items-center gap-4 p-4 hover:bg-gray-100 active:bg-gray-300"
+        class="flex cursor-pointer items-center gap-4 p-4 hover:bg-gray-100 active:bg-gray-300"
         :class="wallet.id === selected ? 'bg-gray-100 hover:bg-gray-200' : ''"
       >
         <input v-model="selected" :value="wallet.id" type="radio" class="inline-block" />

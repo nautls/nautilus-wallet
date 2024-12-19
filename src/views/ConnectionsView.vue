@@ -35,11 +35,11 @@ async function remove(origin: string) {
       <div
         v-for="(connection, i) in connections"
         :key="i"
-        class="border-1 relative block flex cursor-default flex-col items-center gap-2 rounded border-gray-300 p-4 hover:bg-gray-100"
+        class="relative flex cursor-default flex-col items-center gap-2 rounded border border-gray-300 p-4 hover:bg-gray-100"
       >
         <button
           tabindex="-1"
-          class="border-1 w-5.5 h-5.5 absolute -right-2.5 -top-2.5 inline-flex cursor-pointer rounded-full border-gray-400 bg-gray-100 ring-2 ring-light-50"
+          class="w-5.5 h-5.5 absolute -right-2.5 -top-2.5 inline-flex cursor-pointer rounded-full border border-gray-400 bg-gray-100 ring-2 ring-light-50"
           @click="remove(connection.origin)"
         >
           <trash-icon class="p-1" :size="20" />

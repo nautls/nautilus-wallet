@@ -10,7 +10,7 @@
         v-if="disposable"
         v-show="hovered"
         tabindex="-1"
-        class="border-1 w-5.5 h-5.5 absolute -right-2.5 -top-2.5 inline-flex cursor-pointer rounded-full border-gray-400 bg-gray-100 ring-2 ring-light-50"
+        class="w-5.5 h-5.5 absolute -right-2.5 -top-2.5 inline-flex cursor-pointer rounded-full border border-gray-400 bg-gray-100 ring-2 ring-light-50"
         @click.prevent.stop="onRemoveClicked()"
       >
         <trash-icon class="p-1" :size="20" />

@@ -8,7 +8,7 @@ const wallet = useWalletStore();
 <template>
   <div
     v-if="wallet.health.hasOldUtxos"
-    class="border-1 rounded border-red-300 bg-red-100 px-4 py-3 text-sm"
+    class="rounded border border-red-300 bg-red-100 px-4 py-3 text-sm"
   >
     <div>
       <strong
@@ -29,7 +29,7 @@ const wallet = useWalletStore();
   </div>
   <div
     v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT"
-    class="border-1 rounded border-yellow-300 bg-yellow-100 px-4 py-3 text-sm"
+    class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm"
   >
     <div>
       <strong>Your wallet looks fragmented.</strong> Consider optimizing your wallet for improved

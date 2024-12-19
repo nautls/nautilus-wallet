@@ -55,7 +55,7 @@ const screenPosition = computed(() =>
 
       <div
         v-if="appId"
-        class="border-1 mx-auto -mt-4 mb-2 w-min whitespace-nowrap rounded-md border-gray-500/10 bg-gray-50 px-2 py-1 text-xs text-gray-600"
+        class="mx-auto -mt-4 mb-2 w-min whitespace-nowrap rounded-md border border-gray-500/10 bg-gray-50 px-2 py-1 text-xs text-gray-600"
       >
         Application ID: <span class="font-bold">{{ appIdHex }}</span>
       </div>

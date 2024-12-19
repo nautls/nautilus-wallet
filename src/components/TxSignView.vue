@@ -59,7 +59,7 @@
   <div>
     <label
       v-if="tx?.burning"
-      class="border-1 mb-2 inline-flex w-full cursor-pointer items-center rounded border-red-300 bg-red-100 px-3 py-1 font-normal"
+      class="mb-2 inline-flex w-full cursor-pointer items-center rounded border border-red-300 bg-red-100 px-3 py-1 font-normal"
     >
       <input v-model="burnAgreement" class="checkbox" type="checkbox" />
       <span class="text-red-900">I understand that I'm burning token(s).</span>
