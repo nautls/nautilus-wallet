@@ -25,25 +25,25 @@ const validState = computed(
   () => isDefined(props.state) && props.state !== ProverStateType.unavailable
 );
 const appIdHex = computed(() => (!props.appId ? "" : `0x${props.appId.toString(16)}`));
-const isNanoX = computed(() => props.model === LedgerDeviceModelId.nanoX);
+const isNanoX = computed(() => props.model !== LedgerDeviceModelId.nanoX);
 const isLoading = computed(() => props.state === ProverStateType.busy || props.loading);
 const screenPosition = computed(() =>
-  isNanoX.value ? "top-19.1 left-15.1 w-28.5 h-8" : "top-19.5 left-8.3 w-30 h-8"
+  isNanoX.value ? "top-[4.7rem] left-[3.9rem] w-28 h-8" : "top-20 left-9 w-28 h-7"
 );
 </script>
 
 <template>
-  <div class="flex gap-2 flex-col mx-auto items-center min-w-72 p-2">
-    <div v-if="connected || validState" class="w-auto mx-auto text-center text-sm">
+  <div class="mx-auto flex min-w-72 flex-col items-center gap-2 p-2">
+    <div v-if="connected || validState" class="mx-auto w-auto text-center text-sm">
       <div class="relative">
         <ledger-x v-if="isNanoX" class="w-max" />
         <ledger-s v-else class="w-max" />
-        <div :class="screenPosition" class="absolute text-light-600 text-xs items-center px-1">
-          <div class="h-full flex items-center justify-center gap-1">
+        <div :class="screenPosition" class="absolute items-center px-1 text-xs text-light-600">
+          <div class="flex h-full items-center justify-center gap-1">
             <loading-indicator
               v-if="isLoading && compactView"
               type="circular"
-              class="w-5 h-5 min-w-5"
+              class="h-5 w-5 min-w-5"
             />
             <check-icon v-else-if="state === ProverStateType.success" class="text-green-300" />
             <x-icon v-else-if="state === ProverStateType.error" class="text-red-300" />
@@ -55,7 +55,7 @@ const screenPosition = computed(() =>
 
       <div
         v-if="appId"
-        class="mx-auto -mt-4 rounded-md w-min whitespace-nowrap bg-gray-50 px-2 py-1 mb-2 text-xs text-gray-600 border-1 border-gray-500/10"
+        class="mx-auto -mt-4 mb-2 w-min whitespace-nowrap rounded-md border border-gray-500/10 bg-gray-50 px-2 py-1 text-xs text-gray-600"
       >
         Application ID: <span class="font-bold">{{ appIdHex }}</span>
       </div>
@@ -71,11 +71,11 @@ const screenPosition = computed(() =>
       </p>
     </div>
 
-    <div v-if="isLoading && !compactView" class="text-center pb-2">
-      <loading-indicator type="circular" class="w-10 h-10" />
+    <div v-if="isLoading && !compactView" class="pb-2 text-center">
+      <loading-indicator type="circular" class="h-10 w-10" />
     </div>
 
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <p v-if="caption" class="text-center" :class="{ 'text-sm ': compactView }" v-html="caption"></p>
+    <p v-if="caption" class="text-center" :class="{ 'text-sm': compactView }" v-html="caption"></p>
   </div>
 </template>

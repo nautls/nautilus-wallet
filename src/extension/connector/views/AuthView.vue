@@ -118,19 +118,19 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex flex-col h-full text-sm gap-2 pt-2">
+  <div class="flex h-full flex-col gap-2 pt-2 text-sm">
     <dapp-plate-header :favicon="request?.favicon" :origin="request?.origin">
       requests a proof that the selected address belongs to you
     </dapp-plate-header>
 
     <div class="flex-grow"></div>
 
-    <div class="flex shadow-sm flex-col border rounded">
-      <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none">
+    <div class="flex flex-col rounded border shadow-sm">
+      <div class="border-b-1 rounded rounded-b-none px-3 py-2 font-semibold">
         <div class="flex w-full">Selected address</div>
       </div>
       <div
-        class="block bg-gray-700 rounded-b py-2 px-2 break-all max-h-64 overflow-y-auto font-mono text-white"
+        class="block max-h-64 overflow-y-auto break-all rounded-b bg-gray-700 px-2 py-2 font-mono text-white"
       >
         {{ request?.data.address }}
       </div>
@@ -138,8 +138,8 @@ function refuse() {
 
     <div class="flex-grow"></div>
 
-    <p v-if="isReadonly || isLedger" class="text-sm text-center space-x-2">
-      <triangle-alert-icon class="text-yellow-500 align-middle inline" :size="20" />
+    <p v-if="isReadonly || isLedger" class="space-x-2 text-center text-sm">
+      <triangle-alert-icon class="inline align-middle text-yellow-500" :size="20" />
       <span class="align-middle">This wallet cannot sign messages.</span>
     </p>
     <div v-else class="text-left">
@@ -148,7 +148,7 @@ function refuse() {
           v-model.lazy="password"
           placeholder="Spending password"
           type="password"
-          class="w-full control block"
+          class="control block w-full"
           @blur="$v.password.$touch()"
         />
         <p v-if="$v.password.$error" class="input-error">

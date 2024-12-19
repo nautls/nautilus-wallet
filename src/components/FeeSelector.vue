@@ -255,17 +255,17 @@ function emitSelectedUpdate() {
 </script>
 
 <template>
-  <div class="flex gap-2 flex-col">
-    <div class="flex flex-row pt-4 group">
+  <div class="flex flex-col gap-2">
+    <div class="group flex flex-row pt-4">
       <drop-down
         trigger-class="px-2 py-1 h-12 text-sm whitespace-nowrap text-left"
-        list-class="max-h-50"
+        list-class="max-h-52"
         root-class="flex-grow"
       >
         <template #trigger>
-          <span class="flex-grow font-semibold pl-1">Fee</span>
+          <span class="flex-grow pl-1 font-semibold">Fee</span>
           <div
-            class="text-right flex flex-col h-full"
+            class="flex h-full flex-col text-right"
             :class="ergPrice ? 'justify-between' : 'justify-center'"
           >
             <div class="items-center">
@@ -296,8 +296,8 @@ function emitSelectedUpdate() {
       </drop-down>
       <drop-down
         :disabled="unselected.length === 0"
-        list-class="max-h-37"
-        trigger-class="px-2 py-1 h-12 min-w-35 whitespace-nowrap text-sm text-left"
+        list-class="max-h-36"
+        trigger-class="px-2 py-1 h-12 min-w-36 whitespace-nowrap text-sm text-left"
       >
         <template #trigger>
           <asset-icon
@@ -305,7 +305,7 @@ function emitSelectedUpdate() {
             :token-id="state.internalSelected.tokenId"
             :type="state.internalSelected.metadata?.type"
           />
-          <div class="whitespace-nowrap flex-grow text-gray-600">
+          <div class="flex-grow whitespace-nowrap text-gray-600">
             <template v-if="state.internalSelected.metadata?.name">{{
               format.string.shorten(state.internalSelected.metadata.name, 10)
             }}</template>

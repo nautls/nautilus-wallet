@@ -4,23 +4,23 @@
     :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
-    content-class="!max-w-11/12 rounded !w-110 max-h-11/12"
+    content-class="!w-11/12 rounded max-h-[90vh]"
     @on-close="emitOnClose()"
   >
-    <div class="p-4 text-xs flex flex-col gap-4 tracking-normal">
-      <h1 class="font-bold text-lg">Extended Public Key</h1>
+    <div class="flex flex-col gap-4 p-4 text-xs tracking-normal">
+      <h1 class="text-lg font-bold">Extended Public Key</h1>
       <p>
         Extended Public Keys allow seeing your transactions history and create new addresses, but
         does not allow to spend or move the funds in any way.
       </p>
       <div class="text-center">
-        <qr-code :data="extendedPublicKey" class="inline-block w-70 h-70 rounded" />
+        <qr-code :data="extendedPublicKey" class="inline-block h-48 w-48" />
       </div>
-      <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
+      <div class="break-all rounded border border-gray-200 bg-gray-100 p-2 font-mono text-sm">
         {{ extendedPublicKey }}
         <click-to-copy :content="extendedPublicKey" />
       </div>
-      <button class="btn !p-2 mt-2" @click="accept()">Done</button>
+      <button class="btn mt-2 !p-2" @click="accept()">Done</button>
     </div>
   </o-modal>
 </template>

@@ -14,7 +14,7 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
 <template>
   <div class="app">
     <div
-      class="flex flex-row py-4 px-6 gap-4 items-center justify-between bg-gray-100 border-b-1 border-gray-200"
+      class="border-b-1 flex flex-row items-center justify-between gap-4 border-gray-200 bg-gray-100 px-6 py-4"
     >
       <wallet-logo content-class="w-11 h-11" />
       <wallet-item
@@ -25,7 +25,7 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
         :wallet="currentWalletItem"
         :loading="wallet.loading || wallet.syncing"
       />
-      <h1 v-else class="text-base font-semibold w-full">
+      <h1 v-else class="w-full text-base font-semibold">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>
       </h1>

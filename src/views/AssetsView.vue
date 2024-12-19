@@ -6,23 +6,23 @@
         type="text"
         :disabled="loading"
         placeholder="Search"
-        class="w-full control block"
+        class="control block w-full"
       />
     </div>
     <storage-rent-box />
-    <div class="border rounded">
+    <div class="rounded border">
       <table class="table">
         <thead>
           <tr>
             <th colspan="2">Asset</th>
             <th>
-              <div class="flex-row justify-end flex gap-2 align-middle">
+              <div class="flex flex-row justify-end gap-2 align-middle">
                 <tool-tip
                   :label="hideBalances ? 'Show' : 'Hide'"
                   tip-class="normal-case"
                   class="align-middle"
                 >
-                  <a class="cursor-pointer inline-flex" @click="toggleHideBalance()">
+                  <a class="inline-flex cursor-pointer" @click="toggleHideBalance()">
                     <eye-off-icon v-if="hideBalances" :size="16" />
                     <eye-icon v-else :size="16" />
                   </a>
@@ -41,10 +41,10 @@
               <td class="align-middle">
                 <div class="skeleton h-3 w-2/3 rounded"></div>
               </td>
-              <td class="text-right w-50 align-middle">
-                <div class="skeleton h-3 w-3/5 rounded float-right"></div>
+              <td class="w-50 text-right align-middle">
+                <div class="skeleton float-right h-3 w-3/5 rounded"></div>
                 <br />
-                <div class="skeleton h-3 w-2/5 rounded float-right"></div>
+                <div class="skeleton float-right h-3 w-2/5 rounded"></div>
               </td>
             </tr>
           </template>
@@ -67,10 +67,10 @@
                 <template v-else>{{ format.string.shorten(asset.tokenId, 12) }}</template>
               </a>
             </td>
-            <td class="text-right align-middle whitespace-nowrap">
-              <div v-if="hideBalances" class="flex flex-col gap-1 items-end">
-                <div class="skeleton animate-none h-4.5 w-full rounded"></div>
-                <div class="skeleton animate-none h-3 w-3/4 rounded"></div>
+            <td class="whitespace-nowrap text-right align-middle">
+              <div v-if="hideBalances" class="flex flex-col items-end gap-1">
+                <div class="skeleton h-5 w-full animate-none rounded"></div>
+                <div class="skeleton h-3 w-3/4 animate-none rounded"></div>
               </div>
               <template v-else>
                 <p>

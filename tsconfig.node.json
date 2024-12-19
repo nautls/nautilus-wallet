@@ -6,7 +6,6 @@
     "cypress.config.*",
     "nightwatch.conf.*",
     "playwright.config.*",
-    "windi.config.ts",
     "src/extension/manifest.ts",
     "src/constants/extension.ts"
   ],

@@ -20,11 +20,11 @@ function navigateInTab(navigate: () => unknown, href: string) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 h-full py-4">
+  <div class="flex h-full flex-col gap-4 py-4">
     <div class="flex-grow"></div>
     <router-link v-slot="{ navigate }" to="/add/new" custom>
       <button type="button" class="nav-btn" @click="navigate">
-        <div class="h-full float-left flex w-8 mr-4">
+        <div class="float-left mr-4 flex h-full w-8">
           <wallet-icon class="m-auto text-gray-500" :size="32" />
         </div>
         <span class="title">Create wallet</span>
@@ -35,7 +35,7 @@ function navigateInTab(navigate: () => unknown, href: string) {
     </router-link>
     <router-link v-slot="{ navigate }" to="/add/restore" custom>
       <button type="button" class="nav-btn" @click="navigate">
-        <div class="h-full float-left flex w-8 mr-4">
+        <div class="float-left mr-4 flex h-full w-8">
           <rotate-ccw-icon class="m-auto text-gray-500" :size="32" />
         </div>
         <span class="title">Restore wallet</span>
@@ -51,8 +51,8 @@ function navigateInTab(navigate: () => unknown, href: string) {
         @click="navigateInTab(navigate, href)"
         @keypress.enter="navigateInTab(navigate, href)"
       >
-        <div class="h-full float-left flex w-8 mr-4">
-          <ledger-logo class="w-6 h-6 m-auto fill-gray-600" />
+        <div class="float-left mr-4 flex h-full w-8">
+          <ledger-logo class="m-auto h-6 w-6 fill-gray-600" />
         </div>
         <span class="title">Connect a hardware wallet</span>
         <span class="subtitle"
@@ -62,7 +62,7 @@ function navigateInTab(navigate: () => unknown, href: string) {
     </router-link>
     <router-link v-slot="{ navigate }" to="/add/read-only" custom>
       <button role="button" type="button" class="nav-btn" @click="navigate">
-        <div class="h-full float-left flex w-8 mr-4">
+        <div class="float-left mr-4 flex h-full w-8">
           <wallet-minimal-icon class="m-auto text-gray-500" :size="32" />
         </div>
         <span class="title">Load read-only wallet</span>

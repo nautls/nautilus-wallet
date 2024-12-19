@@ -50,16 +50,16 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex text-sm flex-col h-full gap-4 text-center pt-2">
+  <div class="flex h-full flex-col gap-4 pt-2 text-center text-sm">
     <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon">
       requests to connect with Nautilus
     </dapp-plate-header>
 
-    <div class="flex-grow overflow-auto border-gray-300 border-1 rounded">
+    <div class="flex-grow overflow-auto rounded border border-gray-300">
       <label
         v-for="wallet in wallets"
         :key="wallet.id"
-        class="p-4 flex gap-4 items-center block cursor-pointer hover:bg-gray-100 active:bg-gray-300"
+        class="flex cursor-pointer items-center gap-4 p-4 hover:bg-gray-100 active:bg-gray-300"
         :class="wallet.id === selected ? 'bg-gray-100 hover:bg-gray-200' : ''"
       >
         <input v-model="selected" :value="wallet.id" type="radio" class="inline-block" />

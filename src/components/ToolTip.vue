@@ -1,8 +1,8 @@
 <template>
-  <span class="inline-flex group justify-center relative">
+  <span class="group relative inline-flex justify-center">
     <slot />
     <span
-      class="w-max rounded select-none font-normal font-sans tracking-wide shadow-lg text-center text-xs my-1 w-auto opacity-0 py-2 px-3 transition-all ease-linear z-10 duration-150 absolute pointer-events-none group-hover:opacity-95"
+      class="pointer-events-none absolute z-10 my-1 w-auto w-max select-none rounded px-3 py-2 text-center font-sans text-xs font-normal tracking-wide opacity-0 shadow-lg transition-all duration-150 ease-linear group-hover:opacity-95"
       :class="customClass"
     >
       <slot name="label" v-if="$slots.label" />

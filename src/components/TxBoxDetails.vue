@@ -1,7 +1,7 @@
 <template>
-  <div class="flex shadow-sm flex-col border rounded" :class="boxStyles">
-    <div class="border-b-1 px-3 py-2 font-semibold rounded rounded-b-none" :class="headerStyles">
-      <div class="flex flex-row items-center w-full">
+  <div class="flex flex-col rounded border shadow-sm" :class="boxStyles">
+    <div class="border-b-1 rounded rounded-b-none px-3 py-2 font-semibold" :class="headerStyles">
+      <div class="flex w-full flex-row items-center">
         <div class="flex w-full">
           <p v-if="loading" class="skeleton h-5 w-3/5 rounded"></p>
           <template v-else>
@@ -13,9 +13,9 @@
 
       <div v-if="loading" class="pt-2">
         <p class="skeleton h-3 w-full rounded"></p>
-        <p class="skeleton h-3 w-2/5 rounded mt-1"></p>
+        <p class="skeleton mt-1 h-3 w-2/5 rounded"></p>
       </div>
-      <div v-else-if="$slots.subheader" class="text-xs font-normal pt-1">
+      <div v-else-if="$slots.subheader" class="pt-1 text-xs font-normal">
         <slot name="subheader" />
       </div>
     </div>
@@ -34,9 +34,9 @@
         <li v-for="(asset, index) in assets" :key="index">
           <div
             v-if="babelSwap && isErg(asset.tokenId) && assets.length > 1"
-            class="text-center py-2"
+            class="py-2 text-center"
           >
-            <arrow-down-up-icon class="align-middle text-gray-600 inline" />
+            <arrow-down-up-icon class="inline align-middle text-gray-600" />
           </div>
           <div class="flex flex-row items-center gap-2 py-1">
             <asset-icon class="h-7 w-7" :token-id="asset.tokenId" />
@@ -49,9 +49,9 @@
               </span>
               <tool-tip v-if="asset.minting" class="align-middle">
                 <template #label>
-                  <div class="block w-38">
+                  <div class="w-38 block">
                     <span>This asset is being minted on this transaction.</span>
-                    <div class="text-left pt-2">
+                    <div class="pt-2 text-left">
                       <p v-if="asset.description">
                         <span class="font-bold">Description</span>:
                         {{ format.string.shorten(asset.description, 50, "end") }}
@@ -62,7 +62,7 @@
                     </div>
                   </div>
                 </template>
-                <git-commit-vertical-icon class="align-middle pl-2" />
+                <git-commit-vertical-icon class="pl-2 align-middle" />
               </tool-tip>
             </div>
             <div>

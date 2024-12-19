@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-col flex gap-4 h-full py-4">
+  <div class="flex h-full flex-col gap-4 py-4">
     <div>
       <label
         >Wallet name
@@ -8,7 +8,7 @@
           :disabled="loading"
           maxlength="50"
           type="text"
-          class="w-full control block"
+          class="control block w-full"
           @blur="v$.walletName.$touch()"
         />
         <p v-if="v$.walletName.$error" class="input-error">
@@ -29,7 +29,7 @@
       />
     </div>
     <div v-if="confirmationAddress" class="text-sm">
-      <div class="rounded font-mono bg-gray-100 text-sm p-2 break-all border-gray-200 border">
+      <div class="break-all rounded border border-gray-200 bg-gray-100 p-2 font-mono text-sm">
         <p><label>Address:</label> {{ confirmationAddress }}</p>
       </div>
       <p class="p-1">
@@ -39,7 +39,7 @@
       </p>
     </div>
     <div class="flex-grow"></div>
-    <button v-if="!loading" type="button" class="w-full btn" @click="add()">
+    <button v-if="!loading" type="button" class="btn w-full" @click="add()">
       <span>Connect</span>
     </button>
   </div>

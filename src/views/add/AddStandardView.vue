@@ -1,6 +1,6 @@
 <template>
-  <div class="flex-col flex gap-4 h-full pt-6 pb-4">
-    <div class="flex-col flex gap-4 flex-grow">
+  <div class="flex h-full flex-col gap-4 pb-4 pt-6">
+    <div class="flex flex-grow flex-col gap-4">
       <label
         >Wallet name
         <input
@@ -8,7 +8,7 @@
           :disabled="loading"
           maxlength="50"
           type="text"
-          class="w-full control block"
+          class="control block w-full"
           @blur="v$.walletName.$touch()"
         />
         <p v-if="v$.walletName.$error" class="input-error">
@@ -22,7 +22,7 @@
             v-model.lazy="password"
             :disabled="loading"
             type="password"
-            class="w-full control block"
+            class="control block w-full"
             @blur="v$.password.$touch()"
           />
           <p v-if="v$.password.$error" class="input-error">
@@ -35,7 +35,7 @@
             v-model.lazy="confirmPassword"
             :disabled="loading"
             type="password"
-            class="w-full control block"
+            class="control block w-full"
             @blur="v$.confirmPassword.$touch()"
           />
           <p v-if="v$.confirmPassword.$error" class="input-error">
@@ -45,16 +45,16 @@
       </div>
       <label>
         Recovery phrase
-        <div class="input-wrap !text-base bg-gray-100 font-normal leading-relaxed p-2">
+        <div class="input-wrap bg-gray-100 p-2 !text-base font-normal leading-relaxed">
           {{ mnemonic }}
         </div>
-        <p class="text-xs font-normal p-1">
+        <p class="p-1 text-xs font-normal">
           Please, make sure you have carefully written down your recovery phrase somewhere safe. You
           will need this phrase to use and restore your wallet.
         </p>
       </label>
       <label
-        class="inline-flex items-center font-normal cursor-pointer bg-yellow-100 border-1 border-yellow-300 mb-2 py-1 px-3 rounded w-full"
+        class="mb-2 inline-flex w-full cursor-pointer items-center rounded border border-yellow-300 bg-yellow-100 px-3 py-1 font-normal"
       >
         <input v-model="mnemonicStoreAgreement" class="checkbox" type="checkbox" />
         <span class="text-yellow-900">I've stored the secret phrase in a secure place.</span>
@@ -66,7 +66,7 @@
         <button
           :disabled="loading || !mnemonicStoreAgreement"
           type="button"
-          class="w-full btn"
+          class="btn w-full"
           @click="add()"
         >
           <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />

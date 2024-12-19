@@ -111,7 +111,7 @@ async function confirmAddress() {
   <div class="flex flex-col gap-4">
     <div class="text-sm">
       <div class="mb-2 text-center">
-        <h1 class="font-bold text-lg">Address confirmation</h1>
+        <h1 class="text-lg font-bold">Address confirmation</h1>
       </div>
 
       <div v-if="state.appId" class="flex flex-col gap-4">
@@ -119,12 +119,12 @@ async function confirmAddress() {
           Ensure that the <span class="font-semibold">address</span> and
           <span class="font-semibold">path</span> below matches precisely what appears on your
           device, then press
-          <span class="font-semibold text-xs tag">Approve</span>
+          <span class="tag text-xs font-semibold">Approve</span>
           to confirm.
         </p>
         <div>
           <label>Address</label>
-          <div class="rounded font-mono bg-gray-50 text-sm p-2 break-all border-gray-200 border">
+          <div class="break-all rounded border border-gray-200 bg-gray-50 p-2 font-mono text-sm">
             {{ address }}
             <!-- <p><span class="font-semibold font-sans">Path:</span> {{ path }}</p> -->
           </div>
@@ -132,7 +132,7 @@ async function confirmAddress() {
 
         <div>
           <label>Path</label>
-          <div class="rounded font-mono bg-gray-50 text-sm p-2 break-all border-gray-200 border">
+          <div class="break-all rounded border border-gray-200 bg-gray-50 p-2 font-mono text-sm">
             {{ path }}
             <!-- <p><span class="font-semibold `font-sans`">Path:</span> {{ path }}</p> -->
           </div>
