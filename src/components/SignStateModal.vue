@@ -59,9 +59,9 @@ function getTransactionExplorerUrl(txId: string): string {
   >
     <div class="max-w-85 min-w-60 p-5 text-center">
       <div :class="stateClass" class="h-26 w-full">
-        <circle-check-icon v-if="state === ProverStateType.success" class="w-25 h-25 inline" />
-        <circle-alert-icon v-else-if="state === ProverStateType.error" class="w-25 h-25 inline" />
-        <loading-indicator v-else type="circular" class="w-25 h-25 !stroke-gray-500" />
+        <circle-check-icon v-if="state === ProverStateType.success" class="inline h-24 w-24" />
+        <circle-alert-icon v-else-if="state === ProverStateType.error" class="inline h-24 w-24" />
+        <loading-indicator v-else type="circular" class="h-24 w-24 !stroke-gray-500" />
       </div>
       <h1 class="pt-4 text-xl font-semibold" :class="stateClass">{{ titleText }}</h1>
       <p v-if="caption" class="pt-2 text-sm font-normal">{{ caption }}</p>

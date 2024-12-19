@@ -4,7 +4,7 @@
     :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
-    content-class="!max-w-11/12 rounded !w-110 max-h-11/12"
+    content-class="!max-w-96 rounded !w-110 max-h-[90vh]"
     @on-close="emitOnClose()"
   >
     <div class="flex flex-col gap-4 p-4 text-xs tracking-normal">

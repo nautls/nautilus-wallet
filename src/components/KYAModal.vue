@@ -3,7 +3,7 @@
     :active="active"
     :auto-focus="true"
     :can-cancel="false"
-    content-class="!w-11/12 rounded max-h-10/12"
+    content-class="!w-11/12 rounded max-h-[90vh]"
     scroll="clip"
     @on-close="emitOnClose()"
   >

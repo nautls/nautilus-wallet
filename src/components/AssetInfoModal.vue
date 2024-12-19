@@ -4,7 +4,7 @@
     :auto-focus="false"
     :can-cancel="true"
     scroll="clip"
-    content-class="max-h-95vh bg-transparent relative overflow-hidden !max-w-100 !w-90vw"
+    content-class="max-h-[95vh] bg-transparent relative overflow-hidden !max-w-96 !w-[90vw]"
   >
     <button type="button" class="fixed right-0 top-0 m-2 text-light-300" @click="close()">
       <circle-x-icon />
@@ -12,7 +12,7 @@
 
     <div v-if="!isImageNft" class="h-10" @click="close()"></div>
     <div class="rounded bg-light-50 text-xs tracking-normal" :class="{ 'pt-10': !isImageNft }">
-      <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-83.1 w-full rounded-t" />
+      <image-sandbox v-if="isImageNft" :src="contentUrl" class="h-80 w-full rounded-t" />
       <asset-icon
         v-else
         class="absolute left-0 right-0 top-0 mx-auto h-20 w-20"

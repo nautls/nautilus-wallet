@@ -56,12 +56,12 @@ function setState(stateType?: ProverStateType, message?: string, txId?: string) 
 
 function fail(info: string) {
   emit("fail", info);
-  close();
+  closeWindow();
 }
 
 function refused(info: string) {
   emit("refused", info);
-  close();
+  closeWindow();
 }
 
 async function success(
@@ -86,7 +86,7 @@ async function success(
   }
 }
 
-function close(): void {
+function closeWindow(): void {
   emit("close");
 }
 
@@ -100,7 +100,7 @@ function onLoadingModalClose() {
   setState();
 
   nextTick(() => {
-    close();
+    closeWindow();
   });
 }
 </script>

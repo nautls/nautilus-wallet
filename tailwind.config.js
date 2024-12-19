@@ -10,6 +10,9 @@ export default {
       fontFamily: {
         sans: ["OpenSans"]
       },
+      screens: {
+        xs: { max: "639px" } // Custom media query for screen sizes smaller than 'sm'
+      },
       colors: {
         dark: {
           50: "#4a4a4a",
