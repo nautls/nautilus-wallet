@@ -25,10 +25,10 @@ const validState = computed(
   () => isDefined(props.state) && props.state !== ProverStateType.unavailable
 );
 const appIdHex = computed(() => (!props.appId ? "" : `0x${props.appId.toString(16)}`));
-const isNanoX = computed(() => props.model === LedgerDeviceModelId.nanoX);
+const isNanoX = computed(() => props.model !== LedgerDeviceModelId.nanoX);
 const isLoading = computed(() => props.state === ProverStateType.busy || props.loading);
 const screenPosition = computed(() =>
-  isNanoX.value ? "top-19.1 left-15.1 w-28.5 h-8" : "top-19.5 left-8.3 w-30 h-8"
+  isNanoX.value ? "top-[4.7rem] left-[3.9rem] w-28 h-8" : "top-20 left-9 w-28 h-7"
 );
 </script>
 
