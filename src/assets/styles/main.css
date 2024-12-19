@@ -388,3 +388,7 @@ input:disabled {
 .tag {
   @apply rounded-md bg-gray-100 px-1 ring-1 ring-gray-500/20;
 }
+
+.skeleton {
+  @apply animate-pulse bg-gray-300;
+}
