@@ -12,13 +12,16 @@ const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
 </script>
 
 <template>
-  <div class="app" :class="maxWidth">
+  <div
+    class="mx-auto flex h-[100vh] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden md:w-4/12 md:shadow-lg"
+    :class="maxWidth"
+  >
     <div
       v-if="$route.meta.fullPage"
-      class="border-b-1 flex flex-row items-center justify-between gap-4 border-gray-200 bg-gray-100 p-4"
+      class="flex flex-row items-center justify-between gap-4 border-b border-gray-200 bg-gray-100 p-4"
     >
       <wallet-logo root-class="ml-2" content-class="w-11 h-11" />
-      <h1 class="w-full pl-2 text-base font-semibold">
+      <h1 class="w-full pl-2 font-semibold">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>
       </h1>

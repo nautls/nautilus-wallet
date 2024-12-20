@@ -19,7 +19,7 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 </script>
 
 <template>
-  <nav class="tabs">
+  <nav class="tabs bg-foreground/5">
     <div class="tab-item spacing"></div>
     <router-link to="/" active-class="active" class="tab-item w-full">
       <tool-tip position="bottom" label="Assets">
@@ -54,3 +54,21 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
     <div class="tab-item spacing"></div>
   </nav>
 </template>
+
+<style lang="css" scoped>
+.tabs {
+  @apply flex flex-row bg-gray-100 p-0 text-sm text-gray-500;
+}
+
+.tabs .tab-item {
+  @apply border-foreground/10 block max-w-20 border-b-0 text-center outline-none transition-all duration-150 ease-linear hover:text-blue-700 focus:outline-none active:text-blue-800 active:outline-none;
+}
+
+.tabs .tab-item.spacing {
+  @apply max-w-full flex-grow;
+}
+
+.tabs .tab-item.active {
+  @apply border-b-2 border-blue-600 text-blue-700;
+}
+</style>
