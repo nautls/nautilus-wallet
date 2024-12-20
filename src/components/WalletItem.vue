@@ -71,8 +71,8 @@ function walletTypeToString(type: WalletType): string {
         class="flex h-full flex-row items-center gap-1 text-xs"
         :class="{ 'flex-row-reverse': reverse }"
       >
-        <small class="align-middle font-normal">{{ checksum?.TextPart }}</small>
-        <small class="rounded bg-gray-200 px-1 font-normal uppercase text-dark-200">{{
+        <!-- <small class="align-middle font-normal">{{ checksum?.TextPart }}</small> -->
+        <small class="rounded bg-foreground/10 px-1 font-normal uppercase text-foreground">{{
           walletTypeToString(wallet.type)
         }}</small>
         <venetian-mask-icon v-if="wallet.settings.avoidAddressReuse" class="h-4 w-4" />
@@ -82,7 +82,7 @@ function walletTypeToString(type: WalletType): string {
 
     <canvas
       :id="canvasId"
-      class="inline-block h-9 w-9 rounded ring-1 ring-gray-300 ring-offset-1"
+      class="inline-block h-9 w-9 rounded ring-1 ring-foreground/10 ring-offset-1"
     ></canvas>
   </div>
 </template>

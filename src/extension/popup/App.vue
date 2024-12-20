@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useColorMode } from "@vueuse/core";
 import { useAppStore } from "@/stores/appStore";
 import { isPopup } from "@/common/browser";
 import KyaModal from "@/components/KYAModal.vue";
@@ -9,6 +10,9 @@ import NavHeader from "@/components/NavHeader.vue";
 
 const app = useAppStore();
 const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
+const mode = useColorMode();
+
+mode.value = "light";
 </script>
 
 <template>
@@ -31,7 +35,7 @@ const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
       <nav-header />
     </template>
 
-    <div class="flex-grow overflow-y-auto overflow-x-hidden px-4">
+    <div class="flex-grow overflow-y-auto overflow-x-hidden">
       <router-view />
     </div>
 

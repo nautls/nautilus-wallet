@@ -19,18 +19,18 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 </script>
 
 <template>
-  <nav class="tabs bg-foreground/5">
+  <nav class="tabs">
     <div class="tab-item spacing"></div>
     <router-link to="/" active-class="active" class="tab-item w-full">
       <tool-tip position="bottom" label="Assets">
         <chart-pie-icon class="m-3" :size="iconSize" />
       </tool-tip>
     </router-link>
-    <router-link v-if="containsArtwork" to="/nft" active-class="active" class="tab-item w-full">
+    <!-- <router-link v-if="containsArtwork" to="/nft" active-class="active" class="tab-item w-full">
       <tool-tip position="bottom" label="NFT gallery">
         <image-icon class="m-3" :size="iconSize" />
       </tool-tip>
-    </router-link>
+    </router-link> -->
     <router-link to="/history" active-class="active" class="tab-item w-full">
       <tool-tip position="bottom" label="History">
         <clock-icon class="m-3" :size="iconSize" />
@@ -57,11 +57,11 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 
 <style lang="css" scoped>
 .tabs {
-  @apply flex flex-row bg-gray-100 p-0 text-sm text-gray-500;
+  @apply flex flex-row bg-foreground/5 p-0 text-sm text-foreground;
 }
 
 .tabs .tab-item {
-  @apply border-foreground/10 block max-w-20 border-b-0 text-center outline-none transition-all duration-150 ease-linear hover:text-blue-700 focus:outline-none active:text-blue-800 active:outline-none;
+  @apply block max-w-20 border-b-0 border-foreground/10 text-center outline-none transition-all duration-150 ease-linear hover:text-primary focus:outline-none active:text-primary active:outline-none;
 }
 
 .tabs .tab-item.spacing {
@@ -69,6 +69,6 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 }
 
 .tabs .tab-item.active {
-  @apply border-b-2 border-blue-600 text-blue-700;
+  @apply border-b-0 border-blue-600 text-blue-700;
 }
 </style>

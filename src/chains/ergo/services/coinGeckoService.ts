@@ -1,5 +1,7 @@
 import { safeFetch } from "@/common/networking";
 
+// https://api.coingecko.com/api/v3/coins/ergo/market_chart?vs_currency=usd&days=1
+
 const BASE_URL = "https://api.coingecko.com/api/v3/";
 type CoinGeckoResponse = {
   ergo: Record<string, number>;

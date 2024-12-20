@@ -29,7 +29,7 @@ async function expandView() {
 </script>
 
 <template>
-  <div class="bg-foreground/5 flex flex-row items-center gap-0 px-4 py-2">
+  <div class="flex flex-row items-center gap-0 bg-foreground/5 px-4 py-4">
     <wallet-logo class="ml-2" content-class="w-11 h-11" />
     <div class="flex-grow"></div>
     <div class="w-min">
