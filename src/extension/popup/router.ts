@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import AssetsView from "@/views/AssetsView.vue";
+import AssetsView from "@/views/assets/AssetsView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {

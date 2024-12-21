@@ -6,13 +6,12 @@
       <p class="text-sm text-muted-foreground">Wallet balance</p>
     </div>
 
-    <AreaChart
+    <SparklineChart
       class="h-[80px] w-full"
       index="time"
       :data="data"
       :categories="['price']"
       :show-tooltip="false"
-      :show-gradiant="false"
     />
   </div>
   <div class="flex flex-col gap-6 p-4 text-sm">
@@ -79,6 +78,7 @@
 import { defineComponent } from "vue";
 import { BigNumber } from "bignumber.js";
 import { EyeIcon, EyeOffIcon } from "lucide-vue-next";
+import SparklineChart from "./SparklineChart.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import AssetInfoModal from "@/components/AssetInfoModal.vue";
@@ -88,7 +88,6 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
-import { AreaChart } from "@/components/ui/chart-area";
 
 const rawPrices = [
   [1734631294299, 1.73129232849255],
@@ -390,7 +389,7 @@ export default defineComponent({
     StorageRentBox,
     EyeIcon,
     EyeOffIcon,
-    AreaChart
+    SparklineChart
   },
   setup() {
     return {

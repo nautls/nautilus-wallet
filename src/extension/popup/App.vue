@@ -12,7 +12,7 @@ const app = useAppStore();
 const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
 const mode = useColorMode();
 
-mode.value = "light";
+mode.value = "dark";
 </script>
 
 <template>
