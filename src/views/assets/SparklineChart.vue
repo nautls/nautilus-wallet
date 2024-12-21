@@ -13,14 +13,12 @@ type KeyOf<T extends Record<string, unknown>> = Extract<keyof T, string>;
 
 const props = withDefaults(
   defineProps<{
-    curveType?: CurveType;
     data: T[];
     index: KeyOf<T>;
     categories: KeyOf<T>[];
     colors?: string[];
   }>(),
   {
-    curveType: CurveType.MonotoneX,
     margin: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
     showTooltip: true,
     colors: undefined
@@ -30,6 +28,7 @@ const props = withDefaults(
 type KeyOfT = Extract<keyof T, string>;
 type Data = (typeof props.data)[number];
 
+const curveType = CurveType.MonotoneX;
 const chartRef = useId();
 
 const index = computed(() => props.index as KeyOfT);
