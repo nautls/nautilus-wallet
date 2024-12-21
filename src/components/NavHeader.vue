@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-  ChartPieIcon,
-  ClockIcon,
-  DownloadIcon,
-  ImageIcon,
-  LayoutGridIcon,
-  SendIcon
-} from "lucide-vue-next";
+import { ChartPieIcon, ClockIcon, DownloadIcon, LayoutGridIcon, SendIcon } from "lucide-vue-next";
 import { WalletType } from "@/types/internal";
 import { useWalletStore } from "@/stores/walletStore";
 
@@ -15,7 +8,6 @@ const wallet = useWalletStore();
 const iconSize = 22;
 
 const readonly = computed(() => wallet.type === WalletType.ReadOnly);
-const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 </script>
 
 <template>
@@ -26,11 +18,6 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
         <chart-pie-icon class="m-3" :size="iconSize" />
       </tool-tip>
     </router-link>
-    <!-- <router-link v-if="containsArtwork" to="/nft" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="NFT gallery">
-        <image-icon class="m-3" :size="iconSize" />
-      </tool-tip>
-    </router-link> -->
     <router-link to="/history" active-class="active" class="tab-item w-full">
       <tool-tip position="bottom" label="History">
         <clock-icon class="m-3" :size="iconSize" />

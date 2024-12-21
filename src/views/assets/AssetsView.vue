@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { BigNumber } from "bignumber.js";
-// import { EyeIcon, EyeOffIcon } from "lucide-vue-next";
+import { EyeIcon, EyeOffIcon, SearchIcon } from "lucide-vue-next";
 import SparklineChart from "./SparklineChart.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import StorageRentBox from "@/components/StorageRentBox.vue";
@@ -11,6 +11,7 @@ import { useWalletStore } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -22,6 +23,7 @@ const filter = ref("");
 const chart = computed(() => assetsStore.priceChart.map((x) => ({ time: x[0], price: x[1] })));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const conversionCurrency = computed(() => app.settings.conversionCurrency);
+const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 // const loading = computed(() => wallet.loading && wallet.nonArtworkBalance.length === 0);
 
 const assets = computed(() => {
@@ -53,8 +55,8 @@ function isErg(tokenId: string): boolean {
 </script>
 
 <template>
-  <div class="relative mb-4 bg-foreground/5 pt-4">
-    <div class="mx-auto w-full bg-transparent text-center">
+  <div class="relative mb-4 bg-foreground/5">
+    <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center">
       <p class="text-2xl">$ {{ format.bn.format(totalWallet, 2) }}</p>
       <p class="text-sm text-muted-foreground">Wallet balance</p>
     </div>
@@ -71,17 +73,24 @@ function isErg(tokenId: string): boolean {
     <storage-rent-box />
 
     <Tabs default-value="tokens" class="w-full">
-      <TabsList class="m-auto">
-        <TabsTrigger value="tokens"> Tokens</TabsTrigger>
-        <TabsTrigger value="collectibles"> Collectibles </TabsTrigger>
-      </TabsList>
-      <!-- <Input
-        v-model="filter"
-        class="text-xs"
-        type="text"
-        :disabled="loading"
-        placeholder="Search"
-      /> -->
+      <div class="flex flex-row">
+        <TabsList>
+          <TabsTrigger value="tokens"> Tokens</TabsTrigger>
+          <TabsTrigger value="collectibles" :disabled="!containsArtwork">
+            Collectibles
+          </TabsTrigger>
+        </TabsList>
+
+        <div class="flex-grow"></div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="app.settings.hideBalances = !app.settings.hideBalances"
+          ><EyeOffIcon v-if="app.settings.hideBalances" /><EyeIcon v-else
+        /></Button>
+        <Button variant="ghost" size="icon"><SearchIcon /></Button>
+      </div>
 
       <TabsContent value="tokens" class="flex flex-col gap-6 p-4">
         <div v-for="asset in assets" :key="asset.tokenId" class="flex h-10 flex-row gap-2">
