@@ -13,7 +13,7 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["**/node_modules", "**/dist", "**/coverage"]
+    ignores: ["**/node_modules", "**/dist", "**/coverage", "src/components/ui"]
   },
   ...fixupConfigRules(
     compat.extends(
