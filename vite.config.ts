@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { fileURLToPath, URL } from "node:url";
 import { execSync } from "child_process";
 import path from "node:path";
 import { defineConfig, PluginOption } from "vite";
@@ -39,7 +40,7 @@ const plugins = [
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   resolve: {
-    alias: { "@": "/src" }
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) }
   },
   define: defEnv(env),
   plugins: [
