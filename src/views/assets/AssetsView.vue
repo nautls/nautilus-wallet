@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { BigNumber } from "bignumber.js";
-import { EyeIcon, EyeOffIcon, SearchIcon } from "lucide-vue-next";
+import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import SparklineChart from "./SparklineChart.vue";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import StorageRentBox from "@/components/StorageRentBox.vue";
@@ -13,6 +13,8 @@ import { useFormat } from "@/composables/useFormat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ImageSandbox from "@/components/ImageSandbox.vue";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -77,7 +79,7 @@ function isErg(tokenId: string): boolean {
     <Tabs default-value="tokens" class="w-full">
       <div class="flex flex-row">
         <TabsList>
-          <TabsTrigger value="tokens"> Tokens</TabsTrigger>
+          <TabsTrigger value="tokens">Tokens</TabsTrigger>
           <TabsTrigger value="collectibles" :disabled="!containsArtwork">
             Collectibles
           </TabsTrigger>
@@ -89,9 +91,21 @@ function isErg(tokenId: string): boolean {
           variant="ghost"
           size="icon"
           @click="app.settings.hideBalances = !app.settings.hideBalances"
-          ><EyeOffIcon v-if="app.settings.hideBalances" /><EyeIcon v-else
-        /></Button>
-        <Button variant="ghost" size="icon"><SearchIcon /></Button>
+        >
+          <EyeOffIcon v-if="app.settings.hideBalances" />
+          <EyeIcon v-else />
+        </Button>
+        <Popover>
+          <PopoverTrigger>
+            <Button variant="ghost" size="icon">
+              <SearchIcon v-if="filter === ''" />
+              <SearchCheckIcon v-else />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent side="left">
+            <Input v-model="filter" placeholder="Search" class="w-full" clearable clear-icon />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <TabsContent value="tokens" class="">
@@ -179,6 +193,6 @@ function isErg(tokenId: string): boolean {
 
 <style lang="css" scoped>
 .caption {
-  @apply bg-foreground/70 py-0.5 font-normal text-background;
+  @apply bg-neutral-900/70 py-0.5 font-normal text-neutral-100;
 }
 </style>
