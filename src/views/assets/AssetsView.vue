@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import ImageSandbox from "@/components/ImageSandbox.vue";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -30,6 +31,9 @@ const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 // const loading = computed(() => wallet.loading && wallet.nonArtworkBalance.length === 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
+const normalizedFilter = computed(() =>
+  filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
+);
 
 const totalWallet = computed(() =>
   wallet.nonArtworkBalance
@@ -38,10 +42,11 @@ const totalWallet = computed(() =>
 );
 
 function filtered(assets: StateAssetSummary[]): StateAssetSummary[] {
-  const lcFilter = filter.value.trim().toLocaleLowerCase();
-  if (filter.value === "" || assets.length === 0) return assets;
+  if (normalizedFilter.value === "" || assets.length === 0) return assets;
 
-  return assets.filter((a) => a.metadata?.name?.toLocaleLowerCase().includes(lcFilter));
+  return assets.filter((a) =>
+    a.metadata?.name?.toLocaleLowerCase().includes(normalizedFilter.value)
+  );
 }
 
 function price(tokenId: string): BigNumber {
@@ -61,7 +66,10 @@ function isErg(tokenId: string): boolean {
 <template>
   <div class="relative mb-4 bg-foreground/5">
     <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center">
-      <p class="text-2xl">$ {{ format.bn.format(totalWallet, 2) }}</p>
+      <p class="text-2xl">
+        <span v-if="!app.settings.hideBalances">$ {{ format.bn.format(totalWallet, 2) }}</span>
+        <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
+      </p>
       <p class="text-sm text-muted-foreground">Wallet balance</p>
     </div>
 
@@ -98,7 +106,7 @@ function isErg(tokenId: string): boolean {
         <Popover>
           <PopoverTrigger>
             <Button variant="ghost" size="icon">
-              <SearchIcon v-if="filter === ''" />
+              <SearchIcon v-if="normalizedFilter === ''" />
               <SearchCheckIcon v-else />
             </Button>
           </PopoverTrigger>
@@ -127,8 +135,8 @@ function isErg(tokenId: string): boolean {
             </div>
             <div class="whitespace-nowrap text-right align-middle">
               <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
-                <div class="skeleton h-5 w-full animate-none rounded"></div>
-                <div class="skeleton h-3 w-3/4 animate-none rounded"></div>
+                <Skeleton class="h-5 w-24 animate-none" />
+                <Skeleton class="h-3 w-3/4 animate-none" />
               </div>
               <template v-else>
                 <p>
