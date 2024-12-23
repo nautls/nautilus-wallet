@@ -7,11 +7,12 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import StorageRentBox from "@/components/StorageRentBox.vue";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { useWalletStore } from "@/stores/walletStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import ImageSandbox from "@/components/ImageSandbox.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -25,20 +26,21 @@ const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0)
 const conversionCurrency = computed(() => app.settings.conversionCurrency);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 // const loading = computed(() => wallet.loading && wallet.nonArtworkBalance.length === 0);
-
-const assets = computed(() => {
-  const assetList = wallet.nonArtworkBalance;
-  const lcFilter = filter.value.trim().toLocaleLowerCase();
-  if (filter.value === "" || assetList.length === 0) return assetList;
-
-  return assetList.filter((a) => a.metadata?.name?.toLocaleLowerCase().includes(lcFilter));
-});
+const tokens = computed(() => filtered(wallet.nonArtworkBalance));
+const collectibles = computed(() => filtered(wallet.artworkBalance));
 
 const totalWallet = computed(() =>
   wallet.nonArtworkBalance
     .reduce((acc, a) => acc.plus(a.confirmedAmount.times(rate(a.tokenId))), bn(0))
     .times(ergPrice.value)
 );
+
+function filtered(assets: StateAssetSummary[]): StateAssetSummary[] {
+  const lcFilter = filter.value.trim().toLocaleLowerCase();
+  if (filter.value === "" || assets.length === 0) return assets;
+
+  return assets.filter((a) => a.metadata?.name?.toLocaleLowerCase().includes(lcFilter));
+}
 
 function price(tokenId: string): BigNumber {
   const r = rate(tokenId);
@@ -92,49 +94,80 @@ function isErg(tokenId: string): boolean {
         <Button variant="ghost" size="icon"><SearchIcon /></Button>
       </div>
 
-      <TabsContent value="tokens" class="flex flex-col gap-6 p-4">
-        <div v-for="asset in assets" :key="asset.tokenId" class="flex h-10 flex-row gap-2">
-          <asset-icon class="h-full" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-          <div class="flex flex-grow items-center text-sm">
-            <a v-if="isErg(asset.tokenId)" class="font-semibold">
-              {{ asset.metadata?.name }}
-              <p class="text-xs text-muted-foreground">Ergo</p>
-            </a>
-            <a v-else class="break-anywhere cursor-pointer">
-              <template v-if="asset.metadata?.name">{{
-                format.string.shorten(asset.metadata?.name, 40)
-              }}</template>
-              <template v-else>{{ format.string.shorten(asset.tokenId, 12) }}</template>
-              <p class="text-xs text-muted-foreground">Ergo</p>
-            </a>
-          </div>
-          <div class="whitespace-nowrap text-right align-middle">
-            <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
-              <div class="skeleton h-5 w-full animate-none rounded"></div>
-              <div class="skeleton h-3 w-3/4 animate-none rounded"></div>
+      <TabsContent value="tokens" class="">
+        <div class="flex flex-col gap-6 p-4">
+          <div v-for="asset in tokens" :key="asset.tokenId" class="flex h-10 flex-row gap-2">
+            <asset-icon class="h-full" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+            <div class="flex flex-grow items-center text-sm">
+              <a v-if="isErg(asset.tokenId)" class="font-semibold">
+                {{ asset.metadata?.name }}
+                <p class="text-xs text-muted-foreground">Ergo</p>
+              </a>
+              <a v-else class="break-anywhere cursor-pointer">
+                <template v-if="asset.metadata?.name">{{
+                  format.string.shorten(asset.metadata?.name, 40)
+                }}</template>
+                <template v-else>{{ format.string.shorten(asset.tokenId, 12) }}</template>
+                <p class="text-xs text-muted-foreground">Ergo</p>
+              </a>
             </div>
-            <template v-else>
-              <p>
-                {{ format.bn.format(asset.confirmedAmount) }}
-              </p>
-              <tool-tip
-                v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                :label="`1 ${asset.metadata?.name} <br /> ≈ ${format.bn.format(
-                  price(asset.tokenId),
-                  2
-                )} ${format.string.uppercase(conversionCurrency)}`"
-              >
-                <p class="text-xs text-muted-foreground">
-                  ≈
-                  {{ format.bn.format(asset.confirmedAmount.times(price(asset.tokenId)), 2) }}
-                  {{ format.string.uppercase(conversionCurrency) }}
+            <div class="whitespace-nowrap text-right align-middle">
+              <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
+                <div class="skeleton h-5 w-full animate-none rounded"></div>
+                <div class="skeleton h-3 w-3/4 animate-none rounded"></div>
+              </div>
+              <template v-else>
+                <p>
+                  {{ format.bn.format(asset.confirmedAmount) }}
                 </p>
-              </tool-tip>
-            </template>
+                <tool-tip
+                  v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
+                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${format.bn.format(
+                    price(asset.tokenId),
+                    2
+                  )} ${format.string.uppercase(conversionCurrency)}`"
+                >
+                  <p class="text-xs text-muted-foreground">
+                    ≈
+                    {{ format.bn.format(asset.confirmedAmount.times(price(asset.tokenId)), 2) }}
+                    {{ format.string.uppercase(conversionCurrency) }}
+                  </p>
+                </tool-tip>
+              </template>
+            </div>
           </div>
         </div>
       </TabsContent>
-      <TabsContent value="collectibles"> Collectibles </TabsContent>
+      <TabsContent value="collectibles">
+        <div class="grid grid-cols-2 justify-stretch gap-4 p-4 sm:grid-cols-4 md:grid-cols-2">
+          <div
+            v-for="nft in collectibles"
+            :key="nft.tokenId"
+            class="relative cursor-pointer rounded-md border bg-card text-card-foreground shadow"
+          >
+            <image-sandbox
+              :src="nft.metadata?.artworkUrl"
+              class="h-40 w-full overflow-hidden rounded-md"
+              height="10rem"
+              object-fit="cover"
+              overflow="hidden"
+            />
+
+            <!-- clickable overlay -->
+            <div class="absolute left-0 top-0 h-40 w-full bg-transparent"></div>
+
+            <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md">
+              {{ nft.metadata?.name ?? nft.tokenId }}
+            </p>
+            <div
+              v-if="!nft.confirmedAmount.eq(1)"
+              class="caption absolute right-1 top-1 h-6 min-w-6 rounded-full !px-1 px-2.5 text-center"
+            >
+              {{ format.bn.format(nft.confirmedAmount) }}
+            </div>
+          </div>
+        </div>
+      </TabsContent>
     </Tabs>
   </div>
   <!-- <asset-info-modal
@@ -143,3 +176,9 @@ function isErg(tokenId: string): boolean {
       @close="selectedAsset = undefined"
     /> -->
 </template>
+
+<style lang="css" scoped>
+.caption {
+  @apply bg-foreground/70 py-0.5 font-normal text-background;
+}
+</style>

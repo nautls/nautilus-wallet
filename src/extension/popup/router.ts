@@ -39,11 +39,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: { fullPage: true, title: "Connect a hardware wallet" }
   },
   {
-    path: "/nft",
-    name: "nft-gallery",
-    component: () => import("@/views/NftGalleryView.vue")
-  },
-  {
     path: "/history",
     name: "tx-history",
     component: () => import("@/views/TransactionHistory.vue")
