@@ -156,12 +156,12 @@ function isErg(tokenId: string): boolean {
             <!-- clickable overlay -->
             <div class="absolute left-0 top-0 h-40 w-full bg-transparent"></div>
 
-            <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md">
+            <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md px-2.5">
               {{ nft.metadata?.name ?? nft.tokenId }}
             </p>
             <div
               v-if="!nft.confirmedAmount.eq(1)"
-              class="caption absolute right-1 top-1 h-6 min-w-6 rounded-full !px-1 px-2.5 text-center"
+              class="caption absolute right-1 top-1 h-6 min-w-6 rounded-full px-1 text-center"
             >
               {{ format.bn.format(nft.confirmedAmount) }}
             </div>
