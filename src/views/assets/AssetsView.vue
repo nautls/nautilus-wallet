@@ -143,11 +143,7 @@ function formatAssetName(asset: StateAssetSummary): string {
             variant="ghost"
             class="h-auto py-3 text-left"
           >
-            <AssetIcon
-              class="!h-auto !w-10"
-              :token-id="asset.tokenId"
-              :type="asset.metadata?.type"
-            />
+            <AssetIcon class="!h-10 !w-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
             <div
               class="flex flex-grow flex-col align-middle text-sm"

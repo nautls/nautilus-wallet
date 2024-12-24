@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Card, CardContent } from "@/components/ui/card";
-
 defineProps<{
   title?: string;
   data: {
@@ -12,11 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <Card class="text-sm">
-    <CardContent class="p-3">
-      <span v-for="(item, key) in data" :key="key" class="text-center">{{
-        item.value.toFixed(3)
-      }}</span>
-    </CardContent>
-  </Card>
+  <div class="rounded-md px-3 py-1.5 text-sm bg-foreground text-center text-background">
+    <span v-for="(item, key) in data" :key="key">{{ item.value.toFixed(3) }}</span>
+  </div>
 </template>
