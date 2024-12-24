@@ -210,12 +210,6 @@ function formatAssetName(asset: StateAssetSummary): string {
               overflow="hidden"
             />
 
-            <!-- clickable overlay -->
-            <Button
-              class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
-              variant="ghost"
-            ></Button>
-
             <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md px-2.5">
               {{ nft.metadata?.name ?? nft.tokenId }}
             </p>
@@ -225,6 +219,12 @@ function formatAssetName(asset: StateAssetSummary): string {
             >
               <span class="m-auto">{{ format.bn.format(nft.confirmedAmount) }}</span>
             </div>
+
+            <!-- clickable overlay -->
+            <Button
+              class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
+              variant="ghost"
+            ></Button>
           </div>
         </div>
       </TabsContent>

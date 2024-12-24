@@ -12,12 +12,10 @@ import WalletLogo from "./WalletLogo.vue";
 const wallet = useWalletStore();
 const app = useAppStore();
 
-const unselected = computed(() => {
-  if (!app.wallets) return [];
-  return app.wallets.filter((w) => w.id !== wallet.id);
-});
-
 const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
+const unselected = computed(() =>
+  app.wallets ? app.wallets.filter((w) => w.id !== wallet.id) : []
+);
 
 async function expandView() {
   if (!browser?.tabs) return;
