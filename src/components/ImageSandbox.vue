@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, HtmlHTMLAttributes, ref, watch } from "vue";
+import { computed, HTMLAttributes, ref, watch } from "vue";
 import { CircleAlertIcon } from "lucide-vue-next";
 import {
   CONTENT_SANDBOX_URL,
@@ -11,7 +11,7 @@ import LoadingIndicator from "./LoadingIndicator.vue";
 
 const props = defineProps<{
   src?: string;
-  class?: HtmlHTMLAttributes["class"];
+  class?: HTMLAttributes["class"];
   height?: string;
   objectFit?: string;
   overflow?: string;

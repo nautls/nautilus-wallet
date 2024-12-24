@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, HtmlHTMLAttributes } from "vue";
+import { computed, HTMLAttributes } from "vue";
 import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
@@ -12,7 +12,7 @@ const DEFAULT_FILLING_COLOR_BRIGHTNESS = 0.7;
 
 const props = defineProps<{
   tokenId: string;
-  class?: HtmlHTMLAttributes["class"];
+  class?: HTMLAttributes["class"];
   type?: string;
 }>();
 
