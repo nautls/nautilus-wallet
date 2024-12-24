@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { nextTick, onMounted, PropType, ref, shallowRef } from "vue";
-import { WalletChecksum, walletChecksum } from "@emurgo/cip4-js";
 import { renderIcon } from "@download/blockies";
+import { WalletChecksum, walletChecksum } from "@emurgo/cip4-js";
 import { hex } from "@fleet-sdk/crypto";
 import { VenetianMaskIcon } from "lucide-vue-next";
+import { mountExtendedPublicKey } from "@/common/serializer";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
-import { mountExtendedPublicKey } from "@/common/serializer";
 
 const COLORS = [
   ["#17d1aa", "#e1f2ff", "#a80b32"],

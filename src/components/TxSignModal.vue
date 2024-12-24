@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, PropType, reactive, ref } from "vue";
 import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
-import TxSignView from "./TxSignView.vue";
-import SignStateModal from "@/components/SignStateModal.vue";
-import { ProverStateType, TransactionBuilderFunction, WalletType } from "@/types/internal";
-import { PartialSignState } from "@/chains/ergo/transaction/prover";
 import { useWalletStore } from "@/stores/walletStore";
+import SignStateModal from "@/components/SignStateModal.vue";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { PartialSignState } from "@/chains/ergo/transaction/prover";
+import { ProverStateType, TransactionBuilderFunction, WalletType } from "@/types/internal";
+import TxSignView from "./TxSignView.vue";
 
 const wallet = useWalletStore();
 

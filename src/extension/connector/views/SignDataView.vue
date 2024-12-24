@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
+import { ErgoMessage, MessageType } from "@fleet-sdk/core";
+import { hex } from "@fleet-sdk/crypto";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
-import { ErgoMessage, MessageType } from "@fleet-sdk/core";
-import { hex } from "@fleet-sdk/crypto";
-import VueJsonPretty from "vue-json-pretty";
-import type { JsonObject } from "type-fest";
 import { TriangleAlertIcon } from "lucide-vue-next";
-import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
-import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
-import { ProverStateType, WalletType } from "@/types/internal";
-import { PasswordError } from "@/common/errors";
-import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
-import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
+import type { JsonObject } from "type-fest";
+import VueJsonPretty from "vue-json-pretty";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import SignStateModal from "@/components/SignStateModal.vue";
 import { signMessage } from "@/chains/ergo/signing";
-import DappPlateHeader from "@/components/DappPlateHeader.vue";
-import { useWalletStore } from "@/stores/walletStore";
-import { useAppStore } from "@/stores/appStore";
+import { PasswordError } from "@/common/errors";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
+import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
+import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
+import { APIErrorCode, SignErrorCode } from "@/types/connector";
+import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
+import { ProverStateType, WalletType } from "@/types/internal";
 
 import "vue-json-pretty/lib/styles.css";
 

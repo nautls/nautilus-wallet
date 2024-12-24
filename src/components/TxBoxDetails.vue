@@ -78,11 +78,11 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { ArrowDownUpIcon, GitCommitVerticalIcon } from "lucide-vue-next";
-import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 import BabelBadge from "@/assets/images/babel-badge.svg";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
+import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import { useFormat } from "@/composables/useFormat";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export default defineComponent({
   name: "TxBoxDetails",

@@ -2,8 +2,8 @@
 import { computed, PropType } from "vue";
 import { isDefined } from "@fleet-sdk/common";
 import { CircleAlertIcon, CircleCheckIcon } from "lucide-vue-next";
-import { ProverStateType } from "../types/internal";
 import { useAppStore } from "@/stores/appStore";
+import { ProverStateType } from "../types/internal";
 
 const app = useAppStore();
 

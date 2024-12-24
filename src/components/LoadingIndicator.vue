@@ -5,8 +5,8 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import PulseLoader from "@/assets/images/loaders/pulse.svg";
 import CircularLoader from "@/assets/images/loaders/circular.svg";
+import PulseLoader from "@/assets/images/loaders/pulse.svg";
 
 export default defineComponent({
   name: "LoadingIndicator",

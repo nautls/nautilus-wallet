@@ -1,5 +1,6 @@
 import { Dexie, Table } from "dexie";
 import { uniqBy } from "lodash-es";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import {
   IAssetInfo,
   IDbAddress,
@@ -8,7 +9,6 @@ import {
   IDbUtxo,
   IDbWallet
 } from "@/types/database";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;

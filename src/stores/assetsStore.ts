@@ -1,19 +1,19 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, shallowReactive, watch } from "vue";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
-import { useAppStore } from "./appStore";
-import { assetInfoDbService } from "@/database/assetInfoDbService";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
-import { AssetType, BasicAssetMetadata } from "@/types/internal";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import {
   ErgoTokenBlacklist,
   ergoTokenBlacklistService
 } from "@/chains/ergo/services/tokenBlacklistService";
-import { IAssetInfo } from "@/types/database";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
-import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { assetInfoDbService } from "@/database/assetInfoDbService";
+import { IAssetInfo } from "@/types/database";
+import { AssetType, BasicAssetMetadata } from "@/types/internal";
+import { useAppStore } from "./appStore";
 
 export type LoadMetadataOptions = { fetchInBackground: boolean; persist: boolean };
 

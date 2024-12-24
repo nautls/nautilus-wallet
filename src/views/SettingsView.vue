@@ -205,26 +205,26 @@
 
 <script lang="ts">
 import { defineComponent, Ref } from "vue";
-import { helpers, required } from "@vuelidate/validators";
-import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
-import { clone, isEqual } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
+import { useVuelidate, Validation, ValidationArgs } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
+import { clone, isEqual } from "lodash-es";
 import { ChevronDownIcon, TriangleAlertIcon } from "lucide-vue-next";
-import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
+import { Settings, useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
 import ExtendedPublicKeyModal from "@/components/ExtendedPublicKeyModal.vue";
-import { MAINNET } from "@/constants/ergo";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   DEFAULT_SERVER_URL,
   MIN_SERVER_VERSION,
   validateServerNetwork,
   validateServerVersion
 } from "@/chains/ergo/services/graphQlService";
-import { validUrl } from "@/validators";
-import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
-import { Settings, useAppStore } from "@/stores/appStore";
-import { useWalletStore } from "@/stores/walletStore";
 import { log } from "@/common/logger";
 import { useFormat } from "@/composables/useFormat";
+import { MAINNET } from "@/constants/ergo";
+import { DEFAULT_EXPLORER_URL } from "@/constants/explorer";
+import { validUrl } from "@/validators";
 
 export default defineComponent({
   name: "SettingsView",

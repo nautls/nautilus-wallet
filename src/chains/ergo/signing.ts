@@ -1,5 +1,3 @@
-import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
-import { ErgoMessage } from "@fleet-sdk/core";
 import {
   EIP12UnsignedTransaction,
   first,
@@ -7,17 +5,19 @@ import {
   SignedTransaction,
   some
 } from "@fleet-sdk/common";
-import { getPrivateDeriver, Prover } from "./transaction/prover";
+import { ErgoMessage } from "@fleet-sdk/core";
+import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
+import { useWalletStore } from "@/stores/walletStore";
+import { hdKeyPool } from "@/common/objectPool";
+import { addressesDbService } from "@/database/addressesDbService";
+import { walletsDbService } from "@/database/walletsDbService";
+import { IDbAddress } from "@/types/database";
+import { SigningState, WalletType } from "@/types/internal";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
 import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
-import { hdKeyPool } from "@/common/objectPool";
-import { SigningState, WalletType } from "@/types/internal";
-import { addressesDbService } from "@/database/addressesDbService";
-import { walletsDbService } from "@/database/walletsDbService";
-import { IDbAddress } from "@/types/database";
-import { useWalletStore } from "@/stores/walletStore";
+import { getPrivateDeriver, Prover } from "./transaction/prover";
 
 export type UnsignedAuthMessage = {
   message: string;

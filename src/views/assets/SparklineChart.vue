@@ -1,13 +1,12 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import { type BulletLegendItemInterface, CurveType } from "@unovis/ts";
-import { Area } from "@unovis/ts";
+import { computed, ref } from "vue";
+import { Area, CurveType, type BulletLegendItemInterface } from "@unovis/ts";
 import { VisArea, VisLine, VisXYContainer } from "@unovis/vue";
 import { useMounted } from "@vueuse/core";
 import { useId } from "radix-vue";
-import { computed, ref } from "vue";
-import ChartTooltip from "./SparklineTooltip.vue";
 import { ChartCrosshair, defaultColors } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
+import ChartTooltip from "./SparklineTooltip.vue";
 
 type KeyOf<T extends Record<string, unknown>> = Extract<keyof T, string>;
 

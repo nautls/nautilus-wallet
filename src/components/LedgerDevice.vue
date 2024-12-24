@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { isDefined } from "@fleet-sdk/common";
 import { computed, PropType } from "vue";
+import { isDefined } from "@fleet-sdk/common";
 import { CheckIcon, CircleAlertIcon, XIcon } from "lucide-vue-next";
 import ledgerS from "@/assets/images/hw-devices/ledger-s.svg";
 import ledgerX from "@/assets/images/hw-devices/ledger-x.svg";

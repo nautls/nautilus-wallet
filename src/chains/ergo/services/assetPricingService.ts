@@ -1,6 +1,6 @@
-import { spectrumService } from "./spectrumService";
-import { coinGeckoService } from "./coinGeckoService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { coinGeckoService } from "./coinGeckoService";
+import { spectrumService } from "./spectrumService";
 
 const MIN_USD_LIQUIDITY = 1_000;
 

@@ -1,10 +1,9 @@
 import { ValidationRuleWithoutParams } from "@vuelidate/core";
-
-import publicKey from "./publicKey";
+import bigNumberMaxVal from "./bigNumberMaxVal";
+import bigNumberMinVal from "./bigNumberMinVal";
 import ergoAddress from "./ergoAddress";
 import mnemonic from "./mnemonic";
-import bigNumberMinVal from "./bigNumberMinVal";
-import bigNumberMaxVal from "./bigNumberMaxVal";
+import publicKey from "./publicKey";
 import url from "./url";
 
 export const validPublicKey: ValidationRuleWithoutParams = publicKey;

@@ -1,9 +1,9 @@
+import { AllowedComponentProps, Component, VNodeProps } from "vue";
 import { ensureDefaults } from "@fleet-sdk/common";
 import { useProgrammatic } from "@oruga-ui/oruga-next";
-import { AllowedComponentProps, Component, VNodeProps } from "vue";
-import { isPopup } from "./browser";
 import TxSignModal from "@/components/TxSignModal.vue";
 import { Prettify } from "@/types/internal";
+import { isPopup } from "./browser";
 
 const DEFAULT_PROPS: Partial<ModalParams<Component>> = {
   autoFocus: true,

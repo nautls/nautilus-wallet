@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { computed, onMounted, reactive } from "vue";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
-import { computed, onMounted, reactive } from "vue";
-import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
-import LedgerDevice from "./LedgerDevice.vue";
 import { log } from "@/common/logger";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverStateType } from "@/types/internal";
+import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
+import LedgerDevice from "./LedgerDevice.vue";
 
 const emits = defineEmits(["accepted", "denied"]);
 const props = defineProps({

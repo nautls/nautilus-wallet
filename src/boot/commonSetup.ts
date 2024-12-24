@@ -1,8 +1,8 @@
 import { App } from "vue";
+import { createPinia } from "pinia";
 import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { createPinia } from "pinia";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import ToolTip from "@/components/ToolTip.vue";

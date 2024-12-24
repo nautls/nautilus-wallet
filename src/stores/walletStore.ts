@@ -1,14 +1,16 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, shallowRef, toRaw, watch } from "vue";
-import { groupBy, maxBy } from "lodash-es";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import type { BigNumber } from "bignumber.js";
+import { groupBy, maxBy } from "lodash-es";
 import { useRouter } from "vue-router";
-import { bn, decimalize, sumBy } from "../common/bigNumber";
-import { MIN_SYNC_INTERVAL } from "../constants/intervals";
-import { useAppStore } from "./appStore";
-import { useAssetsStore } from "./assetsStore";
-import { useChainStore } from "./chainStore";
-import { usePoolStore } from "./poolStore";
+import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { hdKeyPool } from "@/common/objectPool";
+import { patchArray } from "@/common/reactivity";
+import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
+import { addressesDbService } from "@/database/addressesDbService";
+import { assetsDbService } from "@/database/assetsDbService";
+import { assetIconMap } from "@/mappers/assetIconMap";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
   AddressState,
@@ -20,14 +22,12 @@ import {
   WalletSettings,
   WalletType
 } from "@/types/internal";
-import { addressesDbService } from "@/database/addressesDbService";
-import { assetsDbService } from "@/database/assetsDbService";
-import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
-import { hdKeyPool } from "@/common/objectPool";
-import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { patchArray } from "@/common/reactivity";
-import { assetIconMap } from "@/mappers/assetIconMap";
+import { bn, decimalize, sumBy } from "../common/bigNumber";
+import { MIN_SYNC_INTERVAL } from "../constants/intervals";
+import { useAppStore } from "./appStore";
+import { useAssetsStore } from "./assetsStore";
+import { useChainStore } from "./chainStore";
+import { usePoolStore } from "./poolStore";
 
 export type StateAssetSummary = {
   tokenId: string;

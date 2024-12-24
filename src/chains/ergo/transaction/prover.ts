@@ -30,12 +30,12 @@ import {
   Token,
   UnsignedBox
 } from "ledger-ergo-js";
-import { addressFromErgoTree } from "../addresses";
-import HdKey, { IndexedAddress } from "../hdKey";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverDeviceState, ProverStateType, SigningState } from "@/types/internal";
 import { walletsDbService } from "@/database/walletsDbService";
+import { ProverDeviceState, ProverStateType, SigningState } from "@/types/internal";
+import { addressFromErgoTree } from "../addresses";
+import HdKey, { IndexedAddress } from "../hdKey";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;

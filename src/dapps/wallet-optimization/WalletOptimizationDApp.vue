@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, toRaw, watch } from "vue";
+import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
+import { createReusableTemplate } from "@vueuse/core";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
-import { Box } from "@fleet-sdk/common";
 import { AlertCircleIcon, CircleCheckIcon } from "lucide-vue-next";
-import { createReusableTemplate } from "@vueuse/core";
-import { createConsolidationTransaction } from "./transactionFactory";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import FeeSelector from "@/components/FeeSelector.vue";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { FeeSettings } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
+import { openTransactionSigningModal } from "@/common/componentUtils";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -19,10 +21,8 @@ import {
   HEALTHY_UTXO_COUNT,
   SAFE_MIN_FEE_VALUE
 } from "@/constants/ergo";
-import FeeSelector from "@/components/FeeSelector.vue";
-import { openTransactionSigningModal } from "@/common/componentUtils";
-import { useWalletStore } from "@/stores/walletStore";
-import { useAppStore } from "@/stores/appStore";
+import { FeeSettings } from "@/types/internal";
+import { createConsolidationTransaction } from "./transactionFactory";
 
 const wallet = useWalletStore();
 const app = useAppStore();

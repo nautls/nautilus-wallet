@@ -27,8 +27,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { mountExtendedPublicKey } from "@/common/serializer";
 import { useWalletStore } from "@/stores/walletStore";
+import { mountExtendedPublicKey } from "@/common/serializer";
 import { useQrCode } from "@/composables";
 
 export default defineComponent({

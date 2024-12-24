@@ -91,24 +91,24 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { differenceBy, remove } from "lodash-es";
-import { helpers, required } from "@vuelidate/validators";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
+import { differenceBy, remove } from "lodash-es";
 import { CheckCheckIcon, ChevronDownIcon } from "lucide-vue-next";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { FeeSettings } from "@/types/internal";
-import { bn, decimalize, undecimalize } from "@/common/bigNumber";
-import { validErgoAddress } from "@/validators";
-import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
-import AssetInput from "@/components/AssetInput.vue";
-import FeeSelector from "@/components/FeeSelector.vue";
-import { openTransactionSigningModal } from "@/common/componentUtils";
 import { useAppStore } from "@/stores/appStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
-import { useFormat } from "@/composables/useFormat";
+import AssetInput from "@/components/AssetInput.vue";
 import DropDown from "@/components/DropDown.vue";
+import FeeSelector from "@/components/FeeSelector.vue";
+import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
+import { bn, decimalize, undecimalize } from "@/common/bigNumber";
+import { openTransactionSigningModal } from "@/common/componentUtils";
+import { useFormat } from "@/composables/useFormat";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { FeeSettings } from "@/types/internal";
+import { validErgoAddress } from "@/validators";
 
 const validations = {
   recipient: {

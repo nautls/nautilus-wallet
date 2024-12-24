@@ -1,5 +1,5 @@
-import { ErgoHDKey } from "@fleet-sdk/wallet";
 import { base58check, hex } from "@fleet-sdk/crypto";
+import { ErgoHDKey } from "@fleet-sdk/wallet";
 import { NETWORK } from "@/constants/ergo";
 
 export type IndexedAddress = { index: number; script: string };

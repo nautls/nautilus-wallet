@@ -1,7 +1,7 @@
-import { walletsDbService } from "./walletsDbService";
-import { IDbAddress, IDbWallet } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
+import { IDbAddress, IDbWallet } from "@/types/database";
 import { AddressState } from "@/types/internal";
+import { walletsDbService } from "./walletsDbService";
 
 class AddressesDbService {
   async getByScript(script: string): Promise<IDbAddress | undefined> {

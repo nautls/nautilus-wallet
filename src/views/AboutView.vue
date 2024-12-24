@@ -65,11 +65,11 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import pkg from "../../package.json";
-import { MAINNET } from "@/constants/ergo";
-import { WalletType } from "@/types/internal";
 import { useWalletStore } from "@/stores/walletStore";
 import { useFormat } from "@/composables/useFormat";
+import { MAINNET } from "@/constants/ergo";
+import { WalletType } from "@/types/internal";
+import pkg from "../../package.json";
 
 export default defineComponent({
   name: "AboutView",

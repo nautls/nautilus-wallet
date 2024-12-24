@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { TrashIcon } from "lucide-vue-next";
+import { useAppStore } from "@/stores/appStore";
 import DappPlate from "@/components/DappPlate.vue";
 import WalletItem from "@/components/WalletItem.vue";
-import { IDbDAppConnection } from "@/types/database";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { useAppStore } from "@/stores/appStore";
+import { IDbDAppConnection } from "@/types/database";
 
 const connections = ref<IDbDAppConnection[]>([]);
 const app = useAppStore();

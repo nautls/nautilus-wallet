@@ -2,16 +2,16 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { SignedTransaction, some } from "@fleet-sdk/common";
 import { useEventListener } from "@vueuse/core";
+import { useAssetsStore } from "@/stores/assetsStore";
+import { useWalletStore } from "@/stores/walletStore";
+import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import TxSignView from "@/components/TxSignView.vue";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
-import { SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
-import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import DappPlateHeader from "@/components/DappPlateHeader.vue";
-import { useAssetsStore } from "@/stores/assetsStore";
-import { useWalletStore } from "@/stores/walletStore";
+import { SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
 
 type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
 

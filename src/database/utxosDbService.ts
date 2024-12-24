@@ -1,8 +1,8 @@
 import { SignedTransaction } from "@ergo-graphql/types";
-import { addressesDbService } from "./addressesDbService";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
-import { IDbUtxo } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
+import { IDbUtxo } from "@/types/database";
+import { addressesDbService } from "./addressesDbService";
 
 class UTxOsDbService {
   async getAllPending(): Promise<IDbUtxo[]> {

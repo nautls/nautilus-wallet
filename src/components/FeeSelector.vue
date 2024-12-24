@@ -1,22 +1,22 @@
 <script setup lang="ts">
+import { computed, onMounted, PropType, reactive, watch } from "vue";
+import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
+import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
-import { computed, onMounted, PropType, reactive, watch } from "vue";
-import { areEqualBy, isEmpty } from "@fleet-sdk/common";
-import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { ChevronDownIcon } from "lucide-vue-next";
-import DropDown from "./DropDown.vue";
-import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
-import { bn, decimalize } from "@/common/bigNumber";
-import { bigNumberMinValue } from "@/validators";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
+import { bn, decimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
+import { bigNumberMinValue } from "@/validators";
+import DropDown from "./DropDown.vue";
 
 type FeeAsset = {
   tokenId: string;

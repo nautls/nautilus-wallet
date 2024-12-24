@@ -1,14 +1,14 @@
-import { sendMessage, setNamespace } from "webext-bridge/window";
-import { SelectionTarget } from "@nautilus-js/eip12-types";
 import type { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+import { SelectionTarget } from "@nautilus-js/eip12-types";
 import type { JsonValue } from "type-fest";
+import { sendMessage, setNamespace } from "webext-bridge/window";
+import { APIErrorCode } from "@/types/connector";
 import {
   buildNamespaceFor,
   ExternalEvent,
   ExternalRequest,
   Result
 } from "../connector/rpc/protocol";
-import { APIErrorCode } from "@/types/connector";
 
 const CONTENT_SCRIPT = "content-script";
 const _ = undefined;

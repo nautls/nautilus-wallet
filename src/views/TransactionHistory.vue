@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
-import type { BigNumber } from "bignumber.js";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
+import type { BigNumber } from "bignumber.js";
 import { ClockIcon, DownloadIcon, UploadIcon } from "lucide-vue-next";
-import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
-import { useWalletStore } from "@/stores/walletStore";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { bn, decimalize } from "@/common/bigNumber";
-import { useFormat } from "@/composables";
-import { useAssetsStore } from "@/stores/assetsStore";
-import { AddressState } from "@/types/internal";
-import { useChainStore } from "@/stores/chainStore";
 import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
+import { useChainStore } from "@/stores/chainStore";
+import { usePoolStore } from "@/stores/poolStore";
+import { useWalletStore } from "@/stores/walletStore";
+import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
+import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/txBuilder";
+import { bn, decimalize } from "@/common/bigNumber";
+import { openTransactionSigningModal } from "@/common/componentUtils";
+import { useFormat } from "@/composables";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { AddressState } from "@/types/internal";
 import type {
   ConfirmedTransactionSummary,
   UnconfirmedTransactionSummary
 } from "@/types/transactions";
-import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
-import { usePoolStore } from "@/stores/poolStore";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { openTransactionSigningModal } from "@/common/componentUtils";
-import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/txBuilder";
 
 const formatter = useFormat();
 

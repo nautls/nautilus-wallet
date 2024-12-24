@@ -68,14 +68,14 @@ import { defineComponent, PropType } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { CircleXIcon } from "lucide-vue-next";
-import ImageSandbox from "./ImageSandbox.vue";
-import { IAssetInfo } from "@/types/database";
-import { assetInfoDbService } from "@/database/assetInfoDbService";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { bn, decimalize } from "@/common/bigNumber";
-import { AssetSubtype } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
+import { bn, decimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { assetInfoDbService } from "@/database/assetInfoDbService";
+import { IAssetInfo } from "@/types/database";
+import { AssetSubtype } from "@/types/internal";
+import ImageSandbox from "./ImageSandbox.vue";
 
 export default defineComponent({
   name: "AssetInfoModal",

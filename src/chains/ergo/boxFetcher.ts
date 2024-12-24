@@ -1,10 +1,10 @@
-import { difference, sortBy, unionBy } from "lodash-es";
 import { BoxSource, ChainProviderBox } from "@fleet-sdk/blockchain-providers";
+import { difference, sortBy, unionBy } from "lodash-es";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { utxosDbService } from "@/database/utxosDbService";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export async function fetchBoxes(
   walletId: number,

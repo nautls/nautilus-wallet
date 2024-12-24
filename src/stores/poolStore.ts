@@ -1,15 +1,15 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onUnmounted, shallowRef, watch } from "vue";
-import { useIntervalFn } from "@vueuse/core";
-import { ErgoAddress } from "@fleet-sdk/core";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { utxoSum } from "@fleet-sdk/common";
-import { useWalletStore } from "./walletStore";
-import { useAssetsStore } from "./assetsStore";
-import { UnconfirmedTransactionSummary } from "@/types/transactions";
-import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
+import { ErgoAddress } from "@fleet-sdk/core";
+import { useIntervalFn } from "@vueuse/core";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 import { bn, decimalize } from "@/common/bigNumber";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { UnconfirmedTransactionSummary } from "@/types/transactions";
+import { useAssetsStore } from "./assetsStore";
+import { useWalletStore } from "./walletStore";
 
 const REFRESH_INTERVAL = 10000; // ten seconds
 

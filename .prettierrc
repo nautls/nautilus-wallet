@@ -9,7 +9,7 @@
   "trailingComma": "none",
   "arrowParens": "always",
   "plugins": ["prettier-plugin-tailwindcss", "@ianvs/prettier-plugin-sort-imports"],
-  "importOrder": ["^vue$", "<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^@/stores/(.*)$", "^@/components/(.*)$", "^@/(.*)$", "^[./]", "", "^(?!.*[.]css$)[./].*$", ".css$"],
+  "importOrder": ["^vue$", "^pinia$", "<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^@/stores/(.*)$", "^@/components/(.*)$", "^@/(.*)$", "^[./]", "", "^(?!.*[.]css$)[./].*$", ".css$"],
   "importOrderParserPlugins": ["typescript"],
   "importOrderCaseSensitive": false
 }

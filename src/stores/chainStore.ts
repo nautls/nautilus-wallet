@@ -1,8 +1,8 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, onUnmounted } from "vue";
-import { HEIGHT_CHECK_INTERVAL } from "../constants/intervals";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
+import { HEIGHT_CHECK_INTERVAL } from "../constants/intervals";
 
 const usePrivateState = defineStore("_chain", () => {
   const state = useWebExtStorage("ergoChainState", { height: 0 });

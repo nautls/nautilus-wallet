@@ -1,17 +1,17 @@
 import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
+import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
 import { CherryPickSelectionStrategy, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
 import { BigNumber } from "bignumber.js";
-import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
-import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
-import { fetchBoxes } from "../boxFetcher";
+import { useAppStore } from "@/stores/appStore";
+import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { FeeSettings, WalletType } from "@/types/internal";
 import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
-import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
-import { useAppStore } from "@/stores/appStore";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { FeeSettings, WalletType } from "@/types/internal";
 import { UnconfirmedTransactionSummary } from "@/types/transactions";
+import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
+import { fetchBoxes } from "../boxFetcher";
 
 const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 

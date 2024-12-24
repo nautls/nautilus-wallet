@@ -1,15 +1,15 @@
-import { Amount, TokenAmount, utxoDiff } from "@fleet-sdk/common";
 import {
   ChainProviderConfirmedTransaction,
   ChainProviderUnconfirmedTransaction
 } from "@fleet-sdk/blockchain-providers";
+import { Amount, TokenAmount, utxoDiff } from "@fleet-sdk/common";
 import { FEE_CONTRACT } from "@fleet-sdk/core";
 import { BigNumber } from "bignumber.js";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
-import { Token } from "@/types/connector";
-import { AssetsMetadataMap } from "@/types/internal";
 import { bn, decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS } from "@/constants/ergo";
+import { Token } from "@/types/connector";
+import { AssetsMetadataMap } from "@/types/internal";
 import { ConfirmedTransactionSummary, UnconfirmedTransactionSummary } from "@/types/transactions";
 
 export const tokensToOutputAssets = (

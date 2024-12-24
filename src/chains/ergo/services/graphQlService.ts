@@ -1,22 +1,22 @@
 import { Address, Info, State, Token } from "@ergo-graphql/types";
-import { hex, utf8 } from "@fleet-sdk/crypto";
-import { SConstant } from "@fleet-sdk/serializer";
-import { chunk, isEmpty, SignedTransaction, some } from "@fleet-sdk/common";
 import {
   createGqlOperation,
   ErgoGraphQLProvider,
   TransactionEvaluationResult,
   TransactionEvaluationSuccess
 } from "@fleet-sdk/blockchain-providers";
+import { chunk, isEmpty, SignedTransaction, some } from "@fleet-sdk/common";
+import { hex, utf8 } from "@fleet-sdk/crypto";
+import { SConstant } from "@fleet-sdk/serializer";
 import { storage } from "webextension-polyfill";
 import { safeSigmaDecode } from "@/chains/ergo/serialization";
-import { Registers } from "@/types/connector";
-import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
-import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
-import { IAssetInfo } from "@/types/database";
 import { bn } from "@/common/bigNumber";
 import { log } from "@/common/logger";
+import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { utxosDbService } from "@/database/utxosDbService";
+import { Registers } from "@/types/connector";
+import { IAssetInfo } from "@/types/database";
+import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 
 export type AssetInfo = {
   tokenId: string;
@@ -69,7 +69,7 @@ export async function validateServerVersion(url: string): Promise<boolean> {
       Number.parseInt(major, 10) === MIN_SERVER_VERSION[0] &&
       Number.parseInt(minor, 10) >= MIN_SERVER_VERSION[1]
     );
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -79,7 +79,7 @@ export async function validateServerNetwork(url: string): Promise<boolean> {
     const response = await getServerInfo(url);
 
     return MAINNET ? response.network === "mainnet" : response.network === "testnet";
-  } catch (e) {
+  } catch {
     return false;
   }
 }

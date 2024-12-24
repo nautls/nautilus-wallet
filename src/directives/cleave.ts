@@ -1,5 +1,5 @@
-import Cleave from "cleave.js";
 import { DirectiveBinding } from "vue";
+import Cleave from "cleave.js";
 
 interface CleaveHTMLElement extends HTMLElement {
   cleave?: Cleave;

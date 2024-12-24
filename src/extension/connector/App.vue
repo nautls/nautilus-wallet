@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAppStore } from "@/stores/appStore";
-import WalletLogo from "@/components/WalletLogo.vue";
-import WalletItem from "@/components/WalletItem.vue";
 import { useWalletStore } from "@/stores/walletStore";
+import WalletItem from "@/components/WalletItem.vue";
+import WalletLogo from "@/components/WalletLogo.vue";
 
 const app = useAppStore();
 const wallet = useWalletStore();

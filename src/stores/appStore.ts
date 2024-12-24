@@ -1,21 +1,21 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive, watch } from "vue";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
-import { useChainStore } from "./chainStore";
-import { useWebExtStorage } from "@/composables/useWebExtStorage";
+import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { hdKeyPool } from "@/common/objectPool";
+import { useWebExtStorage } from "@/composables/useWebExtStorage";
+import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
+import { DEFAULT_SETTINGS } from "@/constants/settings";
+import { utxosDbService } from "@/database/utxosDbService";
+import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
-import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
-import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
-import { utxosDbService } from "@/database/utxosDbService";
-import HdKey from "@/chains/ergo/hdKey";
 import { Network, WalletType } from "@/types/internal";
-import { hdKeyPool } from "@/common/objectPool";
-import { DEFAULT_SETTINGS } from "@/constants/settings";
+import { useChainStore } from "./chainStore";
 
 export type Settings = {
   lastOpenedWalletId: number;

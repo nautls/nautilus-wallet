@@ -1,5 +1,4 @@
-import { BigNumber } from "bignumber.js";
-import { groupBy } from "lodash-es";
+import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
 import {
   EIP12UnsignedInput,
   EIP12UnsignedTransaction,
@@ -8,17 +7,18 @@ import {
   utxoDiff,
   utxoSum
 } from "@fleet-sdk/common";
-import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
-import { addressFromErgoTree } from "../../addresses";
-import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
-import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
-import { ErgoBoxCandidate, Token } from "@/types/connector";
-import { AssetsMetadataMap } from "@/types/internal";
-import { bn, decimalize, sumBy } from "@/common/bigNumber";
+import { BigNumber } from "bignumber.js";
+import { groupBy } from "lodash-es";
 import {
   tokenAmountToToken,
   tokensToOutputAssets
 } from "@/chains/ergo/transaction/interpreter/utils";
+import { bn, decimalize, sumBy } from "@/common/bigNumber";
+import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
+import { ErgoBoxCandidate, Token } from "@/types/connector";
+import { AssetsMetadataMap } from "@/types/internal";
+import { addressFromErgoTree } from "../../addresses";
+import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 
 function isMinerFeeContract(ergoTree: string) {
   return ergoTree === MAINNET_MINER_FEE_TREE;

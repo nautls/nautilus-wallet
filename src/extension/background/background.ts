@@ -1,7 +1,14 @@
-import { onMessage, sendMessage } from "webext-bridge/background";
-import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { isEmpty } from "@fleet-sdk/common";
 import { JsonValue } from "type-fest";
+import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
+import { onMessage, sendMessage } from "webext-bridge/background";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { browser } from "@/common/browser";
+import { createWindow } from "@/common/uiHelpers";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { addressesDbService } from "@/database/addressesDbService";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import {
   AsyncRequest,
   AsyncRequestQueue,
@@ -21,13 +28,6 @@ import {
   getCurrentHeight,
   getUTxOs
 } from "./ergoHandlers";
-import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
-import { createWindow } from "@/common/uiHelpers";
-import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { browser } from "@/common/browser";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { addressesDbService } from "@/database/addressesDbService";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (
   // @ts-expect-error webext-bridge uses an older version of type-fest, so JsonValue is not recognized

@@ -1,5 +1,5 @@
-import { QrCodeGenerateData, QrCodeGenerateOptions, renderSVG } from "uqr";
 import { FunctionalComponent, h } from "vue";
+import { QrCodeGenerateData, QrCodeGenerateOptions, renderSVG } from "uqr";
 
 type QrCodeProps = {
   data: QrCodeGenerateData;

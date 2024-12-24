@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 import { useWalletStore } from "@/stores/walletStore";
+import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 
 const wallet = useWalletStore();
 </script>

@@ -1,6 +1,6 @@
-import { DEFAULT_EXPLORER_URL } from "./explorer";
-import { MAINNET } from "./ergo";
 import { DEFAULT_SERVER_URL } from "@/chains/ergo/services/graphQlService";
+import { MAINNET } from "./ergo";
+import { DEFAULT_EXPLORER_URL } from "./explorer";
 
 export const DEFAULT_SETTINGS = {
   lastOpenedWalletId: 0,

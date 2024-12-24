@@ -122,29 +122,31 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
-import VueJsonPretty from "vue-json-pretty";
-import { AddressType } from "@fleet-sdk/core";
-import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import {
   EIP12UnsignedTransaction,
   isDefined,
   SignedInput,
   SignedTransaction
 } from "@fleet-sdk/common";
+import { AddressType } from "@fleet-sdk/core";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, requiredUnless } from "@vuelidate/validators";
+import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import { TriangleAlertIcon } from "lucide-vue-next";
-import TxBoxDetails from "./TxBoxDetails.vue";
-import LedgerDevice from "./LedgerDevice.vue";
-import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
-import { ProverStateType, SigningState, WalletType } from "@/types/internal";
-import { PasswordError } from "@/common/errors";
+import VueJsonPretty from "vue-json-pretty";
 import SignStateModal from "@/components/SignStateModal.vue";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { OutputInterpreter } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import TxSignSummary from "@/components/TxSignSummary.vue";
 import { signTransaction } from "@/chains/ergo/signing";
+import { OutputInterpreter } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
+import { TxInterpreter } from "@/chains/ergo/transaction/interpreter/txInterpreter";
+import { PasswordError } from "@/common/errors";
+import { LedgerDeviceModelId } from "@/constants/ledger";
+import { ProverStateType, SigningState, WalletType } from "@/types/internal";
+import LedgerDevice from "./LedgerDevice.vue";
+import TxBoxDetails from "./TxBoxDetails.vue";
+
 import "vue-json-pretty/lib/styles.css";
+
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";

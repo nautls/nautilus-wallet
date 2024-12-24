@@ -87,16 +87,16 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { english } from "@fleet-sdk/wallet/wordlists";
-import { intersection, orderBy } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
+import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
-import { WalletType } from "@/types/internal";
-import { validMnemonic } from "@/validators";
+import { intersection, orderBy } from "lodash-es";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { log } from "@/common/logger";
+import { WalletType } from "@/types/internal";
+import { validMnemonic } from "@/validators";
 
 export default defineComponent({
   name: "RestoreView",

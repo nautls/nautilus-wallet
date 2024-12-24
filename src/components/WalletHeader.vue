@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { InfoIcon, ListIcon, Maximize2Icon, PlusCircleIcon, SettingsIcon } from "lucide-vue-next";
-import WalletLogo from "./WalletLogo.vue";
-import DropDown from "./DropDown.vue";
+import { InfoIcon, ListIcon, PlusCircleIcon, SettingsIcon } from "lucide-vue-next";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
 import WalletItem from "@/components/WalletItem.vue";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
-import { useWalletStore } from "@/stores/walletStore";
-import { useAppStore } from "@/stores/appStore";
+import DropDown from "./DropDown.vue";
+import WalletLogo from "./WalletLogo.vue";
 
 const wallet = useWalletStore();
 const app = useAppStore();

@@ -1,12 +1,12 @@
-import { BigNumber } from "bignumber.js";
-import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
-import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
-import { utf8 } from "@fleet-sdk/crypto";
 import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
+import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
+import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
+import { utf8 } from "@fleet-sdk/crypto";
 import { decode } from "@fleet-sdk/serializer";
+import { BigNumber } from "bignumber.js";
+import { bn, decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
-import { bn, decimalize } from "@/common/bigNumber";
 import { AssetsMetadataMap } from "@/types/internal";
 
 export type OutputAsset = {

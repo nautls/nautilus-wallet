@@ -3,18 +3,18 @@ import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import WalletItem from "@/components/WalletItem.vue";
-import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
-import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
-import { InternalRequest } from "@/extension/connector/rpc/protocol";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { IDbWallet } from "@/types/database";
 import { walletsDbService } from "@/database/walletsDbService";
+import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
+import { InternalRequest } from "@/extension/connector/rpc/protocol";
+import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
+import { IDbWallet } from "@/types/database";
 
 const selected = ref(0);
 const request = ref<AsyncRequest>();
 const wallets = ref<IDbWallet[]>([]);
 
-const removeEventListener = useEventListener(window, "beforeunload", refuse);
+const detachBeforeUnloadEvent = useEventListener(window, "beforeunload", refuse);
 
 onMounted(async () => {
   wallets.value = await walletsDbService.getAll();
@@ -28,13 +28,13 @@ async function connect() {
   await saveConnection(selected.value, request.value);
   request.value.resolve(true);
 
-  removeEventListener();
+  detachBeforeUnloadEvent();
   window.close();
 }
 
 function cancel() {
   refuse();
-  removeEventListener();
+  detachBeforeUnloadEvent();
   window.close();
 }
 
