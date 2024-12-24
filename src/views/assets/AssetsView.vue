@@ -83,7 +83,7 @@ function formatAssetName(asset: StateAssetSummary): string {
 </script>
 
 <template>
-  <div class="relative mb-4 bg-foreground/5 -mx-4 -mt-4">
+  <div class="relative mb-4 bg-foreground/5">
     <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center">
       <h2 class="text-2xl">
         <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
@@ -100,7 +100,7 @@ function formatAssetName(asset: StateAssetSummary): string {
       :show-tooltip="false"
     />
   </div>
-  <div>
+  <div class="p-4">
     <storage-rent-box />
 
     <Tabs default-value="tokens" class="w-full">
@@ -176,7 +176,7 @@ function formatAssetName(asset: StateAssetSummary): string {
                 <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                   <Tooltip>
                     <TooltipTrigger class="text-xs text-muted-foreground">
-                      ≈ {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
+                      {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
                     </TooltipTrigger>
                     <TooltipContent class="bg-foreground">
                       <div>
@@ -196,11 +196,11 @@ function formatAssetName(asset: StateAssetSummary): string {
       </TabsContent>
 
       <TabsContent value="collectibles">
-        <div class="grid grid-cols-2 justify-stretch gap-4 p-4 sm:grid-cols-4 md:grid-cols-2">
+        <div class="grid grid-cols-2 justify-stretch gap-4 px-2 py-4 sm:grid-cols-4 md:grid-cols-2">
           <div
             v-for="nft in collectibles"
             :key="nft.tokenId"
-            class="relative cursor-pointer rounded-md border bg-card text-card-foreground shadow"
+            class="relative rounded-md border bg-card text-card-foreground shadow"
           >
             <image-sandbox
               :src="nft.metadata?.artworkUrl"
@@ -211,7 +211,10 @@ function formatAssetName(asset: StateAssetSummary): string {
             />
 
             <!-- clickable overlay -->
-            <div class="absolute left-0 top-0 h-40 w-full bg-transparent"></div>
+            <Button
+              class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
+              variant="ghost"
+            ></Button>
 
             <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md px-2.5">
               {{ nft.metadata?.name ?? nft.tokenId }}

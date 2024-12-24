@@ -4,6 +4,7 @@ import { useColorMode } from "@vueuse/core";
 import { useAppStore } from "@/stores/appStore";
 import KyaModal from "@/components/KYAModal.vue";
 import NavHeader from "@/components/NavHeader.vue";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import WalletHeader from "@/components/WalletHeader.vue";
 import WalletLogo from "@/components/WalletLogo.vue";
 import { isPopup } from "@/common/browser";
@@ -35,9 +36,9 @@ mode.value = "light";
       <nav-header />
     </template>
 
-    <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
+    <ScrollArea class="w-full flex-grow" type="scroll">
       <router-view />
-    </div>
+    </ScrollArea>
 
     <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   </div>
