@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, HtmlHTMLAttributes } from "vue";
-import { isEmpty } from "@fleet-sdk/common";
 import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
+import { cn } from "@/lib/utils";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
+
+const DEFAULT_FILLING_COLOR_BRIGHTNESS = 0.7;
 
 const props = defineProps<{
   tokenId: string;
@@ -21,51 +23,34 @@ const logo = computed(() => {
   return undefined;
 });
 
-function calculateColor(tokenId: string) {
-  if (isEmpty(tokenId)) return;
+function calculateFillingColor(tokenId: string) {
+  if (!tokenId) return;
 
-  const brightness = 0.7;
-  let r = parseInt(tokenId.substring(0, 2), 16);
-  let g = parseInt(tokenId.substring(2, 4), 16);
-  let b = parseInt(tokenId.substring(4, 6), 16);
-  r = r + (256 - r) * brightness;
-  g = g + (256 - g) * brightness;
-  b = b + (256 - b) * brightness;
+  let r = Number.parseInt(tokenId.substring(0, 2), 16);
+  let g = Number.parseInt(tokenId.substring(2, 4), 16);
+  let b = Number.parseInt(tokenId.substring(4, 6), 16);
+  r = r + (256 - r) * DEFAULT_FILLING_COLOR_BRIGHTNESS;
+  g = g + (256 - g) * DEFAULT_FILLING_COLOR_BRIGHTNESS;
+  b = b + (256 - b) * DEFAULT_FILLING_COLOR_BRIGHTNESS;
 
-  return `rgb(${r},${g},${b})`;
+  return `fill: rgb(${r},${g},${b})`;
 }
 
-function is(type: AssetSubtype): boolean {
-  return props.type === type;
-}
+const genericIcon = computed(() => {
+  if (props.type === AssetSubtype.PictureArtwork) return PictureNftIcon;
+  if (props.type === AssetSubtype.AudioArtwork) return AudioNftIcon;
+  if (props.type === AssetSubtype.VideoArtwork) return VideoNftIcon;
+  return EmptyIcon;
+});
 </script>
 
 <template>
   <img v-if="logo" :src="logo" :class="props.class" />
   <template v-else>
-    <picture-nft-icon
-      v-if="is(AssetSubtype.PictureArtwork)"
-      :class="props.class"
-      class="fill-muted"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-    <audio-nft-icon
-      v-else-if="is(AssetSubtype.AudioArtwork)"
-      :class="props.class"
-      class="fill-muted"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-    <video-nft-icon
-      v-else-if="is(AssetSubtype.VideoArtwork)"
-      :class="props.class"
-      class="fill-muted"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-    <empty-icon
-      v-else
-      :class="props.class"
-      class="fill-muted"
-      :style="`fill: ${calculateColor(tokenId)}`"
+    <component
+      :is="genericIcon"
+      :class="cn(props.class, 'fill-muted')"
+      :style="calculateFillingColor(tokenId)"
     />
   </template>
 </template>
