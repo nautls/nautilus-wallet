@@ -144,13 +144,13 @@ import {
   FilterXIcon,
   ShieldCheckIcon
 } from "lucide-vue-next";
-import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
-import { openModal } from "@/common/componentUtils";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { AddressState, StateAddress, WalletType } from "@/types/internal";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { openModal } from "@/common/componentUtils";
 import { useFormat, useQrCode } from "@/composables";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { AddressState, StateAddress, WalletType } from "@/types/internal";
+import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
 
 export default defineComponent({
   name: "ReceiveView",

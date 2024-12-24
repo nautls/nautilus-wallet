@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ChartPieIcon, ClockIcon, DownloadIcon, LayoutGridIcon, SendIcon } from "lucide-vue-next";
-import { WalletType } from "@/types/internal";
 import { useWalletStore } from "@/stores/walletStore";
+import { WalletType } from "@/types/internal";
 
 const wallet = useWalletStore();
 const iconSize = 22;

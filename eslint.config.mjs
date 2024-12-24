@@ -1,9 +1,9 @@
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { fixupConfigRules } from "@eslint/compat";
-import parser from "vue-eslint-parser";
-import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
+import js from "@eslint/js";
+import parser from "vue-eslint-parser";
 
 const compat = new FlatCompat({
   baseDirectory: path.dirname(fileURLToPath(import.meta.url)),
@@ -55,16 +55,8 @@ export default [
       "vue/component-api-style": ["warn", ["script-setup", "composition"]],
       "no-console": "error",
       "@typescript-eslint/explicit-module-boundary-types": "off",
-
-      "sort-imports": [
-        "warn",
-        {
-          ignoreDeclarationSort: true,
-          ignoreCase: true
-        }
-      ],
-
-      "import/order": "warn",
+      "sort-imports": "off",
+      "import/order": "off",
       "import/default": "off",
       "import/no-named-as-default-member": "off",
       "import/no-unresolved": "off"

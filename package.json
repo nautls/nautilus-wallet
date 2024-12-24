@@ -65,6 +65,7 @@
   "devDependencies": {
     "@ergo-graphql/types": "^0.5.1",
     "@eslint/compat": "^1.2.4",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
     "@nautilus-js/eip12-types": "^0.1.11",
     "@tsconfig/node20": "^20.1.4",
     "@types/chrome": "^0.0.287",

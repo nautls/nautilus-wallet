@@ -71,19 +71,19 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType } from "vue";
+import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import { isEmpty } from "@fleet-sdk/common";
-import { defineComponent, PropType } from "vue";
 import { TrashIcon } from "lucide-vue-next";
-import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { StateAssetSummary } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
-import { StateAssetSummary } from "@/stores/walletStore";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 
 export default defineComponent({
   name: "AssetInput",

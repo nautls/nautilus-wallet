@@ -2,11 +2,11 @@
 import { computed } from "vue";
 import { useColorMode } from "@vueuse/core";
 import { useAppStore } from "@/stores/appStore";
-import { isPopup } from "@/common/browser";
 import KyaModal from "@/components/KYAModal.vue";
-import WalletLogo from "@/components/WalletLogo.vue";
-import WalletHeader from "@/components/WalletHeader.vue";
 import NavHeader from "@/components/NavHeader.vue";
+import WalletHeader from "@/components/WalletHeader.vue";
+import WalletLogo from "@/components/WalletLogo.vue";
+import { isPopup } from "@/common/browser";
 
 const app = useAppStore();
 const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));

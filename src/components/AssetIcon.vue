@@ -2,8 +2,8 @@
 import { computed, HtmlHTMLAttributes } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
-import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
+import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
