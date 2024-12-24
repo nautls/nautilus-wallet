@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, HtmlHTMLAttributes, ref, watch } from "vue";
 import { CircleAlertIcon } from "lucide-vue-next";
+import LoadingIndicator from "./LoadingIndicator.vue";
 import {
   CONTENT_SANDBOX_URL,
   IPFS_GENERAL_GATEWAY,

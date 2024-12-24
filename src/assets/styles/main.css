@@ -1,54 +1,13 @@
-@import "./fonts.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  @apply overflow-x-hidden bg-gray-200 font-sans text-base leading-normal tracking-wide text-dark-500 antialiased;
-}
-
 .app {
   @apply mx-auto flex h-[100vh] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden bg-light-50 md:w-4/12 md:shadow-lg;
-}
-
-a {
-  @apply hover:underline;
-}
-
-input {
-  @apply !outline-none;
 }
 
 .break-anywhere {
   overflow-wrap: anywhere;
 }
 
-::-webkit-scrollbar {
-  @apply w-[5px];
-}
-
-/* scrollbar track */
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-/* scrollbar handle */
-::-webkit-scrollbar-thumb {
-  @apply rounded-sm bg-gray-300;
-}
-
-/* scrollbar handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
-}
-
 .input-error {
   @apply px-1 text-xs font-normal text-red-600;
-}
-
-label {
-  @apply text-sm font-semibold;
 }
 
 .transform-flip {

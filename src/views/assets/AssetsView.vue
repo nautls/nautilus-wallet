@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import AssetIcon from "@/components/AssetIcon.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -30,6 +31,7 @@ const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0)
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
+
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
 );
@@ -137,7 +139,7 @@ function formatAssetName(asset: StateAssetSummary): string {
             variant="ghost"
             class="h-auto py-3 text-left"
           >
-            <asset-icon
+            <AssetIcon
               class="!h-auto !w-10"
               :token-id="asset.tokenId"
               :type="asset.metadata?.type"
@@ -156,6 +158,7 @@ function formatAssetName(asset: StateAssetSummary): string {
                 }}
               </div>
             </div>
+
             <div class="whitespace-nowrap text-right align-middle">
               <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
                 <Skeleton class="h-5 w-24 animate-none" />
@@ -187,6 +190,7 @@ function formatAssetName(asset: StateAssetSummary): string {
           </Button>
         </div>
       </TabsContent>
+
       <TabsContent value="collectibles">
         <div class="grid grid-cols-2 justify-stretch gap-4 p-4 sm:grid-cols-4 md:grid-cols-2">
           <div
@@ -219,6 +223,7 @@ function formatAssetName(asset: StateAssetSummary): string {
       </TabsContent>
     </Tabs>
   </div>
+
   <!-- <asset-info-modal
       :token-id="selectedAsset?.tokenId"
       :confirmed-balance="selectedAsset?.confirmedAmount"

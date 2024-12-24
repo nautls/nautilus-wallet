@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { App } from "vue";
 import { createPinia } from "pinia";
-import AssetIcon from "@/components/AssetIcon.vue";
 import ClickToCopy from "@/components/ClickToCopy.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
 import ToolTip from "@/components/ToolTip.vue";
@@ -37,6 +36,5 @@ export function setupApp(app: App): App {
     .directive("cleave", vueCleave)
     .component("click-to-copy", ClickToCopy)
     .component("tool-tip", ToolTip)
-    .component("loading-indicator", LoadingIndicator)
-    .component("asset-icon", AssetIcon);
+    .component("loading-indicator", LoadingIndicator);
 }
