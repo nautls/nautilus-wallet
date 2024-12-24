@@ -36,7 +36,7 @@ export type StateAssetSummary = {
   metadata?: BasicAssetMetadata;
 };
 
-const KNOWN_ASSETS = new Set(Object.keys(assetIconMap));
+const KNOWN_ASSETS = new Set(assetIconMap.keys());
 
 const usePrivateStateStore = defineStore("_wallet", () => {
   const addresses = shallowRef<IDbAddress[]>([]);

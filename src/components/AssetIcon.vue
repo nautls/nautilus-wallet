@@ -15,7 +15,7 @@ const props = defineProps<{
 }>();
 
 const logo = computed(() => {
-  const fileName = assetIconMap[props.tokenId];
+  const fileName = assetIconMap.get(props.tokenId);
   if (fileName) return `/icons/assets/${fileName}`;
 
   return undefined;
