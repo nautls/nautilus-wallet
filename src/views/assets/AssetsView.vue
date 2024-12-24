@@ -214,9 +214,9 @@ function formatAssetName(asset: StateAssetSummary): string {
             </p>
             <div
               v-if="!nft.confirmedAmount.eq(1) && !app.settings.hideBalances"
-              class="caption absolute right-1 top-1 h-6 min-w-6 rounded-full px-1 text-center"
+              class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
             >
-              {{ format.bn.format(nft.confirmedAmount) }}
+              <span class="m-auto">{{ format.bn.format(nft.confirmedAmount) }}</span>
             </div>
           </div>
         </div>
