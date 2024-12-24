@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import SparklineChart from "./SparklineChart.vue";
 
 const app = useAppStore();
@@ -31,7 +32,7 @@ const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0)
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
-
+const currencySymbol = computed(() => currencySymbolMap.get(app.settings.conversionCurrency));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
 );
@@ -63,12 +64,15 @@ function isErg(tokenId: string): boolean {
   return tokenId === ERG_TOKEN_ID;
 }
 
-function formatCurrencyPrice(amount: BigNumber, decimals = 2): string {
-  return `≈ ${format.bn.format(amount, decimals)} ${format.string.uppercase(app.settings.conversionCurrency)}`;
+function formatCurrencyPrice(value: BigNumber, decimals = 2): string {
+  const formattedValue = format.bn.format(value, decimals);
+  return currencySymbol.value
+    ? `${currencySymbol.value} ${formattedValue}`
+    : `${formattedValue} ${format.string.uppercase(app.settings.conversionCurrency)}`;
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
-  return `≈ ${format.bn.format(BigNumber(amount ?? 0), decimals)} ERG`;
+  return `Σ ${format.bn.format(BigNumber(amount ?? 0), decimals)}`;
 }
 
 function formatAssetName(asset: StateAssetSummary): string {
@@ -81,10 +85,10 @@ function formatAssetName(asset: StateAssetSummary): string {
 <template>
   <div class="relative mb-4 bg-foreground/5 -mx-4 -mt-4">
     <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center">
-      <p class="text-2xl">
-        <span v-if="!app.settings.hideBalances">$ {{ format.bn.format(totalWallet, 2) }}</span>
+      <h2 class="text-2xl">
+        <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
         <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
-      </p>
+      </h2>
       <p class="text-sm text-muted-foreground">Wallet balance</p>
     </div>
 
@@ -172,7 +176,7 @@ function formatAssetName(asset: StateAssetSummary): string {
                 <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                   <Tooltip>
                     <TooltipTrigger class="text-xs text-muted-foreground">
-                      {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
+                      ≈ {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
                     </TooltipTrigger>
                     <TooltipContent class="bg-foreground">
                       <div>
