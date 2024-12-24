@@ -35,7 +35,7 @@ mode.value = "light";
       <nav-header />
     </template>
 
-    <div class="flex-grow overflow-y-auto overflow-x-hidden">
+    <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
       <router-view />
     </div>
 

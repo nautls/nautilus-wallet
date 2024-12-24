@@ -79,7 +79,7 @@ function formatAssetName(asset: StateAssetSummary): string {
 </script>
 
 <template>
-  <div class="relative mb-4 bg-foreground/5">
+  <div class="relative mb-4 bg-foreground/5 -mx-4 -mt-4">
     <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center">
       <p class="text-2xl">
         <span v-if="!app.settings.hideBalances">$ {{ format.bn.format(totalWallet, 2) }}</span>
@@ -96,7 +96,7 @@ function formatAssetName(asset: StateAssetSummary): string {
       :show-tooltip="false"
     />
   </div>
-  <div class="px-4">
+  <div>
     <storage-rent-box />
 
     <Tabs default-value="tokens" class="w-full">
@@ -132,7 +132,7 @@ function formatAssetName(asset: StateAssetSummary): string {
       </div>
 
       <TabsContent value="tokens">
-        <div class="flex flex-col gap-0 pb-4 pt-2">
+        <div class="flex flex-col gap-0 pt-2">
           <Button
             v-for="asset in tokens"
             :key="asset.tokenId"
