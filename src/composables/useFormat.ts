@@ -23,7 +23,7 @@ const FORMATTERS = {
     shorten(
       val: string | undefined,
       maxLength: number,
-      ellipsisPosition: "middle" | "end" = "middle"
+      ellipsisPosition: "middle" | "end" | "none" = "middle"
     ): string {
       if (!val || maxLength >= val.length) return val ?? "";
 
@@ -34,9 +34,11 @@ const FORMATTERS = {
         return `${val.slice(0, fragmentSize).trimEnd()}${ellipsis}${val
           .slice(val.length - fragmentSize)
           .trimStart()}`;
-      } else {
+      } else if (ellipsisPosition === "end") {
         return `${val.slice(0, maxLength - ellipsis.length + 1).trimEnd()}${ellipsis}`;
       }
+
+      return val.slice(0, maxLength);
     }
   },
   bn: {

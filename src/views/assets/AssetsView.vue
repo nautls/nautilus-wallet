@@ -16,6 +16,7 @@ import ImageSandbox from "@/components/ImageSandbox.vue";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -26,9 +27,7 @@ const filter = ref("");
 
 const chart = computed(() => assetsStore.priceChart.map((x) => ({ time: x[0], price: x[1] })));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
-const conversionCurrency = computed(() => app.settings.conversionCurrency);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
-// const loading = computed(() => wallet.loading && wallet.nonArtworkBalance.length === 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
 const normalizedFilter = computed(() =>
@@ -60,6 +59,20 @@ function rate(tokenId: string): number {
 
 function isErg(tokenId: string): boolean {
   return tokenId === ERG_TOKEN_ID;
+}
+
+function formatCurrencyPrice(amount: BigNumber, decimals = 2): string {
+  return `≈ ${format.bn.format(amount, decimals)} ${format.string.uppercase(app.settings.conversionCurrency)}`;
+}
+
+function formatCoinPrice(amount: number, decimals = 9): string {
+  return `≈ ${format.bn.format(BigNumber(amount ?? 0), decimals)} ERG`;
+}
+
+function formatAssetName(asset: StateAssetSummary): string {
+  return asset.metadata?.name
+    ? format.string.shorten(asset.metadata?.name, 20)
+    : format.string.shorten(asset.tokenId, 12);
 }
 </script>
 
@@ -116,22 +129,32 @@ function isErg(tokenId: string): boolean {
         </Popover>
       </div>
 
-      <TabsContent value="tokens" class="">
-        <div class="flex flex-col gap-6 p-4">
-          <div v-for="asset in tokens" :key="asset.tokenId" class="flex h-10 flex-row gap-2">
-            <asset-icon class="h-full" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-            <div class="flex flex-grow items-center text-sm">
-              <a v-if="isErg(asset.tokenId)" class="font-semibold">
-                {{ asset.metadata?.name }}
-                <p class="text-xs text-muted-foreground">Ergo</p>
-              </a>
-              <a v-else class="break-anywhere cursor-pointer">
-                <template v-if="asset.metadata?.name">{{
-                  format.string.shorten(asset.metadata?.name, 40)
-                }}</template>
-                <template v-else>{{ format.string.shorten(asset.tokenId, 12) }}</template>
-                <p class="text-xs text-muted-foreground">Ergo</p>
-              </a>
+      <TabsContent value="tokens">
+        <div class="flex flex-col gap-0 pb-4 pt-2">
+          <Button
+            v-for="asset in tokens"
+            :key="asset.tokenId"
+            variant="ghost"
+            class="h-auto py-3 text-left"
+          >
+            <asset-icon
+              class="!h-auto !w-10"
+              :token-id="asset.tokenId"
+              :type="asset.metadata?.type"
+            />
+
+            <div
+              class="flex flex-grow flex-col align-middle text-sm"
+              :class="{ 'font-semibold': isErg(asset.tokenId) }"
+            >
+              <div>
+                {{ formatAssetName(asset) }}
+              </div>
+              <div class="text-xs text-muted-foreground">
+                {{
+                  isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
+                }}
+              </div>
             </div>
             <div class="whitespace-nowrap text-right align-middle">
               <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
@@ -139,25 +162,29 @@ function isErg(tokenId: string): boolean {
                 <Skeleton class="h-3 w-3/4 animate-none" />
               </div>
               <template v-else>
-                <p>
+                <div>
                   {{ format.bn.format(asset.confirmedAmount) }}
-                </p>
-                <tool-tip
-                  v-if="!asset.confirmedAmount.isZero() && ergPrice && rate(asset.tokenId)"
-                  :label="`1 ${asset.metadata?.name} <br /> ≈ ${format.bn.format(
-                    price(asset.tokenId),
-                    2
-                  )} ${format.string.uppercase(conversionCurrency)}`"
-                >
-                  <p class="text-xs text-muted-foreground">
-                    ≈
-                    {{ format.bn.format(asset.confirmedAmount.times(price(asset.tokenId)), 2) }}
-                    {{ format.string.uppercase(conversionCurrency) }}
-                  </p>
-                </tool-tip>
+                </div>
+
+                <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
+                  <Tooltip>
+                    <TooltipTrigger class="text-xs text-muted-foreground">
+                      {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
+                    </TooltipTrigger>
+                    <TooltipContent class="bg-foreground">
+                      <div>
+                        <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
+                        <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
+                        <p v-if="!isErg(asset.tokenId)">
+                          {{ formatCoinPrice(rate(asset.tokenId)) }}
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </template>
             </div>
-          </div>
+          </Button>
         </div>
       </TabsContent>
       <TabsContent value="collectibles">
@@ -182,7 +209,7 @@ function isErg(tokenId: string): boolean {
               {{ nft.metadata?.name ?? nft.tokenId }}
             </p>
             <div
-              v-if="!nft.confirmedAmount.eq(1)"
+              v-if="!nft.confirmedAmount.eq(1) && !app.settings.hideBalances"
               class="caption absolute right-1 top-1 h-6 min-w-6 rounded-full px-1 text-center"
             >
               {{ format.bn.format(nft.confirmedAmount) }}

@@ -1,35 +1,5 @@
-<template>
-  <img v-if="hasLogo" :src="logo" :class="class" />
-  <template v-else>
-    <picture-nft-icon
-      v-if="isPictureNft"
-      :class="class"
-      class="fill-gray-300"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-    <audio-nft-icon
-      v-else-if="isAudioNft"
-      :class="class"
-      class="fill-gray-300"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-    <video-nft-icon
-      v-else-if="isVideoNft"
-      :class="class"
-      class="fill-gray-300"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-    <empty-icon
-      v-else
-      :class="class"
-      class="fill-gray-300"
-      :style="`fill: ${calculateColor(tokenId)}`"
-    />
-  </template>
-</template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { computed, HtmlHTMLAttributes } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
@@ -38,57 +8,64 @@ import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
 
-export default defineComponent({
-  name: "AssetIcon",
-  components: {
-    EmptyIcon,
-    PictureNftIcon,
-    AudioNftIcon,
-    VideoNftIcon
-  },
-  props: {
-    tokenId: { type: String, required: true },
-    class: { type: String, required: false },
-    type: { type: String, required: false }
-  },
-  computed: {
-    logo(): string | undefined {
-      const logoFile = assetIconMap[this.tokenId];
-      if (logoFile) {
-        return `/icons/assets/${logoFile}`;
-      }
+const props = defineProps<{
+  tokenId: string;
+  class?: HtmlHTMLAttributes["class"];
+  type?: string;
+}>();
 
-      return undefined;
-    },
-    hasLogo(): boolean {
-      return this.logo !== undefined;
-    },
-    isPictureNft(): boolean {
-      return this.type === AssetSubtype.PictureArtwork;
-    },
-    isAudioNft(): boolean {
-      return this.type === AssetSubtype.AudioArtwork;
-    },
-    isVideoNft(): boolean {
-      return this.type === AssetSubtype.VideoArtwork;
-    }
-  },
-  methods: {
-    calculateColor(tokenId: string) {
-      if (isEmpty(tokenId)) {
-        return;
-      }
+const logo = computed(() => {
+  const fileName = assetIconMap[props.tokenId];
+  if (fileName) return `/icons/assets/${fileName}`;
 
-      const brightness = 0.7;
-      let r = parseInt(tokenId.substring(0, 2), 16);
-      let g = parseInt(tokenId.substring(2, 4), 16);
-      let b = parseInt(tokenId.substring(4, 6), 16);
-      r = r + (256 - r) * brightness;
-      g = g + (256 - g) * brightness;
-      b = b + (256 - b) * brightness;
-
-      return `rgb(${r},${g},${b})`;
-    }
-  }
+  return undefined;
 });
+
+function calculateColor(tokenId: string) {
+  if (isEmpty(tokenId)) return;
+
+  const brightness = 0.7;
+  let r = parseInt(tokenId.substring(0, 2), 16);
+  let g = parseInt(tokenId.substring(2, 4), 16);
+  let b = parseInt(tokenId.substring(4, 6), 16);
+  r = r + (256 - r) * brightness;
+  g = g + (256 - g) * brightness;
+  b = b + (256 - b) * brightness;
+
+  return `rgb(${r},${g},${b})`;
+}
+
+function is(type: AssetSubtype): boolean {
+  return props.type === type;
+}
 </script>
+
+<template>
+  <img v-if="logo" :src="logo" :class="props.class" />
+  <template v-else>
+    <picture-nft-icon
+      v-if="is(AssetSubtype.PictureArtwork)"
+      :class="props.class"
+      class="fill-muted"
+      :style="`fill: ${calculateColor(tokenId)}`"
+    />
+    <audio-nft-icon
+      v-else-if="is(AssetSubtype.AudioArtwork)"
+      :class="props.class"
+      class="fill-muted"
+      :style="`fill: ${calculateColor(tokenId)}`"
+    />
+    <video-nft-icon
+      v-else-if="is(AssetSubtype.VideoArtwork)"
+      :class="props.class"
+      class="fill-muted"
+      :style="`fill: ${calculateColor(tokenId)}`"
+    />
+    <empty-icon
+      v-else
+      :class="props.class"
+      class="fill-muted"
+      :style="`fill: ${calculateColor(tokenId)}`"
+    />
+  </template>
+</template>
