@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { nextTick, onMounted, PropType, ref, shallowRef } from "vue";
+import { nextTick, onMounted, PropType, ref, useId } from "vue";
 import { renderIcon } from "@download/blockies";
-import { WalletChecksum, walletChecksum } from "@emurgo/cip4-js";
-import { hex } from "@fleet-sdk/crypto";
 import { VenetianMaskIcon } from "lucide-vue-next";
+import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
@@ -22,25 +21,31 @@ const props = defineProps({
   reverse: { type: Boolean, default: false }
 });
 
-const checksum = shallowRef<WalletChecksum>();
-const canvasId = ref(`wlt-${props.wallet.id}-${crypto.randomUUID()}-checksum`);
+const id = useId();
+
+const checksum = ref("");
+const canvasId = ref(`wlt-${props.wallet.id}-${id}-checksum`);
+
+function getFirstByte(hex: string): number {
+  return Number.parseInt(hex.substring(0, 2), 16);
+}
 
 onMounted(() => {
   const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
-  checksum.value = walletChecksum(xpk);
+  checksum.value = calcCip4ImageHash(xpk);
 
-  const colorIdx = hex.decode(checksum.value.ImagePart)[0] % COLORS.length;
-  const [color, bgcolor, spotcolor] = COLORS[colorIdx];
+  const i = getFirstByte(checksum.value) % COLORS.length;
+  const [primary, background, spot] = COLORS[i];
 
   nextTick(() => {
     renderIcon(
       {
-        seed: checksum.value?.ImagePart,
+        seed: checksum.value,
         size: 7,
         scale: 4,
-        color,
-        bgcolor,
-        spotcolor
+        color: primary,
+        bgcolor: background,
+        spotcolor: spot
       },
       document.getElementById(canvasId.value)
     );

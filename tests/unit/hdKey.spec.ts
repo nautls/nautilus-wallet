@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { walletChecksum } from "@emurgo/cip4-js";
-import HdKey from "../../src/chains/ergo/hdKey";
+import { calcCip4ImageHash } from "@/chains/ergo/checksum";
+import HdKey from "@/chains/ergo/hdKey";
 
 describe("address generation", () => {
   const xpk =
@@ -9,10 +9,8 @@ describe("address generation", () => {
     "fade payment weasel market mixed armed decade shed harbor bind deal mandate pink earth second";
 
   it("calculates valid CIP4 checksum", () => {
-    const plate = walletChecksum(xpk);
-
-    expect(plate.TextPart).toEqual("LHBB-1130");
-    expect(plate.ImagePart).toEqual(
+    const hash = calcCip4ImageHash(xpk);
+    expect(hash).toEqual(
       "5d33031ea3bbba9d3332559b1dafd8612683092f535273a4c15ffa103ffa3fc11f7b6992f5a034b3c8dd30f6f103b24e500c44ba4cff2e5c7f6e3e2eb124cd32"
     );
   });
