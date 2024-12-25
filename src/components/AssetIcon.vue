@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes } from "vue";
+import ErgoLogo from "@/assets/images/ergo.svg";
 import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { cn } from "@/lib/utils";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
@@ -24,7 +26,7 @@ const logo = computed(() => {
 });
 
 function calculateFillingColor(tokenId: string) {
-  if (!tokenId) return;
+  if (!tokenId || tokenId === ERG_TOKEN_ID) return;
 
   let r = Number.parseInt(tokenId.substring(0, 2), 16);
   let g = Number.parseInt(tokenId.substring(2, 4), 16);
@@ -37,6 +39,7 @@ function calculateFillingColor(tokenId: string) {
 }
 
 const genericIcon = computed(() => {
+  if (props.tokenId === ERG_TOKEN_ID) return ErgoLogo;
   if (props.type === AssetSubtype.PictureArtwork) return PictureNftIcon;
   if (props.type === AssetSubtype.AudioArtwork) return AudioNftIcon;
   if (props.type === AssetSubtype.VideoArtwork) return VideoNftIcon;
@@ -49,7 +52,7 @@ const genericIcon = computed(() => {
   <template v-else>
     <component
       :is="genericIcon"
-      :class="cn(props.class, 'fill-muted')"
+      :class="cn(props.class, 'fill-foreground')"
       :style="calculateFillingColor(tokenId)"
     />
   </template>
