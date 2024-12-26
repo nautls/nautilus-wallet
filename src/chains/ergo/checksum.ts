@@ -1,6 +1,9 @@
 import { blake2b, hex, utf8 } from "@fleet-sdk/crypto";
 
-const CIP4_HASH_PARAMS = { dkLen: 64, personalization: "wallets checksum" };
+const CIP4_HASH_PARAMS = {
+  dkLen: 64,
+  personalization: hex.decode("77616c6c65747320636865636b73756d")
+};
 
 /**
  * Calculate CIP-4 image checksum hash for a given Extended Public Key.
