@@ -25,8 +25,8 @@ const visibleNavItems = computed(() =>
       v-for="item in visibleNavItems"
       :key="item.to"
       :to="item.to"
-      active-class="border-b-0 border-primary text-primary"
-      class="flex-grow border-b-0 border-foreground/10 text-muted-foreground transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
+      active-class="border-b-0 border-primary text-primary cursor-default"
+      class="flex-grow border-b-0 border-muted-foreground text-muted-foreground transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
     >
       <component :is="item.icon" :size="iconSize" class="m-3 mx-auto" />
     </router-link>

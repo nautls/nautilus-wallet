@@ -174,14 +174,12 @@ function formatAssetName(asset: StateAssetSummary): string {
                     <TooltipTrigger class="text-xs text-muted-foreground">
                       {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
                     </TooltipTrigger>
-                    <TooltipContent class="bg-foreground">
-                      <div>
-                        <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
-                        <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
-                        <p v-if="!isErg(asset.tokenId)">
-                          {{ formatCoinPrice(rate(asset.tokenId)) }}
-                        </p>
-                      </div>
+                    <TooltipContent class="text-center">
+                      <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
+                      <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
+                      <p v-if="!isErg(asset.tokenId)">
+                        {{ formatCoinPrice(rate(asset.tokenId)) }}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
