@@ -4,6 +4,7 @@ import {
   CheckIcon,
   ChevronsUpDownIcon,
   EyeIcon,
+  EyeOffIcon,
   InfoIcon,
   ListIcon,
   LoaderCircleIcon,
@@ -67,6 +68,10 @@ function closePopover() {
   isOpen.value = false;
 }
 
+function toggleValuesVisibility() {
+  app.settings.hideBalances = !app.settings.hideBalances;
+}
+
 async function expand() {
   if (!browser?.tabs) return;
 
@@ -113,7 +118,7 @@ async function expand() {
 
               <div class="w-4 h-4 transition-all duration-700">
                 <LoaderCircleIcon v-if="loadingId === w.id" class="animate-spin h-full w-full" />
-                <CheckIcon v-else-if="selected === w" class="h-full w-full" />
+                <CheckIcon v-else-if="current?.id === w.id" class="h-full w-full" />
               </div>
             </CommandItem>
           </CommandGroup>
@@ -121,13 +126,14 @@ async function expand() {
 
         <CommandSeparator />
 
-        <div class="flex flex-row items-center justify-center py-2 gap-2">
-          <Button variant="outline" size="icon"><EyeIcon /></Button>
-          <Button variant="outline" size="icon"><MoonIcon /></Button>
-          <Button variant="outline" size="icon" @click="expand"><Maximize2Icon /></Button>
+        <div class="flex flex-row items-center justify-center pt-2 gap-2">
+          <Button variant="ghost" size="icon" @click="toggleValuesVisibility">
+            <EyeOffIcon v-if="app.settings.hideBalances" />
+            <EyeIcon v-else />
+          </Button>
+          <Button variant="ghost" size="icon"><MoonIcon /></Button>
+          <Button variant="ghost" size="icon" @click="expand"><Maximize2Icon /></Button>
         </div>
-
-        <CommandSeparator />
 
         <CommandList>
           <CommandGroup>
