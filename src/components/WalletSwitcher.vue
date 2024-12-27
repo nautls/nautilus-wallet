@@ -72,19 +72,16 @@ function toggleValuesVisibility() {
   app.settings.hideBalances = !app.settings.hideBalances;
 }
 
+function prefersDarkColors() {
+  return window.matchMedia("(prefers-color-scheme: dark)");
+}
+
 function toggleColorMode() {
   const mode = app.settings.colorMode;
-  switch (mode) {
-    case "auto":
-      app.settings.colorMode = "dark";
-      break;
-    case "dark":
-      app.settings.colorMode = "light";
-      break;
-    case "light":
-    default:
-      app.settings.colorMode = "auto";
-      break;
+  if (mode === "auto") {
+    app.settings.colorMode = prefersDarkColors() ? "light" : "dark";
+  } else {
+    app.settings.colorMode = mode === "dark" ? "light" : "dark";
   }
 }
 
