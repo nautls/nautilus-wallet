@@ -2,6 +2,7 @@ import { computed, onMounted, ref, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
+import { useColorMode } from "@vueuse/core";
 import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
@@ -27,6 +28,7 @@ export type Settings = {
   hideBalances: boolean;
   blacklistedTokensLists: string[];
   zeroConf: boolean;
+  colorMode: "light" | "dark" | "auto";
 };
 
 type StandardWallet = {
@@ -52,6 +54,10 @@ export const useAppStore = defineStore("app", () => {
   const chain = useChainStore();
   const router = useRouter();
   const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS);
+  const colorMode = useColorMode({
+    storageKey: null /** disable storage */,
+    initialValue: settings.value.colorMode
+  });
 
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
@@ -85,6 +91,11 @@ export const useAppStore = defineStore("app", () => {
   );
 
   watch(() => chain.height, checkPendingBoxes);
+
+  watch(
+    () => settings.value.colorMode,
+    () => (colorMode.value = settings.value.colorMode)
+  );
 
   const loading = computed(() => privateState.loading);
   const wallets = computed(() => privateState.wallets);

@@ -6,13 +6,13 @@ import {
   EyeIcon,
   EyeOffIcon,
   InfoIcon,
-  ListIcon,
   LoaderCircleIcon,
   Maximize2Icon,
   MoonIcon,
   PlusCircleIcon,
   SettingsIcon,
-  SunIcon
+  SunIcon,
+  SunMoonIcon
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
@@ -72,7 +72,23 @@ function toggleValuesVisibility() {
   app.settings.hideBalances = !app.settings.hideBalances;
 }
 
-async function expand() {
+function toggleColorMode() {
+  const mode = app.settings.colorMode;
+  switch (mode) {
+    case "auto":
+      app.settings.colorMode = "dark";
+      break;
+    case "dark":
+      app.settings.colorMode = "light";
+      break;
+    case "light":
+    default:
+      app.settings.colorMode = "auto";
+      break;
+  }
+}
+
+async function expandView() {
   if (!browser?.tabs) return;
 
   const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
@@ -131,8 +147,12 @@ async function expand() {
             <EyeOffIcon v-if="app.settings.hideBalances" />
             <EyeIcon v-else />
           </Button>
-          <Button variant="ghost" size="icon"><MoonIcon /></Button>
-          <Button variant="ghost" size="icon" @click="expand"><Maximize2Icon /></Button>
+          <Button variant="ghost" size="icon" @click="toggleColorMode">
+            <MoonIcon v-if="app.settings.colorMode === 'dark'" />
+            <SunIcon v-else-if="app.settings.colorMode === 'light'" />
+            <SunMoonIcon v-else />
+          </Button>
+          <Button variant="ghost" size="icon" @click="expandView"><Maximize2Icon /></Button>
         </div>
 
         <CommandList>

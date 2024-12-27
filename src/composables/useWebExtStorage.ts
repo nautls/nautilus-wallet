@@ -12,7 +12,7 @@ import { log } from "@/common/logger";
 
 export type WebExtensionStorageOptions<T> = UseStorageAsyncOptions<T>;
 
-const storageInterface: StorageLikeAsync = {
+export const webExtStorageInterface: StorageLikeAsync = {
   removeItem(key: string) {
     return storage.local.remove(key);
   },
@@ -84,11 +84,11 @@ export function useWebExtStorage<T>(
     if (event && event.key !== key) return;
 
     try {
-      const rawValue = event ? event.newValue : await storageInterface.getItem(key);
+      const rawValue = event ? event.newValue : await webExtStorageInterface.getItem(key);
       if (rawValue == null) {
         data.value = rawInit;
         if (writeDefaults && rawInit !== null)
-          await storageInterface.setItem(key, await serializer.write(rawInit));
+          await webExtStorageInterface.setItem(key, await serializer.write(rawInit));
       } else if (mergeDefaults) {
         const value = (await serializer.read(rawValue)) as T;
         if (typeof mergeDefaults === "function") data.value = mergeDefaults(value, rawInit);
@@ -111,8 +111,8 @@ export function useWebExtStorage<T>(
   async function write() {
     try {
       await (data.value == null
-        ? storageInterface.removeItem(key)
-        : storageInterface.setItem(key, await serializer.write(data.value)));
+        ? webExtStorageInterface.removeItem(key)
+        : webExtStorageInterface.setItem(key, await serializer.write(data.value)));
     } catch (error) {
       onError(error);
     }

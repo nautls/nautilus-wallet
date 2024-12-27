@@ -11,5 +11,6 @@ export const DEFAULT_SETTINGS = {
   explorerUrl: DEFAULT_EXPLORER_URL,
   hideBalances: false,
   blacklistedTokensLists: ["nsfw", "scam"],
-  zeroConf: false
+  zeroConf: false,
+  colorMode: "auto" as "light" | "dark" | "auto"
 };
