@@ -6,6 +6,7 @@ import {
   EyeIcon,
   InfoIcon,
   ListIcon,
+  LoaderCircleIcon,
   Maximize2Icon,
   MoonIcon,
   PlusCircleIcon,
@@ -29,7 +30,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import WalletItem from "@/components/WalletItem.vue";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
-import { cn } from "@/lib/utils";
 import { IDbWallet } from "@/types/database";
 
 const wallet = useWalletStore();
@@ -40,6 +40,7 @@ const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
 
 const isOpen = ref(false);
 const selected = ref<IDbWallet>();
+const loadingId = ref<number | false>();
 
 function normalize(value?: string) {
   return value?.trim().toLocaleLowerCase() ?? "";
@@ -47,6 +48,22 @@ function normalize(value?: string) {
 
 function goTo(name: string) {
   router.push({ name });
+  closePopover();
+}
+
+async function loadWallet(walletId: number) {
+  setLoading(walletId);
+  await wallet.load(walletId);
+
+  setLoading(false);
+  closePopover();
+}
+
+function setLoading(id: number | false) {
+  loadingId.value = id;
+}
+
+function closePopover() {
   isOpen.value = false;
 }
 
@@ -65,14 +82,13 @@ async function expand() {
         variant="ghost"
         role="combobox"
         :aria-expanded="isOpen"
-        class="w-[200px] justify-between h-full bg-transparent"
+        class="w-[210px] justify-between h-full bg-transparent"
       >
-        <!-- {{ selected ? app.wallets.find((w) => w.id === selected?.id)?.name : "Select wallet..." }} -->
         <WalletItem v-if="current" :wallet="current" />
         <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-[200px] p-0">
+    <PopoverContent class="w-[210px] p-0">
       <Command
         v-model="selected"
         class="max-h-[500px]"
@@ -87,16 +103,18 @@ async function expand() {
         <CommandList>
           <CommandGroup>
             <CommandItem
-              v-for="w in app.wallets.filter((w) => w.id !== 4)"
+              v-for="w in app.wallets"
               :key="w.id"
               class="gap-2"
               :value="w"
-              @select="isOpen = false"
+              @select="loadWallet(w.id)"
             >
               <WalletItem v-if="current" :wallet="w" concise />
-              <CheckIcon
-                :class="cn('h-4 w-4', selected?.id === w.id ? 'opacity-100' : 'opacity-0')"
-              />
+
+              <div class="w-4 h-4 transition-all duration-700">
+                <LoaderCircleIcon v-if="loadingId === w.id" class="animate-spin h-full w-full" />
+                <CheckIcon v-else-if="selected === w" class="h-full w-full" />
+              </div>
             </CommandItem>
           </CommandGroup>
         </CommandList>
