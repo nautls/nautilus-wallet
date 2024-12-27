@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import WalletItem from "@/components/WalletItem.vue";
-import { browser } from "@/common/browser";
+import { browser, isPopup } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 import { IDbWallet } from "@/types/database";
 
@@ -152,7 +152,9 @@ async function expandView() {
             <SunIcon v-else-if="app.settings.colorMode === 'light'" />
             <SunMoonIcon v-else />
           </Button>
-          <Button variant="ghost" size="icon" @click="expandView"><Maximize2Icon /></Button>
+          <Button variant="ghost" size="icon" :disabled="!isPopup()" @click="expandView"
+            ><Maximize2Icon
+          /></Button>
         </div>
 
         <CommandList>
