@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, PropType, ref, useId } from "vue";
+import { nextTick, PropType, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
@@ -21,35 +21,41 @@ const props = defineProps({
 });
 
 const id = useId();
-
 const checksum = ref("");
-const canvasId = ref(`wlt-${props.wallet.id}-${id}-checksum`);
+const canvasId = ref(`wlt-${id}-checksum`);
 
 function getFirstByte(hex: string): number {
   return Number.parseInt(hex.substring(0, 2), 16);
 }
 
-onMounted(() => {
-  const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
-  checksum.value = calcCip4ImageHash(xpk);
+watch(
+  () => props.wallet,
+  () => {
+    const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
+    checksum.value = calcCip4ImageHash(xpk);
 
-  const i = getFirstByte(checksum.value) % COLORS.length;
-  const [primary, background, spot] = COLORS[i];
+    const i = getFirstByte(checksum.value) % COLORS.length;
+    const [primary, background, spot] = COLORS[i];
 
-  nextTick(() => {
-    renderIcon(
-      {
-        seed: checksum.value,
-        size: 7,
-        scale: 4,
-        color: primary,
-        bgcolor: background,
-        spotcolor: spot
-      },
-      document.getElementById(canvasId.value)
-    );
-  });
-});
+    nextTick(() => {
+      renderIcon(
+        {
+          seed: checksum.value,
+          size: 7,
+          scale: 4,
+          color: primary,
+          bgcolor: background,
+          spotcolor: spot
+        },
+        document.getElementById(canvasId.value)
+      );
+    });
+  },
+  {
+    immediate: true,
+    deep: false
+  }
+);
 
 function walletTypeToString(type: WalletType): string {
   switch (type) {
@@ -75,8 +81,8 @@ function walletTypeToString(type: WalletType): string {
 
     <div class="flex w-full gap-0 flex-col whitespace-nowrap justify-center">
       <p
-        class="w-full truncate text-sm leading-tight"
-        :class="concise ? 'font-normal' : 'font-semibold'"
+        class="w-full truncate text-sm leading-tight max-w-[110px]"
+        :class="concise ? 'font-normal max-w-[125px]' : 'font-semibold max-w-[110px]'"
       >
         {{ wallet.name }}
       </p>
