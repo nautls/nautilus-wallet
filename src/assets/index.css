@@ -82,10 +82,16 @@
     --vis-secondary-color: 160 81% 40%;
     --vis-text-color: var(--muted-foreground);
   }
+
   * {
     @apply border-border;
   }
+
   body {
     @apply overflow-x-hidden bg-background font-sans leading-normal tracking-wide text-foreground antialiased;
   }
+}
+
+.bg-header {
+  background-color: hsl(var(--foreground) / 0.05);
 }

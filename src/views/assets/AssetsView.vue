@@ -83,7 +83,7 @@ function formatAssetName(asset: StateAssetSummary): string {
 </script>
 
 <template>
-  <div class="relative mb-4 bg-foreground/5">
+  <div class="relative mb-4 bg-header">
     <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center">
       <h2 class="text-2xl">
         <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
