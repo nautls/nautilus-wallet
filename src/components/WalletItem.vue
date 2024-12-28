@@ -16,7 +16,6 @@ const COLORS = [
 
 const props = defineProps({
   wallet: { type: Object as PropType<IDbWallet>, required: true },
-  loading: { type: Boolean, default: false },
   concise: { type: Boolean, default: false }
 });
 
@@ -90,13 +89,6 @@ function walletTypeToString(type: WalletType): string {
       <small class="text-muted-foreground leading-tight">
         {{ walletTypeToString(wallet.type) }}
       </small>
-      <!-- <div v-else class="flex flex-row gap-1 text-xs">
-        <small class="rounded bg-foreground/10 px-1 font-normal uppercase text-foreground">{{
-          walletTypeToString(wallet.type)
-        }}</small>
-        <venetian-mask-icon v-if="wallet.settings.avoidAddressReuse" class="h-4 w-4" />
-        <loading-indicator v-if="loading" class="h-4 w-4" />
-      </div> -->
     </div>
   </div>
 </template>
