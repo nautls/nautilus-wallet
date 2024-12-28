@@ -7,11 +7,13 @@ const MIN_USD_LIQUIDITY = 1_000;
 export type AssetRate = { erg: number; fiat: number };
 
 class AssetPricingService {
-  async getRates(fiatCurrency: string): Promise<Map<string, AssetRate>> {
+  async getRates(fiatCurrency: string): Promise<Map<string, AssetRate> | undefined> {
     const [ergFiatRate, tokenRates] = await Promise.all([
       coinGeckoService.getPrice(fiatCurrency),
       spectrumService.getRatesByLiquidity(MIN_USD_LIQUIDITY)
     ]);
+
+    if (!ergFiatRate && !tokenRates) return undefined;
 
     const rates = new Map<string, AssetRate>([[ERG_TOKEN_ID, { erg: 1, fiat: ergFiatRate }]]);
     if (!tokenRates) return rates;

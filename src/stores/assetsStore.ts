@@ -91,8 +91,8 @@ export const useAssetsStore = defineStore("assets", () => {
       coinGeckoService.getPriceChart(app.settings.conversionCurrency)
     ]);
 
-    privateState.prices = { lastUpdated: Date.now(), prices };
-    privateState.priceChart = chart.filter((_, i) => i % 2 === 0); // reduce chart data
+    if (prices) privateState.prices = { lastUpdated: Date.now(), prices };
+    if (chart) privateState.priceChart = chart.filter((_, i) => i % 2 === 0); // reduce chart data
   }
 
   const blacklist = computed(() => {

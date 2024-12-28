@@ -23,13 +23,13 @@ class CoinGeckoService {
     return response?.ergo[currency] ?? 0;
   }
 
-  async getPriceChart(currency: string, days: number = 1): Promise<[number, number][]> {
+  async getPriceChart(currency: string, days: number = 1): Promise<[number, number][] | undefined> {
     const response = await safeFetch<ChartResponse>(`coins/${this.#coin}/market_chart`, {
       baseURL: BASE_URL,
       query: { vs_currency: currency, days }
     });
 
-    return response?.prices ?? [[0, 0]];
+    return response?.prices ?? undefined;
   }
 
   async getSupportedCurrencyConversion(): Promise<string[]> {
