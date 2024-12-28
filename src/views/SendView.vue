@@ -209,7 +209,7 @@ export default defineComponent({
   },
   watch: {
     currentWallet() {
-      this.$router.push({ name: "assets-page" });
+      this.$router.push({ name: "assets" });
     },
     assets: {
       immediate: true,

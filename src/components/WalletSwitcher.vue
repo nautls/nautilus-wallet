@@ -56,6 +56,10 @@ async function loadWallet(walletId: number) {
   setLoading(walletId);
   await wallet.load(walletId);
 
+  if (router.currentRoute.value.name !== "assets") {
+    router.push({ name: "assets" });
+  }
+
   setLoading(false);
   closePopover();
 }

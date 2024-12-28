@@ -4,7 +4,7 @@ import AssetsView from "@/views/assets/AssetsView.vue";
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
-    name: "assets-page",
+    name: "assets",
     component: AssetsView
   },
   {

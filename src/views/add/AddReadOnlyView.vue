@@ -97,7 +97,7 @@ export default defineComponent({
         return;
       }
 
-      this.$router.push({ name: "assets-page" });
+      this.$router.push({ name: "assets" });
     }
   }
 });

@@ -127,7 +127,7 @@ export const useWalletStore = defineStore("wallet", () => {
       const wallet = appStore.wallets[0];
       if (wallet) {
         load(wallet.id);
-        router.push({ name: "assets-page" });
+        router.push({ name: "assets" });
       } else {
         appStore.settings.lastOpenedWalletId = 0;
         router.push({ name: "add-wallet" });

@@ -156,7 +156,7 @@ export default defineComponent({
         return;
       }
 
-      this.$router.push({ name: "assets-page" });
+      this.$router.push({ name: "assets" });
     },
     filterBy(text: string) {
       if (text === "" || text.trim() === "") {
