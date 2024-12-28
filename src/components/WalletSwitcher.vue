@@ -47,18 +47,20 @@ function normalize(value?: string) {
   return value?.trim().toLocaleLowerCase() ?? "";
 }
 
-function goTo(name: string) {
-  router.push({ name });
+function goToAndClose(name: string) {
+  goTo(name);
   closePopover();
+}
+
+function goTo(name: string) {
+  if (router.currentRoute.value.name !== name) router.push({ name });
 }
 
 async function loadWallet(walletId: number) {
   setLoading(walletId);
-  await wallet.load(walletId);
 
-  if (router.currentRoute.value.name !== "assets") {
-    router.push({ name: "assets" });
-  }
+  await wallet.load(walletId);
+  goTo("assets");
 
   setLoading(false);
   closePopover();
@@ -160,17 +162,29 @@ async function expandView() {
 
         <CommandList>
           <CommandGroup>
-            <CommandItem class="gap-2" value="add-wallet" @select.prevent="goTo('add-wallet')">
+            <CommandItem
+              class="gap-2"
+              value="add-wallet"
+              @select.prevent="goToAndClose('add-wallet')"
+            >
               <PlusCircleIcon class="h-5 w-5 shrink-0" />
               New wallet
             </CommandItem>
 
-            <CommandItem class="gap-2" value="settings" @select.prevent="goTo('wallet-settings')">
+            <CommandItem
+              class="gap-2"
+              value="settings"
+              @select.prevent="goToAndClose('wallet-settings')"
+            >
               <SettingsIcon class="h-5 w-5 shrink-0" />
               Settings
             </CommandItem>
 
-            <CommandItem class="gap-2" value="about" @select.prevent="goTo('about-nautilus')">
+            <CommandItem
+              class="gap-2"
+              value="about"
+              @select.prevent="goToAndClose('about-nautilus')"
+            >
               <InfoIcon class="h-5 w-5 shrink-0" />
               About
             </CommandItem>
