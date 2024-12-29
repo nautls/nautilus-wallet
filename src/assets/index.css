@@ -95,3 +95,19 @@
 .bg-header {
   background-color: hsl(var(--foreground) / 0.05);
 }
+
+.slide-up-move,
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.5s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.slide-up-leave-active {
+  position: absolute;
+}

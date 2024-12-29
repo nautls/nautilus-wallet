@@ -136,91 +136,101 @@ function formatAssetName(asset: StateAssetSummary): string {
       </div>
 
       <TabsContent value="tokens">
-        <div class="flex flex-col gap-0 pt-2">
-          <Button
-            v-for="asset in tokens"
-            :key="asset.tokenId"
-            variant="ghost"
-            class="h-auto py-3 text-left"
-          >
-            <AssetIcon class="!h-10 !w-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-
-            <div
-              class="flex flex-grow flex-col align-middle text-sm"
-              :class="{ 'font-semibold': isErg(asset.tokenId) }"
+        <Transition name="slide-up" appear>
+          <div class="flex flex-col gap-0 pt-2">
+            <Button
+              v-for="asset in tokens"
+              :key="asset.tokenId"
+              variant="ghost"
+              class="h-auto py-3 text-left"
             >
-              <div>
-                {{ formatAssetName(asset) }}
-              </div>
-              <div class="text-xs text-muted-foreground">
-                {{
-                  isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
-                }}
-              </div>
-            </div>
+              <AssetIcon
+                class="!h-10 !w-10"
+                :token-id="asset.tokenId"
+                :type="asset.metadata?.type"
+              />
 
-            <div class="whitespace-nowrap text-right align-middle">
-              <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
-                <Skeleton class="h-5 w-24 animate-none" />
-                <Skeleton class="h-3 w-3/4 animate-none" />
-              </div>
-              <template v-else>
+              <div
+                class="flex flex-grow flex-col align-middle text-sm"
+                :class="{ 'font-semibold': isErg(asset.tokenId) }"
+              >
                 <div>
-                  {{ format.bn.format(asset.confirmedAmount) }}
+                  {{ formatAssetName(asset) }}
                 </div>
+                <div class="text-xs text-muted-foreground">
+                  {{
+                    isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
+                  }}
+                </div>
+              </div>
 
-                <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
-                  <Tooltip>
-                    <TooltipTrigger class="text-xs text-muted-foreground">
-                      {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
-                    </TooltipTrigger>
-                    <TooltipContent class="text-center">
-                      <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
-                      <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
-                      <p v-if="!isErg(asset.tokenId)">
-                        {{ formatCoinPrice(rate(asset.tokenId)) }}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </template>
-            </div>
-          </Button>
-        </div>
+              <div class="whitespace-nowrap text-right align-middle">
+                <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
+                  <Skeleton class="h-5 w-24 animate-none" />
+                  <Skeleton class="h-3 w-3/4 animate-none" />
+                </div>
+                <template v-else>
+                  <div>
+                    {{ format.bn.format(asset.confirmedAmount) }}
+                  </div>
+
+                  <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
+                    <Tooltip>
+                      <TooltipTrigger class="text-xs text-muted-foreground">
+                        {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
+                      </TooltipTrigger>
+                      <TooltipContent class="text-center">
+                        <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
+                        <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
+                        <p v-if="!isErg(asset.tokenId)">
+                          {{ formatCoinPrice(rate(asset.tokenId)) }}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </template>
+              </div>
+            </Button>
+          </div>
+        </Transition>
       </TabsContent>
 
       <TabsContent value="collectibles">
-        <div class="grid grid-cols-2 justify-stretch gap-4 px-2 py-4 sm:grid-cols-4 md:grid-cols-2">
+        <Transition name="slide-up" appear>
           <div
-            v-for="nft in collectibles"
-            :key="nft.tokenId"
-            class="relative rounded-md border bg-card text-card-foreground shadow"
+            class="grid grid-cols-2 justify-stretch gap-4 px-2 py-4 sm:grid-cols-4 md:grid-cols-2"
           >
-            <image-sandbox
-              :src="nft.metadata?.artworkUrl"
-              class="h-40 w-full overflow-hidden rounded-md"
-              height="10rem"
-              object-fit="cover"
-              overflow="hidden"
-            />
-
-            <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md px-2.5">
-              {{ nft.metadata?.name ?? nft.tokenId }}
-            </p>
             <div
-              v-if="!nft.confirmedAmount.eq(1) && !app.settings.hideBalances"
-              class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
+              v-for="nft in collectibles"
+              :key="nft.tokenId"
+              class="relative rounded-md border bg-card text-card-foreground shadow"
             >
-              <span class="m-auto">{{ format.bn.format(nft.confirmedAmount) }}</span>
-            </div>
+              <image-sandbox
+                :src="nft.metadata?.artworkUrl"
+                class="h-40 w-full overflow-hidden rounded-md"
+                height="10rem"
+                object-fit="cover"
+                overflow="hidden"
+              />
 
-            <!-- clickable overlay -->
-            <Button
-              class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
-              variant="ghost"
-            ></Button>
+              <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md px-2.5">
+                {{ nft.metadata?.name ?? nft.tokenId }}
+              </p>
+              <div
+                v-if="!nft.confirmedAmount.eq(1) && !app.settings.hideBalances"
+                class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
+              >
+                <span class="m-auto">{{ format.bn.format(nft.confirmedAmount) }}</span>
+              </div>
+
+              <!-- clickable overlay -->
+              <Button
+                class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
+                variant="ghost"
+              ></Button>
+            </div>
           </div>
-        </div>
+        </Transition>
       </TabsContent>
     </Tabs>
   </div>
@@ -234,6 +244,6 @@ function formatAssetName(asset: StateAssetSummary): string {
 
 <style lang="css" scoped>
 .caption {
-  @apply bg-neutral-900/70 py-0.5 font-normal text-neutral-100;
+  @apply bg-slate-900/70 py-0.5 font-normal text-neutral-100;
 }
 </style>
