@@ -159,11 +159,13 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           <CardDescription class="text-xs">
             <div v-if="tx.confirmed">
               {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-              <CircleCheckBigIcon class="h-3 inline-flex text-green-600" />
+              <CircleCheckBigIcon class="h-3 -ml-1 inline-flex text-green-600" />
             </div>
             <div v-else>
               Pending
-              <CircleIcon class="h-3 inline-flex text-yellow-600 animate-pulse fill-yellow-600" />
+              <CircleIcon
+                class="h-3 -ml-1 inline-flex text-yellow-600 animate-pulse fill-yellow-600"
+              />
             </div>
           </CardDescription>
         </CardHeader>
@@ -207,7 +209,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
     </div>
 
     <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 px-4">
-      <Card v-for="i in 3" :key="i" class="cursor-default">
+      <Card v-for="i in 5" :key="i" class="cursor-default">
         <CardHeader class="gap-0.5">
           <CardTitle class="flex flex-row items-center justify-between">
             <Skeleton class="h-5 w-36" />
