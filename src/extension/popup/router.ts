@@ -41,7 +41,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/history",
     name: "tx-history",
-    component: () => import("@/views/TransactionHistory.vue")
+    component: () => import("@/views/TransactionHistoryView.vue")
   },
   {
     path: "/receive",

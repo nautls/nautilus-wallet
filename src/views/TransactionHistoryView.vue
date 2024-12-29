@@ -4,12 +4,23 @@ import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
 import type { BigNumber } from "bignumber.js";
-import { ClockIcon, DownloadIcon, UploadIcon } from "lucide-vue-next";
+import { ArrowDownRightIcon, ArrowUpRightIcon, ClockIcon, DownloadIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
 import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
+import AssetIcon from "@/components/AssetIcon.vue";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { Link } from "@/components/ui/link";
 import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
@@ -58,6 +69,16 @@ const txHistory = computed(() =>
   ).map((x) => ({ ...x, delta: mapDelta(x.delta) }))
 );
 
+// listening to wallet loading state ensures that wallet is
+// fully loaded before fetching transactions
+watch(
+  () => wallet.loading,
+  (loading) => {
+    if (loading) return;
+    reset();
+  }
+);
+
 function mapDelta(utxoSummary: BoxSummary) {
   const tokens = utxoSummary.tokens.map((x) => token(x.tokenId, x.amount));
   return utxoSummary.nanoErgs === 0n
@@ -99,16 +120,6 @@ async function fetchConfirmedTransactions() {
   }
 }
 
-// listening to wallet loading state ensures that wallet is
-// fully loaded before fetching transactions
-watch(
-  () => wallet.loading,
-  (loading) => {
-    if (loading) return;
-    reset();
-  }
-);
-
 function reset() {
   confirmed.value = [];
   allLoaded.value = false;
@@ -129,38 +140,44 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 </script>
 
 <template>
-  <div ref="txEl" class="-mx-4 h-full overflow-y-auto overflow-x-hidden">
+  <div ref="txEl" class="h-full overflow-y-auto overflow-x-hidden">
     <div class="flex flex-col gap-4 px-4 pt-4 text-sm">
-      <div
-        v-for="tx in txHistory"
-        :key="tx.transactionId"
-        class="mb-2 flex flex-col gap-2 rounded border p-4 shadow-sm"
-      >
-        <div class="mb-2 flex text-xs">
-          <div>
-            <a
-              :href="getTransactionExplorerUrl(tx.transactionId)"
-              target="_blank"
-              rel="noopener noreferrer"
-              ><span class="h-tag bg-gray-100 font-bold">{{
-                formatter.string.shorten(tx.transactionId, 20)
-              }}</span></a
+      <Card v-for="tx in txHistory" :key="tx.transactionId">
+        <CardHeader>
+          <CardTitle class="flex flex-row items-center justify-between">
+            <Link external :href="getTransactionExplorerUrl(tx.transactionId)">
+              Transaction
+              <span class="font-normal text-muted-foreground">{{
+                formatter.string.shorten(tx.transactionId, 7, "none")
+              }}</span>
+            </Link>
+            <span class="font-normal">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
+          </CardTitle>
+          <CardDescription class="text-xs">
+            <template v-if="tx.confirmed"
+              >{{ (chain.height - tx.height + 1).toLocaleString() }} confirmations</template
             >
-          </div>
-          <div class="w-full text-right">
-            <span>{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
-          </div>
-        </div>
-        <div class="flex flex-col gap-2 p-2">
+            <template v-else>Pending</template>
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-2">
           <div
             v-for="asset in tx.delta"
             :key="asset.tokenId"
             class="flex flex-row items-center gap-2"
           >
-            <upload-icon v-if="asset.amount.isNegative()" class="min-w-4 text-red-500" :size="16" />
-            <download-icon v-else class="min-w-4 text-green-500" :size="16" />
+            <ArrowUpRightIcon
+              v-if="asset.amount.isNegative()"
+              class="min-w-5 h-auto text-red-600 opacity-60 rounded-full p-1 bg-red-200"
+              :size="16"
+            />
+            <ArrowDownRightIcon
+              v-else
+              class="min-w-5 h-auto text-green-600 opacity-60 rounded-full p-1 bg-green-200"
+              :size="16"
+            />
 
-            <asset-icon class="h-6 w-6 min-w-6" :token-id="asset.tokenId" />
+            <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
             <div class="w-full">
               {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
             </div>
@@ -168,27 +185,18 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               {{ formatter.bn.format(positive(asset.amount)) }}
             </div>
           </div>
-        </div>
-        <div class="mt-2 flex flex-row items-center justify-between gap-2">
-          <div class="h-tag">Fee {{ formatter.bn.format(tx.fee) }} ERG</div>
-          <div
-            class="h-tag font-semibold text-light-200"
-            :class="tx.confirmed ? 'bg-green-500' : 'bg-yellow-500'"
+        </CardContent>
+
+        <CardFooter v-if="!tx.confirmed && tx.cancelable">
+          <Button
+            class="w-full"
+            variant="outline"
+            @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
           >
-            <template v-if="tx.confirmed"
-              >{{ (chain.height - tx.height + 1).toLocaleString() }} confirmations</template
-            >
-            <template v-else>Pending</template>
-          </div>
-        </div>
-        <button
-          v-if="!tx.confirmed && tx.cancelable"
-          class="btn default mt-4 !py-1"
-          @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
-        >
-          Cancel
-        </button>
-      </div>
+            Cancel
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
 
     <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 px-4 pt-4 text-sm">
@@ -222,9 +230,3 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.h-tag {
-  @apply whitespace-nowrap rounded-md px-2 py-0.5 text-xs ring-1 ring-gray-200;
-}
-</style>
