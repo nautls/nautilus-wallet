@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
-import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
+import { formatTimeAgo } from "@vueuse/core";
 import type { BigNumber } from "bignumber.js";
 import {
   ArrowDownRightIcon,
@@ -50,7 +50,8 @@ const app = useAppStore();
 const pool = usePoolStore();
 
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
-const allLoaded = ref(false);
+const loaded = ref(false);
+const loading = ref(true);
 
 const allAddresses = computed(() => wallet.addresses.map((x) => x.script));
 const usedAddresses = computed(() =>
@@ -75,15 +76,7 @@ const txHistory = computed(() =>
   ).map((x) => ({ ...x, delta: mapDelta(x.delta) }))
 );
 
-// listening to wallet loading state ensures that wallet is
-// fully loaded before fetching transactions
-watch(
-  () => wallet.loading,
-  (loading) => {
-    if (loading) return;
-    reset();
-  }
-);
+onMounted(fetchConfirmedTransactions);
 
 function mapDelta(utxoSummary: BoxSummary) {
   const tokens = utxoSummary.tokens.map((x) => token(x.tokenId, x.amount));
@@ -101,35 +94,20 @@ function token(tokenId: string, amount: bigint) {
   };
 }
 
-const { isLoading, reset: resetScrolling } = useInfiniteScroll(
-  useTemplateRef("txEl"),
-  fetchConfirmedTransactions,
-  { canLoadMore: () => !allLoaded.value, distance: 2_000 }
-);
-
 async function fetchConfirmedTransactions() {
-  if (!confirmedGenerator.value) {
-    allLoaded.value = true;
-    return;
-  }
+  if (!confirmedGenerator.value) return (loaded.value = true);
 
+  loading.value = true;
   const response = await confirmedGenerator.value.next();
-  if (response.done) {
-    allLoaded.value = true;
-    return;
-  }
+  if (response.done) return (loaded.value = true);
 
   const mapped = response.value.map((x) => summarizeTransaction(x, ergoTrees.value));
   confirmed.value = [...confirmed.value, ...mapped];
   if (mapped.length > 0) {
     assets.loadMetadata(mapped.flatMap((x) => x.delta.tokens.map((y) => y.tokenId)));
   }
-}
 
-function reset() {
-  confirmed.value = [];
-  allLoaded.value = false;
-  resetScrolling();
+  loading.value = false;
 }
 
 function getTransactionExplorerUrl(txId: string): string {
@@ -146,70 +124,68 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 </script>
 
 <template>
-  <div ref="txEl" class="h-full overflow-y-auto overflow-x-hidden">
-    <div class="flex flex-col gap-4 px-4 pt-4 text-xs">
-      <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
-        <CardHeader class="gap-0.5">
-          <CardTitle class="flex flex-row items-center justify-between">
-            <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
-              Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
-            </Link>
-            <span class="font-normal text-xs">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
-          </CardTitle>
-          <CardDescription class="text-xs">
-            <div v-if="tx.confirmed">
-              {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-              <CircleCheckBigIcon class="h-3 -ml-1 inline-flex text-green-600" />
-            </div>
-            <div v-else>
-              Pending
-              <CircleIcon
-                class="h-3 -ml-1 inline-flex text-yellow-600 animate-pulse fill-yellow-600"
-              />
-            </div>
-          </CardDescription>
-        </CardHeader>
-        <CardContent class="flex flex-col gap-2">
-          <div
-            v-for="asset in tx.delta"
-            :key="asset.tokenId"
-            class="flex flex-row items-center gap-2"
-          >
-            <ArrowUpRightIcon
-              v-if="asset.amount.isNegative()"
-              class="min-w-5 h-auto text-red-700 opacity-60 rounded-full p-1 bg-red-200"
-              :size="16"
-            />
-            <ArrowDownRightIcon
-              v-else
-              class="min-w-5 h-auto text-green-700 opacity-60 rounded-full p-1 bg-green-200"
-              :size="16"
-            />
-
-            <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
-            <div class="w-full">
-              {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
-            </div>
-            <div>
-              {{ formatter.bn.format(positive(asset.amount)) }}
-            </div>
+  <div class="px-4 py-8 flex flex-col gap-4">
+    <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
+      <CardHeader class="gap-0.5">
+        <CardTitle class="flex flex-row items-center justify-between">
+          <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
+            Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
+          </Link>
+          <span class="font-normal text-xs">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
+        </CardTitle>
+        <CardDescription class="text-xs">
+          <div v-if="tx.confirmed">
+            {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
+            <CircleCheckBigIcon class="h-3 -ml-1 inline-flex text-green-600" />
           </div>
-        </CardContent>
+          <div v-else>
+            Pending
+            <CircleIcon
+              class="h-3 -ml-1 inline-flex text-yellow-600 animate-pulse fill-yellow-600"
+            />
+          </div>
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="flex flex-col gap-2 text-sm">
+        <div
+          v-for="asset in tx.delta"
+          :key="asset.tokenId"
+          class="flex flex-row items-center gap-2"
+        >
+          <ArrowUpRightIcon
+            v-if="asset.amount.isNegative()"
+            class="min-w-5 h-auto text-red-700 opacity-60 rounded-full p-1 bg-red-200"
+            :size="16"
+          />
+          <ArrowDownRightIcon
+            v-else
+            class="min-w-5 h-auto text-green-700 opacity-60 rounded-full p-1 bg-green-200"
+            :size="16"
+          />
 
-        <CardFooter v-if="!tx.confirmed && tx.cancelable">
-          <Button
-            class="w-full"
-            variant="outline"
-            @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
-          >
-            Cancel
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+          <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
+          <div class="w-full">
+            {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
+          </div>
+          <div>
+            {{ formatter.bn.format(positive(asset.amount)) }}
+          </div>
+        </div>
+      </CardContent>
 
-    <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 px-4">
-      <Card v-for="i in 5" :key="i" class="cursor-default">
+      <CardFooter v-if="!tx.confirmed && tx.cancelable">
+        <Button
+          class="w-full"
+          variant="outline"
+          @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
+        >
+          Cancel
+        </Button>
+      </CardFooter>
+    </Card>
+
+    <template v-if="loading && !loaded">
+      <Card v-for="i in txHistory?.length ? 1 : 5" :key="i" class="cursor-default">
         <CardHeader class="gap-0.5">
           <CardTitle class="flex flex-row items-center justify-between">
             <Skeleton class="h-5 w-36" />
@@ -229,13 +205,22 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </template>
     <div
-      v-else-if="allLoaded && !txHistory?.length"
+      v-else-if="loaded && !txHistory?.length"
       class="flex flex-col items-center gap-4 px-4 pt-20 text-center text-gray-500"
     >
       <clock-icon :size="64" class="text-gray-400" />
       You have no transaction history yet.
     </div>
+
+    <Button
+      v-else-if="!loaded && !loading"
+      class="w-full"
+      variant="outline"
+      @click="fetchConfirmedTransactions"
+    >
+      Load more transactions...
+    </Button>
   </div>
 </template>
