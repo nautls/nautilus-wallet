@@ -168,12 +168,12 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           >
             <ArrowUpRightIcon
               v-if="asset.amount.isNegative()"
-              class="min-w-5 h-auto text-red-600 opacity-60 rounded-full p-1 bg-red-200"
+              class="min-w-5 h-auto text-red-700 opacity-60 rounded-full p-1 bg-red-200"
               :size="16"
             />
             <ArrowDownRightIcon
               v-else
-              class="min-w-5 h-auto text-green-600 opacity-60 rounded-full p-1 bg-green-200"
+              class="min-w-5 h-auto text-green-700 opacity-60 rounded-full p-1 bg-green-200"
               :size="16"
             />
 
