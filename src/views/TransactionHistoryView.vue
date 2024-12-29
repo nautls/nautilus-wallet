@@ -7,9 +7,9 @@ import type { BigNumber } from "bignumber.js";
 import {
   ArrowDownRightIcon,
   ArrowUpRightIcon,
+  CircleCheckBigIcon,
   CircleIcon,
-  ClockIcon,
-  DownloadIcon
+  ClockIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -27,7 +27,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { Link } from "@/components/ui/link";
-import EmptyLogo from "@/assets/images/tokens/asset-empty.svg";
+import { Skeleton } from "@/components/ui/skeleton";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/txBuilder";
@@ -152,18 +152,18 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         <CardHeader class="gap-0.5">
           <CardTitle class="flex flex-row items-center justify-between">
             <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
-              Transaction
-              <span>{{ formatter.string.shorten(tx.transactionId, 7, "none") }}</span>
+              Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
             </Link>
             <span class="font-normal text-xs">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
           </CardTitle>
           <CardDescription class="text-xs">
-            <template v-if="tx.confirmed"
-              >{{ (chain.height - tx.height + 1).toLocaleString() }} confirmations</template
-            >
+            <div v-if="tx.confirmed">
+              {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
+              <CircleCheckBigIcon class="h-3 inline-flex text-green-600" />
+            </div>
             <div v-else>
               Pending
-              <CircleIcon class="h-3 inline-flex text-yellow-700 animate-pulse fill-yellow-700" />
+              <CircleIcon class="h-3 inline-flex text-yellow-600 animate-pulse fill-yellow-600" />
             </div>
           </CardDescription>
         </CardHeader>
@@ -206,34 +206,34 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
       </Card>
     </div>
 
-    <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 px-4 pt-4 text-sm">
-      <div class="mb-2 flex flex-col gap-2 rounded border p-4 shadow-sm">
-        <div class="mb-2 flex justify-between">
-          <div class="skeleton h-5 w-6/12 rounded"></div>
-          <div class="skeleton h-4 w-3/12 rounded"></div>
-        </div>
-        <div class="flex flex-col gap-2 p-2">
+    <div v-if="isLoading && !allLoaded" class="flex flex-col gap-4 px-4">
+      <Card v-for="i in 3" :key="i" class="cursor-default">
+        <CardHeader class="gap-0.5">
+          <CardTitle class="flex flex-row items-center justify-between">
+            <Skeleton class="h-5 w-36" />
+            <Skeleton class="h-4 w-20" />
+          </CardTitle>
+          <CardDescription class="text-xs">
+            <Skeleton class="h-4 w-28" />
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="flex flex-col gap-2">
           <div class="flex flex-row items-center gap-2">
-            <download-icon class="min-w-4 animate-pulse text-gray-300" :size="16" />
-
-            <empty-logo class="h-7 w-7 min-w-7 animate-pulse fill-gray-300" />
-            <div class="skeleton h-4 w-5/12 rounded"></div>
-            <div class="w-full"></div>
-            <div class="skeleton h-4 w-4/12 rounded"></div>
+            <Skeleton class="h-5 w-5 rounded-full" />
+            <Skeleton class="h-6 w-6 ml-2" />
+            <Skeleton class="h-5 w-24" />
+            <div class="flex-grow"></div>
+            <Skeleton class="h-5 w-14" />
           </div>
-        </div>
-        <div class="mt-2 flex flex-row items-center justify-between gap-2">
-          <div class="skeleton h-5 w-4/12 rounded"></div>
-          <div class="skeleton h-5 w-5/12 rounded"></div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
     <div
       v-else-if="allLoaded && !txHistory?.length"
       class="flex flex-col items-center gap-4 px-4 pt-20 text-center text-gray-500"
     >
       <clock-icon :size="64" class="text-gray-400" />
-      You have no transaction history.
+      You have no transaction history yet.
     </div>
   </div>
 </template>
