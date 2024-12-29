@@ -146,16 +146,26 @@ async function expandView() {
         <CommandSeparator />
 
         <div class="flex flex-row items-center justify-center pt-2 gap-2">
-          <Button variant="ghost" size="icon" @click="toggleValuesVisibility">
+          <Button
+            class="cursor-default"
+            variant="ghost"
+            size="icon"
+            @click="toggleValuesVisibility"
+          >
             <EyeOffIcon v-if="app.settings.hideBalances" />
             <EyeIcon v-else />
           </Button>
-          <Button variant="ghost" size="icon" @click="toggleColorMode">
+          <Button class="cursor-default" variant="ghost" size="icon" @click="toggleColorMode">
             <MoonIcon v-if="app.settings.colorMode === 'dark'" />
             <SunIcon v-else-if="app.settings.colorMode === 'light'" />
             <SunMoonIcon v-else />
           </Button>
-          <Button variant="ghost" size="icon" :disabled="!isPopup()" @click="expandView"
+          <Button
+            class="cursor-default"
+            variant="ghost"
+            size="icon"
+            :disabled="!isPopup()"
+            @click="expandView"
             ><Maximize2Icon
           /></Button>
         </div>

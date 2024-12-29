@@ -4,7 +4,13 @@ import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { formatTimeAgo, useInfiniteScroll } from "@vueuse/core";
 import type { BigNumber } from "bignumber.js";
-import { ArrowDownRightIcon, ArrowUpRightIcon, ClockIcon, DownloadIcon } from "lucide-vue-next";
+import {
+  ArrowDownRightIcon,
+  ArrowUpRightIcon,
+  CircleIcon,
+  ClockIcon,
+  DownloadIcon
+} from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
@@ -141,23 +147,24 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 
 <template>
   <div ref="txEl" class="h-full overflow-y-auto overflow-x-hidden">
-    <div class="flex flex-col gap-4 px-4 pt-4 text-sm">
-      <Card v-for="tx in txHistory" :key="tx.transactionId">
-        <CardHeader>
+    <div class="flex flex-col gap-4 px-4 pt-4 text-xs">
+      <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
+        <CardHeader class="gap-0.5">
           <CardTitle class="flex flex-row items-center justify-between">
-            <Link external :href="getTransactionExplorerUrl(tx.transactionId)">
+            <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
               Transaction
-              <span class="font-normal text-muted-foreground">{{
-                formatter.string.shorten(tx.transactionId, 7, "none")
-              }}</span>
+              <span>{{ formatter.string.shorten(tx.transactionId, 7, "none") }}</span>
             </Link>
-            <span class="font-normal">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
+            <span class="font-normal text-xs">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
           </CardTitle>
           <CardDescription class="text-xs">
             <template v-if="tx.confirmed"
               >{{ (chain.height - tx.height + 1).toLocaleString() }} confirmations</template
             >
-            <template v-else>Pending</template>
+            <div v-else>
+              Pending
+              <CircleIcon class="h-3 inline-flex text-yellow-700 animate-pulse fill-yellow-700" />
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent class="flex flex-col gap-2">
