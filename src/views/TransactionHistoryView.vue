@@ -206,11 +206,12 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         </CardContent>
       </Card>
     </template>
+
     <div
       v-else-if="loaded && !txHistory?.length"
-      class="flex flex-col items-center gap-4 px-4 pt-20 text-center text-gray-500"
+      class="flex flex-col items-center gap-4 text-center text-muted-foreground text-sm"
     >
-      <clock-icon :size="64" class="text-gray-400" />
+      <clock-icon :size="48" />
       You have no transaction history yet.
     </div>
 
