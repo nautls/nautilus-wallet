@@ -1,3 +1,77 @@
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import {
+  CheckCircleIcon,
+  CircleIcon,
+  EyeIcon,
+  EyeOffIcon,
+  FilterIcon,
+  FilterXIcon,
+  ShieldCheckIcon
+} from "lucide-vue-next";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import { openModal } from "@/common/componentUtils";
+import { useFormat, useQrCode } from "@/composables";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { AddressState, StateAddress, WalletType } from "@/types/internal";
+import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
+
+const app = useAppStore();
+const wallet = useWalletStore();
+const format = useFormat();
+
+const qrCode = useQrCode({ border: 0 });
+
+const prevCount = ref(1);
+const errorMsg = ref("");
+
+const isLedger = computed(() => wallet.type === WalletType.Ledger);
+const reversedAddresses = computed(() => wallet.filteredAddresses.slice().reverse());
+const hideUsed = computed(() => wallet.settings.hideUsedAddresses);
+const loading = computed(() => wallet.addresses.length === 0 && wallet.loading);
+const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
+const hideBalances = computed(() => app.settings.hideBalances);
+
+function updateDefaultChangeIndex(index: number) {
+  wallet.settings.defaultChangeIndex = index;
+}
+
+function toggleUsedAddressesFilter() {
+  wallet.settings.hideUsedAddresses = !wallet.settings.hideUsedAddresses;
+}
+
+async function newAddress() {
+  try {
+    await wallet.deriveNewAddress();
+  } catch (e) {
+    errorMsg.value = (e as Error).message;
+  }
+}
+
+function ergBalanceFor(address: StateAddress): string {
+  return address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0";
+}
+
+function isUsed(address: StateAddress): boolean {
+  return address.state === AddressState.Used;
+}
+
+function urlFor(address: string | undefined): string {
+  return new URL(`/addresses/${address}`, app.settings.explorerUrl).toString();
+}
+
+function toggleHideBalance(): void {
+  app.settings.hideBalances = !app.settings.hideBalances;
+}
+
+function showOnLedger(address: StateAddress) {
+  openModal(ConfirmAddressOnDevice, {
+    props: { address: address.script, index: address.index }
+  });
+}
+</script>
+
 <template>
   <div class="flex flex-col gap-4 py-4">
     <div class="flex flex-row gap-4">
@@ -132,106 +206,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import {
-  CheckCircleIcon,
-  CircleIcon,
-  EyeIcon,
-  EyeOffIcon,
-  FilterIcon,
-  FilterXIcon,
-  ShieldCheckIcon
-} from "lucide-vue-next";
-import { useAppStore } from "@/stores/appStore";
-import { useWalletStore } from "@/stores/walletStore";
-import { openModal } from "@/common/componentUtils";
-import { useFormat, useQrCode } from "@/composables";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { AddressState, StateAddress, WalletType } from "@/types/internal";
-import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
-
-export default defineComponent({
-  name: "ReceiveView",
-  components: {
-    qrCode: useQrCode({ border: 0 }),
-    CheckCircleIcon,
-    CircleIcon,
-    FilterIcon,
-    FilterXIcon,
-    EyeIcon,
-    EyeOffIcon,
-    ShieldCheckIcon
-  },
-  setup() {
-    return { app: useAppStore(), wallet: useWalletStore(), format: useFormat() };
-  },
-  data() {
-    return {
-      prevCount: 1,
-      errorMsg: ""
-    };
-  },
-  computed: {
-    isLedger(): boolean {
-      return this.wallet.type === WalletType.Ledger;
-    },
-    reversedAddresses(): StateAddress[] {
-      return this.wallet.filteredAddresses.slice().reverse();
-    },
-    hideUsed(): boolean {
-      return this.wallet.settings.hideUsedAddresses;
-    },
-    loading(): boolean {
-      return this.wallet.addresses.length === 0 && this.wallet.loading;
-    },
-    avoidingReuse(): boolean {
-      return this.wallet.settings.avoidAddressReuse;
-    },
-    hideBalances(): boolean {
-      return this.app.settings.hideBalances;
-    }
-  },
-  watch: {
-    "wallet.addresses"(_, oldLen) {
-      const length = oldLen || 1;
-      if (length > 1) this.prevCount = length;
-    }
-  },
-  methods: {
-    updateDefaultChangeIndex(index: number) {
-      this.wallet.settings.defaultChangeIndex = index;
-    },
-    toggleUsedAddressesFilter() {
-      this.wallet.settings.hideUsedAddresses = !this.wallet.settings.hideUsedAddresses;
-    },
-    async newAddress() {
-      try {
-        await this.wallet.deriveNewAddress();
-      } catch (e) {
-        this.errorMsg = (e as Error).message;
-      }
-    },
-    ergBalanceFor(address: StateAddress): string {
-      return (
-        address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0"
-      );
-    },
-    isUsed(address: StateAddress): boolean {
-      return address.state === AddressState.Used;
-    },
-    urlFor(address: string | undefined): string {
-      return new URL(`/addresses/${address}`, this.app.settings.explorerUrl).toString();
-    },
-    toggleHideBalance(): void {
-      this.app.settings.hideBalances = !this.app.settings.hideBalances;
-    },
-    showOnLedger(address: StateAddress) {
-      openModal(ConfirmAddressOnDevice, {
-        props: { address: address.script, index: address.index }
-      });
-    }
-  }
-});
-</script>
