@@ -1,29 +1,42 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import {
-  CheckCircleIcon,
+  CircleCheckIcon,
   CircleIcon,
+  CirclePlusIcon,
+  CopyIcon,
+  ExternalLinkIcon,
   EyeIcon,
   EyeOffIcon,
   FilterIcon,
   FilterXIcon,
+  QrCodeIcon,
   ShieldCheckIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
+import QrCode from "@/components/QrCode.vue";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Link } from "@/components/ui/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { bn } from "@/common/bigNumber";
 import { openModal } from "@/common/componentUtils";
-import { useFormat, useQrCode } from "@/composables";
+import { useFormat } from "@/composables";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState, StateAddress, WalletType } from "@/types/internal";
-import ConfirmAddressOnDevice from "../components/ConfirmAddressOnDevice.vue";
 
 const app = useAppStore();
 const wallet = useWalletStore();
 const format = useFormat();
 
-const qrCode = useQrCode({ border: 0 });
+// todo:
+// - handle address derivation error messages
+// - fix new derived address not showing up
+// - handle address derivation loading state
+// - handle copy address
 
-const prevCount = ref(1);
 const errorMsg = ref("");
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
@@ -49,8 +62,12 @@ async function newAddress() {
   }
 }
 
-function ergBalanceFor(address: StateAddress): string {
-  return address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount.toFormat() || "0";
+function getFormattedErgBalance(address: StateAddress, decimals = 3): string | undefined {
+  if (address.state === AddressState.Unused) return "Unused";
+  let erg = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount;
+  if (!erg) erg = bn(0);
+
+  return `${format.bn.format(erg, decimals, 1_000)} ERG`;
 }
 
 function isUsed(address: StateAddress): boolean {
@@ -73,47 +90,84 @@ function showOnLedger(address: StateAddress) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 py-4">
-    <div class="flex flex-row gap-4">
-      <div class="w-8/12">
-        <label
-          ><span v-if="avoidingReuse">Your current address</span>
-          <span v-else>Your default address</span></label
-        >
-        <div class="break-all rounded border border-gray-200 bg-gray-100 p-2 font-mono text-sm">
-          <template v-if="loading">
-            <div class="skeleton h-3 w-full rounded"></div>
-            <div class="skeleton h-3 w-full rounded"></div>
-            <div class="skeleton h-3 w-1/2 rounded"></div>
-          </template>
-          <template v-else>
-            <a :href="urlFor(wallet.changeAddress?.script)" target="_blank">
-              {{ wallet.changeAddress?.script }}
-            </a>
-            <click-to-copy :content="wallet.changeAddress?.script" class="mx-2" />
-          </template>
+  <div class="flex flex-col gap-4 p-4 text-sm">
+    <Card class="p-4">
+      <div class="flex flex-row gap-4 items-center">
+        <div class="w-8/12">
+          <h1 class="font-semibold leading-none tracking-tight mb-2">
+            {{ avoidingReuse ? "Your current address" : "Your default address" }}
+          </h1>
+          <Link class="break-all" :href="urlFor(wallet.changeAddress?.script)" external>
+            {{ wallet.changeAddress?.script }}
+          </Link>
+          <button class="inline pl-2 text-muted-foreground hover:text-foreground transition-colors">
+            <CopyIcon class="h-3 w-3" />
+          </button>
         </div>
+
+        <QrCode
+          :data="wallet.changeAddress?.script"
+          class="h-auto flex-grow border rounded-lg object-fill p-2 bg-white"
+        />
       </div>
-      <div class="w-4/12">
-        <div v-if="loading" class="skeleton h-full w-full p-0.5"></div>
-        <qr-code v-else :data="wallet.changeAddress?.script" class="h-full w-full p-0.5" />
-      </div>
-    </div>
-    <div v-if="isLedger" class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
+    </Card>
+
+    <!-- <div v-if="isLedger" class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
       <strong
         >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
       >
       Due to device's memory limitations, your funds may get stuck in your wallet.
+    </div> -->
+
+    <Tabs default-value="all" class="pt-4">
+      <div class="flex flex-row">
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="unused">Unused</TabsTrigger>
+        </TabsList>
+
+        <div class="flex-grow"></div>
+        <Button variant="ghost" size="icon" :disabled="errorMsg != ''" @click="newAddress"
+          ><CirclePlusIcon
+        /></Button>
+      </div>
+    </Tabs>
+
+    <div class="flex flex-col gap-0">
+      <TransitionGroup name="slide-up" appear>
+        <div
+          v-for="address in reversedAddresses"
+          :key="address.script"
+          class="rounded-md transition-colors hover:bg-accent hover:text-accent-foreground justify-between p-4 flex gap-2 items-center bg-transparent"
+        >
+          <div class="flex gap-2 items-center">
+            <CircleCheckIcon class="w-4 h-auto" />
+            <span class="whitespace-nowrap font-mono">{{
+              format.string.shorten(address.script, 10)
+            }}</span>
+            <button class="text-muted-foreground hover:text-foreground transition-colors">
+              <CopyIcon class="h-4 w-4" />
+            </button>
+            <button class="text-muted-foreground hover:text-foreground transition-colors">
+              <QrCodeIcon class="h-4 w-4" />
+            </button>
+            <button class="text-muted-foreground hover:text-foreground transition-colors">
+              <ExternalLinkIcon class="h-4 w-4" />
+            </button>
+          </div>
+
+          <div class="text-right text-xs">
+            <span>{{ getFormattedErgBalance(address) }}</span>
+            <span v-if="address.assets.length > 1" class="text-muted-foreground">
+              +{{ address.assets.length - 1 }}</span
+            >
+          </div>
+        </div>
+      </TransitionGroup>
     </div>
-    <div>
-      <button class="btn w-full" :disabled="loading || errorMsg != ''" @click="newAddress()">
-        New address
-      </button>
-      <p v-if="errorMsg != ''" class="input-error">
-        {{ errorMsg }}
-      </p>
-    </div>
-    <div class="rounded border">
+
+    <!-- <div class="hidden">
       <table class="table">
         <thead>
           <tr>
@@ -190,19 +244,10 @@ function showOnLedger(address: StateAddress) {
                 </template>
               </div>
             </td>
-            <td class="text-right">
-              <div
-                v-if="hideBalances"
-                class="skeleton inline-block h-5 w-2/4 animate-none rounded align-middle"
-              ></div>
-              <template v-else>
-                <span class="float-left">Σ</span>
-                <span> {{ ergBalanceFor(address) }}</span>
-              </template>
-            </td>
+            <td class="text-right">Σ {{ getFormattedErgBalance(address) }}</td>
           </tr>
         </tbody>
       </table>
-    </div>
+    </div> -->
   </div>
 </template>
