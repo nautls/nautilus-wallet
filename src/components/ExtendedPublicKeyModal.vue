@@ -29,11 +29,11 @@
 import { defineComponent } from "vue";
 import { useWalletStore } from "@/stores/walletStore";
 import { mountExtendedPublicKey } from "@/common/serializer";
-import { useQrCode } from "@/composables";
+import QrCode from "./QrCode.vue";
 
 export default defineComponent({
   name: "KYAModal",
-  components: { qrCode: useQrCode({ border: 0 }) },
+  components: { QrCode },
   props: {
     active: { type: Boolean, required: true }
   },

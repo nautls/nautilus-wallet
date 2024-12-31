@@ -1,0 +1,24 @@
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import { QrCodeGenerateData, QrCodeGenerateOptions, renderSVG } from "uqr";
+
+type QrCodeProps = {
+  data: QrCodeGenerateData;
+  options?: QrCodeGenerateOptions;
+};
+
+const props = defineProps<QrCodeProps>();
+const svg = ref("");
+
+watch(() => props.data, render, { immediate: true });
+
+function render() {
+  if (!props.data) return;
+  svg.value = renderSVG(props.data, { border: 0 });
+}
+</script>
+
+<template>
+  <!-- eslint-disable-next-line vue/no-v-html -->
+  <div v-html="svg"></div>
+</template>
