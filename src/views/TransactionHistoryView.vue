@@ -124,7 +124,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 </script>
 
 <template>
-  <div class="px-4 py-8 flex flex-col gap-4">
+  <div class="p-4 flex flex-col gap-4">
     <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
       <CardHeader class="gap-0.5">
         <CardTitle class="flex flex-row items-center justify-between">

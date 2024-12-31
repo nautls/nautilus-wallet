@@ -4,11 +4,15 @@ export function useFormat() {
   return FORMATTERS;
 }
 
-const DEFAULT_FORMATTER = Intl.NumberFormat("en", {
+const COMPACT_FORMATTER = Intl.NumberFormat("en", {
   notation: "compact",
   compactDisplay: "short",
   maximumFractionDigits: 2
 });
+
+function format(value: number, maximumFractionDigits: number): string {
+  return Intl.NumberFormat("en", { maximumFractionDigits, minimumFractionDigits: 2 }).format(value);
+}
 
 const FORMATTERS = {
   string: {
@@ -44,8 +48,9 @@ const FORMATTERS = {
   bn: {
     format(value?: BigNumber, decimalPlaces?: number, shortenThreshold = 1_000_000) {
       if (!value) return "";
-      if (value.gte(shortenThreshold)) return DEFAULT_FORMATTER.format(value.toNumber());
-      return value.toFormat(decimalPlaces);
+      if (value.gte(shortenThreshold)) return COMPACT_FORMATTER.format(value.toNumber());
+      if (decimalPlaces === undefined) return value.toFormat();
+      return format(value.toNumber(), decimalPlaces); // .toFormat(decimalPlaces);
     }
   }
 };
