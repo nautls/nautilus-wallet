@@ -15,7 +15,7 @@ import { utxosDbService } from "@/database/utxosDbService";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
-import { AddressFilter, Network, WalletType } from "@/types/internal";
+import { Network, WalletType } from "@/types/internal";
 import { useChainStore } from "./chainStore";
 
 export type Settings = {
@@ -135,7 +135,7 @@ export const useAppStore = defineStore("app", () => {
           : undefined,
       settings: {
         avoidAddressReuse: false,
-        addressFilter: AddressFilter.All,
+        addressFilter: "all",
         defaultChangeIndex: 0
       }
     };

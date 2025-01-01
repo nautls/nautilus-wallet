@@ -8,12 +8,6 @@ export enum AddressState {
   Unused
 }
 
-export enum AddressFilter {
-  All = "all",
-  Active = "active",
-  Unused = "unused"
-}
-
 export enum WalletType {
   Standard,
   ReadOnly,
@@ -56,6 +50,8 @@ export type StateAddress = {
   index: number;
   assets: StateAsset[];
 };
+
+export type AddressFilter = "all" | "active" | "unused";
 
 export type WalletSettings = {
   avoidAddressReuse: boolean;

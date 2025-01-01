@@ -84,7 +84,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const name = ref("");
   const settings = ref<WalletSettings>({
     avoidAddressReuse: false,
-    addressFilter: AddressFilter.All,
+    addressFilter: "all",
     defaultChangeIndex: 0
   });
 
@@ -239,8 +239,17 @@ export const useWalletStore = defineStore("wallet", () => {
   );
 
   const filteredAddresses = computed((): StateAddress[] => {
-    if (settings.value.addressFilter === AddressFilter.All) return addresses.value;
+    // all addresses
+    if (settings.value.addressFilter === "all") {
+      return addresses.value;
+    }
 
+    // unused addresses
+    if (settings.value.addressFilter === "unused") {
+      return addresses.value.filter((address) => address.state !== AddressState.Used);
+    }
+
+    // active addresses
     return addresses.value.filter(
       (address) =>
         (!settings.value.avoidAddressReuse &&

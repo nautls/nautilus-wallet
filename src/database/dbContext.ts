@@ -9,7 +9,6 @@ import {
   IDbUtxo,
   IDbWallet
 } from "@/types/database";
-import { AddressFilter } from "@/types/internal";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
@@ -74,10 +73,7 @@ class NautilusDb extends Dexie {
         .table("wallets")
         .toCollection()
         .modify((wallet: IDbWallet) => {
-          wallet.settings.addressFilter = wallet.settings[hideUsedAddresses]
-            ? AddressFilter.Active
-            : AddressFilter.All;
-
+          wallet.settings.addressFilter = wallet.settings[hideUsedAddresses] ? "active" : "all";
           delete wallet.settings[hideUsedAddresses];
         });
     });
