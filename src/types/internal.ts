@@ -8,6 +8,12 @@ export enum AddressState {
   Unused
 }
 
+export enum AddressFilter {
+  All = "all",
+  Active = "active",
+  Unused = "unused"
+}
+
 export enum WalletType {
   Standard,
   ReadOnly,
@@ -53,7 +59,7 @@ export type StateAddress = {
 
 export type WalletSettings = {
   avoidAddressReuse: boolean;
-  hideUsedAddresses: boolean;
+  addressFilter: AddressFilter;
   defaultChangeIndex: number;
 };
 
@@ -114,5 +120,4 @@ export type SigningState = {
 
 export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};

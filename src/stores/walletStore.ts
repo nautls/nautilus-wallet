@@ -13,6 +13,7 @@ import { assetsDbService } from "@/database/assetsDbService";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
+  AddressFilter,
   AddressState,
   AddressType,
   AssetSubtype,
@@ -83,7 +84,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const name = ref("");
   const settings = ref<WalletSettings>({
     avoidAddressReuse: false,
-    hideUsedAddresses: false,
+    addressFilter: AddressFilter.All,
     defaultChangeIndex: 0
   });
 
@@ -238,7 +239,8 @@ export const useWalletStore = defineStore("wallet", () => {
   );
 
   const filteredAddresses = computed((): StateAddress[] => {
-    if (!settings.value.hideUsedAddresses) return addresses.value;
+    if (settings.value.addressFilter === AddressFilter.All) return addresses.value;
+
     return addresses.value.filter(
       (address) =>
         (!settings.value.avoidAddressReuse &&
