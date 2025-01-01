@@ -20,7 +20,7 @@ import QrCode from "@/components/QrCode.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "@/components/ui/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { bn } from "@/common/bigNumber";
 import { openModal } from "@/common/componentUtils";
 import { useFormat } from "@/composables";
@@ -40,7 +40,7 @@ const format = useFormat();
 const errorMsg = ref("");
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
-const reversedAddresses = computed(() => wallet.filteredAddresses.slice().reverse());
+const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const hideUsed = computed(() => wallet.settings.hideUsedAddresses);
 const loading = computed(() => wallet.addresses.length === 0 && wallet.loading);
 const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
@@ -48,10 +48,6 @@ const hideBalances = computed(() => app.settings.hideBalances);
 
 function updateDefaultChangeIndex(index: number) {
   wallet.settings.defaultChangeIndex = index;
-}
-
-function toggleUsedAddressesFilter() {
-  wallet.settings.hideUsedAddresses = !wallet.settings.hideUsedAddresses;
 }
 
 async function newAddress() {
@@ -70,16 +66,8 @@ function getFormattedErgBalance(address: StateAddress, decimals = 3): string | u
   return `${format.bn.format(erg, decimals, 1_000)} ERG`;
 }
 
-function isUsed(address: StateAddress): boolean {
-  return address.state === AddressState.Used;
-}
-
 function urlFor(address: string | undefined): string {
   return new URL(`/addresses/${address}`, app.settings.explorerUrl).toString();
-}
-
-function toggleHideBalance(): void {
-  app.settings.hideBalances = !app.settings.hideBalances;
 }
 
 function showOnLedger(address: StateAddress) {
@@ -119,7 +107,7 @@ function showOnLedger(address: StateAddress) {
       Due to device's memory limitations, your funds may get stuck in your wallet.
     </div> -->
 
-    <Tabs default-value="all" class="pt-4">
+    <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
       <div class="flex flex-row">
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
@@ -137,7 +125,7 @@ function showOnLedger(address: StateAddress) {
     <div class="flex flex-col gap-0">
       <TransitionGroup name="slide-up" appear>
         <div
-          v-for="address in reversedAddresses"
+          v-for="address in addresses"
           :key="address.script"
           class="rounded-md transition-colors hover:bg-accent hover:text-accent-foreground justify-between p-4 flex gap-2 items-center bg-transparent"
         >
@@ -146,6 +134,7 @@ function showOnLedger(address: StateAddress) {
             <span class="whitespace-nowrap font-mono">{{
               format.string.shorten(address.script, 10)
             }}</span>
+
             <button class="text-muted-foreground hover:text-foreground transition-colors">
               <CopyIcon class="h-4 w-4" />
             </button>

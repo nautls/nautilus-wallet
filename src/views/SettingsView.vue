@@ -378,7 +378,7 @@ export default defineComponent({
         name: this.walletSettings.name,
         settings: {
           avoidAddressReuse: this.walletSettings.avoidAddressReuse,
-          hideUsedAddresses: this.walletSettings.hideUsedAddresses
+          hideUsedAddresses: this.walletSettings.hideUsedAddresses ? "active" : "all"
         }
       });
     },
