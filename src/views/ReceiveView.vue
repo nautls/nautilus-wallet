@@ -32,13 +32,13 @@ const format = useFormat();
 // - fix new derived address not showing up
 // - handle address derivation loading state
 // - handle copy address
+// - handle hide balance
 
 const errorMsg = ref("");
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
-const hideBalances = computed(() => app.settings.hideBalances);
 
 function setDefaultAddress(address: StateAddress) {
   if (wallet.settings.defaultChangeIndex === address.index) return;
@@ -165,88 +165,5 @@ function showOnLedger(address: StateAddress) {
         </div>
       </TransitionGroup>
     </div>
-
-    <!-- <div class="hidden">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>
-              <div class="flex flex-row justify-start gap-2 align-middle">
-                Address ({{ wallet.filteredAddresses.length
-                }}<template v-if="hideUsed">/{{ wallet.addresses.length }}</template
-                >)
-                <tool-tip
-                  :label="hideUsed ? 'Show all addresses' : 'Hide empty used addresses'"
-                  tip-class="normal-case"
-                >
-                  <a class="inline-flex cursor-pointer" @click="toggleUsedAddressesFilter()">
-                    <filter-x-icon v-if="hideUsed" :size="16" />
-                    <filter-icon v-else :size="16" />
-                  </a>
-                </tool-tip>
-              </div>
-            </th>
-            <th>
-              <div class="flex flex-row justify-end gap-2 align-middle">
-                <tool-tip
-                  :label="hideBalances ? 'Show' : 'Hide'"
-                  tip-class="normal-case"
-                  class="align-middle"
-                >
-                  <a class="inline-flex cursor-pointer" @click="toggleHideBalance()">
-                    <eye-off-icon v-if="hideBalances" :size="16" />
-                    <eye-icon v-else :size="16" />
-                  </a>
-                </tool-tip>
-                Balance
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <template v-if="loading">
-            <tr v-for="i in prevCount" :key="i">
-              <td>
-                <div class="skeleton inline-block h-3 w-2/3 rounded"></div>
-              </td>
-              <td class="text-right">
-                <div class="skeleton inline-block h-3 w-1/3 rounded"></div>
-              </td>
-            </tr>
-          </template>
-          <tr v-for="address in reversedAddresses" v-else :key="address.script">
-            <td class="font-mono">
-              <div class="flex gap-2 text-gray-700">
-                <a
-                  :href="urlFor(address.script)"
-                  :class="{ 'text-gray-400': isUsed(address) }"
-                  target="_blank"
-                  >{{ format.string.shorten(address.script, 10) }}</a
-                >
-                <tool-tip v-if="isLedger" label="Verify this address on <br /> your Ledger device">
-                  <a class="cursor-pointer" @click="showOnLedger(address)">
-                    <shield-check-icon class="inline" :size="14" />
-                  </a>
-                </tool-tip>
-
-                <click-to-copy :content="address.script" :size="14" />
-
-                <template v-if="!wallet.settings.avoidAddressReuse">
-                  <span v-if="wallet.settings.defaultChangeIndex === address.index">
-                    <check-circle-icon class="inline text-green-600" :size="14" />
-                  </span>
-                  <tool-tip v-else label="Set as default<br />address">
-                    <a class="cursor-pointer" @click="updateDefaultChangeIndex(address.index)">
-                      <circle-icon class="inline" :size="14" />
-                    </a>
-                  </tool-tip>
-                </template>
-              </div>
-            </td>
-            <td class="text-right">Σ {{ getFormattedErgBalance(address) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div> -->
   </div>
 </template>
