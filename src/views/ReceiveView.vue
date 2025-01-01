@@ -83,9 +83,9 @@ function showOnLedger(address: StateAddress) {
           <Link class="break-all" :href="urlFor(wallet.changeAddress?.script)" external>
             {{ wallet.changeAddress?.script }}
           </Link>
-          <button class="inline ml-2 text-muted-foreground hover:text-foreground transition-colors">
-            <CopyIcon class="h-3 w-3" />
-          </button>
+          <Button variant="minimal" size="condensed" class="size-3 ml-2 align-middle">
+            <CopyIcon />
+          </Button>
         </div>
 
         <QrCode
@@ -125,35 +125,38 @@ function showOnLedger(address: StateAddress) {
           class="rounded-md transition-colors hover:bg-accent hover:text-accent-foreground justify-between p-4 flex gap-2 items-center bg-transparent"
         >
           <div class="flex gap-2 items-center">
-            <button class="flex gap-2 items-center" @click="setDefaultAddress(address)">
-              <CircleCheckIcon
-                v-if="wallet.settings.defaultChangeIndex === address.index"
-                class="w-4 h-auto"
-              />
-              <CircleIcon v-else class="w-4 h-auto" />
-              <span class="whitespace-nowrap font-mono">{{
+            <Button
+              variant="minimal"
+              size="condensed"
+              class="flex gap-2 items-center [&_svg]:size-4"
+              @click="setDefaultAddress(address)"
+            >
+              <CircleCheckIcon v-if="wallet.settings.defaultChangeIndex === address.index" />
+              <CircleIcon v-else />
+              <span class="whitespace-nowrap font-mono text-foreground">{{
                 format.string.shorten(address.script, 10)
               }}</span>
-            </button>
+            </Button>
 
-            <button class="text-muted-foreground hover:text-foreground transition-colors">
-              <CopyIcon class="h-4 w-4" />
-            </button>
-            <button class="text-muted-foreground hover:text-foreground transition-colors">
-              <ExternalLinkIcon class="h-4 w-4" />
-            </button>
-            <button class="text-muted-foreground hover:text-foreground transition-colors">
-              <QrCodeIcon class="h-4 w-4" />
-            </button>
-
+            <Button variant="minimal" size="condensed" class="size-4">
+              <CopyIcon />
+            </Button>
+            <Button variant="minimal" size="condensed" class="size-4">
+              <ExternalLinkIcon />
+            </Button>
+            <Button variant="minimal" size="condensed" class="size-4">
+              <QrCodeIcon />
+            </Button>
             <!-- Verify this address on your Ledger device -->
-            <button
+            <Button
               v-if="isLedger"
-              class="text-muted-foreground hover:text-foreground transition-colors"
+              variant="minimal"
+              size="condensed"
+              class="size-4"
               @click="showOnLedger(address)"
             >
-              <ShieldCheckIcon class="h-4 w-4" :size="14" />
-            </button>
+              <ShieldCheckIcon />
+            </Button>
           </div>
 
           <div class="text-right text-xs">

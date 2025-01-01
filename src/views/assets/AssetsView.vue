@@ -142,13 +142,9 @@ function formatAssetName(asset: StateAssetSummary): string {
               v-for="asset in tokens"
               :key="asset.tokenId"
               variant="ghost"
-              class="h-auto py-3 text-left"
+              class="h-auto py-3 text-left [&_svg]:size-10"
             >
-              <AssetIcon
-                class="!h-10 !w-10"
-                :token-id="asset.tokenId"
-                :type="asset.metadata?.type"
-              />
+              <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
               <div
                 class="flex flex-grow flex-col align-middle text-sm"
