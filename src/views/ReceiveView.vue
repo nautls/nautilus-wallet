@@ -6,10 +6,6 @@ import {
   CirclePlusIcon,
   CopyIcon,
   ExternalLinkIcon,
-  EyeIcon,
-  EyeOffIcon,
-  FilterIcon,
-  FilterXIcon,
   QrCodeIcon,
   ShieldCheckIcon
 } from "lucide-vue-next";
@@ -41,13 +37,12 @@ const errorMsg = ref("");
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
-const hideUsed = computed(() => wallet.settings.hideUsedAddresses);
-const loading = computed(() => wallet.addresses.length === 0 && wallet.loading);
 const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
 const hideBalances = computed(() => app.settings.hideBalances);
 
-function updateDefaultChangeIndex(index: number) {
-  wallet.settings.defaultChangeIndex = index;
+function setDefaultAddress(address: StateAddress) {
+  if (wallet.settings.defaultChangeIndex === address.index) return;
+  wallet.settings.defaultChangeIndex = address.index;
 }
 
 async function newAddress() {
@@ -88,7 +83,7 @@ function showOnLedger(address: StateAddress) {
           <Link class="break-all" :href="urlFor(wallet.changeAddress?.script)" external>
             {{ wallet.changeAddress?.script }}
           </Link>
-          <button class="inline pl-2 text-muted-foreground hover:text-foreground transition-colors">
+          <button class="inline ml-2 text-muted-foreground hover:text-foreground transition-colors">
             <CopyIcon class="h-3 w-3" />
           </button>
         </div>
@@ -130,19 +125,34 @@ function showOnLedger(address: StateAddress) {
           class="rounded-md transition-colors hover:bg-accent hover:text-accent-foreground justify-between p-4 flex gap-2 items-center bg-transparent"
         >
           <div class="flex gap-2 items-center">
-            <CircleCheckIcon class="w-4 h-auto" />
-            <span class="whitespace-nowrap font-mono">{{
-              format.string.shorten(address.script, 10)
-            }}</span>
+            <button class="flex gap-2 items-center" @click="setDefaultAddress(address)">
+              <CircleCheckIcon
+                v-if="wallet.settings.defaultChangeIndex === address.index"
+                class="w-4 h-auto"
+              />
+              <CircleIcon v-else class="w-4 h-auto" />
+              <span class="whitespace-nowrap font-mono">{{
+                format.string.shorten(address.script, 10)
+              }}</span>
+            </button>
 
             <button class="text-muted-foreground hover:text-foreground transition-colors">
               <CopyIcon class="h-4 w-4" />
             </button>
             <button class="text-muted-foreground hover:text-foreground transition-colors">
-              <QrCodeIcon class="h-4 w-4" />
+              <ExternalLinkIcon class="h-4 w-4" />
             </button>
             <button class="text-muted-foreground hover:text-foreground transition-colors">
-              <ExternalLinkIcon class="h-4 w-4" />
+              <QrCodeIcon class="h-4 w-4" />
+            </button>
+
+            <!-- Verify this address on your Ledger device -->
+            <button
+              v-if="isLedger"
+              class="text-muted-foreground hover:text-foreground transition-colors"
+              @click="showOnLedger(address)"
+            >
+              <ShieldCheckIcon class="h-4 w-4" :size="14" />
             </button>
           </div>
 
