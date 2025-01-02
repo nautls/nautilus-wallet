@@ -13,8 +13,7 @@ interface Props extends PrimitiveProps {
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "minimal",
-  size: "condensed",
-  class: undefined
+  size: "condensed"
 });
 
 const copied = ref(false);

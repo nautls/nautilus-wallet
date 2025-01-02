@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { HtmlHTMLAttributes } from "vue";
+import { HtmlHTMLAttributes, LinkHTMLAttributes } from "vue";
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(
   defineProps<{
-    href?: string;
+    href?: LinkHTMLAttributes["href"];
     class?: HtmlHTMLAttributes["class"];
     external?: boolean;
   }>(),
