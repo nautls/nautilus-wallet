@@ -31,7 +31,6 @@ const format = useFormat();
 // todo:
 // - handle address derivation error messages
 // - fix new derived address not showing up
-// - handle copy address
 
 const errorMsg = ref("");
 
@@ -60,8 +59,9 @@ function getFormattedErgBalance(address: StateAddress, decimals = 3): string | u
   return `${format.bn.format(erg, decimals, 1_000)} ERG`;
 }
 
-function urlFor(address: string | undefined): string {
-  return new URL(`/addresses/${address}`, app.settings.explorerUrl).toString();
+function openExplorer(address: string | undefined) {
+  const url = new URL(`/addresses/${address}`, app.settings.explorerUrl).toString();
+  window.open(url, "_blank");
 }
 
 function showOnLedger(address: StateAddress) {
@@ -79,7 +79,7 @@ function showOnLedger(address: StateAddress) {
           <h1 class="font-semibold leading-none tracking-tight mb-2">
             {{ avoidingReuse ? "Your current address" : "Your default address" }}
           </h1>
-          <Link class="break-all" :href="urlFor(wallet.changeAddress?.script)" external>
+          <Link class="break-all" external @click="openExplorer(wallet.changeAddress?.script)">
             {{ wallet.changeAddress?.script }}
           </Link>
           <CopyButton class="size-3 ml-2 align-middle" :content="wallet.changeAddress?.script" />
@@ -136,7 +136,12 @@ function showOnLedger(address: StateAddress) {
             </Button>
 
             <CopyButton :content="address.script" class="size-4" />
-            <Button variant="minimal" size="condensed" class="size-4">
+            <Button
+              variant="minimal"
+              size="condensed"
+              class="size-4"
+              @click="openExplorer(address.script)"
+            >
               <ExternalLinkIcon />
             </Button>
             <Button variant="minimal" size="condensed" class="size-4">

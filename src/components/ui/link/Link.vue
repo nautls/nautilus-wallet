@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils'
 
 const props = withDefaults(
   defineProps<{
-    href: string;
+    href?: string;
     class?: HtmlHTMLAttributes["class"];
-    external: boolean;
+    external?: boolean;
   }>(),
   {
     external: false
@@ -16,7 +16,7 @@ const props = withDefaults(
 
 <template>
   <a
-    :class="cn(props.class, 'text-primary underline-offset-4 hover:underline')"
+    :class="cn(props.class, 'text-primary underline-offset-4 hover:underline cursor-pointer')"
     :href="props.href"
     :target="external ? '_blank' : undefined"
     :rel="external ? 'noopener noreferrer' : undefined"
