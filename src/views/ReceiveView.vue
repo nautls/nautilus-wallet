@@ -6,12 +6,14 @@ import {
   CirclePlusIcon,
   ExternalLinkIcon,
   QrCodeIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  TriangleAlertIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
 import QrCode from "@/components/QrCode.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import CopyButton from "@/components/ui/CopyButton.vue";
@@ -31,6 +33,7 @@ const format = useFormat();
 // todo:
 // - handle address derivation error messages
 // - fix new derived address not showing up
+// - add qrcode modal
 
 const errorMsg = ref("");
 
@@ -75,7 +78,7 @@ function showOnLedger(address: StateAddress) {
   <div class="flex flex-col gap-4 p-4 text-sm">
     <Card class="p-4">
       <div class="flex flex-row gap-4 items-center">
-        <div class="w-8/12">
+        <div class="w-8/12 xs:w-7/12">
           <h1 class="font-semibold leading-none tracking-tight mb-2">
             {{ avoidingReuse ? "Your current address" : "Your default address" }}
           </h1>
@@ -90,19 +93,18 @@ function showOnLedger(address: StateAddress) {
           <CopyButton class="size-3 ml-2 align-middle" :content="wallet.changeAddress?.script" />
         </div>
 
-        <QrCode
-          :data="wallet.changeAddress?.script"
-          class="h-auto flex-grow border rounded-lg object-fill p-2 bg-white"
-        />
+        <QrCode :data="wallet.changeAddress?.script" />
       </div>
     </Card>
 
-    <!-- <div v-if="isLedger" class="rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-sm">
-      <strong
-        >Do not send more than 20 different tokens to a Ledger wallet in one transaction.</strong
-      >
-      Due to device's memory limitations, your funds may get stuck in your wallet.
-    </div> -->
+    <Alert v-if="isLedger" class="space-x-2">
+      <TriangleAlertIcon />
+      <AlertTitle>Heads up!</AlertTitle>
+      <AlertDescription>
+        Avoid sending more than <strong>20 different tokens</strong> in a single transaction to a
+        Ledger wallet. Limited device memory could cause your funds to become inaccessible.
+      </AlertDescription>
+    </Alert>
 
     <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
       <div class="flex flex-row">
