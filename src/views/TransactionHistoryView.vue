@@ -154,13 +154,11 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         >
           <ArrowUpRightIcon
             v-if="asset.amount.isNegative()"
-            class="min-w-5 h-auto text-red-700 opacity-60 rounded-full p-1 bg-red-200"
-            :size="16"
+            class="h-5 min-w-5 text-red-600 dark:text-red-400 rounded-full p-0.5 bg-accent border-accent border"
           />
           <ArrowDownRightIcon
             v-else
-            class="min-w-5 h-auto text-green-700 opacity-60 rounded-full p-1 bg-green-200"
-            :size="16"
+            class="h-5 min-w-5 text-green-600 dark:text-green-400 rounded-full p-0.5 bg-accent border-accent border"
           />
 
           <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
@@ -168,7 +166,8 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
           </div>
           <div>
-            {{ formatter.bn.format(positive(asset.amount)) }}
+            <Skeleton v-if="app.settings.hideBalances" class="h-5 w-16" />
+            <template v-else>{{ formatter.bn.format(positive(asset.amount)) }}</template>
           </div>
         </div>
       </CardContent>
@@ -197,11 +196,11 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
         </CardHeader>
         <CardContent class="flex flex-col gap-2">
           <div class="flex flex-row items-center gap-2">
-            <Skeleton class="h-5 w-5 rounded-full" />
+            <Skeleton class="h-5 w-5 rounded-full border" />
             <Skeleton class="h-6 w-6 ml-2" />
             <Skeleton class="h-5 w-24" />
             <div class="flex-grow"></div>
-            <Skeleton class="h-5 w-14" />
+            <Skeleton class="h-5 w-16" />
           </div>
         </CardContent>
       </Card>

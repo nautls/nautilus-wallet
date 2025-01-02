@@ -16,6 +16,7 @@ import QrCode from "@/components/QrCode.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "@/components/ui/link";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { bn } from "@/common/bigNumber";
 import { openModal } from "@/common/componentUtils";
@@ -30,9 +31,7 @@ const format = useFormat();
 // todo:
 // - handle address derivation error messages
 // - fix new derived address not showing up
-// - handle address derivation loading state
 // - handle copy address
-// - handle hide balance
 
 const errorMsg = ref("");
 
@@ -160,10 +159,13 @@ function showOnLedger(address: StateAddress) {
           </div>
 
           <div class="text-right text-xs">
-            <span>{{ getFormattedErgBalance(address) }}</span>
-            <span v-if="address.assets.length > 1" class="text-muted-foreground">
-              +{{ address.assets.length - 1 }}</span
-            >
+            <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
+            <template v-else>
+              <span>{{ getFormattedErgBalance(address) }}</span>
+              <span v-if="address.assets.length > 1" class="text-muted-foreground">
+                +{{ address.assets.length - 1 }}</span
+              >
+            </template>
           </div>
         </div>
       </TransitionGroup>
