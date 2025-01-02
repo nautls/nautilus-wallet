@@ -4,7 +4,6 @@ import {
   CircleCheckIcon,
   CircleIcon,
   CirclePlusIcon,
-  CopyIcon,
   ExternalLinkIcon,
   QrCodeIcon,
   ShieldCheckIcon
@@ -15,6 +14,7 @@ import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
 import QrCode from "@/components/QrCode.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import CopyButton from "@/components/ui/CopyButton.vue";
 import { Link } from "@/components/ui/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -82,9 +82,7 @@ function showOnLedger(address: StateAddress) {
           <Link class="break-all" :href="urlFor(wallet.changeAddress?.script)" external>
             {{ wallet.changeAddress?.script }}
           </Link>
-          <Button variant="minimal" size="condensed" class="size-3 ml-2 align-middle">
-            <CopyIcon />
-          </Button>
+          <CopyButton class="size-3 ml-2 align-middle" :content="wallet.changeAddress?.script" />
         </div>
 
         <QrCode
@@ -137,9 +135,7 @@ function showOnLedger(address: StateAddress) {
               }}</span>
             </Button>
 
-            <Button variant="minimal" size="condensed" class="size-4">
-              <CopyIcon />
-            </Button>
+            <CopyButton :content="address.script" class="size-4" />
             <Button variant="minimal" size="condensed" class="size-4">
               <ExternalLinkIcon />
             </Button>

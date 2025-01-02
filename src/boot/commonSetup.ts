@@ -3,9 +3,7 @@ import { createPinia } from "pinia";
 import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import ClickToCopy from "@/components/ClickToCopy.vue";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
-import ToolTip from "@/components/ToolTip.vue";
 import { vueCleave } from "@/directives/cleave";
 
 import "@oruga-ui/oruga-next/dist/oruga.css";
@@ -34,7 +32,5 @@ export function setupApp(app: App): App {
     .use(Switch)
     .use(Config, ORUGA_SETTINGS)
     .directive("cleave", vueCleave)
-    .component("click-to-copy", ClickToCopy)
-    .component("tool-tip", ToolTip)
     .component("loading-indicator", LoadingIndicator);
 }
