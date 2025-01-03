@@ -21,6 +21,7 @@ import CopyButton from "@/components/ui/CopyButton.vue";
 import { Link } from "@/components/ui/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/toast";
 import { bn } from "@/common/bigNumber";
 import { openModal } from "@/common/componentUtils";
 import { useFormat } from "@/composables";
@@ -33,7 +34,6 @@ const wallet = useWalletStore();
 const format = useFormat();
 
 // todo:
-// - handle address derivation error messages
 // - fix new derived address not showing up
 
 const errorMsg = ref("");
@@ -43,6 +43,7 @@ const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
+const { toast } = useToast();
 
 function setDefaultAddress(address: StateAddress) {
   if (wallet.settings.defaultChangeIndex === address.index) return;
@@ -53,7 +54,7 @@ async function newAddress() {
   try {
     await wallet.deriveNewAddress();
   } catch (e) {
-    errorMsg.value = (e as Error).message;
+    toast({ title: "Address Derivation Error", description: (e as Error).message });
   }
 }
 
