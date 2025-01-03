@@ -314,7 +314,7 @@ export const useWalletStore = defineStore("wallet", () => {
     const lastUsed = addresses.value.findLastIndex((x) => x.state === AddressState.Used);
     if (addresses.value.length - lastUsed > CHUNK_DERIVE_LENGTH) {
       throw new RangeError(
-        `Cannot generate more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
+        `Cannot generate more than ${CHUNK_DERIVE_LENGTH} unused addresses in a row.`
       );
     }
 
