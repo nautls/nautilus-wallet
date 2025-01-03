@@ -42,6 +42,10 @@ const usePrivateStateStore = defineStore("_wallet", () => {
   const addresses = shallowRef<IDbAddress[]>([]);
   const assets = shallowRef<IDbAsset[]>([]);
 
+  function pushAddress(address: IDbAddress) {
+    addresses.value = [...addresses.value, address];
+  }
+
   function patchAddresses(changedAddresses: IDbAddress[], removedAddresses: IDbAddress[] = []) {
     patchArray(addresses, changedAddresses, removedAddresses, (a, b) => a.script === b.script);
   }
@@ -67,6 +71,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     addresses,
     assets,
     patchAddresses,
+    pushAddress,
     patchAssets
   };
 });
@@ -248,14 +253,8 @@ export const useWalletStore = defineStore("wallet", () => {
       return addresses.value.filter((address) => address.state !== AddressState.Used);
     }
 
-    // active addresses
-    return addresses.value.filter(
-      (address) =>
-        (!settings.value.avoidAddressReuse &&
-          address.index === settings.value.defaultChangeIndex) || // default address if not avoiding reuse
-        address.state === AddressState.Unused || // unused addresses
-        privateState.assets.findIndex((x) => x.address === address.script) > -1 // addresses with assets
-    );
+    // active addresses (with assets)
+    return addresses.value.filter((address) => address.assets.length > 0);
   });
 
   const changeAddress = computed(() => {
@@ -329,8 +328,7 @@ export const useWalletStore = defineStore("wallet", () => {
       walletId: privateState.id
     };
 
-    privateState.addresses.push(dbObj);
-    privateState.addresses = privateState.addresses.slice(); // trigger reactivity
+    privateState.pushAddress(dbObj);
     await addressesDbService.put(dbObj);
   }
 
