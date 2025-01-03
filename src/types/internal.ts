@@ -115,5 +115,3 @@ export type SigningState = {
 };
 
 export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>;
-
-export type Prettify<T> = { [K in keyof T]: T[K] } & {};

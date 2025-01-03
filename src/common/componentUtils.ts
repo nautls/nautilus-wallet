@@ -1,8 +1,8 @@
-import { AllowedComponentProps, Component, VNodeProps } from "vue";
+import { Component } from "vue";
 import { ensureDefaults } from "@fleet-sdk/common";
 import { useProgrammatic } from "@oruga-ui/oruga-next";
 import TxSignModal from "@/components/TxSignModal.vue";
-import { Prettify } from "@/types/internal";
+import { ComponentProps } from "@/composables/useProgrammaticDialog";
 import { isPopup } from "./browser";
 
 const DEFAULT_PROPS: Partial<ModalParams<Component>> = {
@@ -26,11 +26,6 @@ export function openModal<T extends Component>(component: T, params: ModalParams
     ...ensureDefaults(params, DEFAULT_PROPS)
   });
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ComponentProps<C extends Component> = C extends new (...args: any) => any
-  ? Prettify<Omit<InstanceType<C>["$props"], keyof VNodeProps | keyof AllowedComponentProps>>
-  : never;
 
 export type ModalParams<T extends Component> = {
   props?: ComponentProps<T>;
@@ -56,7 +51,3 @@ export type ModalParams<T extends Component> = {
   onCancel?: () => void;
   onClose?: () => void;
 };
-
-export function chunkString(str: string, length: number): string[] {
-  return str.match(new RegExp(`.{1,${length}}`, "g")) ?? [];
-}
