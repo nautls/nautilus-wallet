@@ -11,6 +11,7 @@ import {
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import AddressQrCodeDialog from "@/components/AddressQrCodeDialog.vue";
 import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
 import QrCode from "@/components/QrCode.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,6 +24,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { bn } from "@/common/bigNumber";
 import { openModal } from "@/common/componentUtils";
 import { useFormat } from "@/composables";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState, StateAddress, WalletType } from "@/types/internal";
 
@@ -33,13 +35,14 @@ const format = useFormat();
 // todo:
 // - handle address derivation error messages
 // - fix new derived address not showing up
-// - add qrcode modal
 
 const errorMsg = ref("");
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
+
+const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
 
 function setDefaultAddress(address: StateAddress) {
   if (wallet.settings.defaultChangeIndex === address.index) return;
@@ -151,7 +154,12 @@ function showOnLedger(address: StateAddress) {
             >
               <ExternalLinkIcon />
             </Button>
-            <Button variant="minimal" size="condensed" class="size-4">
+            <Button
+              variant="minimal"
+              size="condensed"
+              class="size-4"
+              @click="openQrCodeDialog({ address })"
+            >
               <QrCodeIcon />
             </Button>
             <!-- Verify this address on your Ledger device -->
