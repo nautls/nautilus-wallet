@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores/appStore";
 import KyaModal from "@/components/KYAModal.vue";
 import NavHeader from "@/components/NavHeader.vue";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Toaster from "@/components/ui/toast/Toaster.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import WalletLogo from "@/components/WalletLogo.vue";
 import { isPopup } from "@/common/browser";
@@ -38,4 +39,5 @@ const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
 
     <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   </div>
+  <Toaster />
 </template>
