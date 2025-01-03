@@ -13,7 +13,6 @@ import { assetsDbService } from "@/database/assetsDbService";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
-  AddressFilter,
   AddressState,
   AddressType,
   AssetSubtype,
@@ -314,7 +313,9 @@ export const useWalletStore = defineStore("wallet", () => {
   async function deriveNewAddress() {
     const lastUsed = addresses.value.findLastIndex((x) => x.state === AddressState.Used);
     if (addresses.value.length - lastUsed > CHUNK_DERIVE_LENGTH) {
-      throw Error(`You cannot add more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`);
+      throw new RangeError(
+        `Cannot generate more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`
+      );
     }
 
     const lastIndex = maxBy(addresses.value, (x) => x.index)?.index ?? -1;
@@ -329,6 +330,7 @@ export const useWalletStore = defineStore("wallet", () => {
     };
 
     privateState.addresses.push(dbObj);
+    privateState.addresses = privateState.addresses.slice(); // trigger reactivity
     await addressesDbService.put(dbObj);
   }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import {
   CircleCheckIcon,
   CircleIcon,
@@ -33,14 +33,8 @@ const app = useAppStore();
 const wallet = useWalletStore();
 const format = useFormat();
 
-// todo:
-// - fix new derived address not showing up
-
-const errorMsg = ref("");
-
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
-const avoidingReuse = computed(() => wallet.settings.avoidAddressReuse);
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
 const { toast } = useToast();
@@ -54,7 +48,10 @@ async function newAddress() {
   try {
     await wallet.deriveNewAddress();
   } catch (e) {
-    toast({ title: "Address Derivation Error", description: (e as Error).message });
+    toast({
+      title: "Address generation failed",
+      description: (e as Error)?.message ?? "Unable to generate a new address."
+    });
   }
 }
 
@@ -84,7 +81,9 @@ function showOnLedger(address: StateAddress) {
       <div class="flex flex-row gap-4 items-center">
         <div class="w-8/12 xs:w-7/12">
           <h1 class="font-semibold leading-none tracking-tight mb-2">
-            {{ avoidingReuse ? "Your current address" : "Your default address" }}
+            {{
+              wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address"
+            }}
           </h1>
           <Link
             class="break-all"
@@ -119,9 +118,7 @@ function showOnLedger(address: StateAddress) {
         </TabsList>
 
         <div class="flex-grow"></div>
-        <Button variant="ghost" size="icon" :disabled="errorMsg != ''" @click="newAddress"
-          ><CirclePlusIcon
-        /></Button>
+        <Button variant="ghost" size="icon" @click="newAddress"><CirclePlusIcon /></Button>
       </div>
     </Tabs>
 
