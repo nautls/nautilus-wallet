@@ -1,16 +1,14 @@
 <template>
   <div class="flex min-h-full flex-col gap-4 p-4">
-    <label>
-      Receiver
-      <input
-        v-model.lazy="recipient"
-        type="text"
-        spellcheck="false"
-        class="control block w-full"
-        @blur="v$.recipient.$touch()"
-      />
-      <p v-if="v$.recipient.$error" class="input-error">{{ v$.recipient.$errors[0].$message }}</p>
-    </label>
+    <Input
+      v-model.lazy="recipient"
+      type="text"
+      spellcheck="false"
+      placeholder="Recipient"
+      class="w-full"
+      @blur="v$.recipient.$touch()"
+    />
+    <p v-if="v$.recipient.$error" class="input-error">{{ v$.recipient.$errors[0].$message }}</p>
     <div>
       <div class="flex flex-col gap-2">
         <asset-input
@@ -102,6 +100,7 @@ import AssetIcon from "@/components/AssetIcon.vue";
 import AssetInput from "@/components/AssetInput.vue";
 import DropDown from "@/components/DropDown.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { Input } from "@/components/ui/input";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
@@ -125,7 +124,15 @@ const validations = {
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, FeeSelector, DropDown, ChevronDownIcon, CheckCheckIcon, AssetIcon },
+  components: {
+    AssetInput,
+    FeeSelector,
+    DropDown,
+    ChevronDownIcon,
+    CheckCheckIcon,
+    AssetIcon,
+    Input
+  },
   setup() {
     return {
       app: useAppStore(),

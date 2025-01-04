@@ -304,10 +304,6 @@ input:disabled {
   @apply bg-gray-200;
 }
 
-.asset-input {
-  @apply default-transition my-1 cursor-text rounded border border-gray-400 p-2 text-sm font-normal outline-none focus-within:border-blue-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-300 hover:border-blue-600;
-}
-
 .checkbox {
   @apply my-auto mr-2 h-4 w-4 cursor-pointer rounded-sm border-gray-300 bg-white outline-none checked:border-blue-600 checked:bg-blue-600 focus:outline-none;
 }
