@@ -16,6 +16,7 @@ import { useFormat } from "@/composables/useFormat";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue } from "@/validators";
+import AssetIcon from "./AssetIcon.vue";
 import DropDown from "./DropDown.vue";
 
 type FeeAsset = {

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-full flex-col gap-4 py-4">
+  <div class="flex min-h-full flex-col gap-4 p-4">
     <label>
       Receiver
       <input
@@ -99,6 +99,7 @@ import { differenceBy, remove } from "lodash-es";
 import { CheckCheckIcon, ChevronDownIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
+import AssetIcon from "@/components/AssetIcon.vue";
 import AssetInput from "@/components/AssetInput.vue";
 import DropDown from "@/components/DropDown.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
@@ -125,7 +126,7 @@ const validations = {
 
 export default defineComponent({
   name: "SendView",
-  components: { AssetInput, FeeSelector, DropDown, ChevronDownIcon, CheckCheckIcon },
+  components: { AssetInput, FeeSelector, DropDown, ChevronDownIcon, CheckCheckIcon, AssetIcon },
   setup() {
     return {
       app: useAppStore(),
