@@ -15,7 +15,6 @@ import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
 
 interface Props {
-  label?: string;
   disposable?: boolean;
   asset: StateAssetSummary;
   modelValue?: BigNumber;
@@ -128,12 +127,11 @@ function priceFor(tokenId: string): BigNumber {
 </script>
 
 <template>
-  <label
+  <div
     @click.prevent.stop="setInputFocus()"
     @mouseover="setHover(true)"
     @mouseout="setHover(false)"
   >
-    <span v-if="label && label !== ''">{{ label }}</span>
     <div class="asset-input relative">
       <button
         v-if="disposable"
@@ -191,5 +189,5 @@ function priceFor(tokenId: string): BigNumber {
     <p v-if="v$.$error" class="input-error">
       {{ v$.$errors[0].$message }}
     </p>
-  </label>
+  </div>
 </template>

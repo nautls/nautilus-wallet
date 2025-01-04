@@ -14,10 +14,9 @@
     <div>
       <div class="flex flex-col gap-2">
         <asset-input
-          v-for="(item, index) in selected"
+          v-for="item in selected"
           :key="item.asset.tokenId"
           v-model="item.amount"
-          :label="index === 0 ? 'Assets' : ''"
           :asset="item.asset"
           :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
           :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
