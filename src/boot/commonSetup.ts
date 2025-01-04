@@ -4,7 +4,6 @@ import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next"
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import LoadingIndicator from "@/components/LoadingIndicator.vue";
-import { vueCleave } from "@/directives/cleave";
 
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "@/assets/styles/main.css";
@@ -31,6 +30,5 @@ export function setupApp(app: App): App {
     .use(Slider)
     .use(Switch)
     .use(Config, ORUGA_SETTINGS)
-    .directive("cleave", vueCleave)
     .component("loading-indicator", LoadingIndicator);
 }
