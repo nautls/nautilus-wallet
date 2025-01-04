@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
-import { isEmpty } from "@fleet-sdk/common";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import Cleave from "cleave.js";
 import { TrashIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { StateAssetSummary } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
+import { useNumericMask } from "@/composables/useNumericMask";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
@@ -34,33 +33,21 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(["remove", "update:modelValue"]);
 
-const inputEl = useTemplateRef<CleaveHTMLElement>("val-input");
+const inputEl = useTemplateRef("val-input");
+
+const internalValue = useNumericMask(inputEl, {
+  numeralDecimalScale: props.asset.metadata?.decimals ?? 0
+});
 
 const app = useAppStore();
 const assets = useAssetsStore();
 const format = useFormat();
 
 const hovered = ref(false);
-const internalValue = ref("");
-
-onMounted(() => {
-  if (!inputEl.value) return;
-
-  inputEl.value.cleave = new Cleave(inputEl.value, {
-    numeral: true,
-    numeralDecimalScale: props.asset.metadata?.decimals ?? 0,
-    onValueChanged
-  });
-});
-
-onBeforeUnmount(() => {
-  if (!inputEl.value?.cleave) return;
-  inputEl.value.cleave.destroy();
-});
 
 onMounted(() => {
   if (props.asset.metadata?.decimals || props.asset.confirmedAmount.gt(1)) return;
-  emit("update:modelValue", props.asset.confirmedAmount);
+  internalValue.value = props.asset.confirmedAmount;
 });
 
 const conversionCurrency = computed(() => app.settings.conversionCurrency);
@@ -68,29 +55,21 @@ const confirmedAmount = computed(() => props.asset.confirmedAmount);
 const available = computed(() => {
   if (!props.reservedAmount) return confirmedAmount.value;
 
-  if (confirmedAmount.value.gte(props.reservedAmount)) {
-    return confirmedAmount.value.minus(props.reservedAmount);
-  } else {
-    return confirmedAmount.value;
-  }
-});
-
-const parsedValue = computed(() => {
-  return parseToBigNumber(internalValue.value);
+  return confirmedAmount.value.gte(props.reservedAmount)
+    ? confirmedAmount.value.minus(props.reservedAmount)
+    : confirmedAmount.value;
 });
 
 const price = computed(() => {
-  if (!parsedValue.value) return "0.00";
-  return format.bn.format(parsedValue.value.multipliedBy(priceFor(props.asset.tokenId)), 2);
+  if (!internalValue.value) return "0.00";
+  return format.bn.format(internalValue.value.multipliedBy(priceFor(props.asset.tokenId)), 2);
 });
 
-const minRequired = computed(() => {
-  if (props.reservedAmount && props.minAmount) {
-    return props.reservedAmount.plus(props.minAmount);
-  }
-
-  return props.minAmount || props.reservedAmount || bn(0);
-});
+const minRequired = computed(() =>
+  props.reservedAmount && props.minAmount
+    ? props.reservedAmount.plus(props.minAmount)
+    : props.minAmount || props.reservedAmount || bn(0)
+);
 
 const ergPrice = computed(() => assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 
@@ -103,44 +82,21 @@ const v$ = useVuelidate(
         bigNumberMinValue(minRequired.value)
       )
     },
-    parsedValue: {
+    internalValue: {
       required: helpers.withMessage("Amount is required.", required),
       minValue: bigNumberMinValue(props.minAmount || bn(0)),
       maxValue: bigNumberMaxValue(available.value)
     }
   },
-  { confirmedAmount, parsedValue }
+  { confirmedAmount, internalValue }
 );
 
-watch(parsedValue, (value) => {
-  if (!value && !isEmpty(internalValue.value)) return;
-  emit("update:modelValue", value);
-});
+watch(internalValue, (value) => emit("update:modelValue", value));
 
 watch(
   () => props.modelValue,
-  (value) => {
-    if (!value || value.isNaN()) {
-      inputEl.value?.cleave.setRawValue(""); // undefined
-      return;
-    } else if (parsedValue.value?.isEqualTo(value)) {
-      return;
-    }
-
-    inputEl.value?.cleave.setRawValue(value.toString());
-  }
+  (value) => (internalValue.value = value)
 );
-
-function onValueChanged(e: { target: { value: string; rawValue: string } }) {
-  internalValue.value = e.target.rawValue;
-}
-
-function parseToBigNumber(val: string): BigNumber | undefined {
-  if (isEmpty(val)) return undefined;
-
-  const n = bn(val.replaceAll(",", ""));
-  if (!n.isNaN()) return n;
-}
 
 function setHover(val: boolean) {
   if (val === hovered.value) return;
@@ -148,7 +104,7 @@ function setHover(val: boolean) {
 }
 
 function setMaxValue() {
-  inputEl.value?.cleave.setRawValue(available.value.toString(10));
+  internalValue.value = available.value;
 }
 
 function setInputFocus() {
