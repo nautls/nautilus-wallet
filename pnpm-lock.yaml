@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@types/cleave.js@1.4.12':
+    hash: un5fkxtut7qoj3bl3xw32pnx5i
+    path: patches/@types__cleave.js@1.4.12.patch
   webext-bridge@6.0.1:
     hash: 2yencsapbdvdcubprjjsv2kubm
     path: patches/webext-bridge@6.0.1.patch
@@ -145,7 +148,7 @@ importers:
         version: 0.0.287
       '@types/cleave.js':
         specifier: ^1.4.12
-        version: 1.4.12
+        version: 1.4.12(patch_hash=un5fkxtut7qoj3bl3xw32pnx5i)
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -5405,7 +5408,7 @@ snapshots:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
 
-  '@types/cleave.js@1.4.12':
+  '@types/cleave.js@1.4.12(patch_hash=un5fkxtut7qoj3bl3xw32pnx5i)':
     dependencies:
       '@types/react': 19.0.2
 
