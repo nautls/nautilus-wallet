@@ -11,6 +11,7 @@ type MaskOptions = Omit<CleaveOptions, "onValueChanged" | "numeral">;
 
 export function useNumericMask(inputEl: Ref<HTMLCleaveInputElement | null>, options?: MaskOptions) {
   const valueRef = shallowRef<BigNumber | null>();
+  let currentValue: BigNumber | null;
 
   onMounted(() => {
     if (!inputEl.value) throw new Error("Input element not found.");
@@ -19,20 +20,20 @@ export function useNumericMask(inputEl: Ref<HTMLCleaveInputElement | null>, opti
       ...options,
       numeral: true,
       onValueChanged: (e) => {
-        const parsed = parse(e.target.rawValue);
+        currentValue = parse(e.target.rawValue);
+        if (eq(currentValue, valueRef.value)) return; // if values are equal, don't update reactive value
 
-        // if values are equal, don't update reactive value
-        if (!parsed && !valueRef.value) return; // both are falsy, thus equal
-        if (parsed && valueRef.value && parsed.eq(valueRef.value)) return; // values are equal BigNumbers
-
-        valueRef.value = parsed;
+        valueRef.value = currentValue;
       }
     });
   });
 
   onBeforeUnmount(() => inputEl.value?.cleave?.destroy());
 
-  watch(valueRef, (v) => inputEl.value?.cleave?.setRawValue(!v || v.isNaN() ? "" : v.toString()));
+  watch(valueRef, (v) => {
+    if (eq(v, currentValue)) return;
+    inputEl.value?.cleave?.setRawValue(!v || v.isNaN() ? "" : v.toString());
+  });
 
   return valueRef;
 }
@@ -51,4 +52,10 @@ export function parse(raw: string): BigNumber | null {
   }
 
   return parsed.isNaN() ? null : parsed;
+}
+
+function eq(a?: BigNumber | null, b?: BigNumber | null): boolean {
+  if (!a && !b) return true; // both are falsy, thus equal
+  if (a && b && a.eq(b)) return true; // values are equal BigNumbers
+  return false;
 }
