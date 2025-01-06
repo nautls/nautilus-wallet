@@ -13,7 +13,10 @@ const COMPACT_FORMATTER = Intl.NumberFormat("en", {
 });
 
 function format(value: number, maximumFractionDigits: number): string {
-  return Intl.NumberFormat("en", { maximumFractionDigits, minimumFractionDigits: 2 }).format(value);
+  return Intl.NumberFormat("en", {
+    maximumFractionDigits,
+    minimumFractionDigits: maximumFractionDigits >= 2 ? 2 : undefined
+  }).format(value);
 }
 
 const STRING_FORMATTERS = {
@@ -59,7 +62,7 @@ const BN_FORMATTERS = {
     if (!value) return "";
     if (value.gte(shortenThreshold)) return COMPACT_FORMATTER.format(value.toNumber());
     if (decimalPlaces === undefined) return value.toFormat();
-    return format(value.toNumber(), decimalPlaces); // .toFormat(decimalPlaces);
+    return format(value.toNumber(), decimalPlaces);
   }
 };
 
