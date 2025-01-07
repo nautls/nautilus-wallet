@@ -122,8 +122,8 @@ function showOnLedger(address: StateAddress) {
       </div>
     </Tabs>
 
-    <div class="flex flex-col gap-0">
-      <TransitionGroup name="slide-up" appear>
+    <Transition name="slide-up" appear>
+      <div class="flex flex-col gap-0">
         <div
           v-for="address in addresses"
           :key="address.script"
@@ -182,7 +182,7 @@ function showOnLedger(address: StateAddress) {
             </template>
           </div>
         </div>
-      </TransitionGroup>
-    </div>
+      </div>
+    </Transition>
   </div>
 </template>
