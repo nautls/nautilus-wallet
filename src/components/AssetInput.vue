@@ -65,20 +65,19 @@ const ergPrice = computed(() => assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const isConvertible = computed(() => ergPrice.value && tokenRate(props.asset.tokenId));
 
 const denomValue = computed(() => convert(internalValue.value, isDenom.value ? "base" : "denom"));
-const baseValue = computed(() => {
-  return (
+const baseValue = computed(
+  () =>
     (isDenom.value ? denomValue.value : internalValue.value)?.decimalPlaces(basePrecision) ?? bn(0)
-  );
-});
+);
 
 const balance = computed(() => props.asset.confirmedAmount);
 const available = computed(() => {
-  if (!props.reservedAmount) return balance.value;
-  const av = balance.value.gte(props.reservedAmount)
-    ? balance.value.minus(props.reservedAmount)
-    : balance.value;
+  const av =
+    props.reservedAmount && balance.value.gte(props.reservedAmount)
+      ? balance.value.minus(props.reservedAmount)
+      : balance.value;
 
-  return isDenom.value ? convert(av, "denom") : av;
+  return convert(av, "auto");
 });
 
 function convert(value: BigNumber | undefined | null, to: "base" | "denom" | "auto"): BigNumber {
