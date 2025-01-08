@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
 import { Button } from "./ui/button";
+import Skeleton from "./ui/skeleton/Skeleton.vue";
 
 interface Props {
   disposable?: boolean;
@@ -259,7 +260,9 @@ function tokenRate(tokenId: string): number {
           <span v-else>No conversion rate</span>
         </div>
 
+        <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
         <Button
+          v-else
           tabindex="-1"
           variant="minimal"
           size="condensed"
