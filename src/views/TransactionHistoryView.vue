@@ -41,6 +41,10 @@ import type {
   UnconfirmedTransactionSummary
 } from "@/types/transactions";
 
+const RELATIVE_DATE_FORMATTING = {
+  max: 1_000 * 60 * 60 * 24 * 7 // 1 week
+};
+
 const formatter = useFormat();
 
 const wallet = useWalletStore();
@@ -131,7 +135,9 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
             Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
           </Link>
-          <span class="font-normal text-xs">{{ formatTimeAgo(new Date(tx.timestamp)) }}</span>
+          <span class="font-normal text-xs">{{
+            formatTimeAgo(new Date(tx.timestamp), RELATIVE_DATE_FORMATTING)
+          }}</span>
         </CardTitle>
         <CardDescription class="text-xs">
           <div v-if="tx.confirmed">
