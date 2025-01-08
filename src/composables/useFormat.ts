@@ -53,7 +53,10 @@ const STRING_FORMATTERS = {
 const ASSET_FORMATTERS = {
   name(val?: StateAsset | StateAssetSummary, maxLen = 20): string {
     if (!val) return "";
-    return STRING_FORMATTERS.shorten(val.metadata?.name || val.tokenId, maxLen);
+    return STRING_FORMATTERS.shorten(
+      val.metadata?.name || val.tokenId,
+      val.metadata?.name ? maxLen : Math.floor(maxLen / 2)
+    );
   }
 };
 
