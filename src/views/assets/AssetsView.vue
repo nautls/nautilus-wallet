@@ -209,7 +209,7 @@ function formatAssetName(asset: StateAssetSummary): string {
                 overflow="hidden"
               />
 
-              <p class="caption absolute bottom-1 left-1 w-10/12 truncate rounded-md px-2.5">
+              <p class="caption absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5">
                 {{ nft.metadata?.name ?? nft.tokenId }}
               </p>
               <div
