@@ -81,8 +81,7 @@ const available = computed(() => {
 });
 
 function convert(value: BigNumber | undefined | null, to: "base" | "denom" | "auto"): BigNumber {
-  if (!isConvertible.value || !value) return bn(0);
-
+  if (!isConvertible.value || !value) return value ?? bn(0);
   if (to === "auto") return isDenom.value ? convert(value, "denom") : value;
 
   const assetPrice = priceFor(props.asset.tokenId);

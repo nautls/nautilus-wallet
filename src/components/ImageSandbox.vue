@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, ref, watch } from "vue";
-import { CircleAlertIcon } from "lucide-vue-next";
+import { CircleAlertIcon, LoaderCircleIcon } from "lucide-vue-next";
 import {
   CONTENT_SANDBOX_URL,
   IPFS_GENERAL_GATEWAY,
   IPFS_PROTOCOL_PREFIX,
   IPFS_VIDEO_GATEWAY
 } from "@/constants/assets";
-import LoadingIndicator from "./LoadingIndicator.vue";
 
 const props = defineProps<{
   src?: string;
@@ -47,7 +46,7 @@ function resolveIpfs(url?: string, isVideo = false): string {
 
 <template>
   <div v-if="loading" :class="props.class" class="flex">
-    <loading-indicator type="circular" class="m-auto h-1/3 w-1/3 !stroke-muted-foreground" />
+    <LoaderCircleIcon type="circular" class="animate-spin m-auto size-1/3 text-muted-foreground" />
   </div>
   <div v-else-if="!contentUrl" :class="props.class" class="flex">
     <circle-alert-icon class="m-auto text-orange-400" :size="48" />

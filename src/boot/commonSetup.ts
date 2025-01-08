@@ -3,7 +3,6 @@ import { createPinia } from "pinia";
 import { Config, Inputitems, Modal, Slider, Switch } from "@oruga-ui/oruga-next";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import LoadingIndicator from "@/components/LoadingIndicator.vue";
 
 import "@oruga-ui/oruga-next/dist/oruga.css";
 import "@/assets/styles/main.css";
@@ -29,6 +28,5 @@ export function setupApp(app: App): App {
     .use(Modal)
     .use(Slider)
     .use(Switch)
-    .use(Config, ORUGA_SETTINGS)
-    .component("loading-indicator", LoadingIndicator);
+    .use(Config, ORUGA_SETTINGS);
 }
