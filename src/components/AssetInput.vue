@@ -168,13 +168,17 @@ watch(
 );
 
 function toggleDenominating() {
-  const converted = convert(internalValue.value, isDenom.value ? "base" : "denom");
+  const currentValue = internalValue.value;
+  const isMaxAvailable = currentValue?.eq(available.value) ?? false;
+
   patchOptionsQuietly({
     numeralDecimalScale: isDenom.value ? basePrecision : fiatPrecision
   });
 
-  internalValue.value = converted;
   isDenom.value = !isDenom.value;
+  internalValue.value = isMaxAvailable
+    ? available.value
+    : convert(currentValue, isDenom.value ? "denom" : "base");
 }
 
 function setHover(val: boolean) {
