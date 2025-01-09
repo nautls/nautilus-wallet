@@ -20,9 +20,11 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
-  <ComboboxContent v-bind="forwarded" :class="cn('max-h-[300px] overflow-hidden', props.class)">
-    <ScrollArea type="scroll" as="div" role="presentation">
-      <slot />
-    </ScrollArea>
-  </ComboboxContent>
+  <ScrollArea type="scroll">
+    <ComboboxContent v-bind="forwarded" :class="cn('max-h-[300px]', props.class)">
+        <div role="presentation">
+          <slot />
+        </div>
+      </ComboboxContent>
+  </ScrollArea>
 </template>
