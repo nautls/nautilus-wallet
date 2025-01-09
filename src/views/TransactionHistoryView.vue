@@ -128,105 +128,107 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 </script>
 
 <template>
-  <div class="p-4 flex flex-col gap-4">
-    <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
-      <CardHeader class="gap-0.5">
-        <CardTitle class="flex flex-row items-center justify-between">
-          <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
-            Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
-          </Link>
-          <span class="font-normal text-xs">{{
-            formatTimeAgo(new Date(tx.timestamp), RELATIVE_DATE_FORMATTING)
-          }}</span>
-        </CardTitle>
-        <CardDescription class="text-xs">
-          <div v-if="tx.confirmed">
-            {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-            <CircleCheckBigIcon class="h-3 -ml-1 inline-flex text-green-600" />
-          </div>
-          <div v-else>
-            Pending
-            <CircleIcon
-              class="h-3 -ml-1 inline-flex text-yellow-600 animate-pulse fill-yellow-600"
-            />
-          </div>
-        </CardDescription>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-2 text-sm">
-        <div
-          v-for="asset in tx.delta"
-          :key="asset.tokenId"
-          class="flex flex-row items-center gap-2"
-        >
-          <ArrowUpRightIcon
-            v-if="asset.amount.isNegative()"
-            class="h-5 min-w-5 text-red-600 dark:text-red-400 rounded-full p-0.5 bg-accent border-accent border"
-          />
-          <ArrowDownRightIcon
-            v-else
-            class="h-5 min-w-5 text-green-600 dark:text-green-400 rounded-full p-0.5 bg-accent border-accent border"
-          />
-
-          <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
-          <div class="w-full">
-            {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
-          </div>
-          <div>
-            <Skeleton v-if="app.settings.hideBalances" class="h-5 w-16" />
-            <template v-else>{{ formatter.bn.format(positive(asset.amount)) }}</template>
-          </div>
-        </div>
-      </CardContent>
-
-      <CardFooter v-if="!tx.confirmed && tx.cancelable">
-        <Button
-          class="w-full"
-          variant="outline"
-          @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
-        >
-          Cancel
-        </Button>
-      </CardFooter>
-    </Card>
-
-    <template v-if="loading && !loaded">
-      <Card v-for="i in txHistory?.length ? 1 : 5" :key="i" class="cursor-default">
+  <Transition name="slide-up" appear>
+    <div class="p-4 flex flex-col gap-4">
+      <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
         <CardHeader class="gap-0.5">
           <CardTitle class="flex flex-row items-center justify-between">
-            <Skeleton class="h-5 w-36" />
-            <Skeleton class="h-4 w-20" />
+            <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
+              Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
+            </Link>
+            <span class="font-normal text-xs">{{
+              formatTimeAgo(new Date(tx.timestamp), RELATIVE_DATE_FORMATTING)
+            }}</span>
           </CardTitle>
           <CardDescription class="text-xs">
-            <Skeleton class="h-4 w-28" />
+            <div v-if="tx.confirmed">
+              {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
+              <CircleCheckBigIcon class="h-3 -ml-1 inline-flex text-green-600" />
+            </div>
+            <div v-else>
+              Pending
+              <CircleIcon
+                class="h-3 -ml-1 inline-flex text-yellow-600 animate-pulse fill-yellow-600"
+              />
+            </div>
           </CardDescription>
         </CardHeader>
-        <CardContent class="flex flex-col gap-2">
-          <div class="flex flex-row items-center gap-2">
-            <Skeleton class="h-5 w-5 rounded-full border" />
-            <Skeleton class="h-6 w-6 ml-2" />
-            <Skeleton class="h-5 w-24" />
-            <div class="flex-grow"></div>
-            <Skeleton class="h-5 w-16" />
+        <CardContent class="flex flex-col gap-2 text-sm">
+          <div
+            v-for="asset in tx.delta"
+            :key="asset.tokenId"
+            class="flex flex-row items-center gap-2"
+          >
+            <ArrowUpRightIcon
+              v-if="asset.amount.isNegative()"
+              class="h-5 min-w-5 text-red-600 dark:text-red-400 rounded-full p-0.5 bg-accent border-accent border"
+            />
+            <ArrowDownRightIcon
+              v-else
+              class="h-5 min-w-5 text-green-600 dark:text-green-400 rounded-full p-0.5 bg-accent border-accent border"
+            />
+
+            <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
+            <div class="w-full">
+              {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
+            </div>
+            <div>
+              <Skeleton v-if="app.settings.hideBalances" class="h-5 w-16" />
+              <template v-else>{{ formatter.bn.format(positive(asset.amount)) }}</template>
+            </div>
           </div>
         </CardContent>
+
+        <CardFooter v-if="!tx.confirmed && tx.cancelable">
+          <Button
+            class="w-full"
+            variant="outline"
+            @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
+          >
+            Cancel
+          </Button>
+        </CardFooter>
       </Card>
-    </template>
 
-    <div
-      v-else-if="loaded && !txHistory?.length"
-      class="flex flex-col items-center gap-4 text-center text-muted-foreground text-sm"
-    >
-      <clock-icon :size="48" />
-      You have no transaction history yet.
+      <template v-if="loading && !loaded">
+        <Card v-for="i in txHistory?.length ? 1 : 5" :key="i" class="cursor-default">
+          <CardHeader class="gap-0.5">
+            <CardTitle class="flex flex-row items-center justify-between">
+              <Skeleton class="h-5 w-36" />
+              <Skeleton class="h-4 w-20" />
+            </CardTitle>
+            <CardDescription class="text-xs">
+              <Skeleton class="h-4 w-28" />
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="flex flex-col gap-2">
+            <div class="flex flex-row items-center gap-2">
+              <Skeleton class="h-5 w-5 rounded-full border" />
+              <Skeleton class="h-6 w-6 ml-2" />
+              <Skeleton class="h-5 w-24" />
+              <div class="flex-grow"></div>
+              <Skeleton class="h-5 w-16" />
+            </div>
+          </CardContent>
+        </Card>
+      </template>
+
+      <div
+        v-else-if="loaded && !txHistory?.length"
+        class="flex flex-col items-center gap-4 text-center text-muted-foreground text-sm"
+      >
+        <clock-icon :size="48" />
+        You have no transaction history yet.
+      </div>
+
+      <Button
+        v-else-if="!loaded && !loading"
+        class="w-full"
+        variant="outline"
+        @click="fetchConfirmedTransactions"
+      >
+        Load more transactions...
+      </Button>
     </div>
-
-    <Button
-      v-else-if="!loaded && !loading"
-      class="w-full"
-      variant="outline"
-      @click="fetchConfirmedTransactions"
-    >
-      Load more transactions...
-    </Button>
-  </div>
+  </Transition>
 </template>
