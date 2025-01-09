@@ -26,7 +26,7 @@ interface Props {
   class?: string;
 }
 
-const MAX_ASSET_NAME_LEN = 20;
+const MAX_ASSET_NAME_LEN = 18;
 const MIN_FIAT_PRECISION = 4;
 const MAX_FIAT_PRECISION = 8;
 
@@ -210,7 +210,7 @@ function tokenRate(tokenId: string): number {
     <div
       :class="
         cn(
-          'flex w-full gap-1 flex-col  cursor-text rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'flex w-full gap-1 flex-col cursor-text rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
           props.class
         )
       "
@@ -231,12 +231,12 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="outline-none flex-grow bg-transparent min-w-20"
+          class="outline-none w-full min-w-28 bg-transparent"
           placeholder="0"
           @blur="v$.$touch()"
         />
 
-        <div class="flex flex-row items-center gap-1 w-auto">
+        <div class="flex flex-row min-w-max items-center gap-1 w-auto">
           <span class="flex-grow text-sm whitespace-nowrap">
             {{ baseCurrencyName }}
           </span>
