@@ -31,7 +31,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import WalletItem from "@/components/WalletItem.vue";
 import { browser, isPopup } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
-import { IDbWallet } from "@/types/database";
 
 const wallet = useWalletStore();
 const app = useAppStore();
@@ -40,8 +39,10 @@ const router = useRouter();
 const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
 
 const isOpen = ref(false);
-const selected = ref<IDbWallet>();
+const searchTerm = ref("");
 const loadingId = ref<number | false>();
+
+const normalizedSearchTerm = computed(() => normalize(searchTerm.value));
 
 function normalize(value?: string) {
   return value?.trim().toLocaleLowerCase() ?? "";
@@ -114,12 +115,11 @@ async function expandView() {
     </PopoverTrigger>
     <PopoverContent class="w-[210px] p-0">
       <Command
-        v-model="selected"
+        v-model:search-term="searchTerm"
         class="max-h-[500px]"
         :reset-search-term-on-blur="true"
         :filter-function="
-          (list: any[], filter: string) =>
-            list.filter((w) => normalize(w.name).includes(normalize(filter)))
+          (list: any[]) => list.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
         "
       >
         <CommandInput placeholder="Search..." />
