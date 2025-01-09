@@ -1,17 +1,22 @@
 <template>
   <div class="flex min-h-full flex-col gap-4 p-4">
-    <Input
-      v-model.lazy="recipient"
-      type="text"
-      spellcheck="false"
-      placeholder="Recipient"
-      class="w-full"
-      @blur="v$.recipient.$touch()"
-    />
-    <p v-if="v$.recipient.$error" class="input-error">{{ v$.recipient.$errors[0].$message }}</p>
-    <div>
-      <div class="flex flex-col gap-2">
-        <asset-input
+    <Card class="p-4 gap-6 flex flex-col">
+      <div class="grid gap-1">
+        <Input
+          v-model.lazy="recipient"
+          type="text"
+          spellcheck="false"
+          placeholder="Recipient"
+          class="w-full"
+          @blur="v$.recipient.$touch()"
+        />
+        <div v-if="v$.recipient.$error" class="text-destructive text-xs px-2">
+          {{ v$.recipient.$errors[0].$message }}
+        </div>
+      </div>
+
+      <div class="grid gap-4">
+        <AssetInput
           v-for="item in selected"
           :key="item.asset.tokenId"
           v-model="item.amount"
@@ -21,68 +26,16 @@
           :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
           @remove="remove(item.asset.tokenId)"
         />
-        <drop-down
-          :disabled="unselected.length === 0"
-          list-class="max-h-52"
-          trigger-class="px-2 py-3 text-sm uppercase"
-        >
-          <template #trigger>
-            <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
-            <chevron-down-icon :size="18" />
-          </template>
-          <template #items>
-            <div class="group">
-              <a
-                v-for="asset in unselected"
-                :key="asset.tokenId"
-                class="group-item narrow"
-                @click="add(asset)"
-              >
-                <div class="flex flex-row items-center gap-2">
-                  <asset-icon
-                    class="h-8 w-8"
-                    :token-id="asset.tokenId"
-                    :type="asset.metadata?.type"
-                  />
-                  <div class="flex-grow">
-                    <template v-if="asset.metadata?.name">{{
-                      format.string.shorten(asset.metadata?.name, 26)
-                    }}</template>
-                    <template v-else>{{ format.string.shorten(asset.tokenId, 10) }}</template>
-                    <p
-                      v-if="devMode && !isErg(asset.tokenId)"
-                      class="font-mono text-xs text-gray-400"
-                    >
-                      {{ format.string.shorten(asset.tokenId, 16) }}
-                    </p>
-                  </div>
-                  <div>{{ format.bn.format(asset.confirmedAmount) }}</div>
-                </div>
-              </a>
-            </div>
-            <div class="group">
-              <a class="group-item narrow" @click="addAll()">
-                <div class="flex flex-row items-center gap-2">
-                  <check-check-icon class="h-8 w-8 text-yellow-500" :size="32" />
-                  <div class="flex-grow">
-                    Add all
-                    <p class="text-xs text-gray-400">
-                      Use this option to include all your assets in the sending list.
-                    </p>
-                  </div>
-                </div>
-              </a>
-            </div>
-          </template>
-        </drop-down>
-        <p v-if="v$.selected.$error" class="input-error">{{ v$.selected.$errors[0].$message }}</p>
       </div>
-    </div>
+
+      <AssetSelector :assets="unselected" @select="add" />
+      <p v-if="v$.selected.$error" class="input-error">{{ v$.selected.$errors[0].$message }}</p>
+    </Card>
 
     <div class="flex-grow"></div>
 
     <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
-    <button class="btn w-full" @click="sendTx()">Confirm</button>
+    <Button class="w-full" size="lg" @click="sendTx()">Confirm</Button>
   </div>
 </template>
 
@@ -98,9 +51,13 @@ import { useAppStore } from "@/stores/appStore";
 import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
 import AssetIcon from "@/components/AssetIcon.vue";
 import AssetInput from "@/components/AssetInput.vue";
+import AssetSelector from "@/components/AssetSelector.vue";
 import DropDown from "@/components/DropDown.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PopoverTrigger } from "@/components/ui/popover";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
@@ -131,7 +88,11 @@ export default defineComponent({
     ChevronDownIcon,
     CheckCheckIcon,
     AssetIcon,
-    Input
+    Input,
+    Card,
+    Button,
+    AssetSelector,
+    PopoverTrigger
   },
   setup() {
     return {

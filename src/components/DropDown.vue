@@ -1,13 +1,14 @@
 <template>
   <div class="dropdown" :class="[{ active: active, discrete: discrete }, rootClass]">
-    <button
+    <Button
       @click="toggle()"
+      variant="secondary"
       :disabled="disabled"
       :class="[{ active: active }, position, triggerClass]"
       class="trigger flex flex-row items-center"
     >
       <slot name="trigger" :active="active" />
-    </button>
+    </Button>
     <div
       ref="its"
       v-show="active"
@@ -23,9 +24,11 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { Button } from "./ui/button";
 
 export default defineComponent({
   name: "DropDown",
+  components: { Button },
   props: {
     discrete: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },

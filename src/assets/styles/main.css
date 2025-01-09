@@ -50,7 +50,7 @@
 }
 
 .table thead th {
-  @apply py-3 text-xs font-medium uppercase tracking-wider text-gray-500;
+  @apply py-3 text-xs font-medium tracking-wider text-gray-500;
 }
 
 .table tbody {
@@ -183,23 +183,19 @@ input:disabled {
 }
 
 .dropdown .trigger {
-  @apply default-transition inline-flex w-full items-center justify-between gap-2 rounded border border-gray-300 bg-gray-100 text-gray-700 outline-none hover:bg-gray-200 focus:outline-none active:bg-gray-300;
+  @apply default-transition inline-flex w-full items-center justify-center gap-2;
 }
 
 .dropdown.discrete .trigger {
-  @apply default-transition inline-flex w-full items-center justify-between gap-2 rounded border border-transparent bg-transparent px-4 py-2 text-gray-700 outline-none hover:border-gray-300 hover:bg-gray-100 focus:outline-none active:bg-gray-200 active:outline-none;
-}
-
-.dropdown .trigger.active {
-  @apply border-gray-300 bg-white hover:bg-gray-100 active:bg-gray-300;
+  @apply default-transition inline-flex w-full items-center justify-between gap-2 rounded border border-transparent bg-transparent px-4 py-2 text-gray-700 outline-none hover:border-gray-300 hover:bg-gray-100 focus:outline-none active:opacity-50 active:outline-none;
 }
 
 .dropdown .trigger:disabled {
-  @apply cursor-not-allowed bg-gray-50 text-gray-400 outline-none hover:border-gray-300 hover:bg-gray-50 hover:text-gray-400;
+  @apply cursor-not-allowed outline-none disabled:pointer-events-none disabled:opacity-50;
 }
 
 .dropdown.discrete .trigger:disabled {
-  @apply cursor-auto bg-transparent text-gray-700 hover:border-transparent;
+  @apply cursor-auto outline-none hover:border-transparent disabled:pointer-events-none disabled:opacity-50;
 }
 
 .dropdown .trigger.active.bottom {
@@ -211,15 +207,15 @@ input:disabled {
 }
 
 .dropdown .items-list {
-  @apply absolute right-0 z-50 w-full divide-y divide-gray-100 overflow-y-auto rounded border border-gray-300 bg-white text-sm shadow-lg focus:outline-none;
+  @apply absolute right-0 z-50 w-full divide-y divide-input overflow-y-auto rounded border border-input bg-card text-sm shadow-lg focus:outline-none;
 }
 
 .dropdown .items-list.bottom {
-  @apply bottom-auto top-full mt-[-1px] origin-top rounded-t-none border-t-gray-100;
+  @apply bottom-auto top-full mt-[-1px] origin-top rounded-t-none border-t-input;
 }
 
 .dropdown .items-list.top {
-  @apply bottom-full top-auto mb-[-1px] origin-bottom rounded-b-none border-b-gray-100 shadow-none;
+  @apply bottom-full top-auto mb-[-1px] origin-bottom rounded-b-none border-b-input shadow-none;
 }
 
 .dropdown.discrete .items-list.bottom {
@@ -243,7 +239,7 @@ input:disabled {
 }
 
 .dropdown .items-list .group .group-item {
-  @apply block cursor-pointer px-4 py-3 no-underline hover:bg-gray-100 active:bg-gray-200 active:outline-none;
+  @apply block cursor-pointer px-4 py-3 text-secondary-foreground no-underline hover:bg-secondary/80 active:bg-secondary/80 active:outline-none;
 }
 
 .dropdown .items-list .group .group-item.narrow {

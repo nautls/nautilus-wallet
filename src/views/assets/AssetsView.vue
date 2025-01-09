@@ -74,12 +74,6 @@ function formatCurrencyPrice(value: BigNumber, decimals = 2): string {
 function formatCoinPrice(amount: number, decimals = 9): string {
   return `Σ ${format.bn.format(BigNumber(amount ?? 0), decimals)}`;
 }
-
-function formatAssetName(asset: StateAssetSummary): string {
-  return asset.metadata?.name
-    ? format.string.shorten(asset.metadata?.name, 20)
-    : format.string.shorten(asset.tokenId, 12);
-}
 </script>
 
 <template>
@@ -151,7 +145,7 @@ function formatAssetName(asset: StateAssetSummary): string {
                 :class="{ 'font-semibold': isErg(asset.tokenId) }"
               >
                 <div>
-                  {{ formatAssetName(asset) }}
+                  {{ format.asset.name(asset) }}
                 </div>
                 <div class="text-xs text-muted-foreground">
                   {{

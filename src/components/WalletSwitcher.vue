@@ -117,7 +117,7 @@ async function expandView() {
       <Command
         v-model:search-term="searchTerm"
         class="max-h-[500px]"
-        :reset-search-term-on-blur="true"
+        reset-search-term-on-blur
         :filter-function="
           (list: any[]) => list.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
         "
