@@ -236,7 +236,7 @@ function tokenRate(tokenId: string): number {
           @blur="v$.$touch()"
         />
 
-        <div class="flex flex-row min-w-max items-center gap-1 w-auto">
+        <div class="flex flex-row min-w-max items-center gap-1 w-auto select-none">
           <span class="flex-grow text-sm whitespace-nowrap">
             {{ baseCurrencyName }}
           </span>
@@ -244,7 +244,7 @@ function tokenRate(tokenId: string): number {
         </div>
       </div>
 
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-row gap-2 select-none">
         <div class="flex-grow flex flex-row gap-1 items-center text-xs text-muted-foreground">
           <Button
             v-if="isConvertible"
