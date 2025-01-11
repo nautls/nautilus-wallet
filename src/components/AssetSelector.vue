@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
+import { useResizeObserver, useVModel } from "@vueuse/core";
 import { Check, ChevronsUpDown } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { StateAssetSummary } from "@/stores/walletStore";
@@ -23,24 +24,35 @@ interface Props {
   assets: StateAssetSummary[];
   showTokenId?: boolean;
   showBalance?: boolean;
-  checkable?: boolean;
+  selectable?: boolean;
+  modelValue?: StateAssetSummary;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showTokenId: true,
   showBalance: true,
-  checkable: false
+  selectable: false,
+  modelValue: undefined
 });
 
-const emit = defineEmits<{ select: [asset: StateAssetSummary] }>();
+const emit = defineEmits<{
+  (e: "select", payload: StateAssetSummary): void;
+  (e: "update:modelValue", payload: StateAssetSummary): void;
+}>();
+
 const format = useFormat();
 const app = useAppStore();
 
+const selected = useVModel(props, "modelValue", emit, { passive: true });
 const isOpen = ref(false);
-const selected = ref<StateAssetSummary>();
 const searchTerm = ref("");
+const popoverWidth = ref("");
 
 const normalizedSearchTerm = computed(() => normalize(searchTerm.value));
+
+useResizeObserver(useTemplateRef("test"), ([entry]) => {
+  popoverWidth.value = `width: ${Math.floor(entry.contentRect.width)}px;`;
+});
 
 async function emitSelected(asset: StateAssetSummary) {
   isOpen.value = false;
@@ -68,24 +80,25 @@ function filter(assets: StateAssetSummary[]) {
 
 <template>
   <Popover v-model:open="isOpen">
-    <slot v-if="$slots.default" />
-    <PopoverTrigger v-else as-child>
-      <Button
-        ref="btn"
-        :aria-expanded="isOpen"
-        variant="secondary"
-        role="combobox"
-        class="w-full items-center gap-0"
-      >
-        <span class="flex-grow">Add asset</span>
-        <ChevronsUpDown class="size-4 shrink-0 opacity-50 float-end -ml-4" />
-      </Button>
-    </PopoverTrigger>
+    <div ref="test">
+      <slot v-if="$slots.default" />
+      <PopoverTrigger v-else as-child>
+        <Button
+          :aria-expanded="isOpen"
+          variant="secondary"
+          role="combobox"
+          class="w-full items-center gap-0"
+        >
+          <span class="flex-grow">Add asset</span>
+          <ChevronsUpDown class="size-4 shrink-0 opacity-50 float-end -ml-4" />
+        </Button>
+      </PopoverTrigger>
+    </div>
 
-    <PopoverContent class="p-0" :prioritize-position="false">
+    <PopoverContent class="p-0 min-w-[200px]" :style="popoverWidth">
       <Command
         v-model:search-term="searchTerm"
-        class="max-h-[220px]"
+        class="max-h-[210px]"
         :filter-function="(a: any) => filter(a)"
       >
         <CommandInput placeholder="Search asset..." />
@@ -130,7 +143,7 @@ function filter(assets: StateAssetSummary[]) {
               </div>
 
               <Check
-                v-if="props.checkable"
+                v-if="props.selectable"
                 :class="
                   cn(
                     'mr-2 h-4 w-4',
