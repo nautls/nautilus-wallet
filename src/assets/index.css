@@ -88,7 +88,7 @@
   }
 
   body {
-    @apply cursor-default overflow-x-hidden bg-background font-sans leading-normal tracking-wide text-foreground antialiased;
+    @apply h-full cursor-default overflow-hidden bg-background font-sans leading-normal tracking-wide text-foreground antialiased;
   }
 }
 

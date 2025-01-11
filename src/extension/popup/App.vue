@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { useAppStore } from "@/stores/appStore";
 import KyaModal from "@/components/KYAModal.vue";
 import NavHeader from "@/components/NavHeader.vue";
@@ -7,16 +6,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import WalletLogo from "@/components/WalletLogo.vue";
-import { isPopup } from "@/common/browser";
 
 const app = useAppStore();
-const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
 </script>
 
 <template>
   <div
-    class="mx-auto flex h-[100vh] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden md:w-4/12 md:shadow-lg"
-    :class="maxWidth"
+    class="min-h-[600px] h-screen flex flex-col min-w-[365px] md:mx-auto md:w-4/12 md:shadow-lg xs:max-w-[365px]"
   >
     <div
       v-if="$route.meta.fullPage"
@@ -28,16 +24,16 @@ const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
         <template v-else>Nautilus Wallet</template>
       </h1>
     </div>
-    <template v-else>
+    <div v-else class="flex-initial">
       <wallet-header />
       <nav-header />
-    </template>
+    </div>
 
-    <ScrollArea class="w-full flex-grow" type="scroll">
-      <router-view />
+    <ScrollArea class="flex-auto" type="scroll">
+      <router-view class="min-h-[470px]" />
     </ScrollArea>
-
-    <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   </div>
+
+  <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   <Toaster />
 </template>
