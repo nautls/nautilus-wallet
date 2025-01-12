@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { StateAddress } from "@/stores/walletStore";
 import QrCode from "@/components/QrCode.vue";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import { StateAddress } from "@/types/internal";
 
 const opened = ref(true);
 const props = defineProps<{ address: StateAddress }>();

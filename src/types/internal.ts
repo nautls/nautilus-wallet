@@ -44,13 +44,6 @@ export enum AssetSubtype {
   ThresholdSignature = "0201"
 }
 
-export type StateAddress = {
-  script: string;
-  state: AddressState;
-  index: number;
-  assets: StateAsset[];
-};
-
 export type AddressFilter = "all" | "active" | "unused";
 
 export type WalletSettings = {
@@ -69,13 +62,10 @@ export type StateWallet = {
   settings: WalletSettings;
 };
 
-export type StateAsset = {
+export interface AssetInfo {
   tokenId: string;
-  address: string;
-  confirmedAmount: BigNumber;
-  unconfirmedAmount?: BigNumber;
   metadata?: BasicAssetMetadata;
-};
+}
 
 export type BasicAssetMetadata = {
   name?: string;

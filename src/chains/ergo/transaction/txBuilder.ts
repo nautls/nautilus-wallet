@@ -3,7 +3,7 @@ import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
 import { CherryPickSelectionStrategy, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
 import { BigNumber } from "bignumber.js";
 import { useAppStore } from "@/stores/appStore";
-import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
+import { StateAsset, useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
@@ -19,7 +19,7 @@ const wallet = useWalletStore();
 const app = useAppStore();
 
 export type TxAssetAmount = {
-  asset: StateAssetSummary;
+  asset: StateAsset;
   amount?: BigNumber;
 };
 

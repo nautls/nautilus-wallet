@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-full flex-col gap-4 p-4">
+  <div class="h-full flex-col flex gap-4 p-4">
     <Card class="p-4 gap-6 flex flex-col">
       <div class="grid gap-1">
         <Input
@@ -46,18 +46,14 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { differenceBy, remove } from "lodash-es";
-import { CheckCheckIcon, ChevronDownIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
-import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
-import AssetIcon from "@/components/AssetIcon.vue";
+import { StateAsset, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
-import DropDown from "@/components/DropDown.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PopoverTrigger } from "@/components/ui/popover";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
@@ -84,15 +80,10 @@ export default defineComponent({
   components: {
     AssetInput,
     FeeSelector,
-    DropDown,
-    ChevronDownIcon,
-    CheckCheckIcon,
-    AssetIcon,
     Input,
     Card,
     Button,
-    AssetSelector,
-    PopoverTrigger
+    AssetSelector
   },
   setup() {
     return {
@@ -251,7 +242,7 @@ export default defineComponent({
         this.selected.unshift({ asset: erg, amount: undefined });
       }
     },
-    add(asset: StateAssetSummary) {
+    add(asset: StateAsset) {
       this.removeDisposableSelections();
       this.selected.push({ asset });
 

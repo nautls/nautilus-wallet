@@ -1,6 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { StateAssetSummary } from "@/stores/walletStore";
-import { StateAsset } from "@/types/internal";
+import { AssetInfo } from "@/types/internal";
 
 export function useFormat() {
   return FORMATTERS;
@@ -51,7 +50,7 @@ const STRING_FORMATTERS = {
 };
 
 const ASSET_FORMATTERS = {
-  name(val?: StateAsset | StateAssetSummary, maxLen = 20): string {
+  name(val?: AssetInfo, maxLen = 20): string {
     if (!val) return "";
     return STRING_FORMATTERS.shorten(
       val.metadata?.name || val.tokenId,

@@ -15,10 +15,9 @@ import { IDbAddress, IDbAsset } from "@/types/database";
 import {
   AddressState,
   AddressType,
+  AssetInfo,
   AssetSubtype,
   BasicAssetMetadata,
-  StateAddress,
-  StateAsset,
   WalletSettings,
   WalletType
 } from "@/types/internal";
@@ -29,12 +28,22 @@ import { useAssetsStore } from "./assetsStore";
 import { useChainStore } from "./chainStore";
 import { usePoolStore } from "./poolStore";
 
-export type StateAssetSummary = {
-  tokenId: string;
+export interface AssetBalance extends AssetInfo {
+  balance: BigNumber;
+}
+
+export interface StateAsset extends AssetInfo {
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
-  metadata?: BasicAssetMetadata;
-};
+  address?: string;
+}
+
+export interface StateAddress {
+  script: string;
+  state: AddressState;
+  index: number;
+  assets: StateAsset[];
+}
 
 const KNOWN_ASSETS = new Set(assetIconMap.keys());
 
@@ -163,10 +172,10 @@ export const useWalletStore = defineStore("wallet", () => {
     });
   });
 
-  const balance = computed((): StateAssetSummary[] => {
+  const balance = computed((): StateAsset[] => {
     const poolBalance = appStore.settings.zeroConf ? new Map(pool.balance) : new Map();
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
-    let summary = [] as StateAssetSummary[];
+    let summary = [] as StateAsset[];
     let patched = false;
 
     for (const tokenId in groupedAssets) {
@@ -496,7 +505,7 @@ function getChanges(
  * @returns A negative number if `a` should be ranked higher, a positive number if `b` should be ranked higher,
  *          or zero if they are considered equal in ranking.
  */
-function rankAssets(a: StateAssetSummary, b: StateAssetSummary) {
+function rankAssets(a: StateAsset, b: StateAsset) {
   if (a.tokenId === ERG_TOKEN_ID) return -1;
   if (b.tokenId === ERG_TOKEN_ID) return 1;
   if (KNOWN_ASSETS.has(a.tokenId) && !KNOWN_ASSETS.has(b.tokenId)) return -1;

@@ -4,7 +4,7 @@ import { BigNumber } from "bignumber.js";
 import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
+import { StateAsset, useWalletStore } from "@/stores/walletStore";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
 import StorageRentBox from "@/components/StorageRentBox.vue";
@@ -43,7 +43,7 @@ const totalWallet = computed(() =>
     .times(ergPrice.value)
 );
 
-function filtered(assets: StateAssetSummary[]): StateAssetSummary[] {
+function filtered(assets: StateAsset[]): StateAsset[] {
   if (normalizedFilter.value === "" || assets.length === 0) return assets;
 
   return assets.filter((a) =>

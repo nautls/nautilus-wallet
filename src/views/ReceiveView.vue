@@ -10,7 +10,7 @@ import {
   TriangleAlertIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
-import { useWalletStore } from "@/stores/walletStore";
+import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import AddressQrCodeDialog from "@/components/AddressQrCodeDialog.vue";
 import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
 import QrCode from "@/components/QrCode.vue";
@@ -27,7 +27,7 @@ import { openModal } from "@/common/componentUtils";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { AddressState, StateAddress, WalletType } from "@/types/internal";
+import { AddressState, WalletType } from "@/types/internal";
 
 const app = useAppStore();
 const wallet = useWalletStore();
