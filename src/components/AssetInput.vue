@@ -6,7 +6,7 @@ import { BigNumber } from "bignumber.js";
 import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { StateAssetSummary } from "@/stores/walletStore";
+import { StateAsset } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { MaskOptions, useNumericMask } from "@/composables/useNumericMask";
@@ -19,7 +19,7 @@ import Skeleton from "./ui/skeleton/Skeleton.vue";
 
 interface Props {
   disposable?: boolean;
-  asset: StateAssetSummary;
+  asset: StateAsset;
   modelValue?: BigNumber;
   reservedAmount?: BigNumber;
   minAmount?: BigNumber;

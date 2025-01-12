@@ -18,7 +18,7 @@ import { Registers } from "@/types/connector";
 import { IAssetInfo } from "@/types/database";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 
-export type AssetInfo = {
+type AssetInfo = {
   tokenId: string;
   confirmedAmount: string;
   unconfirmedAmount?: string;

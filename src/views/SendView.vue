@@ -29,7 +29,9 @@
       </div>
 
       <AssetSelector :assets="unselected" @select="add" />
-      <p v-if="v$.selected.$error" class="input-error">{{ v$.selected.$errors[0].$message }}</p>
+      <p v-if="v$.selected.$error" class="px-2 text-destructive text-xs">
+        {{ v$.selected.$errors[0].$message }}
+      </p>
     </Card>
 
     <div class="flex-grow"></div>

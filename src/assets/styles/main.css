@@ -6,10 +6,6 @@
   overflow-wrap: anywhere;
 }
 
-.input-error {
-  @apply px-1 text-xs font-normal text-red-600;
-}
-
 .transform-flip {
   -moz-transform: scaleX(-1);
   -o-transform: scaleX(-1);

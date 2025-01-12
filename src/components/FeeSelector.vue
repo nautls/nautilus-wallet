@@ -6,24 +6,26 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
-import { ChevronDownIcon } from "lucide-vue-next";
+import { ChevronsUpDown, InfoIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { bn, decimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { BasicAssetMetadata, FeeSettings } from "@/types/internal";
+import { AssetInfo, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
-import DropDown from "./DropDown.vue";
+import AssetSelector from "./AssetSelector.vue";
+import { Button } from "./ui/button";
+import { Slider } from "./ui/slider";
 
-type FeeAsset = {
-  tokenId: string;
+interface FeeAsset extends AssetInfo {
   nanoErgsPerToken: BigNumber;
-  metadata?: BasicAssetMetadata;
-};
+}
 
 const format = useFormat();
 const appStore = useAppStore();
@@ -41,10 +43,17 @@ const props = defineProps({
 const emit = defineEmits<{ (event: "update:selected", feeState: FeeSettings): void }>();
 
 const state = reactive({
-  multiplier: 1,
+  multiplier: [1],
   assets: [] as FeeAsset[],
   internalSelected: { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) } as FeeAsset,
   cachedMinRequired: bn(0)
+});
+
+const multiplier = computed<number>({
+  get: () => state.multiplier[0],
+  set: (newVal) => {
+    state.multiplier = [newVal];
+  }
 });
 
 const conversionCurrency = computed(() => {
@@ -62,11 +71,11 @@ const minTokenFee = computed(() => {
 });
 
 const nanoErgsFee = computed(() => {
-  return bigMinErgFee.times(state.multiplier);
+  return bigMinErgFee.times(multiplier.value);
 });
 
 const tokenUnitsFee = computed(() => {
-  return minTokenFee.value.times(state.multiplier);
+  return minTokenFee.value.times(multiplier.value);
 });
 
 const feeAmount = computed(() => {
@@ -84,10 +93,6 @@ const price = computed(() => {
     state.internalSelected.nanoErgsPerToken.times(tokenUnitsFee.value),
     ERG_DECIMALS
   );
-});
-
-const unselected = computed((): FeeAsset[] => {
-  return state.assets.filter((x) => x.tokenId !== state.internalSelected.tokenId);
 });
 
 const v$ = useVuelidate(
@@ -120,32 +125,17 @@ watch(
 watch(
   () => state.internalSelected,
   (newVal, oldVal) => {
-    if (newVal.tokenId === oldVal.tokenId) {
-      return;
-    }
+    if (newVal.tokenId === oldVal.tokenId) return;
 
-    if (state.multiplier != 1) {
-      state.multiplier = 1;
-    }
-
+    if (multiplier.value != 1) multiplier.value = 1;
     recalculateMinRequired();
     emitSelectedUpdate();
   }
 );
 
-watch(
-  () => feeAmount.value,
-  () => {
-    emitSelectedUpdate();
-  }
-);
+watch(() => feeAmount.value, emitSelectedUpdate);
 
-watch(
-  () => props.includeMinAmountPerBox,
-  () => {
-    recalculateMinRequired();
-  }
-);
+watch(() => props.includeMinAmountPerBox, recalculateMinRequired);
 
 watch(
   () => ({ walletId: wallet.id, assets: wallet.nonArtworkBalance }),
@@ -157,6 +147,7 @@ watch(
     loadAssets();
   }
 );
+
 onMounted(loadAssets);
 
 async function loadAssets() {
@@ -166,7 +157,7 @@ async function loadAssets() {
     metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
   };
 
-  state.multiplier = 1;
+  multiplier.value = 1;
   state.assets = [erg];
   state.internalSelected = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) };
   state.cachedMinRequired = bn(0);
@@ -221,9 +212,7 @@ function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
 function recalculateMinRequired() {
   if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
     state.cachedMinRequired = decimalize(bigMinErgFee, ERG_DECIMALS);
-    if (!v$.value.$dirty) {
-      state.multiplier = 1;
-    }
+    if (!v$.value.$dirty) multiplier.value = 1;
   } else {
     state.cachedMinRequired = decimalize(
       getTokenUnitsFor(bigMinErgFee.plus(bigMinBoxValue.times(props.includeMinAmountPerBox))),
@@ -232,11 +221,7 @@ function recalculateMinRequired() {
 
     if (state.cachedMinRequired.isGreaterThan(feeAmount.value)) {
       const m = state.cachedMinRequired.dividedBy(feeAmount.value).integerValue(BigNumber.ROUND_UP);
-      if (m.isGreaterThan(10)) {
-        state.multiplier = 10;
-      } else {
-        state.multiplier = m.toNumber();
-      }
+      multiplier.value = m.isGreaterThan(10) ? 10 : m.toNumber();
     }
   }
 }
@@ -256,95 +241,53 @@ function emitSelectedUpdate() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <div class="group flex flex-row pt-4">
-      <drop-down
-        trigger-class="px-2 py-1 h-12 text-sm whitespace-nowrap text-left"
-        list-class="max-h-52"
-        root-class="flex-grow"
-      >
-        <template #trigger>
-          <span class="flex-grow pl-1 font-semibold">Fee</span>
-          <div
-            class="flex h-full flex-col text-right"
-            :class="ergPrice ? 'justify-between' : 'justify-center'"
-          >
-            <div class="items-center">
-              <span>{{ feeAmount.toString() }}</span>
-            </div>
-            <small v-if="ergPrice" class="text-gray-400"
-              >≈ {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}</small
-            >
-          </div>
-        </template>
+  <div class="flex flex-col gap-2 text-sm">
+    <div
+      class="flex flex-col w-full gap-1 rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <div class="flex flex-grow gap-2">
+        <div class="flex flex-row items-start gap-2 flex-grow">
+          <div class="flex flex-row h-full items-center gap-1">
+            <div class="font-bold">Fee</div>
+            <div>{{ feeAmount.toString() }}</div>
 
-        <template #items>
-          <div class="group">
-            <o-slider
-              v-model="state.multiplier"
-              :min="1"
-              :max="10"
-              :tooltip="false"
-              fill-class="bg-blue-600 rounded-l"
-              root-class="p-4"
-              track-class="rounded-r"
-              thumb-class="rounded-md"
-              @click.prevent.stop
-              @change="v$.$touch()"
-            />
+            <TooltipProvider :delay-duration="100">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <InfoIcon class="size-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent class="text-center">
+                  <div v-if="ergPrice">
+                    {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-        </template>
-      </drop-down>
-      <drop-down
-        :disabled="unselected.length === 0"
-        list-class="max-h-36"
-        trigger-class="px-2 py-1 h-12 min-w-36 whitespace-nowrap text-sm text-left"
-      >
-        <template #trigger>
-          <asset-icon
-            class="h-5 w-5 min-w-5"
-            :token-id="state.internalSelected.tokenId"
-            :type="state.internalSelected.metadata?.type"
-          />
-          <div class="flex-grow whitespace-nowrap text-gray-600">
-            <template v-if="state.internalSelected.metadata?.name">{{
-              format.string.shorten(state.internalSelected.metadata.name, 10)
-            }}</template>
-            <template v-else>{{
-              format.string.shorten(state.internalSelected.tokenId, 10)
-            }}</template>
-          </div>
-          <chevron-down-icon :size="18" />
-        </template>
-
-        <template #items>
-          <div class="group">
-            <a
-              v-for="asset in unselected"
-              :key="asset.tokenId"
-              class="group-item narrow-y !px-2"
-              @click="select(asset)"
-            >
-              <div class="flex flex-row items-center gap-2">
+        </div>
+        <div>
+          <AssetSelector v-model="state.internalSelected" :assets="state.assets" selectable>
+            <PopoverTrigger>
+              <Button variant="secondary">
                 <asset-icon
-                  class="h-5 w-5 min-w-5"
-                  :token-id="asset.tokenId"
-                  :type="asset.metadata?.type"
+                  class="size-4"
+                  :token-id="state.internalSelected.tokenId"
+                  :type="state.internalSelected.metadata?.type"
                 />
-                <div class="flex-grow">
-                  <template v-if="asset.metadata?.name">{{
-                    format.string.shorten(asset.metadata?.name, 10)
-                  }}</template>
-                  <template v-else>{{ format.string.shorten(asset.tokenId, 10) }} </template>
-                </div>
-              </div>
-            </a>
-          </div>
-        </template>
-      </drop-down>
+                {{ format.asset.name(state.internalSelected) }}
+                <ChevronsUpDown class="size-4 opacity-50 float-end" />
+              </Button>
+            </PopoverTrigger>
+          </AssetSelector>
+        </div>
+      </div>
+      <div class="pb-2 pt-3">
+        <Slider v-model="state.multiplier" :max="10" :step="1" :min="1" />
+      </div>
     </div>
-    <p v-if="v$.$error" class="input-error">
+
+    <div v-if="v$.$error" class="px-2 text-destructive text-xs">
       {{ v$.$errors[0].$message }}
-    </p>
+    </div>
   </div>
 </template>
