@@ -231,7 +231,7 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="outline-none w-full min-w-28 bg-transparent"
+          class="outline-none w-full min-w-28 bg-transparent placeholder:text-muted-foreground"
           placeholder="0"
           @blur="v$.$touch()"
         />
