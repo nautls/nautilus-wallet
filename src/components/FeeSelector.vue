@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, PropType, reactive, watch } from "vue";
+import { computed, onMounted, PropType, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
@@ -42,57 +42,39 @@ const props = defineProps({
 
 const emit = defineEmits<{ (event: "update:selected", feeState: FeeSettings): void }>();
 
-const state = reactive({
-  multiplier: [1],
-  assets: [] as FeeAsset[],
-  internalSelected: { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) } as FeeAsset,
-  cachedMinRequired: bn(0)
-});
+const assets = shallowRef<FeeAsset[]>([]);
+const intSelected = shallowRef<FeeAsset>({ tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) });
+const internalMultiplier = shallowRef([1]);
+const cachedMinRequired = shallowRef(bn(0));
+
+const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0);
+const minTokenFee = computed(() => getTokenUnitsFor(bigMinErgFee));
+const nanoErgsFee = computed(() => bigMinErgFee.times(multiplier.value));
+const tokenUnitsFee = computed(() => minTokenFee.value.times(multiplier.value));
 
 const multiplier = computed<number>({
-  get: () => state.multiplier[0],
+  get: () => internalMultiplier.value[0],
   set: (newVal) => {
-    state.multiplier = [newVal];
+    internalMultiplier.value = [newVal];
   }
 });
 
 const conversionCurrency = computed(() => {
-  return state.internalSelected.tokenId === ERG_TOKEN_ID
-    ? appStore.settings.conversionCurrency
-    : "ERG";
-});
-
-const ergPrice = computed(() => {
-  return assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0;
-});
-
-const minTokenFee = computed(() => {
-  return getTokenUnitsFor(bigMinErgFee);
-});
-
-const nanoErgsFee = computed(() => {
-  return bigMinErgFee.times(multiplier.value);
-});
-
-const tokenUnitsFee = computed(() => {
-  return minTokenFee.value.times(multiplier.value);
+  return intSelected.value.tokenId === ERG_TOKEN_ID ? appStore.settings.conversionCurrency : "ERG";
 });
 
 const feeAmount = computed(() => {
   const value =
-    state.internalSelected.tokenId === ERG_TOKEN_ID ? nanoErgsFee.value : tokenUnitsFee.value;
-  return decimalize(value, state.internalSelected.metadata?.decimals || 0);
+    intSelected.value.tokenId === ERG_TOKEN_ID ? nanoErgsFee.value : tokenUnitsFee.value;
+  return decimalize(value, intSelected.value.metadata?.decimals || 0);
 });
 
 const price = computed(() => {
-  if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
+  if (intSelected.value.tokenId === ERG_TOKEN_ID) {
     return decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value);
   }
 
-  return decimalize(
-    state.internalSelected.nanoErgsPerToken.times(tokenUnitsFee.value),
-    ERG_DECIMALS
-  );
+  return decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
 });
 
 const v$ = useVuelidate(
@@ -101,7 +83,7 @@ const v$ = useVuelidate(
       minValue: helpers.withMessage(
         ({ $params }) =>
           `You need to pay a minimum fee of ${$params.min} ${props.selected.assetInfo?.name} to send this transaction`,
-        bigNumberMinValue(state.cachedMinRequired)
+        bigNumberMinValue(cachedMinRequired.value)
       )
     }
   })),
@@ -111,19 +93,15 @@ const v$ = useVuelidate(
 watch(
   () => props.selected,
   (newVal) => {
-    if (newVal.tokenId == state.internalSelected.tokenId) {
-      return;
-    }
+    if (newVal.tokenId == intSelected.value.tokenId) return;
 
-    const asset = state.assets.find((x) => x.tokenId === newVal.tokenId);
-    if (asset) {
-      state.internalSelected = asset;
-    }
+    const asset = assets.value.find((x) => x.tokenId === newVal.tokenId);
+    if (asset) intSelected.value = asset;
   }
 );
 
 watch(
-  () => state.internalSelected,
+  () => intSelected.value,
   (newVal, oldVal) => {
     if (newVal.tokenId === oldVal.tokenId) return;
 
@@ -134,16 +112,12 @@ watch(
 );
 
 watch(() => feeAmount.value, emitSelectedUpdate);
-
 watch(() => props.includeMinAmountPerBox, recalculateMinRequired);
 
 watch(
   () => ({ walletId: wallet.id, assets: wallet.nonArtworkBalance }),
   (newVal, oldVal) => {
-    if (areEqualBy(newVal.assets, oldVal.assets, (asset) => asset.tokenId)) {
-      return;
-    }
-
+    if (areEqualBy(newVal.assets, oldVal.assets, (asset) => asset.tokenId)) return;
     loadAssets();
   }
 );
@@ -158,9 +132,9 @@ async function loadAssets() {
   };
 
   multiplier.value = 1;
-  state.assets = [erg];
-  state.internalSelected = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) };
-  state.cachedMinRequired = bn(0);
+  assets.value = [erg];
+  intSelected.value = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) };
+  cachedMinRequired.value = bn(0);
   select(erg);
 
   const tokenIds = wallet.nonArtworkBalance
@@ -173,7 +147,7 @@ async function loadAssets() {
     extractTokenIdFromBabelContract(box.ergoTree)
   );
 
-  const assets = Object.keys(groups)
+  const newAssets = Object.keys(groups)
     .map((tokenId): FeeAsset => {
       const price = maxBy(
         groups[tokenId].map((box) => getNanoErgsPerTokenRate(box)),
@@ -188,9 +162,9 @@ async function loadAssets() {
     })
     .filter((asset) => !asset.nanoErgsPerToken.isZero());
 
-  state.assets = state.assets.concat(
+  assets.value = assets.value.concat(
     sortBy(
-      assets.filter((x) => x.nanoErgsPerToken),
+      newAssets.filter((x) => x.nanoErgsPerToken),
       (x) => x.nanoErgsPerToken.toNumber()
     )
   );
@@ -199,43 +173,43 @@ async function loadAssets() {
 function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
   if (
     nanoErgs.isZero() ||
-    !state.internalSelected ||
-    !state.internalSelected.nanoErgsPerToken ||
-    state.internalSelected.nanoErgsPerToken.isZero()
+    !intSelected.value ||
+    !intSelected.value.nanoErgsPerToken ||
+    intSelected.value.nanoErgsPerToken.isZero()
   ) {
     return bn(0);
   }
 
-  return nanoErgs.div(state.internalSelected.nanoErgsPerToken).integerValue(BigNumber.ROUND_UP);
+  return nanoErgs.div(intSelected.value.nanoErgsPerToken).integerValue(BigNumber.ROUND_UP);
 }
 
 function recalculateMinRequired() {
-  if (state.internalSelected.tokenId === ERG_TOKEN_ID) {
-    state.cachedMinRequired = decimalize(bigMinErgFee, ERG_DECIMALS);
+  if (intSelected.value.tokenId === ERG_TOKEN_ID) {
+    cachedMinRequired.value = decimalize(bigMinErgFee, ERG_DECIMALS);
     if (!v$.value.$dirty) multiplier.value = 1;
   } else {
-    state.cachedMinRequired = decimalize(
+    cachedMinRequired.value = decimalize(
       getTokenUnitsFor(bigMinErgFee.plus(bigMinBoxValue.times(props.includeMinAmountPerBox))),
-      state.internalSelected.metadata?.decimals || 0
+      intSelected.value.metadata?.decimals || 0
     );
 
-    if (state.cachedMinRequired.isGreaterThan(feeAmount.value)) {
-      const m = state.cachedMinRequired.dividedBy(feeAmount.value).integerValue(BigNumber.ROUND_UP);
+    if (cachedMinRequired.value.isGreaterThan(feeAmount.value)) {
+      const m = cachedMinRequired.value.dividedBy(feeAmount.value).integerValue(BigNumber.ROUND_UP);
       multiplier.value = m.isGreaterThan(10) ? 10 : m.toNumber();
     }
   }
 }
 
 function select(asset: FeeAsset) {
-  state.internalSelected = asset;
+  intSelected.value = asset;
 }
 
 function emitSelectedUpdate() {
   emit("update:selected", {
-    tokenId: state.internalSelected.tokenId,
-    nanoErgsPerToken: state.internalSelected.nanoErgsPerToken,
+    tokenId: intSelected.value.tokenId,
+    nanoErgsPerToken: intSelected.value.nanoErgsPerToken,
     value: feeAmount.value,
-    assetInfo: state.internalSelected.metadata
+    assetInfo: intSelected.value.metadata
   });
 }
 </script>
@@ -266,15 +240,15 @@ function emitSelectedUpdate() {
           </div>
         </div>
         <div>
-          <AssetSelector v-model="state.internalSelected" :assets="state.assets" selectable>
+          <AssetSelector v-model="intSelected" :assets="assets" selectable>
             <PopoverTrigger>
               <Button variant="secondary">
                 <asset-icon
                   class="size-4"
-                  :token-id="state.internalSelected.tokenId"
-                  :type="state.internalSelected.metadata?.type"
+                  :token-id="intSelected.tokenId"
+                  :type="intSelected.metadata?.type"
                 />
-                {{ format.asset.name(state.internalSelected) }}
+                {{ format.asset.name(intSelected) }}
                 <ChevronsUpDown class="size-4 opacity-50 float-end" />
               </Button>
             </PopoverTrigger>
@@ -282,7 +256,7 @@ function emitSelectedUpdate() {
         </div>
       </div>
       <div class="pb-2 pt-3">
-        <Slider v-model="state.multiplier" :max="10" :step="1" :min="1" />
+        <Slider v-model="internalMultiplier" :max="10" :step="1" :min="1" />
       </div>
     </div>
 
