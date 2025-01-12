@@ -1,9 +1,9 @@
-<script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue";
+<script setup lang="ts" generic="T extends Asset">
+import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
+import { BigNumber } from "bignumber.js";
 import { Check, ChevronsUpDown } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
-import { StateAssetSummary } from "@/stores/walletStore";
 import {
   Command,
   CommandEmpty,
@@ -16,16 +16,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useFormat } from "@/composables";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { cn } from "@/lib/utils";
+import { AssetInfo } from "@/types/internal";
 import AssetIcon from "./AssetIcon.vue";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
+export interface Asset extends AssetInfo {
+  confirmedAmount?: BigNumber;
+}
+
 interface Props {
-  assets: StateAssetSummary[];
+  assets: T[];
   showTokenId?: boolean;
   showBalance?: boolean;
   selectable?: boolean;
-  modelValue?: StateAssetSummary;
+  modelValue?: T;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,14 +41,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  (e: "select", payload: StateAssetSummary): void;
-  (e: "update:modelValue", payload: StateAssetSummary): void;
+  (e: "select", payload: T): void;
+  (e: "update:modelValue", payload: T): void;
 }>();
 
 const format = useFormat();
 const app = useAppStore();
 
-const selected = useVModel(props, "modelValue", emit, { passive: true });
+const selected = useVModel(props, "modelValue", emit, { passive: true }) as Ref<T | undefined>;
 const isOpen = ref(false);
 const searchTerm = ref("");
 const popoverWidth = ref("");
@@ -54,7 +59,7 @@ useResizeObserver(useTemplateRef("test"), ([entry]) => {
   popoverWidth.value = `width: ${Math.floor(entry.contentRect.width)}px;`;
 });
 
-async function emitSelected(asset: StateAssetSummary) {
+async function emitSelected(asset: T) {
   isOpen.value = false;
   selected.value = asset;
 
@@ -72,7 +77,7 @@ function normalize(value?: string) {
   return value?.trim().toLocaleLowerCase() ?? "";
 }
 
-function filter(assets: StateAssetSummary[]) {
+function filter(assets: T[]) {
   const term = normalizedSearchTerm.value;
   return assets.filter((a) => normalize(a.metadata?.name).includes(term) || a.tokenId === term);
 }
@@ -129,7 +134,7 @@ function filter(assets: StateAssetSummary[]) {
               </div>
 
               <div
-                v-if="props.showBalance"
+                v-if="props.showBalance && asset.confirmedAmount"
                 class="whitespace-nowrap text-right align-middle text-xs"
               >
                 <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
