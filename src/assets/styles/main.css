@@ -1,7 +1,3 @@
-.app {
-  @apply mx-auto flex h-[100vh] min-h-[600px] min-w-[365px] flex-col gap-0 overflow-x-hidden bg-light-50 md:w-4/12 md:shadow-lg;
-}
-
 .break-anywhere {
   overflow-wrap: anywhere;
 }
@@ -19,68 +15,6 @@
 
 .control {
   @apply default-transition my-1 rounded border border-gray-400 p-2 text-sm outline-none hover:border-blue-800 focus:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300;
-}
-
-.tabs {
-  @apply flex flex-row bg-gray-100 p-0 text-sm text-gray-500;
-}
-
-.tabs .tab-item {
-  @apply default-transition block max-w-20 border-b-2 border-gray-200 text-center outline-none hover:text-blue-700 focus:outline-none active:text-blue-800 active:outline-none;
-}
-
-.tabs .tab-item.spacing {
-  @apply max-w-full flex-grow;
-}
-
-.tabs .tab-item.active {
-  @apply border-b-2 border-blue-600 text-blue-700;
-}
-
-.table {
-  @apply min-w-full divide-y divide-gray-200;
-}
-
-.table thead {
-  @apply bg-gray-50 text-left;
-}
-
-.table thead th {
-  @apply py-3 text-xs font-medium tracking-wider text-gray-500;
-}
-
-.table tbody {
-  @apply divide-y divide-gray-200 bg-white;
-}
-
-.table tbody td {
-  @apply py-4 align-middle text-sm;
-}
-
-.table tbody td:first-child,
-.table thead th:first-child {
-  @apply pl-4;
-}
-
-.table tbody td:last-child,
-.table thead th:last-child {
-  @apply pr-4;
-}
-
-.table tr:first-child th:first-child {
-  @apply rounded-tl;
-}
-
-.table tr:first-child th:last-child {
-  @apply rounded-tr;
-}
-
-.table tr:last-child td:first-child {
-  @apply rounded-bl;
-}
-
-.table tr:last-child td:last-child {
-  @apply rounded-br;
 }
 
 .shadow-scroll {
@@ -139,11 +73,6 @@
 
 .btn.outlined {
   @apply bg-transparent text-blue-800 outline-none hover:bg-blue-700 hover:text-light-300 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800 active:text-light-300;
-}
-
-button:disabled,
-input:disabled {
-  @apply cursor-not-allowed border-gray-700 bg-gray-50 text-gray-400 outline-none hover:border-gray-700 hover:bg-gray-50 hover:text-gray-400;
 }
 
 .nav-btn {
@@ -208,10 +137,6 @@ input:disabled {
   @apply my-auto mr-2 h-4 w-4 cursor-pointer rounded-sm border-gray-300 bg-white outline-none checked:border-blue-600 checked:bg-blue-600 focus:outline-none;
 }
 
-.url {
-  @apply text-blue-500;
-}
-
 .stats {
   @apply flex flex-row gap-0 bg-white text-center;
 }
@@ -238,12 +163,4 @@ input:disabled {
 
 .stats-card p {
   @apply text-xs text-gray-500;
-}
-
-.tag {
-  @apply rounded-md bg-gray-100 px-1 ring-1 ring-gray-500/20;
-}
-
-.skeleton {
-  @apply animate-pulse bg-gray-300;
 }
