@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex-col flex gap-4 p-4">
+  <div class="h-full min-h-[470px] flex-col flex gap-4 p-4">
     <Card class="p-4 gap-6 flex flex-col">
       <div class="grid gap-1">
         <Input
@@ -49,7 +49,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { differenceBy, remove } from "lodash-es";
 import { useAppStore } from "@/stores/appStore";
-import { StateAsset, useWalletStore } from "@/stores/walletStore";
+import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
@@ -130,10 +130,9 @@ export default defineComponent({
       for (const item of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
         if (
           !item.amount ||
-          (!this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.confirmedAmount)) ||
+          (!this.isFeeAsset(item.asset.tokenId) && !item.amount.isEqualTo(item.asset.balance)) ||
           (this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.confirmedAmount.minus(this.fee)))
+            !item.amount.isEqualTo(item.asset.balance.minus(this.fee)))
         ) {
           return true;
         }
@@ -143,7 +142,7 @@ export default defineComponent({
     },
     reservedFeeAssetAmount(): BigNumber {
       const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
-      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) return bn(0);
+      if (!feeAsset || feeAsset.asset.balance.isZero()) return bn(0);
       if (!this.changeValue) return this.fee;
       if (this.feeSettings.tokenId === ERG_TOKEN_ID) return this.fee.plus(this.changeValue);
       return this.fee;
@@ -244,7 +243,7 @@ export default defineComponent({
         this.selected.unshift({ asset: erg, amount: undefined });
       }
     },
-    add(asset: StateAsset) {
+    add(asset: AssetBalance) {
       this.removeDisposableSelections();
       this.selected.push({ asset });
 

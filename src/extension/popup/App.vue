@@ -30,7 +30,7 @@ const app = useAppStore();
     </div>
 
     <ScrollArea class="flex-auto" type="scroll">
-      <router-view class="min-h-[470px]" />
+      <router-view />
     </ScrollArea>
   </div>
 

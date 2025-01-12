@@ -4,7 +4,7 @@ import { BigNumber } from "bignumber.js";
 import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { StateAsset, useWalletStore } from "@/stores/walletStore";
+import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
 import StorageRentBox from "@/components/StorageRentBox.vue";
@@ -39,11 +39,11 @@ const normalizedFilter = computed(() =>
 
 const totalWallet = computed(() =>
   wallet.nonArtworkBalance
-    .reduce((acc, a) => acc.plus(a.confirmedAmount.times(rate(a.tokenId))), bn(0))
+    .reduce((acc, a) => acc.plus(a.balance.times(rate(a.tokenId))), bn(0))
     .times(ergPrice.value)
 );
 
-function filtered(assets: StateAsset[]): StateAsset[] {
+function filtered(assets: AssetBalance[]): AssetBalance[] {
   if (normalizedFilter.value === "" || assets.length === 0) return assets;
 
   return assets.filter((a) =>
@@ -161,13 +161,13 @@ function formatCoinPrice(amount: number, decimals = 9): string {
                 </div>
                 <template v-else>
                   <div>
-                    {{ format.bn.format(asset.confirmedAmount) }}
+                    {{ format.bn.format(asset.balance) }}
                   </div>
 
                   <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                     <Tooltip>
                       <TooltipTrigger class="text-xs text-muted-foreground">
-                        {{ formatCurrencyPrice(asset.confirmedAmount.times(price(asset.tokenId))) }}
+                        {{ formatCurrencyPrice(asset.balance.times(price(asset.tokenId))) }}
                       </TooltipTrigger>
                       <TooltipContent class="text-center">
                         <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
@@ -207,10 +207,10 @@ function formatCoinPrice(amount: number, decimals = 9): string {
                 {{ nft.metadata?.name ?? nft.tokenId }}
               </p>
               <div
-                v-if="!nft.confirmedAmount.eq(1) && !app.settings.hideBalances"
+                v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
                 class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
               >
-                <span class="m-auto">{{ format.bn.format(nft.confirmedAmount) }}</span>
+                <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
               </div>
 
               <!-- clickable overlay -->

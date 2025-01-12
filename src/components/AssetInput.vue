@@ -6,7 +6,7 @@ import { BigNumber } from "bignumber.js";
 import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { StateAsset } from "@/stores/walletStore";
+import { AssetBalance } from "@/stores/walletStore";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { MaskOptions, useNumericMask } from "@/composables/useNumericMask";
@@ -19,7 +19,7 @@ import Skeleton from "./ui/skeleton/Skeleton.vue";
 
 interface Props {
   disposable?: boolean;
-  asset: StateAsset;
+  asset: AssetBalance;
   modelValue?: BigNumber;
   reservedAmount?: BigNumber;
   minAmount?: BigNumber;
@@ -58,8 +58,8 @@ const isHovered = ref(false);
 const isDenom = ref(false);
 
 onMounted(() => {
-  if (props.asset.metadata?.decimals || props.asset.confirmedAmount.gt(1)) return;
-  internalValue.value = props.asset.confirmedAmount;
+  if (props.asset.metadata?.decimals || props.asset.balance.gt(1)) return;
+  internalValue.value = props.asset.balance;
 });
 
 const ergPrice = computed(() => assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
@@ -71,7 +71,7 @@ const baseValue = computed(
     (isDenom.value ? denomValue.value : internalValue.value)?.decimalPlaces(basePrecision) ?? bn(0)
 );
 
-const balance = computed(() => props.asset.confirmedAmount);
+const balance = computed(() => props.asset.balance);
 const available = computed(() => {
   const av =
     props.reservedAmount && balance.value.gte(props.reservedAmount)
@@ -149,7 +149,7 @@ const v$ = useVuelidate(
       maxValue: bigNumberMaxValue(available.value)
     }
   })),
-  { balance: props.asset.confirmedAmount, internalValue }
+  { balance: props.asset.balance, internalValue }
 );
 
 watch(internalValue, (newVal) => {

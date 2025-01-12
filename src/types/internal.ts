@@ -62,17 +62,17 @@ export type StateWallet = {
   settings: WalletSettings;
 };
 
-export interface AssetInfo {
-  tokenId: string;
-  metadata?: BasicAssetMetadata;
-}
-
 export type BasicAssetMetadata = {
   name?: string;
   decimals?: number;
   type?: AssetSubtype;
   artworkUrl?: string;
 };
+
+export interface AssetInfo {
+  tokenId: string;
+  metadata?: BasicAssetMetadata;
+}
 
 export type AssetsMetadataMap = Map<TokenId, BasicAssetMetadata>;
 
