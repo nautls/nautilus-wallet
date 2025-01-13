@@ -29,7 +29,7 @@
       </div>
 
       <AssetSelector :assets="unselected" @select="add" />
-      <p v-if="v$.selected.$error" class="px-2 text-destructive text-xs">
+      <p v-if="v$.selected.$error" class="px-2 -mt-4 text-destructive text-xs">
         {{ v$.selected.$errors[0].$message }}
       </p>
     </Card>
@@ -66,12 +66,12 @@ import { validErgoAddress } from "@/validators";
 
 const validations = {
   recipient: {
-    required: helpers.withMessage("Receiver address is required.", required),
+    required: helpers.withMessage("Please enter the recipient address.", required),
     validErgoAddress
   },
   selected: {
     required: helpers.withMessage(
-      "At least one asset should be selected in order to send a transaction.",
+      "Please select at least one asset to send this transaction.",
       required
     )
   }
