@@ -1,3 +1,208 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { isEmpty } from "@fleet-sdk/common";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
+import { BigNumber } from "bignumber.js";
+import { differenceBy, remove } from "lodash-es";
+import { useRoute } from "vue-router";
+import { AssetBalance, useWalletStore } from "@/stores/walletStore";
+import AssetInput from "@/components/AssetInput.vue";
+import AssetSelector from "@/components/AssetSelector.vue";
+import FeeSelector from "@/components/FeeSelector.vue";
+import FormField from "@/components/FormField.vue";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
+import { bn, decimalize } from "@/common/bigNumber";
+import { openTransactionSigningModal } from "@/common/componentUtils";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { FeeSettings } from "@/types/internal";
+import { validErgoAddress } from "@/validators";
+
+const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
+const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
+
+const wallet = useWalletStore();
+const route = useRoute();
+
+const selected = ref<TxAssetAmount[]>([]);
+const fee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: INITIAL_FEE_VAL });
+const password = ref("");
+const recipient = ref("");
+
+const v$ = useVuelidate(
+  {
+    recipient: {
+      required: helpers.withMessage("Please enter the recipient address.", required),
+      validErgoAddress
+    },
+    selected: {
+      required: helpers.withMessage(
+        "Please select at least one asset to send this transaction.",
+        required
+      )
+    }
+  },
+  { selected, recipient }
+);
+
+onMounted(() => {
+  if (route.query.recipient && typeof route.query.recipient === "string") {
+    recipient.value = route.query.recipient;
+  }
+
+  setErgAsSelected();
+});
+
+const unselected = computed(() => {
+  return differenceBy(
+    wallet.balance,
+    selected.value.map((a) => a.asset),
+    (a) => a.tokenId
+  );
+});
+
+const hasChange = computed(() => {
+  if (!isEmpty(unselected.value)) return true;
+
+  for (const item of selected.value.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
+    if (
+      !item.amount ||
+      (!isFeeAsset(item.asset.tokenId) && !item.amount.isEqualTo(item.asset.balance)) ||
+      (isFeeAsset(item.asset.tokenId) &&
+        !item.amount.isEqualTo(item.asset.balance.minus(fee.value.value)))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+});
+
+const reservedFeeAssetAmount = computed((): BigNumber => {
+  const feeValue = fee.value.value;
+  const feeAsset = selected.value.find((a) => a.asset.tokenId === fee.value.tokenId);
+
+  if (!feeAsset || feeAsset.asset.balance.isZero()) return bn(0);
+  if (!changeValue.value) return feeValue;
+  if (isErg(fee.value.tokenId)) return feeValue.plus(changeValue.value);
+  return feeValue;
+});
+
+const isFeeInErg = computed(() => isErg(fee.value.tokenId));
+const changeValue = computed(() => (hasChange.value ? MIN_BOX_VAL : undefined));
+
+watch(
+  () => fee.value.tokenId,
+  (newVal: string) => {
+    if (isErg(newVal)) setErgAsSelected();
+  }
+);
+
+watch(
+  () => selected.value.length,
+  () => v$.value.selected.$touch()
+);
+
+function getReserveAmountFor(tokenId: string): BigNumber | undefined {
+  if (isFeeAsset(tokenId)) {
+    return reservedFeeAssetAmount.value;
+  } else if (isErg(tokenId) && hasChange.value) {
+    return changeValue.value;
+  }
+}
+
+async function sendTx() {
+  const valid = await v$.value.$validate();
+  if (!valid) return;
+
+  openTransactionSigningModal({
+    onTransactionBuild: buildTransaction,
+    onSuccess: clear
+  });
+}
+
+async function buildTransaction() {
+  return await createP2PTransaction({
+    recipientAddress: recipient.value,
+    assets: selected.value,
+    fee: fee.value,
+    walletType: wallet.type
+  });
+}
+
+function clear(): void {
+  selected.value = [];
+  setErgAsSelected();
+  recipient.value = "";
+  password.value = "";
+  v$.value.$reset();
+}
+
+function setErgAsSelected(): void {
+  if (!isFeeInErg.value && !isEmpty(selected.value)) return;
+
+  const ergSelected = selected.value.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
+  if (ergSelected) return;
+
+  const erg = wallet.balance.find((a) => a.tokenId === ERG_TOKEN_ID);
+  if (erg) {
+    selected.value.unshift({ asset: erg, amount: undefined });
+  }
+}
+
+function add(asset: AssetBalance) {
+  removeDisposableSelections();
+  selected.value.push({ asset });
+
+  if (isErg(fee.value.tokenId)) {
+    setMinBoxValue();
+  }
+}
+
+function addAll() {
+  unselected.value.forEach((asset) => selected.value.push({ asset }));
+  setMinBoxValue();
+}
+
+function removeAsset(tokenId: string) {
+  remove(selected.value, (a) => a.asset.tokenId === tokenId);
+  setMinBoxValue();
+}
+
+function setMinBoxValue() {
+  if (selected.value.length === 1) return;
+
+  const erg = selected.value.find((a) => isFeeAsset(a.asset.tokenId));
+  if (!erg) return;
+
+  if (!erg.amount || erg.amount.isLessThan(MIN_BOX_VAL)) {
+    erg.amount = MIN_BOX_VAL;
+  }
+}
+
+function removeDisposableSelections() {
+  if (isErg(fee.value.tokenId)) return;
+
+  const first = selected.value[0];
+  if (!first) return;
+
+  if (!first.amount || first.amount.isZero()) {
+    removeAsset(first.asset.tokenId);
+  }
+}
+
+function isFeeAsset(tokenId: string): boolean {
+  return tokenId === fee.value.tokenId;
+}
+
+function isErg(tokenId: string): boolean {
+  return tokenId === ERG_TOKEN_ID;
+}
+</script>
+
 <template>
   <div class="h-full min-h-[470px] flex-col flex gap-4 p-4">
     <Card class="p-4 gap-6 flex flex-col">
@@ -19,9 +224,9 @@
           v-model="item.amount"
           :asset="item.asset"
           :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-          :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
+          :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
           :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-          @remove="remove(item.asset.tokenId)"
+          @remove="removeAsset(item.asset.tokenId)"
         />
       </div>
 
@@ -33,264 +238,7 @@
 
     <div class="flex-grow"></div>
 
-    <FeeSelector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
+    <FeeSelector v-model:selected="fee" :include-min-amount-per-box="!hasChange ? 0 : 1" />
     <Button class="w-full" size="lg" @click="sendTx()">Confirm</Button>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { isEmpty } from "@fleet-sdk/common";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
-import { BigNumber } from "bignumber.js";
-import { differenceBy, remove } from "lodash-es";
-import { useAppStore } from "@/stores/appStore";
-import { AssetBalance, useWalletStore } from "@/stores/walletStore";
-import AssetInput from "@/components/AssetInput.vue";
-import AssetSelector from "@/components/AssetSelector.vue";
-import FeeSelector from "@/components/FeeSelector.vue";
-import FormField from "@/components/FormField.vue";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
-import { bn, decimalize, undecimalize } from "@/common/bigNumber";
-import { openTransactionSigningModal } from "@/common/componentUtils";
-import { useFormat } from "@/composables/useFormat";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { FeeSettings } from "@/types/internal";
-import { validErgoAddress } from "@/validators";
-
-const validations = {
-  recipient: {
-    required: helpers.withMessage("Please enter the recipient address.", required),
-    validErgoAddress
-  },
-  selected: {
-    required: helpers.withMessage(
-      "Please select at least one asset to send this transaction.",
-      required
-    )
-  }
-};
-
-export default defineComponent({
-  name: "SendView",
-  components: {
-    AssetInput,
-    FeeSelector,
-    Input,
-    Card,
-    Button,
-    AssetSelector,
-    FormField
-  },
-  setup() {
-    return {
-      app: useAppStore(),
-      v$: useVuelidate(),
-      wallet: useWalletStore(),
-      format: useFormat()
-    };
-  },
-  data() {
-    return {
-      selected: [] as TxAssetAmount[],
-      feeSettings: {
-        tokenId: ERG_TOKEN_ID,
-        value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
-      } as FeeSettings,
-      password: "",
-      recipient: ""
-    };
-  },
-  computed: {
-    unselected() {
-      return differenceBy(
-        this.wallet.balance,
-        this.selected.map((a) => a.asset),
-        (a) => a.tokenId
-      );
-    },
-    hasMinErgSelected(): boolean {
-      const erg = this.selected.find((x) => this.isErg(x.asset.tokenId));
-      if (!erg || !erg.amount || erg.amount.isZero()) {
-        return false;
-      }
-
-      return undecimalize(erg.amount, ERG_DECIMALS).isGreaterThanOrEqualTo(MIN_BOX_VALUE);
-    },
-    hasChange(): boolean {
-      if (!isEmpty(this.unselected)) {
-        return true;
-      }
-
-      for (const item of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
-        if (
-          !item.amount ||
-          (!this.isFeeAsset(item.asset.tokenId) && !item.amount.isEqualTo(item.asset.balance)) ||
-          (this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.balance.minus(this.fee)))
-        ) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-    reservedFeeAssetAmount(): BigNumber {
-      const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
-      if (!feeAsset || feeAsset.asset.balance.isZero()) return bn(0);
-      if (!this.changeValue) return this.fee;
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) return this.fee.plus(this.changeValue);
-      return this.fee;
-    },
-    fee(): BigNumber {
-      return this.feeSettings.value;
-    },
-    isFeeInErg(): boolean {
-      return this.isErg(this.feeSettings.tokenId);
-    },
-    changeValue(): BigNumber | undefined {
-      if (!this.hasChange) {
-        return;
-      }
-
-      return this.minBoxValue;
-    },
-    minBoxValue(): BigNumber {
-      return decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
-    },
-    devMode(): boolean {
-      return this.app.settings.devMode;
-    }
-  },
-  watch: {
-    currentWallet() {
-      this.$router.push({ name: "assets" });
-    },
-    assets: {
-      immediate: true,
-      handler() {
-        if (!isEmpty(this.selected) || this.v$.$anyDirty) {
-          return;
-        }
-
-        this.setErgAsSelected();
-      }
-    },
-    ["feeSettings.tokenId"](newVal: string) {
-      if (this.isErg(newVal)) {
-        this.setErgAsSelected();
-      }
-    },
-    ["selected.length"]() {
-      this.v$.selected.$touch();
-    }
-  },
-  created() {
-    if (this.$route.query.recipient && typeof this.$route.query.recipient === "string") {
-      this.recipient = this.$route.query.recipient;
-    }
-  },
-  validations() {
-    return validations;
-  },
-  methods: {
-    getReserveAmountFor(tokenId: string): BigNumber | undefined {
-      if (this.isFeeAsset(tokenId)) {
-        return this.reservedFeeAssetAmount;
-      } else if (this.isErg(tokenId) && this.hasChange) {
-        return this.changeValue;
-      }
-    },
-    async sendTx() {
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
-
-      openTransactionSigningModal({
-        onTransactionBuild: this.buildTransaction,
-        onSuccess: this.clear
-      });
-    },
-    async buildTransaction() {
-      return await createP2PTransaction({
-        recipientAddress: this.recipient,
-        assets: this.selected,
-        fee: this.feeSettings,
-        walletType: this.wallet.type
-      });
-    },
-    clear(): void {
-      this.selected = [];
-      this.setErgAsSelected();
-      this.recipient = "";
-      this.password = "";
-      this.v$.$reset();
-    },
-    setErgAsSelected(): void {
-      if (!this.isFeeInErg && !isEmpty(this.selected)) return;
-
-      const selected = this.selected.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
-      if (selected) return;
-
-      const erg = this.wallet.balance.find((a) => a.tokenId === ERG_TOKEN_ID);
-      if (erg) {
-        this.selected.unshift({ asset: erg, amount: undefined });
-      }
-    },
-    add(asset: AssetBalance) {
-      this.removeDisposableSelections();
-      this.selected.push({ asset });
-
-      if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
-        this.setMinBoxValue();
-      }
-    },
-    addAll() {
-      this.unselected.forEach((unselected) => {
-        this.selected.push({ asset: unselected });
-      });
-
-      this.setMinBoxValue();
-    },
-    remove(tokenId: string) {
-      remove(this.selected, (a) => a.asset.tokenId === tokenId);
-      this.setMinBoxValue();
-    },
-    setMinBoxValue() {
-      if (this.selected.length === 1) return;
-
-      const erg = this.selected.find((a) => this.isFeeAsset(a.asset.tokenId));
-      if (!erg) return;
-
-      if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
-        erg.amount = bn(this.minBoxValue);
-      }
-    },
-    removeDisposableSelections() {
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
-        return;
-      }
-
-      const first = this.selected[0];
-      if (!first) {
-        return;
-      }
-
-      if (!first.amount || first.amount.isZero()) {
-        this.remove(first.asset.tokenId);
-      }
-    },
-    isFeeAsset(tokenId: string): boolean {
-      return tokenId === this.feeSettings.tokenId;
-    },
-    isErg(tokenId: string): boolean {
-      return tokenId === ERG_TOKEN_ID;
-    }
-  }
-});
-</script>
