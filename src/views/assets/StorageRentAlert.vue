@@ -6,15 +6,13 @@ import { Link } from "@/components/ui/link";
 import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 
 const wallet = useWalletStore();
+const STORAGE_RENT_URL = "https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/";
 </script>
 
 <template>
-  <Alert v-if="wallet.health.hasOldUtxos" variant="destructive">
-    <AlertTitle
-      >You may soon incur
-      <Link external href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
-        >demurrage</Link
-      >
+  <Alert v-if="!wallet.health.hasOldUtxos" variant="destructive">
+    <AlertTitle v-once
+      >You may soon incur <Link external :href="STORAGE_RENT_URL">demurrage</Link>
     </AlertTitle>
 
     <AlertDescription>
