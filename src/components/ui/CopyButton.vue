@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HTMLAttributes, ref, ComponentPropsOptions } from "vue";
+import { HTMLAttributes, ref } from "vue";
 import { CopyCheckIcon, CopyIcon } from "lucide-vue-next";
 import { PrimitiveProps } from "radix-vue";
 import { Button, ButtonVariants } from "@/components/ui/button";
@@ -27,7 +27,7 @@ function copy() {
 </script>
 
 <template>
-  <Button v-bind="props" @click="copy()" class="transition-colors" :class="{ 'text-green-600/70 hover:text-green-600': copied }">
+  <Button v-bind="props" @click="copy()" class="transition-colors" :class="{ 'text-green-600/80 hover:text-green-600': copied }">
     <CopyCheckIcon v-if="copied"  />
     <CopyIcon v-else />
   </Button>

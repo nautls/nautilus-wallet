@@ -221,7 +221,7 @@ function isErg(tokenId: string): boolean {
 </script>
 
 <template>
-  <div class="h-full min-h-[470px] flex-col flex gap-4 p-4">
+  <div class="min-h-[470px] flex-col flex gap-4 p-4">
     <Card class="p-4 gap-6 flex flex-col">
       <FormField :validation="v$.recipient">
         <Input

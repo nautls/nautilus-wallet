@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
+import CopyButton from "@/components/ui/CopyButton.vue";
 import { Link } from "@/components/ui/link";
 import { useFormat } from "@/composables/useFormat";
 import { MAINNET } from "@/constants/ergo";
@@ -26,25 +27,38 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4 text-center text-sm">
-    <img src="/icons/app/logo-mainnet.svg?url" class="m-auto w-24 pt-2" />
+  <div class="flex min-h-[470px] flex-col gap-4 p-4 text-center text-sm">
+    <img src="/icons/app/logo-mainnet.svg?url" class="m-auto size-20" />
     <div>
       <h1 v-once class="m-auto text-2xl">
         <span v-if="MAINNET">Nautilus Wallet</span>
         <span v-else>Nautilus Testnet Wallet</span>
       </h1>
 
-      <p v-once>
-        v{{ version }}, Commit:
-        <Link :href="commitUrl" external>{{ shortGitHash }}</Link>
-      </p>
+      <div v-once class="text-muted-foreground">
+        v{{ version }}-<Link class="text-muted-foreground" :href="commitUrl" external>{{
+          shortGitHash
+        }}</Link>
+      </div>
     </div>
-    <p class="text-sm italic text-muted-foreground">
+
+    <div class="text-sm italic">
       Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of
       land-based governments.
-    </p>
+    </div>
 
     <div class="flex-grow"></div>
+
+    <div class="text-sm">
+      Support the development by donating to:
+      <span v-if="readonly">
+        {{ format.string.shorten(donationAddress, 20) }}
+        <CopyButton :content="donationAddress" class="size-3" />
+      </span>
+      <Button v-else variant="link" class="p-0 m-0" size="condensed" @click="goDonate()">{{
+        format.string.shorten(donationAddress, 30)
+      }}</Button>
+    </div>
 
     <Link
       class="m-auto text-sm"
@@ -52,17 +66,6 @@ function goDonate() {
       href="https://github.com/nautls/nautilus-wallet/blob/master/privacy-policy.md"
       >Privacy Policy</Link
     >
-
-    <p class="text-sm">
-      Support the development by donating to:
-      <span v-if="readonly">
-        {{ format.string.shorten(donationAddress, 20) }}
-        <click-to-copy :content="donationAddress" :size="14" class="align-middle" />
-      </span>
-      <Button v-else variant="link" @click="goDonate()">{{
-        format.string.shorten(donationAddress, 20)
-      }}</Button>
-    </p>
 
     <div class="mx-20 flex flex-row items-center gap-1">
       <Link class="m-auto" external href="https://github.com/capt-nemo429/nautilus-wallet"
