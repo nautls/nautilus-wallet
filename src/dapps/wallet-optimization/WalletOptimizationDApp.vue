@@ -161,6 +161,6 @@ function formatBytes(bytes: number, decimals = 1) {
     </div>
   </div>
   <div class="flex-grow"></div>
-  <fee-selector v-model:selected="fee" />
+  <fee-selector v-model="fee" />
   <button :disabled="loading" class="btn w-full" @click="sendTransaction">Optimize</button>
 </template>

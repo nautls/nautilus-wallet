@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, PropType, shallowRef, watch } from "vue";
+import { computed, onMounted, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
@@ -28,20 +28,22 @@ interface FeeAsset extends AssetInfo {
   nanoErgsPerToken: BigNumber;
 }
 
+interface Props {
+  modelValue: FeeSettings;
+  includeMinAmountPerBox?: number;
+}
+
+const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
+const BN_MIN_BOX_VAL = bn(MIN_BOX_VALUE);
+
 const format = useFormat();
 const appStore = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
 
-const bigMinErgFee = bn(SAFE_MIN_FEE_VALUE);
-const bigMinBoxValue = bn(MIN_BOX_VALUE);
+const props = withDefaults(defineProps<Props>(), { includeMinAmountPerBox: 0 });
 
-const props = defineProps({
-  selected: { type: Object as PropType<FeeSettings>, required: true },
-  includeMinAmountPerBox: { type: Number, default: 0 }
-});
-
-const emit = defineEmits<{ (event: "update:selected", feeState: FeeSettings): void }>();
+const emit = defineEmits<{ (e: "update:modelValue", payload: FeeSettings): void }>();
 
 const assets = shallowRef<FeeAsset[]>([]);
 const intSelected = shallowRef<FeeAsset>({ tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) });
@@ -49,8 +51,8 @@ const internalMultiplier = shallowRef([1]);
 const cachedMinRequired = shallowRef(bn(0));
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0);
-const minTokenFee = computed(() => getTokenUnitsFor(bigMinErgFee));
-const nanoErgsFee = computed(() => bigMinErgFee.times(multiplier.value));
+const minTokenFee = computed(() => getTokenUnitsFor(BN_MIN_ERG_FEE));
+const nanoErgsFee = computed(() => BN_MIN_ERG_FEE.times(multiplier.value));
 const tokenUnitsFee = computed(() => minTokenFee.value.times(multiplier.value));
 
 const multiplier = computed<number>({
@@ -83,7 +85,7 @@ const v$ = useVuelidate(
     feeAmount: {
       minValue: helpers.withMessage(
         ({ $params }) =>
-          `You need to pay a minimum fee of ${$params.min} ${props.selected.assetInfo?.name} to send this transaction`,
+          `You need to pay a minimum fee of ${$params.min} ${props.modelValue.assetInfo?.name} to send this transaction`,
         bigNumberMinValue(cachedMinRequired.value)
       )
     }
@@ -92,7 +94,7 @@ const v$ = useVuelidate(
 );
 
 watch(
-  () => props.selected,
+  () => props.modelValue,
   (newVal) => {
     if (newVal.tokenId == intSelected.value.tokenId) return;
 
@@ -108,11 +110,11 @@ watch(
 
     if (multiplier.value != 1) multiplier.value = 1;
     recalculateMinRequired();
-    emitSelectedUpdate();
+    emitSelected();
   }
 );
 
-watch(() => feeAmount.value, emitSelectedUpdate);
+watch(() => feeAmount.value, emitSelected);
 watch(() => props.includeMinAmountPerBox, recalculateMinRequired);
 
 watch(
@@ -186,11 +188,11 @@ function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
 
 function recalculateMinRequired() {
   if (intSelected.value.tokenId === ERG_TOKEN_ID) {
-    cachedMinRequired.value = decimalize(bigMinErgFee, ERG_DECIMALS);
+    cachedMinRequired.value = decimalize(BN_MIN_ERG_FEE, ERG_DECIMALS);
     if (!v$.value.$dirty) multiplier.value = 1;
   } else {
     cachedMinRequired.value = decimalize(
-      getTokenUnitsFor(bigMinErgFee.plus(bigMinBoxValue.times(props.includeMinAmountPerBox))),
+      getTokenUnitsFor(BN_MIN_ERG_FEE.plus(BN_MIN_BOX_VAL.times(props.includeMinAmountPerBox))),
       intSelected.value.metadata?.decimals || 0
     );
 
@@ -205,8 +207,8 @@ function select(asset: FeeAsset) {
   intSelected.value = asset;
 }
 
-function emitSelectedUpdate() {
-  emit("update:selected", {
+function emitSelected() {
+  emit("update:modelValue", {
     tokenId: intSelected.value.tokenId,
     nanoErgsPerToken: intSelected.value.nanoErgsPerToken,
     value: feeAmount.value,

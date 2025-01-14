@@ -238,7 +238,7 @@ function isErg(tokenId: string): boolean {
 
     <div class="flex-grow"></div>
 
-    <FeeSelector v-model:selected="fee" :include-min-amount-per-box="!hasChange ? 0 : 1" />
+    <FeeSelector v-model="fee" :include-min-amount-per-box="!hasChange ? 0 : 1" />
     <Button class="w-full" size="lg" @click="sendTx()">Confirm</Button>
   </div>
 </template>
