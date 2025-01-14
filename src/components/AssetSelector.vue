@@ -77,9 +77,13 @@ function normalize(value?: string) {
   return value?.trim().toLocaleLowerCase() ?? "";
 }
 
-function filter(assets: T[]) {
+function filter(assets: (T | string)[]) {
   const term = normalizedSearchTerm.value;
-  return assets.filter((a) => normalize(a.metadata?.name).includes(term) || a.tokenId === term);
+  return assets.filter((a) =>
+    typeof a === "string"
+      ? normalize(a).includes(term)
+      : normalize(a?.metadata?.name).includes(term) || a.tokenId === term
+  );
 }
 </script>
 
@@ -120,7 +124,7 @@ function filter(assets: T[]) {
               <AssetIcon class="size-6" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
               <div
-                class="flex flex-grow flex-col align-middle text-xs"
+                class="flex flex-grow flex-col justify-center text-xs"
                 :class="{ 'font-semibold': isErg(asset.tokenId) }"
               >
                 <div>
@@ -157,6 +161,8 @@ function filter(assets: T[]) {
                 "
               />
             </CommandItem>
+
+            <slot name="commands" />
           </CommandGroup>
         </CommandList>
       </Command>
