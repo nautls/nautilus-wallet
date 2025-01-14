@@ -1,12 +1,12 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends Record<string, any>">
 import type { ComboboxRootEmits, ComboboxRootProps } from 'radix-vue'
 import { cn } from '@/lib/utils'
 import { ComboboxRoot, useForwardPropsEmits } from 'radix-vue'
 import { computed, type HTMLAttributes } from 'vue'
 
-const props = withDefaults(defineProps<ComboboxRootProps & { class?: HTMLAttributes['class'] }>(), {
+const props = withDefaults(defineProps<ComboboxRootProps<T> & { class?: HTMLAttributes['class'] }>(), {
   open: true,
-  modelValue: '',
+  modelValue: undefined,
 })
 
 const emits = defineEmits<ComboboxRootEmits>()

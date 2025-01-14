@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
@@ -33,6 +33,7 @@ const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
 const wallet = useWalletStore();
 const route = useRoute();
 
+const assetSelector = useTemplateRef("asset-selector");
 const selected = ref<TxAssetAmount[]>([]);
 const fee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: INITIAL_FEE_VAL });
 const password = ref("");
@@ -176,6 +177,8 @@ function add(asset: AssetBalance) {
 function addAll() {
   unselected.value.forEach((asset) => selected.value.push({ asset }));
   setMinBoxValue();
+  assetSelector.value?.close();
+  assetSelector.value?.clearSearch();
 }
 
 function removeAsset(tokenId: string) {
@@ -245,10 +248,10 @@ function isErg(tokenId: string): boolean {
       </div>
 
       <FormField :validation="v$.selected">
-        <AssetSelector :assets="unselected" @select="add">
+        <AssetSelector ref="asset-selector" :assets="unselected" @select="add">
           <template v-if="unselected.length" #commands>
             <CommandSeparator class="my-1" />
-            <CommandItem value="Add all" class="gap-2 py-2" @select="addAll">
+            <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
               <CheckCheckIcon class="size-6 shrink-0" />
               <div class="text-xs flex flex-col items-start justify-center font-bold">
                 Add all assets

@@ -31,6 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import WalletItem from "@/components/WalletItem.vue";
 import { browser, isPopup } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
+import { IDbWallet } from "@/types/database";
 
 const wallet = useWalletStore();
 const app = useAppStore();
@@ -119,7 +120,8 @@ async function expandView() {
         class="max-h-[500px]"
         reset-search-term-on-blur
         :filter-function="
-          (list: any[]) => list.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
+          (wallets: IDbWallet[]) =>
+            wallets.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
         "
       >
         <CommandInput placeholder="Search..." />

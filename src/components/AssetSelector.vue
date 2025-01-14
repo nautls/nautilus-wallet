@@ -45,6 +45,8 @@ const emit = defineEmits<{
   (e: "update:modelValue", payload: T): void;
 }>();
 
+defineExpose({ close: closePopover, clearSearch });
+
 const format = useFormat();
 const app = useAppStore();
 
@@ -60,13 +62,21 @@ useResizeObserver(useTemplateRef("test"), ([entry]) => {
 });
 
 async function emitSelected(asset: T) {
-  isOpen.value = false;
+  closePopover();
   selected.value = asset;
 
   setTimeout(() => {
     emit("select", asset);
     searchTerm.value = "";
   }, 100); // wait for the popover to close before emitting selected event to avoid blinking
+}
+
+function closePopover() {
+  isOpen.value = false;
+}
+
+function clearSearch() {
+  searchTerm.value = "";
 }
 
 function isErg(tokenId: string): boolean {
@@ -77,9 +87,9 @@ function normalize(value?: string) {
   return value?.trim().toLocaleLowerCase() ?? "";
 }
 
-function filter(assets: (T | string)[]) {
+function filter(items: (T | string)[]) {
   const term = normalizedSearchTerm.value;
-  return assets.filter((a) =>
+  return items.filter((a) =>
     typeof a === "string"
       ? normalize(a).includes(term)
       : normalize(a?.metadata?.name).includes(term) || a.tokenId === term
@@ -105,11 +115,7 @@ function filter(assets: (T | string)[]) {
     </div>
 
     <PopoverContent class="p-0 min-w-[200px]" :style="popoverWidth">
-      <Command
-        v-model:search-term="searchTerm"
-        class="max-h-[210px]"
-        :filter-function="(a: any) => filter(a)"
-      >
+      <Command v-model:search-term="searchTerm" class="max-h-[210px]" :filter-function="filter">
         <CommandInput placeholder="Search asset..." />
         <CommandEmpty>No assets found.</CommandEmpty>
         <CommandList>
