@@ -16,7 +16,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
-import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
+import {
+  createP2PTransaction,
+  SAFE_MAX_CHANGE_TOKEN_LIMIT,
+  TxAssetAmount
+} from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -67,6 +71,8 @@ const unselected = computed(() => {
 });
 
 const shouldReserveChange = computed(() => {
+  if (unselected.value.length) return true;
+
   for (const item of selected.value) {
     if (isErg(item.asset.tokenId)) continue;
     if (needsChangeFor(item)) return true;
@@ -86,7 +92,18 @@ const reservedFeeAssetAmount = computed((): BigNumber => {
 });
 
 const isFeeInErg = computed(() => isErg(fee.value.tokenId));
-const changeValue = computed(() => (shouldReserveChange.value ? MIN_BOX_VAL : undefined));
+
+const changeBoxesCount = computed(() => {
+  if (!shouldReserveChange.value) return 0;
+
+  const count = Math.ceil(unselected.value.length / SAFE_MAX_CHANGE_TOKEN_LIMIT);
+  // if count is equal to 0 and we need to reserve change, then we need at least 1 box
+  return count === 0 && shouldReserveChange.value ? 1 : count;
+});
+
+const changeValue = computed(() =>
+  shouldReserveChange.value ? MIN_BOX_VAL.times(changeBoxesCount.value) : undefined
+);
 
 watch(
   () => fee.value.tokenId,
@@ -132,13 +149,9 @@ async function sendTransaction() {
 
 function needsChangeFor(item: TxAssetAmount): boolean {
   if (!item.amount) return true;
-
-  const tokenId = item.asset.tokenId;
-  const balance = item.asset.balance;
-
-  if (!isFeeAsset(tokenId) && !item.amount.eq(balance)) return true;
-  if (isFeeAsset(tokenId) && !item.amount.eq(balance.minus(fee.value.value))) return true;
-  return false;
+  return isFeeAsset(item.asset.tokenId)
+    ? !item.amount.eq(item.asset.balance.minus(fee.value.value))
+    : !item.amount.eq(item.asset.balance);
 }
 
 function setErgAsSelected(): void {
@@ -231,29 +244,27 @@ function isErg(tokenId: string): boolean {
         />
       </div>
 
-      <AssetSelector :assets="unselected" @select="add">
-        <template v-if="unselected.length" #commands>
-          <CommandSeparator class="my-1" />
-          <CommandItem value="Add all" class="gap-2 py-2" @select="addAll">
-            <CheckCheckIcon class="size-6 shrink-0" />
-            <div class="text-xs flex flex-col items-start justify-center font-bold">
-              Add all assets
-              <div class="text-muted-foreground font-normal">
-                Add all assets to the sending list
+      <FormField :validation="v$.selected">
+        <AssetSelector :assets="unselected" @select="add">
+          <template v-if="unselected.length" #commands>
+            <CommandSeparator class="my-1" />
+            <CommandItem value="Add all" class="gap-2 py-2" @select="addAll">
+              <CheckCheckIcon class="size-6 shrink-0" />
+              <div class="text-xs flex flex-col items-start justify-center font-bold">
+                Add all assets
+                <div class="text-muted-foreground font-normal">
+                  Add all assets to the sending list
+                </div>
               </div>
-            </div>
-          </CommandItem>
-        </template>
-      </AssetSelector>
-
-      <p v-if="v$.selected.$error" class="px-2 -mt-5 text-destructive text-xs">
-        {{ v$.selected.$errors[0].$message }}
-      </p>
+            </CommandItem>
+          </template>
+        </AssetSelector>
+      </FormField>
     </Card>
 
     <div class="flex-grow"></div>
 
-    <FeeSelector v-model="fee" :include-min-amount-per-box="!shouldReserveChange ? 0 : 1" />
+    <FeeSelector v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
     <Button class="w-full" size="lg" @click="sendTransaction()">Confirm</Button>
   </div>
 </template>

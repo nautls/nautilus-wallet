@@ -13,7 +13,7 @@ import { UnconfirmedTransactionSummary } from "@/types/transactions";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 import { fetchBoxes } from "../boxFetcher";
 
-const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
+export const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 const wallet = useWalletStore();
 const app = useAppStore();
