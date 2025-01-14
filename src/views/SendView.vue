@@ -221,53 +221,51 @@ function isErg(tokenId: string): boolean {
 </script>
 
 <template>
-  <div class="min-h-[470px] flex-col flex gap-4 p-4">
-    <Card class="p-4 gap-6 flex flex-col">
-      <FormField :validation="v$.recipient">
-        <Input
-          v-model.lazy="recipient"
-          type="text"
-          spellcheck="false"
-          placeholder="Recipient"
-          class="w-full"
-          @blur="v$.recipient.$touch()"
-        />
-      </FormField>
+  <Card class="p-4 gap-6 flex flex-col">
+    <FormField :validation="v$.recipient">
+      <Input
+        v-model.lazy="recipient"
+        type="text"
+        spellcheck="false"
+        placeholder="Recipient"
+        class="w-full"
+        @blur="v$.recipient.$touch()"
+      />
+    </FormField>
 
-      <div class="grid gap-4">
-        <AssetInput
-          v-for="item in selected"
-          :key="item.asset.tokenId"
-          v-model="item.amount"
-          :asset="item.asset"
-          :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-          :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
-          :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-          @remove="removeAsset(item.asset.tokenId)"
-        />
-      </div>
+    <div class="grid gap-4">
+      <AssetInput
+        v-for="item in selected"
+        :key="item.asset.tokenId"
+        v-model="item.amount"
+        :asset="item.asset"
+        :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
+        :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
+        :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
+        @remove="removeAsset(item.asset.tokenId)"
+      />
+    </div>
 
-      <FormField :validation="v$.selected">
-        <AssetSelector ref="asset-selector" :assets="unselected" @select="add">
-          <template v-if="unselected.length" #commands>
-            <CommandSeparator class="my-1" />
-            <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
-              <CheckCheckIcon class="size-6 shrink-0" />
-              <div class="text-xs flex flex-col items-start justify-center font-bold">
-                Add all assets
-                <div class="text-muted-foreground font-normal">
-                  Add all assets to the sending list
-                </div>
+    <FormField :validation="v$.selected">
+      <AssetSelector ref="asset-selector" :assets="unselected" @select="add">
+        <template v-if="unselected.length" #commands>
+          <CommandSeparator class="my-1" />
+          <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
+            <CheckCheckIcon class="size-6 shrink-0" />
+            <div class="text-xs flex flex-col items-start justify-center font-bold">
+              Add all assets
+              <div class="text-muted-foreground font-normal">
+                Add all assets to the sending list
               </div>
-            </CommandItem>
-          </template>
-        </AssetSelector>
-      </FormField>
-    </Card>
+            </div>
+          </CommandItem>
+        </template>
+      </AssetSelector>
+    </FormField>
+  </Card>
 
-    <div class="flex-grow"></div>
+  <div class="flex-grow"></div>
 
-    <FeeSelector v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
-    <Button class="w-full" size="lg" @click="sendTransaction()">Confirm</Button>
-  </div>
+  <FeeSelector v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
+  <Button class="w-full" size="lg" @click="sendTransaction()">Confirm</Button>
 </template>

@@ -27,7 +27,7 @@ function copy() {
 </script>
 
 <template>
-  <Button v-bind="props" @click="copy()" class="transition-colors" :class="{ 'text-green-600/80 hover:text-green-600': copied }">
+  <Button v-bind="props" @click="copy()" class="transition-colors align-middle" :class="{ 'text-green-600/80 hover:text-green-600': copied }">
     <CopyCheckIcon v-if="copied"  />
     <CopyIcon v-else />
   </Button>

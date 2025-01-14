@@ -7,7 +7,6 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
-import StorageRentBox from "@/components/StorageRentBox.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -77,7 +76,7 @@ function formatCoinPrice(amount: number, decimals = 9): string {
 </script>
 
 <template>
-  <div class="relative mb-4 bg-header">
+  <div class="relative bg-header -mx-4 -mt-6">
     <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center cursor-default">
       <h2 class="text-2xl">
         <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
@@ -94,136 +93,129 @@ function formatCoinPrice(amount: number, decimals = 9): string {
       :show-tooltip="false"
     />
   </div>
-  <div class="p-4">
-    <storage-rent-box />
 
-    <Tabs default-value="tokens" class="w-full">
-      <div class="flex flex-row">
-        <TabsList>
-          <TabsTrigger value="tokens">Tokens</TabsTrigger>
-          <TabsTrigger value="collectibles" :disabled="!containsArtwork">
-            Collectibles
-          </TabsTrigger>
-        </TabsList>
+  <Tabs default-value="tokens" class="w-full">
+    <div class="flex flex-row">
+      <TabsList>
+        <TabsTrigger value="tokens">Tokens</TabsTrigger>
+        <TabsTrigger value="collectibles" :disabled="!containsArtwork"> Collectibles </TabsTrigger>
+      </TabsList>
 
-        <div class="flex-grow"></div>
+      <div class="flex-grow"></div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          @click="app.settings.hideBalances = !app.settings.hideBalances"
-        >
-          <EyeOffIcon v-if="app.settings.hideBalances" />
-          <EyeIcon v-else />
-        </Button>
-        <Popover>
-          <PopoverTrigger>
-            <Button variant="ghost" size="icon">
-              <SearchIcon v-if="normalizedFilter === ''" />
-              <SearchCheckIcon v-else />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent side="left">
-            <Input v-model="filter" placeholder="Search" class="w-full" clearable clear-icon />
-          </PopoverContent>
-        </Popover>
-      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        @click="app.settings.hideBalances = !app.settings.hideBalances"
+      >
+        <EyeOffIcon v-if="app.settings.hideBalances" />
+        <EyeIcon v-else />
+      </Button>
+      <Popover>
+        <PopoverTrigger>
+          <Button variant="ghost" size="icon">
+            <SearchIcon v-if="normalizedFilter === ''" />
+            <SearchCheckIcon v-else />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent side="left">
+          <Input v-model="filter" placeholder="Search" class="w-full" clearable clear-icon />
+        </PopoverContent>
+      </Popover>
+    </div>
 
-      <TabsContent value="tokens">
-        <Transition name="slide-up" appear>
-          <div class="flex flex-col gap-0 pt-2">
-            <Button
-              v-for="asset in tokens"
-              :key="asset.tokenId"
-              variant="ghost"
-              class="h-auto py-3 text-left [&_svg]:size-10"
-            >
-              <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-
-              <div
-                class="flex flex-grow flex-col align-middle text-sm"
-                :class="{ 'font-semibold': isErg(asset.tokenId) }"
-              >
-                <div>
-                  {{ format.asset.name(asset) }}
-                </div>
-                <div class="text-xs text-muted-foreground">
-                  {{
-                    isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
-                  }}
-                </div>
-              </div>
-
-              <div class="whitespace-nowrap text-right align-middle">
-                <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
-                  <Skeleton class="h-5 w-24 animate-none" />
-                  <Skeleton class="h-3 w-3/4 animate-none" />
-                </div>
-                <template v-else>
-                  <div>
-                    {{ format.bn.format(asset.balance) }}
-                  </div>
-
-                  <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
-                    <Tooltip>
-                      <TooltipTrigger class="text-xs text-muted-foreground">
-                        {{ formatCurrencyPrice(asset.balance.times(price(asset.tokenId))) }}
-                      </TooltipTrigger>
-                      <TooltipContent class="text-center">
-                        <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
-                        <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
-                        <p v-if="!isErg(asset.tokenId)">
-                          {{ formatCoinPrice(rate(asset.tokenId)) }}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </template>
-              </div>
-            </Button>
-          </div>
-        </Transition>
-      </TabsContent>
-
-      <TabsContent value="collectibles">
-        <Transition name="slide-up" appear>
-          <div
-            class="grid grid-cols-2 justify-stretch gap-4 px-2 py-4 sm:grid-cols-4 md:grid-cols-2"
+    <TabsContent value="tokens">
+      <Transition name="slide-up" appear>
+        <div class="flex flex-col gap-0 pt-2">
+          <Button
+            v-for="asset in tokens"
+            :key="asset.tokenId"
+            variant="ghost"
+            class="h-auto py-3 text-left [&_svg]:size-10"
           >
+            <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+
             <div
-              v-for="nft in collectibles"
-              :key="nft.tokenId"
-              class="relative rounded-md border bg-card text-card-foreground shadow"
+              class="flex flex-grow flex-col align-middle text-sm"
+              :class="{ 'font-semibold': isErg(asset.tokenId) }"
             >
-              <image-sandbox
-                :src="nft.metadata?.artworkUrl"
-                class="h-40 w-full overflow-hidden rounded-md"
-                height="10rem"
-                object-fit="cover"
-                overflow="hidden"
-              />
-
-              <p class="caption absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5">
-                {{ nft.metadata?.name ?? nft.tokenId }}
-              </p>
-              <div
-                v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
-                class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
-              >
-                <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
+              <div>
+                {{ format.asset.name(asset) }}
               </div>
-
-              <!-- clickable overlay -->
-              <Button
-                class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
-                variant="ghost"
-              ></Button>
+              <div class="text-xs text-muted-foreground">
+                {{
+                  isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
+                }}
+              </div>
             </div>
+
+            <div class="whitespace-nowrap text-right align-middle">
+              <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
+                <Skeleton class="h-5 w-24 animate-none" />
+                <Skeleton class="h-3 w-3/4 animate-none" />
+              </div>
+              <template v-else>
+                <div>
+                  {{ format.bn.format(asset.balance) }}
+                </div>
+
+                <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
+                  <Tooltip>
+                    <TooltipTrigger class="text-xs text-muted-foreground">
+                      {{ formatCurrencyPrice(asset.balance.times(price(asset.tokenId))) }}
+                    </TooltipTrigger>
+                    <TooltipContent class="text-center">
+                      <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
+                      <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
+                      <p v-if="!isErg(asset.tokenId)">
+                        {{ formatCoinPrice(rate(asset.tokenId)) }}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </template>
+            </div>
+          </Button>
+        </div>
+      </Transition>
+    </TabsContent>
+
+    <TabsContent value="collectibles">
+      <Transition name="slide-up" appear>
+        <div class="grid grid-cols-2 justify-stretch gap-4 px-2 py-4 sm:grid-cols-4 md:grid-cols-2">
+          <div
+            v-for="nft in collectibles"
+            :key="nft.tokenId"
+            class="relative rounded-md border bg-card text-card-foreground shadow"
+          >
+            <image-sandbox
+              :src="nft.metadata?.artworkUrl"
+              class="h-40 w-full overflow-hidden rounded-md"
+              height="10rem"
+              object-fit="cover"
+              overflow="hidden"
+            />
+
+            <div class="caption absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5">
+              {{ nft.metadata?.name ?? nft.tokenId }}
+            </div>
+            <div
+              v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
+              class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
+            >
+              <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
+            </div>
+
+            <!-- clickable overlay -->
+            <Button
+              class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
+              variant="ghost"
+            ></Button>
           </div>
-        </Transition>
-      </TabsContent>
-    </Tabs>
-  </div>
+        </div>
+      </Transition>
+    </TabsContent>
+  </Tabs>
 
   <!-- <asset-info-modal
       :token-id="selectedAsset?.tokenId"
