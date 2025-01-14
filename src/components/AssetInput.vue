@@ -14,8 +14,9 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { cn } from "@/lib/utils";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
+import FormField from "./FormField.vue";
 import { Button } from "./ui/button";
-import Skeleton from "./ui/skeleton/Skeleton.vue";
+import { Skeleton } from "./ui/skeleton";
 
 interface Props {
   disposable?: boolean;
@@ -206,7 +207,7 @@ function tokenRate(tokenId: string): number {
 </script>
 
 <template>
-  <div class="grid gap-1">
+  <FormField :validation="v$">
     <div
       :class="
         cn(
@@ -272,9 +273,5 @@ function tokenRate(tokenId: string): number {
         >
       </div>
     </div>
-
-    <div v-if="v$.$error" class="px-2 text-destructive text-xs">
-      {{ v$.$errors[0].$message }}
-    </div>
-  </div>
+  </FormField>
 </template>

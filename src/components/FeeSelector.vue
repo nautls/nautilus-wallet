@@ -20,6 +20,7 @@ import { AssetInfo, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
 import AssetSelector from "./AssetSelector.vue";
+import FormField from "./FormField.vue";
 import { Button } from "./ui/button";
 import { Slider } from "./ui/slider";
 
@@ -215,7 +216,7 @@ function emitSelectedUpdate() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 text-sm">
+  <FormField :validation="v$">
     <div
       class="flex flex-col w-full gap-1 rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
@@ -259,9 +260,5 @@ function emitSelectedUpdate() {
         <Slider v-model="internalMultiplier" :max="10" :step="1" :min="1" />
       </div>
     </div>
-
-    <div v-if="v$.$error" class="px-2 text-destructive text-xs">
-      {{ v$.$errors[0].$message }}
-    </div>
-  </div>
+  </FormField>
 </template>

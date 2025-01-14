@@ -1,7 +1,7 @@
 <template>
   <div class="h-full min-h-[470px] flex-col flex gap-4 p-4">
     <Card class="p-4 gap-6 flex flex-col">
-      <div class="grid gap-1">
+      <FormField :validation="v$.recipient">
         <Input
           v-model.lazy="recipient"
           type="text"
@@ -10,10 +10,7 @@
           class="w-full"
           @blur="v$.recipient.$touch()"
         />
-        <div v-if="v$.recipient.$error" class="text-destructive text-xs px-2">
-          {{ v$.recipient.$errors[0].$message }}
-        </div>
-      </div>
+      </FormField>
 
       <div class="grid gap-4">
         <AssetInput
@@ -29,14 +26,14 @@
       </div>
 
       <AssetSelector :assets="unselected" @select="add" />
-      <p v-if="v$.selected.$error" class="px-2 -mt-4 text-destructive text-xs">
+      <p v-if="v$.selected.$error" class="px-2 -mt-5 text-destructive text-xs">
         {{ v$.selected.$errors[0].$message }}
       </p>
     </Card>
 
     <div class="flex-grow"></div>
 
-    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
+    <FeeSelector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
     <Button class="w-full" size="lg" @click="sendTx()">Confirm</Button>
   </div>
 </template>
@@ -53,6 +50,7 @@ import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
+import FormField from "@/components/FormField.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -85,7 +83,8 @@ export default defineComponent({
     Input,
     Card,
     Button,
-    AssetSelector
+    AssetSelector,
+    FormField
   },
   setup() {
     return {
