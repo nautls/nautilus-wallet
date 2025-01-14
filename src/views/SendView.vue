@@ -4,7 +4,8 @@ import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import { differenceBy, remove } from "lodash-es";
+import { differenceBy } from "lodash-es";
+import { CheckCheckIcon } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
@@ -13,6 +14,7 @@ import FeeSelector from "@/components/FeeSelector.vue";
 import FormField from "@/components/FormField.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -64,18 +66,10 @@ const unselected = computed(() => {
   );
 });
 
-const hasChange = computed(() => {
-  if (!isEmpty(unselected.value)) return true;
-
-  for (const item of selected.value.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
-    if (
-      !item.amount ||
-      (!isFeeAsset(item.asset.tokenId) && !item.amount.isEqualTo(item.asset.balance)) ||
-      (isFeeAsset(item.asset.tokenId) &&
-        !item.amount.isEqualTo(item.asset.balance.minus(fee.value.value)))
-    ) {
-      return true;
-    }
+const shouldReserveChange = computed(() => {
+  for (const item of selected.value) {
+    if (isErg(item.asset.tokenId)) continue;
+    if (needsChangeFor(item)) return true;
   }
 
   return false;
@@ -92,7 +86,7 @@ const reservedFeeAssetAmount = computed((): BigNumber => {
 });
 
 const isFeeInErg = computed(() => isErg(fee.value.tokenId));
-const changeValue = computed(() => (hasChange.value ? MIN_BOX_VAL : undefined));
+const changeValue = computed(() => (shouldReserveChange.value ? MIN_BOX_VAL : undefined));
 
 watch(
   () => fee.value.tokenId,
@@ -109,45 +103,51 @@ watch(
 function getReserveAmountFor(tokenId: string): BigNumber | undefined {
   if (isFeeAsset(tokenId)) {
     return reservedFeeAssetAmount.value;
-  } else if (isErg(tokenId) && hasChange.value) {
+  } else if (isErg(tokenId) && shouldReserveChange.value) {
     return changeValue.value;
   }
 }
 
-async function sendTx() {
+async function sendTransaction() {
   const valid = await v$.value.$validate();
   if (!valid) return;
 
   openTransactionSigningModal({
-    onTransactionBuild: buildTransaction,
-    onSuccess: clear
+    onTransactionBuild: async () =>
+      createP2PTransaction({
+        recipientAddress: recipient.value,
+        assets: selected.value,
+        fee: fee.value,
+        walletType: wallet.type
+      }),
+    onSuccess: () => {
+      selected.value = [];
+      setErgAsSelected();
+      recipient.value = "";
+      password.value = "";
+      v$.value.$reset();
+    }
   });
 }
 
-async function buildTransaction() {
-  return await createP2PTransaction({
-    recipientAddress: recipient.value,
-    assets: selected.value,
-    fee: fee.value,
-    walletType: wallet.type
-  });
-}
+function needsChangeFor(item: TxAssetAmount): boolean {
+  if (!item.amount) return true;
 
-function clear(): void {
-  selected.value = [];
-  setErgAsSelected();
-  recipient.value = "";
-  password.value = "";
-  v$.value.$reset();
+  const tokenId = item.asset.tokenId;
+  const balance = item.asset.balance;
+
+  if (!isFeeAsset(tokenId) && !item.amount.eq(balance)) return true;
+  if (isFeeAsset(tokenId) && !item.amount.eq(balance.minus(fee.value.value))) return true;
+  return false;
 }
 
 function setErgAsSelected(): void {
   if (!isFeeInErg.value && !isEmpty(selected.value)) return;
 
-  const ergSelected = selected.value.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
-  if (ergSelected) return;
+  const isErgSelected = selected.value.find((a) => isErg(a.asset.tokenId));
+  if (isErgSelected) return;
 
-  const erg = wallet.balance.find((a) => a.tokenId === ERG_TOKEN_ID);
+  const erg = wallet.balance.find((a) => isErg(a.tokenId));
   if (erg) {
     selected.value.unshift({ asset: erg, amount: undefined });
   }
@@ -157,9 +157,7 @@ function add(asset: AssetBalance) {
   removeDisposableSelections();
   selected.value.push({ asset });
 
-  if (isErg(fee.value.tokenId)) {
-    setMinBoxValue();
-  }
+  if (isErg(fee.value.tokenId)) setMinBoxValue();
 }
 
 function addAll() {
@@ -168,7 +166,10 @@ function addAll() {
 }
 
 function removeAsset(tokenId: string) {
-  remove(selected.value, (a) => a.asset.tokenId === tokenId);
+  const index = selected.value.findIndex((a) => a.asset.tokenId === tokenId);
+  if (index === -1) return;
+
+  selected.value.splice(index, 1);
   setMinBoxValue();
 }
 
@@ -178,7 +179,7 @@ function setMinBoxValue() {
   const erg = selected.value.find((a) => isFeeAsset(a.asset.tokenId));
   if (!erg) return;
 
-  if (!erg.amount || erg.amount.isLessThan(MIN_BOX_VAL)) {
+  if (!erg.amount || erg.amount.lt(MIN_BOX_VAL)) {
     erg.amount = MIN_BOX_VAL;
   }
 }
@@ -230,7 +231,21 @@ function isErg(tokenId: string): boolean {
         />
       </div>
 
-      <AssetSelector :assets="unselected" @select="add" />
+      <AssetSelector :assets="unselected" @select="add">
+        <template v-if="unselected.length" #commands>
+          <CommandSeparator class="my-1" />
+          <CommandItem value="Add all" class="gap-2 py-2" @select="addAll">
+            <CheckCheckIcon class="size-6 shrink-0" />
+            <div class="text-xs flex flex-col items-start justify-center font-bold">
+              Add all assets
+              <div class="text-muted-foreground font-normal">
+                Add all assets to the sending list
+              </div>
+            </div>
+          </CommandItem>
+        </template>
+      </AssetSelector>
+
       <p v-if="v$.selected.$error" class="px-2 -mt-5 text-destructive text-xs">
         {{ v$.selected.$errors[0].$message }}
       </p>
@@ -238,7 +253,7 @@ function isErg(tokenId: string): boolean {
 
     <div class="flex-grow"></div>
 
-    <FeeSelector v-model="fee" :include-min-amount-per-box="!hasChange ? 0 : 1" />
-    <Button class="w-full" size="lg" @click="sendTx()">Confirm</Button>
+    <FeeSelector v-model="fee" :include-min-amount-per-box="!shouldReserveChange ? 0 : 1" />
+    <Button class="w-full" size="lg" @click="sendTransaction()">Confirm</Button>
   </div>
 </template>
