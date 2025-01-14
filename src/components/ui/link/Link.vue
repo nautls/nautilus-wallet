@@ -16,7 +16,7 @@ const props = withDefaults(
 
 <template>
   <a
-    :class="cn('text-primary underline-offset-4 hover:underline cursor-pointer', props.class)"
+    :class="cn('underline-offset-4 hover:underline cursor-pointer', props.class)"
     :href="props.href"
     :target="external ? '_blank' : undefined"
     :rel="external ? 'noopener noreferrer' : undefined"

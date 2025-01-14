@@ -18,6 +18,7 @@ import { useFormat } from "@/composables/useFormat";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import SparklineChart from "./SparklineChart.vue";
+import StorageRentAlert from "./StorageRentAlert.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -93,6 +94,8 @@ function formatCoinPrice(amount: number, decimals = 9): string {
       :show-tooltip="false"
     />
   </div>
+
+  <StorageRentAlert />
 
   <Tabs default-value="tokens" class="w-full">
     <div class="flex flex-row">
