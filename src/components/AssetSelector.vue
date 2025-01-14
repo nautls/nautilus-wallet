@@ -1,9 +1,10 @@
-<script setup lang="ts" generic="T extends Asset">
+<script setup lang="ts" generic="T extends AssetBalance">
 import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import { Check, ChevronsUpDown } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
+import { AssetBalance } from "@/stores/walletStore";
 import {
   Command,
   CommandEmpty,
@@ -144,7 +145,7 @@ function filter(items: (T | string)[]) {
               </div>
 
               <div
-                v-if="props.showBalance && asset.confirmedAmount"
+                v-if="props.showBalance && asset.balance"
                 class="whitespace-nowrap text-right align-middle text-xs"
               >
                 <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
@@ -152,7 +153,7 @@ function filter(items: (T | string)[]) {
                 </div>
                 <template v-else>
                   <div>
-                    {{ format.bn.format(asset.confirmedAmount) }}
+                    {{ format.bn.format(asset.balance) }}
                   </div>
                 </template>
               </div>
