@@ -27,7 +27,7 @@ const navItems = computed(() => [
       active-class="border-b-0 border-primary text-primary cursor-default"
       class="flex-grow border-b-0 border-muted-foreground text-muted-foreground transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
     >
-      <component :is="item.icon" :size="iconSize" class="m-3 mx-auto" />
+      <component :is="item.icon" :size="iconSize" class="m-3 mx-auto stroke-[1.5px]" />
     </router-link>
   </nav>
 </template>

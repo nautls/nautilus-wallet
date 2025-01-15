@@ -11,9 +11,11 @@ import {
 
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
-export type ComponentProps<C extends Component> = C extends new (...args: unknown[]) => unknown
-  ? Prettify<Omit<InstanceType<C>["$props"], keyof VNodeProps | keyof AllowedComponentProps>>
-  : never;
+export type ComponentProps<T extends Component, N = never> = T extends new (
+  ...args: unknown[]
+) => unknown
+  ? Prettify<Omit<InstanceType<T>["$props"], keyof VNodeProps | keyof AllowedComponentProps>>
+  : N;
 
 export type DialogLikeComponent = new (...args: unknown[]) => {
   open: () => void;

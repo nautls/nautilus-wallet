@@ -55,12 +55,12 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/dapps",
-    component: () => import("@/views/DAppsView.vue"),
+    component: () => import("@/views/dapps/DAppsView.vue"),
     children: [
       {
         path: "",
         name: "dapps",
-        component: () => import("@/dapps/DappsList.vue")
+        component: () => import("@/views/dapps/DappsList.vue")
       },
       {
         path: "wallet-optimization",
