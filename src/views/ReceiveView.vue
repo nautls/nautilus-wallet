@@ -82,15 +82,10 @@ function showOnLedger(address: StateAddress) {
         <h1 class="font-semibold leading-none tracking-tight mb-2">
           {{ wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address" }}
         </h1>
-        <Link
-          class="break-all"
-          :class="1"
-          external
-          @click="openExplorer(wallet.changeAddress?.script)"
-        >
+        <div class="break-all">
           {{ wallet.changeAddress?.script }}
-        </Link>
-        <CopyButton class="size-3 ml-2" :content="wallet.changeAddress?.script" />
+          <CopyButton class="size-3 align-middle" :content="wallet.changeAddress?.script" />
+        </div>
       </div>
 
       <QrCode :data="wallet.changeAddress?.script" />

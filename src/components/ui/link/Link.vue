@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { HtmlHTMLAttributes, LinkHTMLAttributes } from "vue";
+import { ExternalLinkIcon } from "lucide-vue-next";
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(
   defineProps<{
     href?: LinkHTMLAttributes["href"];
     class?: HtmlHTMLAttributes["class"];
+    displayExternalIcon?: boolean;
+    externalIconClass?: HtmlHTMLAttributes["class"];
     external?: boolean;
   }>(),
   {
-    external: false
+    external: false,
+    displayExternalIcon: true,
   }
 );
 </script>
@@ -21,6 +25,6 @@ const props = withDefaults(
     :target="external ? '_blank' : undefined"
     :rel="external ? 'noopener noreferrer' : undefined"
   >
-    <slot />
+    <slot /> <ExternalLinkIcon v-if="external && displayExternalIcon" :class="cn('size-3 pb-[2px] inline align-middle', props.externalIconClass)" />
   </a>
 </template>

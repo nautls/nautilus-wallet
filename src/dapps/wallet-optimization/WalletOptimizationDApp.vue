@@ -154,8 +154,7 @@ function formatBytes(bytes: number, decimals = 1) {
   <div>
     <div class="text-xs text-muted-foreground">
       <p>
-        Use the <strong>Wallet Optimization Tool</strong> to merge your UTxOs, boosting performance
-        and avoiding
+        Use this tool merge your UTxOs, boosting performance and avoiding
         <Link
           external
           href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
@@ -168,5 +167,5 @@ function formatBytes(bytes: number, decimals = 1) {
   <div class="flex-grow"></div>
 
   <FeeSelector v-model="fee" />
-  <Button :disabled="loading" @click="sendTransaction">Optimize</Button>
+  <Button :disabled="loading" size="lg" @click="sendTransaction">Optimize</Button>
 </template>
