@@ -14,7 +14,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
     >
       <Button
         variant="outline"
-        class="w-full h-full flex-col [&_svg]:size-14 p-4 gap-4"
+        class="w-full h-full flex-col [&_svg]:size-14 [&_img]:size-14 p-4 gap-4"
         @click="navigate"
       >
         <component :is="dapp.icon.component" class="m-auto" v-bind="dapp.icon.props" />
