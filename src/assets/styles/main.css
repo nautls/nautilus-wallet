@@ -1,7 +1,3 @@
-.break-anywhere {
-  overflow-wrap: anywhere;
-}
-
 .transform-flip {
   -moz-transform: scaleX(-1);
   -o-transform: scaleX(-1);
