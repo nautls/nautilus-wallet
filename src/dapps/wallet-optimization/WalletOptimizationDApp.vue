@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRaw, watch } from "vue";
+import { computed, onMounted, ref, toRaw } from "vue";
 import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
 import { createReusableTemplate } from "@vueuse/core";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
-import { AlertCircleIcon, CircleCheckIcon } from "lucide-vue-next";
+import { CheckIcon, CircleAlertIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "@/components/ui/link";
+import { Skeleton } from "@/components/ui/skeleton";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -42,9 +46,8 @@ const [DefineDataPoint, DataPoint] = createReusableTemplate<{
 }>();
 
 onMounted(loadBoxes);
-watch(() => wallet.id, loadBoxes);
 
-const size = computed(() => {
+const walletSize = computed(() => {
   let size = 0;
   for (const box of boxes.value) {
     size += serializeBox(box).length;
@@ -66,12 +69,15 @@ const oldestBox = computed(() => {
 });
 
 const utxoHealth = computed(() => {
-  return {
-    count: boxes.value.length < HEALTHY_UTXO_COUNT,
-    age: !minBoxHeight.value || currentHeight.value - minBoxHeight.value < HEALTHY_BLOCKS_AGE,
-    size: size.value < 100_000
-  };
+  const count = boxes.value.length < HEALTHY_UTXO_COUNT;
+  const age = !minBoxHeight.value || currentHeight.value - minBoxHeight.value < HEALTHY_BLOCKS_AGE;
+  const size = walletSize.value < 100_000;
+  const overall = count && age && size;
+
+  return { count, age, size, overall };
 });
+
+const healthStatus = computed(() => (utxoHealth.value.overall ? "Healthy" : "Unhealthy"));
 
 async function loadBoxes() {
   setLoading(true);
@@ -90,8 +96,8 @@ function setLoading(load = true) {
   loading.value = load;
 }
 
-function successColor(success: boolean) {
-  return success ? "text-green-500" : "text-orange-500";
+function healthColor(healthy: boolean) {
+  return healthy ? "text-green-500/70" : "text-red-500/70";
 }
 
 function sendTransaction() {
@@ -121,46 +127,46 @@ function formatBytes(bytes: number, decimals = 1) {
 
 <template>
   <define-data-point v-slot="{ title, content, healthy }">
-    <div class="stats-card">
-      <div v-if="loading" class="skeleton m-auto mb-2 block h-5 w-5 rounded-full"></div>
-      <template v-else>
-        <circle-check-icon
-          v-if="healthy"
-          class="mb-2 inline h-5 w-5"
-          :class="successColor(healthy)"
-        />
-        <alert-circle-icon v-else class="mb-2 inline h-5 w-5" :class="successColor(healthy)" />
-      </template>
+    <Card class="w-full">
+      <CardHeader class="flex flex-row items-center justify-between space-y-0 p-4 pb-0">
+        <CardTitle class="text-xs font-medium">{{ title }}</CardTitle>
 
-      <p>{{ title }}</p>
-
-      <h1 v-if="loading" class="skeleton inline-block h-4 w-20 rounded"></h1>
-      <h1 v-else>{{ content }}</h1>
-    </div>
+        <Skeleton v-if="loading" class="mb-2 inline size-4 rounded-full" />
+        <template v-else>
+          <CheckIcon v-if="healthy" class="mb-2 inline size-4" :class="healthColor(healthy)" />
+          <CircleAlertIcon v-else class="mb-2 inline size-4" :class="healthColor(healthy)" />
+        </template>
+      </CardHeader>
+      <CardContent class="p-4">
+        <Skeleton v-if="loading" class="w-8/12 h-7" />
+        <div v-else class="text-lg font-bold">{{ content }}</div>
+      </CardContent>
+    </Card>
   </define-data-point>
 
-  <div class="stats">
+  <div class="grid grid-cols-2 gap-4">
     <data-point title="UTxO count" :content="boxes.length" :healthy="utxoHealth.count" />
     <data-point title="Oldest UTxO" :content="oldestBox" :healthy="utxoHealth.age" />
-    <data-point title="Wallet size" :content="formatBytes(size)" :healthy="utxoHealth.size" />
+    <data-point title="Wallet size" :content="formatBytes(walletSize)" :healthy="utxoHealth.size" />
+    <data-point title="Health" :content="healthStatus" :healthy="utxoHealth.overall" />
   </div>
+
   <div>
-    <div class="text-xs text-gray-600">
+    <div class="text-xs text-muted-foreground">
       <p>
-        The Wallet Optimization Tool aims to renew and consolidate your UTxOs (Unspent Transaction
-        Outputs) into a smaller number of new UTxOs. By doing so, it enhances the performance of
-        your wallet and dApp interactions while avoiding
-        <a
-          class="link text-blue-600"
-          target="_blank"
-          rel="noopener noreferrer"
+        Use the <strong>Wallet Optimization Tool</strong> to merge your UTxOs, boosting performance
+        and avoiding
+        <Link
+          external
           href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
-          >storage rent</a
+          >demurrage</Link
         >.
       </p>
     </div>
   </div>
+
   <div class="flex-grow"></div>
-  <fee-selector v-model="fee" />
-  <button :disabled="loading" class="btn w-full" @click="sendTransaction">Optimize</button>
+
+  <FeeSelector v-model="fee" />
+  <Button :disabled="loading" @click="sendTransaction">Optimize</Button>
 </template>

@@ -132,35 +132,3 @@
 .autocomplete-list .item.selected {
   @apply bg-gray-200;
 }
-
-.checkbox {
-  @apply my-auto mr-2 h-4 w-4 cursor-pointer rounded-sm border-gray-300 bg-white outline-none checked:border-blue-600 checked:bg-blue-600 focus:outline-none;
-}
-
-.stats {
-  @apply flex flex-row gap-0 bg-white text-center;
-}
-
-.stats-card {
-  @apply w-full border border-gray-200 p-2;
-}
-
-.stats-card:last-child {
-  @apply rounded-r-md;
-}
-
-.stats-card:not(:last-child) {
-  @apply border-r-0;
-}
-
-.stats-card:first-child {
-  @apply rounded-l-md;
-}
-
-.stats-card h1 {
-  @apply font-bold;
-}
-
-.stats-card p {
-  @apply text-xs text-gray-500;
-}
