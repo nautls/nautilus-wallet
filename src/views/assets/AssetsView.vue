@@ -5,6 +5,7 @@ import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-nex
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
+import { AssetInfoDialog } from "@/components/asset-info-dialog";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import SparklineChart from "./SparklineChart.vue";
@@ -26,6 +28,7 @@ const wallet = useWalletStore();
 const format = useFormat();
 
 const filter = ref("");
+const { open: openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const chart = computed(() => assetsStore.priceChart.map((x) => ({ time: x[0], price: x[1] })));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
@@ -97,7 +100,7 @@ function formatCoinPrice(amount: number, decimals = 9): string {
 
   <StorageRentAlert />
 
-  <Tabs default-value="tokens" class="w-full">
+  <Tabs default-value="tokens" class="w-full" @update:model-value="() => (filter = '')">
     <div class="flex flex-row">
       <TabsList>
         <TabsTrigger value="tokens">Tokens</TabsTrigger>
@@ -135,6 +138,7 @@ function formatCoinPrice(amount: number, decimals = 9): string {
             :key="asset.tokenId"
             variant="ghost"
             class="h-auto py-3 text-left [&_svg]:size-10"
+            @click="openAssetInfoDialog({ tokenId: asset.tokenId })"
           >
             <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
@@ -213,18 +217,13 @@ function formatCoinPrice(amount: number, decimals = 9): string {
             <Button
               class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
               variant="ghost"
+              @click="openAssetInfoDialog({ tokenId: nft.tokenId })"
             ></Button>
           </div>
         </div>
       </Transition>
     </TabsContent>
   </Tabs>
-
-  <!-- <asset-info-modal
-      :token-id="selectedAsset?.tokenId"
-      :confirmed-balance="selectedAsset?.confirmedAmount"
-      @close="selectedAsset = undefined"
-    /> -->
 </template>
 
 <style lang="css" scoped>
