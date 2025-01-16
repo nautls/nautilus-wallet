@@ -54,14 +54,17 @@ function resolveIpfs(url?: string, isVideo = false): string {
 </script>
 
 <template>
-  <div v-if="loading" :class="props.class" class="flex">
-    <LoaderCircleIcon type="circular" class="animate-spin m-auto size-1/3 text-muted-foreground" />
-  </div>
-  <div v-else-if="!sandboxUrl" :class="props.class" class="flex">
-    <circle-alert-icon class="m-auto text-orange-400" :size="48" />
-  </div>
-
   <div class="relative">
+    <div v-if="loading" :class="props.class" class="flex">
+      <LoaderCircleIcon
+        type="circular"
+        class="animate-spin m-auto size-1/3 text-muted-foreground"
+      />
+    </div>
+    <div v-else-if="!sandboxUrl" :class="props.class" class="flex">
+      <circle-alert-icon class="m-auto text-orange-400" :size="48" />
+    </div>
+
     <iframe
       v-show="!loading && sandboxUrl"
       :key="sandboxUrl"
