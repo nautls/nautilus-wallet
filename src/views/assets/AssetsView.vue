@@ -28,7 +28,7 @@ const wallet = useWalletStore();
 const format = useFormat();
 
 const filter = ref("");
-const { open: openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
+const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const chart = computed(() => assetsStore.priceChart.map((x) => ({ time: x[0], price: x[1] })));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
@@ -76,6 +76,11 @@ function formatCurrencyPrice(value: BigNumber, decimals = 2): string {
 
 function formatCoinPrice(amount: number, decimals = 9): string {
   return `Σ ${format.bn.format(BigNumber(amount ?? 0), decimals)}`;
+}
+
+function openAssetInfoDialog(tokenId: string) {
+  if (tokenId === ERG_TOKEN_ID) return;
+  _openAssetInfoDialog({ tokenId });
 }
 </script>
 
@@ -138,7 +143,7 @@ function formatCoinPrice(amount: number, decimals = 9): string {
             :key="asset.tokenId"
             variant="ghost"
             class="h-auto py-3 text-left [&_svg]:size-10"
-            @click="openAssetInfoDialog({ tokenId: asset.tokenId })"
+            @click="openAssetInfoDialog(asset.tokenId)"
           >
             <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
@@ -217,7 +222,7 @@ function formatCoinPrice(amount: number, decimals = 9): string {
             <Button
               class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
               variant="ghost"
-              @click="openAssetInfoDialog({ tokenId: nft.tokenId })"
+              @click="openAssetInfoDialog(nft.tokenId)"
             ></Button>
           </div>
         </div>
