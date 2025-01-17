@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue";
 import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "lucide-vue-next";
 import AssetIcon from "@/components/AssetIcon.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
+import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +22,6 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
 import { IAssetInfo } from "@/types/database";
 import { AssetSubtype } from "@/types/internal";
-import AssetInfoDataPoint from "./AssetInfoDataPoint.vue";
 
 interface Props {
   tokenId: string;
@@ -187,14 +187,14 @@ defineExpose({ open: openDialog, close: closeDialog });
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <AssetInfoDataPoint
+            <StatsCard
               class="col-span-2"
               title="Emission Amount"
               :content="emissionAmount"
               :icon="HandCoinsIcon"
             />
-            <AssetInfoDataPoint title="Token ID" :content="asset?.id ?? ''" :icon="KeyRoundIcon" />
-            <AssetInfoDataPoint
+            <StatsCard title="Token ID" :content="asset?.id ?? ''" :icon="KeyRoundIcon" />
+            <StatsCard
               title="Mint TXID"
               :content="asset?.mintingTransactionId ?? ''"
               :icon="MilestoneIcon"
@@ -205,7 +205,7 @@ defineExpose({ open: openDialog, close: closeDialog });
             <Separator label="Additional Metadata" class="my-2" />
 
             <div class="grid grid-cols-1 gap-4">
-              <AssetInfoDataPoint
+              <StatsCard
                 v-for="kv in description.meta"
                 :key="kv[0]"
                 :title="kv[0]"

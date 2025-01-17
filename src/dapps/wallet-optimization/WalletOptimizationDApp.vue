@@ -2,17 +2,13 @@
 import { computed, onMounted, ref, toRaw } from "vue";
 import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
-import { createReusableTemplate } from "@vueuse/core";
 import dayjs from "dayjs";
 import { minBy } from "lodash-es";
-import { CheckIcon, CircleAlertIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import FeeSelector from "@/components/FeeSelector.vue";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/components/ui/link";
-import { Skeleton } from "@/components/ui/skeleton";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -26,6 +22,7 @@ import {
   SAFE_MIN_FEE_VALUE
 } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
+import DataPoint from "./components/DataPoint.vue";
 import { createConsolidationTransaction } from "./transactionFactory";
 
 const wallet = useWalletStore();
@@ -38,12 +35,6 @@ const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
   value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
 });
-
-const [DefineDataPoint, DataPoint] = createReusableTemplate<{
-  title: string;
-  content: string | number;
-  healthy: boolean;
-}>();
 
 onMounted(loadBoxes);
 
@@ -96,10 +87,6 @@ function setLoading(load = true) {
   loading.value = load;
 }
 
-function healthColor(healthy: boolean) {
-  return healthy ? "text-green-500/70" : "text-red-500/70";
-}
-
 function sendTransaction() {
   openTransactionSigningModal({ onTransactionBuild: createTransaction });
 }
@@ -126,29 +113,31 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <define-data-point v-slot="{ title, content, healthy }">
-    <Card class="w-full">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 p-4 pb-0">
-        <CardTitle class="text-xs font-medium">{{ title }}</CardTitle>
-
-        <Skeleton v-if="loading" class="mb-2 inline size-4 rounded-full" />
-        <template v-else>
-          <CheckIcon v-if="healthy" class="mb-2 inline size-4" :class="healthColor(healthy)" />
-          <CircleAlertIcon v-else class="mb-2 inline size-4" :class="healthColor(healthy)" />
-        </template>
-      </CardHeader>
-      <CardContent class="p-4">
-        <Skeleton v-if="loading" class="w-8/12 h-7" />
-        <div v-else class="text-lg font-bold">{{ content }}</div>
-      </CardContent>
-    </Card>
-  </define-data-point>
-
   <div class="grid grid-cols-2 gap-4">
-    <data-point title="UTxO count" :content="boxes.length" :healthy="utxoHealth.count" />
-    <data-point title="Oldest UTxO" :content="oldestBox" :healthy="utxoHealth.age" />
-    <data-point title="Wallet size" :content="formatBytes(walletSize)" :healthy="utxoHealth.size" />
-    <data-point title="Health" :content="healthStatus" :healthy="utxoHealth.overall" />
+    <DataPoint
+      title="UTxO count"
+      :loading="loading"
+      :healthy="utxoHealth.count"
+      :content="boxes.length.toString()"
+    />
+    <DataPoint
+      title="Oldest UTxO"
+      :loading="loading"
+      :healthy="utxoHealth.age"
+      :content="oldestBox"
+    />
+    <DataPoint
+      title="Wallet size"
+      :loading="loading"
+      :healthy="utxoHealth.size"
+      :content="formatBytes(walletSize)"
+    />
+    <DataPoint
+      title="Health"
+      :loading="loading"
+      :healthy="utxoHealth.overall"
+      :content="healthStatus"
+    />
   </div>
 
   <div>

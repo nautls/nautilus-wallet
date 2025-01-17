@@ -5,8 +5,8 @@ import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-nex
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
-import { AssetInfoDialog } from "@/components/asset-info-dialog";
 import AssetIcon from "@/components/AssetIcon.vue";
+import AssetInfoDialog from "@/components/AssetInfoDialog.vue";
 import ImageSandbox from "@/components/ImageSandbox.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
