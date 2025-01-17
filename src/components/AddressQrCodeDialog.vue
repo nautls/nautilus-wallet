@@ -21,15 +21,11 @@ function handleOpenUpdates(open: boolean) {
   if (!open) emit("close");
 }
 
-function openDialog() {
-  opened.value = true;
+function setOpened(open: boolean) {
+  opened.value = open;
 }
 
-function closeDialog() {
-  opened.value = false;
-}
-
-defineExpose({ open: openDialog, close: closeDialog });
+defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 </script>
 
 <template>
