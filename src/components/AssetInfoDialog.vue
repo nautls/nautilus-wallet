@@ -166,9 +166,9 @@ defineExpose({ open: openDialog, close: closeDialog });
             {{ asset?.name ?? asset?.id }}
           </div>
         </DialogTitle>
-        <DialogDescription v-if="description.title" class="max-w-[360px]">
-          <ScrollArea type="hover">
-            <div class="max-h-16" :class="{ 'break-all': !description.title.includes(' ') }">
+        <DialogDescription class="max-w-[360px]">
+          <ScrollArea v-if="description.title" type="hover">
+            <div class="max-h-16" :class="{ 'break-all': !description.title?.includes(' ') }">
               {{ description.title }}
             </div>
           </ScrollArea>
