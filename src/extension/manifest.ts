@@ -41,8 +41,12 @@ function buildVersion() {
   return label ? `${major}.${minor}.${patch}.${label}` : `${major}.${minor}.${patch}`;
 }
 
-export function buildManifest(network: Network, browser: Browser, mode: string) {
-  const manifest = {
+export function buildManifest(
+  network: Network,
+  browser: Browser,
+  mode: string
+): Manifest.WebExtensionManifest {
+  return {
     manifest_version: 3,
     name: buildTitle(mode, network),
     short_name: "Nautilus",
@@ -52,7 +56,7 @@ export function buildManifest(network: Network, browser: Browser, mode: string) 
     content_security_policy: {
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
     },
-    permissions: ["storage", "tabs"],
+    permissions: ["storage", "tabs", ...(browser === "chrome" ? ["sidePanel"] : [])],
     action: {
       default_popup: r("popup/index.html"),
       default_title: "Nautilus Wallet"
@@ -71,18 +75,27 @@ export function buildManifest(network: Network, browser: Browser, mode: string) 
         run_at: "document_start",
         all_frames: true
       }
-    ]
-  } as Manifest.WebExtensionManifest;
+    ],
 
-  if (browser === "chrome") {
-    manifest.version_name = pkg.version;
-    manifest.background = { service_worker: r("background/background.ts") };
-  } else if (browser === "firefox") {
-    manifest.background = { scripts: [r("background/background.ts")] };
-    manifest.browser_specific_settings = {
-      gecko: { id: "{35bc2a66-11b8-410d-8c0e-463db6744795}" }
-    };
-  }
-
-  return manifest;
+    ...(browser === "chrome"
+      ? // chrome specific manifest fields
+        {
+          version_name: pkg.version,
+          background: { service_worker: r("background/background.ts") },
+          side_panel: { default_path: r("popup/index.html") }
+        }
+      : // firefox specific manifest fields
+        {
+          background: { scripts: [r("background/background.ts")] },
+          browser_specific_settings: {
+            gecko: { id: "{35bc2a66-11b8-410d-8c0e-463db6744795}" }
+          },
+          sidebar_action: {
+            default_panel: r("popup/index.html"),
+            default_icon: buildIcons(mode, network),
+            default_title: "Nautilus Wallet",
+            open_at_install: false
+          }
+        })
+  };
 }

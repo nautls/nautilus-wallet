@@ -6,13 +6,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import WalletLogo from "@/components/WalletLogo.vue";
+import { isPopup } from "@/common/browser";
 
 const app = useAppStore();
+const isPopupView = isPopup();
 </script>
 
 <template>
   <div
-    class="min-h-[600px] h-screen flex flex-col min-w-[365px] md:mx-auto md:w-4/12 md:shadow-lg xs:max-w-[365px]"
+    class="min-h-[600px] h-screen flex flex-col min-w-[365px] md:mx-auto md:w-4/12 md:shadow-lg"
+    :class="{ 'max-w-[365px]': isPopupView }"
   >
     <div
       v-if="$route.meta.fullPage"

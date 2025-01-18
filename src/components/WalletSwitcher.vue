@@ -8,6 +8,7 @@ import {
   InfoIcon,
   LoaderCircleIcon,
   Maximize2Icon,
+  Minimize2Icon,
   MoonIcon,
   PlusCircleIcon,
   SettingsIcon,
@@ -38,6 +39,8 @@ const app = useAppStore();
 const router = useRouter();
 
 const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
+
+const isPopupView = isPopup();
 
 const isOpen = ref(false);
 const searchTerm = ref("");
@@ -93,11 +96,25 @@ function toggleColorMode() {
   }
 }
 
-async function expandView() {
-  if (!browser?.tabs) return;
+async function toggleViewMode() {
+  if (!browser) return;
 
-  const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
-  browser.tabs.create({ url, active: true });
+  if (import.meta.env.TARGET === "firefox") {
+    browser.sidebarAction.toggle();
+  } else {
+    if (isPopupView) {
+      const currentWindow = await browser.windows.getCurrent();
+      if (currentWindow?.id) {
+        chrome.sidePanel.open({ windowId: currentWindow.id });
+      } else {
+        const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
+        browser.tabs.create({ url, active: false });
+      }
+    }
+
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: isPopupView });
+  }
+
   window.close();
 }
 </script>
@@ -162,14 +179,10 @@ async function expandView() {
             <SunIcon v-else-if="app.settings.colorMode === 'light'" />
             <SunMoonIcon v-else />
           </Button>
-          <Button
-            class="cursor-default"
-            variant="ghost"
-            size="icon"
-            :disabled="!isPopup()"
-            @click="expandView"
-            ><Maximize2Icon
-          /></Button>
+          <Button class="cursor-default" variant="ghost" size="icon" @click="toggleViewMode">
+            <Maximize2Icon v-if="isPopupView" />
+            <Minimize2Icon v-else />
+          </Button>
         </div>
 
         <CommandList>

@@ -1,10 +1,12 @@
+import Browser from "webextension-polyfill";
+
 /**
  * Dynamically loads the browser API instance.
  * @returns The API instance for the browser, or undefined if the browser context is not available.
  */
-function getApiInstance(): typeof chrome | undefined {
+function getApiInstance(): typeof Browser | undefined {
   if (!hasBrowserContext()) return undefined;
-  return chrome;
+  return Browser;
 }
 
 export const browser = getApiInstance();
