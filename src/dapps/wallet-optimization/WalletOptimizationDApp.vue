@@ -149,7 +149,7 @@ function formatBytes(bytes: number, decimals = 1) {
     </div>
 
     <div class="space-y-4">
-      <FeeSelector v-model="fee" />
+      <FeeSelector v-model="fee" :disabled="loading" />
       <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction"
         >Optimize</Button
       >

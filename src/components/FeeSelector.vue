@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, watch } from "vue";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
-import { ChevronsUpDown, InfoIcon } from "lucide-vue-next";
+import { ChevronsUpDown, InfoIcon, Loader2Icon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -26,11 +26,13 @@ import { Slider } from "./ui/slider";
 
 interface FeeAsset extends AssetInfo {
   nanoErgsPerToken: BigNumber;
+  balance?: BigNumber;
 }
 
 interface Props {
   modelValue: FeeSettings;
   includeMinAmountPerBox?: number;
+  disabled?: boolean;
 }
 
 const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
@@ -49,6 +51,7 @@ const assets = shallowRef<FeeAsset[]>([]);
 const intSelected = shallowRef<FeeAsset>({ tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) });
 const internalMultiplier = shallowRef([1]);
 const cachedMinRequired = shallowRef(bn(0));
+const loading = ref(false);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0);
 const minTokenFee = computed(() => getTokenUnitsFor(BN_MIN_ERG_FEE));
@@ -128,6 +131,8 @@ watch(
 onMounted(loadAssets);
 
 async function loadAssets() {
+  loading.value = true;
+
   const erg: FeeAsset = {
     tokenId: ERG_TOKEN_ID,
     nanoErgsPerToken: bn(1),
@@ -171,6 +176,8 @@ async function loadAssets() {
       (x) => x.nanoErgsPerToken.toNumber()
     )
   );
+
+  loading.value = false;
 }
 
 function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
@@ -220,6 +227,7 @@ function emitSelected() {
 <template>
   <FormField :validation="v$">
     <div
+      :class="disabled ? 'pointer-events-none opacity-50' : ''"
       class="flex flex-col w-full gap-1 rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div class="flex flex-grow gap-2">
@@ -244,7 +252,7 @@ function emitSelected() {
         </div>
         <div>
           <AssetSelector v-model="intSelected" :assets="assets" selectable>
-            <PopoverTrigger>
+            <PopoverTrigger :disabled="loading">
               <Button variant="secondary">
                 <asset-icon
                   class="size-4"
@@ -252,7 +260,9 @@ function emitSelected() {
                   :type="intSelected.metadata?.type"
                 />
                 {{ format.asset.name(intSelected) }}
-                <ChevronsUpDown class="size-4 opacity-50 float-end" />
+
+                <Loader2Icon v-if="loading" class="size-4 opacity-50 animate-spin" />
+                <ChevronsUpDown v-else class="size-4 opacity-50 float-end" />
               </Button>
             </PopoverTrigger>
           </AssetSelector>

@@ -1,10 +1,9 @@
-<script setup lang="ts" generic="T extends AssetBalance">
+<script setup lang="ts" generic="T extends Asset">
 import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import { Check, ChevronsUpDown } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
-import { AssetBalance } from "@/stores/walletStore";
 import {
   Command,
   CommandEmpty,
@@ -23,7 +22,7 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
 export interface Asset extends AssetInfo {
-  confirmedAmount?: BigNumber;
+  balance?: BigNumber;
 }
 
 interface Props {
