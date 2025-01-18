@@ -24,7 +24,7 @@ const props = withDefaults(
   <div
     :class="
       cn(
-        'flex flex-col text-xs border min-h-20 gap-2 border-input justify-between p-4 rounded-md min-w-10',
+        'flex flex-col text-xs border py-3 px-4 min-h-16 gap-2 border-input justify-between rounded-md min-w-10',
         props.class
       )
     "

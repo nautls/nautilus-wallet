@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import CopyButton from "@/components/ui/CopyButton.vue";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
@@ -75,104 +76,110 @@ function showOnLedger(address: StateAddress) {
 </script>
 
 <template>
-  <Card class="p-4 text-sm">
-    <div class="flex flex-row gap-4 items-center">
-      <div class="w-8/12 xs:w-7/12">
-        <h1 class="font-semibold leading-none tracking-tight mb-2">
-          {{ wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address" }}
-        </h1>
-        <div class="break-all">
-          {{ wallet.changeAddress?.script }}
-          <CopyButton class="size-3 align-middle" :content="wallet.changeAddress?.script" />
+  <div class="flex flex-col gap-4 p-4">
+    <Card class="p-4 text-sm">
+      <div class="flex flex-row gap-4 items-center">
+        <div class="w-8/12 xs:w-7/12">
+          <h1 class="font-semibold leading-none tracking-tight mb-2">
+            {{
+              wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address"
+            }}
+          </h1>
+          <div class="break-all">
+            {{ wallet.changeAddress?.script }}
+            <CopyButton class="size-3 align-middle" :content="wallet.changeAddress?.script" />
+          </div>
         </div>
+
+        <QrCode :data="wallet.changeAddress?.script" />
       </div>
+    </Card>
 
-      <QrCode :data="wallet.changeAddress?.script" />
-    </div>
-  </Card>
+    <Alert v-if="isLedger" class="space-x-2">
+      <TriangleAlertIcon />
+      <AlertTitle>Heads up!</AlertTitle>
+      <AlertDescription>
+        Avoid sending more than <strong>20 different tokens</strong> in a single transaction to a
+        Ledger wallet. Limited device memory could cause your funds to become inaccessible.
+      </AlertDescription>
+    </Alert>
 
-  <Alert v-if="isLedger" class="space-x-2">
-    <TriangleAlertIcon />
-    <AlertTitle>Heads up!</AlertTitle>
-    <AlertDescription>
-      Avoid sending more than <strong>20 different tokens</strong> in a single transaction to a
-      Ledger wallet. Limited device memory could cause your funds to become inaccessible.
-    </AlertDescription>
-  </Alert>
+    <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
+      <div class="flex flex-row">
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="unused">Unused</TabsTrigger>
+        </TabsList>
 
-  <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
-    <div class="flex flex-row">
-      <TabsList>
-        <TabsTrigger value="all">All</TabsTrigger>
-        <TabsTrigger value="active">Active</TabsTrigger>
-        <TabsTrigger value="unused">Unused</TabsTrigger>
-      </TabsList>
+        <div class="flex-grow"></div>
+        <Button variant="ghost" size="icon" @click="newAddress"><CirclePlusIcon /></Button>
+      </div>
+    </Tabs>
+  </div>
 
-      <div class="flex-grow"></div>
-      <Button variant="ghost" size="icon" @click="newAddress"><CirclePlusIcon /></Button>
-    </div>
-  </Tabs>
-
-  <Transition name="slide-up" appear>
-    <div class="flex flex-col gap-0">
-      <div
-        v-for="address in addresses"
-        :key="address.script"
-        class="rounded-md transition-colors hover:bg-accent hover:text-accent-foreground justify-between p-4 flex gap-2 items-center bg-transparent"
-      >
-        <div class="flex gap-2 items-center">
-          <Button
-            variant="minimal"
-            size="condensed"
-            class="flex gap-2 items-center [&_svg]:size-4"
-            @click="setDefaultAddress(address)"
-          >
-            <CircleCheckIcon v-if="wallet.settings.defaultChangeIndex === address.index" />
-            <CircleIcon v-else />
-            <span class="whitespace-nowrap font-mono text-foreground">{{
-              format.string.shorten(address.script, 10)
-            }}</span>
-          </Button>
-
-          <CopyButton :content="address.script" class="size-4" />
-          <Button
-            variant="minimal"
-            size="condensed"
-            class="size-4"
-            @click="openExplorer(address.script)"
-          >
-            <ExternalLinkIcon />
-          </Button>
-          <Button
-            variant="minimal"
-            size="condensed"
-            class="size-4"
-            @click="openQrCodeDialog({ address })"
-          >
-            <QrCodeIcon />
-          </Button>
-          <!-- Verify this address on your Ledger device -->
-          <Button
-            v-if="isLedger"
-            variant="minimal"
-            size="condensed"
-            class="size-4"
-            @click="showOnLedger(address)"
-          >
-            <ShieldCheckIcon />
-          </Button>
-        </div>
-
-        <div class="text-right text-xs">
-          <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
-          <template v-else>
-            <span>{{ getFormattedErgBalance(address) }}</span>
-            <span v-if="address.assets.length > 1" class="text-muted-foreground">
-              +{{ address.assets.length - 1 }}</span
+  <ScrollArea type="scroll">
+    <Transition name="slide-up" appear>
+      <div class="flex flex-col gap-0 px-4">
+        <div
+          v-for="address in addresses"
+          :key="address.script"
+          class="rounded-md transition-colors hover:bg-accent hover:text-accent-foreground justify-between p-4 flex gap-2 items-center bg-transparent"
+        >
+          <div class="flex gap-2 items-center">
+            <Button
+              variant="minimal"
+              size="condensed"
+              class="flex gap-2 items-center [&_svg]:size-4"
+              @click="setDefaultAddress(address)"
             >
-          </template>
+              <CircleCheckIcon v-if="wallet.settings.defaultChangeIndex === address.index" />
+              <CircleIcon v-else />
+              <span class="whitespace-nowrap font-mono text-foreground">{{
+                format.string.shorten(address.script, 10)
+              }}</span>
+            </Button>
+
+            <CopyButton :content="address.script" class="size-4" />
+            <Button
+              variant="minimal"
+              size="condensed"
+              class="size-4"
+              @click="openExplorer(address.script)"
+            >
+              <ExternalLinkIcon />
+            </Button>
+            <Button
+              variant="minimal"
+              size="condensed"
+              class="size-4"
+              @click="openQrCodeDialog({ address })"
+            >
+              <QrCodeIcon />
+            </Button>
+            <!-- Verify this address on your Ledger device -->
+            <Button
+              v-if="isLedger"
+              variant="minimal"
+              size="condensed"
+              class="size-4"
+              @click="showOnLedger(address)"
+            >
+              <ShieldCheckIcon />
+            </Button>
+          </div>
+
+          <div class="text-right text-xs">
+            <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
+            <template v-else>
+              <span>{{ getFormattedErgBalance(address) }}</span>
+              <span v-if="address.assets.length > 1" class="text-muted-foreground">
+                +{{ address.assets.length - 1 }}</span
+              >
+            </template>
+          </div>
         </div>
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </ScrollArea>
 </template>

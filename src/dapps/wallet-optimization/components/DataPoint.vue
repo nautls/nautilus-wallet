@@ -1,18 +1,17 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { CheckIcon, CircleAlertIcon } from "lucide-vue-next";
 import StatsCard from "@/components/StatsCard.vue";
 import { Skeleton } from "@/components/ui/skeleton";
 
-defineProps<{
+const props = defineProps<{
   title: string;
   content: string;
   healthy: boolean;
   loading: boolean;
 }>();
 
-function healthColor(healthy: boolean) {
-  return healthy ? "text-green-500/70" : "text-red-500/70";
-}
+const iconColor = computed(() => (props.healthy ? "text-green-500/70" : "text-red-500/70"));
 </script>
 
 <template>
@@ -20,8 +19,8 @@ function healthColor(healthy: boolean) {
     <template #icon>
       <Skeleton v-if="loading" class="size-4 rounded-full" />
       <template v-else>
-        <CheckIcon v-if="healthy" class="size-4" :class="healthColor(healthy)" />
-        <CircleAlertIcon v-else class="size-4" :class="healthColor(healthy)" />
+        <CheckIcon v-if="healthy" class="size-4" :class="iconColor" />
+        <CircleAlertIcon v-else class="size-4" :class="iconColor" />
       </template>
     </template>
 

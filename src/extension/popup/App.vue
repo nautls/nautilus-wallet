@@ -2,7 +2,6 @@
 import { useAppStore } from "@/stores/appStore";
 import KyaModal from "@/components/KYAModal.vue";
 import NavHeader from "@/components/NavHeader.vue";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import WalletLogo from "@/components/WalletLogo.vue";
@@ -14,7 +13,7 @@ const isPopupView = isPopup();
 
 <template>
   <div
-    class="min-h-[600px] h-screen flex flex-col min-w-[365px] md:mx-auto md:w-4/12 md:shadow-lg"
+    class="min-h-[600px] h-screen flex overflow-hidden flex-col min-w-[365px] md:mx-auto md:w-4/12 md:shadow-lg"
     :class="{ 'max-w-[365px]': isPopupView }"
   >
     <div
@@ -32,11 +31,7 @@ const isPopupView = isPopup();
       <nav-header />
     </div>
 
-    <ScrollArea class="flex-auto" type="scroll">
-      <div class="min-h-[470px] flex-col flex gap-4 px-4 py-6">
-        <router-view />
-      </div>
-    </ScrollArea>
+    <router-view />
   </div>
 
   <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />

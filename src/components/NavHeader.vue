@@ -5,7 +5,6 @@ import { useWalletStore } from "@/stores/walletStore";
 import { WalletType } from "@/types/internal";
 
 const wallet = useWalletStore();
-const iconSize = 22;
 
 const readonly = computed(() => wallet.type === WalletType.ReadOnly);
 const navItems = computed(() => [
@@ -18,16 +17,16 @@ const navItems = computed(() => [
 </script>
 
 <template>
-  <nav class="flex flex-row items-center bg-header p-0 px-4 text-sm">
+  <nav class="flex flex-row items-center bg-header px-4 pt-2 text-sm">
     <router-link
       v-for="item in navItems"
       :key="item.to"
       :to="item.to"
       :class="{ 'pointer-events-none opacity-40': item.disabled }"
-      active-class="border-b-0 border-primary text-primary cursor-default"
-      class="flex-grow border-b-0 border-muted-foreground text-muted-foreground transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
+      active-class="text-primary cursor-default"
+      class="flex-grow text-muted-foreground py-3 transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
     >
-      <component :is="item.icon" :size="iconSize" class="m-3 mx-auto stroke-[1.5px]" />
+      <component :is="item.icon" class="size-[22px] mx-auto stroke-[1.5px]" />
     </router-link>
   </nav>
 </template>

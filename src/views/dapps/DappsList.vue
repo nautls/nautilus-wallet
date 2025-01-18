@@ -4,7 +4,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
 </script>
 
 <template>
-  <div class="grid grid-cols-2 justify-stretch gap-4 sm:grid-cols-4 md:grid-cols-2">
+  <div class="grid grid-cols-2 justify-stretch p-4 gap-4 sm:grid-cols-4 md:grid-cols-2">
     <router-link
       v-for="dapp in dappsManifest"
       :key="dapp.path"

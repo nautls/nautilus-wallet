@@ -113,48 +113,46 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-4">
-    <DataPoint
-      title="UTxO count"
-      :loading="loading"
-      :healthy="utxoHealth.count"
-      :content="boxes.length.toString()"
-    />
-    <DataPoint
-      title="Oldest UTxO"
-      :loading="loading"
-      :healthy="utxoHealth.age"
-      :content="oldestBox"
-    />
-    <DataPoint
-      title="Wallet size"
-      :loading="loading"
-      :healthy="utxoHealth.size"
-      :content="formatBytes(walletSize)"
-    />
-    <DataPoint
-      title="Health"
-      :loading="loading"
-      :healthy="utxoHealth.overall"
-      :content="healthStatus"
-    />
-  </div>
+  <div class="flex h-full flex-col gap-4 p-4">
+    <div class="grid grid-cols-2 gap-4">
+      <DataPoint
+        title="UTxO count"
+        :loading="loading"
+        :healthy="utxoHealth.count"
+        :content="boxes.length.toString()"
+      />
+      <DataPoint
+        title="Oldest UTxO"
+        :loading="loading"
+        :healthy="utxoHealth.age"
+        :content="oldestBox"
+      />
+      <DataPoint
+        title="Wallet size"
+        :loading="loading"
+        :healthy="utxoHealth.size"
+        :content="formatBytes(walletSize)"
+      />
+      <DataPoint
+        title="Health"
+        :loading="loading"
+        :healthy="utxoHealth.overall"
+        :content="healthStatus"
+      />
+    </div>
 
-  <div>
-    <div class="text-xs text-muted-foreground">
-      <p>
-        Use this tool merge your UTxOs, boosting performance and avoiding
-        <Link
-          external
-          href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
-          >demurrage</Link
-        >.
-      </p>
+    <div class="text-xs flex-grow text-muted-foreground">
+      Use this tool merge your UTxOs, boosting performance and avoiding
+      <Link external href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
+        >demurrage</Link
+      >.
+    </div>
+
+    <div class="space-y-4">
+      <FeeSelector v-model="fee" />
+      <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction"
+        >Optimize</Button
+      >
     </div>
   </div>
-
-  <div class="flex-grow"></div>
-
-  <FeeSelector v-model="fee" />
-  <Button :disabled="loading" size="lg" @click="sendTransaction">Optimize</Button>
 </template>

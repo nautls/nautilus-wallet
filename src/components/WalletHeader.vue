@@ -4,8 +4,8 @@ import WalletSwitcher from "./WalletSwitcher.vue";
 </script>
 
 <template>
-  <div class="flex flex-row items-center gap-0 bg-header p-4 justify-between">
+  <div class="flex flex-row items-center gap-8 bg-header p-4 pb-0 justify-between">
     <wallet-switcher />
-    <wallet-logo class="mx-4 w-11 h-11" />
+    <wallet-logo class="mx-4 size-10" />
   </div>
 </template>
