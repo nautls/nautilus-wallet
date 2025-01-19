@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
-import { formatTimeAgo } from "@vueuse/core";
 import type { BigNumber } from "bignumber.js";
 import {
   ArrowDownRightIcon,
@@ -34,6 +33,7 @@ import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/util
 import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { DateFormatOptions, formatDate } from "@/common/dateFormat";
 import { useFormat } from "@/composables";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
@@ -42,8 +42,8 @@ import type {
   UnconfirmedTransactionSummary
 } from "@/types/transactions";
 
-const RELATIVE_DATE_FORMATTING = {
-  max: 1_000 * 60 * 60 * 24 * 7 // 1 week
+const RELATIVE_DATE_FORMATTING: DateFormatOptions = {
+  maxRelativeTime: 1_000 * 60 * 60 * 24 * 25 // 25 days
 };
 
 const formatter = useFormat();
@@ -139,7 +139,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
                 Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
               </Link>
               <span class="font-normal text-xs">{{
-                formatTimeAgo(new Date(tx.timestamp), RELATIVE_DATE_FORMATTING)
+                formatDate(tx.timestamp, RELATIVE_DATE_FORMATTING)
               }}</span>
             </CardTitle>
             <CardDescription class="text-xs">

@@ -13,6 +13,7 @@ import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { formatDate } from "@/common/dateFormat";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -54,9 +55,10 @@ const minBoxHeight = computed(() => {
 const oldestBox = computed(() => {
   if (loading.value) return "Loading...";
   if (!minBoxHeight.value) return "N/A";
-  return dayjs()
-    .add(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES), "minutes")
-    .fromNow(true);
+  return formatDate(
+    dayjs().add(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES), "minutes"),
+    { suffixRelativeTime: false }
+  );
 });
 
 const utxoHealth = computed(() => {
