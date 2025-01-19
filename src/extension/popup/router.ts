@@ -75,14 +75,9 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/AboutView.vue")
   },
   {
-    path: "/connector/connections",
-    name: "connector-connected",
-    component: () => import("@/views/ConnectionsView.vue")
-  },
-  {
-    path: "/wallet/settings",
+    path: "/settings",
     name: "wallet-settings",
-    component: () => import("@/views/SettingsView.vue")
+    component: () => import("@/views/settings/SettingsView.vue")
   }
 ];
 

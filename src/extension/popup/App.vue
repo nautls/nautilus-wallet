@@ -13,8 +13,8 @@ const isPopupView = isPopup();
 
 <template>
   <div
-    class="min-h-[600px] h-screen flex overflow-hidden flex-col min-w-[365px] md:mx-auto md:w-4/12 md:shadow-lg"
-    :class="{ 'max-w-[365px]': isPopupView }"
+    class="min-h-[600px] h-screen flex overflow-hidden flex-col min-w-[360px] md:mx-auto md:w-4/12 md:shadow-lg"
+    :class="{ 'max-w-[360px]': isPopupView }"
   >
     <div
       v-if="$route.meta.fullPage"

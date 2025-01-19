@@ -219,15 +219,17 @@ function tokenRate(tokenId: string): number {
       @mouseover="setHover(true)"
       @mouseout="setHover(false)"
     >
-      <button
+      <Button
         v-if="disposable"
         v-show="isHovered"
         tabindex="-1"
-        class="size-6 absolute -right-2 -top-2 cursor-pointer rounded-full bg-background ring-1 ring-input"
+        size="icon"
+        variant="outline"
+        class="size-6 absolute -right-2 -top-2 cursor-pointer border-0 rounded-full bg-background ring-1 ring-input"
         @click.prevent.stop="emit('remove')"
       >
         <TrashIcon class="p-0.5 m-auto size-4" />
-      </button>
+      </Button>
 
       <div class="flex flex-row gap-2 text-sm">
         <input

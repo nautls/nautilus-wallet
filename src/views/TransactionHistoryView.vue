@@ -219,7 +219,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           v-else-if="loaded && !txHistory?.length"
           class="flex flex-col items-center gap-4 text-center text-muted-foreground text-sm"
         >
-          <clock-icon :size="48" />
+          <ClockIcon :size="48" class="stroke-[1.5px]" />
           You have no transaction history yet.
         </div>
 

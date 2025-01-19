@@ -62,7 +62,7 @@ function resolveIpfs(url?: string, isVideo = false): string {
       />
     </div>
     <div v-else-if="!sandboxUrl" :class="props.class" class="flex">
-      <circle-alert-icon class="m-auto text-orange-400" :size="48" />
+      <CircleAlertIcon class="m-auto text-orange-400" :size="48" />
     </div>
 
     <iframe

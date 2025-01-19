@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, PropType, ref, useId, watch } from "vue";
+import { HTMLAttributes, nextTick, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
+import { cn } from "@/lib/utils";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
 
@@ -14,10 +15,11 @@ const COLORS = [
   ["#f59f9a", "#e1f2ff", "#085f48"]
 ];
 
-const props = defineProps({
-  wallet: { type: Object as PropType<IDbWallet>, required: true },
-  concise: { type: Boolean, default: false }
-});
+const props = defineProps<{
+  wallet: IDbWallet;
+  concise?: boolean;
+  class: HTMLAttributes["class"];
+}>();
 
 const id = useId();
 const checksum = ref("");
@@ -71,24 +73,24 @@ function walletTypeToString(type: WalletType): string {
 </script>
 
 <template>
-  <div class="flex w-full h-auto flex-row gap-2 items-center text-left">
+  <div :class="cn('flex w-full h-auto flex-row gap-2 items-center text-left', props.class)">
     <canvas
       :id="canvasId"
-      :class="concise ? 'h-5 rounded-sm' : 'h-auto rounded-md'"
+      :class="concise ? 'h-5 rounded-sm' : 'h-7 rounded-md'"
       class="inline-block w-auto ring-1 ring-foreground/10 ring-offset-1"
     ></canvas>
 
     <div class="flex w-full gap-0 flex-col whitespace-nowrap justify-center">
-      <p
+      <div
         class="w-full truncate text-sm leading-tight max-w-[110px]"
         :class="concise ? 'font-normal max-w-[125px]' : 'font-semibold max-w-[110px]'"
       >
         {{ wallet.name }}
-      </p>
+      </div>
 
-      <small class="text-muted-foreground leading-tight">
+      <div class="text-muted-foreground leading-tight text-xs">
         {{ walletTypeToString(wallet.type) }}
-      </small>
+      </div>
     </div>
   </div>
 </template>

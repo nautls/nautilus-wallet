@@ -2,7 +2,7 @@
 import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
-import { Check, ChevronsUpDown } from "lucide-vue-next";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import {
   Command,
@@ -109,7 +109,7 @@ function filter(items: (T | string)[]) {
           class="w-full items-center gap-0"
         >
           <span class="flex-grow">Add asset</span>
-          <ChevronsUpDown class="size-4 shrink-0 opacity-50 float-end -ml-4" />
+          <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50 float-end -ml-4" />
         </Button>
       </PopoverTrigger>
     </div>
@@ -157,7 +157,7 @@ function filter(items: (T | string)[]) {
                 </template>
               </div>
 
-              <Check
+              <CheckIcon
                 v-if="props.selectable"
                 :class="
                   cn(
