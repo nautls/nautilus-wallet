@@ -262,7 +262,7 @@ function emitSelected() {
                 {{ format.asset.name(intSelected) }}
 
                 <Loader2Icon v-if="loading" class="size-4 opacity-50 animate-spin" />
-                <ChevronsUpDown v-else class="size-4 opacity-50" />
+                <ChevronsUpDown v-else class="size-4 opacity-50 float-end" />
               </Button>
             </PopoverTrigger>
           </AssetSelector>
