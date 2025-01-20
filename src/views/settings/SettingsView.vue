@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConnectedApps from "./ConnectedApps.vue";
 import GlobalSettings from "./GlobalSettings.vue";
-import WalletSettings from "./WalletSettings.vue";
+import WalletSettings from "./wallet-settings/WalletSettings.vue";
 </script>
 
 <template>

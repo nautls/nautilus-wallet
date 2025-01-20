@@ -5,17 +5,20 @@ import { cn } from "@/lib/utils";
 
 const props = withDefaults(
   defineProps<{
-    title: string;
+    title?: string;
     content?: string;
     icon?: Component;
     displayCopyButton?: boolean;
     class?: HTMLAttributes["class"];
+    titleClass?: HTMLAttributes["class"];
   }>(),
   {
+    title: undefined,
     content: undefined,
     icon: undefined,
     displayCopyButton: true,
-    class: undefined
+    class: undefined,
+    titleClass: undefined
   }
 );
 </script>
@@ -29,8 +32,10 @@ const props = withDefaults(
       )
     "
   >
-    <div class="flex justify-between items-center gap-1">
-      <div class="truncate tracking-tight">{{ title }}</div>
+    <div v-if="props.title" class="flex justify-between items-center gap-1">
+      <div :class="cn('truncate tracking-tight', props.titleClass)">
+        {{ title }}
+      </div>
 
       <slot v-if="$slots.icon" name="icon" />
       <Component :is="icon" v-else-if="icon" class="size-3 text-muted-foreground" />
