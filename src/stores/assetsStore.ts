@@ -1,4 +1,4 @@
-import { computed, onMounted, shallowReactive, watch } from "vue";
+import { computed, reactive, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
@@ -63,18 +63,39 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const metadata = shallowReactive(new Map([[ERG_TOKEN_ID, ERG_METADATA]]));
 
-  onMounted(() => Promise.all([fetchBlacklists(), loadAssetPriceRates()]));
+  const loaded = reactive({ blacklists: false, prices: false });
+
+  watch(
+    () => privateState.blacklist,
+    () => {
+      loaded.blacklists = true;
+      fetchBlacklists();
+    },
+    { once: true }
+  );
+
+  watch(
+    () => privateState.prices,
+    () => {
+      loaded.prices = true;
+      loadAssetPriceRates();
+    },
+    { once: true }
+  );
 
   watch(
     () => app.settings.conversionCurrency,
     () => loadAssetPriceRates(true)
   );
+
   watch(
     () => app.settings.blacklistedTokensLists,
     () => fetchBlacklists(true)
   );
 
   async function fetchBlacklists(force = false) {
+    if (!loaded.blacklists) return;
+
     const lastUpdated = privateState.blacklist.lastUpdated ?? Date.now();
     if (!force && !elapsed(BLACKLIST_UPDATE_INTERVAL, lastUpdated)) return;
 
@@ -83,6 +104,8 @@ export const useAssetsStore = defineStore("assets", () => {
   }
 
   async function loadAssetPriceRates(force = false) {
+    if (!loaded.prices) return;
+
     const lastUpdated = privateState.prices.lastUpdated ?? Date.now();
     if (!force && !elapsed(PRICE_RATES_UPDATE_INTERVAL, lastUpdated)) return;
 
