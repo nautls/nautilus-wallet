@@ -95,7 +95,7 @@ function selectCurrency(currency: string) {
 <template>
   <div class="space-y-6">
     <Card class="flex flex-col gap-6 p-6">
-      <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2"
           >Conversion Currency
           <div class="text-muted-foreground text-xs">
@@ -144,7 +144,7 @@ function selectCurrency(currency: string) {
     </Card>
 
     <Card class="flex flex-col gap-6 p-6">
-      <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center justify-between gap-4">
         <Label for="dev-mode" class="flex flex-col gap-1"
           >Developer Mode
           <div class="text-muted-foreground text-xs">Enable advanced tools.</div></Label
@@ -165,14 +165,14 @@ function selectCurrency(currency: string) {
         </div></Label
       >
 
-      <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center justify-between gap-4">
         <Label for="nsfw-blacklist" class="flex flex-col gap-1"
           >NSFW Tokens
           <div class="text-muted-foreground text-xs">Hide NSFW tokens.</div></Label
         >
         <Switch id="nsfw-blacklist" />
       </div>
-      <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center justify-between gap-4">
         <Label for="scam-blacklist" class="flex flex-col gap-1"
           >Scam Tokens
           <div class="text-muted-foreground text-xs">Hide Scam tokens.</div></Label
@@ -208,7 +208,7 @@ function selectCurrency(currency: string) {
         </div>
       </Label>
 
-      <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center justify-between gap-4">
         <Label for="0-conf" class="flex flex-col gap-1"
           >Enable 0-conf
           <div class="text-muted-foreground text-xs">

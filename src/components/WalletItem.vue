@@ -18,7 +18,7 @@ const COLORS = [
 const props = defineProps<{
   wallet: IDbWallet;
   concise?: boolean;
-  class: HTMLAttributes["class"];
+  class?: HTMLAttributes["class"];
 }>();
 
 const id = useId();
