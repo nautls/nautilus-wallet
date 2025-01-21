@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { CheckIcon, ChevronsUpDownIcon, TriangleAlertIcon } from "lucide-vue-next";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
+import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
+import { useAppStore } from "@/stores/appStore";
+import FormField from "@/components/FormField.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,80 +20,102 @@ import { Label } from "@/components/ui/label";
 import { Link } from "@/components/ui/link";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
+import {
+  MIN_SERVER_VERSION,
+  validateServerNetwork,
+  validateServerVersion
+} from "@/chains/ergo/services/graphQlService";
 import { cn } from "@/lib/utils";
+import { validUrl } from "@/validators";
 
-const selectedCurrency = ref("usd");
-const currencies = [
-  "btc",
-  "eth",
-  "ltc",
-  "bch",
-  "bnb",
-  "eos",
-  "xrp",
-  "xlm",
-  "link",
-  "dot",
-  "yfi",
-  "usd",
-  "aed",
-  "ars",
-  "aud",
-  "bdt",
-  "bhd",
-  "bmd",
-  "brl",
-  "cad",
-  "chf",
-  "clp",
-  "cny",
-  "czk",
-  "dkk",
-  "eur",
-  "gbp",
-  "gel",
-  "hkd",
-  "huf",
-  "idr",
-  "ils",
-  "inr",
-  "jpy",
-  "krw",
-  "kwd",
-  "lkr",
-  "mmk",
-  "mxn",
-  "myr",
-  "ngn",
-  "nok",
-  "nzd",
-  "php",
-  "pkr",
-  "pln",
-  "rub",
-  "sar",
-  "sek",
-  "sgd",
-  "thb",
-  "try",
-  "twd",
-  "uah",
-  "vef",
-  "vnd",
-  "zar",
-  "xdr",
-  "xag",
-  "xau",
-  "bits",
-  "sats"
-];
+const app = useAppStore();
 
-const isCurrencyPopoverOpen = ref(false);
+const currencyState = reactive({
+  available: [app.settings.conversionCurrency ?? "usd"],
+  isPopoverOpen: false,
+  loading: true
+});
+
+const explorerUrl = ref(app.settings.explorerUrl);
+const graphQLServer = ref(app.settings.graphQLServer);
+
+const nsfwBlacklist = computedBlacklist("nsfw");
+const scamBlacklist = computedBlacklist("scam");
+
+onMounted(async () => {
+  currencyState.loading = true;
+
+  const newCurrencies = await coinGeckoService.getSupportedCurrencyConversion();
+  if (newCurrencies.length) {
+    currencyState.available = newCurrencies;
+  }
+
+  currencyState.loading = false;
+});
+
+watch(explorerUrl, async () => {
+  const valid = await v$.value.explorerUrl.$validate();
+  if (!valid) return;
+
+  app.settings.explorerUrl = explorerUrl.value;
+});
+
+watch(graphQLServer, async () => {
+  const valid = await v$.value.graphQLServer.$validate();
+  if (!valid) return;
+
+  app.settings.graphQLServer = graphQLServer.value;
+});
 
 function selectCurrency(currency: string) {
-  selectedCurrency.value = currency;
-  isCurrencyPopoverOpen.value = false;
+  app.settings.conversionCurrency = currency;
+  currencyState.isPopoverOpen = false;
 }
+
+function computedBlacklist(list: string) {
+  return computed<boolean>({
+    get: () => app.settings.blacklistedTokensLists.includes(list),
+    set: (value) => {
+      if (value) {
+        app.settings.blacklistedTokensLists.push(list);
+      } else {
+        const index = app.settings.blacklistedTokensLists.indexOf(list);
+        if (index !== -1) {
+          app.settings.blacklistedTokensLists.splice(index, 1);
+        }
+      }
+    }
+  });
+}
+
+const v$ = useVuelidate(
+  {
+    explorerUrl: {
+      required: helpers.withMessage("Explorer URL is required.", required),
+      validUrl
+    },
+    graphQLServer: {
+      required: helpers.withMessage("GraphQL Server is required.", required),
+      validUrl,
+      network: helpers.withMessage(
+        "Wrong server network.",
+        helpers.withAsync(async (url: string) => {
+          if (!url) return true;
+          return await validateServerNetwork(url);
+        })
+      ),
+      version: helpers.withMessage(
+        `Unsupported server version. Minimum required version: ${MIN_SERVER_VERSION.join(".")}`,
+        helpers.withAsync(async (url: string) => {
+          if (!url) return true;
+          return await validateServerVersion(url);
+        })
+      )
+    }
+  },
+  { explorerUrl, graphQLServer }
+);
 </script>
 
 <template>
@@ -103,11 +129,16 @@ function selectCurrency(currency: string) {
           </div></Label
         >
 
-        <Popover v-model:open="isCurrencyPopoverOpen">
+        <Popover v-model:open="currencyState.isPopoverOpen">
           <PopoverTrigger as-child>
-            <Button variant="outline" class="min-w-[100px]">
-              <span class="flex-grow uppercase">{{ selectedCurrency }}</span>
-              <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+            <Button :disabled="currencyState.loading" variant="outline" class="min-w-[100px]">
+              <span class="flex-grow uppercase">{{ app.settings.conversionCurrency }}</span>
+
+              <Loader2Icon
+                v-if="currencyState.loading"
+                class="size-4 shrink-0 opacity-50 animate-spin"
+              />
+              <ChevronsUpDownIcon v-else class="size-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
 
@@ -118,7 +149,7 @@ function selectCurrency(currency: string) {
               <CommandList class="max-h-[200px]">
                 <CommandGroup>
                   <CommandItem
-                    v-for="currency in currencies"
+                    v-for="currency in currencyState.available"
                     :key="currency"
                     class="gap-2 justify-between"
                     :value="currency"
@@ -130,7 +161,7 @@ function selectCurrency(currency: string) {
                       :class="
                         cn(
                           'mr-2 h-4 w-4',
-                          currency === selectedCurrency ? 'opacity-100' : 'opacity-0'
+                          currency === app.settings.conversionCurrency ? 'opacity-100' : 'opacity-0'
                         )
                       "
                     />
@@ -149,7 +180,7 @@ function selectCurrency(currency: string) {
           >Developer Mode
           <div class="text-muted-foreground text-xs">Enable advanced tools.</div></Label
         >
-        <Switch id="dev-mode" />
+        <Switch id="dev-mode" v-model:checked="app.settings.devMode" />
       </div>
     </Card>
 
@@ -161,37 +192,54 @@ function selectCurrency(currency: string) {
           <Link external href="https://github.com/sigmanauts/token-id-blacklist"
             >tokens blacklists</Link
           >
-          are maintained by the Sigmanauts community.
-        </div></Label
-      >
+          are maintained by the
+          <Link external href="https://sigmanauts.com/">Sigmanauts community.</Link>
+        </div>
+      </Label>
 
       <div class="flex items-center justify-between gap-4">
         <Label for="nsfw-blacklist" class="flex flex-col gap-1"
           >NSFW Tokens
           <div class="text-muted-foreground text-xs">Hide NSFW tokens.</div></Label
         >
-        <Switch id="nsfw-blacklist" />
+        <Switch id="nsfw-blacklist" v-model:checked="nsfwBlacklist" />
       </div>
       <div class="flex items-center justify-between gap-4">
         <Label for="scam-blacklist" class="flex flex-col gap-1"
           >Scam Tokens
           <div class="text-muted-foreground text-xs">Hide Scam tokens.</div></Label
         >
-        <Switch id="scam-blacklist" />
+        <Switch id="scam-blacklist" v-model:checked="scamBlacklist" />
       </div>
     </Card>
 
     <Card class="flex flex-col gap-6 p-6">
       <div class="flex flex-col gap-2">
-        <Label for="gql-server">GraphQL Server</Label>
-        <Input id="gql-server" />
-        <div class="text-muted-foreground text-xs">Set the main GraphQL server endpoint.</div>
+        <FormField :validation="v$.graphQLServer">
+          <Label for="gql-server">GraphQL Server</Label>
+          <div class="relative w-full max-w-sm items-center">
+            <Input
+              id="gql-server"
+              v-model="graphQLServer"
+              :class="{ 'pr-7': v$.graphQLServer.$pending }"
+            />
+            <span
+              v-if="v$.graphQLServer.$pending"
+              class="absolute end-0 inset-y-0 flex items-center justify-center px-2"
+            >
+              <Loader2Icon class="size-4 text-muted-foreground animate-spin" />
+            </span>
+          </div>
+          <template #description>Set the main GraphQL server endpoint.</template>
+        </FormField>
       </div>
 
       <div class="flex flex-col gap-2">
-        <Label for="explorer-url">Explorer URL</Label>
-        <Input id="explorer-url" />
-        <div class="text-muted-foreground text-xs">Set the default Ergo block explorer.</div>
+        <FormField :validation="v$.explorerUrl">
+          <Label for="explorer-url">Explorer URL</Label>
+          <Input id="explorer-url" v-model="explorerUrl" />
+          <template #description>Set the default Ergo block explorer.</template>
+        </FormField>
       </div>
     </Card>
 
@@ -217,7 +265,7 @@ function selectCurrency(currency: string) {
             blockchain.
           </div></Label
         >
-        <Switch id="0-conf" />
+        <Switch id="0-conf" v-model:checked="app.settings.zeroConf" />
       </div>
     </Card>
   </div>

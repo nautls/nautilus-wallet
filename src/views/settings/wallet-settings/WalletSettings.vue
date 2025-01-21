@@ -46,13 +46,11 @@ const v$ = useVuelidate(
 <template>
   <div class="space-y-6">
     <Card class="flex flex-col gap-6 p-6">
-      <div class="flex flex-col gap-1">
-        <FormField :validation="v$.walletName">
-          <Label for="name-input">Wallet Name</Label>
-          <Input id="name-input" v-model="walletName" />
-          <template #description>Set the internal wallet name.</template>
-        </FormField>
-      </div>
+      <FormField :validation="v$.walletName">
+        <Label for="name-input">Wallet Name</Label>
+        <Input id="name-input" v-model="walletName" />
+        <template #description>Set the internal wallet name.</template>
+      </FormField>
 
       <div class="flex items-center justify-between gap-4">
         <Label for="address-reuse" class="flex flex-col gap-1"
@@ -99,7 +97,7 @@ const v$ = useVuelidate(
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction variant="destructive" @click="app.deleteWallet(wallet.id)"
-                >Continue</AlertDialogAction
+                >Remove</AlertDialogAction
               >
             </AlertDialogFooter>
           </AlertDialogContent>

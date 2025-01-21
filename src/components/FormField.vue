@@ -16,7 +16,7 @@ const props = defineProps<Props>();
   <div :class="cn('space-y-1.5', props.class)">
     <slot />
 
-    <template v-if="validation.$error">
+    <template v-if="validation.$error && validation.$errors.length">
       <p
         v-for="e in validation.$errors"
         :key="e.$uid"
