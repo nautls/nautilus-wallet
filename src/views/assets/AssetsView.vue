@@ -159,7 +159,7 @@ function openAssetInfoDialog(tokenId: string) {
                   <p>
                     {{ format.asset.name(asset) }}
                   </p>
-                  <p class="text-xs text-muted-foreground font-light truncate">
+                  <p class="text-xs text-muted-foreground truncate">
                     {{
                       isErg(asset.tokenId)
                         ? "Ergo"
