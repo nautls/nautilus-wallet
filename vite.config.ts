@@ -1,16 +1,16 @@
 /* eslint-disable no-console */
-import { fileURLToPath, URL } from "node:url";
 import { execSync } from "child_process";
 import path from "node:path";
-import { defineConfig, PluginOption } from "vite";
+import { fileURLToPath, URL } from "node:url";
 import vue from "@vitejs/plugin-vue";
-import svgLoader from "vite-svg-loader";
-import wasmLoader from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
+import { defineConfig, PluginOption } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import topLevelAwait from "vite-plugin-top-level-await";
+import wasmLoader from "vite-plugin-wasm";
 import webExtension from "vite-plugin-web-extension";
-import { buildManifest } from "./src/extension/manifest.ts";
+import svgLoader from "vite-svg-loader";
 import { EXT_ENTRY_ROOT } from "./src/constants/extension.ts";
+import { buildManifest } from "./src/extension/manifest.ts";
 
 const port = 5173;
 const env = {
@@ -61,10 +61,12 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         sanitizeFileName(name) {
+          // avoid "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received [...]\x00[...]" error
+          if (name.includes("\x00")) name = name.replace("\x00", "");
           // chromium: filenames starting with "_" are reserved for use by the system.
-          if (name.startsWith("_")) return name.replace("_", "");
+          if (name.startsWith("_")) name = name.replace("_", "");
           // avoid invalid filenames such as FeeSelector.vue?vue&type=script&setup=true&lang.js
-          if (name.includes(".vue?")) return name.slice(0, name.indexOf(".vue?"));
+          if (name.includes(".vue?")) name = name.slice(0, name.indexOf(".vue?"));
           return name;
         }
       }
