@@ -63,7 +63,7 @@ export const useAppStore = defineStore("app", () => {
     privateState.wallets = await walletsDbService.getAll();
 
     // If KYA is not accepted and there are wallets, migrate settings from localStorage
-    if (!settings.value.isKyaAccepted && privateState.wallets.length > 0) {
+    if (!settings.value.isKyaAccepted && privateState.wallets.length) {
       const oldSettings = localStorage.getItem("settings");
       if (oldSettings) {
         settings.value = { ...DEFAULT_SETTINGS, ...JSON.parse(oldSettings) }; // migrate settings
@@ -71,7 +71,7 @@ export const useAppStore = defineStore("app", () => {
       } else {
         settings.value = {
           ...DEFAULT_SETTINGS,
-          isKyaAccepted: true, // if there are wallets, KYA is accepted
+          isKyaAccepted: true, // if there are wallets, KYA was accepted previously
           lastOpenedWalletId: privateState.wallets[0].id
         };
       }

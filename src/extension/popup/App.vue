@@ -1,14 +1,28 @@
 <script setup lang="ts">
+import { defineAsyncComponent, watch } from "vue";
 import { useAppStore } from "@/stores/appStore";
-import KyaModal from "@/components/KYAModal.vue";
 import NavHeader from "@/components/NavHeader.vue";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
 import WalletLogo from "@/components/WalletLogo.vue";
 import { isPopup } from "@/common/browser";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+
+const isPopupView = isPopup();
 
 const app = useAppStore();
-const isPopupView = isPopup();
+const { open: openKyaDialog } = useProgrammaticDialog(
+  defineAsyncComponent(() => import("@/components/KYADialog.vue"))
+);
+
+watch(
+  () => app.loading,
+  (loading) => {
+    if (loading || app.settings.isKyaAccepted) return;
+    openKyaDialog();
+  },
+  { once: true }
+);
 </script>
 
 <template>
@@ -34,6 +48,5 @@ const isPopupView = isPopup();
     <router-view />
   </div>
 
-  <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
   <Toaster />
 </template>
