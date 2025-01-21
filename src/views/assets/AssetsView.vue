@@ -142,7 +142,7 @@ function openAssetInfoDialog(tokenId: string) {
 
         <TabsContent value="tokens">
           <Transition name="slide-up" appear>
-            <div class="flex flex-col gap-0 pt-2">
+            <div class="flex flex-col gap-2 pt-2">
               <Button
                 v-for="asset in tokens"
                 :key="asset.tokenId"
@@ -153,30 +153,28 @@ function openAssetInfoDialog(tokenId: string) {
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
                 <div
-                  class="flex flex-grow flex-col align-middle text-sm"
+                  class="flex flex-grow flex-col align-middle text-sm gap-1.5"
                   :class="{ 'font-semibold': isErg(asset.tokenId) }"
                 >
-                  <div>
+                  <p class="leading-none">
                     {{ format.asset.name(asset) }}
-                  </div>
-                  <div class="text-xs text-muted-foreground">
+                  </p>
+                  <p class="text-xs text-muted-foreground truncate">
                     {{
                       isErg(asset.tokenId)
                         ? "Ergo"
                         : format.string.shorten(asset.tokenId, 7, "none")
                     }}
-                  </div>
+                  </p>
                 </div>
 
-                <div class="whitespace-nowrap text-right align-middle">
-                  <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
+                <div class="whitespace-nowrap flex flex-col items-end gap-1.5">
+                  <template v-if="app.settings.hideBalances">
                     <Skeleton class="h-5 w-24 animate-none" />
                     <Skeleton class="h-3 w-3/4 animate-none" />
-                  </div>
+                  </template>
                   <template v-else>
-                    <div>
-                      {{ format.bn.format(asset.balance) }}
-                    </div>
+                    <span class="leading-none">{{ format.bn.format(asset.balance) }}</span>
 
                     <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                       <Tooltip>
