@@ -3,15 +3,24 @@ import { ref } from "vue";
 import { StateAddress } from "@/stores/walletStore";
 import QrCode from "@/components/QrCode.vue";
 import { Button } from "@/components/ui/button";
+// import {
+//   Dialog,
+//   DialogClose,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle
+// } from "@/components/ui/dialog";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from "@/components/ui/drawer";
 
 const props = defineProps<{ address: StateAddress }>();
 const emit = defineEmits(["close"]);
@@ -30,22 +39,22 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 </script>
 
 <template>
-  <Dialog v-model:open="opened" @update:open="handleOpenUpdates">
-    <DialogContent class="sm:max-w-[410px]">
-      <DialogHeader>
-        <DialogTitle>Address Details</DialogTitle>
-        <DialogDescription class="break-all">
+  <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
+    <DrawerContent>
+      <DrawerHeader>
+        <DrawerTitle>Address Details</DrawerTitle>
+        <DrawerDescription class="break-all px-2">
           {{ props.address.script }}
-        </DialogDescription>
-      </DialogHeader>
+        </DrawerDescription>
+      </DrawerHeader>
 
-      <QrCode :data="props.address.script" />
+      <QrCode :data="props.address.script" class="mx-14" />
 
-      <DialogFooter>
-        <DialogClose as-child>
+      <DrawerFooter>
+        <DrawerClose as-child>
           <Button variant="outline" type="submit">Close</Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+        </DrawerClose>
+      </DrawerFooter>
+    </DrawerContent>
+  </Drawer>
 </template>

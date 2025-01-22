@@ -6,20 +6,21 @@ import ImageSandbox from "@/components/ImageSandbox.vue";
 import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { bn, decimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables/useFormat";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
+import { cn } from "@/lib/utils";
 import { IAssetInfo } from "@/types/database";
 import { AssetSubtype } from "@/types/internal";
 
@@ -148,35 +149,39 @@ defineExpose({ open: openDialog, close: closeDialog });
 </script>
 
 <template>
-  <Dialog v-model:open="opened" @update:open="handleOpenUpdates">
-    <DialogContent
-      class="sm:max-w-[410px] sm:h-auto"
-      :class="isImageNft ? 'h-[90dvh]' : 'h-[70dvh]'"
-    >
-      <AssetIcon
-        v-if="!isImageNft"
-        class="absolute -top-12 left-0 right-0 mx-auto size-20"
-        :token-id="asset?.id ?? tokenId"
-        :type="asset?.subtype"
-      />
+  <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
+    <DrawerContent>
+      <DrawerHeader :class="{ 'pt-5': !isImageNft }">
+        <AssetIcon
+          v-if="!isImageNft"
+          class="mx-auto size-20 pointer-events-none pb-1"
+          :token-id="asset?.id ?? tokenId"
+          :type="asset?.subtype"
+        />
 
-      <DialogHeader :class="{ 'pt-5': !isImageNft }">
-        <DialogTitle>
+        <DrawerTitle>
           <div class="max-w-[280px] w-fit truncate xs:m-auto leading-tight">
             {{ asset?.name ?? asset?.id }}
           </div>
-        </DialogTitle>
-        <DialogDescription class="max-w-[360px]">
+        </DrawerTitle>
+        <DrawerDescription class="max-w-[360px]">
           <ScrollArea v-if="description.title" type="hover">
             <div class="max-h-16" :class="{ 'break-all': !description.title?.includes(' ') }">
               {{ description.title }}
             </div>
           </ScrollArea>
-        </DialogDescription>
-      </DialogHeader>
+        </DrawerDescription>
+      </DrawerHeader>
 
-      <ScrollArea type="hover" class="-mx-6 flex-grow">
-        <div class="flex flex-col gap-4 px-6">
+      <ScrollArea type="hover" class="flex-grow">
+        <div
+          :class="
+            cn(
+              'flex flex-col gap-4 px-4 max-h-[50vh]',
+              isImageNft ? 'max-h-[60vh]' : 'max-h-[50vh]'
+            )
+          "
+        >
           <div v-if="isImageNft && contentUrl" class="relative">
             <ImageSandbox
               display-external-link
@@ -217,11 +222,11 @@ defineExpose({ open: openDialog, close: closeDialog });
         </div>
       </ScrollArea>
 
-      <DialogFooter>
-        <DialogClose as-child>
+      <DrawerFooter>
+        <DrawerClose as-child>
           <Button variant="outline" type="submit">Close</Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+        </DrawerClose>
+      </DrawerFooter>
+    </DrawerContent>
+  </Drawer>
 </template>
