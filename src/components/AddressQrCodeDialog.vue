@@ -43,7 +43,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
     <DrawerContent>
       <DrawerHeader>
         <DrawerTitle>Address Details</DrawerTitle>
-        <DrawerDescription class="break-all px-2">
+        <DrawerDescription class="break-all">
           {{ props.address.script }}
         </DrawerDescription>
       </DrawerHeader>

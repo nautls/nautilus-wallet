@@ -151,7 +151,7 @@ defineExpose({ open: openDialog, close: closeDialog });
 <template>
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
     <DrawerContent>
-      <DrawerHeader :class="{ 'pt-5': !isImageNft }">
+      <DrawerHeader>
         <AssetIcon
           v-if="!isImageNft"
           class="mx-auto size-20 pointer-events-none pb-1"
@@ -173,15 +173,8 @@ defineExpose({ open: openDialog, close: closeDialog });
         </DrawerDescription>
       </DrawerHeader>
 
-      <ScrollArea type="hover" class="flex-grow">
-        <div
-          :class="
-            cn(
-              'flex flex-col gap-4 px-4 max-h-[50vh]',
-              isImageNft ? 'max-h-[60vh]' : 'max-h-[50vh]'
-            )
-          "
-        >
+      <ScrollArea type="hover" class="flex-grow -mx-6">
+        <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
             <ImageSandbox
               display-external-link

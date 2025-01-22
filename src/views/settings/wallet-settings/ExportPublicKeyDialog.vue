@@ -44,16 +44,14 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         </DrawerDescription>
       </DrawerHeader>
 
-      <div class="px-4 space-y-6">
-        <QrCode :data="exPk" class="size-[200px] m-auto" />
-        <StatsCard
-          class="break-all bg-secondary text-secondary-foreground"
-          :display-copy-button="true"
-          :content="exPk"
-        >
-          <div class="font-mono">{{ exPk }} <CopyButton :content="exPk" class="size-3" /></div>
-        </StatsCard>
-      </div>
+      <QrCode :data="exPk" class="size-[200px] m-auto" />
+      <StatsCard
+        class="break-all bg-secondary text-secondary-foreground"
+        :display-copy-button="true"
+        :content="exPk"
+      >
+        <div class="font-mono">{{ exPk }} <CopyButton :content="exPk" class="size-3" /></div>
+      </StatsCard>
 
       <DrawerFooter>
         <DrawerClose as-child>
