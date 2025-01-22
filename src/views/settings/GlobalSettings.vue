@@ -106,7 +106,7 @@ const v$ = useVuelidate(
         })
       ),
       version: helpers.withMessage(
-        `Unsupported server version. Minimum required version: ${MIN_SERVER_VERSION.join(".")}`,
+        `Unsupported server version. Nautilus requires at least version ${MIN_SERVER_VERSION.join(".")}.`,
         helpers.withAsync(async (url: string) => {
           if (!url) return true;
           return await validateServerVersion(url);

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
 import { BaseValidation } from "@vuelidate/core";
-import { CircleAlertIcon } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -20,9 +19,9 @@ const props = defineProps<Props>();
       <p
         v-for="e in validation.$errors"
         :key="e.$uid"
-        class="px-1 text-destructive text-xs flex items-center gap-1"
+        class="text-destructive text-xs flex items-center gap-1"
       >
-        <CircleAlertIcon class="size-3.5 shrink-0" /> {{ e.$message }}
+        {{ e.$message }}
       </p>
     </template>
     <p v-else-if="$slots.description" class="text-muted-foreground text-xs font-normal">
