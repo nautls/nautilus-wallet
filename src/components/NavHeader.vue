@@ -17,14 +17,14 @@ const navItems = computed(() => [
 </script>
 
 <template>
-  <nav class="flex flex-row items-center bg-header px-4 pt-2 text-sm">
+  <nav class="flex flex-row items-center bg-header px-4 text-sm">
     <router-link
       v-for="item in navItems"
       :key="item.to"
       :to="item.to"
       :class="{ 'pointer-events-none opacity-40': item.disabled }"
       active-class="text-primary cursor-default"
-      class="flex-grow text-muted-foreground py-3 transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
+      class="flex-grow text-muted-foreground py-4 transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
     >
       <component :is="item.icon" class="size-[22px] mx-auto stroke-[1.5px]" />
     </router-link>
