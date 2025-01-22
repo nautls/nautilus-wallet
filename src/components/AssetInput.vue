@@ -14,8 +14,8 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { cn } from "@/lib/utils";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
-import FormField from "./FormField.vue";
 import { Button } from "./ui/button";
+import { FormField } from "./ui/form";
 import { Skeleton } from "./ui/skeleton";
 
 interface Props {
@@ -222,6 +222,7 @@ function tokenRate(tokenId: string): number {
       <Button
         v-if="disposable"
         v-show="isHovered"
+        type="button"
         tabindex="-1"
         size="icon"
         variant="outline"
@@ -251,6 +252,7 @@ function tokenRate(tokenId: string): number {
         <div class="flex-grow flex flex-row gap-1 items-center text-xs text-muted-foreground">
           <Button
             v-if="isConvertible"
+            type="button"
             tabindex="-1"
             variant="minimal"
             size="condensed"
@@ -266,6 +268,7 @@ function tokenRate(tokenId: string): number {
         <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
         <Button
           v-else
+          type="button"
           tabindex="-1"
           variant="minimal"
           size="condensed"

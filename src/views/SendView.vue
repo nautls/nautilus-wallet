@@ -11,10 +11,10 @@ import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
-import FormField from "@/components/FormField.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
+import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import {
@@ -223,11 +223,11 @@ function isErg(tokenId: string): boolean {
 
 <template>
   <ScrollArea type="scroll" class="flex-grow">
-    <div class="space-y-4 p-4 pb-2">
+    <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
       <Card class="p-4 gap-6 flex flex-col">
         <FormField :validation="v$.recipient">
           <Input
-            v-model.lazy="recipient"
+            v-model="recipient"
             type="text"
             spellcheck="false"
             placeholder="Recipient"
@@ -266,11 +266,11 @@ function isErg(tokenId: string): boolean {
           </AssetSelector>
         </FormField>
       </Card>
-    </div>
+    </Form>
   </ScrollArea>
 
   <div class="space-y-4 p-4">
+    <Button type="submit" class="w-full" size="lg" @click="sendTransaction">Confirm</Button>
     <FeeSelector v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
-    <Button type="submit" class="w-full" size="lg" @click="sendTransaction()">Confirm</Button>
   </div>
 </template>

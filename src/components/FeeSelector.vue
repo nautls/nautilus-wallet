@@ -20,8 +20,8 @@ import { AssetInfo, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue } from "@/validators";
 import AssetIcon from "./AssetIcon.vue";
 import AssetSelector from "./AssetSelector.vue";
-import FormField from "./FormField.vue";
 import { Button } from "./ui/button";
+import { FormField } from "./ui/form";
 import { Slider } from "./ui/slider";
 
 interface FeeAsset extends AssetInfo {
