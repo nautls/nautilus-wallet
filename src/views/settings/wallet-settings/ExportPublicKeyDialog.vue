@@ -6,14 +6,14 @@ import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
 import CopyButton from "@/components/ui/CopyButton.vue";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from "@/components/ui/drawer";
 import { mountExtendedPublicKey } from "@/common/serializer";
 
 const wallet = useWalletStore();
@@ -34,31 +34,32 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 </script>
 
 <template>
-  <Dialog v-model:open="opened" @update:open="handleOpenUpdates">
-    <DialogContent class="sm:max-w-[410px]">
-      <DialogHeader>
-        <DialogTitle>Extended Public Key</DialogTitle>
-        <DialogDescription>
+  <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
+    <DrawerContent>
+      <DrawerHeader>
+        <DrawerTitle>Extended Public Key</DrawerTitle>
+        <DrawerDescription>
           Extended public keys allow viewing transaction history and generating new addresses, but
           they cannot spend or move funds in any way.
-        </DialogDescription>
-      </DialogHeader>
+        </DrawerDescription>
+      </DrawerHeader>
 
-      <QrCode :data="exPk" class="size-[200px] m-auto" />
+      <div class="px-4 space-y-4">
+        <QrCode :data="exPk" class="size-[200px] m-auto" />
+        <StatsCard
+          class="break-all bg-secondary text-secondary-foreground"
+          :display-copy-button="true"
+          :content="exPk"
+        >
+          <div class="font-mono">{{ exPk }} <CopyButton :content="exPk" class="size-3" /></div>
+        </StatsCard>
+      </div>
 
-      <StatsCard
-        class="break-all bg-secondary text-secondary-foreground"
-        :display-copy-button="true"
-        :content="exPk"
-      >
-        <div class="font-mono">{{ exPk }} <CopyButton :content="exPk" class="size-3" /></div>
-      </StatsCard>
-
-      <DialogFooter>
-        <DialogClose as-child>
+      <DrawerFooter>
+        <DrawerClose as-child>
           <Button variant="outline" type="submit">Close</Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+        </DrawerClose>
+      </DrawerFooter>
+    </DrawerContent>
+  </Drawer>
 </template>
