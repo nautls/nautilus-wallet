@@ -75,7 +75,7 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6 bg-red-500/10">
+    <Card class="flex flex-col gap-6 p-6 bg-destructive/15">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1"
           >Remove Wallet

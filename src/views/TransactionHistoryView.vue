@@ -6,7 +6,7 @@ import type { BigNumber } from "bignumber.js";
 import {
   ArrowDownRightIcon,
   ArrowUpRightIcon,
-  CircleCheckBigIcon,
+  CheckIcon,
   CircleIcon,
   ClockIcon
 } from "lucide-vue-next";
@@ -145,12 +145,12 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             <CardDescription class="text-xs">
               <div v-if="tx.confirmed">
                 {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-                <CircleCheckBigIcon class="h-3 -ml-1 inline-flex text-green-600" />
+                <CheckIcon class="h-3.5 -ml-1 inline-flex text-success" />
               </div>
               <div v-else>
                 Pending
                 <CircleIcon
-                  class="h-3 -ml-1 inline-flex text-yellow-600 animate-pulse fill-yellow-600"
+                  class="h-3.5 -ml-1 inline-flex text-warning animate-pulse fill-warning"
                 />
               </div>
             </CardDescription>

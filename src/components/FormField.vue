@@ -25,7 +25,7 @@ const props = defineProps<Props>();
         <CircleAlertIcon class="size-3.5 shrink-0" /> {{ e.$message }}
       </p>
     </template>
-    <p v-else-if="$slots.description">
+    <p v-else-if="$slots.description" class="text-muted-foreground text-xs font-normal">
       <slot name="description" />
     </p>
   </div>

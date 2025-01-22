@@ -124,7 +124,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2"
           >Conversion Currency
-          <div class="text-muted-foreground text-xs">
+          <div class="text-muted-foreground text-xs font-normal">
             Use this option to set the default currency for conversion.
           </div></Label
         >
@@ -178,7 +178,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="dev-mode" class="flex flex-col gap-1"
           >Developer Mode
-          <div class="text-muted-foreground text-xs">Enable advanced tools.</div></Label
+          <div class="text-muted-foreground text-xs font-normal">Enable advanced tools.</div></Label
         >
         <Switch id="dev-mode" v-model:checked="app.settings.devMode" />
       </div>
@@ -187,7 +187,7 @@ const v$ = useVuelidate(
     <Card class="flex flex-col gap-6 p-6">
       <Label class="flex flex-col gap-1"
         >Token Blacklists
-        <div class="text-muted-foreground text-xs">
+        <div class="text-muted-foreground text-xs font-normal">
           Ergo
           <Link external href="https://github.com/sigmanauts/token-id-blacklist"
             >tokens blacklists</Link
@@ -200,14 +200,14 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="nsfw-blacklist" class="flex flex-col gap-1"
           >NSFW Tokens
-          <div class="text-muted-foreground text-xs">Hide NSFW tokens.</div></Label
+          <div class="text-muted-foreground text-xs font-normal">Hide NSFW tokens.</div></Label
         >
         <Switch id="nsfw-blacklist" v-model:checked="nsfwBlacklist" />
       </div>
       <div class="flex items-center justify-between gap-4">
         <Label for="scam-blacklist" class="flex flex-col gap-1"
           >Scam Tokens
-          <div class="text-muted-foreground text-xs">Hide Scam tokens.</div></Label
+          <div class="text-muted-foreground text-xs font-normal">Hide Scam tokens.</div></Label
         >
         <Switch id="scam-blacklist" v-model:checked="scamBlacklist" />
       </div>
@@ -243,13 +243,13 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6 bg-yellow-500/10">
+    <Card class="flex flex-col gap-6 p-6 bg-warning/10">
       <Label class="flex flex-col gap-2">
         <div class="flex items-center gap-1">
-          Experimental <TriangleAlertIcon class="size-3 text-yellow-600/70" />
+          Experimental <TriangleAlertIcon class="size-3 text-warning" />
         </div>
 
-        <div class="text-muted-foreground text-xs">
+        <div class="text-xs font-normal">
           The features under this section are marked as experimental, which means they're not
           stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a
           work in progress, so expect some rough edges.
@@ -259,7 +259,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="0-conf" class="flex flex-col gap-1"
           >Enable 0-conf
-          <div class="text-muted-foreground text-xs">
+          <div class="text-muted-foreground text-xs font-normal">
             0-conf, short for zero-confirmations, lets you to spend assets without waiting for
             confirmations. It's fast but carries a risk of being double-spent until confirmed by the
             blockchain.

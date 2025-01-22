@@ -153,12 +153,11 @@ function openAssetInfoDialog(tokenId: string) {
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
                 <div
-                  class="flex flex-grow flex-col align-middle text-sm gap-0"
+                  class="flex flex-grow flex-col align-middle text-sm gap-0.5"
                   :class="{ 'font-semibold': isErg(asset.tokenId) }"
                 >
-                  <p>
-                    {{ format.asset.name(asset) }}
-                  </p>
+                  <p>{{ format.asset.name(asset) }}</p>
+
                   <p class="text-xs text-muted-foreground truncate">
                     {{
                       isErg(asset.tokenId)
@@ -168,7 +167,7 @@ function openAssetInfoDialog(tokenId: string) {
                   </p>
                 </div>
 
-                <div class="whitespace-nowrap flex flex-col items-end gap-0">
+                <div class="whitespace-nowrap flex flex-col items-end gap-0.5">
                   <template v-if="app.settings.hideBalances">
                     <Skeleton class="h-5 w-24 animate-none" />
                     <Skeleton class="h-3 w-3/4 animate-none" />

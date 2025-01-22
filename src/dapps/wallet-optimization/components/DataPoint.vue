@@ -11,7 +11,7 @@ const props = defineProps<{
   loading: boolean;
 }>();
 
-const iconColor = computed(() => (props.healthy ? "text-green-500/70" : "text-red-500/70"));
+const iconColor = computed(() => (props.healthy ? "text-success" : "text-destructive"));
 </script>
 
 <template>
