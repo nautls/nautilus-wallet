@@ -1,62 +1,5 @@
-.transform-flip {
-  -moz-transform: scaleX(-1);
-  -o-transform: scaleX(-1);
-  -webkit-transform: scaleX(-1);
-  transform: scaleX(-1);
-}
-
-.default-transition {
-  @apply transition-all duration-150 ease-linear;
-}
-
-.control {
-  @apply default-transition my-1 rounded border border-gray-400 p-2 text-sm outline-none hover:border-blue-800 focus:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300;
-}
-
-.shadow-scroll {
-  --rad: radial-gradient(100% 0.8rem, rgba(0, 0, 0, 0.1), transparent);
-  background:
-    linear-gradient(white 0.4rem, transparent 2rem calc(100% - 2rem), white calc(100% - 0.4rem))
-      local,
-    var(--rad) top / 100% 200%,
-    var(--rad) bottom / 100% 200%;
-}
-
-.zoom-out-enter-active,
-.zoom-out-leave-active {
-  @apply transition duration-200;
-}
-
-.zoom-out-enter,
-.zoom-out-enter-from,
-.zoom-out-leave-active {
-  @apply scale-110 transform opacity-0;
-}
-
-.fade-slide-up-enter-active,
-.fade-slide-up-leave-active {
-  @apply transition duration-200;
-}
-
-.fade-slide-up-enter-active .animation-content,
-.fade-slide-up-leave-active .animation-content {
-  @apply transition duration-200;
-}
-
-.fade-slide-up-enter,
-.fade-slide-up-enter-from,
-.fade-slide-up-leave-active {
-  @apply opacity-0;
-}
-
-.fade-slide-up-enter .animation-content,
-.fade-slide-up-enter-from .animation-content,
-.fade-slide-up-leave-active .animation-content {
-  @apply translate-y-10 transform;
-}
-
 .btn {
-  @apply default-transition mb-1 rounded border border-solid border-blue-800 bg-blue-600 px-4 py-2 text-sm font-semibold uppercase text-light-300 outline-none hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800;
+  @apply mb-1 rounded border border-solid border-blue-800 bg-blue-600 px-4 py-2 text-sm font-semibold uppercase text-light-300 outline-none hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800;
 }
 
 .btn.danger {
@@ -71,24 +14,12 @@
   @apply bg-transparent text-blue-800 outline-none hover:bg-blue-700 hover:text-light-300 focus:outline-none focus:ring-2 focus:ring-blue-300 active:bg-blue-800 active:text-light-300;
 }
 
-.nav-btn {
-  @apply default-transition mr-1 w-full rounded border border-solid border-blue-800 bg-transparent p-4 text-left text-sm font-semibold text-blue-800 outline-none hover:bg-blue-50 focus:outline-none active:bg-blue-100;
-}
-
-.nav-btn .title {
-  @apply block uppercase;
-}
-
-.nav-btn .subtitle {
-  @apply mx-4 mt-0.5 block text-xs font-normal text-gray-500;
-}
-
 .items-select .o-inputit__container {
   @apply gap-2 border-none;
 }
 
 .input-wrap {
-  @apply default-transition my-1 cursor-text rounded border border-gray-400 p-2 text-sm outline-none focus-within:border-blue-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-300 hover:border-blue-600;
+  @apply my-1 cursor-text rounded border border-gray-400 p-2 text-sm outline-none focus-within:border-blue-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-300 hover:border-blue-600;
 }
 
 .items-select {
@@ -105,7 +36,7 @@
 
 .vjs-tree .vjs-tree-node,
 .vjs-tree .vjs-tree__node {
-  @apply -mx-2 px-2;
+  @apply -mx-4 px-4 py-0.5 text-xs;
 }
 
 .vjs-tree .vjs-tree-node:hover,
