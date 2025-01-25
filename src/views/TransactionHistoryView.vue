@@ -3,18 +3,13 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
 import type { BigNumber } from "bignumber.js";
-import {
-  ArrowDownRightIcon,
-  ArrowUpRightIcon,
-  CheckIcon,
-  CircleIcon,
-  ClockIcon
-} from "lucide-vue-next";
+import { CheckIcon, CircleIcon, ClockIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
 import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { AssetSignIcon } from "@/components/asset";
 import AssetIcon from "@/components/AssetIcon.vue";
 import { Button } from "@/components/ui/button";
 import {
@@ -161,16 +156,9 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               :key="asset.tokenId"
               class="flex flex-row items-center gap-2"
             >
-              <ArrowUpRightIcon
-                v-if="asset.amount.isNegative()"
-                class="h-5 min-w-5 text-red-600 dark:text-red-400 rounded-full p-0.5 bg-accent border-accent border"
-              />
-              <ArrowDownRightIcon
-                v-else
-                class="h-5 min-w-5 text-green-600 dark:text-green-400 rounded-full p-0.5 bg-accent border-accent border"
-              />
+              <AssetSignIcon :type="asset.amount.isNegative() ? 'input' : 'output'" />
 
-              <asset-icon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
+              <AssetIcon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
               <div class="w-full">
                 {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
               </div>
