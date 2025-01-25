@@ -13,8 +13,8 @@ import {
   CommandList
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { cn } from "@/lib/utils";
 import { AssetInfo } from "@/types/internal";
 import AssetIcon from "./AssetIcon.vue";
@@ -77,10 +77,6 @@ function closePopover() {
 
 function clearSearch() {
   searchTerm.value = "";
-}
-
-function isErg(tokenId: string): boolean {
-  return tokenId === ERG_TOKEN_ID;
 }
 
 function normalize(value?: string) {

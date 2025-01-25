@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { bn } from "@/common/bigNumber";
+import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -62,10 +63,6 @@ function price(tokenId: string): BigNumber {
 
 function rate(tokenId: string): number {
   return assetsStore.prices.get(tokenId)?.erg ?? 0;
-}
-
-function isErg(tokenId: string): boolean {
-  return tokenId === ERG_TOKEN_ID;
 }
 
 function formatCurrencyPrice(value: BigNumber, decimals = 2): string {

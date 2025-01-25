@@ -24,6 +24,7 @@ import {
 } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize } from "@/common/bigNumber";
 import { openTransactionSigningModal } from "@/common/componentUtils";
+import { isErg } from "@/common/utils";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
@@ -214,10 +215,6 @@ function removeDisposableSelections() {
 
 function isFeeAsset(tokenId: string): boolean {
   return tokenId === fee.value.tokenId;
-}
-
-function isErg(tokenId: string): boolean {
-  return tokenId === ERG_TOKEN_ID;
 }
 </script>
 
