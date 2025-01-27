@@ -1,19 +1,29 @@
 <script setup lang="ts">
-import { ArrowDownRightIcon, ArrowUpRightIcon } from "lucide-vue-next";
-import { AssetSignIconProps } from ".";
+import { computed } from "vue";
+import { ArrowDownRightIcon, ArrowUpDown, ArrowUpRightIcon, EqualIcon } from "lucide-vue-next";
+import { assetSignIconVariants, type AssetSignIconVariants } from ".";
 
-withDefaults(defineProps<AssetSignIconProps>(), {
-  type: "input"
+interface Props {
+  type?: AssetSignIconVariants["variant"];
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  type: "positive"
+});
+
+const icon = computed(() => {
+  if (props.type === "positive") {
+    return ArrowDownRightIcon;
+  } else if (props.type === "negative") {
+    return ArrowUpRightIcon;
+  } else if (props.type === "swap") {
+    return ArrowUpDown;
+  } else {
+    return EqualIcon;
+  }
 });
 </script>
 
 <template>
-  <ArrowDownRightIcon
-    v-if="type === 'input'"
-    class="h-5 min-w-5 text-green-600 dark:text-green-400 rounded-full p-0.5 bg-accent border-accent border"
-  />
-  <ArrowUpRightIcon
-    v-else
-    class="h-5 min-w-5 text-red-600 dark:text-red-400 rounded-full p-0.5 bg-accent border-accent border"
-  />
+  <component :is="icon" :class="assetSignIconVariants({ variant: type })" />
 </template>
