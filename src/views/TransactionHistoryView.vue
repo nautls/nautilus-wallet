@@ -11,6 +11,7 @@ import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { AssetSignIcon } from "@/components/asset";
 import AssetIcon from "@/components/AssetIcon.vue";
+import { TransactionReviewDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,9 +28,9 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
 import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize } from "@/common/bigNumber";
-import { openTransactionSigningModal } from "@/common/componentUtils";
 import { DateFormatOptions, formatDate } from "@/common/dateFormat";
 import { useFormat } from "@/composables";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
 import type {
@@ -42,6 +43,7 @@ const RELATIVE_DATE_FORMATTING: DateFormatOptions = {
 };
 
 const formatter = useFormat();
+const { open: openTransactionReviewDialog } = useProgrammaticDialog(TransactionReviewDialog);
 
 const wallet = useWalletStore();
 const assets = useAssetsStore();
@@ -119,7 +121,7 @@ function positive(n: BigNumber): BigNumber {
 }
 
 function cancelTransaction(tx: UnconfirmedTransactionSummary) {
-  openTransactionSigningModal({ onTransactionBuild: () => createRBFCancellationTransaction(tx) });
+  openTransactionReviewDialog({ transactionBuilder: () => createRBFCancellationTransaction(tx) });
 }
 </script>
 
@@ -156,7 +158,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               :key="asset.tokenId"
               class="flex flex-row items-center gap-2"
             >
-              <AssetSignIcon :type="asset.amount.isNegative() ? 'positive' : 'negative'" />
+              <AssetSignIcon :type="asset.amount.isNegative() ? 'negative' : 'positive'" />
 
               <AssetIcon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
               <div class="w-full">
