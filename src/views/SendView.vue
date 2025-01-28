@@ -11,6 +11,7 @@ import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { TransactionReviewModal } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -23,8 +24,8 @@ import {
   TxAssetAmount
 } from "@/chains/ergo/transaction/txBuilder";
 import { bn, decimalize } from "@/common/bigNumber";
-import { openTransactionSigningModal } from "@/common/componentUtils";
 import { isErg } from "@/common/utils";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
@@ -34,6 +35,8 @@ const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
 
 const wallet = useWalletStore();
 const route = useRoute();
+
+const { open: openTransactionSigningModal } = useProgrammaticDialog(TransactionReviewModal);
 
 const assetSelector = useTemplateRef("asset-selector");
 const selected = ref<TxAssetAmount[]>([]);

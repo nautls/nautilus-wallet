@@ -156,7 +156,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               :key="asset.tokenId"
               class="flex flex-row items-center gap-2"
             >
-              <AssetSignIcon :type="asset.amount.isNegative() ? 'input' : 'output'" />
+              <AssetSignIcon :type="asset.amount.isNegative() ? 'positive' : 'negative'" />
 
               <AssetIcon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
               <div class="w-full">
