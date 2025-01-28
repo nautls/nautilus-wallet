@@ -2,7 +2,6 @@ import {
   AllowedComponentProps,
   Component,
   createVNode,
-  mergeProps,
   onUnmounted,
   render,
   VNode,
@@ -26,8 +25,8 @@ export function useProgrammaticDialog<T extends DialogLikeComponent>(
   component: T,
   initialProps?: ComponentProps<T>
 ) {
+  const props = { ...initialProps };
   let instance: InstanceType<T> | null;
-  let props = { ...initialProps };
   let vnode: VNode | null;
   let container: HTMLDivElement | null;
 
