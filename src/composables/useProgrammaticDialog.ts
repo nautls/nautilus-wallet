@@ -46,7 +46,7 @@ export function useProgrammaticDialog<T extends DialogLikeComponent>(
   const patchProps = (newProps?: ComponentProps<T>) => {
     if (!newProps || Object.keys(newProps).length === 0) return;
 
-    props = mergeProps(props, newProps);
+    Object.assign(props, newProps);
     if (vnode && vnode.component) {
       Object.assign(vnode.component.props, props);
     }
