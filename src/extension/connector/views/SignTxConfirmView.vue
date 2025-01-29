@@ -5,7 +5,7 @@ import { useEventListener } from "@vueuse/core";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
-import TxSignView from "@/components/TxSignView.vue";
+// import TxSignView from "@/components/TxSignView.vue";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
