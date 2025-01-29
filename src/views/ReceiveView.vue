@@ -10,7 +10,7 @@ import {
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import AddressQrCodeDialog from "@/components/AddressQrCodeDialog.vue";
-import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
+// import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
 import QrCode from "@/components/QrCode.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { bn } from "@/common/bigNumber";
-import { openModal } from "@/common/componentUtils";
+// import { openModal } from "@/common/componentUtils";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -67,10 +67,11 @@ function openExplorer(address: string | undefined) {
   window.open(url, "_blank");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function showOnLedger(address: StateAddress) {
-  openModal(ConfirmAddressOnDevice, {
-    props: { address: address.script, index: address.index }
-  });
+  // openModal(ConfirmAddressOnDevice, {
+  //   props: { address: address.script, index: address.index }
+  // });
 }
 </script>
 

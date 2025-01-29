@@ -11,7 +11,7 @@ import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { AssetSignIcon } from "@/components/asset";
 import AssetIcon from "@/components/AssetIcon.vue";
-import { TransactionReviewDialog } from "@/components/transaction";
+import { TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,7 +43,7 @@ const RELATIVE_DATE_FORMATTING: DateFormatOptions = {
 };
 
 const formatter = useFormat();
-const { open: openTransactionReviewDialog } = useProgrammaticDialog(TransactionReviewDialog);
+const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const wallet = useWalletStore();
 const assets = useAssetsStore();
@@ -121,14 +121,14 @@ function positive(n: BigNumber): BigNumber {
 }
 
 function cancelTransaction(tx: UnconfirmedTransactionSummary) {
-  openTransactionReviewDialog({ transactionBuilder: () => createRBFCancellationTransaction(tx) });
+  openTransactionSignDialog({ transactionBuilder: () => createRBFCancellationTransaction(tx) });
 }
 </script>
 
 <template>
   <ScrollArea type="scroll">
     <Transition name="slide-up" appear>
-      <div class="flex flex-col gap-4 p-4">
+      <div class="flex flex-col gap-6 p-4">
         <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
           <CardHeader class="gap-0.5">
             <CardTitle class="flex flex-row items-center justify-between">

@@ -4,15 +4,12 @@ import {
   EIP12UnsignedTransaction,
   isEmpty,
   some,
+  TokenAmount,
   utxoDiff,
   utxoSum
 } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { groupBy } from "lodash-es";
-import {
-  tokenAmountToToken,
-  tokensToOutputAssets
-} from "@/chains/ergo/transaction/interpreter/utils";
 import { bn, decimalize, sumBy } from "@/common/bigNumber";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
@@ -24,7 +21,7 @@ function isMinerFeeContract(ergoTree: string) {
   return ergoTree === MAINNET_MINER_FEE_TREE;
 }
 
-export class TxInterpreter {
+export class TransactionInterpreter {
   private _tx!: EIP12UnsignedTransaction;
 
   private _changeBoxes: ErgoBoxCandidate[];
@@ -50,9 +47,9 @@ export class TxInterpreter {
 
     this._ownInputs = tx.inputs.filter((b) => isOwnErgoTree(b.ergoTree));
     this._ownOutputs = tx.outputs.filter((b) => isOwnErgoTree(b.ergoTree));
-    this._changeBoxes = this._determineChangeBoxes();
+    this._changeBoxes = this._extractChangeBoxes();
     this._sendingBoxes = tx.outputs.filter(isSendingOutput);
-    this._calcIncomingLeavingTotals();
+    this._summarize();
 
     if (some(this._changeBoxes)) {
       if (isEmpty(this._sendingBoxes)) {
@@ -71,7 +68,7 @@ export class TxInterpreter {
     this._calcBurningBalance();
   }
 
-  public get rawTx(): EIP12UnsignedTransaction {
+  public get raw(): EIP12UnsignedTransaction {
     return this._tx;
   }
 
@@ -111,20 +108,20 @@ export class TxInterpreter {
     return this._totalLeaving;
   }
 
-  private _calcIncomingLeavingTotals() {
+  private _summarize() {
     const diff = utxoDiff(utxoSum(this._ownOutputs), utxoSum(this._ownInputs));
 
     // Handle tokens
     const totalIncoming = diff.tokens
       .filter((t) => t.amount > 0n)
-      .map((t) => tokenAmountToToken(t, this._metadata));
+      .map((t) => mapToken(t, this._metadata));
     const totalLeaving = diff.tokens
       .filter((t) => t.amount < 0n)
-      .map((t) => tokenAmountToToken({ tokenId: t.tokenId, amount: -t.amount }, this._metadata));
+      .map((t) => mapToken({ tokenId: t.tokenId, amount: -t.amount }, this._metadata));
 
     // Handle ERG
     if (diff.nanoErgs !== 0n) {
-      const ergToken = tokenAmountToToken(
+      const ergToken = mapToken(
         {
           tokenId: ERG_TOKEN_ID,
           amount: diff.nanoErgs > 0n ? diff.nanoErgs : -diff.nanoErgs
@@ -140,8 +137,8 @@ export class TxInterpreter {
     }
 
     // Sort to make ERG first
-    this._totalIncoming = tokensToOutputAssets(totalIncoming, this._metadata);
-    this._totalLeaving = tokensToOutputAssets(totalLeaving, this._metadata);
+    this._totalIncoming = totalIncoming;
+    this._totalLeaving = totalLeaving;
   }
 
   private _calcBurningBalance() {
@@ -172,10 +169,11 @@ export class TxInterpreter {
 
     this._burningBalance = Object.keys(inputTotals)
       .map((key) => {
+        const metadata = this._metadata.get(key);
         return {
           tokenId: key,
-          name: this._metadata.get(key)?.name,
-          amount: decimalize(inputTotals[key], this._metadata.get(key)?.decimals ?? 0)
+          amount: decimalize(inputTotals[key], metadata?.decimals ?? 0),
+          metadata
         };
       })
       .filter((x) => x.amount.isGreaterThan(0));
@@ -199,7 +197,7 @@ export class TxInterpreter {
     return totals;
   }
 
-  private _determineChangeBoxes(): ErgoBoxCandidate[] {
+  private _extractChangeBoxes(): ErgoBoxCandidate[] {
     if (isEmpty(this._ownInputs) || isEmpty(this._ownOutputs)) return [];
 
     const inputAssets = utxoSum(this._ownInputs);
@@ -251,4 +249,13 @@ export class TxInterpreter {
 
     return changeBoxes;
   }
+}
+
+function mapToken(token: TokenAmount<bigint>, metadataMap: AssetsMetadataMap): OutputAsset {
+  const metadata = metadataMap.get(token.tokenId);
+  return {
+    tokenId: token.tokenId,
+    amount: decimalize(bn(token.amount.toString()), metadata?.decimals ?? 0),
+    metadata
+  };
 }

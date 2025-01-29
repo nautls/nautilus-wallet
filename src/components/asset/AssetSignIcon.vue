@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ArrowDownRightIcon, ArrowUpDown, ArrowUpRightIcon, EqualIcon } from "lucide-vue-next";
+import {
+  ArrowDownRightIcon,
+  ArrowUpDown,
+  ArrowUpRightIcon,
+  EqualIcon,
+  FlameIcon
+} from "lucide-vue-next";
 import { assetSignIconVariants, type AssetSignIconVariants } from ".";
 
 interface Props {
@@ -18,6 +24,8 @@ const icon = computed(() => {
     return ArrowUpRightIcon;
   } else if (props.type === "swap") {
     return ArrowUpDown;
+  } else if (props.type === "burn") {
+    return FlameIcon;
   } else {
     return EqualIcon;
   }

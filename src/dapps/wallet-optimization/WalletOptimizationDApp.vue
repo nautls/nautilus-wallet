@@ -7,13 +7,14 @@ import { minBy } from "lodash-es";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import FeeSelector from "@/components/FeeSelector.vue";
+import { TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
-import { openTransactionSigningModal } from "@/common/componentUtils";
 import { formatDate } from "@/common/dateFormat";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -28,6 +29,8 @@ import { createConsolidationTransaction } from "./transactionFactory";
 
 const wallet = useWalletStore();
 const app = useAppStore();
+
+const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const loading = ref(true);
 const boxes = ref<Box[]>([]);
@@ -90,7 +93,7 @@ function setLoading(load = true) {
 }
 
 function sendTransaction() {
-  openTransactionSigningModal({ onTransactionBuild: createTransaction });
+  openTransactionSignDialog({ transactionBuilder: createTransaction });
 }
 
 async function createTransaction() {

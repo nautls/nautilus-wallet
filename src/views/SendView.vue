@@ -11,7 +11,7 @@ import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
 import FeeSelector from "@/components/FeeSelector.vue";
-import { TransactionReviewModal } from "@/components/transaction";
+import { TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -36,7 +36,7 @@ const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
 const wallet = useWalletStore();
 const route = useRoute();
 
-const { open: openTransactionSigningModal } = useProgrammaticDialog(TransactionReviewModal);
+const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const assetSelector = useTemplateRef("asset-selector");
 const selected = ref<TxAssetAmount[]>([]);
@@ -135,8 +135,8 @@ async function sendTransaction() {
   const valid = await v$.value.$validate();
   if (!valid) return;
 
-  openTransactionSigningModal({
-    onTransactionBuild: async () =>
+  openTransactionSignDialog({
+    transactionBuilder: async () =>
       createP2PTransaction({
         recipientAddress: recipient.value,
         assets: selected.value,

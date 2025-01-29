@@ -91,7 +91,7 @@ export class Prover {
     return this.#buildWallet().sign_message_using_p2pk(address, message);
   }
 
-  async signTx(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
+  async signTransaction(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     const signed = await this.#signTx(tx, inputs, dataInputs);
     return signed.to_js_eip12();

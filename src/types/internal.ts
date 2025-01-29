@@ -67,6 +67,7 @@ export type BasicAssetMetadata = {
   decimals?: number;
   type?: AssetSubtype;
   artworkUrl?: string;
+  description?: string;
 };
 
 export interface AssetInfo {
