@@ -4,7 +4,7 @@ import { utxoSum } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { useIntervalFn } from "@vueuse/core";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { summarizeTransaction } from "@/chains/ergo/transaction/interpreter/utils";
+import { summarizeTransaction } from "@/chains/ergo/transaction/summarizer";
 import { bn, decimalize } from "@/common/bigNumber";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { UnconfirmedTransactionSummary } from "@/types/transactions";

@@ -22,7 +22,7 @@ import {
   createP2PTransaction,
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
   TxAssetAmount
-} from "@/chains/ergo/transaction/txBuilder";
+} from "@/chains/ergo/transaction/builder";
 import { bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";

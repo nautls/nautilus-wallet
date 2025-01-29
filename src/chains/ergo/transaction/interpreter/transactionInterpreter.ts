@@ -17,10 +17,6 @@ import { AssetsMetadataMap } from "@/types/internal";
 import { addressFromErgoTree } from "../../addresses";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 
-function isMinerFeeContract(ergoTree: string) {
-  return ergoTree === MAINNET_MINER_FEE_TREE;
-}
-
 export class TransactionInterpreter {
   private _tx!: EIP12UnsignedTransaction;
 
@@ -258,4 +254,8 @@ function mapToken(token: TokenAmount<bigint>, metadataMap: AssetsMetadataMap): O
     amount: decimalize(bn(token.amount.toString()), metadata?.decimals ?? 0),
     metadata
   };
+}
+
+function isMinerFeeContract(ergoTree: string) {
+  return ergoTree === MAINNET_MINER_FEE_TREE;
 }
