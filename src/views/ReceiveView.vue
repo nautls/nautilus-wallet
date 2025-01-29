@@ -120,7 +120,7 @@ function showOnLedger(address: StateAddress) {
 
   <ScrollArea type="scroll">
     <Transition name="slide-up" appear>
-      <div class="flex flex-col gap-0 px-4">
+      <div class="flex flex-col gap-0 px-4 pb-4">
         <div
           v-for="address in addresses"
           :key="address.script"
@@ -130,10 +130,13 @@ function showOnLedger(address: StateAddress) {
             <Button
               variant="minimal"
               size="condensed"
-              class="flex gap-2 items-center [&_svg]:size-4"
+              class="flex gap-2 items-center [&_svg]:size-5"
               @click="setDefaultAddress(address)"
             >
-              <CircleCheckIcon v-if="wallet.settings.defaultChangeIndex === address.index" />
+              <CircleCheckIcon
+                v-if="wallet.settings.defaultChangeIndex === address.index"
+                class="fill-foreground text-background"
+              />
               <CircleIcon v-else />
               <span class="whitespace-nowrap font-mono text-foreground">{{
                 format.string.shorten(address.script, 10)
