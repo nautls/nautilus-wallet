@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
-  CircleCheckIcon,
-  CircleIcon,
   CirclePlusIcon,
   ExternalLinkIcon,
   QrCodeIcon,
@@ -17,6 +15,7 @@ import QrCode from "@/components/QrCode.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import CopyButton from "@/components/ui/CopyButton.vue";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -130,14 +129,10 @@ function showOnLedger(address: StateAddress) {
             <Button
               variant="minimal"
               size="condensed"
-              class="flex gap-2 items-center [&_svg]:size-5"
+              class="flex gap-2 items-center"
               @click="setDefaultAddress(address)"
             >
-              <CircleCheckIcon
-                v-if="wallet.settings.defaultChangeIndex === address.index"
-                class="fill-foreground text-background"
-              />
-              <CircleIcon v-else />
+              <Checkbox :checked="wallet.settings.defaultChangeIndex === address.index" />
               <span class="whitespace-nowrap font-mono text-foreground">{{
                 format.string.shorten(address.script, 10)
               }}</span>
