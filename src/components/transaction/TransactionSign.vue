@@ -194,7 +194,7 @@ const v$ = useVuelidate(
   <ScrollArea type="hover" class="-mx-6 px-6 h-[100vh] border-y" hide-outline>
     <div class="flex flex-col gap-6 text-sm py-4">
       <template v-if="loading">
-        <TransactionEntry v-for="i in 3" :key="i" loading :assets="[]" />
+        <TransactionEntry v-for="i in 4" :key="i" loading :assets="[]" />
       </template>
 
       <template v-else-if="parsedTx">
