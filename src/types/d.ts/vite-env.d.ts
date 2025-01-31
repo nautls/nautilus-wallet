@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-svg-loader" />
 
 interface ImportMetaEnv {
   readonly GIT_COMMIT_HASH: string;

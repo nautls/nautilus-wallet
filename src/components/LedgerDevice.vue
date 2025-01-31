@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue";
 import { isDefined } from "@fleet-sdk/common";
-import { CheckIcon, CircleAlertIcon, XIcon } from "lucide-vue-next";
-import ledgerS from "@/assets/images/hw-devices/ledger-s.svg";
-import ledgerX from "@/assets/images/hw-devices/ledger-x.svg";
+import { CheckIcon, CircleAlertIcon, Loader2Icon, XIcon } from "lucide-vue-next";
+import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
+import LedgerNanoX from "@/assets/images/hw-devices/ledger-nanox.svg?skipsvgo";
 import { LedgerDeviceModelId } from "@/constants/ledger";
 import { ProverStateType } from "@/types/internal";
 
@@ -25,31 +25,35 @@ const validState = computed(
   () => isDefined(props.state) && props.state !== ProverStateType.unavailable
 );
 const appIdHex = computed(() => (!props.appId ? "" : `0x${props.appId.toString(16)}`));
-const isNanoX = computed(() => props.model !== LedgerDeviceModelId.nanoX);
+const isNanoX = computed(() => props.model === LedgerDeviceModelId.nanoX);
 const isLoading = computed(() => props.state === ProverStateType.busy || props.loading);
-const screenPosition = computed(() =>
-  isNanoX.value ? "top-[4.7rem] left-[3.9rem] w-28 h-8" : "top-20 left-9 w-28 h-7"
+const screenDefs = computed(() =>
+  isNanoX.value
+    ? "top-[12px] left-[57px] w-[111px] h-[51px]"
+    : "top-[15px] left-[32px] w-[111px] h-[51px]"
 );
 </script>
 
 <template>
-  <div class="mx-auto flex min-w-72 flex-col items-center gap-2 p-2">
+  <div class="mx-auto flex flex-col items-center gap-2 w-[240px] h-min">
     <div v-if="connected || validState" class="mx-auto w-auto text-center text-sm">
       <div class="relative">
-        <ledger-x v-if="isNanoX" class="w-max" />
-        <ledger-s v-else class="w-max" />
-        <div :class="screenPosition" class="absolute items-center px-1 text-xs text-light-600">
-          <div class="flex h-full items-center justify-center gap-1">
-            <loading-indicator
-              v-if="isLoading && compactView"
-              type="circular"
-              class="h-5 w-5 min-w-5"
-            />
-            <check-icon v-else-if="state === ProverStateType.success" class="text-green-300" />
-            <x-icon v-else-if="state === ProverStateType.error" class="text-red-300" />
+        <LedgerNanoX v-if="isNanoX" />
+        <LedgerNanoS v-else />
 
-            <span v-if="screenText" class="font-semibold">{{ screenText }}</span>
-          </div>
+        <div
+          :class="screenDefs"
+          class="absolute flex flex-col items-center justify-around gap-0 leading-none px-1 text-xs text-white bg-blue-50/0"
+        >
+          <Loader2Icon v-if="loading" class="inline size-3 animate-spin opacity-70" />
+          <check-icon v-else-if="state === ProverStateType.success" class="text-green-300" />
+          <x-icon v-else-if="state === ProverStateType.error" class="text-red-300" />
+
+          <p v-if="screenText" class="font-semibold opacity-90 text-[0.70rem]">
+            <!-- Review transaction on your device -->
+            Signing
+          </p>
+          <small class="flex-shrink opacity-70">App ID: 0x12828</small>
         </div>
       </div>
 
