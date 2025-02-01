@@ -84,7 +84,7 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex-col flex gap-4 px-4">
+    <div class="flex-col flex gap-4 px-4 pb-4">
       <div class="relative bg-header -mx-4">
         <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center cursor-default">
           <h2 class="text-2xl">

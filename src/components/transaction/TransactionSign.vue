@@ -9,11 +9,12 @@ import {
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
-import { Loader2Icon } from "lucide-vue-next";
+import { AlertCircleIcon, Loader2Icon } from "lucide-vue-next";
 import VueJsonPretty from "vue-json-pretty";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import CopyButton from "@/components/ui/CopyButton.vue";
@@ -30,8 +31,11 @@ import { log } from "@/common/logger";
 import { useFormat } from "@/composables";
 import { WalletType } from "@/types/internal";
 import { TransactionEntry } from ".";
+import LedgerDevice from "../LedgerDevice.vue";
 
 import "vue-json-pretty/lib/styles.css";
+
+import { LedgerDeviceModelId } from "@/constants/ledger";
 
 interface Props {
   transaction?: EIP12UnsignedTransaction;
@@ -291,19 +295,33 @@ const v$ = useVuelidate(
       </label>
     </div>
 
-    <Form @submit="sign">
-      <FormField :validation="v$.password">
-        <Input
-          ref="pwdInput"
-          v-model="password"
-          placeholder="Spending password"
-          type="password"
-          :disabled="loading || signing || !canSign"
-          class="w-full"
-          @blur="v$.password.$touch()"
-        />
-      </FormField>
-    </Form>
+    <Alert v-if="isReadonly" variant="destructive" class="space-x-2">
+      <AlertCircleIcon class="size-5" />
+      <AlertTitle>Read-only wallet</AlertTitle>
+      <AlertDescription> This wallet can't sign transactions. </AlertDescription>
+    </Alert>
+    <template v-else>
+      <LedgerDevice
+        :connected="true"
+        :loading="true"
+        :model="LedgerDeviceModelId.nanoS"
+        screen-text="test"
+      />
+
+      <Form class="hidden" @submit="sign">
+        <FormField :validation="v$.password">
+          <Input
+            ref="pwdInput"
+            v-model="password"
+            placeholder="Spending password"
+            type="password"
+            :disabled="loading || signing || !canSign"
+            class="w-full"
+            @blur="v$.password.$touch()"
+          />
+        </FormField>
+      </Form>
+    </template>
 
     <div class="flex flex-row gap-4">
       <Button
