@@ -35,8 +35,6 @@ import LedgerDevice from "../LedgerDevice.vue";
 
 import "vue-json-pretty/lib/styles.css";
 
-import { LedgerDeviceModelId } from "@/constants/ledger";
-
 interface Props {
   transaction?: EIP12UnsignedTransaction;
   inputsToSign?: number[];
@@ -301,12 +299,7 @@ const v$ = useVuelidate(
       <AlertDescription> This wallet can't sign transactions. </AlertDescription>
     </Alert>
     <template v-else>
-      <LedgerDevice
-        :connected="true"
-        :loading="true"
-        :model="LedgerDeviceModelId.nanoS"
-        screen-text="test"
-      />
+      <LedgerDevice :connected="true" :loading="true" model="nanoS" screen-text="test" />
 
       <Form class="hidden" @submit="sign">
         <FormField :validation="v$.password">

@@ -1,32 +1,34 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue";
+import { computed } from "vue";
 import { isDefined } from "@fleet-sdk/common";
 import { CheckIcon, CircleAlertIcon, Loader2Icon, XIcon } from "lucide-vue-next";
 import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
 import LedgerNanoX from "@/assets/images/hw-devices/ledger-nanox.svg?skipsvgo";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverStateType } from "@/types/internal";
+import { LedgerDeviceModelId, ProverState } from "@/chains/ergo/transaction/prover";
 
-const props = defineProps({
-  model: {
-    type: String as PropType<LedgerDeviceModelId>,
-    default: LedgerDeviceModelId.nanoX
-  },
-  state: { type: Number as PropType<ProverStateType>, required: false, default: undefined },
-  connected: { type: Boolean },
-  screenText: { type: String, default: undefined },
-  loading: { type: Boolean },
-  caption: { type: String, required: false, default: undefined },
-  compactView: { type: Boolean },
-  appId: { type: Number, required: false, default: undefined }
+interface Props {
+  model?: LedgerDeviceModelId;
+  state?: ProverState;
+  connected?: boolean;
+  screenText?: string;
+  loading?: boolean;
+  caption?: string;
+  compactView?: boolean;
+  appId?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  model: "nanoSP",
+  state: undefined,
+  screenText: undefined,
+  caption: undefined,
+  appId: undefined
 });
 
-const validState = computed(
-  () => isDefined(props.state) && props.state !== ProverStateType.unavailable
-);
+const validState = computed(() => isDefined(props.state) && props.state !== "unavailable");
 const appIdHex = computed(() => (!props.appId ? "" : `0x${props.appId.toString(16)}`));
-const isNanoX = computed(() => props.model === LedgerDeviceModelId.nanoX);
-const isLoading = computed(() => props.state === ProverStateType.busy || props.loading);
+const isNanoX = computed(() => props.model === "nanoX");
+const isLoading = computed(() => props.state === "busy" || props.loading);
 const screenDefs = computed(() =>
   isNanoX.value
     ? "top-[12px] left-[57px] w-[111px] h-[51px]"
@@ -46,14 +48,15 @@ const screenDefs = computed(() =>
           class="absolute flex flex-col items-center justify-around gap-0 leading-none px-1 text-xs text-white bg-blue-50/0"
         >
           <Loader2Icon v-if="loading" class="inline size-3 animate-spin opacity-70" />
-          <check-icon v-else-if="state === ProverStateType.success" class="text-green-300" />
-          <x-icon v-else-if="state === ProverStateType.error" class="text-red-300" />
+          <check-icon v-else-if="state === 'success'" class="text-green-300" />
+          <x-icon v-else-if="state === 'error'" class="text-red-300" />
 
           <p v-if="screenText" class="font-semibold opacity-90 text-[0.70rem]">
             <!-- Review transaction on your device -->
-            Signing
+            <!-- Signing -->
+            {{ screenText }}
           </p>
-          <small class="flex-shrink opacity-70">App ID: 0x12828</small>
+          <small v-if="appId" class="flex-shrink opacity-70">App ID: {{ appId }}</small>
         </div>
       </div>
 

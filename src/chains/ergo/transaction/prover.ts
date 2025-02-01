@@ -31,14 +31,34 @@ import {
   UnsignedBox
 } from "ledger-ergo-js";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { LedgerDeviceModelId } from "@/constants/ledger";
 import { walletsDbService } from "@/database/walletsDbService";
-import { ProverDeviceState, ProverStateType, SigningState } from "@/types/internal";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
 
 export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;
+};
+
+export type ProverState = "success" | "error" | "busy" | "unavailable";
+export type LedgerDeviceModelId =
+  | "blue" // Ledger Blue
+  | "nanoS" // Ledger Nano S
+  | "nanoSP" // Ledger Nano S Plus
+  | "nanoX" // Ledger Nano X
+  | "stax" // Ledger Stax
+  | "europa"; // Ledger Flex ("europa" is the internal name)
+
+export type ProverDeviceState = {
+  model: LedgerDeviceModelId;
+  appId: number;
+  connected: boolean;
+  screenText?: string;
+};
+
+export type SigningState = {
+  statusText: string;
+  type?: ProverState;
+  device?: ProverDeviceState;
 };
 
 export class Prover {
@@ -134,13 +154,11 @@ export class Prover {
             screenText: "Connected",
             connected: true,
             appId: ledgerApp.authToken || 0,
-            model:
-              (ledgerApp.transport.deviceModel?.id.toString() as LedgerDeviceModelId) ??
-              LedgerDeviceModelId.nanoX
+            model: ledgerApp.transport.deviceModel?.id.toString() as LedgerDeviceModelId
           }
         });
       } catch (e) {
-        this.#reportState({ device: { connected: false }, type: ProverStateType.unavailable });
+        this.#reportState({ device: { connected: false }, type: "unavailable" });
         throw e;
       }
 
@@ -164,14 +182,11 @@ export class Prover {
           MAINNET ? Network.Mainnet : Network.Testnet
         );
 
-        this.#reportState({ type: ProverStateType.success, device: { screenText: "Signed" } });
+        this.#reportState({ type: "success", device: { screenText: "Signed" } });
         return Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
-          const resp: PartialSignState = {
-            type: ProverStateType.error,
-            device: { screenText: "Error" }
-          };
+          const resp: PartialSignState = { type: "error", device: { screenText: "Error" } };
 
           switch (e.code) {
             case RETURN_CODE.DENIED:

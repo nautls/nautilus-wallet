@@ -56,10 +56,10 @@ import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import LedgerDevice from "@/components/LedgerDevice.vue";
 import HdKey from "@/chains/ergo/hdKey";
+import { LedgerDeviceModelId, ProverState } from "@/chains/ergo/transaction/prover";
 import { log } from "@/common/logger";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverStateType, WalletType } from "@/types/internal";
+import { WalletType } from "@/types/internal";
 
 export default defineComponent({
   name: "ConnectLedgerView",
@@ -75,8 +75,8 @@ export default defineComponent({
       confirmationAddress: "",
       caption: "",
       screenContent: "",
-      state: undefined as ProverStateType | undefined,
-      model: LedgerDeviceModelId.nanoX,
+      state: undefined as ProverState | undefined,
+      model: "nanoX" as LedgerDeviceModelId,
       appId: 0
     };
   },
@@ -99,12 +99,10 @@ export default defineComponent({
       try {
         app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
         this.appId = app.authToken ?? 0;
-        this.model =
-          (app.transport.deviceModel?.id.toString() as LedgerDeviceModelId) ??
-          LedgerDeviceModelId.nanoX;
+        this.model = app.transport.deviceModel?.id.toString() as LedgerDeviceModelId;
 
         if ((await app.getAppName()).name !== "Ergo") {
-          this.state = ProverStateType.error;
+          this.state = "error";
           this.loading = false;
           this.caption = "Ergo App is not opened.";
           app.transport.close();
@@ -115,7 +113,7 @@ export default defineComponent({
         this.screenContent = "Extended Public Key Export";
       } catch (e) {
         log.error(e);
-        this.state = ProverStateType.unavailable;
+        this.state = "unavailable";
         this.loading = false;
         this.caption = "";
 
@@ -137,12 +135,12 @@ export default defineComponent({
         this.confirmationAddress = key.deriveAddress(0).script;
         const network = MAINNET ? Network.Mainnet : Network.Testnet;
         if (await app.showAddress(DERIVATION_PATH + "/0", network)) {
-          this.state = ProverStateType.success;
+          this.state = "success";
           this.screenContent = "Confirmed";
         }
       } catch (e) {
         this.loading = false;
-        this.state = ProverStateType.error;
+        this.state = "error";
         log.error(e);
 
         if (e instanceof DeviceError) {

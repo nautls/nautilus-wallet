@@ -1,7 +1,6 @@
 import { BabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
-import { LedgerDeviceModelId } from "@/constants/ledger";
 
 export enum AddressState {
   Used,
@@ -83,26 +82,6 @@ export type FeeSettings = {
   readonly nanoErgsPerToken?: BigNumber;
   readonly assetInfo?: BasicAssetMetadata;
   box?: BabelBox;
-};
-
-export const enum ProverStateType {
-  success,
-  error,
-  busy,
-  unavailable
-}
-
-export type ProverDeviceState = {
-  model: LedgerDeviceModelId;
-  appId: number;
-  connected: boolean;
-  screenText?: string;
-};
-
-export type SigningState = {
-  statusText: string;
-  type?: ProverStateType;
-  device?: ProverDeviceState;
 };
 
 export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>;

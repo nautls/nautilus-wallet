@@ -2,9 +2,8 @@
 import { computed, onMounted, reactive } from "vue";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
+import { LedgerDeviceModelId, ProverState } from "@/chains/ergo/transaction/prover";
 import { log } from "@/common/logger";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverStateType } from "@/types/internal";
 import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
 import LedgerDevice from "./LedgerDevice.vue";
 
@@ -19,8 +18,8 @@ const state = reactive({
   loading: false,
   caption: "",
   screenContent: "",
-  state: undefined as ProverStateType | undefined,
-  model: LedgerDeviceModelId.nanoX,
+  state: undefined as ProverState | undefined,
+  model: "nanoX" as LedgerDeviceModelId,
   appId: 0
 });
 
@@ -37,13 +36,11 @@ async function confirmAddress() {
   try {
     app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
     state.appId = app.authToken ?? 0;
-    state.model =
-      (app.transport.deviceModel?.id.toString() as LedgerDeviceModelId) ??
-      LedgerDeviceModelId.nanoX;
+    state.model = app.transport.deviceModel?.id.toString() as LedgerDeviceModelId;
 
     const appInfo = await app.getAppName();
     if (appInfo.name !== "Ergo") {
-      state.state = ProverStateType.error;
+      state.state = "error";
       state.loading = false;
       state.caption = "Ergo App is not opened.";
       app.transport.close();
@@ -53,7 +50,7 @@ async function confirmAddress() {
 
     state.connected = true;
   } catch (e) {
-    state.state = ProverStateType.unavailable;
+    state.state = "unavailable";
     state.loading = false;
     state.caption = "";
     log.error(e);
@@ -68,17 +65,17 @@ async function confirmAddress() {
     const network = MAINNET ? Network.Mainnet : Network.Testnet;
     const confirmed = await app.showAddress(path.value, network);
     if (confirmed) {
-      state.state = ProverStateType.success;
+      state.state = "success";
       state.screenContent = "Confirmed";
       emits("accepted");
     } else {
-      state.state = ProverStateType.error;
+      state.state = "error";
       state.screenContent = "Not confirmed";
       emits("denied");
     }
   } catch (e) {
     state.loading = false;
-    state.state = ProverStateType.error;
+    state.state = "error";
     log.error(e);
 
     if (e instanceof DeviceError) {
