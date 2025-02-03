@@ -39,7 +39,8 @@ export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
   device?: Partial<ProverDeviceState>;
 };
 
-export type ProverState = "success" | "error" | "busy" | "unavailable";
+export type ProverState = "success" | "error" | "busy" | "locked" | "ready";
+
 export type LedgerDeviceModelId =
   | "blue" // Ledger Blue
   | "nanoS" // Ledger Nano S
@@ -145,20 +146,18 @@ export class Prover {
       let ledgerApp!: ErgoLedgerApp;
 
       try {
-        ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create())
-          .useAuthToken()
-          .enableDebugMode();
+        ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
 
         this.#reportState({
           device: {
             screenText: "Connected",
             connected: true,
             appId: ledgerApp.authToken || 0,
-            model: ledgerApp.transport.deviceModel?.id.toString() as LedgerDeviceModelId
+            model: ledgerApp.device.transport.deviceModel?.id.toString() as LedgerDeviceModelId
           }
         });
       } catch (e) {
-        this.#reportState({ device: { connected: false }, type: "unavailable" });
+        this.#reportState({ device: { connected: false } });
         throw e;
       }
 
@@ -205,7 +204,7 @@ export class Prover {
 
         throw e;
       } finally {
-        ledgerApp.transport.close();
+        ledgerApp.device.transport.close();
       }
     }
 

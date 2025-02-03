@@ -139,7 +139,6 @@ async function sign() {
         description: "Please enter the correct spending password to sign this transaction."
       });
       nextTick(() => pwdInput.value?.$el.focus());
-      // pwdInput.value?.$el.focus();
 
       return;
     } else if (e instanceof DeviceError && e.code === RETURN_CODE.DENIED) {
@@ -299,7 +298,7 @@ const v$ = useVuelidate(
       <AlertDescription> This wallet can't sign transactions. </AlertDescription>
     </Alert>
     <template v-else>
-      <LedgerDevice :connected="true" :loading="true" model="nanoS" screen-text="test" />
+      <LedgerDevice state="idle" :app-id="Number('0x7ee523ef')" model="nanoS" screen-text="Ready" />
 
       <Form class="hidden" @submit="sign">
         <FormField :validation="v$.password">
