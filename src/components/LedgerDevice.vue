@@ -1,14 +1,3 @@
-<script lang="ts">
-export interface LedgerDeviceState {
-  model?: LedgerDeviceModelId;
-  type?: ProverState;
-  connected?: boolean;
-  label?: string;
-  additionalInfo?: string;
-  appId?: number;
-}
-</script>
-
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive } from "vue";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
@@ -21,12 +10,12 @@ import {
   LockIcon,
   XIcon
 } from "lucide-vue-next";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/toast";
 import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
 import LedgerNanoX from "@/assets/images/hw-devices/ledger-nanox.svg?skipsvgo";
-import { LedgerDeviceModelId, ProverState } from "@/chains/ergo/transaction/prover";
+import { ProverState } from "@/chains/ergo/transaction/prover";
 import { extractErrorMessage } from "@/common/utils";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { useToast } from "./ui/toast";
 
 const LEDGER_VENDOR_ID = 0x2c97; // https://github.com/LedgerHQ/ledger-live/blob/22714d2324898b853332363f2a522d72bbed0d3a/libs/ledgerjs/packages/devices/src/index.ts#L141
 
@@ -36,7 +25,7 @@ interface DeviceConnectionEvent {
 }
 
 interface Props {
-  initialState?: LedgerDeviceState;
+  initialState?: ProverState;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
   })
 });
 
-const state = reactive<LedgerDeviceState>({
+const state = reactive<ProverState>({
   connected: props.initialState.connected,
   type: props.initialState.type,
   label: props.initialState.label
@@ -123,7 +112,7 @@ function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
   }
 }
 
-function setState(newState: LedgerDeviceState) {
+function setState(newState: ProverState) {
   if (newState.type === "error" && newState.additionalInfo) {
     toast({
       variant: "destructive",
@@ -134,6 +123,8 @@ function setState(newState: LedgerDeviceState) {
 
   Object.assign(state, newState);
 }
+
+defineExpose({ setState });
 </script>
 
 <template>

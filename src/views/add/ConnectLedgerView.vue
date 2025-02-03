@@ -56,7 +56,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import LedgerDevice from "@/components/LedgerDevice.vue";
 import HdKey from "@/chains/ergo/hdKey";
-import { LedgerDeviceModelId, ProverState } from "@/chains/ergo/transaction/prover";
+import { LedgerDeviceModelId, ProverStateType } from "@/chains/ergo/transaction/prover";
 import { log } from "@/common/logger";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
@@ -75,7 +75,7 @@ export default defineComponent({
       confirmationAddress: "",
       caption: "",
       screenContent: "",
-      state: undefined as ProverState | undefined,
+      state: undefined as ProverStateType | undefined,
       model: "nanoX" as LedgerDeviceModelId,
       appId: 0
     };

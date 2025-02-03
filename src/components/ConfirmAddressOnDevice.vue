@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive } from "vue";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
-import { LedgerDeviceModelId, ProverState } from "@/chains/ergo/transaction/prover";
+import { LedgerDeviceModelId, ProverStateType } from "@/chains/ergo/transaction/prover";
 import { log } from "@/common/logger";
 import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
 import LedgerDevice from "./LedgerDevice.vue";
@@ -18,7 +18,7 @@ const state = reactive({
   loading: false,
   caption: "",
   screenContent: "",
-  state: undefined as ProverState | undefined,
+  state: undefined as ProverStateType | undefined,
   model: "nanoX" as LedgerDeviceModelId,
   appId: 0
 });

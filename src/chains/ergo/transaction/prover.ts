@@ -35,11 +35,7 @@ import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
 
-export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
-  device?: Partial<ProverDeviceState>;
-};
-
-export type ProverState = "success" | "error" | "busy" | "locked" | "ready";
+export type ProverStateType = "success" | "error" | "busy" | "locked" | "ready";
 
 export type LedgerDeviceModelId =
   | "blue" // Ledger Blue
@@ -49,18 +45,16 @@ export type LedgerDeviceModelId =
   | "stax" // Ledger Stax
   | "europa"; // Ledger Flex ("europa" is the internal name)
 
-export type ProverDeviceState = {
-  model: LedgerDeviceModelId;
-  appId: number;
-  connected: boolean;
-  screenText?: string;
-};
+export interface ProverState {
+  type?: ProverStateType;
+  label?: string;
+  model?: LedgerDeviceModelId;
+  connected?: boolean;
+  additionalInfo?: string;
+  appId?: number;
+}
 
-export type SigningState = {
-  statusText: string;
-  type?: ProverState;
-  device?: ProverDeviceState;
-};
+export type PartialSignState = Partial<ProverState>;
 
 export class Prover {
   #from!: IndexedAddress[];
@@ -149,22 +143,20 @@ export class Prover {
         ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
 
         this.#reportState({
-          device: {
-            screenText: "Connected",
-            connected: true,
-            appId: ledgerApp.authToken || 0,
-            model: ledgerApp.device.transport.deviceModel?.id.toString() as LedgerDeviceModelId
-          }
+          label: "Connected",
+          connected: true,
+          appId: ledgerApp.authToken || 0,
+          model: ledgerApp.device.transport.deviceModel?.id.toString() as LedgerDeviceModelId
         });
       } catch (e) {
-        this.#reportState({ device: { connected: false } });
+        this.#reportState({ connected: false });
         throw e;
       }
 
       try {
         this.#reportState({
-          statusText: "Please confirm the transaction signature on your device.",
-          device: { screenText: "Waiting for approval..." }
+          label: "Waiting for approval...",
+          additionalInfo: "Please confirm the transaction signature on your device."
         });
 
         const proofs = await ledgerApp.signTx(
@@ -181,28 +173,29 @@ export class Prover {
           MAINNET ? Network.Mainnet : Network.Testnet
         );
 
-        this.#reportState({ type: "success", device: { screenText: "Signed" } });
+        this.#reportState({ type: "success", label: "Signed" });
         return Transaction.from_unsigned_tx(unsigned, proofs);
       } catch (e) {
         if (e instanceof DeviceError) {
-          const resp: PartialSignState = { type: "error", device: { screenText: "Error" } };
+          const resp: PartialSignState = { type: "error", label: "Error" };
 
           switch (e.code) {
             case RETURN_CODE.DENIED:
-              resp.statusText = "Transaction signing denied.";
+              resp.label = "Transaction signing denied.";
               break;
             case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
-              resp.statusText =
+              resp.label =
                 "It looks like your device is locked. Make sure it is unlocked before proceeding.";
               break;
             default:
-              resp.statusText = `[Device error] ${e.message}`;
+              resp.label = "Device error";
+              resp.additionalInfo = e.message;
           }
 
           this.#reportState(resp);
+        } else {
+          throw e;
         }
-
-        throw e;
       } finally {
         ledgerApp.device.transport.close();
       }
