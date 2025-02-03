@@ -20,7 +20,6 @@ import { extractErrorMessage } from "@/common/utils";
 const LEDGER_VENDOR_ID = 0x2c97; // https://github.com/LedgerHQ/ledger-live/blob/22714d2324898b853332363f2a522d72bbed0d3a/libs/ledgerjs/packages/devices/src/index.ts#L141
 
 interface DeviceConnectionEvent {
-  // eslint-disable-next-line no-undef
   device?: USBDevice;
 }
 

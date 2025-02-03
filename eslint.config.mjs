@@ -54,6 +54,7 @@ export default [
     rules: {
       "vue/component-api-style": ["warn", ["script-setup", "composition"]],
       "no-console": "error",
+      "no-undef": "off", // TypeScript's compiler already enforces this check. https://eslint.org/docs/latest/rules/no-undef#handled_by_typescript
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "sort-imports": "off",
       "import/order": "off",
