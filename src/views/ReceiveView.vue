@@ -77,7 +77,7 @@ function showOnLedger(address: StateAddress) {
 
 <template>
   <div class="flex flex-col gap-4 p-4">
-    <Card class="p-4 text-sm">
+    <Card class="p-6 text-sm">
       <div class="flex flex-row gap-4 items-center">
         <div class="w-8/12 xs:w-7/12">
           <h1 class="font-semibold leading-none tracking-tight mb-2">

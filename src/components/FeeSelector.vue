@@ -228,7 +228,7 @@ function emitSelected() {
   <FormField :validation="v$">
     <div
       :class="disabled ? 'pointer-events-none opacity-50' : ''"
-      class="flex flex-col w-full gap-1 rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+      class="flex flex-col w-full gap-1 rounded-md relative border border-input bg-transparent px-4 py-3 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div class="flex flex-grow gap-2">
         <div class="flex flex-row items-start gap-2 flex-grow">

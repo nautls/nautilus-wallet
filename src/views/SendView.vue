@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import {
   createP2PTransaction,
@@ -224,29 +225,33 @@ function isFeeAsset(tokenId: string): boolean {
 <template>
   <ScrollArea type="scroll" class="flex-grow">
     <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
-      <Card class="p-4 gap-6 flex flex-col">
+      <Card class="p-6 gap-6 flex flex-col">
         <FormField :validation="v$.recipient">
+          <Label for="recipient">Recipient Address</Label>
           <Input
+            id="recipient"
             v-model="recipient"
             type="text"
             spellcheck="false"
-            placeholder="Recipient"
             class="w-full"
             @blur="v$.recipient.$touch()"
           />
         </FormField>
 
-        <div class="grid gap-4">
-          <AssetInput
-            v-for="item in selected"
-            :key="item.asset.tokenId"
-            v-model="item.amount"
-            :asset="item.asset"
-            :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-            :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
-            :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-            @remove="removeAsset(item.asset.tokenId)"
-          />
+        <div class="space-y-1">
+          <Label>Assets</Label>
+          <div class="grid gap-4">
+            <AssetInput
+              v-for="item in selected"
+              :key="item.asset.tokenId"
+              v-model="item.amount"
+              :asset="item.asset"
+              :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
+              :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
+              :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
+              @remove="removeAsset(item.asset.tokenId)"
+            />
+          </div>
         </div>
 
         <FormField :validation="v$.selected">
