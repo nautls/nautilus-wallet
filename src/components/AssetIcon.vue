@@ -5,8 +5,8 @@ import EmptyIcon from "@/assets/images/tokens/asset-empty.svg";
 import AudioNftIcon from "@/assets/images/tokens/asset-nft-audio.svg";
 import PictureNftIcon from "@/assets/images/tokens/asset-nft-picture.svg";
 import VideoNftIcon from "@/assets/images/tokens/asset-nft-video.svg";
+import { cn } from "@/common/utils";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { cn } from "@/lib/utils";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { AssetSubtype } from "@/types/internal";
 

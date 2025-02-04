@@ -82,7 +82,7 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
         altText: "View in explorer",
         class: "size-9 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
       },
-      { default: h(ExternalLinkIcon) }
+      { default: () => h(ExternalLinkIcon) }
     )
   });
 

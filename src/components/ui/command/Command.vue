@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends Record<string, any> | string">
 import type { ComboboxRootEmits, ComboboxRootProps } from 'radix-vue'
-import { cn } from '@/lib/utils'
+import { cn } from '@/common/utils'
 import { ComboboxRoot, useForwardPropsEmits } from 'radix-vue'
 import { computed, type HTMLAttributes } from 'vue'
 

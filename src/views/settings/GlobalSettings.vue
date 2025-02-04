@@ -26,7 +26,7 @@ import {
   validateServerNetwork,
   validateServerVersion
 } from "@/chains/ergo/services/graphQlService";
-import { cn } from "@/lib/utils";
+import { cn } from "@/common/utils";
 import { validUrl } from "@/validators";
 
 const app = useAppStore();

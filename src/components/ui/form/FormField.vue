@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
 import { BaseValidation } from "@vuelidate/core";
-import { cn } from "@/lib/utils";
+import { cn } from "@/common/utils";
 
 interface Props {
   class?: HTMLAttributes["class"];

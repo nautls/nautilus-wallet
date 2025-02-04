@@ -5,7 +5,7 @@ import { VisArea, VisLine, VisXYContainer } from "@unovis/vue";
 import { useMounted } from "@vueuse/core";
 import { useId } from "radix-vue";
 import { ChartCrosshair, defaultColors } from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
+import { cn } from "@/common/utils";
 import ChartTooltip from "./SparklineTooltip.vue";
 
 type KeyOf<T extends Record<string, unknown>> = Extract<keyof T, string>;

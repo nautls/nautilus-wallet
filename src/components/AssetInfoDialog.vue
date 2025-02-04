@@ -17,10 +17,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { bn, decimalize } from "@/common/bigNumber";
+import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { assetInfoDbService } from "@/database/assetInfoDbService";
-import { cn } from "@/lib/utils";
 import { IAssetInfo } from "@/types/database";
 import { AssetSubtype } from "@/types/internal";
 

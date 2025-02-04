@@ -7,9 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
-import { isErg } from "@/common/utils";
+import { cn, isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
-import { cn } from "@/lib/utils";
 import { cardVariants, type CardVariants } from ".";
 
 interface Props {

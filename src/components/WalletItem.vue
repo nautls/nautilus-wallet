@@ -3,7 +3,7 @@ import { HTMLAttributes, nextTick, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
-import { cn } from "@/lib/utils";
+import { cn } from "@/common/utils";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
 

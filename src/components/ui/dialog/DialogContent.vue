@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
+import { cn } from '@/common/utils'
 import { XIcon } from 'lucide-vue-next'
 import {
   DialogClose,
