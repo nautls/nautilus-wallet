@@ -349,3 +349,15 @@ const v$ = useVuelidate(
     </div>
   </div>
 </template>
+
+<style>
+.vjs-tree .vjs-tree-node,
+.vjs-tree .vjs-tree__node {
+  @apply -mx-4 px-4 py-0.5 text-xs;
+}
+
+.vjs-tree .vjs-tree-node:hover,
+.vjs-tree .vjs-tree__node:hover {
+  @apply bg-gray-500/10 dark:bg-gray-500/20;
+}
+</style>
