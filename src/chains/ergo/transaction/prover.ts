@@ -21,21 +21,14 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import {
-  BoxCandidate,
-  DeviceError,
-  ErgoLedgerApp,
-  Network,
-  RETURN_CODE,
-  Token,
-  UnsignedBox
-} from "ledger-ergo-js";
+import { BoxCandidate, ErgoLedgerApp, Network, Token, UnsignedBox } from "ledger-ergo-js";
+import { sleep } from "@/common/utils";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
 
-export type ProverStateType = "success" | "error" | "busy" | "locked" | "ready";
+export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready";
 
 export type LedgerDeviceModelId =
   | "blue" // Ledger Blue
@@ -51,10 +44,13 @@ export interface ProverState {
   model?: LedgerDeviceModelId;
   connected?: boolean;
   additionalInfo?: string;
+  busy?: boolean;
   appId?: number;
 }
 
 export type PartialSignState = Partial<ProverState>;
+
+export type StateCallback = (newState: PartialSignState) => void;
 
 export class Prover {
   #from!: IndexedAddress[];
@@ -63,7 +59,7 @@ export class Prover {
   #deriver!: HdKey;
   #headers?: BlockHeaders;
 
-  #callbackFn?: (newVal: PartialSignState) => void;
+  #callbackFn?: StateCallback;
 
   constructor(deriver: HdKey) {
     this.#deriver = deriver;
@@ -136,74 +132,43 @@ export class Prover {
   }
 
   async #signTx(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
-    if (this.#useLedger) {
-      let ledgerApp!: ErgoLedgerApp;
-
-      try {
-        ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
-
-        this.#reportState({
-          label: "Connected",
-          connected: true,
-          appId: ledgerApp.authToken || 0,
-          model: ledgerApp.device.transport.deviceModel?.id.toString() as LedgerDeviceModelId
-        });
-      } catch (e) {
-        this.#reportState({ connected: false });
-        throw e;
-      }
-
-      try {
-        this.#reportState({
-          label: "Waiting for approval...",
-          additionalInfo: "Please confirm the transaction signature on your device."
-        });
-
-        const proofs = await ledgerApp.signTx(
-          {
-            inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
-            dataInputs: mapLedgerDataInputs(dataInputs),
-            outputs: mapLedgerOutputs(unsigned),
-            distinctTokenIds: unsigned.distinct_token_ids(),
-            changeMap: {
-              address: this.#deriver.deriveAddress(this.#changeIndex ?? 0).script,
-              path: `${DERIVATION_PATH}/${this.#changeIndex}`
-            }
-          },
-          MAINNET ? Network.Mainnet : Network.Testnet
-        );
-
-        this.#reportState({ type: "success", label: "Signed" });
-        return Transaction.from_unsigned_tx(unsigned, proofs);
-      } catch (e) {
-        if (e instanceof DeviceError) {
-          const resp: PartialSignState = { type: "error", label: "Error" };
-
-          switch (e.code) {
-            case RETURN_CODE.DENIED:
-              resp.label = "Transaction signing denied.";
-              break;
-            case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
-              resp.label =
-                "It looks like your device is locked. Make sure it is unlocked before proceeding.";
-              break;
-            default:
-              resp.label = "Device error";
-              resp.additionalInfo = e.message;
-          }
-
-          this.#reportState(resp);
-        } else {
-          throw e;
-        }
-      } finally {
-        ledgerApp.device.transport.close();
-      }
+    if (!this.#useLedger) {
+      const wallet = this.#buildWallet();
+      const signContext = this.#buildContext();
+      return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
     }
 
-    const wallet = this.#buildWallet();
-    const signContext = this.#buildContext();
-    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
+    try {
+      this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
+      await openErgoApp((state) => this.#reportState(state));
+
+      const ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
+
+      this.#reportState({
+        type: undefined,
+        label: "Confirm transaction signing",
+        appId: ledgerApp.authToken
+      });
+
+      const proofs = await ledgerApp.signTx(
+        {
+          inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
+          dataInputs: mapLedgerDataInputs(dataInputs),
+          outputs: mapLedgerOutputs(unsigned),
+          distinctTokenIds: unsigned.distinct_token_ids(),
+          changeMap: {
+            address: this.#deriver.deriveAddress(this.#changeIndex ?? 0).script,
+            path: `${DERIVATION_PATH}/${this.#changeIndex}`
+          }
+        },
+        MAINNET ? Network.Mainnet : Network.Testnet
+      );
+
+      this.#reportState({ type: "success", label: "Signed", appId: undefined });
+      return Transaction.from_unsigned_tx(unsigned, proofs);
+    } finally {
+      this.#reportState({ busy: false });
+    }
   }
 
   #signInputs(
@@ -322,4 +287,28 @@ function mapLedgerOutputs(tx: UnsignedTransaction) {
 
 export async function getPrivateDeriver(walletId: number, password: string): Promise<HdKey> {
   return await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
+}
+
+async function openErgoApp(setState: StateCallback) {
+  const app = new ErgoLedgerApp(await WebUSBTransport.create());
+
+  const currentApp = await app.device.getCurrentAppInfo();
+  if (currentApp.name !== "Ergo") {
+    setState({
+      type: undefined,
+      connected: true,
+      label: "Confirm opening the Ergo App"
+    });
+    await app.device.openApp("Ergo");
+
+    setState({ type: "loading", label: "Waiting for the app to be ready" });
+    await sleep(1000); // Wait for the app to be fully opened
+  }
+
+  setState({
+    label: "Ready",
+    type: "ready",
+    connected: true,
+    model: app.device.transport.deviceModel?.id
+  });
 }

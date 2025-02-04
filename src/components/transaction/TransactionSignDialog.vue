@@ -11,6 +11,7 @@ import {
   DrawerTitle
 } from "@/components/ui/drawer";
 import { ToastAction, useToast } from "@/components/ui/toast";
+import { extractErrorMessage } from "@/common/utils";
 import { TransactionBuilderFunction } from "@/types/internal";
 import TransactionSign from "./TransactionSign.vue";
 
@@ -49,7 +50,7 @@ async function buildTransaction() {
     loading.value = true;
     return await props.transactionBuilder();
   } catch (e) {
-    const errorMessage = typeof e === "string" ? e : (e as Error).message;
+    const errorMessage = extractErrorMessage(e);
     toast({
       title: "Transaction build failed",
       description: errorMessage,
@@ -89,6 +90,17 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
   setOpened(false);
 }
 
+function onFail(errorMessage: string) {
+  toast({
+    title: "Transaction signing failed",
+    description: errorMessage,
+    variant: "destructive"
+  });
+
+  emit("fail", errorMessage);
+  setOpened(false);
+}
+
 function handleOpenUpdates(open: boolean) {
   if (!open) emit("refused");
 }
@@ -112,6 +124,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         :transaction="transaction"
         :loading="loading"
         @success="onSuccess"
+        @fail="onFail"
         @refused="setOpened(false)"
       />
     </DrawerContent>

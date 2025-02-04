@@ -28,6 +28,7 @@ import { signTransaction } from "@/chains/ergo/signing";
 import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transaction/interpreter";
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
+import { extractErrorMessage } from "@/common/utils";
 import { useFormat } from "@/composables";
 import { WalletType } from "@/types/internal";
 import { TransactionEntry } from ".";
@@ -62,7 +63,8 @@ const assets = useAssetsStore();
 const format = useFormat();
 
 const { toast } = useToast();
-const pwdInput = useTemplateRef("pwdInput");
+const pwdInput = useTemplateRef("pwd-input");
+const ledgerDevice = useTemplateRef("ledger-device");
 
 const password = ref("");
 const hasBurnAgreement = ref(false);
@@ -116,7 +118,8 @@ async function sign() {
     const signed = await signTransaction({
       transaction: props.transaction,
       password: password.value,
-      inputsToSign: props.inputsToSign
+      inputsToSign: props.inputsToSign,
+      stateCallback: ledgerDevice.value?.setState
     });
 
     if (!signed) throw new Error("Prover returned no signed data.");
@@ -141,13 +144,30 @@ async function sign() {
       nextTick(() => pwdInput.value?.$el.focus());
 
       return;
-    } else if (e instanceof DeviceError && e.code === RETURN_CODE.DENIED) {
-      emit("refused");
-      return;
+    } else if (e instanceof DeviceError) {
+      if (e.code === RETURN_CODE.DENIED) {
+        emit("refused");
+        return;
+      } else if (e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
+        ledgerDevice.value?.setState({
+          label: "Ergo App opening denied by the user",
+          type: "error"
+        });
+        return;
+      } else if (
+        e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
+        e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
+      ) {
+        ledgerDevice.value?.setState({
+          label: "Device is locked",
+          type: "locked"
+        });
+        return;
+      }
     }
 
     log.error(e);
-    emit("fail", typeof e === "string" ? e : (e as Error).message);
+    emit("fail", extractErrorMessage(e));
   } finally {
     signing.value = false;
   }
@@ -167,7 +187,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
       action: h(
         ToastAction,
         {
-          onClick: broadcastTransaction(signedTransaction, true),
+          onClick: () => broadcastTransaction(signedTransaction, true),
           altText: "Try again"
         },
         { default: () => "Try again" }
@@ -297,23 +317,22 @@ const v$ = useVuelidate(
       <AlertTitle>Read-only wallet</AlertTitle>
       <AlertDescription> This wallet can't sign transactions. </AlertDescription>
     </Alert>
-    <template v-else>
-      <LedgerDevice state="idle" :app-id="Number('0x7ee523ef')" model="nanoS" screen-text="Ready" />
 
-      <Form class="hidden" @submit="sign">
-        <FormField :validation="v$.password">
-          <Input
-            ref="pwdInput"
-            v-model="password"
-            placeholder="Spending password"
-            type="password"
-            :disabled="loading || signing || !canSign"
-            class="w-full"
-            @blur="v$.password.$touch()"
-          />
-        </FormField>
-      </Form>
-    </template>
+    <LedgerDevice v-else-if="isLedger" ref="ledger-device" />
+
+    <Form v-else @submit="sign">
+      <FormField :validation="v$.password">
+        <Input
+          ref="pwd-input"
+          v-model="password"
+          placeholder="Spending password"
+          type="password"
+          :disabled="loading || signing || !canSign"
+          class="w-full"
+          @blur="v$.password.$touch()"
+        />
+      </FormField>
+    </Form>
 
     <div class="flex flex-row gap-4">
       <Button

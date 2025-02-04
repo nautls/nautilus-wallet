@@ -276,6 +276,6 @@ function isFeeAsset(tokenId: string): boolean {
 
   <div class="space-y-4 p-4">
     <FeeSelector v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
-    <Button type="submit" class="w-full" size="lg" @click="sendTransaction">Confirm</Button>
+    <Button type="submit" class="w-full" size="lg" @click="sendTransaction">Preview</Button>
   </div>
 </template>

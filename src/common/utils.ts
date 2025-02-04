@@ -13,3 +13,5 @@ export function extractErrorMessage(error: unknown): string {
       ? (error as ErrorLike).message
       : "Unknown error";
 }
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

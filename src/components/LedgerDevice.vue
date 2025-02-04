@@ -65,7 +65,7 @@ const screenPosition = computed(() =>
 );
 
 async function onDeviceConnect({ device }: DeviceConnectionEvent) {
-  if (state.connected || !device || device.vendorId !== LEDGER_VENDOR_ID) return;
+  if (state.connected || state.busy || !device || device.vendorId !== LEDGER_VENDOR_ID) return;
 
   let app: ErgoLedgerApp | undefined;
   try {
@@ -102,10 +102,10 @@ async function onDeviceConnect({ device }: DeviceConnectionEvent) {
 }
 
 function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
-  if (!device || device.vendorId !== LEDGER_VENDOR_ID) return;
+  if (!device || state.busy || device.vendorId !== LEDGER_VENDOR_ID) return;
 
   if (state.connected) {
-    setState({ connected: false, label: "Reconnecting...", appId: undefined, type: "busy" });
+    setState({ connected: false, label: "Reconnecting...", appId: undefined, type: "loading" });
   } else {
     setState({ connected: false, label: undefined, type: undefined });
   }
@@ -139,7 +139,7 @@ defineExpose({ setState });
         >
           <CheckCheckIcon v-if="state.type === 'ready'" class="size-auto opacity-80" />
           <Loader2Icon
-            v-else-if="state.type === 'busy'"
+            v-else-if="state.type === 'loading'"
             class="size-auto animate-spin opacity-80"
           />
           <CheckIcon
