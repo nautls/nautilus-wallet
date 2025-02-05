@@ -10,9 +10,9 @@ import {
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import { AddressQrCodeDialog, AddressVerifyDialog } from "@/components/address";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CopyButton } from "@/components/ui/copy-button";
 import { QrCode } from "@/components/ui/qr-code";
@@ -32,6 +32,10 @@ const format = useFormat();
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
+const canAddNewAddress = computed(() => wallet.settings.addressFilter !== "active");
+const defaultAddressTitle = computed(() =>
+  wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address"
+);
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
 const { open: openAddressVerifyDialog } = useProgrammaticDialog(AddressVerifyDialog);
@@ -70,29 +74,26 @@ function openExplorer(address: string | undefined) {
 <template>
   <div class="flex flex-col gap-4 p-4">
     <Card class="p-6 text-sm">
-      <div class="flex flex-row gap-4 items-center">
-        <div class="w-8/12 xs:w-7/12">
-          <h1 class="font-semibold leading-none tracking-tight mb-2">
-            {{
-              wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address"
-            }}
-          </h1>
+      <div class="flex flex-row h-full gap-4 items-center">
+        <div class="flex flex-col w-full h-full justify-between">
+          <CardTitle class="font-semibold leading-none tracking-tight">
+            {{ defaultAddressTitle }}
+          </CardTitle>
           <div class="break-all">
             {{ wallet.changeAddress?.script }}
-            <CopyButton class="size-3 align-middle" :content="wallet.changeAddress?.script" />
+            <CopyButton class="size-3" :content="wallet.changeAddress?.script" />
           </div>
         </div>
 
-        <QrCode :data="wallet.changeAddress?.script" />
+        <QrCode :data="wallet.changeAddress?.script" class="size-32" />
       </div>
     </Card>
 
     <Alert v-if="isLedger" class="space-x-2">
       <TriangleAlertIcon />
-      <AlertTitle>Heads up!</AlertTitle>
-      <AlertDescription>
-        Avoid sending more than <strong>20 different tokens</strong> in a single transaction to a
-        Ledger wallet. Limited device memory could cause your funds to become inaccessible.
+      <AlertDescription class="hyphens-auto">
+        Avoid sending more than <strong>20 tokens</strong> in a single transaction to this wallet.
+        Limited device memory could cause your funds to become inaccessible.
       </AlertDescription>
     </Alert>
 
@@ -105,7 +106,9 @@ function openExplorer(address: string | undefined) {
         </TabsList>
 
         <div class="flex-grow"></div>
-        <Button variant="ghost" size="icon" @click="newAddress"><CirclePlusIcon /></Button>
+        <Button variant="ghost" size="icon" :disabled="!canAddNewAddress" @click="newAddress"
+          ><CirclePlusIcon
+        /></Button>
       </div>
     </Tabs>
   </div>
