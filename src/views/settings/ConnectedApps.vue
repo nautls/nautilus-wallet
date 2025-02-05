@@ -6,7 +6,7 @@ import AppItem from "@/components/AppItem.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import WalletItem from "@/components/WalletItem.vue";
+import { WalletItem } from "@/components/wallet";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { IDbDAppConnection } from "@/types/database";
 

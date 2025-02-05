@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
-import WalletItem from "@/components/WalletItem.vue";
+import { WalletItem } from "@/components/wallet";
 
 const app = useAppStore();
 const wallet = useWalletStore();

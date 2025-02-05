@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { WalletSwitcher } from "@/components/wallet";
 import NautilusLogo from "./NautilusLogo.vue";
-import WalletSwitcher from "./WalletSwitcher.vue";
 </script>
 
 <template>

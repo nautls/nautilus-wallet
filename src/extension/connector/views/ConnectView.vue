@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
-import WalletItem from "@/components/WalletItem.vue";
+import { WalletItem } from "@/components/wallet";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { walletsDbService } from "@/database/walletsDbService";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";

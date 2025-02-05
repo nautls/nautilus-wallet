@@ -29,7 +29,7 @@ import {
   CommandSeparator
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import WalletItem from "@/components/WalletItem.vue";
+import { WalletItem } from "@/components/wallet";
 import { browser, isPopup } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 import { IDbWallet } from "@/types/database";
