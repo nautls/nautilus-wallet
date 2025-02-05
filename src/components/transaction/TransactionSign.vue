@@ -115,6 +115,10 @@ async function sign() {
 
   try {
     signing.value = true;
+
+    const ready = await ledgerDevice.value?.openErgoApp();
+    if (!ready) return;
+
     const signed = await signTransaction({
       transaction: props.transaction,
       password: password.value,
@@ -145,23 +149,14 @@ async function sign() {
 
       return;
     } else if (e instanceof DeviceError) {
-      if (e.code === RETURN_CODE.DENIED) {
+      if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
         emit("refused");
-        return;
-      } else if (e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
-        ledgerDevice.value?.setState({
-          label: "Ergo App opening denied by the user",
-          type: "error"
-        });
         return;
       } else if (
         e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
         e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
       ) {
-        ledgerDevice.value?.setState({
-          label: "Device is locked",
-          type: "locked"
-        });
+        ledgerDevice.value?.setState({ label: "Device is locked", type: "locked" });
         return;
       }
     }

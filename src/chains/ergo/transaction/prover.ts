@@ -22,7 +22,6 @@ import {
   Wallet
 } from "ergo-lib-wasm-browser";
 import { BoxCandidate, ErgoLedgerApp, Network, Token, UnsignedBox } from "ledger-ergo-js";
-import { sleep } from "@/common/utils";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
@@ -140,7 +139,6 @@ export class Prover {
 
     try {
       this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
-      await openErgoApp((state) => this.#reportState(state));
 
       const ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
 
@@ -287,28 +285,4 @@ function mapLedgerOutputs(tx: UnsignedTransaction) {
 
 export async function getPrivateDeriver(walletId: number, password: string): Promise<HdKey> {
   return await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
-}
-
-async function openErgoApp(setState: StateCallback) {
-  const app = new ErgoLedgerApp(await WebUSBTransport.create());
-
-  const currentApp = await app.device.getCurrentAppInfo();
-  if (currentApp.name !== "Ergo") {
-    setState({
-      type: undefined,
-      connected: true,
-      label: "Confirm opening the Ergo App"
-    });
-    await app.device.openApp("Ergo");
-
-    setState({ type: "loading", label: "Waiting for the app to be ready" });
-    await sleep(1000); // Wait for the app to be fully opened
-  }
-
-  setState({
-    label: "Ready",
-    type: "ready",
-    connected: true,
-    model: app.device.transport.deviceModel?.id
-  });
 }

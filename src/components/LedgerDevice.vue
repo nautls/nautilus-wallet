@@ -15,7 +15,7 @@ import { useToast } from "@/components/ui/toast";
 import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
 import LedgerNanoX from "@/assets/images/hw-devices/ledger-nanox.svg?skipsvgo";
 import { ProverState } from "@/chains/ergo/transaction/prover";
-import { extractErrorMessage } from "@/common/utils";
+import { extractErrorMessage, sleep } from "@/common/utils";
 
 const LEDGER_VENDOR_ID = 0x2c97; // https://github.com/LedgerHQ/ledger-live/blob/22714d2324898b853332363f2a522d72bbed0d3a/libs/ledgerjs/packages/devices/src/index.ts#L141
 
@@ -67,7 +67,6 @@ const screenPosition = computed(() =>
 async function onDeviceConnect({ device }: DeviceConnectionEvent) {
   if (state.connected || state.busy || !device || device.vendorId !== LEDGER_VENDOR_ID) return;
 
-  let app: ErgoLedgerApp | undefined;
   try {
     const app = new ErgoLedgerApp(await TransportWebUSB.create());
 
@@ -96,8 +95,6 @@ async function onDeviceConnect({ device }: DeviceConnectionEvent) {
       label: "Connection error",
       additionalInfo: extractErrorMessage(e)
     });
-  } finally {
-    await app?.device.transport.close();
   }
 }
 
@@ -108,6 +105,56 @@ function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
     setState({ connected: false, label: "Reconnecting...", appId: undefined, type: "loading" });
   } else {
     setState({ connected: false, label: undefined, type: undefined });
+  }
+}
+
+async function openErgoApp(): Promise<boolean> {
+  try {
+    const app = new ErgoLedgerApp(await TransportWebUSB.create());
+
+    const currentApp = await app.device.getCurrentAppInfo();
+    if (currentApp.name !== "Ergo") {
+      setState({ busy: true, connected: true });
+
+      if (currentApp.name !== "BOLOS") {
+        await app.device.closeApp();
+        setState({ type: "loading", label: "Waiting for the app to be closed" });
+        await sleep(1000); // Wait for the app to be fully closed
+      }
+
+      setState({ type: undefined, label: "Confirm opening the Ergo app" });
+      // device.closeApp() command disconnects the device for some reason,
+      // so we need to create a new instance to re-open it
+      await new ErgoLedgerApp(await TransportWebUSB.create()).device.openApp("Ergo");
+      setState({ type: "loading", label: "Waiting for the app to be ready" });
+      await sleep(1000); // Wait for the app to be fully opened
+    }
+
+    setState({ type: "ready", label: "Ready" });
+    return true;
+  } catch (e) {
+    if (e instanceof DeviceError) {
+      if (
+        e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
+        e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
+      ) {
+        setState({ type: "locked", label: "Device is locked" });
+        return false;
+      } else if (e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
+        setState({ type: "error", label: "Ergo app opening denied by the user" });
+        return false;
+      }
+    }
+
+    setState({
+      type: "error",
+      label: "Error opening the Ergo app",
+      additionalInfo: extractErrorMessage(e)
+    });
+
+    return false;
+  } finally {
+    setState({ busy: false });
   }
 }
 
@@ -123,7 +170,7 @@ function setState(newState: ProverState) {
   Object.assign(state, newState);
 }
 
-defineExpose({ setState });
+defineExpose({ setState, openErgoApp });
 </script>
 
 <template>
