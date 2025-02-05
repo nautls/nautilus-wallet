@@ -2,7 +2,6 @@
 import { computed, ref, watch } from "vue";
 import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "lucide-vue-next";
 import { AssetIcon, AssetImageSandbox } from "@/components/asset";
-import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { StatsCard } from "@/components/ui/stats-card";
 import { bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";

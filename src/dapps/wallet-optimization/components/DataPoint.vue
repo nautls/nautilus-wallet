@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { CheckIcon, CircleAlertIcon } from "lucide-vue-next";
-import StatsCard from "@/components/StatsCard.vue";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatsCard } from "@/components/ui/stats-card";
 
 const props = defineProps<{
   title: string;

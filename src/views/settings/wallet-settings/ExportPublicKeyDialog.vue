@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useWalletStore } from "@/stores/walletStore";
-import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import {
@@ -14,6 +13,7 @@ import {
   DrawerTitle
 } from "@/components/ui/drawer";
 import { QrCode } from "@/components/ui/qr-code";
+import { StatsCard } from "@/components/ui/stats-card";
 import { mountExtendedPublicKey } from "@/common/serializer";
 
 const wallet = useWalletStore();
