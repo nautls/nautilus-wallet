@@ -9,8 +9,7 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
 import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
-import { AssetSignIcon } from "@/components/asset";
-import AssetIcon from "@/components/AssetIcon.vue";
+import { AssetIcon, AssetSignIcon } from "@/components/asset";
 import { TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import {

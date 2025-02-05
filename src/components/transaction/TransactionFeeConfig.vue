@@ -10,8 +10,7 @@ import { ChevronsUpDown, InfoIcon, Loader2Icon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
-import AssetIcon from "@/components/AssetIcon.vue";
-import AssetSelector from "@/components/AssetSelector.vue";
+import { AssetIcon, AssetSelect } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
 import { PopoverTrigger } from "@/components/ui/popover";
@@ -251,7 +250,7 @@ function emitSelected() {
           </div>
         </div>
         <div>
-          <AssetSelector v-model="intSelected" :assets="assets" selectable>
+          <AssetSelect v-model="intSelected" :assets="assets" selectable>
             <PopoverTrigger :disabled="loading">
               <Button variant="secondary">
                 <asset-icon
@@ -265,7 +264,7 @@ function emitSelected() {
                 <ChevronsUpDown v-else class="size-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-          </AssetSelector>
+          </AssetSelect>
         </div>
       </div>
       <div class="pb-2 pt-3">

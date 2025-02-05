@@ -7,16 +7,16 @@ import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance } from "@/stores/walletStore";
+import { AssetIcon } from "@/components/asset";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form";
+import { Skeleton } from "@/components/ui/skeleton";
 import { bn } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { MaskOptions, useNumericMask } from "@/composables/useNumericMask";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
-import AssetIcon from "./AssetIcon.vue";
-import { Button } from "./ui/button";
-import { FormField } from "./ui/form";
-import { Skeleton } from "./ui/skeleton";
 
 interface Props {
   disposable?: boolean;

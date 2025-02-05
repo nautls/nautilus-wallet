@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "lucide-vue-next";
-import AssetIcon from "@/components/AssetIcon.vue";
-import ImageSandbox from "@/components/ImageSandbox.vue";
+import { AssetIcon, AssetImageSandbox } from "@/components/asset";
 import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
 import {
@@ -176,7 +175,7 @@ defineExpose({ open: openDialog, close: closeDialog });
       <ScrollArea type="hover" class="flex-grow -mx-6">
         <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
-            <ImageSandbox
+            <AssetImageSandbox
               display-external-link
               :src="contentUrl"
               object-fit="cover"

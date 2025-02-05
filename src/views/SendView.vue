@@ -8,8 +8,7 @@ import { differenceBy } from "lodash-es";
 import { CheckCheckIcon } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
-import AssetInput from "@/components/AssetInput.vue";
-import AssetSelector from "@/components/AssetSelector.vue";
+import { AssetInput, AssetSelect } from "@/components/asset";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -254,7 +253,7 @@ function isFeeAsset(tokenId: string): boolean {
         </div>
 
         <FormField :validation="v$.selected">
-          <AssetSelector ref="asset-selector" :assets="unselected" @select="add">
+          <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
             <template v-if="unselected.length" #commands>
               <CommandSeparator class="my-1" />
               <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
@@ -267,7 +266,7 @@ function isFeeAsset(tokenId: string): boolean {
                 </div>
               </CommandItem>
             </template>
-          </AssetSelector>
+          </AssetSelect>
         </FormField>
       </Card>
     </Form>

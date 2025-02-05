@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
 import { ArrowDownIcon, MilestoneIcon } from "lucide-vue-next";
-import { AssetSignIcon, AssetSignIconVariants } from "@/components/asset";
-import AssetIcon from "@/components/AssetIcon.vue";
+import { AssetIcon, AssetSignIcon, AssetSignIconVariants } from "@/components/asset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";

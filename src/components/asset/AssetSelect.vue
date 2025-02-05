@@ -4,6 +4,8 @@ import { useResizeObserver, useVModel } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
+import { AssetIcon } from "@/components/asset";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -13,12 +15,10 @@ import {
   CommandList
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn, isErg } from "@/common/utils";
 import { useFormat } from "@/composables";
 import { AssetInfo } from "@/types/internal";
-import AssetIcon from "./AssetIcon.vue";
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
 
 export interface Asset extends AssetInfo {
   balance?: BigNumber;

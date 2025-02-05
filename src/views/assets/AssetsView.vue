@@ -5,9 +5,7 @@ import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-nex
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
-import AssetIcon from "@/components/AssetIcon.vue";
-import AssetInfoDialog from "@/components/AssetInfoDialog.vue";
-import ImageSandbox from "@/components/ImageSandbox.vue";
+import { AssetIcon, AssetImageSandbox, AssetInfoDialog } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -203,7 +201,7 @@ function openAssetInfoDialog(tokenId: string) {
                 :key="nft.tokenId"
                 class="relative rounded-md border bg-card text-card-foreground shadow"
               >
-                <image-sandbox
+                <AssetImageSandbox
                   :src="nft.metadata?.artworkUrl"
                   class="h-40 w-full overflow-hidden rounded-md"
                   height="10rem"
