@@ -3,6 +3,7 @@ import { HTMLAttributes, ref } from "vue";
 import { CopyCheckIcon, CopyIcon } from "lucide-vue-next";
 import { PrimitiveProps } from "radix-vue";
 import { Button, ButtonVariants } from "@/components/ui/button";
+import { cn } from "@/common/utils";
 
 interface Props extends PrimitiveProps {
   variant?: ButtonVariants["variant"];
@@ -27,7 +28,7 @@ function copy() {
 </script>
 
 <template>
-  <Button v-bind="props" @click="copy()" class="transition-colors align-middle" :class="{ 'text-success/80 hover:text-success': copied }">
+  <Button v-bind="props" @click="copy()" :class="cn('transition-colors align-middle', { 'text-success/80 hover:text-success': copied }, props.class)">
     <CopyCheckIcon v-if="copied"  />
     <CopyIcon v-else />
   </Button>

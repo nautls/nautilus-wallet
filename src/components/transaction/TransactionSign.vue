@@ -17,7 +17,7 @@ import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import CopyButton from "@/components/ui/CopyButton.vue";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";

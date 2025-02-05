@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { StateAddress } from "@/stores/walletStore";
-import QrCode from "@/components/QrCode.vue";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -12,6 +11,7 @@ import {
   DrawerHeader,
   DrawerTitle
 } from "@/components/ui/drawer";
+import { QrCode } from "@/components/ui/qr-code";
 
 const props = defineProps<{ address: StateAddress }>();
 const emit = defineEmits(["close"]);

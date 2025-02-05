@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 export { default as TransactionEntry } from "./TransactionEntry.vue";
 export { default as TransactionSignDialog } from "./TransactionSignDialog.vue";
 export { default as TransactionSign } from "./TransactionSign.vue";
+export { default as TransactionFeeConfig } from "./TransactionFeeConfig.vue";
 
 export const cardVariants = cva("", {
   variants: {

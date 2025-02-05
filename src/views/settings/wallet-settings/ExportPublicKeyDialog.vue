@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useWalletStore } from "@/stores/walletStore";
-import QrCode from "@/components/QrCode.vue";
 import StatsCard from "@/components/StatsCard.vue";
 import { Button } from "@/components/ui/button";
-import CopyButton from "@/components/ui/CopyButton.vue";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
   Drawer,
   DrawerClose,
@@ -14,6 +13,7 @@ import {
   DrawerHeader,
   DrawerTitle
 } from "@/components/ui/drawer";
+import { QrCode } from "@/components/ui/qr-code";
 import { mountExtendedPublicKey } from "@/common/serializer";
 
 const wallet = useWalletStore();

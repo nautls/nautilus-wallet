@@ -10,13 +10,13 @@ import {
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import { AddressQrCodeDialog } from "@/components/address";
-// import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
-import QrCode from "@/components/QrCode.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import CopyButton from "@/components/ui/CopyButton.vue";
+import { CopyButton } from "@/components/ui/copy-button";
+// import ConfirmAddressOnDevice from "@/components/ConfirmAddressOnDevice.vue";
+import { QrCode } from "@/components/ui/qr-code";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";

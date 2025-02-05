@@ -10,8 +10,7 @@ import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import AssetInput from "@/components/AssetInput.vue";
 import AssetSelector from "@/components/AssetSelector.vue";
-import FeeSelector from "@/components/FeeSelector.vue";
-import { TransactionSignDialog } from "@/components/transaction";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -275,7 +274,7 @@ function isFeeAsset(tokenId: string): boolean {
   </ScrollArea>
 
   <div class="space-y-4 p-4">
-    <FeeSelector v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
+    <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
     <Button type="submit" class="w-full" size="lg" @click="sendTransaction">Preview</Button>
   </div>
 </template>

@@ -10,7 +10,12 @@ import { ChevronsUpDown, InfoIcon, Loader2Icon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
+import AssetIcon from "@/components/AssetIcon.vue";
+import AssetSelector from "@/components/AssetSelector.vue";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form";
 import { PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { bn, decimalize } from "@/common/bigNumber";
@@ -18,11 +23,6 @@ import { useFormat } from "@/composables/useFormat";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue } from "@/validators";
-import AssetIcon from "./AssetIcon.vue";
-import AssetSelector from "./AssetSelector.vue";
-import { Button } from "./ui/button";
-import { FormField } from "./ui/form";
-import { Slider } from "./ui/slider";
 
 interface FeeAsset extends AssetInfo {
   nanoErgsPerToken: BigNumber;

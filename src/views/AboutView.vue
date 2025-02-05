@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
-import CopyButton from "@/components/ui/CopyButton.vue";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Link } from "@/components/ui/link";
 import { useFormat } from "@/composables/useFormat";
 import { MAINNET } from "@/constants/ergo";

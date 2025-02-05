@@ -6,8 +6,7 @@ import dayjs from "dayjs";
 import { minBy } from "lodash-es";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
-import FeeSelector from "@/components/FeeSelector.vue";
-import { TransactionSignDialog } from "@/components/transaction";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
@@ -154,7 +153,7 @@ function formatBytes(bytes: number, decimals = 1) {
     </div>
 
     <div class="space-y-4">
-      <FeeSelector v-model="fee" :disabled="loading" />
+      <TransactionFeeConfig v-model="fee" :disabled="loading" />
       <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction"
         >Optimize</Button
       >

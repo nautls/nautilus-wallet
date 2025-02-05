@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Component, HTMLAttributes } from "vue";
-import CopyButton from "@/components/ui/CopyButton.vue";
+import { CopyButton } from "@/components/ui/copy-button";
 import { cn } from "@/common/utils";
 
 const props = withDefaults(
