@@ -4,8 +4,9 @@ import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { LedgerDeviceModelId, ProverStateType } from "@/chains/ergo/transaction/prover";
 import { log } from "@/common/logger";
-import { DERIVATION_PATH, MAINNET } from "../constants/ergo";
-import LedgerDevice from "./LedgerDevice.vue";
+import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
+
+// import LedgerDevice from "./LedgerDevice.vue";
 
 const emits = defineEmits(["accepted", "denied"]);
 const props = defineProps({
