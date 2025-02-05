@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from "vue";
+import { computed, reactive, ref } from "vue";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
+import { StateAddress } from "@/stores/walletStore";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from "@/components/ui/drawer";
 import { LedgerDeviceModelId, ProverStateType } from "@/chains/ergo/transaction/prover";
 import { log } from "@/common/logger";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
+import LedgerDevice from "../LedgerDevice.vue";
 
-// import LedgerDevice from "./LedgerDevice.vue";
+const emit = defineEmits(["accepted", "denied", "close"]);
+const props = defineProps<{ address: StateAddress }>();
 
-const emits = defineEmits(["accepted", "denied"]);
-const props = defineProps({
-  address: { type: String, required: true },
-  index: { type: Number, required: true }
-});
+const opened = ref(true);
 
 const state = reactive({
   connected: false,
@@ -24,9 +34,7 @@ const state = reactive({
   appId: 0
 });
 
-const path = computed(() => DERIVATION_PATH + `/${props.index}`);
-
-onMounted(confirmAddress);
+const path = computed(() => DERIVATION_PATH + `/${props.address.index}`);
 
 async function confirmAddress() {
   state.loading = true;
@@ -35,23 +43,23 @@ async function confirmAddress() {
   let app!: ErgoLedgerApp;
 
   try {
-    app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken().enableDebugMode();
+    app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
     state.appId = app.authToken ?? 0;
-    state.model = app.transport.deviceModel?.id.toString() as LedgerDeviceModelId;
+    state.model = app.device.transport.deviceModel?.id.toString() as LedgerDeviceModelId;
 
     const appInfo = await app.getAppName();
     if (appInfo.name !== "Ergo") {
       state.state = "error";
       state.loading = false;
       state.caption = "Ergo App is not opened.";
-      app.transport.close();
+      app.device.transport.close();
 
       return;
     }
 
     state.connected = true;
   } catch (e) {
-    state.state = "unavailable";
+    state.state = "error";
     state.loading = false;
     state.caption = "";
     log.error(e);
@@ -68,11 +76,11 @@ async function confirmAddress() {
     if (confirmed) {
       state.state = "success";
       state.screenContent = "Confirmed";
-      emits("accepted");
+      emit("accepted");
     } else {
       state.state = "error";
       state.screenContent = "Not confirmed";
-      emits("denied");
+      emit("denied");
     }
   } catch (e) {
     state.loading = false;
@@ -83,7 +91,7 @@ async function confirmAddress() {
       switch (e.code) {
         case RETURN_CODE.DENIED:
           state.screenContent = "Not confirmed";
-          emits("denied");
+          emit("denied");
           break;
         case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
           state.caption =
@@ -98,55 +106,57 @@ async function confirmAddress() {
 
     return;
   } finally {
-    app.transport.close();
+    app.device.transport.close();
     state.loading = false;
     state.connected = false;
   }
 }
+
+function handleOpenUpdates(open: boolean) {
+  if (!open) emit("close");
+}
+
+function setOpened(open: boolean) {
+  opened.value = open;
+}
+
+defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <div class="text-sm">
-      <div class="mb-2 text-center">
-        <h1 class="text-lg font-bold">Address confirmation</h1>
-      </div>
+  <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
+    <DrawerContent>
+      <DrawerHeader>
+        <DrawerTitle>Address Verification</DrawerTitle>
+        <DrawerDescription>
+          Ensure that the displayed <span class="font-semibold">address</span> and
+          <span class="font-semibold">path</span> match exactly what appears on your device. Then
+          press <span class="font-semibold">Approve</span> to confirm.
+        </DrawerDescription>
+      </DrawerHeader>
 
-      <div v-if="state.appId" class="flex flex-col gap-4">
-        <p>
-          Ensure that the <span class="font-semibold">address</span> and
-          <span class="font-semibold">path</span> below matches precisely what appears on your
-          device, then press
-          <span class="tag text-xs font-semibold">Approve</span>
-          to confirm.
-        </p>
-        <div>
-          <label>Address</label>
-          <div class="break-all rounded border border-gray-200 bg-gray-50 p-2 font-mono text-sm">
-            {{ address }}
-            <!-- <p><span class="font-semibold font-sans">Path:</span> {{ path }}</p> -->
-          </div>
-        </div>
+      <LedgerDevice ref="ledger-device" />
 
-        <div>
-          <label>Path</label>
-          <div class="break-all rounded border border-gray-200 bg-gray-50 p-2 font-mono text-sm">
-            {{ path }}
-            <!-- <p><span class="font-semibold `font-sans`">Path:</span> {{ path }}</p> -->
-          </div>
-        </div>
-      </div>
-    </div>
+      <Alert>
+        <AlertTitle>Address</AlertTitle>
+        <AlertDescription class="break-all">
+          {{ address.script }}
+        </AlertDescription>
+      </Alert>
 
-    <ledger-device
-      :connected="state.connected"
-      :screen-text="state.screenContent"
-      :caption="state.caption"
-      :model="state.model"
-      :loading="state.loading"
-      :state="state.state"
-      :app-id="state.appId"
-      compact-view
-    />
-  </div>
+      <Alert>
+        <AlertTitle>Path</AlertTitle>
+        <AlertDescription class="break-all">
+          {{ path }}
+        </AlertDescription>
+      </Alert>
+
+      <DrawerFooter>
+        <DrawerClose class="flex flex-row gap-4">
+          <Button class="w-full" variant="outline">Close</Button>
+          <Button class="w-full" type="submit">Verify</Button>
+        </DrawerClose>
+      </DrawerFooter>
+    </DrawerContent>
+  </Drawer>
 </template>

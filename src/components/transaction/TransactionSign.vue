@@ -313,7 +313,7 @@ const v$ = useVuelidate(
       <AlertDescription> This wallet can't sign transactions. </AlertDescription>
     </Alert>
 
-    <LedgerDevice v-else-if="isLedger" ref="ledger-device" />
+    <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
 
     <Form v-else @submit="sign">
       <FormField :validation="v$.password">
