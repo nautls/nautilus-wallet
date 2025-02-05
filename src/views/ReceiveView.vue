@@ -9,7 +9,7 @@ import {
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
-import { AddressQrCodeDialog, ConfirmAddressDialog } from "@/components/address";
+import { AddressQrCodeDialog, AddressVerifyDialog } from "@/components/address";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,7 +34,7 @@ const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
-const { open: openConfirmAddressDialog } = useProgrammaticDialog(ConfirmAddressDialog);
+const { open: openAddressVerifyDialog } = useProgrammaticDialog(AddressVerifyDialog);
 const { toast } = useToast();
 
 function setDefaultAddress(address: StateAddress) {
@@ -154,7 +154,7 @@ function openExplorer(address: string | undefined) {
               variant="minimal"
               size="condensed"
               class="size-4"
-              @click="openConfirmAddressDialog({ address })"
+              @click="openAddressVerifyDialog({ address })"
             >
               <ShieldCheckIcon />
             </Button>
