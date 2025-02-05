@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { defineAsyncComponent, watch } from "vue";
 import { useAppStore } from "@/stores/appStore";
+import NautilusLogo from "@/components/NautilusLogo.vue";
 import NavHeader from "@/components/NavHeader.vue";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import WalletHeader from "@/components/WalletHeader.vue";
-import WalletLogo from "@/components/WalletLogo.vue";
 import { isPopup } from "@/common/browser";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 
@@ -34,15 +34,15 @@ watch(
       v-if="$route.meta.fullPage"
       class="flex flex-row items-center justify-between gap-4 border-b border-gray-200 bg-gray-100 p-4"
     >
-      <wallet-logo root-class="ml-2" content-class="size-11" />
+      <NautilusLogo root-class="ml-2" content-class="size-11" />
       <h1 class="w-full pl-2 font-semibold">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>
       </h1>
     </div>
     <div v-else class="flex-initial">
-      <wallet-header />
-      <nav-header />
+      <WalletHeader />
+      <NavHeader />
     </div>
 
     <router-view />
