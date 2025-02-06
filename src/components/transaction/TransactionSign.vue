@@ -116,8 +116,10 @@ async function sign() {
   try {
     signing.value = true;
 
-    const ready = await ledgerDevice.value?.openErgoApp();
-    if (!ready) return;
+    if (isLedger.value) {
+      const ready = await ledgerDevice.value?.openErgoApp();
+      if (!ready) return;
+    }
 
     const signed = await signTransaction({
       transaction: props.transaction,
