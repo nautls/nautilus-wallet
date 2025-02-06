@@ -1,5 +1,5 @@
-import { IDbAsset } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
+import { IDbAsset } from "@/types/database";
 
 class AssetsDbService {
   public async getByTokenId(walletId: number, tokenId: string): Promise<IDbAsset[]> {

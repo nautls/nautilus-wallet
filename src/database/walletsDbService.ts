@@ -1,10 +1,10 @@
+import { isEmpty } from "@fleet-sdk/common";
 import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
-import { isEmpty } from "@fleet-sdk/common";
+import { PasswordError } from "@/common/errors";
 import { dbContext } from "@/database/dbContext";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
-import { PasswordError } from "@/common/errors";
 
 export type WalletPatch = {
   name?: string;

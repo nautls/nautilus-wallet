@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAppStore } from "@/stores/appStore";
-import WalletLogo from "@/components/WalletLogo.vue";
-import WalletItem from "@/components/WalletItem.vue";
 import { useWalletStore } from "@/stores/walletStore";
+import NautilusLogo from "@/components/NautilusLogo.vue";
+import { WalletItem } from "@/components/wallet";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -16,8 +16,8 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
     <div
       class="border-b-1 flex flex-row items-center justify-between gap-4 border-gray-200 bg-gray-100 px-6 py-4"
     >
-      <wallet-logo content-class="w-11 h-11" />
-      <wallet-item
+      <NautilusLogo content-class="w-11 h-11" />
+      <WalletItem
         v-if="!app.loading && !$route.meta.fullPage && currentWalletItem"
         :key="wallet.id"
         class="w-min"

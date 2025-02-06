@@ -4,18 +4,17 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
 import { TriangleAlertIcon } from "lucide-vue-next";
-import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
-import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
-import { ProverStateType, WalletType } from "@/types/internal";
-import { PasswordError } from "@/common/errors";
-import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { APIErrorCode, SignErrorCode } from "@/types/connector";
-import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
-import type { AuthArgs } from "@/types/d.ts/webext-rpc";
-import SignStateModal from "@/components/SignStateModal.vue";
+import { useWalletStore } from "@/stores/walletStore";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { signAuthMessage } from "@/chains/ergo/signing";
-import { useWalletStore } from "@/stores/walletStore";
+import { PasswordError } from "@/common/errors";
+import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
+import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
+import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
+import { APIErrorCode, SignErrorCode } from "@/types/connector";
+import type { AuthArgs } from "@/types/d.ts/webext-rpc";
+import { WalletType } from "@/types/internal";
 
 const app = useWalletStore();
 const wallet = useWalletStore();
@@ -27,7 +26,7 @@ const walletId = ref(0);
 
 const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
-const signState = computed(() => (errorMessage.value ? ProverStateType.error : undefined));
+const signState = computed(() => (errorMessage.value ? "error" : undefined));
 
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 const $v = useVuelidate(

@@ -1,337 +1,279 @@
-<template>
-  <div class="flex min-h-full flex-col gap-4 py-4">
-    <label>
-      Receiver
-      <input
-        v-model.lazy="recipient"
-        type="text"
-        spellcheck="false"
-        class="control block w-full"
-        @blur="v$.recipient.$touch()"
-      />
-      <p v-if="v$.recipient.$error" class="input-error">{{ v$.recipient.$errors[0].$message }}</p>
-    </label>
-    <div>
-      <div class="flex flex-col gap-2">
-        <asset-input
-          v-for="(item, index) in selected"
-          :key="item.asset.tokenId"
-          v-model="item.amount"
-          :label="index === 0 ? 'Assets' : ''"
-          :asset="item.asset"
-          :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-          :min-amount="isErg(item.asset.tokenId) ? minBoxValue : undefined"
-          :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-          @remove="remove(item.asset.tokenId)"
-        />
-        <drop-down
-          :disabled="unselected.length === 0"
-          list-class="max-h-52"
-          trigger-class="px-2 py-3 text-sm uppercase"
-        >
-          <template #trigger>
-            <div class="flex-grow pl-6 text-center font-semibold">Add asset</div>
-            <chevron-down-icon :size="18" />
-          </template>
-          <template #items>
-            <div class="group">
-              <a
-                v-for="asset in unselected"
-                :key="asset.tokenId"
-                class="group-item narrow"
-                @click="add(asset)"
-              >
-                <div class="flex flex-row items-center gap-2">
-                  <asset-icon
-                    class="h-8 w-8"
-                    :token-id="asset.tokenId"
-                    :type="asset.metadata?.type"
-                  />
-                  <div class="flex-grow">
-                    <template v-if="asset.metadata?.name">{{
-                      format.string.shorten(asset.metadata?.name, 26)
-                    }}</template>
-                    <template v-else>{{ format.string.shorten(asset.tokenId, 10) }}</template>
-                    <p
-                      v-if="devMode && !isErg(asset.tokenId)"
-                      class="font-mono text-xs text-gray-400"
-                    >
-                      {{ format.string.shorten(asset.tokenId, 16) }}
-                    </p>
-                  </div>
-                  <div>{{ format.bn.format(asset.confirmedAmount) }}</div>
-                </div>
-              </a>
-            </div>
-            <div class="group">
-              <a class="group-item narrow" @click="addAll()">
-                <div class="flex flex-row items-center gap-2">
-                  <check-check-icon class="h-8 w-8 text-yellow-500" :size="32" />
-                  <div class="flex-grow">
-                    Add all
-                    <p class="text-xs text-gray-400">
-                      Use this option to include all your assets in the sending list.
-                    </p>
-                  </div>
-                </div>
-              </a>
-            </div>
-          </template>
-        </drop-down>
-        <p v-if="v$.selected.$error" class="input-error">{{ v$.selected.$errors[0].$message }}</p>
-      </div>
-    </div>
-
-    <div class="flex-grow"></div>
-
-    <fee-selector v-model:selected="feeSettings" :include-min-amount-per-box="!hasChange ? 0 : 1" />
-    <button class="btn w-full" @click="sendTx()">Confirm</button>
-  </div>
-</template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { differenceBy, remove } from "lodash-es";
-import { helpers, required } from "@vuelidate/validators";
+<script setup lang="ts">
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
+import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import { CheckCheckIcon, ChevronDownIcon } from "lucide-vue-next";
+import { differenceBy } from "lodash-es";
+import { CheckCheckIcon } from "lucide-vue-next";
+import { useRoute } from "vue-router";
+import { AssetBalance, useWalletStore } from "@/stores/walletStore";
+import { AssetInput, AssetSelect } from "@/components/asset";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { CommandItem, CommandSeparator } from "@/components/ui/command";
+import { Form, FormField } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
+import {
+  createP2PTransaction,
+  SAFE_MAX_CHANGE_TOKEN_LIMIT,
+  TxAssetAmount
+} from "@/chains/ergo/transaction/builder";
+import { bn, decimalize } from "@/common/bigNumber";
+import { isErg } from "@/common/utils";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
-import { bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { validErgoAddress } from "@/validators";
-import { createP2PTransaction, TxAssetAmount } from "@/chains/ergo/transaction/txBuilder";
-import AssetInput from "@/components/AssetInput.vue";
-import FeeSelector from "@/components/FeeSelector.vue";
-import { openTransactionSigningModal } from "@/common/componentUtils";
-import { useAppStore } from "@/stores/appStore";
-import { StateAssetSummary, useWalletStore } from "@/stores/walletStore";
-import { useFormat } from "@/composables/useFormat";
-import DropDown from "@/components/DropDown.vue";
 
-const validations = {
-  recipient: {
-    required: helpers.withMessage("Receiver address is required.", required),
-    validErgoAddress
+const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
+const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
+
+const wallet = useWalletStore();
+const route = useRoute();
+
+const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+
+const assetSelector = useTemplateRef("asset-selector");
+const selected = ref<TxAssetAmount[]>([]);
+const fee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: INITIAL_FEE_VAL });
+const password = ref("");
+const recipient = ref("");
+
+const v$ = useVuelidate(
+  {
+    recipient: {
+      required: helpers.withMessage("Please enter the recipient address.", required),
+      validErgoAddress
+    },
+    selected: {
+      required: helpers.withMessage(
+        "Please select at least one asset to send this transaction.",
+        required
+      )
+    }
   },
-  selected: {
-    required: helpers.withMessage(
-      "At least one asset should be selected in order to send a transaction.",
-      required
-    )
+  { selected, recipient }
+);
+
+onMounted(() => {
+  if (route.query.recipient && typeof route.query.recipient === "string") {
+    recipient.value = route.query.recipient;
   }
-};
 
-export default defineComponent({
-  name: "SendView",
-  components: { AssetInput, FeeSelector, DropDown, ChevronDownIcon, CheckCheckIcon },
-  setup() {
-    return {
-      app: useAppStore(),
-      v$: useVuelidate(),
-      wallet: useWalletStore(),
-      format: useFormat()
-    };
-  },
-  data() {
-    return {
-      selected: [] as TxAssetAmount[],
-      feeSettings: {
-        tokenId: ERG_TOKEN_ID,
-        value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
-      } as FeeSettings,
-      password: "",
-      recipient: ""
-    };
-  },
-  computed: {
-    unselected() {
-      return differenceBy(
-        this.wallet.balance,
-        this.selected.map((a) => a.asset),
-        (a) => a.tokenId
-      );
-    },
-    hasMinErgSelected(): boolean {
-      const erg = this.selected.find((x) => this.isErg(x.asset.tokenId));
-      if (!erg || !erg.amount || erg.amount.isZero()) {
-        return false;
-      }
-
-      return undecimalize(erg.amount, ERG_DECIMALS).isGreaterThanOrEqualTo(MIN_BOX_VALUE);
-    },
-    hasChange(): boolean {
-      if (!isEmpty(this.unselected)) {
-        return true;
-      }
-
-      for (const item of this.selected.filter((a) => a.asset.tokenId !== ERG_TOKEN_ID)) {
-        if (
-          !item.amount ||
-          (!this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.confirmedAmount)) ||
-          (this.isFeeAsset(item.asset.tokenId) &&
-            !item.amount.isEqualTo(item.asset.confirmedAmount.minus(this.fee)))
-        ) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-    reservedFeeAssetAmount(): BigNumber {
-      const feeAsset = this.selected.find((a) => a.asset.tokenId === this.feeSettings.tokenId);
-      if (!feeAsset || feeAsset.asset.confirmedAmount.isZero()) return bn(0);
-      if (!this.changeValue) return this.fee;
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) return this.fee.plus(this.changeValue);
-      return this.fee;
-    },
-    fee(): BigNumber {
-      return this.feeSettings.value;
-    },
-    isFeeInErg(): boolean {
-      return this.isErg(this.feeSettings.tokenId);
-    },
-    changeValue(): BigNumber | undefined {
-      if (!this.hasChange) {
-        return;
-      }
-
-      return this.minBoxValue;
-    },
-    minBoxValue(): BigNumber {
-      return decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
-    },
-    devMode(): boolean {
-      return this.app.settings.devMode;
-    }
-  },
-  watch: {
-    currentWallet() {
-      this.$router.push({ name: "assets-page" });
-    },
-    assets: {
-      immediate: true,
-      handler() {
-        if (!isEmpty(this.selected) || this.v$.$anyDirty) {
-          return;
-        }
-
-        this.setErgAsSelected();
-      }
-    },
-    ["feeSettings.tokenId"](newVal: string) {
-      if (this.isErg(newVal)) {
-        this.setErgAsSelected();
-      }
-    },
-    ["selected.length"]() {
-      this.v$.selected.$touch();
-    }
-  },
-  created() {
-    if (this.$route.query.recipient && typeof this.$route.query.recipient === "string") {
-      this.recipient = this.$route.query.recipient;
-    }
-  },
-  validations() {
-    return validations;
-  },
-  methods: {
-    getReserveAmountFor(tokenId: string): BigNumber | undefined {
-      if (this.isFeeAsset(tokenId)) {
-        return this.reservedFeeAssetAmount;
-      } else if (this.isErg(tokenId) && this.hasChange) {
-        return this.changeValue;
-      }
-    },
-    async sendTx() {
-      const isValid = await this.v$.$validate();
-      if (!isValid) {
-        return;
-      }
-
-      openTransactionSigningModal({
-        onTransactionBuild: this.buildTransaction,
-        onSuccess: this.clear
-      });
-    },
-    async buildTransaction() {
-      return await createP2PTransaction({
-        recipientAddress: this.recipient,
-        assets: this.selected,
-        fee: this.feeSettings,
-        walletType: this.wallet.type
-      });
-    },
-    clear(): void {
-      this.selected = [];
-      this.setErgAsSelected();
-      this.recipient = "";
-      this.password = "";
-      this.v$.$reset();
-    },
-    setErgAsSelected(): void {
-      if (!this.isFeeInErg && !isEmpty(this.selected)) return;
-
-      const selected = this.selected.find((a) => a.asset.tokenId === ERG_TOKEN_ID);
-      if (selected) return;
-
-      const erg = this.wallet.balance.find((a) => a.tokenId === ERG_TOKEN_ID);
-      if (erg) {
-        this.selected.unshift({ asset: erg, amount: undefined });
-      }
-    },
-    add(asset: StateAssetSummary) {
-      this.removeDisposableSelections();
-      this.selected.push({ asset });
-
-      if (this.feeSettings.tokenId == ERG_TOKEN_ID) {
-        this.setMinBoxValue();
-      }
-    },
-    addAll() {
-      this.unselected.forEach((unselected) => {
-        this.selected.push({ asset: unselected });
-      });
-
-      this.setMinBoxValue();
-    },
-    remove(tokenId: string) {
-      remove(this.selected, (a) => a.asset.tokenId === tokenId);
-      this.setMinBoxValue();
-    },
-    setMinBoxValue() {
-      if (this.selected.length === 1) return;
-
-      const erg = this.selected.find((a) => this.isFeeAsset(a.asset.tokenId));
-      if (!erg) return;
-
-      if (!erg.amount || erg.amount.isLessThan(this.minBoxValue)) {
-        erg.amount = bn(this.minBoxValue);
-      }
-    },
-    removeDisposableSelections() {
-      if (this.feeSettings.tokenId === ERG_TOKEN_ID) {
-        return;
-      }
-
-      const first = this.selected[0];
-      if (!first) {
-        return;
-      }
-
-      if (!first.amount || first.amount.isZero()) {
-        this.remove(first.asset.tokenId);
-      }
-    },
-    isFeeAsset(tokenId: string): boolean {
-      return tokenId === this.feeSettings.tokenId;
-    },
-    isErg(tokenId: string): boolean {
-      return tokenId === ERG_TOKEN_ID;
-    }
-  }
+  setErgAsSelected();
 });
+
+const unselected = computed(() => {
+  return differenceBy(
+    wallet.balance,
+    selected.value.map((a) => a.asset),
+    (a) => a.tokenId
+  );
+});
+
+const shouldReserveChange = computed(() => {
+  if (unselected.value.length) return true;
+
+  for (const item of selected.value) {
+    if (isErg(item.asset.tokenId)) continue;
+    if (needsChangeFor(item)) return true;
+  }
+
+  return false;
+});
+
+const reservedFeeAssetAmount = computed((): BigNumber => {
+  const feeValue = fee.value.value;
+  const feeAsset = selected.value.find((a) => a.asset.tokenId === fee.value.tokenId);
+
+  if (!feeAsset || feeAsset.asset.balance.isZero()) return bn(0);
+  if (!changeValue.value) return feeValue;
+  if (isErg(fee.value.tokenId)) return feeValue.plus(changeValue.value);
+  return feeValue;
+});
+
+const isFeeInErg = computed(() => isErg(fee.value.tokenId));
+
+const changeBoxesCount = computed(() => {
+  if (!shouldReserveChange.value) return 0;
+
+  const count = Math.ceil(unselected.value.length / SAFE_MAX_CHANGE_TOKEN_LIMIT);
+  // if count is equal to 0 and we need to reserve change, then we need at least 1 box
+  return count === 0 && shouldReserveChange.value ? 1 : count;
+});
+
+const changeValue = computed(() =>
+  shouldReserveChange.value ? MIN_BOX_VAL.times(changeBoxesCount.value) : undefined
+);
+
+watch(
+  () => fee.value.tokenId,
+  (newVal: string) => {
+    if (isErg(newVal)) setErgAsSelected();
+  }
+);
+
+watch(
+  () => selected.value.length,
+  () => v$.value.selected.$touch()
+);
+
+function getReserveAmountFor(tokenId: string): BigNumber | undefined {
+  if (isFeeAsset(tokenId)) {
+    return reservedFeeAssetAmount.value;
+  } else if (isErg(tokenId) && shouldReserveChange.value) {
+    return changeValue.value;
+  }
+}
+
+async function sendTransaction() {
+  const valid = await v$.value.$validate();
+  if (!valid) return;
+
+  openTransactionSignDialog({
+    transactionBuilder: async () =>
+      createP2PTransaction({
+        recipientAddress: recipient.value,
+        assets: selected.value,
+        fee: fee.value,
+        walletType: wallet.type
+      }),
+    onSuccess: () => {
+      selected.value = [];
+      setErgAsSelected();
+      recipient.value = "";
+      password.value = "";
+      v$.value.$reset();
+    }
+  });
+}
+
+function needsChangeFor(item: TxAssetAmount): boolean {
+  if (!item.amount) return true;
+  return isFeeAsset(item.asset.tokenId)
+    ? !item.amount.eq(item.asset.balance.minus(fee.value.value))
+    : !item.amount.eq(item.asset.balance);
+}
+
+function setErgAsSelected(): void {
+  if (!isFeeInErg.value && !isEmpty(selected.value)) return;
+
+  const isErgSelected = selected.value.find((a) => isErg(a.asset.tokenId));
+  if (isErgSelected) return;
+
+  const erg = wallet.balance.find((a) => isErg(a.tokenId));
+  if (erg) {
+    selected.value.unshift({ asset: erg, amount: undefined });
+  }
+}
+
+function add(asset: AssetBalance) {
+  removeDisposableSelections();
+  selected.value.push({ asset });
+
+  if (isErg(fee.value.tokenId)) setMinBoxValue();
+}
+
+function addAll() {
+  unselected.value.forEach((asset) => selected.value.push({ asset }));
+  setMinBoxValue();
+  assetSelector.value?.close();
+  assetSelector.value?.clearSearch();
+}
+
+function removeAsset(tokenId: string) {
+  const index = selected.value.findIndex((a) => a.asset.tokenId === tokenId);
+  if (index === -1) return;
+
+  selected.value.splice(index, 1);
+  setMinBoxValue();
+}
+
+function setMinBoxValue() {
+  if (selected.value.length === 1) return;
+
+  const erg = selected.value.find((a) => isFeeAsset(a.asset.tokenId));
+  if (!erg) return;
+
+  if (!erg.amount || erg.amount.lt(MIN_BOX_VAL)) {
+    erg.amount = MIN_BOX_VAL;
+  }
+}
+
+function removeDisposableSelections() {
+  if (isErg(fee.value.tokenId)) return;
+
+  const first = selected.value[0];
+  if (!first) return;
+
+  if (!first.amount || first.amount.isZero()) {
+    removeAsset(first.asset.tokenId);
+  }
+}
+
+function isFeeAsset(tokenId: string): boolean {
+  return tokenId === fee.value.tokenId;
+}
 </script>
+
+<template>
+  <ScrollArea type="scroll" class="flex-grow">
+    <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
+      <Card class="p-6 gap-6 flex flex-col">
+        <FormField :validation="v$.recipient">
+          <Label for="recipient">Recipient Address</Label>
+          <Input
+            id="recipient"
+            v-model="recipient"
+            type="text"
+            spellcheck="false"
+            class="w-full"
+            @blur="v$.recipient.$touch()"
+          />
+        </FormField>
+
+        <div class="space-y-1">
+          <Label>Assets</Label>
+          <div class="grid gap-4">
+            <AssetInput
+              v-for="item in selected"
+              :key="item.asset.tokenId"
+              v-model="item.amount"
+              :asset="item.asset"
+              :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
+              :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
+              :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
+              @remove="removeAsset(item.asset.tokenId)"
+            />
+          </div>
+        </div>
+
+        <FormField :validation="v$.selected">
+          <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
+            <template v-if="unselected.length" #commands>
+              <CommandSeparator class="my-1" />
+              <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
+                <CheckCheckIcon class="size-6 shrink-0" />
+                <div class="text-xs flex flex-col items-start justify-center font-bold">
+                  Add all assets
+                  <div class="text-muted-foreground font-normal">
+                    Add all assets to the sending list
+                  </div>
+                </div>
+              </CommandItem>
+            </template>
+          </AssetSelect>
+        </FormField>
+      </Card>
+    </Form>
+  </ScrollArea>
+
+  <div class="space-y-4 p-4">
+    <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
+    <Button type="submit" class="w-full" size="lg" @click="sendTransaction">Preview</Button>
+  </div>
+</template>

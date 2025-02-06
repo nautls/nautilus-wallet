@@ -1,10 +1,10 @@
+import { BabelBox, buildBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
+import { Box, first } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
 import { orderBy, sortBy } from "lodash-es";
-import { Box, first } from "@fleet-sdk/common";
-import { BabelBox, buildBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
-import { safeSigmaDecode } from "./serialization";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn } from "@/common/bigNumber";
+import { safeSigmaDecode } from "./serialization";
 
 export function getNanoErgsPerTokenRate(box: Box): BigNumber {
   const r = safeSigmaDecode<bigint>(box.additionalRegisters.R5);

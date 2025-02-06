@@ -1,5 +1,6 @@
 import { Dexie, Table } from "dexie";
 import { uniqBy } from "lodash-es";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import {
   IAssetInfo,
   IDbAddress,
@@ -8,7 +9,6 @@ import {
   IDbUtxo,
   IDbWallet
 } from "@/types/database";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 class NautilusDb extends Dexie {
   wallets!: Table<IDbWallet, number>;
@@ -66,6 +66,17 @@ class NautilusDb extends Dexie {
         );
         await t.table("assetInfo").bulkAdd(assetInfo);
       });
+
+    this.version(7).upgrade((tx) => {
+      const hideUsedAddresses = "hideUsedAddresses" as keyof IDbWallet["settings"];
+      return tx
+        .table("wallets")
+        .toCollection()
+        .modify((wallet: IDbWallet) => {
+          wallet.settings.addressFilter = wallet.settings[hideUsedAddresses] ? "active" : "all";
+          delete wallet.settings[hideUsedAddresses];
+        });
+    });
   }
 }
 

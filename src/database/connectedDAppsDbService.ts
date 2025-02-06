@@ -1,5 +1,5 @@
-import { IDbDAppConnection } from "@/types/database";
 import { dbContext } from "@/database/dbContext";
+import { IDbDAppConnection } from "@/types/database";
 
 class ConnectedDAppsDbService {
   public async getByOrigin(origin: string): Promise<IDbDAppConnection | undefined> {

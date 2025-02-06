@@ -1,56 +1,32 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-  ChartPieIcon,
-  ClockIcon,
-  DownloadIcon,
-  ImageIcon,
-  LayoutGridIcon,
-  SendIcon
-} from "lucide-vue-next";
-import { WalletType } from "@/types/internal";
+import { ChartPieIcon, ClockIcon, DownloadIcon, LayoutGridIcon, SendIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
+import { WalletType } from "@/types/internal";
 
 const wallet = useWalletStore();
-const iconSize = 22;
 
 const readonly = computed(() => wallet.type === WalletType.ReadOnly);
-const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
+const navItems = computed(() => [
+  { to: "/", icon: ChartPieIcon, label: "Overview", disabled: false },
+  { to: "/history", icon: ClockIcon, label: "History", disabled: false },
+  { to: "/receive", icon: DownloadIcon, label: "Receive", disabled: false },
+  { to: "/send", icon: SendIcon, label: "Send", disabled: readonly.value },
+  { to: "/dapps", icon: LayoutGridIcon, label: "DApps", disabled: false }
+]);
 </script>
 
 <template>
-  <nav class="tabs">
-    <div class="tab-item spacing"></div>
-    <router-link to="/" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="Assets">
-        <chart-pie-icon class="m-3" :size="iconSize" />
-      </tool-tip>
+  <nav class="flex flex-row items-center bg-header px-4 text-sm">
+    <router-link
+      v-for="item in navItems"
+      :key="item.to"
+      :to="item.to"
+      :class="{ 'pointer-events-none opacity-40': item.disabled }"
+      active-class="text-primary cursor-default"
+      class="flex-grow text-muted-foreground py-4 transition-colors outline-none hover:text-primary focus:outline-none active:text-primary active:outline-none"
+    >
+      <component :is="item.icon" class="size-[22px] mx-auto stroke-[1.5px]" />
     </router-link>
-    <router-link v-if="containsArtwork" to="/nft" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="NFT gallery">
-        <image-icon class="m-3" :size="iconSize" />
-      </tool-tip>
-    </router-link>
-    <router-link to="/history" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="History">
-        <clock-icon class="m-3" :size="iconSize" />
-      </tool-tip>
-    </router-link>
-    <router-link to="/receive" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="Receive">
-        <download-icon class="m-3" :size="iconSize" />
-      </tool-tip>
-    </router-link>
-    <router-link v-if="!readonly" to="/send" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="Send">
-        <send-icon class="m-3" :size="iconSize" />
-      </tool-tip>
-    </router-link>
-    <router-link to="/dapps" active-class="active" class="tab-item w-full">
-      <tool-tip position="bottom" label="dApps">
-        <layout-grid-icon class="m-3" :size="iconSize" />
-      </tool-tip>
-    </router-link>
-    <div class="tab-item spacing"></div>
   </nav>
 </template>

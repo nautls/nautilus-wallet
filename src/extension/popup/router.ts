@@ -1,10 +1,10 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
-import AssetsView from "@/views/AssetsView.vue";
+import AssetsView from "@/views/assets/AssetsView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
-    name: "assets-page",
+    name: "assets",
     component: AssetsView
   },
   {
@@ -39,14 +39,9 @@ const routes: Array<RouteRecordRaw> = [
     meta: { fullPage: true, title: "Connect a hardware wallet" }
   },
   {
-    path: "/nft",
-    name: "nft-gallery",
-    component: () => import("@/views/NftGalleryView.vue")
-  },
-  {
     path: "/history",
     name: "tx-history",
-    component: () => import("@/views/TransactionHistory.vue")
+    component: () => import("@/views/TransactionHistoryView.vue")
   },
   {
     path: "/receive",
@@ -60,12 +55,12 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/dapps",
-    component: () => import("@/views/DAppsView.vue"),
+    component: () => import("@/views/dapps/DAppsView.vue"),
     children: [
       {
         path: "",
         name: "dapps",
-        component: () => import("@/dapps/DappsList.vue")
+        component: () => import("@/views/dapps/DappsList.vue")
       },
       {
         path: "wallet-optimization",
@@ -80,14 +75,9 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/AboutView.vue")
   },
   {
-    path: "/connector/connections",
-    name: "connector-connected",
-    component: () => import("@/views/ConnectionsView.vue")
-  },
-  {
-    path: "/wallet/settings",
+    path: "/settings",
     name: "wallet-settings",
-    component: () => import("@/views/SettingsView.vue")
+    component: () => import("@/views/settings/SettingsView.vue")
   }
 ];
 

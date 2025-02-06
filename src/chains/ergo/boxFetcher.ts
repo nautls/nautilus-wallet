@@ -1,10 +1,10 @@
-import { difference, sortBy, unionBy } from "lodash-es";
 import { BoxSource, ChainProviderBox } from "@fleet-sdk/blockchain-providers";
+import { difference, sortBy, unionBy } from "lodash-es";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { utxosDbService } from "@/database/utxosDbService";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { ERG_TOKEN_ID } from "@/constants/ergo";
 
 export async function fetchBoxes(
   walletId: number,
@@ -13,7 +13,7 @@ export async function fetchBoxes(
   let addresses = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
   if (!addresses.length) addresses = await getAllAddresses(walletId);
   const localUnconfirmedBoxes = await utxosDbService.getByWalletId(walletId);
-  let from: BoxSource = includeUnconf ? "blockchain+mempool" : "blockchain";
+  const from: BoxSource = includeUnconf ? "blockchain+mempool" : "blockchain";
 
   let boxes = await graphQLService.getBoxes({ where: { addresses }, from });
   if (boxes.length === 0 && !localUnconfirmedBoxes.find((b) => !b.locked && b.content)) {

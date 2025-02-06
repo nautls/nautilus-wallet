@@ -1,5 +1,5 @@
-import { ErgoHDKey } from "@fleet-sdk/wallet";
 import { base58check, hex } from "@fleet-sdk/crypto";
+import { ErgoHDKey } from "@fleet-sdk/wallet";
 import { NETWORK } from "@/constants/ergo";
 
 export type IndexedAddress = { index: number; script: string };
@@ -69,7 +69,7 @@ export default class HdKey {
 
   public derivePrivateKey(index: number): Uint8Array {
     const sk = this.#change.deriveChild(index).privateKey;
-    if (!sk) throw Error("private key not found.");
+    if (!sk) throw Error("Private key not found.");
 
     return sk;
   }

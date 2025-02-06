@@ -1,21 +1,22 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, onMounted, ref, shallowReactive, watch } from "vue";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
+import { useColorMode } from "@vueuse/core";
 import AES from "crypto-js/aes";
 import { useRouter } from "vue-router";
-import { useChainStore } from "./chainStore";
-import { useWebExtStorage } from "@/composables/useWebExtStorage";
+import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { hdKeyPool } from "@/common/objectPool";
+import { useWebExtStorage } from "@/composables/useWebExtStorage";
+import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
+import { DEFAULT_SETTINGS } from "@/constants/settings";
+import { utxosDbService } from "@/database/utxosDbService";
+import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
-import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
-import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
-import { utxosDbService } from "@/database/utxosDbService";
-import HdKey from "@/chains/ergo/hdKey";
 import { Network, WalletType } from "@/types/internal";
-import { hdKeyPool } from "@/common/objectPool";
-import { DEFAULT_SETTINGS } from "@/constants/settings";
+import { useChainStore } from "./chainStore";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -27,6 +28,7 @@ export type Settings = {
   hideBalances: boolean;
   blacklistedTokensLists: string[];
   zeroConf: boolean;
+  colorMode: "light" | "dark" | "auto";
 };
 
 type StandardWallet = {
@@ -52,12 +54,16 @@ export const useAppStore = defineStore("app", () => {
   const chain = useChainStore();
   const router = useRouter();
   const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS);
+  const colorMode = useColorMode({
+    storageKey: null /** disable storage */,
+    initialValue: settings.value.colorMode
+  });
 
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
 
     // If KYA is not accepted and there are wallets, migrate settings from localStorage
-    if (!settings.value.isKyaAccepted && privateState.wallets.length > 0) {
+    if (!settings.value.isKyaAccepted && privateState.wallets.length) {
       const oldSettings = localStorage.getItem("settings");
       if (oldSettings) {
         settings.value = { ...DEFAULT_SETTINGS, ...JSON.parse(oldSettings) }; // migrate settings
@@ -65,7 +71,7 @@ export const useAppStore = defineStore("app", () => {
       } else {
         settings.value = {
           ...DEFAULT_SETTINGS,
-          isKyaAccepted: true, // if there are wallets, KYA is accepted
+          isKyaAccepted: true, // if there are wallets, KYA was accepted previously
           lastOpenedWalletId: privateState.wallets[0].id
         };
       }
@@ -85,6 +91,11 @@ export const useAppStore = defineStore("app", () => {
   );
 
   watch(() => chain.height, checkPendingBoxes);
+
+  watch(
+    () => settings.value.colorMode,
+    () => (colorMode.value = settings.value.colorMode)
+  );
 
   const loading = computed(() => privateState.loading);
   const wallets = computed(() => privateState.wallets);
@@ -124,7 +135,7 @@ export const useAppStore = defineStore("app", () => {
           : undefined,
       settings: {
         avoidAddressReuse: false,
-        hideUsedAddresses: false,
+        addressFilter: "all",
         defaultChangeIndex: 0
       }
     };

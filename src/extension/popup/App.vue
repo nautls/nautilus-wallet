@@ -1,37 +1,52 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { defineAsyncComponent, watch } from "vue";
 import { useAppStore } from "@/stores/appStore";
-import { isPopup } from "@/common/browser";
-import KyaModal from "@/components/KYAModal.vue";
-import WalletLogo from "@/components/WalletLogo.vue";
-import WalletHeader from "@/components/WalletHeader.vue";
+import NautilusLogo from "@/components/NautilusLogo.vue";
 import NavHeader from "@/components/NavHeader.vue";
+import Toaster from "@/components/ui/toast/Toaster.vue";
+import WalletHeader from "@/components/WalletHeader.vue";
+import { isPopup } from "@/common/browser";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+
+const isPopupView = isPopup();
 
 const app = useAppStore();
-const maxWidth = computed(() => (isPopup() ? "max-w-[365px]" : undefined));
+const { open: openKyaDialog } = useProgrammaticDialog(
+  defineAsyncComponent(() => import("@/components/KYADialog.vue"))
+);
+
+watch(
+  () => app.loading,
+  (loading) => {
+    if (loading || app.settings.isKyaAccepted) return;
+    openKyaDialog();
+  },
+  { once: true }
+);
 </script>
 
 <template>
-  <div class="app" :class="maxWidth">
+  <div
+    class="min-h-[600px] bg-background h-screen flex overflow-hidden flex-col min-w-[360px] md:mx-auto md:w-4/12 md:shadow-lg"
+    :class="{ 'max-w-[360px]': isPopupView }"
+  >
     <div
       v-if="$route.meta.fullPage"
-      class="border-b-1 flex flex-row items-center justify-between gap-4 border-gray-200 bg-gray-100 p-4"
+      class="flex flex-row items-center justify-between gap-4 border-b border-gray-200 bg-gray-100 p-4"
     >
-      <wallet-logo root-class="ml-2" content-class="w-11 h-11" />
-      <h1 class="w-full pl-2 text-base font-semibold">
+      <NautilusLogo root-class="ml-2" content-class="size-11" />
+      <h1 class="w-full pl-2 font-semibold">
         <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
         <template v-else>Nautilus Wallet</template>
       </h1>
     </div>
-    <template v-else>
-      <wallet-header />
-      <nav-header />
-    </template>
-
-    <div class="flex-grow overflow-y-auto overflow-x-hidden px-4">
-      <router-view />
+    <div v-else class="flex-initial">
+      <WalletHeader />
+      <NavHeader />
     </div>
 
-    <kya-modal :active="!app.loading && !app.settings.isKyaAccepted" />
+    <router-view />
   </div>
+
+  <Toaster />
 </template>

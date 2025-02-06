@@ -1,20 +1,18 @@
-import { BigNumber } from "bignumber.js";
-import { AddressType, ErgoAddress, Network } from "@fleet-sdk/core";
-import { EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
-import { utf8 } from "@fleet-sdk/crypto";
 import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
+import { AddressType, EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/common";
+import { ErgoAddress, Network } from "@fleet-sdk/core";
+import { utf8 } from "@fleet-sdk/crypto";
 import { decode } from "@fleet-sdk/serializer";
+import { BigNumber } from "bignumber.js";
+import { bn, decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
-import { bn, decimalize } from "@/common/bigNumber";
-import { AssetsMetadataMap } from "@/types/internal";
+import { AssetsMetadataMap, BasicAssetMetadata } from "@/types/internal";
 
 export type OutputAsset = {
   tokenId: string;
-  name?: string;
   amount: BigNumber;
-  decimals?: number;
-  description?: string;
+  metadata?: BasicAssetMetadata;
   minting?: boolean;
 };
 
@@ -45,7 +43,7 @@ export class OutputInterpreter {
     return this._assets;
   }
 
-  public get isIntrawallet(): boolean {
+  public get isReceiving(): boolean {
     return this._addresses?.includes(this.receiver) ?? false;
   }
 
@@ -53,7 +51,7 @@ export class OutputInterpreter {
     return this._assets.find((a) => a.minting) !== undefined;
   }
 
-  public get isBabelBoxSwap(): boolean {
+  public get isBabelSwap(): boolean {
     return (
       isValidBabelContract(this._box.ergoTree) &&
       this._inputs.find((input) => input.ergoTree === this._box.ergoTree) !== undefined
@@ -71,7 +69,7 @@ export class OutputInterpreter {
     this._inputs = inputs;
     this._metadata = metadata;
     this._addresses = addresses;
-    this._assets = this.isBabelBoxSwap
+    this._assets = this.isBabelSwap
       ? this.buildBabelSwapAssetsList()
       : this.buildSendingAssetsList();
   }
@@ -84,21 +82,19 @@ export class OutputInterpreter {
 
     const assets = this._box.assets.map((token) => {
       const inputValue = input.assets.find((asset) => asset.tokenId === token.tokenId)?.amount || 0;
+      const metadata = this._metadata.get(token.tokenId);
 
       return {
         tokenId: token.tokenId,
-        name: this._metadata.get(token.tokenId)?.name,
-        amount: decimalize(
-          bn(token.amount).minus(inputValue),
-          this._metadata.get(token.tokenId)?.decimals || 0
-        )
+        amount: decimalize(bn(token.amount).minus(inputValue), metadata?.decimals || 0),
+        metadata
       } as OutputAsset;
     });
 
     assets.push({
       tokenId: ERG_TOKEN_ID,
-      name: "ERG",
-      amount: decimalize(bn(input.value).minus(this._box.value), ERG_DECIMALS)
+      amount: decimalize(bn(input.value).minus(this._box.value), ERG_DECIMALS),
+      metadata: this._metadata.get(ERG_TOKEN_ID)
     });
 
     return assets;
@@ -108,20 +104,19 @@ export class OutputInterpreter {
     const assets = [] as OutputAsset[];
     assets.push({
       tokenId: ERG_TOKEN_ID,
-      name: "ERG",
-      amount: decimalize(bn(this._box.value), ERG_DECIMALS)
+      amount: decimalize(bn(this._box.value), ERG_DECIMALS),
+      metadata: this._metadata.get(ERG_TOKEN_ID)
     });
 
     if (isEmpty(this._box.assets)) return assets;
 
-    const tokens = this._box.assets.map((t) => {
+    const tokens = this._box.assets.map((t): OutputAsset => {
+      const metadata = this._metadata.get(t.tokenId);
       return {
         tokenId: t.tokenId,
-        name: this._metadata.get(t.tokenId)?.name,
-        amount: this._metadata.get(t.tokenId)?.decimals
-          ? decimalize(bn(t.amount), this._metadata.get(t.tokenId)?.decimals || 0)
-          : bn(t.amount)
-      } as OutputAsset;
+        amount: decimalize(bn(t.amount), metadata?.decimals || 0),
+        metadata
+      };
     });
 
     const minting = this.getMintingToken();
@@ -149,10 +144,12 @@ export class OutputInterpreter {
     const decimals = decodeDecimals(this._box.additionalRegisters["R6"]);
     return {
       tokenId: token.tokenId,
-      name: decodeUtf8(this._box.additionalRegisters["R4"]) ?? "",
-      decimals,
       amount: decimals ? decimalize(bn(token.amount), decimals) : bn(token.amount),
-      description: decodeUtf8(this._box.additionalRegisters["R5"]) ?? "",
+      metadata: {
+        name: decodeUtf8(this._box.additionalRegisters["R4"]) ?? "",
+        decimals,
+        description: decodeUtf8(this._box.additionalRegisters["R5"]) ?? ""
+      },
       minting: true
     };
   }

@@ -1,8 +1,8 @@
-import { ErgoTree } from "ergo-lib-wasm-browser";
 import { Box, isEmpty, uniq } from "@fleet-sdk/common";
-import { addressFromErgoTree, addressFromPk } from "./addresses";
-import { Registers } from "@/types/connector";
+import { ErgoTree } from "ergo-lib-wasm-browser";
 import { P2PK_TREE_PREFIX, PK_HEX_LENGTH, SIGMA_CONSTANT_PK_MATCHER } from "@/constants/ergo";
+import { Registers } from "@/types/connector";
+import { addressFromErgoTree, addressFromPk } from "./addresses";
 
 export function extractPksFromRegisters(registers: Registers): string[] {
   const pks: string[] = [];

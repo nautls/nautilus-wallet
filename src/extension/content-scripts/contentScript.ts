@@ -1,11 +1,11 @@
 import { allowWindowMessaging, onMessage, sendMessage } from "webext-bridge/content-script";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
 import {
   buildNamespaceFor,
   ExternalEvent,
   ExternalRequest,
   InternalRequest
 } from "../connector/rpc/protocol";
-import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 const CONSOLE_PREFIX = "[Nautilus]";
 const BACKGROUND = "background";

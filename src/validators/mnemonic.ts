@@ -6,7 +6,7 @@ function validator(words: []) {
 
   try {
     return validateMnemonic(words.join(" "));
-  } catch (e) {
+  } catch {
     return false;
   }
 }

@@ -7,7 +7,7 @@ function validator(value: string) {
   try {
     HdKey.fromPublicKey(value);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

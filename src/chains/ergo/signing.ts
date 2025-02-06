@@ -1,5 +1,3 @@
-import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
-import { ErgoMessage } from "@fleet-sdk/core";
 import {
   EIP12UnsignedTransaction,
   first,
@@ -7,27 +5,36 @@ import {
   SignedTransaction,
   some
 } from "@fleet-sdk/common";
-import { getPrivateDeriver, Prover } from "./transaction/prover";
+import { ErgoMessage } from "@fleet-sdk/core";
+import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
+import { useWalletStore } from "@/stores/walletStore";
+import { hdKeyPool } from "@/common/objectPool";
+import { addressesDbService } from "@/database/addressesDbService";
+import { walletsDbService } from "@/database/walletsDbService";
+import { IDbAddress } from "@/types/database";
+import { SigningState, WalletType } from "@/types/internal";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
 import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
-import { hdKeyPool } from "@/common/objectPool";
-import { SigningState, WalletType } from "@/types/internal";
-import { addressesDbService } from "@/database/addressesDbService";
-import { walletsDbService } from "@/database/walletsDbService";
-import { IDbAddress } from "@/types/database";
-import { useWalletStore } from "@/stores/walletStore";
+import { getPrivateDeriver, Prover } from "./transaction/prover";
 
-export type UnsignedAuthMessage = {
+export interface UnsignedAuthMessage {
   message: string;
   origin: string;
-};
+}
 
-export type AuthSignedMessage = {
+export interface AuthSignedMessage {
   signedMessage: string;
   proof: string;
-};
+}
+
+export interface TransactionSigningParams {
+  transaction: EIP12UnsignedTransaction;
+  password: string;
+  stateCallback?: SignStateReportCallback;
+  inputsToSign?: number[];
+}
 
 const wallet = useWalletStore();
 
@@ -71,26 +78,13 @@ export async function signAuthMessage(
 
 type SignStateReportCallback = (newState: Partial<SigningState>) => void;
 
-export async function signTransaction(
-  transaction: EIP12UnsignedTransaction,
-  walletId: number,
-  password: string,
-  callback: SignStateReportCallback
-): Promise<SignedTransaction>;
-export async function signTransaction(
-  transaction: EIP12UnsignedTransaction,
-  walletId: number,
-  password: string,
-  callback: SignStateReportCallback,
-  inputsToSign?: number[]
-): Promise<SignedInput[]>;
-export async function signTransaction(
-  transaction: EIP12UnsignedTransaction,
-  walletId: number,
-  password: string,
-  callback: SignStateReportCallback,
-  inputsToSign?: number[]
-) {
+export async function signTransaction({
+  transaction,
+  password,
+  stateCallback: callback,
+  inputsToSign
+}: TransactionSigningParams): Promise<SignedTransaction | SignedInput[]> {
+  const walletId = wallet.id;
   const inputAddresses = extractAddressesFromInputs(transaction.inputs);
   const ownAddresses = await addressesDbService.getByWalletId(walletId);
   const addresses = ownAddresses
@@ -98,8 +92,7 @@ export async function signTransaction(
     .map((a) => dbAddressMapper(a));
 
   if (addresses.length === 0) {
-    const changeIndex = wallet.settings.defaultChangeIndex;
-    const change = (a: IDbAddress): boolean => a.index === changeIndex;
+    const change = (a: IDbAddress): boolean => a.index === wallet.settings.defaultChangeIndex;
     const firstIndex = (a: IDbAddress): boolean => a.index === 0;
 
     addresses.push(
@@ -109,7 +102,7 @@ export async function signTransaction(
     );
   }
 
-  if (callback) callback({ statusText: "Loading context data..." });
+  if (callback) callback({ statusText: "Loading context..." });
 
   const isLedger = wallet.type === WalletType.Ledger;
   const deriver = isLedger
@@ -128,11 +121,9 @@ export async function signTransaction(
     .setHeaders(blockHeaders)
     .setCallback(callback);
 
-  if (inputsToSign && some(inputsToSign)) {
-    return await prover.signInputs(transaction, inputsToSign);
-  } else {
-    return await prover.signTx(transaction);
-  }
+  return some(inputsToSign)
+    ? prover.signInputs(transaction, inputsToSign)
+    : prover.signTransaction(transaction);
 }
 
 function dbAddressMapper(a: IDbAddress) {

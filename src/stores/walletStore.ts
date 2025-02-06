@@ -1,46 +1,59 @@
-import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, ref, shallowRef, toRaw, watch } from "vue";
-import { groupBy, maxBy } from "lodash-es";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import type { BigNumber } from "bignumber.js";
+import { groupBy, maxBy } from "lodash-es";
 import { useRouter } from "vue-router";
+import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { hdKeyPool } from "@/common/objectPool";
+import { patchArray } from "@/common/reactivity";
+import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
+import { addressesDbService } from "@/database/addressesDbService";
+import { assetsDbService } from "@/database/assetsDbService";
+import { assetIconMap } from "@/mappers/assetIconMap";
+import { IDbAddress, IDbAsset } from "@/types/database";
+import {
+  AddressState,
+  AddressType,
+  AssetInfo,
+  AssetSubtype,
+  BasicAssetMetadata,
+  WalletSettings,
+  WalletType
+} from "@/types/internal";
 import { bn, decimalize, sumBy } from "../common/bigNumber";
 import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { useChainStore } from "./chainStore";
 import { usePoolStore } from "./poolStore";
-import { IDbAddress, IDbAsset } from "@/types/database";
-import {
-  AddressState,
-  AddressType,
-  AssetSubtype,
-  BasicAssetMetadata,
-  StateAddress,
-  StateAsset,
-  WalletSettings,
-  WalletType
-} from "@/types/internal";
-import { addressesDbService } from "@/database/addressesDbService";
-import { assetsDbService } from "@/database/assetsDbService";
-import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
-import { hdKeyPool } from "@/common/objectPool";
-import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { patchArray } from "@/common/reactivity";
-import { assetIconMap } from "@/mappers/assetIconMap";
 
-export type StateAssetSummary = {
-  tokenId: string;
+export interface AssetBalance extends AssetInfo {
+  balance: BigNumber;
+}
+
+interface StateAsset extends AssetInfo {
   confirmedAmount: BigNumber;
   unconfirmedAmount?: BigNumber;
-  metadata?: BasicAssetMetadata;
-};
+  address?: string;
+}
 
-const KNOWN_ASSETS = new Set(Object.keys(assetIconMap));
+export interface StateAddress {
+  script: string;
+  state: AddressState;
+  index: number;
+  assets: StateAsset[];
+}
+
+const KNOWN_ASSETS = new Set(assetIconMap.keys());
 
 const usePrivateStateStore = defineStore("_wallet", () => {
   const addresses = shallowRef<IDbAddress[]>([]);
   const assets = shallowRef<IDbAsset[]>([]);
+
+  function pushAddress(address: IDbAddress) {
+    addresses.value = [...addresses.value, address];
+  }
 
   function patchAddresses(changedAddresses: IDbAddress[], removedAddresses: IDbAddress[] = []) {
     patchArray(addresses, changedAddresses, removedAddresses, (a, b) => a.script === b.script);
@@ -67,6 +80,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     addresses,
     assets,
     patchAddresses,
+    pushAddress,
     patchAssets
   };
 });
@@ -83,7 +97,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const name = ref("");
   const settings = ref<WalletSettings>({
     avoidAddressReuse: false,
-    hideUsedAddresses: false,
+    addressFilter: "all",
     defaultChangeIndex: 0
   });
 
@@ -127,7 +141,7 @@ export const useWalletStore = defineStore("wallet", () => {
       const wallet = appStore.wallets[0];
       if (wallet) {
         load(wallet.id);
-        router.push({ name: "assets-page" });
+        router.push({ name: "assets" });
       } else {
         appStore.settings.lastOpenedWalletId = 0;
         router.push({ name: "add-wallet" });
@@ -158,10 +172,10 @@ export const useWalletStore = defineStore("wallet", () => {
     });
   });
 
-  const balance = computed((): StateAssetSummary[] => {
+  const balance = computed((): AssetBalance[] => {
     const poolBalance = appStore.settings.zeroConf ? new Map(pool.balance) : new Map();
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
-    let summary = [] as StateAssetSummary[];
+    let summary = [] as AssetBalance[];
     let patched = false;
 
     for (const tokenId in groupedAssets) {
@@ -173,8 +187,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
       summary.push({
         tokenId,
-        confirmedAmount: sumBy(assetGroup, (x) => x.confirmedAmount).plus(unconfirmedAmount),
-        unconfirmedAmount: sumBy(assetGroup, (x) => x.unconfirmedAmount ?? 0),
+        balance: sumBy(assetGroup, (x) => x.confirmedAmount).plus(unconfirmedAmount),
         metadata: assetGroup[0].metadata
       });
     }
@@ -183,8 +196,7 @@ export const useWalletStore = defineStore("wallet", () => {
       for (const [tokenId, amount] of poolBalance) {
         summary.push({
           tokenId,
-          confirmedAmount: amount,
-          unconfirmedAmount: bn(0),
+          balance: amount,
           metadata: assetsStore.metadata.get(tokenId)
         });
       }
@@ -196,15 +208,14 @@ export const useWalletStore = defineStore("wallet", () => {
       return [
         {
           tokenId: ERG_TOKEN_ID,
-          confirmedAmount: bn(0),
-          unconfirmedAmount: bn(0),
+          balance: bn(0),
           metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
         }
       ];
     }
 
     if (patched) {
-      summary = summary.filter((x) => x.tokenId === ERG_TOKEN_ID || x.confirmedAmount.gt(0));
+      summary = summary.filter((x) => x.tokenId === ERG_TOKEN_ID || x.balance.gt(0));
     }
 
     if (summary.length <= 1) return summary;
@@ -238,14 +249,18 @@ export const useWalletStore = defineStore("wallet", () => {
   );
 
   const filteredAddresses = computed((): StateAddress[] => {
-    if (!settings.value.hideUsedAddresses) return addresses.value;
-    return addresses.value.filter(
-      (address) =>
-        (!settings.value.avoidAddressReuse &&
-          address.index === settings.value.defaultChangeIndex) || // default address if not avoiding reuse
-        address.state === AddressState.Unused || // unused addresses
-        privateState.assets.findIndex((x) => x.address === address.script) > -1 // addresses with assets
-    );
+    // all addresses
+    if (settings.value.addressFilter === "all") {
+      return addresses.value;
+    }
+
+    // unused addresses
+    if (settings.value.addressFilter === "unused") {
+      return addresses.value.filter((address) => address.state !== AddressState.Used);
+    }
+
+    // active addresses (with assets)
+    return addresses.value.filter((address) => address.assets.length > 0);
   });
 
   const changeAddress = computed(() => {
@@ -303,7 +318,9 @@ export const useWalletStore = defineStore("wallet", () => {
   async function deriveNewAddress() {
     const lastUsed = addresses.value.findLastIndex((x) => x.state === AddressState.Used);
     if (addresses.value.length - lastUsed > CHUNK_DERIVE_LENGTH) {
-      throw Error(`You cannot add more than ${CHUNK_DERIVE_LENGTH} consecutive unused addresses.`);
+      throw new RangeError(
+        `Cannot generate more than ${CHUNK_DERIVE_LENGTH} unused addresses in a row.`
+      );
     }
 
     const lastIndex = maxBy(addresses.value, (x) => x.index)?.index ?? -1;
@@ -317,7 +334,7 @@ export const useWalletStore = defineStore("wallet", () => {
       walletId: privateState.id
     };
 
-    privateState.addresses.push(dbObj);
+    privateState.pushAddress(dbObj);
     await addressesDbService.put(dbObj);
   }
 
@@ -485,7 +502,7 @@ function getChanges(
  * @returns A negative number if `a` should be ranked higher, a positive number if `b` should be ranked higher,
  *          or zero if they are considered equal in ranking.
  */
-function rankAssets(a: StateAssetSummary, b: StateAssetSummary) {
+function rankAssets(a: AssetInfo, b: AssetInfo) {
   if (a.tokenId === ERG_TOKEN_ID) return -1;
   if (b.tokenId === ERG_TOKEN_ID) return 1;
   if (KNOWN_ASSETS.has(a.tokenId) && !KNOWN_ASSETS.has(b.tokenId)) return -1;

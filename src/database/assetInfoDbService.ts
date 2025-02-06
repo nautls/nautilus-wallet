@@ -1,7 +1,7 @@
-import { difference, uniqBy } from "lodash-es";
 import { isEmpty } from "@fleet-sdk/common";
-import { IAssetInfo } from "@/types/database";
+import { difference, uniqBy } from "lodash-es";
 import { dbContext } from "@/database/dbContext";
+import { IAssetInfo } from "@/types/database";
 
 class AssetInfoDbService {
   public async addIfNotExists(assets: IAssetInfo[]) {

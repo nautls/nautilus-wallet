@@ -46,11 +46,11 @@
 import { defineComponent } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { WalletType } from "@/types/internal";
-import { validPublicKey } from "@/validators";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { log } from "@/common/logger";
+import { WalletType } from "@/types/internal";
+import { validPublicKey } from "@/validators";
 
 export default defineComponent({
   name: "AddReadOnlyView",
@@ -97,7 +97,7 @@ export default defineComponent({
         return;
       }
 
-      this.$router.push({ name: "assets-page" });
+      this.$router.push({ name: "assets" });
     }
   }
 });

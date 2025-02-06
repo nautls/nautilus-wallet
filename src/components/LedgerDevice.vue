@@ -1,81 +1,213 @@
 <script setup lang="ts">
-import { isDefined } from "@fleet-sdk/common";
-import { computed, PropType } from "vue";
-import { CheckIcon, CircleAlertIcon, XIcon } from "lucide-vue-next";
-import ledgerS from "@/assets/images/hw-devices/ledger-s.svg";
-import ledgerX from "@/assets/images/hw-devices/ledger-x.svg";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverStateType } from "@/types/internal";
+import { computed, onBeforeUnmount, onMounted, reactive } from "vue";
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
+import {
+  CheckCheckIcon,
+  CheckIcon,
+  CircleAlertIcon,
+  Loader2Icon,
+  LockIcon,
+  XIcon
+} from "lucide-vue-next";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/toast";
+import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
+import LedgerNanoX from "@/assets/images/hw-devices/ledger-nanox.svg?skipsvgo";
+import { ProverState } from "@/chains/ergo/transaction/prover";
+import { extractErrorMessage, sleep } from "@/common/utils";
 
-const props = defineProps({
-  model: {
-    type: String as PropType<LedgerDeviceModelId>,
-    default: LedgerDeviceModelId.nanoX
-  },
-  state: { type: Number as PropType<ProverStateType>, required: false, default: undefined },
-  connected: { type: Boolean },
-  screenText: { type: String, default: undefined },
-  loading: { type: Boolean },
-  caption: { type: String, required: false, default: undefined },
-  compactView: { type: Boolean },
-  appId: { type: Number, required: false, default: undefined }
+const LEDGER_VENDOR_ID = 0x2c97; // https://github.com/LedgerHQ/ledger-live/blob/22714d2324898b853332363f2a522d72bbed0d3a/libs/ledgerjs/packages/devices/src/index.ts#L141
+
+interface DeviceConnectionEvent {
+  device?: USBDevice;
+}
+
+interface Props {
+  initialState?: ProverState;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  initialState: () => ({
+    model: "nanoSP",
+    state: undefined,
+    screenText: undefined,
+    appId: undefined,
+    connected: false
+  })
 });
 
-const validState = computed(
-  () => isDefined(props.state) && props.state !== ProverStateType.unavailable
-);
-const appIdHex = computed(() => (!props.appId ? "" : `0x${props.appId.toString(16)}`));
-const isNanoX = computed(() => props.model !== LedgerDeviceModelId.nanoX);
-const isLoading = computed(() => props.state === ProverStateType.busy || props.loading);
+const state = reactive<ProverState>({
+  connected: props.initialState.connected,
+  type: props.initialState.type,
+  label: props.initialState.label
+});
+
+const { toast } = useToast();
+
+onMounted(async () => {
+  navigator.usb.addEventListener("connect", onDeviceConnect);
+  navigator.usb.addEventListener("disconnect", onDeviceDisconnect);
+
+  const devices = await navigator.usb.getDevices();
+  onDeviceConnect({ device: devices.find((x) => x.vendorId === LEDGER_VENDOR_ID) });
+});
+
+onBeforeUnmount(() => {
+  navigator.usb.removeEventListener("connect", onDeviceConnect);
+  navigator.usb.removeEventListener("disconnect", onDeviceDisconnect);
+});
+
+const appIdHex = computed(() => (!state.appId ? undefined : `0x${state.appId.toString(16)}`));
+const isNanoX = computed(() => state.model === "nanoX");
 const screenPosition = computed(() =>
-  isNanoX.value ? "top-[4.7rem] left-[3.9rem] w-28 h-8" : "top-20 left-9 w-28 h-7"
+  isNanoX.value ? "top-[12px] left-[57px]" : "top-[15px] left-[32px]"
 );
+
+async function onDeviceConnect({ device }: DeviceConnectionEvent) {
+  if (state.connected || state.busy || !device || device.vendorId !== LEDGER_VENDOR_ID) return;
+
+  try {
+    const app = new ErgoLedgerApp(await TransportWebUSB.create());
+
+    setState({
+      model: app.device.transport.deviceModel?.id,
+      connected: true,
+      label: "Connected",
+      type: "ready"
+    });
+
+    const appInfo = await app.device.getCurrentAppInfo();
+    if (appInfo.name === "Ergo") {
+      setState({ label: "Ready", type: "ready" });
+    }
+  } catch (e) {
+    if (
+      e instanceof DeviceError &&
+      (e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE || e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET)
+    ) {
+      setState({ label: "Device is locked", type: "locked" });
+      return;
+    }
+
+    setState({
+      type: "error",
+      label: "Connection error",
+      additionalInfo: extractErrorMessage(e)
+    });
+  }
+}
+
+function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
+  if (!device || state.busy || device.vendorId !== LEDGER_VENDOR_ID) return;
+
+  if (state.connected) {
+    setState({ connected: false, label: "Reconnecting...", appId: undefined, type: "loading" });
+  } else {
+    setState({ connected: false, label: undefined, type: undefined });
+  }
+}
+
+async function openErgoApp(): Promise<boolean> {
+  try {
+    const app = new ErgoLedgerApp(await TransportWebUSB.create());
+
+    const currentApp = await app.device.getCurrentAppInfo();
+    if (currentApp.name !== "Ergo") {
+      setState({ busy: true, connected: true });
+
+      if (currentApp.name !== "BOLOS") {
+        await app.device.closeApp();
+        setState({ type: "loading", label: "Waiting for the app to be closed" });
+        await sleep(1000); // Wait for the app to be fully closed
+      }
+
+      setState({ type: undefined, label: "Confirm opening the Ergo app" });
+      // device.closeApp() command disconnects the device for some reason,
+      // so we need to create a new instance to re-open it
+      await new ErgoLedgerApp(await TransportWebUSB.create()).device.openApp("Ergo");
+      setState({ type: "loading", label: "Waiting for the app to be ready" });
+      await sleep(1000); // Wait for the app to be fully opened
+    }
+
+    setState({ type: "ready", label: "Ready" });
+    return true;
+  } catch (e) {
+    if (e instanceof DeviceError) {
+      if (
+        e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
+        e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
+      ) {
+        setState({ type: "locked", label: "Device is locked" });
+        return false;
+      } else if (e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
+        setState({ type: "error", label: "Ergo app opening denied by the user" });
+        return false;
+      }
+    }
+
+    setState({
+      type: "error",
+      label: "Error opening the Ergo app",
+      additionalInfo: extractErrorMessage(e)
+    });
+
+    return false;
+  } finally {
+    setState({ busy: false });
+  }
+}
+
+function setState(newState: ProverState) {
+  if (newState.type === "error" && newState.additionalInfo) {
+    toast({
+      variant: "destructive",
+      title: newState.label,
+      description: newState.additionalInfo
+    });
+  }
+
+  Object.assign(state, newState);
+}
+
+defineExpose({ setState, openErgoApp });
 </script>
 
 <template>
-  <div class="mx-auto flex min-w-72 flex-col items-center gap-2 p-2">
-    <div v-if="connected || validState" class="mx-auto w-auto text-center text-sm">
+  <div class="mx-auto flex flex-col items-center gap-2 h-min">
+    <div v-if="state.connected || state.type" class="mx-auto text-center text-sm w-[240px]">
       <div class="relative">
-        <ledger-x v-if="isNanoX" class="w-max" />
-        <ledger-s v-else class="w-max" />
-        <div :class="screenPosition" class="absolute items-center px-1 text-xs text-light-600">
-          <div class="flex h-full items-center justify-center gap-1">
-            <loading-indicator
-              v-if="isLoading && compactView"
-              type="circular"
-              class="h-5 w-5 min-w-5"
-            />
-            <check-icon v-else-if="state === ProverStateType.success" class="text-green-300" />
-            <x-icon v-else-if="state === ProverStateType.error" class="text-red-300" />
+        <LedgerNanoX v-if="isNanoX" />
+        <LedgerNanoS v-else />
 
-            <span v-if="screenText" class="font-semibold">{{ screenText }}</span>
-          </div>
+        <div
+          :class="screenPosition"
+          class="absolute w-[111px] h-[51px] flex flex-col items-center justify-around gap-1 leading-none p-0.5 text-xs text-slate-100 bg-blue-50/0 transition-all"
+        >
+          <CheckCheckIcon v-if="state.type === 'ready'" class="size-auto opacity-80" />
+          <Loader2Icon
+            v-else-if="state.type === 'loading'"
+            class="size-auto animate-spin opacity-80"
+          />
+          <CheckIcon
+            v-else-if="state.type === 'success'"
+            class="size-auto text-green-400 opacity-80"
+          />
+          <XIcon v-else-if="state.type === 'error'" class="size-auto text-red-400 opacity-80" />
+          <LockIcon v-else-if="state.type === 'locked'" class="size-auto opacity-80" />
+
+          <p v-if="state.label" class="font-semibold opacity-90 text-[0.70rem]">
+            {{ state.label }}
+          </p>
+          <small v-if="state.appId" class="flex-shrink opacity-70">App ID: {{ appIdHex }}</small>
         </div>
       </div>
-
-      <div
-        v-if="appId"
-        class="mx-auto -mt-4 mb-2 w-min whitespace-nowrap rounded-md border border-gray-500/10 bg-gray-50 px-2 py-1 text-xs text-gray-600"
-      >
-        Application ID: <span class="font-bold">{{ appIdHex }}</span>
-      </div>
-    </div>
-    <div v-else-if="!validState">
-      <p class="text-center text-red-600">
-        <circle-alert-icon :size="64" />
-      </p>
-      <p class="text-center font-semibold">Ledger device not found!</p>
-      <p class="px-1 pt-4 text-sm text-gray-500">
-        Before you try again, please make sure your device is connected and the
-        <span class="font-semibold">Ledger Ergo App</span> is installed and opened.
-      </p>
     </div>
 
-    <div v-if="isLoading && !compactView" class="pb-2 text-center">
-      <loading-indicator type="circular" class="h-10 w-10" />
-    </div>
-
-    <!-- eslint-disable-next-line vue/no-v-html -->
-    <p v-if="caption" class="text-center" :class="{ 'text-sm': compactView }" v-html="caption"></p>
+    <Alert v-else class="space-x-2">
+      <CircleAlertIcon />
+      <AlertTitle>Device not found!</AlertTitle>
+      <AlertDescription> Ensure your device is properly connected and unlocked. </AlertDescription>
+    </Alert>
   </div>
 </template>

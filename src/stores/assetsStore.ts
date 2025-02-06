@@ -1,18 +1,19 @@
+import { computed, reactive, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, onMounted, shallowReactive, watch } from "vue";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
-import { useAppStore } from "./appStore";
-import { assetInfoDbService } from "@/database/assetInfoDbService";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
-import { AssetType, BasicAssetMetadata } from "@/types/internal";
-import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
+import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import {
   ErgoTokenBlacklist,
   ergoTokenBlacklistService
 } from "@/chains/ergo/services/tokenBlacklistService";
-import { IAssetInfo } from "@/types/database";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
+import { ERG_DECIMALS, ERG_TOKEN_ID } from "@/constants/ergo";
+import { assetInfoDbService } from "@/database/assetInfoDbService";
+import { IAssetInfo } from "@/types/database";
+import { AssetType, BasicAssetMetadata } from "@/types/internal";
+import { useAppStore } from "./appStore";
 
 export type LoadMetadataOptions = { fetchInBackground: boolean; persist: boolean };
 
@@ -52,7 +53,8 @@ const usePrivateState = defineStore("_assets", () => ({
   prices: useWebExtStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, {
     ...DEFAULT_DB_CONFIG,
     serializer: PRICE_RATES_SERIALIZER
-  })
+  }),
+  priceChart: useWebExtStorage("ergoPriceChart", [[0, 0]], DEFAULT_DB_CONFIG)
 }));
 
 export const useAssetsStore = defineStore("assets", () => {
@@ -61,18 +63,39 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const metadata = shallowReactive(new Map([[ERG_TOKEN_ID, ERG_METADATA]]));
 
-  onMounted(() => Promise.all([fetchBlacklists(), loadAssetPriceRates()]));
+  const loaded = reactive({ blacklists: false, prices: false });
+
+  watch(
+    () => privateState.blacklist,
+    () => {
+      loaded.blacklists = true;
+      fetchBlacklists();
+    },
+    { once: true }
+  );
+
+  watch(
+    () => privateState.prices,
+    () => {
+      loaded.prices = true;
+      loadAssetPriceRates();
+    },
+    { once: true }
+  );
 
   watch(
     () => app.settings.conversionCurrency,
     () => loadAssetPriceRates(true)
   );
+
   watch(
     () => app.settings.blacklistedTokensLists,
     () => fetchBlacklists(true)
   );
 
   async function fetchBlacklists(force = false) {
+    if (!loaded.blacklists) return;
+
     const lastUpdated = privateState.blacklist.lastUpdated ?? Date.now();
     if (!force && !elapsed(BLACKLIST_UPDATE_INTERVAL, lastUpdated)) return;
 
@@ -81,11 +104,18 @@ export const useAssetsStore = defineStore("assets", () => {
   }
 
   async function loadAssetPriceRates(force = false) {
+    if (!loaded.prices) return;
+
     const lastUpdated = privateState.prices.lastUpdated ?? Date.now();
     if (!force && !elapsed(PRICE_RATES_UPDATE_INTERVAL, lastUpdated)) return;
 
-    const prices = await assetPricingService.getRates(app.settings.conversionCurrency);
-    privateState.prices = { lastUpdated: Date.now(), prices };
+    const [prices, chart] = await Promise.all([
+      assetPricingService.getRates(app.settings.conversionCurrency),
+      coinGeckoService.getPriceChart(app.settings.conversionCurrency)
+    ]);
+
+    if (prices) privateState.prices = { lastUpdated: Date.now(), prices };
+    if (chart) privateState.priceChart = chart.filter((_, i) => i % 2 === 0); // reduce chart data
   }
 
   const blacklist = computed(() => {
@@ -103,6 +133,7 @@ export const useAssetsStore = defineStore("assets", () => {
   });
 
   const prices = computed(() => privateState.prices.prices);
+  const priceChart = computed(() => privateState.priceChart);
 
   async function loadMetadata(tokenIds: string[], options?: Partial<LoadMetadataOptions>) {
     const { fetchInBackground, persist } = ensureDefaults(options, {
@@ -157,7 +188,7 @@ export const useAssetsStore = defineStore("assets", () => {
     }
   }
 
-  return { blacklist, metadata, prices, loadMetadata };
+  return { blacklist, metadata, prices, priceChart, loadMetadata };
 });
 
 function unknownMetadata(id: string): IAssetInfo {

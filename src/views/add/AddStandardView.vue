@@ -83,11 +83,11 @@ import { generateMnemonic } from "@fleet-sdk/wallet";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
-import { WalletType } from "@/types/internal";
-import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import { useAppStore } from "@/stores/appStore";
-import { log } from "@/common/logger";
 import { useWalletStore } from "@/stores/walletStore";
+import { log } from "@/common/logger";
+import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
+import { WalletType } from "@/types/internal";
 
 export default defineComponent({
   name: "AddStandardView",
@@ -147,7 +147,7 @@ export default defineComponent({
         return;
       }
 
-      this.$router.push({ name: "assets-page" });
+      this.$router.push({ name: "assets" });
     }
   }
 });

@@ -21,25 +21,35 @@ import {
   UnsignedTransaction,
   Wallet
 } from "ergo-lib-wasm-browser";
-import {
-  BoxCandidate,
-  DeviceError,
-  ErgoLedgerApp,
-  Network,
-  RETURN_CODE,
-  Token,
-  UnsignedBox
-} from "ledger-ergo-js";
+import { BoxCandidate, ErgoLedgerApp, Network, Token, UnsignedBox } from "ledger-ergo-js";
+import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
+import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
-import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
-import { LedgerDeviceModelId } from "@/constants/ledger";
-import { ProverDeviceState, ProverStateType, SigningState } from "@/types/internal";
-import { walletsDbService } from "@/database/walletsDbService";
 
-export type PartialSignState = Omit<Partial<SigningState>, "device"> & {
-  device?: Partial<ProverDeviceState>;
-};
+export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready";
+
+export type LedgerDeviceModelId =
+  | "blue" // Ledger Blue
+  | "nanoS" // Ledger Nano S
+  | "nanoSP" // Ledger Nano S Plus
+  | "nanoX" // Ledger Nano X
+  | "stax" // Ledger Stax
+  | "europa"; // Ledger Flex ("europa" is the internal name)
+
+export interface ProverState {
+  type?: ProverStateType;
+  label?: string;
+  model?: LedgerDeviceModelId;
+  connected?: boolean;
+  additionalInfo?: string;
+  busy?: boolean;
+  appId?: number;
+}
+
+export type PartialSignState = Partial<ProverState>;
+
+export type StateCallback = (newState: PartialSignState) => void;
 
 export class Prover {
   #from!: IndexedAddress[];
@@ -48,7 +58,7 @@ export class Prover {
   #deriver!: HdKey;
   #headers?: BlockHeaders;
 
-  #callbackFn?: (newVal: PartialSignState) => void;
+  #callbackFn?: StateCallback;
 
   constructor(deriver: HdKey) {
     this.#deriver = deriver;
@@ -91,7 +101,7 @@ export class Prover {
     return this.#buildWallet().sign_message_using_p2pk(address, message);
   }
 
-  async signTx(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
+  async signTransaction(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     const signed = await this.#signTx(tx, inputs, dataInputs);
     return signed.to_js_eip12();
@@ -121,82 +131,42 @@ export class Prover {
   }
 
   async #signTx(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
-    if (this.#useLedger) {
-      let ledgerApp!: ErgoLedgerApp;
-
-      try {
-        ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create())
-          .useAuthToken()
-          .enableDebugMode();
-
-        this.#reportState({
-          device: {
-            screenText: "Connected",
-            connected: true,
-            appId: ledgerApp.authToken || 0,
-            model:
-              (ledgerApp.transport.deviceModel?.id.toString() as LedgerDeviceModelId) ??
-              LedgerDeviceModelId.nanoX
-          }
-        });
-      } catch (e) {
-        this.#reportState({ device: { connected: false }, type: ProverStateType.unavailable });
-        throw e;
-      }
-
-      try {
-        this.#reportState({
-          statusText: "Please confirm the transaction signature on your device.",
-          device: { screenText: "Waiting for approval..." }
-        });
-
-        const proofs = await ledgerApp.signTx(
-          {
-            inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
-            dataInputs: mapLedgerDataInputs(dataInputs),
-            outputs: mapLedgerOutputs(unsigned),
-            distinctTokenIds: unsigned.distinct_token_ids(),
-            changeMap: {
-              address: this.#deriver.deriveAddress(this.#changeIndex ?? 0).script,
-              path: `${DERIVATION_PATH}/${this.#changeIndex}`
-            }
-          },
-          MAINNET ? Network.Mainnet : Network.Testnet
-        );
-
-        this.#reportState({ type: ProverStateType.success, device: { screenText: "Signed" } });
-        return Transaction.from_unsigned_tx(unsigned, proofs);
-      } catch (e) {
-        if (e instanceof DeviceError) {
-          const resp: PartialSignState = {
-            type: ProverStateType.error,
-            device: { screenText: "Error" }
-          };
-
-          switch (e.code) {
-            case RETURN_CODE.DENIED:
-              resp.statusText = "Transaction signing denied.";
-              break;
-            case RETURN_CODE.INTERNAL_CRYPTO_ERROR:
-              resp.statusText =
-                "It looks like your device is locked. Make sure it is unlocked before proceeding.";
-              break;
-            default:
-              resp.statusText = `[Device error] ${e.message}`;
-          }
-
-          this.#reportState(resp);
-        }
-
-        throw e;
-      } finally {
-        ledgerApp.transport.close();
-      }
+    if (!this.#useLedger) {
+      const wallet = this.#buildWallet();
+      const signContext = this.#buildContext();
+      return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
     }
 
-    const wallet = this.#buildWallet();
-    const signContext = this.#buildContext();
-    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
+    try {
+      this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
+
+      const ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
+
+      this.#reportState({
+        type: undefined,
+        label: "Confirm transaction signing",
+        appId: ledgerApp.authToken
+      });
+
+      const proofs = await ledgerApp.signTx(
+        {
+          inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
+          dataInputs: mapLedgerDataInputs(dataInputs),
+          outputs: mapLedgerOutputs(unsigned),
+          distinctTokenIds: unsigned.distinct_token_ids(),
+          changeMap: {
+            address: this.#deriver.deriveAddress(this.#changeIndex ?? 0).script,
+            path: `${DERIVATION_PATH}/${this.#changeIndex}`
+          }
+        },
+        MAINNET ? Network.Mainnet : Network.Testnet
+      );
+
+      this.#reportState({ type: "success", label: "Signed", appId: undefined });
+      return Transaction.from_unsigned_tx(unsigned, proofs);
+    } finally {
+      this.#reportState({ busy: false });
+    }
   }
 
   #signInputs(

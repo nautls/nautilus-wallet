@@ -1,7 +1,6 @@
-import { BigNumber } from "bignumber.js";
-import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
 import { BabelBox } from "@fleet-sdk/babel-fees-plugin";
-import { LedgerDeviceModelId } from "@/constants/ledger";
+import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
+import { BigNumber } from "bignumber.js";
 
 export enum AddressState {
   Used,
@@ -44,16 +43,11 @@ export enum AssetSubtype {
   ThresholdSignature = "0201"
 }
 
-export type StateAddress = {
-  script: string;
-  state: AddressState;
-  index: number;
-  assets: StateAsset[];
-};
+export type AddressFilter = "all" | "active" | "unused";
 
 export type WalletSettings = {
   avoidAddressReuse: boolean;
-  hideUsedAddresses: boolean;
+  addressFilter: AddressFilter;
   defaultChangeIndex: number;
 };
 
@@ -67,20 +61,18 @@ export type StateWallet = {
   settings: WalletSettings;
 };
 
-export type StateAsset = {
-  tokenId: string;
-  address: string;
-  confirmedAmount: BigNumber;
-  unconfirmedAmount?: BigNumber;
-  metadata?: BasicAssetMetadata;
-};
-
 export type BasicAssetMetadata = {
   name?: string;
   decimals?: number;
   type?: AssetSubtype;
   artworkUrl?: string;
+  description?: string;
 };
+
+export interface AssetInfo {
+  tokenId: string;
+  metadata?: BasicAssetMetadata;
+}
 
 export type AssetsMetadataMap = Map<TokenId, BasicAssetMetadata>;
 
@@ -92,27 +84,4 @@ export type FeeSettings = {
   box?: BabelBox;
 };
 
-export const enum ProverStateType {
-  success,
-  error,
-  busy,
-  unavailable
-}
-
-export type ProverDeviceState = {
-  model: LedgerDeviceModelId;
-  appId: number;
-  connected: boolean;
-  screenText?: string;
-};
-
-export type SigningState = {
-  statusText: string;
-  type?: ProverStateType;
-  device?: ProverDeviceState;
-};
-
 export type TransactionBuilderFunction = () => Promise<EIP12UnsignedTransaction>;
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type Prettify<T> = { [K in keyof T]: T[K] } & {};

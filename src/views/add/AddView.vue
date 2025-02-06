@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { RotateCcwIcon, WalletIcon, WalletMinimalIcon } from "lucide-vue-next";
-import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { useWalletStore } from "@/stores/walletStore";
+import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { browser, isPopup } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 

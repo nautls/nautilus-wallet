@@ -1,4 +1,3 @@
-import type { ProtocolWithReturn as WithReturn } from "webext-bridge";
 import type {
   Box,
   EIP12UnsignedTransaction,
@@ -7,6 +6,7 @@ import type {
 } from "@fleet-sdk/common";
 import type { AssetBalance, AuthResult, SelectionTarget } from "@nautilus-js/eip12-types";
 import type { JsonValue } from "type-fest";
+import type { ProtocolWithReturn as WithReturn } from "webext-bridge";
 import type {
   AddressType,
   ErrorResult,

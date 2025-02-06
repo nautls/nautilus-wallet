@@ -1,0 +1,40 @@
+diff --git a/index.d.ts b/index.d.ts
+index e005c79a5eb3b74e2218ba88a69e032e094d3476..44f544d77a6856c4e8d056bd0c3aca2a2fb2b53d 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -1,4 +1,4 @@
+-import { CleaveOptions } from "./options";
++import { CleaveOptions, CleaveOnChangedEvent } from "./options";
+ 
+ interface Properties extends CleaveOptions {
+     result: string;
+@@ -22,4 +22,5 @@ declare class Cleave {
+     setPhoneRegionCode(regionCode: string): void;
+ }
+ 
+-export = Cleave;
++export default Cleave;
++export { CleaveOptions, CleaveOnChangedEvent }
+\ No newline at end of file
+diff --git a/options/index.d.ts b/options/index.d.ts
+index 3524a80bf55d130f97fd9021c5949dfbc300f2b2..760efb3ad59c0f6c5709cdf37b9d295c8e2e1246 100644
+--- a/options/index.d.ts
++++ b/options/index.d.ts
+@@ -42,6 +42,10 @@ export interface CleaveOptions {
+     tailPrefix?: boolean | undefined;
+ }
+ 
++export interface CleaveOnChangedEvent {
++    target: { value: string; rawValue: string };
++}
++  
+ // Extra Options
+ export interface CleaveOptions {
+     blocks?: readonly number[] | undefined;
+@@ -56,5 +60,5 @@ export interface CleaveOptions {
+     noImmediatePrefix?: boolean | undefined;
+     rawValueTrimPrefix?: boolean | undefined;
+     uppercase?: boolean | undefined;
+-    onValueChanged?(event: any): void;
++    onValueChanged?(event: CleaveOnChangedEvent): void;
+ }

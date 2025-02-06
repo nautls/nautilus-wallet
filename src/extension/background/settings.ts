@@ -1,5 +1,5 @@
-import { storage } from "webextension-polyfill";
 import { StorageSerializers } from "@vueuse/core";
+import { storage } from "webextension-polyfill";
 import type { Settings } from "@/stores/appStore";
 import { DEFAULT_SETTINGS } from "@/constants/settings";
 
