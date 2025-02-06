@@ -10,7 +10,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/add",
     name: "add-wallet",
-    component: () => import("@/views/add/AddView.vue"),
+    component: () => import("@/views/add/AddWalletIndex.vue"),
     props: true,
     meta: { fullPage: true, title: "Add new wallet" }
   },
