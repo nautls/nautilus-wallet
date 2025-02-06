@@ -30,7 +30,7 @@ export const usePoolStore = defineStore("pool", () => {
     (loading) => {
       if (loading) {
         interval.pause();
-      } else if (!loading) {
+      } else {
         transactions.value = [];
         fetchTransactions();
         interval.resume();
