@@ -9,7 +9,12 @@ import { target } from '@/common/env'
 import { XIcon } from 'lucide-vue-next'
 import { DrawerClose } from 'vaul-vue'
 
-const props = defineProps<DialogContentProps & { class?: HtmlHTMLAttributes['class'] }>()
+interface Props extends DialogContentProps {
+  class?: HtmlHTMLAttributes['class']
+  dismissible?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), { class: undefined, dismissible: true });
 const emits = defineEmits<DialogContentEmits>()
 
 const forwarded = useForwardPropsEmits(props, emits)
@@ -31,7 +36,7 @@ const forwarded = useForwardPropsEmits(props, emits)
 
       <template v-else>
         <slot />
-        <DrawerClose
+        <DrawerClose :disabled="!dismissible"
           class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
         >
           <XIcon class="w-4 h-4" />

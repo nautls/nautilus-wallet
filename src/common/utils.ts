@@ -8,12 +8,12 @@ export function isErg(tokenId: string): boolean {
 
 type ErrorLike = { message: string };
 
-export function extractErrorMessage(error: unknown): string {
+export function extractErrorMessage(error: unknown, fallback = "Unknown error"): string {
   return typeof error === "string"
     ? error
     : typeof (error as ErrorLike).message === "string"
       ? (error as ErrorLike).message
-      : "Unknown error";
+      : fallback;
 }
 
 export function sleep(ms: number): Promise<void> {
