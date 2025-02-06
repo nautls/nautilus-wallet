@@ -40,7 +40,7 @@ const routes = [
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-4">
+  <div class="flex h-full flex-col gap-6 p-6">
     <div class="flex-grow"></div>
     <router-link
       v-for="route in routes"

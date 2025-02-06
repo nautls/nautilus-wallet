@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { HTMLAttributes } from "vue";
+import { cn } from "@/common/utils";
 import { MAINNET } from "@/constants/ergo";
 
-defineProps({
-  rootClass: { type: String, required: false, default: "" },
-  contentClass: { type: String, required: false, default: "" }
-});
+interface Props {
+  class?: HTMLAttributes["class"];
+}
+
+const props = defineProps<Props>();
 
 const testnet = !MAINNET;
 const staging = import.meta.env.MODE === "staging";
@@ -17,9 +20,9 @@ const logo = staging
 </script>
 
 <template>
-  <div v-once class="text-center" :class="rootClass">
+  <div class="text-center">
     <div class="min-h-max" :class="testnet || staging ? '-mb-4' : ''">
-      <img :src="logo" class="inline-block min-w-max" :class="contentClass" />
+      <img :src="logo" :class="cn('inline-block min-w-max size-10', props.class)" />
     </div>
 
     <span
