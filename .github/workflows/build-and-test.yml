@@ -22,7 +22,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Lint and Format
         uses: actions/setup-node@v4
@@ -47,7 +47,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Unit test using Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -71,7 +71,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Build using Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
