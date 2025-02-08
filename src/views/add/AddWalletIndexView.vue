@@ -45,11 +45,8 @@ const routes = [
     <div class="flex flex-col w-full text-center">
       <div class="relative m-auto size-24 mb-4">
         <div
-          style="background-image: linear-gradient(-45deg, #47caff 50%, #ffae00 50%)"
-          class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 blur-xl rounded-full size-full"
-        >
-          ssd
-        </div>
+          class="absolute top-1/2 left-1/2 -translate-y-1/2 bg-gradient-to-br from-50% to-50% from-yellow-500 to-sky-500 -translate-x-1/2 blur-lg rounded-full size-full"
+        ></div>
         <NautilusLogo
           class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full size-20"
         />
