@@ -76,11 +76,11 @@ function walletTypeToString(type: WalletType): string {
   <div :class="cn('flex w-full h-auto flex-row gap-2 items-center text-left', props.class)">
     <canvas
       :id="canvasId"
-      :class="concise ? 'h-5 rounded-sm' : 'h-7 rounded-md'"
+      :class="concise ? 'h-6 rounded-sm' : 'h-7 rounded-md'"
       class="inline-block w-auto ring-1 ring-foreground/10 ring-offset-1"
     ></canvas>
 
-    <div class="flex w-full gap-0 flex-col whitespace-nowrap justify-center">
+    <div class="flex w-full gap-0 flex-col whitespace-nowrap justify-between">
       <div
         class="w-full truncate text-sm leading-tight max-w-[110px]"
         :class="concise ? 'font-normal max-w-[125px]' : 'font-semibold max-w-[110px]'"
