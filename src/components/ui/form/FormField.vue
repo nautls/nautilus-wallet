@@ -5,7 +5,7 @@ import { cn } from "@/common/utils";
 
 interface Props {
   class?: HTMLAttributes["class"];
-  validation: BaseValidation;
+  validation?: BaseValidation;
 }
 
 const props = defineProps<Props>();
@@ -15,7 +15,7 @@ const props = defineProps<Props>();
   <div :class="cn('space-y-1.5', props.class)">
     <slot />
 
-    <template v-if="validation.$error && validation.$errors.length">
+    <template v-if="validation?.$error && validation.$errors.length">
       <p
         v-for="e in validation.$errors"
         :key="e.$uid"

@@ -3,12 +3,22 @@ import { onMounted, ref } from "vue";
 import { generateMnemonic } from "@fleet-sdk/wallet";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
+import { CheckIcon, FingerprintIcon, KeyRoundIcon } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Form, FormField } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { DefaultStepper, Step } from "@/components/ui/stepper";
 import { log } from "@/common/logger";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
+
+// import DefaultStepper from "./DefaultStepper.vue";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -67,83 +77,97 @@ async function add() {
 
   router.push({ name: "assets" });
 }
+
+const steps: Step[] = [
+  {
+    step: 1,
+    title: "Info",
+    icon: FingerprintIcon
+  },
+  {
+    step: 2,
+    title: "Secret",
+    icon: KeyRoundIcon
+  },
+  {
+    step: 3,
+    title: "Done",
+    icon: CheckIcon
+  }
+  // {
+  //   step: 4,
+  //   title: "Verification",
+  //   icon: ShieldCheckIcon
+  // }
+];
+
+const index = ref(1);
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 pb-4 pt-6">
-    <div class="flex flex-grow flex-col gap-4">
-      <label
-        >Wallet name
-        <input
-          v-model.lazy="walletName"
+  <div class="flex h-full flex-col gap-6 p-6">
+    <DefaultStepper v-model="index" :steps="steps" />
+
+    <Form class="flex flex-grow flex-col gap-6 h-full justify-center" @submit="add">
+      <FormField :validation="v$.walletName">
+        <Label for="wallet-name">Wallet name</Label>
+        <Input
+          id="wallet-name"
+          v-model="walletName"
           :disabled="loading"
           maxlength="50"
           type="text"
-          class="control block w-full"
           @blur="v$.walletName.$touch()"
         />
-        <p v-if="v$.walletName.$error" class="input-error">
-          {{ v$.walletName.$errors[0].$message }}
-        </p>
-      </label>
-      <div class="flex flex-row gap-4">
-        <label class="w-1/2"
-          >Spending password
-          <input
-            v-model.lazy="password"
-            :disabled="loading"
-            type="password"
-            class="control block w-full"
-            @blur="v$.password.$touch()"
-          />
-          <p v-if="v$.password.$error" class="input-error">
-            {{ v$.password.$errors[0].$message }}
-          </p></label
-        >
-        <label class="w-1/2"
-          >Confirm password
-          <input
-            v-model.lazy="confirmPassword"
-            :disabled="loading"
-            type="password"
-            class="control block w-full"
-            @blur="v$.confirmPassword.$touch()"
-          />
-          <p v-if="v$.confirmPassword.$error" class="input-error">
-            {{ v$.confirmPassword.$errors[0].$message }}
-          </p></label
-        >
-      </div>
-      <label>
-        Recovery phrase
-        <div class="input-wrap bg-gray-100 p-2 !text-base font-normal leading-relaxed">
+      </FormField>
+
+      <Separator />
+
+      <!-- <div class="flex flex-row gap-4"> -->
+      <FormField :validation="v$.password">
+        <Label for="password">Spending password</Label>
+        <Input
+          id="password"
+          v-model="password"
+          :disabled="loading"
+          type="password"
+          @blur="v$.password.$touch()"
+        />
+      </FormField>
+      <FormField :validation="v$.confirmPassword">
+        <Label for="confirm-password">Confirm password</Label>
+        <Input
+          id="confirm-password"
+          v-model="confirmPassword"
+          :disabled="loading"
+          type="password"
+          @blur="v$.confirmPassword.$touch()"
+        />
+      </FormField>
+      <!-- </div> -->
+      <!-- <FormField>
+        <Label>Recovery phrase</Label>
+        <Alert class="text-base text-justify">
           {{ mnemonic }}
-        </div>
-        <p class="p-1 text-xs font-normal">
-          Please, make sure you have carefully written down your recovery phrase somewhere safe. You
-          will need this phrase to use and restore your wallet.
-        </p>
-      </label>
+        </Alert>
+      </FormField>
       <label
         class="mb-2 inline-flex w-full cursor-pointer items-center rounded border border-yellow-300 bg-yellow-100 px-3 py-1 font-normal"
       >
         <input v-model="mnemonicStoreAgreement" class="checkbox" type="checkbox" />
         <span class="text-yellow-900">I've stored the secret phrase in a secure place.</span>
-      </label>
-    </div>
-    <div>
-      <div class="flex flex-row gap-4">
-        <button class="btn outlined w-full" @click="$router.back()">Cancel</button>
-        <button
-          :disabled="loading || !mnemonicStoreAgreement"
-          type="button"
-          class="btn w-full"
-          @click="add()"
-        >
-          <loading-indicator v-if="loading" class="h-4 w-4 align-middle" />
-          <span v-else>Confirm</span>
-        </button>
-      </div>
+      </label> -->
+    </Form>
+
+    <div class="flex flex-row gap-4">
+      <Button
+        class="w-full"
+        size="lg"
+        :disabled="loading || !mnemonicStoreAgreement"
+        @click="add()"
+      >
+        Next
+      </Button>
     </div>
   </div>
 </template>
