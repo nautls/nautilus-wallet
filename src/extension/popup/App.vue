@@ -29,16 +29,16 @@ watch(
     class="min-h-[600px] bg-background h-screen flex overflow-hidden flex-col min-w-[360px] md:mx-auto md:w-4/12 md:shadow-lg"
     :class="{ 'max-w-[360px]': isPopup() }"
   >
-    <div v-if="$route.meta.fullPage" class="flex flex-row items-center p-6 gap-4">
-      <div class="flex flex-col w-full text-center">
-        <div v-if="$route.meta.title" class="text-lg font-semibold leading-tight tracking-tight">
+    <template v-if="$route.meta.fullPage">
+      <div v-if="$route.meta.title" class="flex flex-col w-full text-center p-6">
+        <div class="text-xl font-semibold leading-tight tracking-tight">
           {{ $route.meta.title }}
         </div>
         <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
           {{ $route.meta.description }}
         </div>
       </div>
-    </div>
+    </template>
     <div v-else class="flex-initial">
       <div class="flex flex-row items-center gap-6 bg-header px-4 py-3 pb-0 justify-between">
         <WalletSwitcher />

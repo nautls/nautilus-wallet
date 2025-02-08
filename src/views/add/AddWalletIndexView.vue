@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { RotateCcwIcon, WalletIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
+import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 
@@ -13,35 +14,54 @@ const routes = [
     path: "/add/new",
     icon: {
       component: WalletIcon,
-      class: "stroke-[1.3px]"
+      class: "stroke-[1px]"
     },
-    title: "Create New Wallet",
+    title: "Create a new wallet",
     description: "Create a new Ergo Wallet"
   },
   {
     path: "/add/hw/ledger",
     icon: {
       component: LedgerLogo,
-      class: ""
+      class: "p-1"
     },
-    title: "Connect Ledger Wallet",
+    title: "Connect a Ledger wallet",
     description: "Connect to a Ledger Hardware Wallet"
   },
   {
     path: "/add/restore",
     icon: {
       component: RotateCcwIcon,
-      class: "stroke-[1.3px]"
+      class: "stroke-[1px]"
     },
-    title: "Restore Wallet",
-    description: "Restore an existing Ergo Wallet"
+    title: "Import a wallet",
+    description: "Import an existing Ergo Wallet"
   }
 ];
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
-    <div class="flex-grow"></div>
+  <div class="flex flex-row items-center px-6 pt-8 gap-4">
+    <div class="flex flex-col w-full text-center">
+      <div class="relative m-auto size-24 mb-4">
+        <div
+          style="background-image: linear-gradient(-45deg, #47caff 50%, #ffae00 50%)"
+          class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 blur-xl rounded-full size-full"
+        >
+          ssd
+        </div>
+        <NautilusLogo
+          class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full size-20"
+        />
+      </div>
+      <div class="text-xl font-semibold leading-tight tracking-tight">
+        Welcome to Nautilus Wallet
+      </div>
+      <div class="text-muted-foreground text-sm">Choose an option to get started</div>
+    </div>
+  </div>
+
+  <div class="flex h-full flex-col gap-6 p-6 justify-end">
     <router-link
       v-for="route in routes"
       :key="route.path"
@@ -51,7 +71,7 @@ const routes = [
     >
       <Button
         variant="outline"
-        class="w-full h-auto text-left [&_svg]:size-10 justify-center p-6 gap-6 whitespace-normal"
+        class="w-full h-auto text-left [&_svg]:size-10 justify-center py-4 px-6 gap-6 whitespace-normal"
         @click="navigate"
       >
         <component :is="route.icon.component" :class="route.icon.class" />
@@ -63,7 +83,8 @@ const routes = [
       </Button>
     </router-link>
 
-    <div class="flex-grow"></div>
-    <Button v-if="hasWallets" class="w-full" size="lg" @click="$router.back()">Cancel</Button>
+    <Button v-if="hasWallets" variant="outline" class="w-full" size="lg" @click="$router.back()"
+      >Cancel</Button
+    >
   </div>
 </template>

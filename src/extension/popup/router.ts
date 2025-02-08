@@ -12,11 +12,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "add-wallet",
     component: () => import("@/views/add/AddWalletIndexView.vue"),
     props: true,
-    meta: {
-      fullPage: true,
-      title: "Add Wallet",
-      description: "Create, restore or connect Ergo Wallets"
-    }
+    meta: { fullPage: true }
   },
 
   {
