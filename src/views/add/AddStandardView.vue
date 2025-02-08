@@ -1,3 +1,74 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { generateMnemonic } from "@fleet-sdk/wallet";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
+import { useRouter } from "vue-router";
+import { useAppStore } from "@/stores/appStore";
+import { useWalletStore } from "@/stores/walletStore";
+import { log } from "@/common/logger";
+import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
+import { WalletType } from "@/types/internal";
+
+const app = useAppStore();
+const wallet = useWalletStore();
+const router = useRouter();
+
+const walletName = ref("");
+const password = ref("");
+const confirmPassword = ref("");
+const mnemonic = ref("");
+const mnemonicStoreAgreement = ref(false);
+const loading = ref(false);
+
+const v$ = useVuelidate(
+  {
+    walletName: { required: helpers.withMessage("Wallet name is required.", required) },
+    password: {
+      required: helpers.withMessage("Spending password is required.", required),
+      minLenght: helpers.withMessage(
+        "Spending password requires at least 10 characters.",
+        minLength(10)
+      )
+    },
+    confirmPassword: {
+      sameAs: helpers.withMessage(
+        "'Spending password' and 'Confirm password' must match.",
+        sameAs(password)
+      )
+    }
+  },
+  { walletName, password, confirmPassword }
+);
+
+onMounted(() => {
+  mnemonic.value = generateMnemonic(DEFAULT_WALLET_STRENGTH);
+});
+
+async function add() {
+  const valid = await v$.value.$validate();
+  if (!valid) return;
+
+  loading.value = true;
+  try {
+    const walletId = await app.putWallet({
+      name: walletName.value,
+      mnemonic: mnemonic.value,
+      password: password.value,
+      type: WalletType.Standard
+    });
+
+    await wallet.load(walletId, { syncInBackground: false });
+  } catch (e) {
+    log.error(e);
+    loading.value = false;
+    return;
+  }
+
+  router.push({ name: "assets" });
+}
+</script>
+
 <template>
   <div class="flex h-full flex-col gap-4 pb-4 pt-6">
     <div class="flex flex-grow flex-col gap-4">
@@ -76,79 +147,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue";
-import { generateMnemonic } from "@fleet-sdk/wallet";
-import { english } from "@fleet-sdk/wallet/wordlists";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
-import { useAppStore } from "@/stores/appStore";
-import { useWalletStore } from "@/stores/walletStore";
-import { log } from "@/common/logger";
-import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
-import { WalletType } from "@/types/internal";
-
-export default defineComponent({
-  name: "AddStandardView",
-  setup() {
-    return { v$: useVuelidate(), app: useAppStore(), wallet: useWalletStore() };
-  },
-  data() {
-    return {
-      filteredWords: Object.freeze(english),
-      walletName: "",
-      password: "",
-      confirmPassword: "",
-      mnemonic: "",
-      mnemonicStoreAgreement: false,
-      loading: false
-    };
-  },
-  created() {
-    this.mnemonic = generateMnemonic(DEFAULT_WALLET_STRENGTH);
-  },
-  validations() {
-    return {
-      walletName: { required: helpers.withMessage("Wallet name is required.", required) },
-      password: {
-        required: helpers.withMessage("Spending password is required.", required),
-        minLenght: helpers.withMessage(
-          "Spending password requires at least 10 characters.",
-          minLength(10)
-        )
-      },
-      confirmPassword: {
-        sameAs: helpers.withMessage(
-          "'Spending password' and 'Confirm password' must match.",
-          sameAs(this.password)
-        )
-      }
-    };
-  },
-  methods: {
-    async add() {
-      const valid = await this.v$.$validate();
-      if (!valid) return;
-
-      this.loading = true;
-      try {
-        const walletId = await this.app.putWallet({
-          name: this.walletName,
-          mnemonic: this.mnemonic,
-          password: this.password,
-          type: WalletType.Standard
-        });
-
-        await this.wallet.load(walletId, { syncInBackground: false });
-      } catch (e) {
-        log.error(e);
-        this.loading = false;
-        return;
-      }
-
-      this.$router.push({ name: "assets" });
-    }
-  }
-});
-</script>
