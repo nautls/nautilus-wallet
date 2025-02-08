@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { defineAsyncComponent, watch } from "vue";
+import { ChevronLeftIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
+import { Button } from "@/components/ui/button";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import { WalletSwitcher } from "@/components/wallet";
 import { isPopup } from "@/common/browser";
@@ -30,12 +32,18 @@ watch(
     :class="{ 'max-w-[360px]': isPopup() }"
   >
     <template v-if="$route.meta.fullPage">
-      <div v-if="$route.meta.title" class="flex flex-col w-full text-center p-6">
-        <div class="text-xl font-semibold leading-tight tracking-tight">
-          {{ $route.meta.title }}
-        </div>
-        <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
-          {{ $route.meta.description }}
+      <div v-if="$route.meta.title" class="flex flex-row w-full p-6 items-center">
+        <Button class="z-10" variant="ghost" size="icon" @click="$router.back">
+          <ChevronLeftIcon />
+        </Button>
+
+        <div class="flex flex-col w-full text-center -ml-9">
+          <div class="text-xl font-semibold leading-tight tracking-tight">
+            {{ $route.meta.title }}
+          </div>
+          <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
+            {{ $route.meta.description }}
+          </div>
         </div>
       </div>
     </template>
