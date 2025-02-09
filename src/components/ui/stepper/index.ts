@@ -1,4 +1,4 @@
-import { type Component } from 'vue'
+import type { Ref, Component } from 'vue'
 
 export { default as Stepper } from './Stepper.vue'
 export { default as StepperIndicator } from './StepperIndicator.vue'
@@ -10,6 +10,7 @@ export { default as DefaultStepper } from './DefaultStepper.vue'
 
 export interface Step {
    step: number;
-   title: string;
+   title?: string;
    icon: Component;
+   enabled: Ref<boolean>;
  }
