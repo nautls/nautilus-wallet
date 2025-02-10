@@ -223,7 +223,7 @@ function isFeeAsset(tokenId: string): boolean {
 <template>
   <ScrollArea type="scroll" class="flex-grow">
     <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
-      <Card class="p-6 gap-6 flex flex-col">
+      <Card class="flex flex-col gap-6 p-6">
         <FormField :validation="v$.recipient">
           <Label for="recipient">Recipient Address</Label>
           <Input
@@ -258,9 +258,9 @@ function isFeeAsset(tokenId: string): boolean {
               <CommandSeparator class="my-1" />
               <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
                 <CheckCheckIcon class="size-6 shrink-0" />
-                <div class="text-xs flex flex-col items-start justify-center font-bold">
+                <div class="flex flex-col items-start justify-center text-xs font-bold">
                   Add all assets
-                  <div class="text-muted-foreground font-normal">
+                  <div class="font-normal text-muted-foreground">
                     Add all assets to the sending list
                   </div>
                 </div>

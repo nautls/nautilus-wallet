@@ -32,7 +32,7 @@ const format = useFormat();
     <CardHeader>
       <template v-if="props.loading">
         <CardTitle class="flex flex-row items-center justify-between gap-2">
-          <Skeleton class="w-40 h-5" />
+          <Skeleton class="h-5 w-40" />
           <Skeleton class="size-5" />
         </CardTitle>
       </template>
@@ -49,25 +49,25 @@ const format = useFormat();
 
     <CardContent class="flex flex-col gap-3">
       <template v-if="props.loading">
-        <div class="flex flex-row gap-2 items-center p-0">
+        <div class="flex flex-row items-center gap-2 p-0">
           <Skeleton v-if="loading" class="size-9 rounded-full" />
 
           <div class="flex flex-grow flex-col justify-center">
-            <Skeleton class="w-20 h-4" />
-            <Skeleton class="w-16 h-3 mt-1" />
+            <Skeleton class="h-4 w-20" />
+            <Skeleton class="mt-1 h-3 w-16" />
           </div>
           <div class="whitespace-nowrap text-right align-middle">
-            <Skeleton class="w-16 h-4" />
+            <Skeleton class="h-4 w-16" />
           </div>
         </div>
       </template>
       <template v-else>
         <div v-for="(asset, index) in assets" :key="index">
-          <div v-if="type === 'swap' && assets.length > 1 && index == 1" class="pb-2 w-full">
+          <div v-if="type === 'swap' && assets.length > 1 && index == 1" class="w-full pb-2">
             <ArrowDownIcon class="m-auto size-4 text-muted-foreground" />
           </div>
 
-          <div class="flex flex-row gap-2 items-center">
+          <div class="flex flex-row items-center gap-2">
             <AssetIcon class="size-9" :token-id="asset.tokenId" :type="asset.metadata?.type" />
             <div
               class="flex flex-grow flex-col justify-center"
@@ -81,7 +81,7 @@ const format = useFormat();
                     <TooltipTrigger class="inline align-middle text-success">
                       <MilestoneIcon class="size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent class="text-center px-3 py-2 w-48">
+                    <TooltipContent class="w-48 px-3 py-2 text-center">
                       <p class="font-semibold">New Token</p>
                       <p class="text-xs">This token will be minted in this transaction.</p>
                     </TooltipContent>

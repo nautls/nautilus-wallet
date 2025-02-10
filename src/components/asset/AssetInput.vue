@@ -211,7 +211,7 @@ function tokenRate(tokenId: string): number {
     <div
       :class="
         cn(
-          'flex w-full gap-1 flex-col cursor-text rounded-md relative border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'relative flex w-full cursor-text flex-col gap-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
           props.class
         )
       "
@@ -226,37 +226,37 @@ function tokenRate(tokenId: string): number {
         tabindex="-1"
         size="icon"
         variant="outline"
-        class="size-6 absolute -right-2 -top-2 cursor-pointer border-0 rounded-full bg-background ring-1 ring-input"
+        class="absolute -right-2 -top-2 size-6 cursor-pointer rounded-full border-0 bg-background ring-1 ring-input"
         @click.prevent.stop="emit('remove')"
       >
-        <TrashIcon class="p-0.5 m-auto size-4" />
+        <TrashIcon class="m-auto size-4 p-0.5" />
       </Button>
 
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="outline-none w-full min-w-24 bg-transparent placeholder:text-muted-foreground"
+          class="w-full min-w-24 bg-transparent outline-none placeholder:text-muted-foreground"
           placeholder="0"
           @blur="v$.$touch()"
         />
 
-        <div class="flex flex-row min-w-max items-center gap-1 w-auto select-none">
-          <span class="flex-grow text-sm whitespace-nowrap">
+        <div class="flex w-auto min-w-max select-none flex-row items-center gap-1">
+          <span class="flex-grow whitespace-nowrap text-sm">
             {{ baseCurrencyName }}
           </span>
           <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
         </div>
       </div>
 
-      <div class="flex flex-row gap-2 select-none">
-        <div class="flex-grow flex flex-row gap-1 items-center text-xs text-muted-foreground">
+      <div class="flex select-none flex-row gap-2">
+        <div class="flex flex-grow flex-row items-center gap-1 text-xs text-muted-foreground">
           <Button
             v-if="isConvertible"
             type="button"
             tabindex="-1"
             variant="minimal"
             size="condensed"
-            class="text-xs [&_svg]:size-3 gap-1"
+            class="gap-1 text-xs [&_svg]:size-3"
             @click="toggleDenominating"
           >
             <span>{{ formattedDenom }} {{ denomCurrencyName }}</span>
@@ -272,7 +272,7 @@ function tokenRate(tokenId: string): number {
           tabindex="-1"
           variant="minimal"
           size="condensed"
-          class="text-xs [&_svg]:size-3 gap-1"
+          class="gap-1 text-xs [&_svg]:size-3"
           @click="setMaxValue()"
           ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
         >

@@ -8,7 +8,13 @@
   "singleQuote": false,
   "trailingComma": "none",
   "arrowParens": "always",
-  "plugins": ["prettier-plugin-tailwindcss", "@ianvs/prettier-plugin-sort-imports"],
+  
+  "plugins": [
+    "@ianvs/prettier-plugin-sort-imports", 
+    "prettier-plugin-tailwindcss"
+  ],
+
+  "tailwindPreserveWhitespace": true,
   "importOrder": ["^vue$", "^pinia$", "<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^@/stores/(.*)$", "^@/components/(.*)$", "^@/(.*)$", "^[./]", "", "^(?!.*[.]css$)[./].*$", ".css$"],
   "importOrderParserPlugins": ["typescript"],
   "importOrderCaseSensitive": false

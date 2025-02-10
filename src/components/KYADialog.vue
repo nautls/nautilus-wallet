@@ -37,12 +37,12 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         <AlertDialogTitle>Know Your Assumptions</AlertDialogTitle>
         <AlertDialogDescription>
           <ScrollArea type="hover" hide-outline>
-            <div class="text-sm text-left space-y-2 px-2 h-[60dvh] text-foreground">
+            <div class="h-[60dvh] space-y-2 px-2 text-left text-sm text-foreground">
               <p>Nautilus is an open source tool for interacting with the Ergo Blockchain.</p>
 
-              <h2 class="font-bold pt-4 text-base">Notice that:</h2>
+              <h2 class="pt-4 text-base font-bold">Notice that:</h2>
 
-              <ul class="list-outside list-disc pl-4 space-y-1">
+              <ul class="list-outside list-disc space-y-1 pl-4">
                 <li>
                   We do not log, collect, profile, share, or sell your data. For more information,
                   please refer to our
@@ -56,7 +56,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
                   Nautilus operates on a live blockchain, thus transactions are final, and
                   irreversible once they have
                   <span
-                    class="font-semibold bg-secondary text-secondary-foreground px-1.5 border border-input rounded-sm"
+                    class="rounded-sm border border-input bg-secondary px-1.5 font-semibold text-secondary-foreground"
                     >confirmed</span
                   >
                   status;
@@ -80,9 +80,9 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
                 </li>
               </ul>
 
-              <h2 class="font-bold pt-4 text-base">By accepting these KYA, you agree that:</h2>
+              <h2 class="pt-4 text-base font-bold">By accepting these KYA, you agree that:</h2>
 
-              <ul class="indent-xs list-outside pl-4 list-decimal">
+              <ul class="indent-xs list-outside list-decimal pl-4">
                 <li>You will use the product at your own peril and risk;</li>
                 <li>Only YOU are responsible for your assets;</li>
                 <li>Only YOU are responsible for securely storing your recovery phrase.</li>

@@ -125,7 +125,7 @@ async function toggleViewMode() {
         variant="ghost"
         role="combobox"
         :aria-expanded="isOpen"
-        class="w-[210px] justify-between h-full bg-transparent"
+        class="h-full w-[210px] justify-between bg-transparent"
       >
         <WalletItem v-if="current" :wallet="current" />
         <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -154,8 +154,8 @@ async function toggleViewMode() {
             >
               <WalletItem v-if="current" :wallet="w" concise />
 
-              <div class="w-4 h-4 transition-all duration-700">
-                <LoaderCircleIcon v-if="loadingId === w.id" class="animate-spin h-full w-full" />
+              <div class="h-4 w-4 transition-all duration-700">
+                <LoaderCircleIcon v-if="loadingId === w.id" class="h-full w-full animate-spin" />
                 <CheckIcon v-else-if="current?.id === w.id" class="h-full w-full" />
               </div>
             </CommandItem>
@@ -164,7 +164,7 @@ async function toggleViewMode() {
 
         <CommandSeparator />
 
-        <div class="flex flex-row items-center justify-center pt-2 gap-2">
+        <div class="flex flex-row items-center justify-center gap-2 pt-2">
           <Button
             class="cursor-default"
             variant="ghost"

@@ -44,7 +44,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         </DrawerDescription>
       </DrawerHeader>
 
-      <QrCode :data="exPk" class="size-[200px] m-auto" />
+      <QrCode :data="exPk" class="m-auto size-[200px]" />
       <StatsCard
         class="break-all bg-secondary text-secondary-foreground"
         :display-copy-button="true"

@@ -153,13 +153,13 @@ defineExpose({ open: openDialog, close: closeDialog });
       <DrawerHeader>
         <AssetIcon
           v-if="!isImageNft"
-          class="mx-auto size-20 pointer-events-none pb-1"
+          class="pointer-events-none mx-auto size-20 pb-1"
           :token-id="asset?.id ?? tokenId"
           :type="asset?.subtype"
         />
 
         <DrawerTitle>
-          <div class="max-w-[280px] w-fit truncate xs:m-auto leading-tight">
+          <div class="w-fit max-w-[280px] truncate leading-tight xs:m-auto">
             {{ asset?.name ?? asset?.id }}
           </div>
         </DrawerTitle>
@@ -172,14 +172,14 @@ defineExpose({ open: openDialog, close: closeDialog });
         </DrawerDescription>
       </DrawerHeader>
 
-      <ScrollArea type="hover" class="flex-grow -mx-6">
+      <ScrollArea type="hover" class="-mx-6 flex-grow">
         <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
             <AssetImageSandbox
               display-external-link
               :src="contentUrl"
               object-fit="cover"
-              class="w-full rounded-md min-h-[240px] border-input border"
+              class="min-h-[240px] w-full rounded-md border border-input"
             />
           </div>
 

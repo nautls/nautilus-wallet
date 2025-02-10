@@ -104,12 +104,12 @@ function filter(items: (T | string)[]) {
           class="w-full items-center gap-0"
         >
           <span class="flex-grow">Add asset</span>
-          <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50 float-end -ml-4" />
+          <ChevronsUpDownIcon class="float-end -ml-4 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
     </div>
 
-    <PopoverContent class="p-0 min-w-[200px]" :style="popoverWidth">
+    <PopoverContent class="min-w-[200px] p-0" :style="popoverWidth">
       <Command v-model:search-term="searchTerm" class="max-h-[210px]" :filter-function="filter">
         <CommandInput placeholder="Search asset..." />
         <CommandEmpty>No assets found.</CommandEmpty>

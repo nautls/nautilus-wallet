@@ -37,7 +37,7 @@ async function remove(origin: string) {
   <div v-if="!loading" class="space-y-6">
     <div
       v-if="!connections.length"
-      class="flex flex-col mt-10 items-center gap-4 text-center text-muted-foreground text-sm"
+      class="mt-10 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground"
     >
       <CableIcon :size="48" class="stroke-[1.5px]" />
       You have no connected dApps yet.
@@ -47,21 +47,21 @@ async function remove(origin: string) {
       <Card
         v-for="(connection, i) in connections"
         :key="i"
-        class="flex flex-col relative py-6 gap-6"
+        class="relative flex flex-col gap-6 py-6"
       >
         <Button
           tabindex="-1"
           size="icon"
           variant="outline"
-          class="size-6 absolute -right-2 -top-2 cursor-pointer rounded-full border-0 bg-background ring-1 ring-input"
+          class="absolute -right-2 -top-2 size-6 cursor-pointer rounded-full border-0 bg-background ring-1 ring-input"
           @click="remove(connection.origin)"
         >
-          <TrashIcon class="p-0.5 m-auto size-4" />
+          <TrashIcon class="m-auto size-4 p-0.5" />
         </Button>
 
         <AppItem class="px-6" :origin="connection.origin" :favicon="connection.favicon" />
         <Separator class="my-4 w-full" :icon="CableIcon" />
-        <WalletItem class="px-6 w-fit m-auto" :wallet="getWalletBy(connection.walletId)!" />
+        <WalletItem class="m-auto w-fit px-6" :wallet="getWalletBy(connection.walletId)!" />
       </Card>
     </template>
   </div>

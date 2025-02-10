@@ -28,27 +28,27 @@ watch(
 
 <template>
   <div
-    class="min-h-[600px] bg-background h-screen flex overflow-hidden flex-col min-w-[360px] md:mx-auto md:w-4/12 md:shadow-lg"
+    class="flex h-screen min-h-[600px] min-w-[360px] flex-col overflow-hidden bg-background md:mx-auto md:w-4/12 md:shadow-lg"
     :class="{ 'max-w-[360px]': isPopup() }"
   >
     <template v-if="$route.meta.fullPage">
-      <div v-if="$route.meta.title" class="flex flex-row w-full p-6 items-center">
+      <div v-if="$route.meta.title" class="flex w-full flex-row items-center p-6">
         <Button class="z-10" variant="ghost" size="icon" @click="$router.back">
           <ChevronLeftIcon />
         </Button>
 
-        <div class="flex flex-col w-full text-center -ml-9">
+        <div class="-ml-9 flex w-full flex-col text-center">
           <div class="text-xl font-semibold leading-tight tracking-tight">
             {{ $route.meta.title }}
           </div>
-          <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
+          <div v-if="$route.meta.description" class="text-sm text-muted-foreground">
             {{ $route.meta.description }}
           </div>
         </div>
       </div>
     </template>
     <div v-else class="flex-initial">
-      <div class="flex flex-row items-center gap-6 bg-header px-4 py-3 pb-0 justify-between">
+      <div class="flex flex-row items-center justify-between gap-6 bg-header px-4 py-3 pb-0">
         <WalletSwitcher />
         <NautilusLogo class="mx-4 my-2" />
       </div>

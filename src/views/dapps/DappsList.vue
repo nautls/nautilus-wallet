@@ -4,7 +4,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
 </script>
 
 <template>
-  <div class="grid grid-cols-2 justify-stretch p-4 gap-4 sm:grid-cols-4 md:grid-cols-2">
+  <div class="grid grid-cols-2 justify-stretch gap-4 p-4 sm:grid-cols-4 md:grid-cols-2">
     <router-link
       v-for="dapp in dappsManifest"
       :key="dapp.path"
@@ -14,7 +14,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
     >
       <Button
         variant="outline"
-        class="w-full h-full flex-col [&_svg]:size-14 [&_img]:size-14 p-4 gap-4"
+        class="h-full w-full flex-col gap-4 p-4 [&_img]:size-14 [&_svg]:size-14"
         @click="navigate"
       >
         <component :is="dapp.icon.component" class="m-auto" v-bind="dapp.icon.props" />

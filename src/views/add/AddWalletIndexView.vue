@@ -41,24 +41,24 @@ const routes = [
 </script>
 
 <template>
-  <div class="flex flex-row items-center px-6 pt-8 gap-4">
-    <div class="flex flex-col w-full text-center">
-      <div class="relative m-auto size-24 mb-4">
+  <div class="flex flex-row items-center gap-4 px-6 pt-8">
+    <div class="flex w-full flex-col text-center">
+      <div class="relative m-auto mb-4 size-24">
         <div
-          class="absolute top-1/2 left-1/2 -translate-y-1/2 bg-gradient-to-br from-50% to-50% from-yellow-500 to-sky-500 -translate-x-1/2 blur-lg rounded-full size-full"
+          class="absolute left-1/2 top-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-yellow-500 from-50% to-sky-500 to-50% blur-lg"
         ></div>
         <NautilusLogo
-          class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full size-20"
+          class="absolute left-1/2 top-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
         />
       </div>
       <div class="text-xl font-semibold leading-tight tracking-tight">
         Welcome to Nautilus Wallet
       </div>
-      <div class="text-muted-foreground text-sm">Choose an option to get started</div>
+      <div class="text-sm text-muted-foreground">Choose an option to get started</div>
     </div>
   </div>
 
-  <div class="flex h-full flex-col gap-6 p-6 justify-end">
+  <div class="flex h-full flex-col justify-end gap-6 p-6">
     <router-link
       v-for="route in routes"
       :key="route.path"
@@ -68,14 +68,14 @@ const routes = [
     >
       <Button
         variant="outline"
-        class="w-full h-auto text-left [&_svg]:size-10 justify-center py-4 px-6 gap-6 whitespace-normal"
+        class="h-auto w-full justify-center gap-6 whitespace-normal px-6 py-4 text-left [&_svg]:size-10"
         @click="navigate"
       >
         <component :is="route.icon.component" :class="route.icon.class" />
 
-        <div class="flex flex-col w-full">
+        <div class="flex w-full flex-col">
           <span class="font-semibold">{{ route.title }}</span>
-          <span class="text-muted-foreground text-xs">{{ route.description }}</span>
+          <span class="text-xs text-muted-foreground">{{ route.description }}</span>
         </div>
       </Button>
     </router-link>

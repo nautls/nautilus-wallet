@@ -17,7 +17,7 @@ const domain = computed(() => props.origin) || "???";
 <template>
   <div :class="cn('mx-auto flex items-center gap-2 text-center text-sm', props.class)">
     <div
-      class="mx-auto size-7 rounded-full ring-1 ring-foreground/10 ring-offset-1 flex items-center justify-center"
+      class="mx-auto flex size-7 items-center justify-center rounded-full ring-1 ring-foreground/10 ring-offset-1"
     >
       <img
         v-if="favicon && !hasImageError"

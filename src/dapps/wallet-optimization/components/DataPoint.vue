@@ -25,7 +25,7 @@ const iconColor = computed(() => (props.healthy ? "text-success" : "text-destruc
     </template>
 
     <template #default>
-      <Skeleton v-if="loading" class="w-8/12 h-6" />
+      <Skeleton v-if="loading" class="h-6 w-8/12" />
       <div v-else class="text-base font-bold">{{ content }}</div>
     </template>
   </StatsCard>
