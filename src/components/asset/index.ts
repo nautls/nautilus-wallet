@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
 export const assetSignIconVariants = cva(
-  "size-5 min-w-5 rounded-full p-0.5 bg-accent border-accent border",
+  "size-5 min-w-5 rounded-full border border-accent bg-accent p-0.5",
   {
     variants: {
       variant: {
@@ -9,7 +9,7 @@ export const assetSignIconVariants = cva(
         negative: "text-red-600 dark:text-red-400",
         equal: "text-muted-foreground",
         swap: "",
-        burn: "bg-transparent border-none"
+        burn: "border-none bg-transparent"
       }
     },
     defaultVariants: {

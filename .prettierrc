@@ -14,7 +14,8 @@
     "prettier-plugin-tailwindcss"
   ],
 
-  "tailwindPreserveWhitespace": true,
+  "tailwindPreserveWhitespace": false,
+  "tailwindFunctions": ["clsx", "cva", "cn"],
   "importOrder": ["^vue$", "^pinia$", "<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^@/stores/(.*)$", "^@/components/(.*)$", "^@/(.*)$", "^[./]", "", "^(?!.*[.]css$)[./].*$", ".css$"],
   "importOrderParserPlugins": ["typescript"],
   "importOrderCaseSensitive": false
