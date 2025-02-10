@@ -14,7 +14,16 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
     meta: { fullPage: true }
   },
-
+  {
+    path: "/add/new",
+    name: "add-standard-wallet",
+    component: () => import("@/views/add/CreateWalletView.vue"),
+    meta: {
+      fullPage: true,
+      title: "Create New Wallet",
+      description: "Create a new Ergo Wallet"
+    }
+  },
   {
     path: "/add/restore",
     name: "restore-wallet",
@@ -23,16 +32,6 @@ const routes: Array<RouteRecordRaw> = [
       fullPage: true,
       title: "Restore Wallet",
       description: "Restore an existing Ergo Wallet"
-    }
-  },
-  {
-    path: "/add/new",
-    name: "add-standard-wallet",
-    component: () => import("@/views/add/AddStandardView.vue"),
-    meta: {
-      fullPage: true,
-      title: "Create New Wallet",
-      description: "Create a new Ergo Wallet"
     }
   },
   {
