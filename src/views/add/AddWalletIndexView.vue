@@ -5,9 +5,38 @@ import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import { browser } from "@/common/browser";
+import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 const wallet = useWalletStore();
 const hasWallets = computed(() => wallet.id !== 0);
+
+/**
+ * Navigate to a route in a new tab
+ * @param navigate - Router navigate function
+ * @param href - Route href
+ */
+function navigateInTab(navigate: () => unknown, href: string) {
+  if (!browser || !browser.tabs) return navigate();
+  const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html#${href}?redirect=false`);
+  browser.tabs.create({ url, active: true });
+  window.close();
+}
+
+/**
+ * Handle navigation to a route
+ * @param navigate - Router navigate function
+ * @param href - Route href
+ */
+function handle(navigate: () => unknown, href: string) {
+  // Interacting with devices over WebUSB or WebHID for the first time requires a
+  // new tab to be opened. ore info: https://issues.chromium.org/issues/40233645.
+  if (href === "/add/hw/ledger") {
+    navigateInTab(navigate, href);
+  } else {
+    navigate();
+  }
+}
 
 const routes = [
   {
@@ -25,8 +54,8 @@ const routes = [
       component: LedgerLogo,
       class: "p-1"
     },
-    title: "Connect a Ledger wallet",
-    description: "Connect to a Ledger Hardware Wallet"
+    title: "Connect Ledger Wallet",
+    description: "Connect your Hardware Wallet"
   },
   {
     path: "/add/restore",
@@ -69,7 +98,7 @@ const routes = [
       <Button
         variant="outline"
         class="h-auto w-full justify-center gap-6 whitespace-normal px-6 py-4 text-left [&_svg]:size-10"
-        @click="navigate"
+        @click="handle(navigate, route.path)"
       >
         <component :is="route.icon.component" :class="route.icon.class" />
 

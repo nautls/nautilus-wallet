@@ -84,6 +84,7 @@ async function next() {
     });
 
     await wallet.load(walletId, { syncInBackground: false });
+    router.push({ name: "assets" });
   } catch (e) {
     toast({
       title: "Error creating wallet",
@@ -96,8 +97,6 @@ async function next() {
   } finally {
     loading.value = false;
   }
-
-  router.push({ name: "assets" });
 }
 
 function newMnemonic() {
@@ -191,8 +190,8 @@ const steps: Step[] = [
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button class="w-full items-center" size="lg" @click="next">
-        <template v-if="loading"> <Loader2Icon class="animate-spin" />Creating wallet...</template>
+      <Button :disabled="loading" class="w-full items-center" size="lg" @click="next">
+        <template v-if="loading"><Loader2Icon class="animate-spin" />Creating wallet...</template>
         <template v-else>{{ nexButtonTitle }}</template>
       </Button>
     </div>

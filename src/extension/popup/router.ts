@@ -25,6 +25,16 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
+    path: "/add/hw/ledger",
+    name: "add-hw-ledger",
+    component: () => import("@/views/add/LedgerConnectView.vue"),
+    meta: {
+      fullPage: true,
+      title: "Connect Ledger Wallet",
+      description: "Connect your Hardware Wallet"
+    }
+  },
+  {
     path: "/add/restore",
     name: "restore-wallet",
     component: () => import("@/views/add/RestoreView.vue"),
@@ -32,16 +42,6 @@ const routes: Array<RouteRecordRaw> = [
       fullPage: true,
       title: "Restore Wallet",
       description: "Restore an existing Ergo Wallet"
-    }
-  },
-  {
-    path: "/add/hw/ledger",
-    name: "add-hw-ledger",
-    component: () => import("@/views/add/ConnectLedgerView.vue"),
-    meta: {
-      fullPage: true,
-      title: "Connect Ledger Wallet",
-      description: "Connect to a Ledger Hardware Wallet"
     }
   },
   {
