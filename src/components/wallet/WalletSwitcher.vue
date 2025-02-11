@@ -98,21 +98,27 @@ function toggleColorMode() {
 
 async function toggleViewMode() {
   if (!browser) return;
+  const viewMode = app.settings.extension.viewMode;
 
   if (import.meta.env.TARGET === "firefox") {
+    app.settings.extension.viewMode = viewMode === "popup" ? "sidebar" : "popup";
     browser.sidebarAction.toggle();
-  } else {
-    if (isPopupView) {
-      const currentWindow = await browser.windows.getCurrent();
-      if (currentWindow?.id) {
-        chrome.sidePanel.open({ windowId: currentWindow.id });
-      } else {
-        const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
-        browser.tabs.create({ url, active: false });
-      }
-    }
+    return;
+  }
 
-    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: isPopupView });
+  if (isPopupView) {
+    const currentWindow = await browser.windows.getCurrent();
+    if (currentWindow?.id) {
+      app.settings.extension.viewMode = "sidebar";
+      chrome.sidePanel.open({ windowId: currentWindow.id });
+      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+    } else {
+      const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
+      browser.tabs.create({ url, active: false });
+    }
+  } else {
+    app.settings.extension.viewMode = "popup";
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
   }
 
   window.close();

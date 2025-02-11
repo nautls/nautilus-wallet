@@ -29,6 +29,7 @@ export type Settings = {
   blacklistedTokensLists: string[];
   zeroConf: boolean;
   colorMode: "light" | "dark" | "auto";
+  extension: { viewMode: "popup" | "sidebar" };
 };
 
 type StandardWallet = {
@@ -53,7 +54,9 @@ export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
   const chain = useChainStore();
   const router = useRouter();
-  const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS);
+  const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS, {
+    mergeDefaults: true
+  });
   const colorMode = useColorMode({
     storageKey: null /** disable storage */,
     initialValue: settings.value.colorMode
