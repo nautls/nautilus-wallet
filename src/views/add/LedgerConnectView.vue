@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 import { hex } from "@fleet-sdk/crypto";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
 import { Loader2Icon } from "lucide-vue-next";
-import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import LedgerDevice from "@/components/LedgerDevice.vue";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -17,18 +25,38 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
 import HdKey from "@/chains/ergo/hdKey";
 import { StateCallback } from "@/chains/ergo/transaction/prover";
+import { browser } from "@/common/browser";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { WalletType } from "@/types/internal";
 
 const app = useAppStore();
 const wallet = useWalletStore();
-const router = useRouter();
 const { toast } = useToast();
 
 const walletName = ref("");
 const loading = ref(false);
+const connected = ref(false);
 const ledgerDevice = useTemplateRef("ledger-device");
+
+const formattedViewMode = computed(() => {
+  return app.settings.extension.viewMode === "popup" ? "popup" : "side panel";
+});
+
+async function switchToViewMode() {
+  if (!browser) return;
+
+  if (app.settings.extension.viewMode === "popup") {
+    window.close();
+    chrome.action.openPopup();
+  } else {
+    const currentWindow = await browser.windows.getCurrent();
+    if (currentWindow?.id) {
+      window.close();
+      chrome.sidePanel.open({ windowId: currentWindow.id });
+    }
+  }
+}
 
 const v$ = useVuelidate(
   { walletName: { required: helpers.withMessage("Wallet name is required.", required) } },
@@ -70,7 +98,7 @@ async function add() {
       extendedPublicKey
     });
     await wallet.load(walletId, { syncInBackground: false });
-    router.push({ name: "assets" });
+    connected.value = true;
   } catch (e) {
     if (e instanceof DeviceError) {
       if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
@@ -125,4 +153,21 @@ async function add() {
       <template v-else>Connect</template>
     </Button>
   </div>
+
+  <AlertDialog :open="connected">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Connected!</AlertDialogTitle>
+        <AlertDialogDescription>
+          Your Ledger device has been successfully connected. You can now open Nautilus Wallet in
+          the browser's {{ formattedViewMode }}.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogAction class="w-full" @click="switchToViewMode"
+          >Open Nautilus in the {{ formattedViewMode }}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
 </template>
