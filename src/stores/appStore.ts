@@ -142,7 +142,13 @@ export const useAppStore = defineStore("app", () => {
 
     const walletId = await walletsDbService.put(dbObj);
     dbObj.id = walletId;
-    privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
+
+    const index = privateState.wallets.findIndex((w) => w.id === walletId);
+    if (index > -1) {
+      privateState.wallets.splice(index, 1, dbObj as NotNullId<IDbWallet>);
+    } else {
+      privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
+    }
 
     return walletId;
   }
