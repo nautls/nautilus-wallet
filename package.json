@@ -48,7 +48,7 @@
     "ledger-ergo-js": "^0.2.1",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.475.0",
-    "pinia": "^2.3.1",
+    "pinia": "^3.0.1",
     "radix-vue": "^1.9.13",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
