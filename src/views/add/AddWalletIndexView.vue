@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { RotateCcwIcon, WalletIcon } from "lucide-vue-next";
+import { ImportIcon, WalletIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ const routes = [
   {
     path: "/add/import",
     icon: {
-      component: RotateCcwIcon,
+      component: ImportIcon,
       class: "stroke-[1px]"
     },
     title: "Import a wallet",

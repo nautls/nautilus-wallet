@@ -171,7 +171,7 @@ const steps: Step[] = [
         <Separator class="my-2" />
 
         <FormField :validation="v$.password">
-          <Label for="password">Spending password</Label>
+          <Label :disabled="isReadonly" for="password">Spending password</Label>
           <PasswordInput
             id="password"
             v-model="password"
@@ -181,7 +181,7 @@ const steps: Step[] = [
           />
         </FormField>
         <FormField :validation="v$.confirmPassword">
-          <Label for="confirm-password">Confirm password</Label>
+          <Label :disabled="isReadonly" for="confirm-password">Confirm password</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
