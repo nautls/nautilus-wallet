@@ -54,11 +54,11 @@ const routes = [
       component: LedgerLogo,
       class: "p-1"
     },
-    title: "Connect Ledger Wallet",
+    title: "Connect a Ledger Wallet",
     description: "Connect your Hardware Wallet"
   },
   {
-    path: "/add/restore",
+    path: "/add/import",
     icon: {
       component: RotateCcwIcon,
       class: "stroke-[1px]"

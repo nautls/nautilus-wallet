@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { generateMnemonic } from "@fleet-sdk/wallet";
+import { computed, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
-import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
+import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
 import { FingerprintIcon, KeyRoundIcon, Loader2Icon, RotateCwIcon } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
@@ -12,6 +11,14 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { DefaultStepper, Step } from "@/components/ui/stepper";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,12 +41,16 @@ const mnemonic = ref("");
 const loading = ref(false);
 const step = ref(1);
 const strength = ref(DEFAULT_WALLET_STRENGTH);
+const walletType = ref<"standard" | "readonly">("standard");
 
 const v$ = useVuelidate(
   {
     walletName: { required: helpers.withMessage("Wallet name is required.", required) },
     password: {
-      required: helpers.withMessage("Spending password is required.", required),
+      required: helpers.withMessage(
+        "Spending password is required.",
+        requiredIf(() => !isReadonly.value)
+      ),
       minLength: helpers.withMessage(
         "Spending password requires at least 10 characters.",
         minLength(10)
@@ -55,13 +66,22 @@ const v$ = useVuelidate(
   { walletName, password, confirmPassword }
 );
 
-const nexButtonTitle = computed(() =>
-  step.value === 1 ? "Create a recovery phrase" : "I've saved these words"
-);
+const isReadonly = computed(() => walletType.value === "readonly");
+const nexButtonTitle = computed(() => {
+  if (step.value === 1) {
+    return isReadonly.value ? "Insert a public key" : "Insert a recovery phrase";
+  } else {
+    return "I've saved these words";
+  }
+});
 
-onMounted(newMnemonic);
+watch(walletType, () => {
+  password.value = "";
+  confirmPassword.value = "";
 
-watch(strength, newMnemonic);
+  v$.value.password.$reset();
+  v$.value.confirmPassword.$reset();
+});
 
 async function next() {
   if (step.value === 1) {
@@ -87,7 +107,7 @@ async function next() {
     router.push({ name: "assets" });
   } catch (e) {
     toast({
-      title: "Error creating wallet",
+      title: "Error importing wallet",
       variant: "destructive",
       description: extractErrorMessage(e)
     });
@@ -97,10 +117,6 @@ async function next() {
   } finally {
     loading.value = false;
   }
-}
-
-function newMnemonic() {
-  mnemonic.value = generateMnemonic(strength.value);
 }
 
 const steps: Step[] = [
@@ -137,6 +153,21 @@ const steps: Step[] = [
           />
         </FormField>
 
+        <FormField>
+          <Select v-model="walletType">
+            <Label for="wallet-type">Wallet type</Label>
+            <SelectTrigger id="wallet-type">
+              <SelectValue placeholder="Select a fruit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="standard">Standard</SelectItem>
+                <SelectItem value="readonly">Read-only</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </FormField>
+
         <Separator class="my-2" />
 
         <FormField :validation="v$.password">
@@ -144,7 +175,7 @@ const steps: Step[] = [
           <PasswordInput
             id="password"
             v-model="password"
-            :disabled="loading"
+            :disabled="loading || isReadonly"
             type="password"
             @blur="v$.password.$touch()"
           />
@@ -154,7 +185,7 @@ const steps: Step[] = [
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
-            :disabled="loading"
+            :disabled="loading || isReadonly"
             type="password"
             @blur="v$.confirmPassword.$touch()"
           />
@@ -168,7 +199,7 @@ const steps: Step[] = [
             <TabsTrigger class="w-full" :value="256">24 words</TabsTrigger>
           </TabsList>
           <div class="grow"></div>
-          <Button type="button" variant="ghost" size="icon" @click="newMnemonic">
+          <Button type="button" variant="ghost" size="icon">
             <RotateCwIcon />
           </Button>
           <CopyButton

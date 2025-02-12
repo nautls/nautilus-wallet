@@ -35,13 +35,13 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
-    path: "/add/restore",
-    name: "restore-wallet",
-    component: () => import("@/views/add/RestoreView.vue"),
+    path: "/add/import",
+    name: "import-wallet",
+    component: () => import("@/views/add/ImportWalletView.vue"),
     meta: {
       fullPage: true,
-      title: "Restore Wallet",
-      description: "Restore an existing Ergo Wallet"
+      title: "Import Wallet",
+      description: "Import an existing Ergo Wallet"
     }
   },
   {
