@@ -2,7 +2,7 @@ import { isEmpty } from "@fleet-sdk/common";
 import HdKey from "@/chains/ergo/hdKey";
 
 function validator(value: string) {
-  if (isEmpty(value)) return false;
+  if (isEmpty(value)) return true;
 
   try {
     HdKey.fromPublicKey(value);
@@ -14,5 +14,5 @@ function validator(value: string) {
 
 export default {
   $validator: validator,
-  $message: "Invalid public key."
+  $message: "Invalid public key"
 };

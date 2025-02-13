@@ -20,7 +20,7 @@ const wallet = useWalletStore();
 const emit = defineEmits(["close"]);
 
 const opened = ref(true);
-const exPk = computed(() => mountExtendedPublicKey(wallet.publicKey, wallet.chainCode));
+const xpk = computed(() => mountExtendedPublicKey(wallet.publicKey, wallet.chainCode));
 
 function handleOpenUpdates(open: boolean) {
   if (!open) emit("close");
@@ -44,13 +44,13 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         </DrawerDescription>
       </DrawerHeader>
 
-      <QrCode :data="exPk" class="m-auto size-[200px]" />
+      <QrCode :data="xpk" class="m-auto size-[200px]" />
       <StatsCard
         class="break-all bg-secondary text-secondary-foreground"
         :display-copy-button="true"
-        :content="exPk"
+        :content="xpk"
       >
-        <div class="font-mono">{{ exPk }} <CopyButton :content="exPk" class="size-3" /></div>
+        <div class="font-mono">{{ xpk }} <CopyButton :content="xpk" class="size-3" /></div>
       </StatsCard>
 
       <DrawerFooter>

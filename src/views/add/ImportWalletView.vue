@@ -22,12 +22,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { DefaultStepper, Step } from "@/components/ui/stepper";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
+import { validPublicKey } from "@/validators";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -43,7 +45,9 @@ const step = ref(1);
 const strength = ref(DEFAULT_WALLET_STRENGTH);
 const walletType = ref<"standard" | "readonly">("standard");
 
-const v$ = useVuelidate(
+const xpk = ref("");
+
+const infoRules = useVuelidate(
   {
     walletName: { required: helpers.withMessage("Wallet name is required.", required) },
     password: {
@@ -66,6 +70,58 @@ const v$ = useVuelidate(
   { walletName, password, confirmPassword }
 );
 
+const xpkRules = useVuelidate(
+  {
+    xpk: {
+      required: helpers.withMessage("Extended public key is required.", required),
+      validPublicKey
+    }
+  },
+  { xpk }
+);
+
+// const mnemonicRules = useVuelidate(
+//   {
+//     mnemonic: {
+//       required: helpers.withMessage("Recovery phrase is required.", required),
+//       validMnemonic: validMnemonic
+//     }
+//   },
+//   { mnemonic }
+// );
+//
+// filterBy(text: string) {
+//   if (text === "" || text.trim() === "") {
+//     this.filteredWords = Object.freeze(english.slice(0, 10));
+//   }
+
+//   const lowerText = text.toLowerCase();
+//   const filtered = orderBy(
+//     english.filter((w) => w.includes(lowerText)).slice(0, 10),
+//     (w) => !w.startsWith(lowerText)
+//   );
+
+//   this.filteredWords = Object.freeze(filtered);
+// },
+// onPaste(event: ClipboardEvent) {
+//   const pasteData = event.clipboardData?.getData("text");
+//   if (!pasteData) {
+//     return;
+//   }
+
+//   const pasteWords = pasteData.split(" ");
+//   if (isEmpty(pasteWords)) {
+//     return;
+//   }
+
+//   const intersec = intersection(english, pasteWords);
+
+//   if (intersec.length == pasteWords.length) {
+//     // need to paste from pasteWords since intersect doesn't guarantees the order os elements
+//     this.selectedWords = pasteWords;
+//   }
+// }
+
 const isReadonly = computed(() => walletType.value === "readonly");
 const nexButtonTitle = computed(() => {
   if (step.value === 1) {
@@ -79,13 +135,13 @@ watch(walletType, () => {
   password.value = "";
   confirmPassword.value = "";
 
-  v$.value.password.$reset();
-  v$.value.confirmPassword.$reset();
+  infoRules.value.password.$reset();
+  infoRules.value.confirmPassword.$reset();
 });
 
 async function next() {
   if (step.value === 1) {
-    const valid = await v$.value.$validate();
+    const valid = await infoRules.value.$validate();
     if (!valid) return;
   }
 
@@ -94,14 +150,26 @@ async function next() {
     return;
   }
 
+  if (isReadonly.value) {
+    const validXpk = await xpkRules.value.$validate();
+    if (!validXpk) return;
+  }
+
   try {
     loading.value = true;
-    const walletId = await app.putWallet({
-      name: walletName.value,
-      mnemonic: mnemonic.value,
-      password: password.value,
-      type: WalletType.Standard
-    });
+
+    const walletId = isReadonly.value
+      ? await app.putWallet({
+          name: walletName.value,
+          type: WalletType.ReadOnly,
+          extendedPublicKey: xpk.value
+        })
+      : await app.putWallet({
+          name: walletName.value,
+          type: WalletType.Standard,
+          mnemonic: mnemonic.value,
+          password: password.value
+        });
 
     await wallet.load(walletId, { syncInBackground: false });
     router.push({ name: "assets" });
@@ -130,7 +198,7 @@ const steps: Step[] = [
     step: 2,
     title: "Secret",
     icon: KeyRoundIcon,
-    enabled: computed(() => !v$.value.$invalid)
+    enabled: computed(() => !infoRules.value.$invalid)
   }
 ];
 </script>
@@ -141,7 +209,7 @@ const steps: Step[] = [
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
     <Form class="flex h-full flex-grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
-        <FormField :validation="v$.walletName">
+        <FormField :validation="infoRules.walletName">
           <Label for="wallet-name">Wallet name</Label>
           <Input
             id="wallet-name"
@@ -149,7 +217,7 @@ const steps: Step[] = [
             :disabled="loading"
             maxlength="50"
             type="text"
-            @blur="v$.walletName.$touch()"
+            @blur="infoRules.walletName.$touch()"
           />
         </FormField>
 
@@ -170,48 +238,60 @@ const steps: Step[] = [
 
         <Separator class="my-2" />
 
-        <FormField :validation="v$.password">
+        <FormField :validation="infoRules.password">
           <Label :disabled="isReadonly" for="password">Spending password</Label>
           <PasswordInput
             id="password"
             v-model="password"
             :disabled="loading || isReadonly"
             type="password"
-            @blur="v$.password.$touch()"
+            @blur="infoRules.password.$touch()"
           />
         </FormField>
-        <FormField :validation="v$.confirmPassword">
+        <FormField :validation="infoRules.confirmPassword">
           <Label :disabled="isReadonly" for="confirm-password">Confirm password</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
             :disabled="loading || isReadonly"
             type="password"
-            @blur="v$.confirmPassword.$touch()"
+            @blur="infoRules.confirmPassword.$touch()"
           />
         </FormField>
       </template>
 
       <template v-else-if="step === 2">
-        <Tabs v-model="strength" class="flex w-full items-center gap-0">
-          <TabsList class="flex">
-            <TabsTrigger class="w-full" :value="160">15 words</TabsTrigger>
-            <TabsTrigger class="w-full" :value="256">24 words</TabsTrigger>
-          </TabsList>
-          <div class="grow"></div>
-          <Button type="button" variant="ghost" size="icon">
-            <RotateCwIcon />
-          </Button>
-          <CopyButton
-            type="button"
-            variant="ghost"
-            size="icon"
-            :content="mnemonic"
-            class="right-4 top-4"
-          />
-        </Tabs>
+        <template v-if="isReadonly">
+          <FormField :validation="xpkRules.xpk">
+            <Label for="xpk">Extended public key</Label>
+            <Textarea id="xpk" v-model="xpk" class="h-40" @blur="xpkRules.xpk.$touch()" />
+            <template #description>
+              Paste your extended public key here. This key allows viewing transaction history and
+              generating new addresses, but it cannot spend or move funds in any way.
+            </template>
+          </FormField>
+        </template>
 
-        <Mnemonic :phrase="mnemonic" />
+        <template v-else>
+          <Tabs v-model="strength" class="flex w-full items-center gap-0">
+            <TabsList class="flex">
+              <TabsTrigger class="w-full" :value="160">15 words</TabsTrigger>
+              <TabsTrigger class="w-full" :value="256">24 words</TabsTrigger>
+            </TabsList>
+            <div class="grow"></div>
+            <Button type="button" variant="ghost" size="icon">
+              <RotateCwIcon />
+            </Button>
+            <CopyButton
+              type="button"
+              variant="ghost"
+              size="icon"
+              :content="mnemonic"
+              class="right-4 top-4"
+            />
+          </Tabs>
+          <Mnemonic :phrase="mnemonic" />
+        </template>
       </template>
     </Form>
 
