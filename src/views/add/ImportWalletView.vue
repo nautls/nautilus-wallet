@@ -71,7 +71,7 @@ const nexButtonTitle = computed(() => {
   if (step.value === 1) {
     return isReadonly.value ? "Insert a public key" : "Insert a recovery phrase";
   } else {
-    return "I've saved these words";
+    return "Import wallet";
   }
 });
 
