@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
 import { FingerprintIcon, KeyRoundIcon, Loader2Icon } from "lucide-vue-next";
@@ -29,6 +30,8 @@ import { extractErrorMessage } from "@/common/utils";
 import { WalletType } from "@/types/internal";
 import { validMnemonic, validPublicKey } from "@/validators";
 
+const SUPPORTED_MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24]);
+
 const app = useAppStore();
 const wallet = useWalletStore();
 const router = useRouter();
@@ -44,25 +47,6 @@ const wordsCount = ref(15);
 const walletType = ref<"standard" | "readonly">("standard");
 
 const xpk = ref("");
-
-// onPaste(event: ClipboardEvent) {
-//   const pasteData = event.clipboardData?.getData("text");
-//   if (!pasteData) {
-//     return;
-//   }
-
-//   const pasteWords = pasteData.split(" ");
-//   if (isEmpty(pasteWords)) {
-//     return;
-//   }
-
-//   const intersec = intersection(english, pasteWords);
-
-//   if (intersec.length == pasteWords.length) {
-//     // need to paste from pasteWords since intersect doesn't guarantees the order os elements
-//     this.selectedWords = pasteWords;
-//   }
-// }
 
 const mnemonicPhrase = computed(() => mnemonicWords.value.join(" "));
 const isReadonly = computed(() => walletType.value === "readonly");
@@ -183,6 +167,24 @@ async function next() {
   }
 }
 
+function onPaste(event: ClipboardEvent) {
+  if (step.value !== 2 || isReadonly.value) return;
+
+  const clipboardWords = event.clipboardData?.getData("text")?.split(" ");
+  // check if length is supported
+  if (!clipboardWords || !SUPPORTED_MNEMONIC_LENGTHS.has(clipboardWords.length)) return;
+  // check if all words are in the wordlist
+  for (const word in clipboardWords) if (english.includes(word)) return;
+
+  // set the words
+  wordsCount.value = clipboardWords.length;
+  mnemonicWords.value = clipboardWords;
+
+  // prevent default paste behavior
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 const steps: Step[] = [
   {
     step: 1,
@@ -203,7 +205,11 @@ const steps: Step[] = [
   <DefaultStepper v-model="step" :steps="steps" class="py-2" />
 
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
-    <Form class="flex h-full flex-grow flex-col justify-start gap-4" @submit="next">
+    <Form
+      class="flex h-full flex-grow flex-col justify-start gap-4"
+      @paste="onPaste"
+      @submit="next"
+    >
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
           <Label for="wallet-name">Wallet name</Label>
@@ -274,21 +280,9 @@ const steps: Step[] = [
               <TabsTrigger class="w-full" :value="15">15 words</TabsTrigger>
               <TabsTrigger class="w-full" :value="24">24 words</TabsTrigger>
             </TabsList>
-            <!-- <div class="grow"></div>
-            <Button type="button" variant="ghost" size="icon">
-              <RotateCwIcon />
-            </Button>
-            <CopyButton
-              type="button"
-              variant="ghost"
-              size="icon"
-              :content="mnemonicWords"
-              class="right-4 top-4"
-            /> -->
           </Tabs>
 
           <Mnemonic :words="mnemonicWords" editable />
-          <!-- {{ mnemonicWords }} -->
         </template>
       </template>
     </Form>
