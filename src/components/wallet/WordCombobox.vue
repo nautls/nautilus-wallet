@@ -76,12 +76,12 @@ function onTab() {
     <ComboboxAnchor
       :class="
         cn(
-          'flex h-9 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:truncate',
+          'flex h-9 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-sm ring-offset-background focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:truncate',
           props.class
         )
       "
     >
-      <div class="flex items-center font-light tabular-nums text-muted-foreground">
+      <div class="select-none text-xs font-light tabular-nums text-muted-foreground">
         {{ prefix }}
       </div>
       <ComboboxInput class="w-full bg-transparent outline-none" />
