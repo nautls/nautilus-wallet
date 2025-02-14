@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, HTMLAttributes, ref } from "vue";
 import { useVModel } from "@vueuse/core";
 import { CheckIcon } from "lucide-vue-next";
 import {
@@ -18,6 +18,7 @@ interface Props {
   options: string[];
   modelValue?: string;
   prefix: string;
+  class?: HTMLAttributes["class"];
 }
 
 const props = defineProps<Props>();
@@ -73,7 +74,12 @@ function onTab() {
     @keydown.tab="onTab"
   >
     <ComboboxAnchor
-      class="flex h-8 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:truncate"
+      :class="
+        cn(
+          'flex h-9 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:truncate',
+          props.class
+        )
+      "
     >
       <div class="flex items-center font-light tabular-nums text-muted-foreground">
         {{ prefix }}

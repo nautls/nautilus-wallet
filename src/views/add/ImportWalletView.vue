@@ -2,12 +2,11 @@
 import { computed, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
-import { FingerprintIcon, KeyRoundIcon, Loader2Icon, RotateCwIcon } from "lucide-vue-next";
+import { FingerprintIcon, KeyRoundIcon, Loader2Icon } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
-import { CopyButton } from "@/components/ui/copy-button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,9 +26,8 @@ import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
-import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
-import { validPublicKey } from "@/validators";
+import { validMnemonic, validPublicKey } from "@/validators";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -39,13 +37,42 @@ const { toast } = useToast();
 const walletName = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const mnemonic = ref("");
+const mnemonicWords = ref<string[]>([]);
 const loading = ref(false);
 const step = ref(1);
-const strength = ref(DEFAULT_WALLET_STRENGTH);
+const wordsCount = ref(15);
 const walletType = ref<"standard" | "readonly">("standard");
 
 const xpk = ref("");
+
+// onPaste(event: ClipboardEvent) {
+//   const pasteData = event.clipboardData?.getData("text");
+//   if (!pasteData) {
+//     return;
+//   }
+
+//   const pasteWords = pasteData.split(" ");
+//   if (isEmpty(pasteWords)) {
+//     return;
+//   }
+
+//   const intersec = intersection(english, pasteWords);
+
+//   if (intersec.length == pasteWords.length) {
+//     // need to paste from pasteWords since intersect doesn't guarantees the order os elements
+//     this.selectedWords = pasteWords;
+//   }
+// }
+
+const mnemonicPhrase = computed(() => mnemonicWords.value.join(" "));
+const isReadonly = computed(() => walletType.value === "readonly");
+const nexButtonTitle = computed(() => {
+  if (step.value === 1) {
+    return isReadonly.value ? "Insert a public key" : "Insert a recovery phrase";
+  } else {
+    return "Import wallet";
+  }
+});
 
 const infoRules = useVuelidate(
   {
@@ -80,56 +107,15 @@ const xpkRules = useVuelidate(
   { xpk }
 );
 
-// const mnemonicRules = useVuelidate(
-//   {
-//     mnemonic: {
-//       required: helpers.withMessage("Recovery phrase is required.", required),
-//       validMnemonic: validMnemonic
-//     }
-//   },
-//   { mnemonic }
-// );
-//
-// filterBy(text: string) {
-//   if (text === "" || text.trim() === "") {
-//     this.filteredWords = Object.freeze(english.slice(0, 10));
-//   }
-
-//   const lowerText = text.toLowerCase();
-//   const filtered = orderBy(
-//     english.filter((w) => w.includes(lowerText)).slice(0, 10),
-//     (w) => !w.startsWith(lowerText)
-//   );
-
-//   this.filteredWords = Object.freeze(filtered);
-// },
-// onPaste(event: ClipboardEvent) {
-//   const pasteData = event.clipboardData?.getData("text");
-//   if (!pasteData) {
-//     return;
-//   }
-
-//   const pasteWords = pasteData.split(" ");
-//   if (isEmpty(pasteWords)) {
-//     return;
-//   }
-
-//   const intersec = intersection(english, pasteWords);
-
-//   if (intersec.length == pasteWords.length) {
-//     // need to paste from pasteWords since intersect doesn't guarantees the order os elements
-//     this.selectedWords = pasteWords;
-//   }
-// }
-
-const isReadonly = computed(() => walletType.value === "readonly");
-const nexButtonTitle = computed(() => {
-  if (step.value === 1) {
-    return isReadonly.value ? "Insert a public key" : "Insert a recovery phrase";
-  } else {
-    return "Import wallet";
-  }
-});
+const mnemonicRules = useVuelidate(
+  {
+    mnemonicPhrase: {
+      required: helpers.withMessage("Recovery phrase is required.", required),
+      validMnemonic: validMnemonic
+    }
+  },
+  { mnemonicPhrase }
+);
 
 watch(walletType, () => {
   password.value = "";
@@ -138,6 +124,13 @@ watch(walletType, () => {
   infoRules.value.password.$reset();
   infoRules.value.confirmPassword.$reset();
 });
+
+watch(
+  wordsCount,
+  (length) =>
+    (mnemonicWords.value = Array.from({ length }).map((_, i) => mnemonicWords.value[i] ?? "")),
+  { immediate: true }
+);
 
 async function next() {
   if (step.value === 1) {
@@ -153,6 +146,9 @@ async function next() {
   if (isReadonly.value) {
     const validXpk = await xpkRules.value.$validate();
     if (!validXpk) return;
+  } else {
+    const validMnemonic = await mnemonicRules.value.$validate();
+    if (!validMnemonic) return;
   }
 
   try {
@@ -167,7 +163,7 @@ async function next() {
       : await app.putWallet({
           name: walletName.value,
           type: WalletType.Standard,
-          mnemonic: mnemonic.value,
+          mnemonic: mnemonicWords.value.join(" "),
           password: password.value
         });
 
@@ -273,12 +269,12 @@ const steps: Step[] = [
         </template>
 
         <template v-else>
-          <Tabs v-model="strength" class="flex w-full items-center gap-0">
+          <Tabs v-model="wordsCount" class="flex w-full items-center gap-0">
             <TabsList class="flex">
-              <TabsTrigger class="w-full" :value="160">15 words</TabsTrigger>
-              <TabsTrigger class="w-full" :value="256">24 words</TabsTrigger>
+              <TabsTrigger class="w-full" :value="15">15 words</TabsTrigger>
+              <TabsTrigger class="w-full" :value="24">24 words</TabsTrigger>
             </TabsList>
-            <div class="grow"></div>
+            <!-- <div class="grow"></div>
             <Button type="button" variant="ghost" size="icon">
               <RotateCwIcon />
             </Button>
@@ -286,11 +282,13 @@ const steps: Step[] = [
               type="button"
               variant="ghost"
               size="icon"
-              :content="mnemonic"
+              :content="mnemonicWords"
               class="right-4 top-4"
-            />
+            /> -->
           </Tabs>
-          <Mnemonic :phrase="mnemonic" />
+
+          <Mnemonic :words="mnemonicWords" editable />
+          <!-- {{ mnemonicWords }} -->
         </template>
       </template>
     </Form>

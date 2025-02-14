@@ -30,7 +30,7 @@ const { toast } = useToast();
 const walletName = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const mnemonic = ref("");
+const mnemonicPhrase = ref("");
 const loading = ref(false);
 const step = ref(1);
 const strength = ref(DEFAULT_WALLET_STRENGTH);
@@ -55,6 +55,7 @@ const v$ = useVuelidate(
   { walletName, password, confirmPassword }
 );
 
+const mnemonicWords = computed(() => mnemonicPhrase.value.split(" "));
 const nexButtonTitle = computed(() =>
   step.value === 1 ? "Create a recovery phrase" : "I've saved these words"
 );
@@ -78,7 +79,7 @@ async function next() {
     loading.value = true;
     const walletId = await app.putWallet({
       name: walletName.value,
-      mnemonic: mnemonic.value,
+      mnemonic: mnemonicPhrase.value,
       password: password.value,
       type: WalletType.Standard
     });
@@ -100,7 +101,7 @@ async function next() {
 }
 
 function newMnemonic() {
-  mnemonic.value = generateMnemonic(strength.value);
+  mnemonicPhrase.value = generateMnemonic(strength.value);
 }
 
 const steps: Step[] = [
@@ -175,12 +176,12 @@ const steps: Step[] = [
             type="button"
             variant="ghost"
             size="icon"
-            :content="mnemonic"
+            :content="mnemonicPhrase"
             class="right-4 top-4"
           />
         </Tabs>
 
-        <Mnemonic :phrase="mnemonic" />
+        <Mnemonic :words="mnemonicWords" />
       </template>
     </Form>
 
