@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { DefaultStepper, Step } from "@/components/ui/stepper";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
@@ -43,8 +42,13 @@ const confirmPassword = ref("");
 const mnemonicWords = ref<string[]>([]);
 const loading = ref(false);
 const step = ref(1);
-const wordsCount = ref(15);
 const walletType = ref<"standard" | "readonly">("standard");
+
+const wordsCount = ref(15);
+const wordsCountStr = computed({
+  get: () => wordsCount.value.toString(),
+  set: (v: string) => (wordsCount.value = Number(v))
+});
 
 const xpk = ref("");
 
@@ -224,8 +228,8 @@ const steps: Step[] = [
         </FormField>
 
         <FormField>
+          <Label for="wallet-type">Wallet type</Label>
           <Select v-model="walletType">
-            <Label for="wallet-type">Wallet type</Label>
             <SelectTrigger id="wallet-type">
               <SelectValue placeholder="Select a fruit" />
             </SelectTrigger>
@@ -275,12 +279,21 @@ const steps: Step[] = [
         </template>
 
         <template v-else>
-          <Tabs v-model="wordsCount" class="flex w-full items-center gap-0">
-            <TabsList class="flex">
-              <TabsTrigger class="w-full" :value="15">15 words</TabsTrigger>
-              <TabsTrigger class="w-full" :value="24">24 words</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <FormField>
+            <Label for="wallet-type">Mnemonic phrase</Label>
+            <Select v-model="wordsCountStr">
+              <SelectTrigger id="wallet-type">
+                <SelectValue placeholder="Select a fruit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem v-for="l in SUPPORTED_MNEMONIC_LENGTHS" :key="l" :value="l.toString()"
+                    >{{ l }} words</SelectItem
+                  >
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </FormField>
 
           <Mnemonic :words="mnemonicWords" editable />
         </template>
