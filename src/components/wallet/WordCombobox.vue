@@ -40,11 +40,11 @@ const slice = computed(() => {
 
 function rankedCompare(term: string): (a: string, b: string) => number {
   return (a, b) => {
-    const aStartsWith = a.startsWith(term);
-    const bStartsWith = b.startsWith(term);
+    const aStarts = a.startsWith(term);
+    const bStarts = b.startsWith(term);
 
-    if (aStartsWith && !bStartsWith) return -1;
-    if (!aStartsWith && bStartsWith) return 1;
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
     return 0;
   };
 }
