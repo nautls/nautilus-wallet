@@ -6,7 +6,7 @@ import WordCombobox from "./WordCombobox.vue";
 
 interface Props {
   words: string[];
-  editable?: boolean;
+  editable?: boolean | number[];
   class?: HTMLAttributes["class"];
   allowPaste?: boolean;
 }
@@ -19,6 +19,14 @@ const words = useVModel(props, "words", emit, { passive: true });
 function formatIndex(index: number): string {
   return (index + 1).toString().padStart(2, "0");
 }
+
+function isEditable(index: number): boolean {
+  if (Array.isArray(props.editable)) {
+    return props.editable.includes(index);
+  }
+
+  return props.editable as boolean;
+}
 </script>
 
 <template>
@@ -26,7 +34,7 @@ function formatIndex(index: number): string {
     <div class="grid grid-flow-row grid-cols-3 gap-1">
       <div v-for="(word, index) in words" :key="index">
         <WordCombobox
-          v-if="editable"
+          v-if="isEditable(index)"
           v-model="words[index]"
           :prefix="formatIndex(index)"
           class="h-7 gap-1 rounded-sm px-1.5 text-[0.84rem]"

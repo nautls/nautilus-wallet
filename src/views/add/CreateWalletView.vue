@@ -3,7 +3,13 @@ import { computed, onMounted, ref, watch } from "vue";
 import { generateMnemonic } from "@fleet-sdk/wallet";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
-import { FingerprintIcon, KeyRoundIcon, Loader2Icon, RotateCwIcon } from "lucide-vue-next";
+import {
+  CheckIcon,
+  FingerprintIcon,
+  KeyRoundIcon,
+  Loader2Icon,
+  RotateCwIcon
+} from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -27,15 +33,28 @@ const wallet = useWalletStore();
 const router = useRouter();
 const { toast } = useToast();
 
+const step = ref(1);
 const walletName = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const mnemonicPhrase = ref("");
 const loading = ref(false);
-const step = ref(1);
-const strength = ref(DEFAULT_WALLET_STRENGTH);
 
-const v$ = useVuelidate(
+const mnemonicPhrase = ref("");
+const mnemonicWordsConfirm = ref<string[]>([]);
+const strength = ref(DEFAULT_WALLET_STRENGTH);
+const editableIndexes = ref<number[]>([]);
+
+const mnemonicWords = computed(() => mnemonicPhrase.value.split(" "));
+const mnemonicPhraseConfirm = computed(() => mnemonicWordsConfirm.value.join(" "));
+const nexButtonTitle = computed(() =>
+  step.value === 1
+    ? "Create a recovery phrase"
+    : step.value === 2
+      ? "I've saved these words"
+      : "Verify"
+);
+
+const infoRules = useVuelidate(
   {
     walletName: { required: helpers.withMessage("Wallet name is required.", required) },
     password: {
@@ -55,18 +74,57 @@ const v$ = useVuelidate(
   { walletName, password, confirmPassword }
 );
 
-const mnemonicWords = computed(() => mnemonicPhrase.value.split(" "));
-const nexButtonTitle = computed(() =>
-  step.value === 1 ? "Create a recovery phrase" : "I've saved these words"
+const verificationRules = useVuelidate(
+  {
+    mnemonicPhraseConfirm: {
+      sameAs: helpers.withMessage(
+        "The recovery phrase does not match the original one.",
+        sameAs(mnemonicPhrase)
+      )
+    }
+  },
+  { mnemonicPhraseConfirm }
 );
 
 onMounted(newMnemonic);
 
 watch(strength, newMnemonic);
 
+watch(step, () => {
+  if (step.value !== 3) return;
+
+  const confirm = [...mnemonicWords.value];
+  const editable = generateUniqueRandomNumbers(3, 0, confirm.length - 1);
+  // Clear 3 random words
+  for (const index of editable) {
+    confirm[index] = "";
+  }
+
+  mnemonicWordsConfirm.value = confirm;
+  editableIndexes.value = editable;
+  verificationRules.value.$reset();
+});
+
+function generateUniqueRandomNumbers(n: number, start: number, end: number): number[] {
+  if (n > end - start + 1) {
+    throw new Error("Cannot generate more unique numbers than the range allows");
+  }
+
+  const numbers = new Set<number>();
+  while (numbers.size < n) {
+    const num = Math.floor(Math.random() * (end - start + 1)) + start;
+    numbers.add(num);
+  }
+
+  return Array.from(numbers);
+}
+
 async function next() {
   if (step.value === 1) {
-    const valid = await v$.value.$validate();
+    const valid = await infoRules.value.$validate();
+    if (!valid) return;
+  } else if (step.value === 3) {
+    const valid = await verificationRules.value.$validate();
     if (!valid) return;
   }
 
@@ -115,7 +173,13 @@ const steps: Step[] = [
     step: 2,
     title: "Secret",
     icon: KeyRoundIcon,
-    enabled: computed(() => !v$.value.$invalid)
+    enabled: computed(() => !infoRules.value.$invalid)
+  },
+  {
+    step: 3,
+    title: "Verify",
+    icon: CheckIcon,
+    enabled: computed(() => !infoRules.value.$invalid)
   }
 ];
 </script>
@@ -126,7 +190,7 @@ const steps: Step[] = [
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
     <Form class="flex h-full flex-grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
-        <FormField :validation="v$.walletName">
+        <FormField :validation="infoRules.walletName">
           <Label for="wallet-name">Wallet name</Label>
           <Input
             id="wallet-name"
@@ -134,30 +198,30 @@ const steps: Step[] = [
             :disabled="loading"
             maxlength="50"
             type="text"
-            @blur="v$.walletName.$touch()"
+            @blur="infoRules.walletName.$touch()"
           />
         </FormField>
 
         <Separator class="my-2" />
 
-        <FormField :validation="v$.password">
+        <FormField :validation="infoRules.password">
           <Label for="password">Spending password</Label>
           <PasswordInput
             id="password"
             v-model="password"
             :disabled="loading"
             type="password"
-            @blur="v$.password.$touch()"
+            @blur="infoRules.password.$touch()"
           />
         </FormField>
-        <FormField :validation="v$.confirmPassword">
+        <FormField :validation="infoRules.confirmPassword">
           <Label for="confirm-password">Confirm password</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
             :disabled="loading"
             type="password"
-            @blur="v$.confirmPassword.$touch()"
+            @blur="infoRules.confirmPassword.$touch()"
           />
         </FormField>
       </template>
@@ -182,6 +246,19 @@ const steps: Step[] = [
         </Tabs>
 
         <Mnemonic :words="mnemonicWords" />
+      </template>
+
+      <template v-if="step === 3">
+        <FormField :validation="verificationRules.mnemonicPhraseConfirm">
+          <Label for="confirm-mnemonic" class="flex flex-col gap-1 pb-3"
+            >Confirm your recovery phrase
+            <span class="text-xs font-normal text-muted-foreground"
+              >Complete the missing parts of your recovery phrase.</span
+            ></Label
+          >
+
+          <Mnemonic v-model:words="mnemonicWordsConfirm" :editable="editableIndexes" />
+        </FormField>
       </template>
     </Form>
 
