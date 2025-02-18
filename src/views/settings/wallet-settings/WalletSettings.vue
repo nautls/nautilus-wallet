@@ -55,7 +55,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="address-reuse" class="flex flex-col gap-1"
           >Avoid Address Reuse
-          <div class="text-muted-foreground text-xs">
+          <div class="text-xs text-muted-foreground">
             Enable this option to avoid reusing the same address for multiple transactions.
           </div></Label
         >
@@ -67,7 +67,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1"
           >Public Key
-          <div class="text-muted-foreground text-xs">
+          <div class="text-xs text-muted-foreground">
             Use this option to export your public key.
           </div></Label
         >
@@ -75,11 +75,11 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6 bg-destructive/15">
+    <Card class="flex flex-col gap-6 bg-destructive/15 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1"
           >Remove Wallet
-          <div class="text-muted-foreground text-xs">
+          <div class="text-xs text-muted-foreground">
             Use this option to remove the current wallet.
           </div></Label
         >

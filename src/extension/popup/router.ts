@@ -10,33 +10,39 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/add",
     name: "add-wallet",
-    component: () => import("@/views/add/AddView.vue"),
+    component: () => import("@/views/add/AddWalletIndexView.vue"),
     props: true,
-    meta: { fullPage: true, title: "Add new wallet" }
-  },
-  {
-    path: "/add/read-only",
-    name: "add-read-only-wallet",
-    component: () => import("@/views/add/AddReadOnlyView.vue"),
-    meta: { fullPage: true, title: "Add read-only wallet" }
-  },
-  {
-    path: "/add/restore",
-    name: "restore-wallet",
-    component: () => import("@/views/add/RestoreView.vue"),
-    meta: { fullPage: true, title: "Restore a standard wallet" }
+    meta: { fullPage: true }
   },
   {
     path: "/add/new",
     name: "add-standard-wallet",
-    component: () => import("@/views/add/AddStandardView.vue"),
-    meta: { fullPage: true, title: "Add new standard wallet" }
+    component: () => import("@/views/add/CreateWalletView.vue"),
+    meta: {
+      fullPage: true,
+      title: "Create New Wallet",
+      description: "Create a new Ergo Wallet"
+    }
   },
   {
     path: "/add/hw/ledger",
     name: "add-hw-ledger",
-    component: () => import("@/views/add/ConnectLedgerView.vue"),
-    meta: { fullPage: true, title: "Connect a hardware wallet" }
+    component: () => import("@/views/add/LedgerConnectView.vue"),
+    meta: {
+      fullPage: true,
+      title: "Connect Ledger Wallet",
+      description: "Connect your Hardware Wallet"
+    }
+  },
+  {
+    path: "/add/import",
+    name: "import-wallet",
+    component: () => import("@/views/add/ImportWalletView.vue"),
+    meta: {
+      fullPage: true,
+      title: "Import Wallet",
+      description: "Import an existing Ergo Wallet"
+    }
   },
   {
     path: "/history",

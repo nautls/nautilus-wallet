@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { defineAsyncComponent, watch } from "vue";
+import { ChevronLeftIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
-import NavHeader from "@/components/NavHeader.vue";
+import { Button } from "@/components/ui/button";
 import Toaster from "@/components/ui/toast/Toaster.vue";
-import WalletHeader from "@/components/WalletHeader.vue";
+import { WalletSwitcher } from "@/components/wallet";
 import { isPopup } from "@/common/browser";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
-
-const isPopupView = isPopup();
+import NavHeader from "./components/NavHeader.vue";
 
 const app = useAppStore();
+
 const { open: openKyaDialog } = useProgrammaticDialog(
   defineAsyncComponent(() => import("@/components/KYADialog.vue"))
 );
@@ -27,21 +28,30 @@ watch(
 
 <template>
   <div
-    class="min-h-[600px] bg-background h-screen flex overflow-hidden flex-col min-w-[360px] md:mx-auto md:w-4/12 md:shadow-lg"
-    :class="{ 'max-w-[360px]': isPopupView }"
+    class="flex h-screen min-h-[600px] min-w-[360px] flex-col overflow-hidden bg-background md:mx-auto md:w-4/12 md:shadow-lg"
+    :class="{ 'max-w-[360px]': isPopup() }"
   >
-    <div
-      v-if="$route.meta.fullPage"
-      class="flex flex-row items-center justify-between gap-4 border-b border-gray-200 bg-gray-100 p-4"
-    >
-      <NautilusLogo root-class="ml-2" content-class="size-11" />
-      <h1 class="w-full pl-2 font-semibold">
-        <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
-        <template v-else>Nautilus Wallet</template>
-      </h1>
-    </div>
+    <template v-if="$route.meta.fullPage">
+      <div v-if="$route.meta.title" class="flex w-full flex-row items-center p-6">
+        <Button class="z-10" variant="ghost" size="icon" @click="$router.back">
+          <ChevronLeftIcon />
+        </Button>
+
+        <div class="-ml-9 flex w-full flex-col text-center">
+          <div class="text-xl font-semibold leading-tight tracking-tight">
+            {{ $route.meta.title }}
+          </div>
+          <div v-if="$route.meta.description" class="text-sm text-muted-foreground">
+            {{ $route.meta.description }}
+          </div>
+        </div>
+      </div>
+    </template>
     <div v-else class="flex-initial">
-      <WalletHeader />
+      <div class="flex flex-row items-center justify-between gap-6 bg-header px-4 py-3 pb-0">
+        <WalletSwitcher />
+        <NautilusLogo class="mx-4 my-2" />
+      </div>
       <NavHeader />
     </div>
 

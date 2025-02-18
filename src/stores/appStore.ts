@@ -29,6 +29,7 @@ export type Settings = {
   blacklistedTokensLists: string[];
   zeroConf: boolean;
   colorMode: "light" | "dark" | "auto";
+  extension: { viewMode: "popup" | "sidebar" };
 };
 
 type StandardWallet = {
@@ -53,7 +54,9 @@ export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
   const chain = useChainStore();
   const router = useRouter();
-  const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS);
+  const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS, {
+    mergeDefaults: true
+  });
   const colorMode = useColorMode({
     storageKey: null /** disable storage */,
     initialValue: settings.value.colorMode
@@ -142,7 +145,14 @@ export const useAppStore = defineStore("app", () => {
 
     const walletId = await walletsDbService.put(dbObj);
     dbObj.id = walletId;
-    privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
+
+    const index = privateState.wallets.findIndex((w) => w.id === walletId);
+    if (index > -1) {
+      privateState.wallets.splice(index, 1, dbObj as NotNullId<IDbWallet>);
+      privateState.wallets = privateState.wallets.slice(); // trigger reactivity
+    } else {
+      privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
+    }
 
     return walletId;
   }

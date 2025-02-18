@@ -25,7 +25,7 @@ const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
       Consolidate your assets to avoid this.
     </AlertDescription>
 
-    <Button class="w-full mt-4" @click="goToOptimizationDapp">Consolidate</Button>
+    <Button class="mt-4 w-full" @click="goToOptimizationDapp">Consolidate</Button>
   </Alert>
 
   <Alert v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT">
@@ -35,6 +35,6 @@ const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
       Consider optimizing your wallet for improved performance and efficiency.
     </AlertDescription>
 
-    <Button class="w-full mt-4" @click="goToOptimizationDapp">Optimize</Button>
+    <Button class="mt-4 w-full" @click="goToOptimizationDapp">Optimize</Button>
   </Alert>
 </template>

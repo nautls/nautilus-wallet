@@ -174,15 +174,15 @@ defineExpose({ setState, openErgoApp });
 </script>
 
 <template>
-  <div class="mx-auto flex flex-col items-center gap-2 h-min">
-    <div v-if="state.connected || state.type" class="mx-auto text-center text-sm w-[240px]">
+  <div class="mx-auto flex h-min flex-col items-center gap-2">
+    <div v-if="state.connected || state.type" class="mx-auto w-[240px] text-center text-sm">
       <div class="relative">
         <LedgerNanoX v-if="isNanoX" />
         <LedgerNanoS v-else />
 
         <div
           :class="screenPosition"
-          class="absolute w-[111px] h-[51px] flex flex-col items-center justify-around gap-1 leading-none p-0.5 text-xs text-slate-100 bg-blue-50/0 transition-all"
+          class="absolute flex h-[51px] w-[111px] flex-col items-center justify-around gap-1 bg-blue-50/0 p-0.5 text-xs leading-none text-slate-100 transition-all"
         >
           <CheckCheckIcon v-if="state.type === 'ready'" class="size-auto opacity-80" />
           <Loader2Icon
@@ -196,7 +196,7 @@ defineExpose({ setState, openErgoApp });
           <XIcon v-else-if="state.type === 'error'" class="size-auto text-red-400 opacity-80" />
           <LockIcon v-else-if="state.type === 'locked'" class="size-auto opacity-80" />
 
-          <p v-if="state.label" class="font-semibold opacity-90 text-[0.70rem]">
+          <p v-if="state.label" class="text-[0.70rem] font-semibold opacity-90">
             {{ state.label }}
           </p>
           <small v-if="state.appId" class="flex-shrink opacity-70">App ID: {{ appIdHex }}</small>

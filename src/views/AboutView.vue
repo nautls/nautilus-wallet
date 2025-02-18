@@ -27,7 +27,7 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-4 p-4 bg-header">
+  <div class="flex h-full flex-col gap-4 bg-header p-4">
     <img src="/icons/app/logo-mainnet.svg?url" class="m-auto size-20" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
@@ -35,27 +35,27 @@ function goDonate() {
         <span v-else>Nautilus Testnet Wallet</span>
       </h1>
 
-      <div v-once class="text-muted-foreground text-center">
+      <div v-once class="text-center text-muted-foreground">
         v{{ version }}-<Link class="text-muted-foreground" :href="commitUrl" external>{{
           shortGitHash
         }}</Link>
       </div>
     </div>
 
-    <div class="text-sm italic text-center">
+    <div class="text-center text-sm italic">
       Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of
       land-based governments.
     </div>
 
     <div class="flex-grow"></div>
 
-    <div class="text-sm text-center">
+    <div class="text-center text-sm">
       Support the development by donating to:
       <span v-if="readonly">
         {{ format.string.shorten(donationAddress, 20) }}
         <CopyButton :content="donationAddress" class="size-3" />
       </span>
-      <Button v-else variant="link" class="p-0 m-0" size="condensed" @click="goDonate()">{{
+      <Button v-else variant="link" class="m-0 p-0" size="condensed" @click="goDonate()">{{
         format.string.shorten(donationAddress, 30)
       }}</Button>
     </div>

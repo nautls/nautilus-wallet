@@ -98,21 +98,27 @@ function toggleColorMode() {
 
 async function toggleViewMode() {
   if (!browser) return;
+  const viewMode = app.settings.extension.viewMode;
 
   if (import.meta.env.TARGET === "firefox") {
+    app.settings.extension.viewMode = viewMode === "popup" ? "sidebar" : "popup";
     browser.sidebarAction.toggle();
-  } else {
-    if (isPopupView) {
-      const currentWindow = await browser.windows.getCurrent();
-      if (currentWindow?.id) {
-        chrome.sidePanel.open({ windowId: currentWindow.id });
-      } else {
-        const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
-        browser.tabs.create({ url, active: false });
-      }
-    }
+    return;
+  }
 
-    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: isPopupView });
+  if (isPopupView) {
+    const currentWindow = await browser.windows.getCurrent();
+    if (currentWindow?.id) {
+      app.settings.extension.viewMode = "sidebar";
+      chrome.sidePanel.open({ windowId: currentWindow.id });
+      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+    } else {
+      const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
+      browser.tabs.create({ url, active: false });
+    }
+  } else {
+    app.settings.extension.viewMode = "popup";
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
   }
 
   window.close();
@@ -125,7 +131,7 @@ async function toggleViewMode() {
         variant="ghost"
         role="combobox"
         :aria-expanded="isOpen"
-        class="w-[210px] justify-between h-full bg-transparent"
+        class="h-full w-[210px] justify-between bg-transparent"
       >
         <WalletItem v-if="current" :wallet="current" />
         <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -154,8 +160,8 @@ async function toggleViewMode() {
             >
               <WalletItem v-if="current" :wallet="w" concise />
 
-              <div class="w-4 h-4 transition-all duration-700">
-                <LoaderCircleIcon v-if="loadingId === w.id" class="animate-spin h-full w-full" />
+              <div class="h-4 w-4 transition-all duration-700">
+                <LoaderCircleIcon v-if="loadingId === w.id" class="h-full w-full animate-spin" />
                 <CheckIcon v-else-if="current?.id === w.id" class="h-full w-full" />
               </div>
             </CommandItem>
@@ -164,7 +170,7 @@ async function toggleViewMode() {
 
         <CommandSeparator />
 
-        <div class="flex flex-row items-center justify-center pt-2 gap-2">
+        <div class="flex flex-row items-center justify-center gap-2 pt-2">
           <Button
             class="cursor-default"
             variant="ghost"

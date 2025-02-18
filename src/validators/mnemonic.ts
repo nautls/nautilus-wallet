@@ -1,11 +1,9 @@
-import { isEmpty } from "@fleet-sdk/common";
 import { validateMnemonic } from "@fleet-sdk/wallet";
 
-function validator(words: []) {
-  if (isEmpty(words)) return false;
-
+function validator(mnemonic: string) {
+  if (mnemonic.trim() === "") return true;
   try {
-    return validateMnemonic(words.join(" "));
+    return validateMnemonic(mnemonic);
   } catch {
     return false;
   }
@@ -13,5 +11,5 @@ function validator(words: []) {
 
 export default {
   $validator: validator,
-  $message: "Invalid mnemonic phrase."
+  $message: "Invalid recovery phrase."
 };

@@ -134,19 +134,19 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
                 Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
               </Link>
-              <span class="font-normal text-xs">{{
+              <span class="text-xs font-normal">{{
                 formatDate(tx.timestamp, RELATIVE_DATE_FORMATTING)
               }}</span>
             </CardTitle>
             <CardDescription class="text-xs">
               <div v-if="tx.confirmed">
                 {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-                <CheckIcon class="h-3.5 -ml-1 inline-flex text-success" />
+                <CheckIcon class="-ml-1 inline-flex h-3.5 text-success" />
               </div>
               <div v-else>
                 Pending
                 <CircleIcon
-                  class="h-3.5 -ml-1 inline-flex text-warning animate-pulse fill-warning"
+                  class="-ml-1 inline-flex h-3.5 animate-pulse fill-warning text-warning"
                 />
               </div>
             </CardDescription>
@@ -159,7 +159,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             >
               <AssetSignIcon :type="asset.amount.isNegative() ? 'negative' : 'positive'" />
 
-              <AssetIcon class="h-6 w-6 min-w-6 ml-2" :token-id="asset.tokenId" />
+              <AssetIcon class="ml-2 h-6 w-6 min-w-6" :token-id="asset.tokenId" />
               <div class="w-full">
                 {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
               </div>
@@ -195,7 +195,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             <CardContent class="flex flex-col gap-2">
               <div class="flex flex-row items-center gap-2">
                 <Skeleton class="h-5 w-5 rounded-full border" />
-                <Skeleton class="h-6 w-6 ml-2" />
+                <Skeleton class="ml-2 h-6 w-6" />
                 <Skeleton class="h-5 w-24" />
                 <div class="flex-grow"></div>
                 <Skeleton class="h-5 w-16" />
@@ -206,7 +206,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 
         <div
           v-else-if="loaded && !txHistory?.length"
-          class="flex flex-col items-center gap-4 text-center text-muted-foreground text-sm"
+          class="flex flex-col items-center gap-4 text-center text-sm text-muted-foreground"
         >
           <ClockIcon :size="48" class="stroke-[1.5px]" />
           You have no transaction history yet.

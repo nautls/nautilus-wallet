@@ -145,7 +145,7 @@ function formatBytes(bytes: number, decimals = 1) {
       />
     </div>
 
-    <div class="text-xs flex-grow text-muted-foreground">
+    <div class="flex-grow text-xs text-muted-foreground">
       Use this tool merge your UTxOs, boosting performance and avoiding
       <Link external href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
         >demurrage</Link

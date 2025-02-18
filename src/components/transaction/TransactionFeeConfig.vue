@@ -227,11 +227,11 @@ function emitSelected() {
   <FormField :validation="v$">
     <div
       :class="disabled ? 'pointer-events-none opacity-50' : ''"
-      class="flex flex-col w-full gap-1 rounded-md relative border border-input bg-transparent px-4 py-3 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+      class="relative flex w-full flex-col gap-1 rounded-md border border-input bg-transparent px-4 py-3 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div class="flex flex-grow gap-2">
-        <div class="flex flex-row items-start gap-2 flex-grow">
-          <div class="flex flex-row h-full items-center gap-1">
+        <div class="flex flex-grow flex-row items-start gap-2">
+          <div class="flex h-full flex-row items-center gap-1">
             <div class="font-bold">Fee</div>
             <div>{{ feeAmount.toString() }}</div>
 
@@ -260,7 +260,7 @@ function emitSelected() {
                 />
                 {{ format.asset.name(intSelected) }}
 
-                <Loader2Icon v-if="loading" class="size-4 opacity-50 animate-spin" />
+                <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
                 <ChevronsUpDown v-else class="size-4 opacity-50" />
               </Button>
             </PopoverTrigger>

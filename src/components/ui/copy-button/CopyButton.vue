@@ -29,7 +29,8 @@ function copy() {
 
 <template>
   <Button v-bind="props" @click="copy()" :class="cn('transition-colors align-middle', { 'text-success/80 hover:text-success': copied }, props.class)">
-    <CopyCheckIcon v-if="copied"  />
-    <CopyIcon v-else />
+    <slot v-if="$slots.default" />
+    <CopyCheckIcon v-if="copied"  class="size-auto" />
+    <CopyIcon v-else class="size-auto" />
   </Button>
 </template>

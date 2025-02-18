@@ -12,5 +12,6 @@ export const DEFAULT_SETTINGS = {
   hideBalances: false,
   blacklistedTokensLists: ["nsfw", "scam"],
   zeroConf: false,
-  colorMode: "auto" as "light" | "dark" | "auto"
+  colorMode: "auto" as "light" | "dark" | "auto",
+  extension: { viewMode: "popup" as "popup" | "sidebar" }
 };

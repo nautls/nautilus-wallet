@@ -209,8 +209,8 @@ const v$ = useVuelidate(
 </script>
 
 <template>
-  <ScrollArea type="hover" class="-mx-6 px-6 h-[100vh] border-y" hide-outline>
-    <div class="flex flex-col gap-6 text-sm py-4">
+  <ScrollArea type="hover" class="-mx-6 h-[100vh] border-y px-6" hide-outline>
+    <div class="flex flex-col gap-6 py-4 text-sm">
       <template v-if="loading">
         <TransactionEntry v-for="i in 4" :key="i" loading :assets="[]" />
       </template>
@@ -282,7 +282,7 @@ const v$ = useVuelidate(
 
         <div
           v-if="app.settings.devMode"
-          class="rounded-xl bg-secondary text-secondary-foreground p-4 shadow"
+          class="rounded-xl bg-secondary p-4 text-secondary-foreground shadow"
         >
           <VueJsonPretty
             class="!font-mono !text-xs text-foreground"

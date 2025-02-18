@@ -82,9 +82,9 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex-col flex gap-4 px-4 pb-4">
-      <div class="relative bg-header -mx-4">
-        <div class="mx-auto w-full bg-transparent pb-2 pt-4 text-center cursor-default">
+    <div class="flex flex-col gap-4 px-4 pb-4">
+      <div class="relative -mx-4 bg-header">
+        <div class="mx-auto w-full cursor-default bg-transparent pb-2 pt-4 text-center">
           <h2 class="text-2xl">
             <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
             <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
@@ -148,12 +148,12 @@ function openAssetInfoDialog(tokenId: string) {
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
                 <div
-                  class="flex flex-grow flex-col align-middle text-sm gap-0.5"
+                  class="flex flex-grow flex-col gap-0.5 align-middle text-sm"
                   :class="{ 'font-semibold': isErg(asset.tokenId) }"
                 >
                   <p>{{ format.asset.name(asset) }}</p>
 
-                  <p class="text-xs text-muted-foreground truncate">
+                  <p class="truncate text-xs text-muted-foreground">
                     {{
                       isErg(asset.tokenId)
                         ? "Ergo"
@@ -162,7 +162,7 @@ function openAssetInfoDialog(tokenId: string) {
                   </p>
                 </div>
 
-                <div class="whitespace-nowrap flex flex-col items-end gap-0.5">
+                <div class="flex flex-col items-end gap-0.5 whitespace-nowrap">
                   <template v-if="app.settings.hideBalances">
                     <Skeleton class="h-5 w-24 animate-none" />
                     <Skeleton class="h-3 w-3/4 animate-none" />
@@ -221,7 +221,7 @@ function openAssetInfoDialog(tokenId: string) {
 
                 <!-- clickable overlay -->
                 <Button
-                  class="absolute left-0 top-0 h-40 w-full opacity-30 bg-transparent hover:bg-neutral-900"
+                  class="absolute left-0 top-0 h-40 w-full bg-transparent opacity-30 hover:bg-neutral-900"
                   variant="ghost"
                   @click="openAssetInfoDialog(nft.tokenId)"
                 ></Button>
