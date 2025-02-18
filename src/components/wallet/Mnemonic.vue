@@ -2,7 +2,6 @@
 import { HTMLAttributes } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVModel } from "@vueuse/core";
-import { cn } from "@/common/utils";
 import WordCombobox from "./WordCombobox.vue";
 
 interface Props {
