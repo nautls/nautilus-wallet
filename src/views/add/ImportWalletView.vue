@@ -306,7 +306,7 @@ const steps: Step[] = [
 
     <div class="flex flex-row gap-4">
       <Button :disabled="loading" class="w-full items-center" size="lg" @click="next">
-        <template v-if="loading"><Loader2Icon class="animate-spin" />Creating wallet...</template>
+        <template v-if="loading"><Loader2Icon class="animate-spin" />Importing wallet...</template>
         <template v-else>{{ nexButtonTitle }}</template>
       </Button>
     </div>
