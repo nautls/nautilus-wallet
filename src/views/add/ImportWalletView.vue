@@ -99,7 +99,7 @@ const mnemonicRules = useVuelidate(
   {
     mnemonicPhrase: {
       required: helpers.withMessage("Recovery phrase is required.", required),
-      validMnemonic: validMnemonic
+      validMnemonic
     }
   },
   { mnemonicPhrase }
@@ -178,7 +178,9 @@ function onPaste(event: ClipboardEvent) {
   // check if length is supported
   if (!clipboardWords || !SUPPORTED_MNEMONIC_LENGTHS.has(clipboardWords.length)) return;
   // check if all words are in the wordlist
-  for (const word in clipboardWords) if (english.includes(word)) return;
+  for (const word of clipboardWords) {
+    if (!english.includes(word)) return;
+  }
 
   // set the words
   wordsCount.value = clipboardWords.length;
@@ -280,22 +282,24 @@ const steps: Step[] = [
 
         <template v-else>
           <FormField>
-            <Label for="wallet-type">Mnemonic phrase</Label>
             <Select v-model="wordsCountStr">
-              <SelectTrigger id="wallet-type">
-                <SelectValue placeholder="Select a fruit" />
+              <SelectTrigger>
+                <SelectValue class="font-medium" placeholder="Select the secret type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   <SelectItem v-for="l in SUPPORTED_MNEMONIC_LENGTHS" :key="l" :value="l.toString()"
-                    >{{ l }} words</SelectItem
+                    >{{ l }} words recovery phrase</SelectItem
                   >
+                  <!-- <SelectItem value="sk">Private Key</SelectItem> -->
                 </SelectGroup>
               </SelectContent>
             </Select>
           </FormField>
 
-          <Mnemonic :words="mnemonicWords" editable />
+          <FormField :validation="mnemonicRules.mnemonicPhrase">
+            <Mnemonic :words="mnemonicWords" editable />
+          </FormField>
         </template>
       </template>
     </Form>

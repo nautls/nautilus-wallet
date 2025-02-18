@@ -23,27 +23,25 @@ function formatIndex(index: number): string {
 </script>
 
 <template>
-  <div :class="cn('h-full', props.class)">
-    <div class="h-10">
-      <div class="grid grid-flow-row grid-cols-3 gap-1">
-        <div v-for="(word, index) in words" :key="index">
-          <WordCombobox
-            v-if="editable"
-            v-model="words[index]"
-            :prefix="formatIndex(index)"
-            class="h-7 gap-1 rounded-sm px-1.5 text-[0.84rem]"
-            :options="english"
-          />
+  <div :class="props.class">
+    <div class="grid grid-flow-row grid-cols-3 gap-1">
+      <div v-for="(word, index) in words" :key="index">
+        <WordCombobox
+          v-if="editable"
+          v-model="words[index]"
+          :prefix="formatIndex(index)"
+          class="h-7 gap-1 rounded-sm px-1.5 text-[0.84rem]"
+          :options="english"
+        />
 
-          <div
-            v-else
-            class="flex h-7 w-full items-center justify-start gap-1 whitespace-nowrap rounded-sm border border-input bg-accent px-1.5 py-2 text-start text-[0.84rem] text-sm text-accent-foreground shadow-sm ring-offset-background"
-          >
-            <span class="select-none text-xs font-light tabular-nums text-muted-foreground">
-              {{ formatIndex(index) }}
-            </span>
-            <span>{{ word }}</span>
-          </div>
+        <div
+          v-else
+          class="flex h-7 w-full items-center justify-start gap-1 whitespace-nowrap rounded-sm border border-input bg-accent px-1.5 py-2 text-start text-[0.84rem] text-sm text-accent-foreground shadow-sm ring-offset-background"
+        >
+          <span class="select-none text-xs font-light tabular-nums text-muted-foreground">
+            {{ formatIndex(index) }}
+          </span>
+          <span>{{ word }}</span>
         </div>
       </div>
     </div>
