@@ -2,7 +2,7 @@ import { isDefined } from "@fleet-sdk/common";
 import { EXT_ENTRY_ROOT } from "../constants/extension";
 import { browser } from "./browser";
 
-const POPUP_SIZE = { width: 380, height: 640 };
+const POPUP_SIZE = { width: 360, height: 600 };
 
 export async function getBoundsForTabWindow(tabId?: number) {
   if (!browser || !tabId) return undefined;
