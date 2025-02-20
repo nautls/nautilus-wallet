@@ -2,17 +2,21 @@
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import { WalletItem } from "@/components/wallet";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { walletsDbService } from "@/database/walletsDbService";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { InternalRequest } from "@/extension/connector/rpc/protocol";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
-import { IDbWallet } from "@/types/database";
+import { IDbWallet, NotNullId } from "@/types/database";
 
 const selected = ref(0);
 const request = ref<AsyncRequest>();
-const wallets = ref<IDbWallet[]>([]);
+const wallets = ref<NotNullId<IDbWallet>[]>([]);
 
 const detachBeforeUnloadEvent = useEventListener(window, "beforeunload", refuse);
 
@@ -50,25 +54,32 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 pt-2 text-center text-sm">
-    <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon">
+  <div class="flex grow flex-col gap-6 p-4 text-sm">
+    <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon" class="pt-2">
       requests to connect with Nautilus
-    </dapp-plate-header>
+    </DappPlateHeader>
 
-    <div class="flex-grow overflow-auto rounded border border-gray-300">
-      <label
-        v-for="wallet in wallets"
-        :key="wallet.id"
-        class="flex cursor-pointer items-center gap-4 p-4 hover:bg-gray-100 active:bg-gray-300"
-        :class="wallet.id === selected ? 'bg-gray-100 hover:bg-gray-200' : ''"
-      >
-        <input v-model="selected" :value="wallet.id" type="radio" class="inline-block" />
-        <wallet-item :key="wallet.id" class="inline-block" :wallet="wallet" />
-      </label>
-    </div>
+    <Card class="grow py-1">
+      <ScrollArea class="h-full">
+        <div class="mx-2 h-10">
+          <Button
+            v-for="wallet in wallets"
+            :key="wallet.id"
+            :class="selected === wallet.id && 'bg-accent'"
+            variant="ghost"
+            class="my-1 size-auto w-full gap-3 py-3"
+            @click="selected = wallet.id"
+          >
+            <Checkbox :checked="wallet.id === selected" />
+            <WalletItem :wallet="wallet" />
+          </Button>
+        </div>
+      </ScrollArea>
+    </Card>
+
     <div class="flex flex-row gap-4">
-      <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" :disabled="!selected" @click="connect()">Connect</button>
+      <Button class="w-full" variant="outline" size="lg" @click="cancel">Cancel</Button>
+      <Button class="w-full" size="lg" :disabled="!selected" @click="connect">Connect</Button>
     </div>
   </div>
 </template>
