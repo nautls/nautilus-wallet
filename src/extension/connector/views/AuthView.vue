@@ -3,9 +3,15 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
-import { TriangleAlertIcon } from "lucide-vue-next";
+import { AlertCircleIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormField } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
 import { signAuthMessage } from "@/chains/ergo/signing";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -18,15 +24,14 @@ import { WalletType } from "@/types/internal";
 
 const app = useWalletStore();
 const wallet = useWalletStore();
+const { toast } = useToast();
 
 const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
-const errorMessage = ref("");
 const walletId = ref(0);
 
 const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
-const signState = computed(() => (errorMessage.value ? "error" : undefined));
 
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 const $v = useVuelidate(
@@ -93,7 +98,11 @@ async function authenticate() {
     window.close();
   } catch (e) {
     if (e instanceof PasswordError) {
-      errorMessage.value = e.message;
+      toast({
+        title: "Wrong password!",
+        variant: "destructive",
+        description: "Please enter the correct spending password to authenticate."
+      });
     } else {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
     }
@@ -117,57 +126,48 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-2 pt-2 text-sm">
-    <dapp-plate-header :favicon="request?.favicon" :origin="request?.origin">
+  <div class="flex h-full flex-col gap-6 p-6">
+    <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
       requests a proof that the selected address belongs to you
-    </dapp-plate-header>
+    </DappPlateHeader>
 
     <div class="flex-grow"></div>
 
-    <div class="flex flex-col rounded border shadow-sm">
-      <div class="border-b-1 rounded rounded-b-none px-3 py-2 font-semibold">
-        <div class="flex w-full">Selected address</div>
-      </div>
-      <div
-        class="block max-h-64 overflow-y-auto break-all rounded-b bg-gray-700 px-2 py-2 font-mono text-white"
-      >
-        {{ request?.data.address }}
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Selected address</CardTitle>
+      </CardHeader>
+
+      <CardContent class="break-all">{{ request?.data.address }}</CardContent>
+    </Card>
 
     <div class="flex-grow"></div>
 
-    <p v-if="isReadonly || isLedger" class="space-x-2 text-center text-sm">
-      <triangle-alert-icon class="inline align-middle text-yellow-500" :size="20" />
-      <span class="align-middle">This wallet cannot sign messages.</span>
-    </p>
-    <div v-else class="text-left">
-      <form @submit.prevent="authenticate()">
-        <input
-          v-model.lazy="password"
-          placeholder="Spending password"
-          type="password"
-          class="control block w-full"
-          @blur="$v.password.$touch()"
-        />
-        <p v-if="$v.password.$error" class="input-error">
-          {{ $v.password.$errors[0].$message }}
-        </p>
-      </form>
-    </div>
+    <div class="flex flex-col gap-4">
+      <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+        <AlertCircleIcon class="size-5" />
+        <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
+        <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
+        <AlertDescription>This wallet can't sign data.</AlertDescription>
+      </Alert>
 
-    <div class="flex flex-row gap-4">
-      <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" :disabled="isReadonly || isLedger" @click="authenticate()">
-        Authenticate
-      </button>
-    </div>
+      <Form v-else @submit="authenticate">
+        <FormField :validation="$v.password">
+          <PasswordInput
+            v-model.lazy="password"
+            placeholder="Spending password"
+            type="password"
+            @blur="$v.password.$touch"
+          />
+        </FormField>
+      </Form>
 
-    <sign-state-modal
-      title="Signing"
-      :caption="errorMessage"
-      :state="signState"
-      @close="errorMessage = ''"
-    />
+      <div class="flex flex-row gap-4">
+        <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
+        <Button class="w-full" :disabled="isReadonly || isLedger" @click="authenticate">
+          Authenticate
+        </Button>
+      </div>
+    </div>
   </div>
 </template>
