@@ -126,7 +126,7 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
+  <div class="flex grow flex-col gap-6 p-6">
     <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
       requests a proof that the selected address belongs to you
     </DappPlateHeader>

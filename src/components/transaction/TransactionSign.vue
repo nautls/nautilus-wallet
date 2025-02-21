@@ -10,7 +10,6 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import { AlertCircleIcon, Loader2Icon } from "lucide-vue-next";
-import VueJsonPretty from "vue-json-pretty";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -20,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { JsonViewer } from "@/components/ui/json-viewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ToastAction, useToast } from "@/components/ui/toast";
@@ -33,8 +33,6 @@ import { useFormat } from "@/composables";
 import { WalletType } from "@/types/internal";
 import { TransactionEntry } from ".";
 import LedgerDevice from "../LedgerDevice.vue";
-
-import "vue-json-pretty/lib/styles.css";
 
 interface Props {
   transaction?: EIP12UnsignedTransaction;
@@ -280,20 +278,7 @@ const v$ = useVuelidate(
           Network Fee
         </TransactionEntry>
 
-        <div
-          v-if="app.settings.devMode"
-          class="rounded-xl bg-secondary p-4 text-secondary-foreground shadow"
-        >
-          <VueJsonPretty
-            class="!font-mono !text-xs text-foreground"
-            :highlight-selected-node="false"
-            :show-double-quotes="true"
-            :show-length="true"
-            :show-line="false"
-            :deep="1"
-            :data="props.transaction"
-          />
-        </div>
+        <JsonViewer v-if="app.settings.devMode" :data="props.transaction" :deep="1" />
       </template>
     </div>
   </ScrollArea>
@@ -312,7 +297,7 @@ const v$ = useVuelidate(
     <Alert v-if="isReadonly" variant="destructive" class="space-x-2">
       <AlertCircleIcon class="size-5" />
       <AlertTitle>Read-only wallet</AlertTitle>
-      <AlertDescription> This wallet can't sign transactions. </AlertDescription>
+      <AlertDescription>This wallet can't sign transactions.</AlertDescription>
     </Alert>
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
@@ -346,15 +331,3 @@ const v$ = useVuelidate(
     </div>
   </div>
 </template>
-
-<style>
-.vjs-tree .vjs-tree-node,
-.vjs-tree .vjs-tree__node {
-  @apply -mx-4 px-4 py-0.5 text-xs;
-}
-
-.vjs-tree .vjs-tree-node:hover,
-.vjs-tree .vjs-tree__node:hover {
-  @apply bg-gray-500/10 dark:bg-gray-500/20;
-}
-</style>

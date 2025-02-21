@@ -54,7 +54,7 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex grow flex-col gap-6 p-6 text-sm">
+  <div class="flex grow flex-col gap-6 p-6">
     <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon" class="pt-2">
       requests to connect with Nautilus
     </DappPlateHeader>
