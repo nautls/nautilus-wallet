@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/sign/data",
     name: "connector-sign-data",
-    component: () => import("./views/DataSignView .vue"),
+    component: () => import("./views/DataSignView.vue"),
     meta: { title: "Data signature" }
   },
   {
