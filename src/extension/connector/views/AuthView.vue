@@ -154,7 +154,7 @@ function refuse() {
       <Form v-else @submit="authenticate">
         <FormField :validation="$v.password">
           <PasswordInput
-            v-model.lazy="password"
+            v-model="password"
             placeholder="Spending password"
             type="password"
             @blur="$v.password.$touch"

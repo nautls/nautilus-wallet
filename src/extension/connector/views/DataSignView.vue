@@ -5,12 +5,19 @@ import { hex } from "@fleet-sdk/crypto";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
-import { TriangleAlertIcon } from "lucide-vue-next";
+import { AlertCircleIcon } from "lucide-vue-next";
 import type { JsonObject } from "type-fest";
-import VueJsonPretty from "vue-json-pretty";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormField } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/input";
+import { JsonViewer } from "@/components/ui/json-viewer";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/toast";
 import { signMessage } from "@/chains/ergo/signing";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
@@ -21,14 +28,12 @@ import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 import { WalletType } from "@/types/internal";
 
-import "vue-json-pretty/lib/styles.css";
-
 const app = useAppStore();
 const wallet = useWalletStore();
+const { toast } = useToast();
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
-const errorMessage = ref("");
 const walletId = ref(0);
 const messageData = ref<string | JsonObject>();
 const messageType = ref<string>();
@@ -37,7 +42,6 @@ let ergoMessage: ErgoMessage;
 
 const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
-const signState = computed(() => (errorMessage.value ? "error" : undefined));
 
 const detachUnloadListener = useEventListener(window, "beforeunload", refuse);
 
@@ -114,7 +118,7 @@ function setWallet(loading: boolean, walletId: number) {
   wallet.load(walletId);
 }
 
-async function authenticate() {
+async function sign() {
   if (isReadonly.value || isLedger.value || !request.value) return;
   if (!(await $v.value.$validate())) return;
 
@@ -133,7 +137,11 @@ async function authenticate() {
     window.close();
   } catch (e) {
     if (e instanceof PasswordError) {
-      errorMessage.value = e.message;
+      toast({
+        title: "Wrong password!",
+        variant: "destructive",
+        description: "Please enter the correct spending password to authenticate."
+      });
     } else {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
     }
@@ -157,72 +165,51 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-2 pt-2 text-sm">
-    <dapp-plate-header :favicon="request?.favicon" :origin="request?.origin"
-      >requests to sign a message
-    </dapp-plate-header>
+  <div class="flex h-full flex-col gap-6 p-6">
+    <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
+      requests to sign a message
+    </DappPlateHeader>
 
-    <div class="flex-grow"></div>
+    <Card class="grow">
+      <CardHeader>
+        <CardTitle>{{ messageType }} message</CardTitle>
+        <CardDescription class="break-all text-xs">{{ encodedMessage }}</CardDescription>
+      </CardHeader>
 
-    <div class="flex flex-col rounded border shadow-sm">
-      <div class="border-b-1 rounded rounded-b-none px-3 py-2 font-semibold">
-        <div class="flex w-full">{{ messageType }} message</div>
-        <div class="break-all pt-1 text-xs font-normal">{{ encodedMessage }}</div>
+      <CardContent class="grow">
+        <ScrollArea v-if="typeof messageData === 'string'" class="-mx-2 h-full">
+          <div class="max-h-36 break-all px-2 font-mono text-xs">
+            {{ messageData }}
+          </div>
+        </ScrollArea>
+
+        <JsonViewer v-else :deep="3" :data="messageData" class="-mx-2 h-36 overflow-y-auto" />
+      </CardContent>
+    </Card>
+
+    <div class="flex flex-col gap-4">
+      <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+        <AlertCircleIcon class="size-5" />
+        <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
+        <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
+        <AlertDescription>This wallet can't sign data.</AlertDescription>
+      </Alert>
+
+      <Form v-else @submit="sign">
+        <FormField :validation="$v.password">
+          <PasswordInput
+            v-model="password"
+            placeholder="Spending password"
+            type="password"
+            @blur="$v.password.$touch"
+          />
+        </FormField>
+      </Form>
+
+      <div class="flex flex-row gap-4">
+        <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
+        <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">Sign</Button>
       </div>
-      <template v-if="messageData">
-        <div
-          v-if="typeof messageData === 'string'"
-          class="block max-h-64 overflow-y-auto break-all rounded-b bg-gray-700 px-2 py-2 font-mono text-xs text-white"
-        >
-          {{ messageData }}
-        </div>
-        <div v-else class="block max-h-64 overflow-y-auto rounded-b bg-gray-700 px-2 py-2">
-          <vue-json-pretty
-            class="!font-mono !text-xs text-white"
-            :highlight-selected-node="false"
-            :show-double-quotes="true"
-            :show-length="true"
-            :show-line="false"
-            :deep="3"
-            :data="messageData"
-          ></vue-json-pretty>
-        </div>
-      </template>
     </div>
-
-    <div class="flex-grow"></div>
-
-    <p v-if="isReadonly || isLedger" class="space-x-2 text-center text-sm">
-      <triangle-alert-icon class="inline align-middle text-yellow-500" :size="20" />
-      <span class="align-middle">This wallet cannot sign messages.</span>
-    </p>
-    <div v-else class="text-left">
-      <form @submit.prevent="authenticate()">
-        <input
-          v-model.lazy="password"
-          placeholder="Spending password"
-          type="password"
-          class="control block w-full"
-          @blur="$v.password.$touch()"
-        />
-        <p v-if="$v.password.$error" class="input-error">
-          {{ $v.password.$errors[0].$message }}
-        </p>
-      </form>
-    </div>
-
-    <div class="flex flex-row gap-4">
-      <button class="btn outlined w-full" @click="cancel()">Cancel</button>
-      <button class="btn w-full" :disabled="isReadonly || isLedger" @click="authenticate()">
-        Sign
-      </button>
-    </div>
-
-    <sign-state-modal
-      title="Signing"
-      :caption="errorMessage"
-      :state="signState"
-      @close="errorMessage = ''"
-    />
   </div>
 </template>
