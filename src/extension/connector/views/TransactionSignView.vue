@@ -5,6 +5,7 @@ import { useEventListener } from "@vueuse/core";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
+import { TransactionSign } from "@/components/transaction";
 // import TxSignView from "@/components/TxSignView.vue";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
@@ -120,6 +121,7 @@ function closeWindow() {
       <template v-else>requests to sign a transaction</template>
     </dapp-plate-header>
 
+    <TransactionSign></TransactionSign>
     <tx-sign-view
       v-if="request?.data"
       :transaction="request.data.transaction"

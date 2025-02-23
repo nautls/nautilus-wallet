@@ -10,7 +10,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/sign/tx",
     name: "connector-sign-tx",
-    component: () => import("./views/SignTxConfirmView.vue"),
+    component: () => import("./views/TransactionSignView.vue"),
     meta: { title: "Transaction signature" }
   },
   {
