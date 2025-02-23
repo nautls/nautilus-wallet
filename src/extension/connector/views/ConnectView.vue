@@ -54,32 +54,30 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex grow flex-col gap-6 p-6">
-    <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon" class="pt-2">
-      requests to connect with Nautilus
-    </DappPlateHeader>
+  <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon">
+    requests to connect with Nautilus
+  </DappPlateHeader>
 
-    <Card class="grow py-1">
-      <ScrollArea class="h-full">
-        <div class="mx-2 h-10">
-          <Button
-            v-for="wallet in wallets"
-            :key="wallet.id"
-            :class="selected === wallet.id && 'bg-accent'"
-            variant="ghost"
-            class="my-1 size-auto w-full gap-3 py-3"
-            @click="selected = wallet.id"
-          >
-            <Checkbox :checked="wallet.id === selected" />
-            <WalletItem :wallet="wallet" />
-          </Button>
-        </div>
-      </ScrollArea>
-    </Card>
+  <Card class="grow py-1">
+    <ScrollArea class="h-full">
+      <div class="mx-2 h-10">
+        <Button
+          v-for="wallet in wallets"
+          :key="wallet.id"
+          :class="selected === wallet.id && 'bg-accent'"
+          variant="ghost"
+          class="my-1 size-auto w-full gap-3 py-3"
+          @click="selected = wallet.id"
+        >
+          <Checkbox :checked="wallet.id === selected" />
+          <WalletItem :wallet="wallet" />
+        </Button>
+      </div>
+    </ScrollArea>
+  </Card>
 
-    <div class="flex flex-row gap-4">
-      <Button class="w-full" variant="outline" size="lg" @click="cancel">Cancel</Button>
-      <Button class="w-full" size="lg" :disabled="!selected" @click="connect">Connect</Button>
-    </div>
+  <div class="flex flex-row gap-4">
+    <Button class="w-full" variant="outline" size="lg" @click="cancel">Cancel</Button>
+    <Button class="w-full" size="lg" :disabled="!selected" @click="connect">Connect</Button>
   </div>
 </template>

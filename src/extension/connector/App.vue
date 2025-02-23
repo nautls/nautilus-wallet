@@ -14,14 +14,14 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
 
 <template>
   <div
-    class="flex h-screen min-w-[360px] flex-col overflow-hidden bg-background text-sm md:mx-auto md:w-4/12 md:shadow-lg"
+    class="flex h-screen min-w-[360px] flex-col gap-6 overflow-hidden bg-background p-6 text-sm md:mx-auto md:w-4/12 md:shadow-lg"
   >
     <div
-      class="flex flex-row items-center justify-center gap-6 bg-header px-8 py-5"
+      class="-mx-6 -mt-6 flex flex-row items-center gap-6 bg-header px-6 py-4"
       :class="$route.meta.fullPage ? 'justify-center' : 'justify-between'"
     >
       <WalletItem v-if="!$route.meta.fullPage && currentWalletItem" :wallet="currentWalletItem" />
-      <NautilusLogo class="mx-4 size-10" />
+      <NautilusLogo />
     </div>
 
     <router-view />

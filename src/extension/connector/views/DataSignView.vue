@@ -165,51 +165,49 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
-    <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
-      requests to sign a message
-    </DappPlateHeader>
+  <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
+    requests to sign a message
+  </DappPlateHeader>
 
-    <Card class="grow">
-      <CardHeader>
-        <CardTitle>{{ messageType }} message</CardTitle>
-        <CardDescription class="break-all text-xs">{{ encodedMessage }}</CardDescription>
-      </CardHeader>
+  <Card class="grow">
+    <CardHeader>
+      <CardTitle>{{ messageType }} message</CardTitle>
+      <CardDescription class="break-all text-xs">{{ encodedMessage }}</CardDescription>
+    </CardHeader>
 
-      <CardContent class="grow">
-        <ScrollArea v-if="typeof messageData === 'string'" class="-mx-2 h-full">
-          <div class="max-h-36 break-all px-2 font-mono text-xs">
-            {{ messageData }}
-          </div>
-        </ScrollArea>
+    <CardContent>
+      <ScrollArea v-if="typeof messageData === 'string'" class="-mx-2">
+        <div class="max-h-[185px] break-all px-2 font-mono text-xs">
+          {{ messageData }}
+        </div>
+      </ScrollArea>
 
-        <JsonViewer v-else :deep="3" :data="messageData" class="-mx-2 h-36 overflow-y-auto" />
-      </CardContent>
-    </Card>
+      <JsonViewer v-else :deep="3" :data="messageData" class="-mx-2 h-[185px] overflow-y-auto" />
+    </CardContent>
+  </Card>
 
-    <div class="flex flex-col gap-4">
-      <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
-        <AlertCircleIcon class="size-5" />
-        <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
-        <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
-        <AlertDescription>This wallet can't sign data.</AlertDescription>
-      </Alert>
+  <div class="flex flex-col gap-4">
+    <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+      <AlertCircleIcon class="size-5" />
+      <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
+      <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
+      <AlertDescription>This wallet can't sign data.</AlertDescription>
+    </Alert>
 
-      <Form v-else @submit="sign">
-        <FormField :validation="$v.password">
-          <PasswordInput
-            v-model="password"
-            placeholder="Spending password"
-            type="password"
-            @blur="$v.password.$touch"
-          />
-        </FormField>
-      </Form>
+    <Form v-else @submit="sign">
+      <FormField :validation="$v.password">
+        <PasswordInput
+          v-model="password"
+          placeholder="Spending password"
+          type="password"
+          @blur="$v.password.$touch"
+        />
+      </FormField>
+    </Form>
 
-      <div class="flex flex-row gap-4">
-        <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
-        <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">Sign</Button>
-      </div>
+    <div class="flex flex-row gap-4">
+      <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
+      <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">Sign</Button>
     </div>
   </div>
 </template>

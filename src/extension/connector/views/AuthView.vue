@@ -126,48 +126,46 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex grow flex-col gap-6 p-6">
-    <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
-      requests a proof that the selected address belongs to you
-    </DappPlateHeader>
+  <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
+    requests a proof that the selected address belongs to you
+  </DappPlateHeader>
 
-    <div class="flex-grow"></div>
+  <div class="flex-grow"></div>
 
-    <Card>
-      <CardHeader>
-        <CardTitle>Selected address</CardTitle>
-      </CardHeader>
+  <Card>
+    <CardHeader>
+      <CardTitle>Selected address</CardTitle>
+    </CardHeader>
 
-      <CardContent class="break-all">{{ request?.data.address }}</CardContent>
-    </Card>
+    <CardContent class="break-all">{{ request?.data.address }}</CardContent>
+  </Card>
 
-    <div class="flex-grow"></div>
+  <div class="flex-grow"></div>
 
-    <div class="flex flex-col gap-4">
-      <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
-        <AlertCircleIcon class="size-5" />
-        <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
-        <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
-        <AlertDescription>This wallet can't sign data.</AlertDescription>
-      </Alert>
+  <div class="flex flex-col gap-4">
+    <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+      <AlertCircleIcon class="size-5" />
+      <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
+      <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
+      <AlertDescription>This wallet can't sign data.</AlertDescription>
+    </Alert>
 
-      <Form v-else @submit="authenticate">
-        <FormField :validation="$v.password">
-          <PasswordInput
-            v-model="password"
-            placeholder="Spending password"
-            type="password"
-            @blur="$v.password.$touch"
-          />
-        </FormField>
-      </Form>
+    <Form v-else @submit="authenticate">
+      <FormField :validation="$v.password">
+        <PasswordInput
+          v-model="password"
+          placeholder="Spending password"
+          type="password"
+          @blur="$v.password.$touch"
+        />
+      </FormField>
+    </Form>
 
-      <div class="flex flex-row gap-4">
-        <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
-        <Button class="w-full" :disabled="isReadonly || isLedger" @click="authenticate">
-          Authenticate
-        </Button>
-      </div>
+    <div class="flex flex-row gap-4">
+      <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
+      <Button class="w-full" :disabled="isReadonly || isLedger" @click="authenticate">
+        Authenticate
+      </Button>
     </div>
   </div>
 </template>
