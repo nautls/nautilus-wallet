@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Form, FormField } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/input";
 import { JsonViewer } from "@/components/ui/json-viewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -145,7 +145,7 @@ async function sign() {
         variant: "destructive",
         description: "Please enter the correct spending password to sign this transaction."
       });
-      nextTick(() => pwdInput.value?.$el.focus());
+      nextTick(() => pwdInput.value?.input?.$el.focus());
 
       return;
     } else if (e instanceof DeviceError) {
@@ -208,7 +208,7 @@ const v$ = useVuelidate(
 
 <template>
   <ScrollArea type="hover" class="-mx-6 h-[100vh] border-y px-6" hide-outline>
-    <div class="flex flex-col gap-6 py-4 text-sm">
+    <div class="flex flex-col gap-6 py-6 text-sm">
       <template v-if="loading">
         <TransactionEntry v-for="i in 4" :key="i" loading :assets="[]" />
       </template>
@@ -304,11 +304,10 @@ const v$ = useVuelidate(
 
     <Form v-else @submit="sign">
       <FormField :validation="v$.password">
-        <Input
+        <PasswordInput
           ref="pwd-input"
           v-model="password"
           placeholder="Spending password"
-          type="password"
           :disabled="loading || signing || !canSign"
           class="w-full"
           @blur="v$.password.$touch()"
@@ -320,11 +319,12 @@ const v$ = useVuelidate(
       <Button
         class="w-full"
         variant="outline"
+        size="lg"
         :disabled="loading || signing"
         @click="emit('refused')"
         >Cancel</Button
       >
-      <Button class="w-full" :disabled="loading || signing || !canSign" @click="sign">
+      <Button size="lg" class="w-full" :disabled="loading || signing || !canSign" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>Sign</template>
       </Button>
