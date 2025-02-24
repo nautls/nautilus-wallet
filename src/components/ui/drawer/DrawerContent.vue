@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DialogContentEmits, DialogContentProps } from 'radix-vue'
+import type { DialogContentEmits, DialogContentProps } from 'reka-ui'
 import type { HtmlHTMLAttributes } from 'vue'
 import { cn } from '@/common/utils'
-import { useForwardPropsEmits } from 'radix-vue'
+import { useForwardPropsEmits } from 'reka-ui'
 import { DrawerContent, DrawerPortal } from 'vaul-vue'
 import DrawerOverlay from './DrawerOverlay.vue'
 import { target } from '@/common/env'

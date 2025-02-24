@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { SliderRootEmits, SliderRootProps } from 'radix-vue'
+import type { SliderRootEmits, SliderRootProps } from 'reka-ui'
 import { cn } from '@/common/utils'
-import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from 'radix-vue'
+import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 
 const props = defineProps<SliderRootProps & { class?: HTMLAttributes['class'] }>()

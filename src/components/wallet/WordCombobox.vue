@@ -11,7 +11,7 @@ import {
   ComboboxItemIndicator,
   ComboboxRoot,
   ComboboxViewport
-} from "radix-vue";
+} from "reka-ui";
 import { cn } from "@/common/utils";
 
 interface Props {
@@ -68,9 +68,9 @@ function onTab() {
   <ComboboxRoot
     v-model="word"
     v-model:selected-value="highlighted"
-    v-model:search-term="searchTerm"
-    :reset-search-term-on-select="true"
-    :reset-search-term-on-blur="true"
+    reset-search-term-on-select
+    reset-search-term-on-blur
+    ignore-filter
     @keydown.tab="onTab"
   >
     <ComboboxAnchor
@@ -84,7 +84,7 @@ function onTab() {
       <div class="select-none text-xs font-light tabular-nums text-muted-foreground">
         {{ prefix }}
       </div>
-      <ComboboxInput class="w-full bg-transparent outline-none" />
+      <ComboboxInput v-model="searchTerm" class="w-full bg-transparent outline-none" />
     </ComboboxAnchor>
 
     <ComboboxContent
@@ -98,7 +98,7 @@ function onTab() {
     >
       <ComboboxViewport
         tabindex="-1"
-        class="h-[--radix-combobox-trigger-height] w-full min-w-[--radix-combobox-trigger-width] p-1"
+        class="h-[--reka-combobox-trigger-height] w-full min-w-[--reka-combobox-trigger-width] p-1"
       >
         <ComboboxEmpty class="py-1.5 pl-2 text-center text-xs font-medium" />
 

@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { Area, CurveType, type BulletLegendItemInterface } from "@unovis/ts";
 import { VisArea, VisLine, VisXYContainer } from "@unovis/vue";
 import { useMounted } from "@vueuse/core";
-import { useId } from "radix-vue";
+import { useId } from "reka-ui";
 import { ChartCrosshair, defaultColors } from "@/components/ui/chart";
 import { cn } from "@/common/utils";
 import ChartTooltip from "./SparklineTooltip.vue";

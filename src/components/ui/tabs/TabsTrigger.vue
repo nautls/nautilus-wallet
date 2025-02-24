@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cn } from '@/common/utils'
-import { TabsTrigger, type TabsTriggerProps, useForwardProps } from 'radix-vue'
+import { TabsTrigger, type TabsTriggerProps, useForwardProps } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 
 const props = defineProps<TabsTriggerProps & { class?: HTMLAttributes['class'] }>()
