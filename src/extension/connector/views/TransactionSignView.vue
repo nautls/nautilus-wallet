@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { SignedTransaction, some } from "@fleet-sdk/common";
+import { SignedInput, SignedTransaction, some } from "@fleet-sdk/common";
 import { useEventListener } from "@vueuse/core";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
 import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { TransactionSign } from "@/components/transaction";
-// import TxSignView from "@/components/TxSignView.vue";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
@@ -91,13 +90,13 @@ function refuse() {
   request.value?.resolve(error(SignErrorCode.UserDeclined, "User rejected."));
 }
 
-function onSuccess(signedTx: SignedTransaction) {
+function onSuccess(signedTx: SignedTransaction | SignedInput[]) {
   request.value?.resolve(success(signedTx));
   closeWindow();
 }
 
-function onRefused(info: string) {
-  request.value?.resolve(error(SignErrorCode.UserDeclined, info));
+function onRefused() {
+  refuse();
   closeWindow();
 }
 
@@ -113,22 +112,18 @@ function closeWindow() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 text-sm">
-    <dapp-plate-header :origin="request?.origin" :favicon="request?.favicon" class="pt-2">
-      <template v-if="isPartialSign"
-        >requests to <span class="font-semibold">partially</span> sign a transaction</template
-      >
-      <template v-else>requests to sign a transaction</template>
-    </dapp-plate-header>
+  <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon">
+    <template v-if="isPartialSign">
+      requests to <span class="font-semibold">partially</span> sign a transaction
+    </template>
+    <template v-else>requests to sign a transaction</template>
+  </DappPlateHeader>
 
-    <TransactionSign></TransactionSign>
-    <tx-sign-view
-      v-if="request?.data"
-      :transaction="request.data.transaction"
-      :inputs-to-sign="inputsToSign"
-      @fail="onFail"
-      @refused="onRefused"
-      @success="onSuccess"
-    />
-  </div>
+  <TransactionSign
+    :transaction="request?.data.transaction"
+    :inputs-to-sign="inputsToSign"
+    @refused="onRefused"
+    @fail="onFail"
+    @success="onSuccess"
+  />
 </template>
