@@ -73,17 +73,16 @@ function walletTypeToString(type: WalletType): string {
 </script>
 
 <template>
-  <div :class="cn('flex h-auto w-full flex-row items-center gap-2 text-left', props.class)">
+  <div :class="cn('flex h-auto w-full flex-row items-center gap-2 rounded text-left', props.class)">
     <canvas
       :id="canvasId"
-      :class="concise ? 'h-6 rounded-sm' : 'h-7 rounded-md'"
-      class="inline-block w-auto ring-1 ring-foreground/10 ring-offset-1"
+      class="inline-block h-full w-auto rounded-sm ring-1 ring-foreground/10 ring-offset-1"
     ></canvas>
 
-    <div class="flex w-full flex-col justify-between gap-0 whitespace-nowrap">
+    <div class="flex w-full flex-col justify-between whitespace-nowrap">
       <div
         class="w-full max-w-[110px] truncate text-sm leading-tight"
-        :class="concise ? 'max-w-[125px] font-normal' : 'max-w-[110px] font-semibold'"
+        :class="concise ? 'max-w-[125px] font-normal' : 'font-semibold'"
       >
         {{ wallet.name }}
       </div>

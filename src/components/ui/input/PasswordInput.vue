@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HTMLAttributes, InputHTMLAttributes, ref } from "vue";
+import { HTMLAttributes, InputHTMLAttributes, ref, useTemplateRef } from "vue";
 import { EyeIcon, EyeOffIcon } from "lucide-vue-next";
 import { Button } from "../button";
 import { Input } from ".";
@@ -10,6 +10,9 @@ const props = defineProps<{
 }>();
 
 const showPassword = ref(false);
+const input = useTemplateRef("input");
+
+defineExpose({ input });
 </script>
 
 <template>
@@ -17,6 +20,7 @@ const showPassword = ref(false);
     <Input
       :id="props.id"
       v-bind="$attrs"
+      ref="input"
       :disabled="props.disabled"
       :type="showPassword ? 'text' : 'password'"
       class="pr-8"

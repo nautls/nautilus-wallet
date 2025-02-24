@@ -21,8 +21,8 @@ const logo = staging
 
 <template>
   <div class="text-center">
-    <div class="min-h-max" :class="testnet || staging ? '-mb-4' : ''">
-      <img :src="logo" :class="cn('inline-block size-10 min-w-max', props.class)" />
+    <div :class="testnet || staging ? '-mb-4' : ''">
+      <img :src="logo" :class="cn('size-10', props.class)" />
     </div>
 
     <span

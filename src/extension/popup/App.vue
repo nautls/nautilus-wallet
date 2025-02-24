@@ -50,7 +50,7 @@ watch(
     <div v-else class="flex-initial">
       <div class="flex flex-row items-center justify-between gap-6 bg-header px-4 py-3 pb-0">
         <WalletSwitcher />
-        <NautilusLogo class="mx-4 my-2" />
+        <NautilusLogo class="mx-4" />
       </div>
       <NavHeader />
     </div>

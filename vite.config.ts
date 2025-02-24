@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import vue from "@vitejs/plugin-vue";
+import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig, PluginOption } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import topLevelAwait from "vite-plugin-top-level-await";
@@ -19,6 +20,8 @@ const env = {
   GIT_COMMIT_HASH: execSync("git rev-parse HEAD").toString().trim()
 };
 
+const INSPECT_BUNDLE = process.env.INSPECT === "true";
+
 function r(...paths: string[]): string {
   return path.resolve(import.meta.dirname, ...paths);
 }
@@ -34,7 +37,8 @@ const plugins = [
   topLevelAwait(),
   wasmLoader(),
   objectLogger(env),
-  nodePolyfills({ include: ["buffer"] }) // required by @ledgerhq/* packages
+  nodePolyfills({ include: ["buffer"] }), // required by @ledgerhq/* packages
+  INSPECT_BUNDLE ? visualizer({ open: true, filename: "dist/bundle-stats.html" }) : undefined
 ];
 
 // https://vitejs.dev/config/

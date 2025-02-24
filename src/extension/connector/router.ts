@@ -10,13 +10,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/sign/tx",
     name: "connector-sign-tx",
-    component: () => import("./views/SignTxConfirmView.vue"),
+    component: () => import("./views/TransactionSignView.vue"),
     meta: { title: "Transaction signature" }
   },
   {
     path: "/sign/data",
     name: "connector-sign-data",
-    component: () => import("./views/SignDataView.vue"),
+    component: () => import("./views/DataSignView.vue"),
     meta: { title: "Data signature" }
   },
   {

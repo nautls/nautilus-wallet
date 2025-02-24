@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
+import { Toaster } from "@/components/ui/toast";
 import { WalletItem } from "@/components/wallet";
 
 const app = useAppStore();
@@ -12,27 +13,19 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
 </script>
 
 <template>
-  <div class="app">
+  <div
+    class="flex h-screen min-w-[360px] flex-col gap-6 overflow-hidden bg-background p-6 text-sm md:mx-auto md:w-4/12 md:shadow-lg"
+  >
     <div
-      class="border-b-1 flex flex-row items-center justify-between gap-4 border-gray-200 bg-gray-100 px-6 py-4"
+      class="-mx-6 -mt-6 flex flex-row items-center gap-6 bg-header px-6 py-4"
+      :class="$route.meta.fullPage ? 'justify-center' : 'justify-between'"
     >
-      <NautilusLogo content-class="w-11 h-11" />
-      <WalletItem
-        v-if="!app.loading && !$route.meta.fullPage && currentWalletItem"
-        :key="wallet.id"
-        class="w-min"
-        :reverse="true"
-        :wallet="currentWalletItem"
-        :loading="wallet.loading || wallet.syncing"
-      />
-      <h1 v-else class="w-full text-base font-semibold">
-        <template v-if="$route.meta.title">{{ $route.meta.title }}</template>
-        <template v-else>Nautilus Wallet</template>
-      </h1>
+      <WalletItem v-if="!$route.meta.fullPage && currentWalletItem" :wallet="currentWalletItem" />
+      <NautilusLogo />
     </div>
 
-    <div class="flex-grow overflow-y-auto overflow-x-hidden p-4">
-      <router-view />
-    </div>
+    <router-view />
   </div>
+
+  <Toaster />
 </template>
