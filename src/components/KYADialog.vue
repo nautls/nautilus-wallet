@@ -37,7 +37,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         <AlertDialogTitle>Know Your Assumptions</AlertDialogTitle>
         <AlertDialogDescription>
           <ScrollArea type="hover" hide-outline>
-            <div class="h-[60dvh] space-y-2 px-2 text-left text-sm text-foreground">
+            <div class="text-foreground h-[60dvh] space-y-2 px-2 text-left text-sm">
               <p>Nautilus is an open source tool for interacting with the Ergo Blockchain.</p>
 
               <h2 class="pt-4 text-base font-bold">Notice that:</h2>
@@ -56,7 +56,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
                   Nautilus operates on a live blockchain, thus transactions are final, and
                   irreversible once they have
                   <span
-                    class="rounded-sm border border-input bg-secondary px-1.5 font-semibold text-secondary-foreground"
+                    class="border-input bg-secondary text-secondary-foreground rounded-sm border px-1.5 font-semibold"
                     >confirmed</span
                   >
                   status;

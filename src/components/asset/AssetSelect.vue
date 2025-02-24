@@ -140,7 +140,7 @@ function filter(items: (T | string)[]) {
 
               <div
                 v-if="props.showBalance && asset.balance"
-                class="whitespace-nowrap text-right align-middle text-xs"
+                class="text-right align-middle text-xs whitespace-nowrap"
               >
                 <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
                   <Skeleton class="h-4 w-12 animate-none" />

@@ -76,7 +76,7 @@ function openExplorer(address: string | undefined) {
     <Card class="p-6 text-sm">
       <div class="flex h-full flex-row items-center gap-4">
         <div class="flex h-full w-full flex-col justify-between">
-          <CardTitle class="font-semibold leading-none tracking-tight">
+          <CardTitle class="leading-none font-semibold tracking-tight">
             {{ defaultAddressTitle }}
           </CardTitle>
           <div class="break-all">
@@ -119,7 +119,7 @@ function openExplorer(address: string | undefined) {
         <div
           v-for="address in addresses"
           :key="address.script"
-          class="flex items-center justify-between gap-2 rounded-md bg-transparent p-4 transition-colors hover:bg-accent hover:text-accent-foreground"
+          class="hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2 rounded-md bg-transparent p-4 transition-colors"
         >
           <div class="flex items-center gap-2">
             <Button
@@ -129,7 +129,7 @@ function openExplorer(address: string | undefined) {
               @click="setDefaultAddress(address)"
             >
               <Checkbox :model-value="wallet.settings.defaultChangeIndex === address.index" />
-              <span class="whitespace-nowrap font-mono text-foreground">{{
+              <span class="text-foreground font-mono whitespace-nowrap">{{
                 format.string.shorten(address.script, 10)
               }}</span>
             </Button>

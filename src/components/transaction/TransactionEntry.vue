@@ -38,7 +38,7 @@ const format = useFormat();
       </template>
       <template v-else>
         <CardTitle class="flex flex-row items-center justify-between gap-2">
-          <div class="font-semibold leading-none tracking-tight"><slot /></div>
+          <div class="leading-none font-semibold tracking-tight"><slot /></div>
           <AssetSignIcon :type="props.type" class="size-4" />
         </CardTitle>
         <CardDescription v-if="$slots.subheader" class="text-xs">
@@ -56,7 +56,7 @@ const format = useFormat();
             <Skeleton class="h-4 w-20" />
             <Skeleton class="mt-1 h-3 w-16" />
           </div>
-          <div class="whitespace-nowrap text-right align-middle">
+          <div class="text-right align-middle whitespace-nowrap">
             <Skeleton class="h-4 w-16" />
           </div>
         </div>
@@ -64,7 +64,7 @@ const format = useFormat();
       <template v-else>
         <div v-for="(asset, index) in assets" :key="index">
           <div v-if="type === 'swap' && assets.length > 1 && index == 1" class="w-full pb-2">
-            <ArrowDownIcon class="m-auto size-4 text-muted-foreground" />
+            <ArrowDownIcon class="text-muted-foreground m-auto size-4" />
           </div>
 
           <div class="flex flex-row items-center gap-2">
@@ -78,7 +78,7 @@ const format = useFormat();
 
                 <TooltipProvider v-if="asset.minting" :delay-duration="100">
                   <Tooltip>
-                    <TooltipTrigger class="inline align-middle text-success">
+                    <TooltipTrigger class="text-success inline align-middle">
                       <MilestoneIcon class="size-3.5" />
                     </TooltipTrigger>
                     <TooltipContent class="w-48 px-3 py-2 text-center">
@@ -94,7 +94,7 @@ const format = useFormat();
                 }}
               </div>
             </div>
-            <div class="whitespace-nowrap text-right align-middle">
+            <div class="text-right align-middle whitespace-nowrap">
               {{ format.bn.format(asset.amount) }}
             </div>
           </div>

@@ -159,7 +159,7 @@ defineExpose({ open: openDialog, close: closeDialog });
         />
 
         <DrawerTitle>
-          <div class="w-fit max-w-[280px] truncate leading-tight xs:m-auto">
+          <div class="xs:m-auto w-fit max-w-[280px] truncate leading-tight">
             {{ asset?.name ?? asset?.id }}
           </div>
         </DrawerTitle>
@@ -179,7 +179,7 @@ defineExpose({ open: openDialog, close: closeDialog });
               display-external-link
               :src="contentUrl"
               object-fit="cover"
-              class="min-h-[240px] w-full rounded-md border border-input"
+              class="border-input min-h-[240px] w-full rounded-md border"
             />
           </div>
 

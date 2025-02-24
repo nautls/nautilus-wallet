@@ -46,7 +46,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
       <QrCode :data="xpk" class="m-auto size-[200px]" />
       <StatsCard
-        class="break-all bg-secondary text-secondary-foreground"
+        class="bg-secondary text-secondary-foreground break-all"
         :display-copy-button="true"
         :content="xpk"
       >

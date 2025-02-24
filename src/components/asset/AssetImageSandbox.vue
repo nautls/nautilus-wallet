@@ -58,7 +58,7 @@ function resolveIpfs(url?: string, isVideo = false): string {
     <div v-if="loading" :class="props.class" class="flex">
       <LoaderCircleIcon
         type="circular"
-        class="m-auto size-1/3 animate-spin text-muted-foreground"
+        class="text-muted-foreground m-auto size-1/3 animate-spin"
       />
     </div>
     <div v-else-if="!sandboxUrl" :class="props.class" class="flex">
@@ -78,7 +78,7 @@ function resolveIpfs(url?: string, isVideo = false): string {
 
     <Button
       v-if="props.displayExternalLink && isContentUrl"
-      class="absolute right-0 top-0 m-2 opacity-70 transition-all hover:opacity-100"
+      class="absolute top-0 right-0 m-2 opacity-70 transition-all hover:opacity-100"
       size="icon"
       variant="outline"
       @click="openLink(content)"

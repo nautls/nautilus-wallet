@@ -141,12 +141,12 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             <CardDescription class="text-xs">
               <div v-if="tx.confirmed">
                 {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-                <CheckIcon class="-ml-1 inline-flex h-3.5 text-success" />
+                <CheckIcon class="text-success -ml-1 inline-flex h-3.5" />
               </div>
               <div v-else>
                 Pending
                 <CircleIcon
-                  class="-ml-1 inline-flex h-3.5 animate-pulse fill-warning text-warning"
+                  class="fill-warning text-warning -ml-1 inline-flex h-3.5 animate-pulse"
                 />
               </div>
             </CardDescription>
@@ -206,7 +206,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 
         <div
           v-else-if="loaded && !txHistory?.length"
-          class="flex flex-col items-center gap-4 text-center text-sm text-muted-foreground"
+          class="text-muted-foreground flex flex-col items-center gap-4 text-center text-sm"
         >
           <ClockIcon :size="48" class="stroke-[1.5px]" />
           You have no transaction history yet.
