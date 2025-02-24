@@ -105,6 +105,11 @@
   body {
     @apply bg-background text-foreground h-full cursor-default overflow-hidden leading-normal tracking-wide antialiased;
   }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 .slide-up-move,
