@@ -69,7 +69,7 @@ function refuse() {
           class="my-1 size-auto w-full gap-3 py-3"
           @click="selected = wallet.id"
         >
-          <Checkbox :checked="wallet.id === selected" />
+          <Checkbox :model-value="wallet.id === selected" />
           <WalletItem :wallet="wallet" />
         </Button>
       </div>

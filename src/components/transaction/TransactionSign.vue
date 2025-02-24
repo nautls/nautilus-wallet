@@ -285,7 +285,7 @@ const v$ = useVuelidate(
 
   <div class="flex flex-col gap-4">
     <div v-if="parsedTx?.burning" class="flex items-center gap-2">
-      <Checkbox id="burn" v-model:checked="hasBurnAgreement" />
+      <Checkbox id="burn" v-model="hasBurnAgreement" />
       <label
         for="burn"
         class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
