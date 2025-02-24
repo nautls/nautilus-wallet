@@ -211,7 +211,7 @@ function tokenRate(tokenId: string): number {
     <div
       :class="
         cn(
-          'relative flex w-full cursor-text flex-col gap-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'relative flex w-full cursor-text flex-col gap-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
           props.class
         )
       "
@@ -235,13 +235,13 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="w-full min-w-24 bg-transparent outline-none placeholder:text-muted-foreground"
+          class="w-full min-w-24 bg-transparent outline-hidden placeholder:text-muted-foreground"
           placeholder="0"
           @blur="v$.$touch()"
         />
 
         <div class="flex w-auto min-w-max select-none flex-row items-center gap-1">
-          <span class="flex-grow whitespace-nowrap text-sm">
+          <span class="grow whitespace-nowrap text-sm">
             {{ baseCurrencyName }}
           </span>
           <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
@@ -249,7 +249,7 @@ function tokenRate(tokenId: string): number {
       </div>
 
       <div class="flex select-none flex-row gap-2">
-        <div class="flex flex-grow flex-row items-center gap-1 text-xs text-muted-foreground">
+        <div class="flex grow flex-row items-center gap-1 text-xs text-muted-foreground">
           <Button
             v-if="isConvertible"
             type="button"

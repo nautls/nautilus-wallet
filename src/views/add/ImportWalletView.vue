@@ -211,11 +211,7 @@ const steps: Step[] = [
   <DefaultStepper v-model="step" :steps="steps" class="py-2" />
 
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
-    <Form
-      class="flex h-full flex-grow flex-col justify-start gap-4"
-      @paste="onPaste"
-      @submit="next"
-    >
+    <Form class="flex h-full grow flex-col justify-start gap-4" @paste="onPaste" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
           <Label for="wallet-name">Wallet name</Label>
@@ -305,7 +301,7 @@ const steps: Step[] = [
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button :disabled="loading" class="w-full items-center" size="lg" @click="next">
+      <Button :disabled="loading" class="w-full items-center" @click="next">
         <template v-if="loading"><Loader2Icon class="animate-spin" />Importing wallet...</template>
         <template v-else>{{ nexButtonTitle }}</template>
       </Button>

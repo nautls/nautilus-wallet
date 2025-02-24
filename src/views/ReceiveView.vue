@@ -105,7 +105,7 @@ function openExplorer(address: string | undefined) {
           <TabsTrigger value="unused">Unused</TabsTrigger>
         </TabsList>
 
-        <div class="flex-grow"></div>
+        <div class="grow"></div>
         <Button variant="ghost" size="icon" :disabled="!canAddNewAddress" @click="newAddress"
           ><CirclePlusIcon
         /></Button>

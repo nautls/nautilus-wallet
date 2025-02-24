@@ -52,7 +52,7 @@ const format = useFormat();
         <div class="flex flex-row items-center gap-2 p-0">
           <Skeleton v-if="loading" class="size-9 rounded-full" />
 
-          <div class="flex flex-grow flex-col justify-center">
+          <div class="flex grow flex-col justify-center">
             <Skeleton class="h-4 w-20" />
             <Skeleton class="mt-1 h-3 w-16" />
           </div>
@@ -70,7 +70,7 @@ const format = useFormat();
           <div class="flex flex-row items-center gap-2">
             <AssetIcon class="size-9" :token-id="asset.tokenId" :type="asset.metadata?.type" />
             <div
-              class="flex flex-grow flex-col justify-center"
+              class="flex grow flex-col justify-center"
               :class="{ 'font-semibold': isErg(asset.tokenId) }"
             >
               <div class="leading-tight">

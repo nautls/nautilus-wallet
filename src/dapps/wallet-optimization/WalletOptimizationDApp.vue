@@ -145,7 +145,7 @@ function formatBytes(bytes: number, decimals = 1) {
       />
     </div>
 
-    <div class="flex-grow text-xs text-muted-foreground">
+    <div class="text-muted-foreground grow text-xs">
       Use this tool merge your UTxOs, boosting performance and avoiding
       <Link external href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
         >demurrage</Link
@@ -154,9 +154,7 @@ function formatBytes(bytes: number, decimals = 1) {
 
     <div class="space-y-4">
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
-      <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction"
-        >Optimize</Button
-      >
+      <Button :disabled="loading" class="w-full" @click="sendTransaction">Optimize</Button>
     </div>
   </div>
 </template>

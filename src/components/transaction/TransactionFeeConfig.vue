@@ -227,10 +227,10 @@ function emitSelected() {
   <FormField :validation="v$">
     <div
       :class="disabled ? 'pointer-events-none opacity-50' : ''"
-      class="relative flex w-full flex-col gap-1 rounded-md border border-input bg-transparent px-4 py-3 text-sm shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+      class="relative flex w-full flex-col gap-1 rounded-md border border-input bg-transparent px-4 py-3 text-sm shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
     >
-      <div class="flex flex-grow gap-2">
-        <div class="flex flex-grow flex-row items-start gap-2">
+      <div class="flex grow gap-2">
+        <div class="flex grow flex-row items-start gap-2">
           <div class="flex h-full flex-row items-center gap-1">
             <div class="font-bold">Fee</div>
             <div>{{ feeAmount.toString() }}</div>

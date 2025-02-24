@@ -47,7 +47,7 @@ function goDonate() {
       land-based governments.
     </div>
 
-    <div class="flex-grow"></div>
+    <div class="grow"></div>
 
     <div class="text-center text-sm">
       Support the development by donating to:

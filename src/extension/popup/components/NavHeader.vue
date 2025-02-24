@@ -24,7 +24,7 @@ const navItems = computed(() => [
       :to="item.to"
       :class="{ 'pointer-events-none opacity-40': item.disabled }"
       active-class="text-primary cursor-default"
-      class="flex-grow py-4 text-muted-foreground outline-none transition-colors hover:text-primary focus:outline-none active:text-primary active:outline-none"
+      class="grow py-4 text-muted-foreground outline-hidden transition-colors hover:text-primary focus:outline-hidden active:text-primary active:outline-hidden"
     >
       <component :is="item.icon" class="mx-auto size-[22px] stroke-[1.5px]" />
     </router-link>

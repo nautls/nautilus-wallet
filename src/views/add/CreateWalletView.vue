@@ -188,7 +188,7 @@ const steps: Step[] = [
   <DefaultStepper v-model="step" :steps="steps" class="py-2" />
 
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
-    <Form class="flex h-full flex-grow flex-col justify-start gap-4" @submit="next">
+    <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
           <Label for="wallet-name">Wallet name</Label>
@@ -241,7 +241,7 @@ const steps: Step[] = [
             variant="ghost"
             size="icon"
             :content="mnemonicPhrase"
-            class="right-4 top-4"
+            class="top-4 right-4"
           />
         </Tabs>
 
@@ -252,7 +252,7 @@ const steps: Step[] = [
         <FormField :validation="verificationRules.mnemonicPhraseConfirm">
           <Label for="confirm-mnemonic" class="flex flex-col gap-1 pb-3"
             >Confirm your recovery phrase
-            <span class="text-xs font-normal text-muted-foreground"
+            <span class="text-muted-foreground text-xs font-normal"
               >Complete the missing parts of your recovery phrase.</span
             ></Label
           >
@@ -263,7 +263,7 @@ const steps: Step[] = [
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button :disabled="loading" class="w-full items-center" size="lg" @click="next">
+      <Button :disabled="loading" class="w-full items-center" @click="next">
         <template v-if="loading"><Loader2Icon class="animate-spin" />Creating wallet...</template>
         <template v-else>{{ nexButtonTitle }}</template>
       </Button>

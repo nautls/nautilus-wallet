@@ -221,7 +221,7 @@ function isFeeAsset(tokenId: string): boolean {
 </script>
 
 <template>
-  <ScrollArea type="scroll" class="flex-grow">
+  <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
       <Card class="flex flex-col gap-6 p-6">
         <FormField :validation="v$.recipient">
@@ -260,7 +260,7 @@ function isFeeAsset(tokenId: string): boolean {
                 <CheckCheckIcon class="size-6 shrink-0" />
                 <div class="flex flex-col items-start justify-center text-xs font-bold">
                   Add all assets
-                  <div class="font-normal text-muted-foreground">
+                  <div class="text-muted-foreground font-normal">
                     Add all assets to the sending list
                   </div>
                 </div>
@@ -274,6 +274,6 @@ function isFeeAsset(tokenId: string): boolean {
 
   <div class="space-y-4 p-4">
     <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
-    <Button type="submit" class="w-full" size="lg" @click="sendTransaction">Preview</Button>
+    <Button type="submit" class="w-full" @click="sendTransaction">Preview</Button>
   </div>
 </template>

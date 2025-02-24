@@ -197,7 +197,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
                 <Skeleton class="h-5 w-5 rounded-full border" />
                 <Skeleton class="ml-2 h-6 w-6" />
                 <Skeleton class="h-5 w-24" />
-                <div class="flex-grow"></div>
+                <div class="grow"></div>
                 <Skeleton class="h-5 w-16" />
               </div>
             </CardContent>

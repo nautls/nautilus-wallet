@@ -103,7 +103,7 @@ function filter(items: (T | string)[]) {
           role="combobox"
           class="w-full items-center gap-0"
         >
-          <span class="flex-grow">Add asset</span>
+          <span class="grow">Add asset</span>
           <ChevronsUpDownIcon class="float-end -ml-4 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -125,7 +125,7 @@ function filter(items: (T | string)[]) {
               <AssetIcon class="size-6" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
               <div
-                class="flex flex-grow flex-col justify-center text-xs"
+                class="flex grow flex-col justify-center text-xs"
                 :class="{ 'font-semibold': isErg(asset.tokenId) }"
               >
                 <div>

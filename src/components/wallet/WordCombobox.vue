@@ -76,7 +76,7 @@ function onTab() {
     <ComboboxAnchor
       :class="
         cn(
-          'flex h-9 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-sm ring-offset-background focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:truncate',
+          'flex h-9 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-xs ring-offset-background focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-muted-foreground [&>span]:truncate',
           props.class
         )
       "
@@ -84,7 +84,7 @@ function onTab() {
       <div class="select-none text-xs font-light tabular-nums text-muted-foreground">
         {{ prefix }}
       </div>
-      <ComboboxInput v-model="searchTerm" class="w-full bg-transparent outline-none" />
+      <ComboboxInput v-model="searchTerm" class="w-full bg-transparent outline-hidden" />
     </ComboboxAnchor>
 
     <ComboboxContent
@@ -98,7 +98,7 @@ function onTab() {
     >
       <ComboboxViewport
         tabindex="-1"
-        class="h-[--reka-combobox-trigger-height] w-full min-w-[--reka-combobox-trigger-width] p-1"
+        class="h-(--reka-combobox-trigger-height) w-full min-w-(--reka-combobox-trigger-width) p-1"
       >
         <ComboboxEmpty class="py-1.5 pl-2 text-center text-xs font-medium" />
 
@@ -106,7 +106,7 @@ function onTab() {
           v-for="option in slice"
           :key="option"
           :value="option"
-          class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50"
+          class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-hidden focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50"
         >
           {{ option }}
 

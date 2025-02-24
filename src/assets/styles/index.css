@@ -1,8 +1,7 @@
-@import "./fonts.css";
+@import "./fonts.css" layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config '../../../tailwind.config.ts';
 
 @layer base {
   :root {
@@ -100,11 +99,11 @@
   }
 
   * {
-    @apply border-border;
+    @apply border-border font-sans;
   }
 
   body {
-    @apply h-full cursor-default overflow-hidden bg-background font-sans leading-normal tracking-wide text-foreground antialiased;
+    @apply bg-background text-foreground h-full cursor-default overflow-hidden leading-normal tracking-wide antialiased;
   }
 }
 

@@ -172,7 +172,7 @@ defineExpose({ open: openDialog, close: closeDialog });
         </DrawerDescription>
       </DrawerHeader>
 
-      <ScrollArea type="hover" class="-mx-6 flex-grow">
+      <ScrollArea type="hover" class="-mx-6 grow">
         <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
             <AssetImageSandbox

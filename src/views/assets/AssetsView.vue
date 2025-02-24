@@ -83,13 +83,13 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 px-4 pb-4">
-      <div class="relative -mx-4 bg-header">
-        <div class="mx-auto w-full cursor-default bg-transparent pb-2 pt-4 text-center">
+      <div class="bg-header relative -mx-4">
+        <div class="mx-auto w-full cursor-default bg-transparent pt-4 pb-2 text-center">
           <h2 class="text-2xl">
             <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
             <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
           </h2>
-          <p class="text-sm text-muted-foreground">Wallet balance</p>
+          <p class="text-muted-foreground text-sm">Wallet balance</p>
         </div>
 
         <SparklineChart
@@ -112,7 +112,7 @@ function openAssetInfoDialog(tokenId: string) {
             </TabsTrigger>
           </TabsList>
 
-          <div class="flex-grow"></div>
+          <div class="grow"></div>
 
           <Button
             variant="ghost"
@@ -148,12 +148,12 @@ function openAssetInfoDialog(tokenId: string) {
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
                 <div
-                  class="flex flex-grow flex-col gap-0.5 align-middle text-sm"
+                  class="flex grow flex-col gap-0.5 align-middle text-sm"
                   :class="{ 'font-semibold': isErg(asset.tokenId) }"
                 >
                   <p>{{ format.asset.name(asset) }}</p>
 
-                  <p class="truncate text-xs text-muted-foreground">
+                  <p class="text-muted-foreground truncate text-xs">
                     {{
                       isErg(asset.tokenId)
                         ? "Ergo"
@@ -172,7 +172,7 @@ function openAssetInfoDialog(tokenId: string) {
 
                     <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                       <Tooltip>
-                        <TooltipTrigger class="text-xs text-muted-foreground">
+                        <TooltipTrigger class="text-muted-foreground text-xs">
                           {{ formatCurrencyPrice(asset.balance.times(price(asset.tokenId))) }}
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
@@ -199,7 +199,7 @@ function openAssetInfoDialog(tokenId: string) {
               <div
                 v-for="nft in collectibles"
                 :key="nft.tokenId"
-                class="relative rounded-md border bg-card text-card-foreground shadow"
+                class="bg-card text-card-foreground relative rounded-md border shadow-sm"
               >
                 <AssetImageSandbox
                   :src="nft.metadata?.artworkUrl"
@@ -209,19 +209,21 @@ function openAssetInfoDialog(tokenId: string) {
                   overflow="hidden"
                 />
 
-                <div class="caption absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5">
+                <div
+                  class="absolute bottom-1 left-1 max-w-32 truncate rounded-md bg-slate-900/70 px-2.5 py-0.5 font-normal text-neutral-100"
+                >
                   {{ nft.metadata?.name ?? nft.tokenId }}
                 </div>
                 <div
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
-                  class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
+                  class="absolute top-1 right-1 flex h-6 min-w-6 rounded-full bg-slate-900/70 px-2 py-0.5 font-normal text-neutral-100"
                 >
                   <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
                 </div>
 
                 <!-- clickable overlay -->
                 <Button
-                  class="absolute left-0 top-0 h-40 w-full bg-transparent opacity-30 hover:bg-neutral-900"
+                  class="absolute top-0 left-0 h-40 w-full bg-transparent opacity-30 hover:bg-neutral-900"
                   variant="ghost"
                   @click="openAssetInfoDialog(nft.tokenId)"
                 ></Button>
@@ -233,9 +235,3 @@ function openAssetInfoDialog(tokenId: string) {
     </div>
   </ScrollArea>
 </template>
-
-<style lang="css" scoped>
-.caption {
-  @apply bg-slate-900/70 py-0.5 font-normal text-neutral-100;
-}
-</style>

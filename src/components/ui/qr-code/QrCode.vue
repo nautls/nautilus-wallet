@@ -21,5 +21,5 @@ function render() {
 <!-- prettier-ignore -->
 <template>
   <!-- eslint-disable-next-line vue/no-v-html -->
-  <div class="h-auto flex-grow border border-input rounded-lg object-fill p-1 bg-white [&_svg]:rounded-sm" v-html="svg"></div>
+  <div class="h-auto grow border border-input rounded-lg object-fill p-1 bg-white [&_svg]:rounded-sm" v-html="svg"></div>
 </template>
