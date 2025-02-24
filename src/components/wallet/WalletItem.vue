@@ -87,7 +87,7 @@ function walletTypeToString(type: WalletType): string {
         {{ wallet.name }}
       </div>
 
-      <div class="text-xs font-light leading-tight text-muted-foreground">
+      <div class="text-xs leading-tight text-muted-foreground">
         {{ walletTypeToString(wallet.type) }}
       </div>
     </div>

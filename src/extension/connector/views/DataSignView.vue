@@ -16,7 +16,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { JsonViewer } from "@/components/ui/json-viewer";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/toast";
 import { signMessage } from "@/chains/ergo/signing";
 import { PasswordError } from "@/common/errors";
@@ -175,14 +174,20 @@ function refuse() {
       <CardDescription class="break-all text-xs">{{ encodedMessage }}</CardDescription>
     </CardHeader>
 
-    <CardContent>
-      <ScrollArea v-if="typeof messageData === 'string'" class="-mx-2">
-        <div class="max-h-[185px] break-all px-2 font-mono text-xs">
-          {{ messageData }}
-        </div>
-      </ScrollArea>
+    <CardContent class="h-full">
+      <div
+        v-if="typeof messageData === 'string'"
+        class="-mx-2 max-h-[185px] overflow-y-auto break-all px-2 font-mono text-xs"
+      >
+        {{ messageData }}
+      </div>
 
-      <JsonViewer v-else :deep="3" :data="messageData" class="-mx-2 h-[185px] overflow-y-auto" />
+      <JsonViewer
+        v-else
+        :deep="3"
+        :data="messageData"
+        class="-mx-2 max-h-[185px] overflow-y-auto"
+      />
     </CardContent>
   </Card>
 
