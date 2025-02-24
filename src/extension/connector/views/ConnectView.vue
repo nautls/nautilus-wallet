@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
-import DappPlateHeader from "@/components/DappPlateHeader.vue";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +8,7 @@ import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import { WalletItem } from "@/components/wallet";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { walletsDbService } from "@/database/walletsDbService";
+import DappPlateHeader from "@/extension/connector/components/DappPlateHeader.vue";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { InternalRequest } from "@/extension/connector/rpc/protocol";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
