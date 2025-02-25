@@ -12,7 +12,7 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-  <div :class="cn('space-y-1.5', props.class)">
+  <div :class="cn('flex flex-col space-y-1.5', props.class)">
     <slot />
 
     <template v-if="validation?.$error && validation.$errors.length">
