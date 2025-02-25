@@ -18,9 +18,8 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { currencySymbolMap } from "@/mappers/currencySymbolMap";
-import SparklineChart from "./SparklineChart.vue";
-import StorageRentAlert from "./StorageRentAlert.vue";
+import SparklineChart from "./components/SparklineChart.vue";
+import StorageRentAlert from "./components/StorageRentAlert.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -30,12 +29,14 @@ const format = useFormat();
 const filter = ref("");
 const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
-const chart = computed(() => assetsStore.priceChart.map((x) => ({ time: x[0], price: x[1] })));
+const priceChart = computed(() => ({
+  price: assetsStore.priceChart.map((x) => x[1]),
+  time: assetsStore.priceChart.map((x) => x[0])
+}));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
-const currencySymbol = computed(() => currencySymbolMap.get(app.settings.conversionCurrency));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
 );
@@ -63,11 +64,8 @@ function rate(tokenId: string): number {
   return assetsStore.prices.get(tokenId)?.erg ?? 0;
 }
 
-function formatCurrencyPrice(value: BigNumber, decimals = 2): string {
-  const formattedValue = format.bn.format(value, decimals);
-  return currencySymbol.value
-    ? `${currencySymbol.value} ${formattedValue}`
-    : `${formattedValue} ${format.string.uppercase(app.settings.conversionCurrency)}`;
+function formatCurrencyAmount(value: BigNumber, decimals = 2): string {
+  return format.currency.amount(value, app.settings.conversionCurrency, decimals);
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
@@ -86,19 +84,13 @@ function openAssetInfoDialog(tokenId: string) {
       <div class="bg-header relative -mx-4">
         <div class="mx-auto w-full cursor-default bg-transparent pt-4 pb-2 text-center">
           <h2 class="text-2xl">
-            <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
+            <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(totalWallet) }}</span>
             <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
           </h2>
           <p class="text-muted-foreground text-sm">Wallet balance</p>
         </div>
 
-        <SparklineChart
-          class="h-[80px] w-full"
-          index="time"
-          :data="chart"
-          :categories="['price']"
-          :show-tooltip="false"
-        />
+        <SparklineChart :labels="priceChart.time" :data="priceChart.price" title="ERG Price" />
       </div>
 
       <StorageRentAlert />
@@ -173,11 +165,11 @@ function openAssetInfoDialog(tokenId: string) {
                     <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                       <Tooltip>
                         <TooltipTrigger class="text-muted-foreground text-xs">
-                          {{ formatCurrencyPrice(asset.balance.times(price(asset.tokenId))) }}
+                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId))) }}
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
                           <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
-                          <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
+                          <p>{{ formatCurrencyAmount(price(asset.tokenId)) }}</p>
                           <p v-if="!isErg(asset.tokenId)">
                             {{ formatCoinPrice(rate(asset.tokenId)) }}
                           </p>
