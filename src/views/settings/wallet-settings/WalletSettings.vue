@@ -57,7 +57,7 @@ const v$ = useVuelidate(
             Enable this option to avoid reusing the same address for multiple transactions.
           </div></Label
         >
-        <Switch id="address-reuse" v-model:checked="wallet.settings.avoidAddressReuse" />
+        <Switch id="address-reuse" v-model="wallet.settings.avoidAddressReuse" />
       </div>
     </Card>
 

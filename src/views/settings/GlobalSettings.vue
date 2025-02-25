@@ -180,7 +180,7 @@ const v$ = useVuelidate(
           >Developer Mode
           <div class="text-muted-foreground text-xs font-normal">Enable advanced tools.</div></Label
         >
-        <Switch id="dev-mode" v-model:checked="app.settings.devMode" />
+        <Switch id="dev-mode" v-model="app.settings.devMode" />
       </div>
     </Card>
 
@@ -202,14 +202,14 @@ const v$ = useVuelidate(
           >NSFW Tokens
           <div class="text-muted-foreground text-xs font-normal">Hide NSFW tokens.</div></Label
         >
-        <Switch id="nsfw-blacklist" v-model:checked="nsfwBlacklist" />
+        <Switch id="nsfw-blacklist" v-model="nsfwBlacklist" />
       </div>
       <div class="flex items-center justify-between gap-4">
         <Label for="scam-blacklist" class="flex flex-col gap-1"
           >Scam Tokens
           <div class="text-muted-foreground text-xs font-normal">Hide Scam tokens.</div></Label
         >
-        <Switch id="scam-blacklist" v-model:checked="scamBlacklist" />
+        <Switch id="scam-blacklist" v-model="scamBlacklist" />
       </div>
     </Card>
 
@@ -265,7 +265,7 @@ const v$ = useVuelidate(
             blockchain.
           </div></Label
         >
-        <Switch id="0-conf" v-model:checked="app.settings.zeroConf" />
+        <Switch id="0-conf" v-model="app.settings.zeroConf" />
       </div>
     </Card>
   </div>
