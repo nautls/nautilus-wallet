@@ -51,5 +51,6 @@ export const assetIconMap = new Map<string, string>([
   ["6c35aa395c7c75b0f67f7804d6930f0e11ef93c3387dc1faa86498d54af7962c", "mew.png"],
   ["80075ae9a6545eb1fc4473d3d7a7feab571fa1e444baf6816021af3a78d8bca3", "bulls.png"],
   ["34d449dc84a27d0f8fb2166d415a7223604f6426fb2d83ee099f2312182d575d", "PHP.png"],
-  ["b780a9682ba1ea68eedfe3dd00169e414ea8968d96142ee95e2391d64df05c3d", "rsDIS.png"]
+  ["b780a9682ba1ea68eedfe3dd00169e414ea8968d96142ee95e2391d64df05c3d", "rsDIS.png"],
+  ["050322548722d36f094e341f59ed93eb22118b363eb4efe8c461a52c4d93e2c3", "rsbnb.svg"]
 ]);
