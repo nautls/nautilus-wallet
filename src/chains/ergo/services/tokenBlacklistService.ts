@@ -1,10 +1,7 @@
-import yaml from "yaml";
 import { safeFetch } from "@/common/networking";
 
 const SIGMANAUTS_BLACKLIST_URL =
-  "https://raw.githubusercontent.com/sigmanauts/token-id-blacklist/main/blacklist.yaml";
-
-type SigmanautsBlackList = { NSFW: string[]; Scam: string[] };
+  "https://raw.githubusercontent.com/sigmanauts/token-id-blacklist/main/blacklist.json";
 
 export type ErgoTokenBlacklist = {
   nsfw: string[];
@@ -13,8 +10,8 @@ export type ErgoTokenBlacklist = {
 
 class ErgoTokensBlacklist {
   async fetch(): Promise<ErgoTokenBlacklist> {
-    const data = await safeFetch<SigmanautsBlackList>(SIGMANAUTS_BLACKLIST_URL, { parser: yaml });
-    return { nsfw: data?.NSFW || [], scam: data?.Scam || [] };
+    const data = await safeFetch<ErgoTokenBlacklist>(SIGMANAUTS_BLACKLIST_URL);
+    return data ?? { nsfw: [], scam: [] };
   }
 }
 
