@@ -122,6 +122,7 @@ function closeWindow() {
   <TransactionSign
     :transaction="request?.data.transaction"
     :inputs-to-sign="inputsToSign"
+    :broadcast="false"
     @refused="onRefused"
     @fail="onFail"
     @success="onSuccess"

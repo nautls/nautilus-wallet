@@ -199,7 +199,7 @@ defineExpose({ setState, openErgoApp });
           <p v-if="state.label" class="text-[0.70rem] font-semibold opacity-90">
             {{ state.label }}
           </p>
-          <small v-if="state.appId" class="flex-shrink opacity-70">App ID: {{ appIdHex }}</small>
+          <small v-if="state.appId" class="shrink opacity-70">App ID: {{ appIdHex }}</small>
         </div>
       </div>
     </div>

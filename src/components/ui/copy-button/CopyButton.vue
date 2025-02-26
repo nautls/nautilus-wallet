@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { HTMLAttributes, ref } from "vue";
 import { CopyCheckIcon, CopyIcon } from "lucide-vue-next";
-import { PrimitiveProps } from "radix-vue";
+import { PrimitiveProps } from "reka-ui";
 import { Button, ButtonVariants } from "@/components/ui/button";
 import { cn } from "@/common/utils";
 

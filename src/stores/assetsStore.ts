@@ -54,7 +54,7 @@ const usePrivateState = defineStore("_assets", () => ({
     ...DEFAULT_DB_CONFIG,
     serializer: PRICE_RATES_SERIALIZER
   }),
-  priceChart: useWebExtStorage("ergoPriceChart", [[0, 0]], DEFAULT_DB_CONFIG)
+  priceChart: useWebExtStorage<number[][]>("ergoPriceChart", [[]], DEFAULT_DB_CONFIG)
 }));
 
 export const useAssetsStore = defineStore("assets", () => {

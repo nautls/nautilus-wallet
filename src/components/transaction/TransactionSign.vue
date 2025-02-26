@@ -256,7 +256,7 @@ const v$ = useVuelidate(
             {{ getOutputTitle(output) }}
           </p>
           <template v-if="!output.isBabelSwap" #subheader>
-            <div class="flex flex-col gap-2 break-all font-mono">
+            <div class="flex flex-col gap-2 font-mono break-all">
               <p>
                 {{ format.string.shorten(output.receiver, 60) }}
                 <CopyButton
@@ -285,10 +285,10 @@ const v$ = useVuelidate(
 
   <div class="flex flex-col gap-4">
     <div v-if="parsedTx?.burning" class="flex items-center gap-2">
-      <Checkbox id="burn" v-model:checked="hasBurnAgreement" />
+      <Checkbox id="burn" v-model="hasBurnAgreement" />
       <label
         for="burn"
-        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        class="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
         Burn tokens permanently
       </label>
@@ -319,12 +319,11 @@ const v$ = useVuelidate(
       <Button
         class="w-full"
         variant="outline"
-        size="lg"
         :disabled="loading || signing"
         @click="emit('refused')"
         >Cancel</Button
       >
-      <Button size="lg" class="w-full" :disabled="loading || signing || !canSign" @click="sign">
+      <Button class="w-full" :disabled="loading || signing || !canSign" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>Sign</template>
       </Button>

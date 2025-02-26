@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cn } from '@/common/utils'
-import { SelectGroup, type SelectGroupProps } from 'radix-vue'
+import { SelectGroup, type SelectGroupProps } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 
 const props = defineProps<SelectGroupProps & { class?: HTMLAttributes['class'] }>()

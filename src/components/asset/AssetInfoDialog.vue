@@ -159,7 +159,7 @@ defineExpose({ open: openDialog, close: closeDialog });
         />
 
         <DrawerTitle>
-          <div class="w-fit max-w-[280px] truncate leading-tight xs:m-auto">
+          <div class="xs:m-auto w-fit max-w-[280px] truncate leading-tight">
             {{ asset?.name ?? asset?.id }}
           </div>
         </DrawerTitle>
@@ -172,14 +172,14 @@ defineExpose({ open: openDialog, close: closeDialog });
         </DrawerDescription>
       </DrawerHeader>
 
-      <ScrollArea type="hover" class="-mx-6 flex-grow">
+      <ScrollArea type="hover" class="-mx-6 grow">
         <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
             <AssetImageSandbox
               display-external-link
               :src="contentUrl"
               object-fit="cover"
-              class="min-h-[240px] w-full rounded-md border border-input"
+              class="border-input min-h-[240px] w-full rounded-md border"
             />
           </div>
 

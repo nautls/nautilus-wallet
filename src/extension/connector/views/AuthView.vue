@@ -130,7 +130,7 @@ function refuse() {
     requests a proof that the selected address belongs to you
   </DappPlateHeader>
 
-  <div class="flex-grow"></div>
+  <div class="grow"></div>
 
   <Card>
     <CardHeader>
@@ -140,7 +140,7 @@ function refuse() {
     <CardContent class="break-all">{{ request?.data.address }}</CardContent>
   </Card>
 
-  <div class="flex-grow"></div>
+  <div class="grow"></div>
 
   <div class="flex flex-col gap-4">
     <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">

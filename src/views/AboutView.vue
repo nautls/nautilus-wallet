@@ -27,15 +27,15 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 bg-header p-4">
-    <img src="/icons/app/logo-mainnet.svg?url" class="m-auto size-20" />
+  <div class="bg-header flex h-full flex-col gap-4 p-6">
+    <img src="/icons/app/logo.svg?url" class="m-auto size-20" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
         <span v-if="MAINNET">Nautilus Wallet</span>
         <span v-else>Nautilus Testnet Wallet</span>
       </h1>
 
-      <div v-once class="text-center text-muted-foreground">
+      <div v-once class="text-muted-foreground text-center">
         v{{ version }}-<Link class="text-muted-foreground" :href="commitUrl" external>{{
           shortGitHash
         }}</Link>
@@ -47,7 +47,7 @@ function goDonate() {
       land-based governments.
     </div>
 
-    <div class="flex-grow"></div>
+    <div class="grow"></div>
 
     <div class="text-center text-sm">
       Support the development by donating to:

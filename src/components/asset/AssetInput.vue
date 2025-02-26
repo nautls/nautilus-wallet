@@ -211,7 +211,7 @@ function tokenRate(tokenId: string): number {
     <div
       :class="
         cn(
-          'relative flex w-full cursor-text flex-col gap-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'border-input placeholder:text-muted-foreground focus-within:ring-ring relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-within:ring-1 focus-within:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
           props.class
         )
       "
@@ -226,7 +226,7 @@ function tokenRate(tokenId: string): number {
         tabindex="-1"
         size="icon"
         variant="outline"
-        class="absolute -right-2 -top-2 size-6 cursor-pointer rounded-full border-0 bg-background ring-1 ring-input"
+        class="bg-background ring-input absolute -top-2 -right-2 size-6 cursor-pointer rounded-full border-0 ring-1"
         @click.prevent.stop="emit('remove')"
       >
         <TrashIcon class="m-auto size-4 p-0.5" />
@@ -235,21 +235,21 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="w-full min-w-24 bg-transparent outline-none placeholder:text-muted-foreground"
+          class="placeholder:text-muted-foreground w-full min-w-24 bg-transparent outline-hidden"
           placeholder="0"
           @blur="v$.$touch()"
         />
 
-        <div class="flex w-auto min-w-max select-none flex-row items-center gap-1">
-          <span class="flex-grow whitespace-nowrap text-sm">
+        <div class="flex w-auto min-w-max flex-row items-center gap-1 select-none">
+          <span class="grow text-sm whitespace-nowrap">
             {{ baseCurrencyName }}
           </span>
           <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
         </div>
       </div>
 
-      <div class="flex select-none flex-row gap-2">
-        <div class="flex flex-grow flex-row items-center gap-1 text-xs text-muted-foreground">
+      <div class="flex flex-row gap-2 select-none">
+        <div class="text-muted-foreground flex grow flex-row items-center gap-1 text-xs">
           <Button
             v-if="isConvertible"
             type="button"

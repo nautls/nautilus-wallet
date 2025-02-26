@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
 export const assetSignIconVariants = cva(
-  "size-5 min-w-5 rounded-full border border-accent bg-accent p-0.5",
+  "border-accent bg-accent size-5 min-w-5 rounded-full border p-0.5",
   {
     variants: {
       variant: {

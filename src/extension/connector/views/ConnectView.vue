@@ -69,7 +69,7 @@ function refuse() {
           class="my-1 size-auto w-full gap-3 py-3"
           @click="selected = wallet.id"
         >
-          <Checkbox :checked="wallet.id === selected" />
+          <Checkbox :model-value="wallet.id === selected" />
           <WalletItem :wallet="wallet" />
         </Button>
       </div>
@@ -77,7 +77,7 @@ function refuse() {
   </Card>
 
   <div class="flex flex-row gap-4">
-    <Button class="w-full" variant="outline" size="lg" @click="cancel">Cancel</Button>
-    <Button class="w-full" size="lg" :disabled="!selected" @click="connect">Connect</Button>
+    <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
+    <Button class="w-full" :disabled="!selected" @click="connect">Connect</Button>
   </div>
 </template>

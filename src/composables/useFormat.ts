@@ -1,4 +1,5 @@
 import { BigNumber } from "bignumber.js";
+import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import { AssetInfo } from "@/types/internal";
 
 export function useFormat() {
@@ -68,8 +69,19 @@ const BN_FORMATTERS = {
   }
 };
 
+const CURRENCY_FORMATTERS = {
+  amount(value: BigNumber, currencyId: string, decimals = 2): string {
+    const formattedValue = BN_FORMATTERS.format(value, decimals);
+    const currencySymbol = currencySymbolMap.get(currencyId);
+    return currencySymbol
+      ? `${currencySymbol} ${formattedValue}`
+      : `${formattedValue} ${STRING_FORMATTERS.uppercase(currencyId)}`;
+  }
+};
+
 const FORMATTERS = {
   string: STRING_FORMATTERS,
   bn: BN_FORMATTERS,
-  asset: ASSET_FORMATTERS
+  asset: ASSET_FORMATTERS,
+  currency: CURRENCY_FORMATTERS
 };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ComboboxItemEmits, ComboboxItemProps } from 'radix-vue'
+import type { ComboboxItemEmits, ComboboxItemProps } from 'reka-ui'
 import { cn } from '@/common/utils'
-import { ComboboxItem, useForwardPropsEmits } from 'radix-vue'
+import { ComboboxItem, useForwardPropsEmits } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 
 const props = defineProps<ComboboxItemProps & { class?: HTMLAttributes['class'] }>()
@@ -19,7 +19,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 <template>
   <ComboboxItem
     v-bind="forwarded"
-    :class="cn('relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50', props.class)"
+    :class="cn('relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50', props.class)"
   >
     <slot />
   </ComboboxItem>

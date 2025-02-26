@@ -2,6 +2,7 @@
 import { execSync } from "child_process";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig, PluginOption } from "vite";
@@ -33,6 +34,7 @@ function defEnv(obj: Record<string, unknown>): Record<string, string> {
 
 const plugins = [
   vue(),
+  tailwindcss(),
   svgLoader(),
   topLevelAwait(),
   wasmLoader(),

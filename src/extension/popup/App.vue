@@ -28,7 +28,7 @@ watch(
 
 <template>
   <div
-    class="flex h-screen min-h-[600px] min-w-[360px] flex-col overflow-hidden bg-background md:mx-auto md:w-4/12 md:shadow-lg"
+    class="bg-background flex h-screen min-h-[600px] min-w-[360px] flex-col overflow-hidden md:mx-auto md:w-4/12 md:shadow-lg"
     :class="{ 'max-w-[360px]': isPopup() }"
   >
     <template v-if="$route.meta.fullPage">
@@ -38,17 +38,17 @@ watch(
         </Button>
 
         <div class="-ml-9 flex w-full flex-col text-center">
-          <div class="text-xl font-semibold leading-tight tracking-tight">
+          <div class="text-xl leading-tight font-semibold tracking-tight">
             {{ $route.meta.title }}
           </div>
-          <div v-if="$route.meta.description" class="text-sm text-muted-foreground">
+          <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
             {{ $route.meta.description }}
           </div>
         </div>
       </div>
     </template>
     <div v-else class="flex-initial">
-      <div class="flex flex-row items-center justify-between gap-6 bg-header px-4 py-3 pb-0">
+      <div class="bg-header flex flex-row items-center justify-between gap-6 px-4 py-3 pb-0">
         <WalletSwitcher />
         <NautilusLogo class="mx-4" />
       </div>

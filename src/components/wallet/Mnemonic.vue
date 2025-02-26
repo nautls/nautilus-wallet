@@ -43,9 +43,9 @@ function isEditable(index: number): boolean {
 
         <div
           v-else
-          class="flex h-7 w-full items-center justify-start gap-1 whitespace-nowrap rounded-sm border border-input bg-accent px-1.5 py-2 text-start text-[0.84rem] text-sm text-accent-foreground shadow-sm ring-offset-background"
+          class="border-input bg-accent text-accent-foreground ring-offset-background flex h-7 w-full items-center justify-start gap-1 rounded-sm border px-1.5 py-2 text-start text-sm text-[0.84rem] whitespace-nowrap shadow-xs"
         >
-          <span class="select-none text-xs font-light tabular-nums text-muted-foreground">
+          <span class="text-muted-foreground text-xs font-light tabular-nums select-none">
             {{ formatIndex(index) }}
           </span>
           <span>{{ word }}</span>

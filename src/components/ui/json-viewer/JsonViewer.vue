@@ -17,7 +17,7 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-  <div :class="cn('rounded-xl bg-secondary p-4 text-secondary-foreground shadow', props.class)">
+  <div :class="cn('rounded-xl bg-secondary p-4 text-secondary-foreground shadow-sm', props.class)">
     <VueJsonPretty
       :data="props.data"
       :deep="props.deep"
@@ -30,6 +30,8 @@ const props = defineProps<Props>();
 </template>
 
 <style>
+@reference "../../../assets/styles/index.css";
+
 .vjs-tree {
   @apply font-mono text-xs text-foreground;
 }

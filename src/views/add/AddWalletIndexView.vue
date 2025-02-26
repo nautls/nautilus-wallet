@@ -74,16 +74,16 @@ const routes = [
     <div class="flex w-full flex-col text-center">
       <div class="relative m-auto mb-4 size-24">
         <div
-          class="absolute left-1/2 top-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-yellow-500 from-50% to-sky-500 to-50% blur-lg"
+          class="absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-yellow-500 from-50% to-sky-500 to-50% blur-lg"
         ></div>
         <NautilusLogo
-          class="absolute left-1/2 top-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
         />
       </div>
-      <div class="text-xl font-semibold leading-tight tracking-tight">
+      <div class="text-xl leading-tight font-semibold tracking-tight">
         Welcome to Nautilus Wallet
       </div>
-      <div class="text-sm text-muted-foreground">Choose an option to get started</div>
+      <div class="text-muted-foreground text-sm">Choose an option to get started</div>
     </div>
   </div>
 
@@ -97,19 +97,19 @@ const routes = [
     >
       <Button
         variant="outline"
-        class="h-auto w-full justify-center gap-6 whitespace-normal px-6 py-4 text-left [&_svg]:size-10"
+        class="h-auto w-full justify-center gap-6 px-6 py-4 text-left whitespace-normal [&_svg]:size-10"
         @click="handle(navigate, route.path)"
       >
         <component :is="route.icon.component" :class="route.icon.class" />
 
         <div class="flex w-full flex-col">
           <span class="font-semibold">{{ route.title }}</span>
-          <span class="text-xs text-muted-foreground">{{ route.description }}</span>
+          <span class="text-muted-foreground text-xs">{{ route.description }}</span>
         </div>
       </Button>
     </router-link>
 
-    <Button v-if="hasWallets" variant="outline" class="w-full" size="lg" @click="$router.back()"
+    <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()"
       >Cancel</Button
     >
   </div>

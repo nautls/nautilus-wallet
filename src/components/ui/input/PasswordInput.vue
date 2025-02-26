@@ -34,8 +34,8 @@ defineExpose({ input });
       class="absolute cursor-default end-0 inset-y-0 flex text-muted-foreground items-center h-full justify-center pr-3 pl-1 [&_svg]:size-4"
       @click="showPassword = !showPassword"
     >
-      <EyeIcon v-if="showPassword" />
-      <EyeOffIcon v-else />
+      <EyeOffIcon v-if="showPassword" />
+      <EyeIcon v-else />
     </Button>
   </div>
 </template>

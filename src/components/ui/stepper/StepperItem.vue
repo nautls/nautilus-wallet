@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { StepperItemProps } from 'radix-vue'
+import type { StepperItemProps } from 'reka-ui'
 import { cn } from '@/common/utils'
-import { StepperItem, useForwardProps } from 'radix-vue'
+import { StepperItem, useForwardProps } from 'reka-ui'
 
 import { computed, type HTMLAttributes } from 'vue'
 
@@ -20,7 +20,7 @@ const forwarded = useForwardProps(delegatedProps)
   <StepperItem
     v-slot="slotProps: any"
     v-bind="forwarded"
-    :class="cn('flex items-center gap-2 group data-[disabled]:pointer-events-none', props.class)"
+    :class="cn('flex items-center gap-2 group data-disabled:pointer-events-none', props.class)"
   >
     <slot v-bind="slotProps" />
   </StepperItem>

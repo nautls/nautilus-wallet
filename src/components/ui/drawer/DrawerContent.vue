@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DialogContentEmits, DialogContentProps } from 'radix-vue'
+import type { DialogContentEmits, DialogContentProps } from 'reka-ui'
 import type { HtmlHTMLAttributes } from 'vue'
 import { cn } from '@/common/utils'
-import { useForwardPropsEmits } from 'radix-vue'
+import { useForwardPropsEmits } from 'reka-ui'
 import { DrawerContent, DrawerPortal } from 'vaul-vue'
 import DrawerOverlay from './DrawerOverlay.vue'
 import { target } from '@/common/env'
@@ -37,7 +37,7 @@ const forwarded = useForwardPropsEmits(props, emits)
       <template v-else>
         <slot />
         <DrawerClose :disabled="!dismissible"
-          class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
         >
           <XIcon class="w-4 h-4" />
           <span class="sr-only">Close</span>

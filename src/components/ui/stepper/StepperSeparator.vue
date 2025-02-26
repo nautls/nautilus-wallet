@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { StepperSeparatorProps } from 'radix-vue'
+import type { StepperSeparatorProps } from 'reka-ui'
 import { cn } from '@/common/utils'
-import { StepperSeparator, useForwardProps } from 'radix-vue'
+import { StepperSeparator, useForwardProps } from 'reka-ui'
 
 import { computed, type HTMLAttributes } from 'vue'
 
@@ -22,7 +22,7 @@ const forwarded = useForwardProps(delegatedProps)
     :class="cn(
       'bg-muted',
       // Disabled
-      'group-data-[disabled]:bg-muted group-data-[disabled]:opacity-50',
+      'group-data-disabled:bg-muted group-data-disabled:opacity-50',
       // Completed
       'group-data-[state=completed]:bg-accent-foreground',
       props.class,

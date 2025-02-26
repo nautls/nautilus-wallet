@@ -171,13 +171,13 @@ function refuse() {
   <Card class="grow">
     <CardHeader>
       <CardTitle>{{ messageType }} message</CardTitle>
-      <CardDescription class="break-all text-xs">{{ encodedMessage }}</CardDescription>
+      <CardDescription class="text-xs break-all">{{ encodedMessage }}</CardDescription>
     </CardHeader>
 
     <CardContent class="h-full">
       <div
         v-if="typeof messageData === 'string'"
-        class="-mx-2 max-h-[185px] overflow-y-auto break-all px-2 font-mono text-xs"
+        class="-mx-2 max-h-[185px] overflow-y-auto px-2 font-mono text-xs break-all"
       >
         {{ messageData }}
       </div>

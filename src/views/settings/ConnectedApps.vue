@@ -37,7 +37,7 @@ async function remove(origin: string) {
   <div v-if="!loading" class="space-y-6">
     <div
       v-if="!connections.length"
-      class="mt-10 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground"
+      class="text-muted-foreground mt-10 flex flex-col items-center gap-4 text-center text-sm"
     >
       <CableIcon :size="48" class="stroke-[1.5px]" />
       You have no connected dApps yet.
@@ -53,7 +53,7 @@ async function remove(origin: string) {
           tabindex="-1"
           size="icon"
           variant="outline"
-          class="absolute -right-2 -top-2 size-6 cursor-pointer rounded-full border-0 bg-background ring-1 ring-input"
+          class="bg-background ring-input absolute -top-2 -right-2 size-6 cursor-pointer rounded-full border-0 ring-1"
           @click="remove(connection.origin)"
         >
           <TrashIcon class="m-auto size-4 p-0.5" />

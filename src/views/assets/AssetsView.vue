@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { BigNumber } from "bignumber.js";
-import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
@@ -18,9 +18,8 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { currencySymbolMap } from "@/mappers/currencySymbolMap";
-import SparklineChart from "./SparklineChart.vue";
-import StorageRentAlert from "./StorageRentAlert.vue";
+import SparklineChart from "./components/SparklineChart.vue";
+import StorageRentAlert from "./components/StorageRentAlert.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -30,12 +29,14 @@ const format = useFormat();
 const filter = ref("");
 const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
-const chart = computed(() => assetsStore.priceChart.map((x) => ({ time: x[0], price: x[1] })));
+const priceChart = computed(() => ({
+  price: assetsStore.priceChart.map((x) => x[1]),
+  time: assetsStore.priceChart.map((x) => x[0])
+}));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
-const currencySymbol = computed(() => currencySymbolMap.get(app.settings.conversionCurrency));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
 );
@@ -63,11 +64,8 @@ function rate(tokenId: string): number {
   return assetsStore.prices.get(tokenId)?.erg ?? 0;
 }
 
-function formatCurrencyPrice(value: BigNumber, decimals = 2): string {
-  const formattedValue = format.bn.format(value, decimals);
-  return currencySymbol.value
-    ? `${currencySymbol.value} ${formattedValue}`
-    : `${formattedValue} ${format.string.uppercase(app.settings.conversionCurrency)}`;
+function formatCurrencyAmount(value: BigNumber, decimals = 2): string {
+  return format.currency.amount(value, app.settings.conversionCurrency, decimals);
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
@@ -83,22 +81,16 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 px-4 pb-4">
-      <div class="relative -mx-4 bg-header">
-        <div class="mx-auto w-full cursor-default bg-transparent pb-2 pt-4 text-center">
+      <div class="bg-header relative -mx-4">
+        <div class="mx-auto w-full cursor-default bg-transparent pt-4 pb-2 text-center">
           <h2 class="text-2xl">
-            <span v-if="!app.settings.hideBalances">{{ formatCurrencyPrice(totalWallet) }}</span>
+            <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(totalWallet) }}</span>
             <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
           </h2>
-          <p class="text-sm text-muted-foreground">Wallet balance</p>
+          <p class="text-muted-foreground text-sm">Wallet balance</p>
         </div>
 
-        <SparklineChart
-          class="h-[80px] w-full"
-          index="time"
-          :data="chart"
-          :categories="['price']"
-          :show-tooltip="false"
-        />
+        <SparklineChart :labels="priceChart.time" :data="priceChart.price" title="ERG Price" />
       </div>
 
       <StorageRentAlert />
@@ -112,16 +104,8 @@ function openAssetInfoDialog(tokenId: string) {
             </TabsTrigger>
           </TabsList>
 
-          <div class="flex-grow"></div>
+          <div class="grow"></div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            @click="app.settings.hideBalances = !app.settings.hideBalances"
-          >
-            <EyeOffIcon v-if="app.settings.hideBalances" />
-            <EyeIcon v-else />
-          </Button>
           <Popover>
             <PopoverTrigger>
               <Button variant="ghost" size="icon">
@@ -148,12 +132,12 @@ function openAssetInfoDialog(tokenId: string) {
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
                 <div
-                  class="flex flex-grow flex-col gap-0.5 align-middle text-sm"
+                  class="flex grow flex-col gap-0.5 align-middle text-sm"
                   :class="{ 'font-semibold': isErg(asset.tokenId) }"
                 >
                   <p>{{ format.asset.name(asset) }}</p>
 
-                  <p class="truncate text-xs text-muted-foreground">
+                  <p class="text-muted-foreground truncate text-xs">
                     {{
                       isErg(asset.tokenId)
                         ? "Ergo"
@@ -172,12 +156,12 @@ function openAssetInfoDialog(tokenId: string) {
 
                     <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
                       <Tooltip>
-                        <TooltipTrigger class="text-xs text-muted-foreground">
-                          {{ formatCurrencyPrice(asset.balance.times(price(asset.tokenId))) }}
+                        <TooltipTrigger class="text-muted-foreground text-xs">
+                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId))) }}
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
                           <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
-                          <p>{{ formatCurrencyPrice(price(asset.tokenId)) }}</p>
+                          <p>{{ formatCurrencyAmount(price(asset.tokenId)) }}</p>
                           <p v-if="!isErg(asset.tokenId)">
                             {{ formatCoinPrice(rate(asset.tokenId)) }}
                           </p>
@@ -199,7 +183,7 @@ function openAssetInfoDialog(tokenId: string) {
               <div
                 v-for="nft in collectibles"
                 :key="nft.tokenId"
-                class="relative rounded-md border bg-card text-card-foreground shadow"
+                class="bg-card text-card-foreground relative rounded-md border shadow-sm"
               >
                 <AssetImageSandbox
                   :src="nft.metadata?.artworkUrl"
@@ -209,19 +193,21 @@ function openAssetInfoDialog(tokenId: string) {
                   overflow="hidden"
                 />
 
-                <div class="caption absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5">
+                <div
+                  class="absolute bottom-1 left-1 max-w-32 truncate rounded-md bg-slate-900/70 px-2.5 py-0.5 font-normal text-neutral-100"
+                >
                   {{ nft.metadata?.name ?? nft.tokenId }}
                 </div>
                 <div
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
-                  class="caption absolute right-1 top-1 flex h-6 min-w-6 rounded-full px-2"
+                  class="absolute top-1 right-1 flex h-6 min-w-6 rounded-full bg-slate-900/70 px-2 py-0.5 font-normal text-neutral-100"
                 >
                   <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
                 </div>
 
                 <!-- clickable overlay -->
                 <Button
-                  class="absolute left-0 top-0 h-40 w-full bg-transparent opacity-30 hover:bg-neutral-900"
+                  class="absolute top-0 left-0 h-40 w-full bg-transparent opacity-30 hover:bg-neutral-900"
                   variant="ghost"
                   @click="openAssetInfoDialog(nft.tokenId)"
                 ></Button>
@@ -233,9 +219,3 @@ function openAssetInfoDialog(tokenId: string) {
     </div>
   </ScrollArea>
 </template>
-
-<style lang="css" scoped>
-.caption {
-  @apply bg-slate-900/70 py-0.5 font-normal text-neutral-100;
-}
-</style>

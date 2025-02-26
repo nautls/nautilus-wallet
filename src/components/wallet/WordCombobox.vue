@@ -11,7 +11,7 @@ import {
   ComboboxItemIndicator,
   ComboboxRoot,
   ComboboxViewport
-} from "radix-vue";
+} from "reka-ui";
 import { cn } from "@/common/utils";
 
 interface Props {
@@ -68,37 +68,37 @@ function onTab() {
   <ComboboxRoot
     v-model="word"
     v-model:selected-value="highlighted"
-    v-model:search-term="searchTerm"
-    :reset-search-term-on-select="true"
-    :reset-search-term-on-blur="true"
+    reset-search-term-on-select
+    reset-search-term-on-blur
+    ignore-filter
     @keydown.tab="onTab"
   >
     <ComboboxAnchor
       :class="
         cn(
-          'flex h-9 w-full cursor-text items-center justify-between gap-2 whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-start text-sm shadow-sm ring-offset-background focus-within:outline-none focus-within:ring-1 focus-within:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:truncate',
+          'border-input ring-offset-background focus-within:ring-ring data-placeholder:text-muted-foreground flex h-9 w-full cursor-text items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-start text-sm whitespace-nowrap shadow-xs focus-within:ring-1 focus-within:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
           props.class
         )
       "
     >
-      <div class="select-none text-xs font-light tabular-nums text-muted-foreground">
+      <div class="text-muted-foreground text-xs font-light tabular-nums select-none">
         {{ prefix }}
       </div>
-      <ComboboxInput class="w-full bg-transparent outline-none" />
+      <ComboboxInput v-model="searchTerm" class="w-full bg-transparent outline-hidden" />
     </ComboboxAnchor>
 
     <ComboboxContent
       position="popper"
       :class="
         cn(
-          'relative z-50 max-h-40 min-w-32 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-40 min-w-32 overflow-hidden rounded-md border shadow-md',
           'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1'
         )
       "
     >
       <ComboboxViewport
         tabindex="-1"
-        class="h-[--radix-combobox-trigger-height] w-full min-w-[--radix-combobox-trigger-width] p-1"
+        class="h-(--reka-combobox-trigger-height) w-full min-w-(--reka-combobox-trigger-width) p-1"
       >
         <ComboboxEmpty class="py-1.5 pl-2 text-center text-xs font-medium" />
 
@@ -106,7 +106,7 @@ function onTab() {
           v-for="option in slice"
           :key="option"
           :value="option"
-          class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50"
+          class="focus:bg-accent focus:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex w-full cursor-default items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50"
         >
           {{ option }}
 

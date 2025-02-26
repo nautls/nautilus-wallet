@@ -76,7 +76,7 @@ function walletTypeToString(type: WalletType): string {
   <div :class="cn('flex h-auto w-full flex-row items-center gap-2 rounded text-left', props.class)">
     <canvas
       :id="canvasId"
-      class="inline-block h-full w-auto rounded-sm ring-1 ring-foreground/10 ring-offset-1"
+      class="ring-foreground/10 inline-block h-full w-auto rounded-sm ring-1 ring-offset-1"
     ></canvas>
 
     <div class="flex w-full flex-col justify-between whitespace-nowrap">
@@ -87,7 +87,7 @@ function walletTypeToString(type: WalletType): string {
         {{ wallet.name }}
       </div>
 
-      <div class="text-xs leading-tight text-muted-foreground">
+      <div class="text-muted-foreground text-xs leading-tight">
         {{ walletTypeToString(wallet.type) }}
       </div>
     </div>
