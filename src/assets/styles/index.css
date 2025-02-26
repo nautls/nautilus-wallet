@@ -84,11 +84,11 @@
 
 @layer base {
   * {
-    @apply border-border font-sans;
+    @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground h-full cursor-default overflow-hidden leading-normal tracking-wide antialiased;
+    @apply bg-background text-foreground h-full cursor-default overflow-hidden !font-sans leading-normal tracking-wide antialiased;
   }
 
   button:not(:disabled),
