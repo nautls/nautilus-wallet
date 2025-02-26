@@ -86,6 +86,7 @@ function render() {
     chartInstance = new Chart(canvas.value as HTMLCanvasElement, {
       type: "line",
       options: {
+        animation: { duration: 500 },
         responsive: true,
         aspectRatio: 3,
         layout: { padding: 0 },
