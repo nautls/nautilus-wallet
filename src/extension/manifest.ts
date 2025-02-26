@@ -8,9 +8,7 @@ type Browser = "chrome" | "firefox";
 const r = (path: string) => `${EXT_ENTRY_ROOT}/${path}`;
 
 function buildIcons(mode: string, network: Network) {
-  let prefix = "m";
-  if (mode === "staging") prefix = "s";
-  else if (network === "testnet") prefix = "t";
+  const prefix = mode === "staging" || network === "testnet" ? "t" : "m";
 
   return {
     48: `icons/app/${prefix}-48.png`,
@@ -21,7 +19,7 @@ function buildIcons(mode: string, network: Network) {
 
 function buildTitle(mode: string, network: Network) {
   if (mode === "staging") return "Nautilus Abyss";
-  return network === "mainnet" ? "Nautilus Wallet" : "Nautilus (Testnet)";
+  return network === "mainnet" ? "Nautilus Wallet" : "Nautilus Wallet (Testnet)";
 }
 
 function buildDescription(mode: string, network: Network) {

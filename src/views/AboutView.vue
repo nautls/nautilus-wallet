@@ -27,8 +27,8 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="bg-header flex h-full flex-col gap-4 p-4">
-    <img src="/icons/app/logo-mainnet.svg?url" class="m-auto size-20" />
+  <div class="bg-header flex h-full flex-col gap-4 p-6">
+    <img src="/icons/app/logo.svg?url" class="m-auto size-20" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
         <span v-if="MAINNET">Nautilus Wallet</span>

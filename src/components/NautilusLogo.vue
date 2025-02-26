@@ -11,26 +11,10 @@ const props = defineProps<Props>();
 
 const testnet = !MAINNET;
 const staging = import.meta.env.MODE === "staging";
-const displayName = staging ? "Abyss" : testnet ? "Testnet" : "Mainnet";
-const logo = staging
-  ? "/icons/app/logo-staging.svg?url"
-  : testnet
-    ? "/icons/app/logo-testnet.svg?url"
-    : "/icons/app/logo-mainnet.svg?url";
+const displayName = !staging ? "Abyss" : testnet ? "Testnet" : "Mainnet";
+const logo = "/icons/app/logo.svg?url";
 </script>
 
 <template>
-  <div class="text-center">
-    <div :class="testnet || staging ? '-mb-4' : ''">
-      <img :src="logo" :class="cn('size-10', props.class)" />
-    </div>
-
-    <span
-      v-if="staging || testnet"
-      class="rounded px-1 py-0 text-xs uppercase select-none"
-      :class="{ 'bg-yellow-300 text-gray-700': testnet, 'text-light-100 bg-indigo-600': staging }"
-    >
-      {{ displayName }}
-    </span>
-  </div>
+  <img :src="logo" :class="cn('size-10', props.class)" :alt="displayName" />
 </template>
