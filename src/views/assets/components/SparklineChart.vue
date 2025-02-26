@@ -71,7 +71,7 @@ function updateColors() {
 
   nextTick(() => {
     if (!chartInstance) return;
-    chartInstance.data.datasets[0].borderColor = getCssVarHsl("--foreground");
+    chartInstance.data.datasets[0].borderColor = getCssVarHsl("--chart-primary-color");
     chartInstance.data.datasets[0].backgroundColor = getCssVarHsl("--background");
     chartInstance.update("none");
   });
@@ -113,7 +113,7 @@ function render() {
             pointRadius: 0,
             borderWidth: 2,
             pointHitRadius: 5,
-            borderColor: getCssVarHsl("--foreground"),
+            borderColor: getCssVarHsl("--chart-primary-color"),
             backgroundColor: getCssVarHsl("--background"),
             tension: 0.2
           }

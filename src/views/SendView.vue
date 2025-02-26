@@ -236,7 +236,7 @@ function isFeeAsset(tokenId: string): boolean {
           />
         </FormField>
 
-        <div class="space-y-1">
+        <FormField>
           <Label>Assets</Label>
           <div class="grid gap-4">
             <AssetInput
@@ -250,7 +250,7 @@ function isFeeAsset(tokenId: string): boolean {
               @remove="removeAsset(item.asset.tokenId)"
             />
           </div>
-        </div>
+        </FormField>
 
         <FormField :validation="v$.selected">
           <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
