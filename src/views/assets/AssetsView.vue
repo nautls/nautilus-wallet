@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { BigNumber } from "bignumber.js";
-import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
@@ -106,14 +106,6 @@ function openAssetInfoDialog(tokenId: string) {
 
           <div class="grow"></div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            @click="app.settings.hideBalances = !app.settings.hideBalances"
-          >
-            <EyeOffIcon v-if="app.settings.hideBalances" />
-            <EyeIcon v-else />
-          </Button>
           <Popover>
             <PopoverTrigger>
               <Button variant="ghost" size="icon">

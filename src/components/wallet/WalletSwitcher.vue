@@ -177,12 +177,12 @@ async function toggleViewMode() {
             size="icon"
             @click="toggleValuesVisibility"
           >
-            <EyeOffIcon v-if="app.settings.hideBalances" />
-            <EyeIcon v-else />
+            <EyeIcon v-if="app.settings.hideBalances" />
+            <EyeOffIcon v-else />
           </Button>
           <Button class="cursor-default" variant="ghost" size="icon" @click="toggleColorMode">
-            <MoonIcon v-if="app.settings.colorMode === 'dark'" />
-            <SunIcon v-else-if="app.settings.colorMode === 'light'" />
+            <SunIcon v-if="app.settings.colorMode === 'dark'" />
+            <MoonIcon v-else-if="app.settings.colorMode === 'light'" />
             <SunMoonIcon v-else />
           </Button>
           <Button class="cursor-default" variant="ghost" size="icon" @click="toggleViewMode">
