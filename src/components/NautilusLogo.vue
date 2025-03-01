@@ -11,7 +11,7 @@ const props = defineProps<Props>();
 
 const testnet = !MAINNET;
 const staging = import.meta.env.MODE === "staging";
-const displayName = !staging ? "Abyss" : testnet ? "Testnet" : "Mainnet";
+const displayName = staging ? "Abyss" : testnet ? "Testnet" : "Mainnet";
 const logo = "/icons/app/logo.svg?url";
 </script>
 
