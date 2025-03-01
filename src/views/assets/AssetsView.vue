@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { BigNumber } from "bignumber.js";
 import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
@@ -27,6 +27,7 @@ const wallet = useWalletStore();
 const format = useFormat();
 
 const filter = ref("");
+const currentTab = ref<"tokens" | "collectibles">("tokens");
 const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const priceChart = computed(() => ({
@@ -41,10 +42,18 @@ const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
 );
 
-const totalWallet = computed(() =>
+const walletTotal = computed(() =>
   wallet.nonArtworkBalance
     .reduce((acc, a) => acc.plus(a.balance.times(rate(a.tokenId))), bn(0))
     .times(ergPrice.value)
+);
+
+watch(
+  () => wallet.id,
+  () => {
+    filter.value = "";
+    currentTab.value = "tokens";
+  }
 );
 
 function filtered(assets: AssetBalance[]): AssetBalance[] {
@@ -84,7 +93,7 @@ function openAssetInfoDialog(tokenId: string) {
       <div class="bg-header relative -mx-4">
         <div class="mx-auto w-full cursor-default bg-transparent pt-4 pb-2 text-center">
           <h2 class="text-2xl">
-            <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(totalWallet) }}</span>
+            <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
             <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
           </h2>
           <p class="text-muted-foreground text-sm">Wallet balance</p>
@@ -95,7 +104,7 @@ function openAssetInfoDialog(tokenId: string) {
 
       <StorageRentAlert />
 
-      <Tabs default-value="tokens" class="w-full" @update:model-value="() => (filter = '')">
+      <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
         <div class="flex flex-row">
           <TabsList>
             <TabsTrigger value="tokens">Tokens</TabsTrigger>
