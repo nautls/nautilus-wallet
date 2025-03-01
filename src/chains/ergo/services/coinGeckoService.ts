@@ -5,12 +5,6 @@ type SimplePriceResponse = {
   ergo: Record<string, number>;
 };
 
-type ChartResponse = {
-  prices: [number, number][];
-  market_caps: [number, number][];
-  total_volumes: [number, number][];
-};
-
 class CoinGeckoService {
   #coin = "ergo";
 
@@ -21,15 +15,6 @@ class CoinGeckoService {
     });
 
     return response?.ergo[currency] ?? 0;
-  }
-
-  async getPriceChart(currency: string, days: number = 1): Promise<[number, number][] | undefined> {
-    const response = await safeFetch<ChartResponse>(`coins/${this.#coin}/market_chart`, {
-      baseURL: BASE_URL,
-      query: { vs_currency: currency, days }
-    });
-
-    return response?.prices ?? undefined;
   }
 
   async getSupportedCurrencyConversion(): Promise<string[]> {

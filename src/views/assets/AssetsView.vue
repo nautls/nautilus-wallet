@@ -18,7 +18,6 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import SparklineChart from "./components/SparklineChart.vue";
 import StorageRentAlert from "./components/StorageRentAlert.vue";
 
 const app = useAppStore();
@@ -30,10 +29,6 @@ const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles">("tokens");
 const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
-const priceChart = computed(() => ({
-  price: assetsStore.priceChart.map((x) => x[1]),
-  time: assetsStore.priceChart.map((x) => x[0])
-}));
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
 const tokens = computed(() => filtered(wallet.nonArtworkBalance));
@@ -89,17 +84,13 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex flex-col gap-4 px-4 pb-4">
-      <div class="bg-header relative -mx-4">
-        <div class="mx-auto w-full cursor-default bg-transparent pt-4 pb-2 text-center">
-          <h2 class="text-2xl">
-            <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
-            <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
-          </h2>
-          <p class="text-muted-foreground text-sm">Wallet balance</p>
-        </div>
-
-        <SparklineChart :labels="priceChart.time" :data="priceChart.price" title="ERG Price" />
+    <div class="flex flex-col gap-4 p-4">
+      <div class="mx-auto w-full cursor-default bg-transparent pt-2 pb-4 text-center">
+        <h2 class="text-3xl">
+          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
+          <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
+        </h2>
+        <p class="text-muted-foreground text-sm">Wallet balance</p>
       </div>
 
       <StorageRentAlert />

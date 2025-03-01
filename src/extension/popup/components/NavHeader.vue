@@ -17,7 +17,7 @@ const navItems = computed(() => [
 </script>
 
 <template>
-  <nav class="bg-header flex flex-row items-center px-4 text-sm">
+  <nav class="bg-header flex flex-row items-center border-b px-4 text-sm">
     <router-link
       v-for="item in navItems"
       :key="item.to"
