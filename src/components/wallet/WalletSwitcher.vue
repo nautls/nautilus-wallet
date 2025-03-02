@@ -106,8 +106,8 @@ async function toggleViewMode() {
     return;
   }
 
+  const currentWindow = await browser.windows.getCurrent();
   if (isPopupView) {
-    const currentWindow = await browser.windows.getCurrent();
     if (currentWindow?.id) {
       app.settings.extension.viewMode = "sidebar";
       chrome.sidePanel.open({ windowId: currentWindow.id });
@@ -116,12 +116,16 @@ async function toggleViewMode() {
       const url = browser.runtime.getURL(`${EXT_ENTRY_ROOT}/popup/index.html`);
       browser.tabs.create({ url, active: false });
     }
+
+    window.close();
   } else {
     app.settings.extension.viewMode = "popup";
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
-  }
+    chrome.action.openPopup();
 
-  window.close();
+    // Close the current window in another function scope to avoid the popup being closed
+    (() => window.close())();
+  }
 }
 </script>
 <template>
