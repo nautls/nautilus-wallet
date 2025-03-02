@@ -19,6 +19,7 @@ const props = defineProps<Props>();
       <p
         v-for="e in validation.$errors"
         :key="e.$uid"
+        :id="e.$uid"
         class="text-destructive text-xs flex items-center gap-1 px-1"
       >
         {{ e.$message }}

@@ -129,9 +129,16 @@ function getReserveAmountFor(tokenId: string): BigNumber | undefined {
   }
 }
 
+function scrollToErrorElement() {
+  const errorEl = document.getElementById(v$.value.$errors[0].$uid);
+  if (!errorEl) return;
+
+  errorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 async function sendTransaction() {
   const valid = await v$.value.$validate();
-  if (!valid) return;
+  if (!valid) return scrollToErrorElement();
 
   openTransactionSignDialog({
     transactionBuilder: async () =>
