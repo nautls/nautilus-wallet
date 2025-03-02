@@ -2,7 +2,6 @@ import { computed, reactive, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
-import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import {
   ErgoTokenBlacklist,
