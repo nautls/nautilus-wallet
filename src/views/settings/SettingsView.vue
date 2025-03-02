@@ -8,7 +8,7 @@ import WalletSettings from "./wallet-settings/WalletSettings.vue";
 
 <template>
   <ScrollArea type="scroll">
-    <Tabs default-value="global-settings" class="w-full px-4 pt-6">
+    <Tabs default-value="global-settings" class="w-full p-6">
       <TabsList class="flex w-full">
         <TabsTrigger class="w-full" value="global-settings">Global</TabsTrigger>
         <TabsTrigger class="w-full" value="wallet-settings">Wallet</TabsTrigger>

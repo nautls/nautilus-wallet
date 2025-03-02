@@ -117,7 +117,7 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
+  <div class="flex h-full flex-col gap-4 p-6">
     <div class="grid grid-cols-2 gap-4">
       <DataPoint
         title="UTxO count"

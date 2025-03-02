@@ -127,7 +127,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 <template>
   <ScrollArea type="scroll">
     <Transition name="slide-up" appear>
-      <div class="flex flex-col gap-6 p-4">
+      <div class="flex flex-col gap-6 p-6">
         <Card v-for="tx in txHistory" :key="tx.transactionId" class="cursor-default">
           <CardHeader class="gap-0.5">
             <CardTitle class="flex flex-row items-center justify-between">

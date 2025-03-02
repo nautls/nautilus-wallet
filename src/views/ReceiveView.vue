@@ -72,7 +72,7 @@ function openExplorer(address: string | undefined) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
+  <div class="flex flex-col gap-4 p-6 pb-4">
     <Card class="p-6 text-sm">
       <div class="flex h-full flex-row items-center gap-4">
         <div class="flex h-full w-full flex-col justify-between">
@@ -115,7 +115,7 @@ function openExplorer(address: string | undefined) {
 
   <ScrollArea type="scroll">
     <Transition name="slide-up" appear>
-      <div class="flex flex-col gap-0 px-4 pb-4">
+      <div class="flex flex-col gap-0 px-6 pb-6">
         <div
           v-for="address in addresses"
           :key="address.script"
@@ -130,7 +130,7 @@ function openExplorer(address: string | undefined) {
             >
               <Checkbox :model-value="wallet.settings.defaultChangeIndex === address.index" />
               <span class="text-foreground font-mono whitespace-nowrap">{{
-                format.string.shorten(address.script, 10)
+                format.string.shorten(address.script, 8)
               }}</span>
             </Button>
 

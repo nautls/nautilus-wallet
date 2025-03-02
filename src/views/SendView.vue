@@ -11,7 +11,6 @@ import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -222,57 +221,55 @@ function isFeeAsset(tokenId: string): boolean {
 
 <template>
   <ScrollArea type="scroll" class="grow">
-    <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
-      <Card class="flex flex-col gap-6 p-6">
-        <FormField :validation="v$.recipient">
-          <Label for="recipient">Recipient Address</Label>
-          <Input
-            id="recipient"
-            v-model="recipient"
-            type="text"
-            spellcheck="false"
-            class="w-full"
-            @blur="v$.recipient.$touch()"
+    <Form class="space-y-4 p-6 pb-2" @submit="sendTransaction">
+      <FormField :validation="v$.recipient">
+        <Label for="recipient">Recipient Address</Label>
+        <Input
+          id="recipient"
+          v-model="recipient"
+          type="text"
+          spellcheck="false"
+          class="w-full"
+          @blur="v$.recipient.$touch()"
+        />
+      </FormField>
+
+      <FormField>
+        <Label>Assets</Label>
+        <div class="grid gap-4">
+          <AssetInput
+            v-for="item in selected"
+            :key="item.asset.tokenId"
+            v-model="item.amount"
+            :asset="item.asset"
+            :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
+            :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
+            :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
+            @remove="removeAsset(item.asset.tokenId)"
           />
-        </FormField>
+        </div>
+      </FormField>
 
-        <FormField>
-          <Label>Assets</Label>
-          <div class="grid gap-4">
-            <AssetInput
-              v-for="item in selected"
-              :key="item.asset.tokenId"
-              v-model="item.amount"
-              :asset="item.asset"
-              :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-              :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
-              :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-              @remove="removeAsset(item.asset.tokenId)"
-            />
-          </div>
-        </FormField>
-
-        <FormField :validation="v$.selected">
-          <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
-            <template v-if="unselected.length" #commands>
-              <CommandSeparator class="my-1" />
-              <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
-                <CheckCheckIcon class="size-6 shrink-0" />
-                <div class="flex flex-col items-start justify-center text-xs font-bold">
-                  Add all assets
-                  <div class="text-muted-foreground font-normal">
-                    Add all assets to the sending list
-                  </div>
+      <FormField :validation="v$.selected">
+        <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
+          <template v-if="unselected.length" #commands>
+            <CommandSeparator class="my-1" />
+            <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
+              <CheckCheckIcon class="size-6 shrink-0" />
+              <div class="flex flex-col items-start justify-center text-xs font-bold">
+                Add all assets
+                <div class="text-muted-foreground font-normal">
+                  Add all assets to the sending list
                 </div>
-              </CommandItem>
-            </template>
-          </AssetSelect>
-        </FormField>
-      </Card>
+              </div>
+            </CommandItem>
+          </template>
+        </AssetSelect>
+      </FormField>
     </Form>
   </ScrollArea>
 
-  <div class="space-y-4 p-4">
+  <div class="space-y-4 p-6">
     <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
     <Button type="submit" class="w-full" @click="sendTransaction">Preview</Button>
   </div>
