@@ -653,8 +653,8 @@ packages:
       '@vue/compiler-sfc':
         optional: true
 
-  '@iconify-json/simple-icons@1.2.26':
-    resolution: {integrity: sha512-NvqRuE+5h/tp4boPlnvfs0alD0CvnRE7oeG9Li5NGmZRx2/rhwlNjW/vEVTyhZcR9zqvRPAVh2GXR+PTEpzV+A==}
+  '@iconify-json/simple-icons@1.2.27':
+    resolution: {integrity: sha512-FtZwp/H7ih5rY9FPfDR+k6toOo/cuwpHWY8faNhxLs5O5uW6Q8TeqdNWfjVfgFtrs5tUUzWysjqNGL234v8EMA==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -4515,7 +4515,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@iconify-json/simple-icons@1.2.26':
+  '@iconify-json/simple-icons@1.2.27':
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -7977,7 +7977,7 @@ snapshots:
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.20.3)(search-insights@2.17.3)
-      '@iconify-json/simple-icons': 1.2.26
+      '@iconify-json/simple-icons': 1.2.27
       '@shikijs/core': 2.5.0
       '@shikijs/transformers': 2.5.0
       '@shikijs/types': 2.5.0
