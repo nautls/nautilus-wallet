@@ -131,7 +131,7 @@ const v$ = useVuelidate(
 
         <Popover v-model:open="currencyState.isPopoverOpen">
           <PopoverTrigger as-child>
-            <Button :disabled="currencyState.loading" variant="outline" class="min-w-[100px]">
+            <Button :disabled="currencyState.loading" variant="outline" class="min-w-[90px]">
               <span class="grow uppercase">{{ app.settings.conversionCurrency }}</span>
 
               <Loader2Icon

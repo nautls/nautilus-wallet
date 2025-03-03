@@ -82,7 +82,19 @@ export default defineConfig(({ mode }) => ({
     outDir: r("dist")
   },
   optimizeDeps: {
-    include: ["vue", "vue-router", "pinia"]
+    include: [
+      "vue",
+      "vue-router",
+      "pinia",
+      "dayjs",
+      "dayjs/plugin/relativeTime",
+      "@fleet-sdk/babel-fees-plugin",
+      "ledger-ergo-js",
+      "@ledgerhq/hw-transport-webusb",
+      "ergo-lib-wasm-browser",
+      "vue-json-pretty",
+      "uqr"
+    ]
   },
   server: {
     port,

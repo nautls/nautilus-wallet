@@ -19,12 +19,13 @@ const props = defineProps<Props>();
       <p
         v-for="e in validation.$errors"
         :key="e.$uid"
-        class="text-destructive text-xs flex items-center gap-1"
+        :id="e.$uid"
+        class="text-destructive text-xs flex items-center gap-1 px-1"
       >
         {{ e.$message }}
       </p>
     </template>
-    <p v-else-if="$slots.description" class="text-muted-foreground text-xs font-normal">
+    <p v-else-if="$slots.description" class="text-muted-foreground text-xs font-normal px-1">
       <slot name="description" />
     </p>
   </div>

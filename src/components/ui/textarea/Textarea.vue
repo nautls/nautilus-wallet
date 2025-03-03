@@ -5,12 +5,12 @@ import { useVModel } from '@vueuse/core'
 
 const props = defineProps<{
   class?: HTMLAttributes['class']
-  defaultValue?: string | number
-  modelValue?: string | number
+  defaultValue?: string
+  modelValue?: string
 }>()
 
 const emits = defineEmits<{
-  (e: 'update:modelValue', payload: string | number): void
+  (e: 'update:modelValue', payload: string): void
 }>()
 
 const modelValue = useVModel(props, 'modelValue', emits, {

@@ -2,7 +2,6 @@ import { computed, reactive, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
-import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import {
   ErgoTokenBlacklist,
@@ -53,8 +52,7 @@ const usePrivateState = defineStore("_assets", () => ({
   prices: useWebExtStorage("ergoTokenRates", PRICE_RATES_DEFAULTS, {
     ...DEFAULT_DB_CONFIG,
     serializer: PRICE_RATES_SERIALIZER
-  }),
-  priceChart: useWebExtStorage<number[][]>("ergoPriceChart", [[]], DEFAULT_DB_CONFIG)
+  })
 }));
 
 export const useAssetsStore = defineStore("assets", () => {
@@ -109,13 +107,8 @@ export const useAssetsStore = defineStore("assets", () => {
     const lastUpdated = privateState.prices.lastUpdated ?? Date.now();
     if (!force && !elapsed(PRICE_RATES_UPDATE_INTERVAL, lastUpdated)) return;
 
-    const [prices, chart] = await Promise.all([
-      assetPricingService.getRates(app.settings.conversionCurrency),
-      coinGeckoService.getPriceChart(app.settings.conversionCurrency)
-    ]);
-
+    const prices = await assetPricingService.getRates(app.settings.conversionCurrency);
     if (prices) privateState.prices = { lastUpdated: Date.now(), prices };
-    if (chart) privateState.priceChart = chart.filter((_, i) => i % 2 === 0); // reduce chart data
   }
 
   const blacklist = computed(() => {
@@ -133,7 +126,6 @@ export const useAssetsStore = defineStore("assets", () => {
   });
 
   const prices = computed(() => privateState.prices.prices);
-  const priceChart = computed(() => privateState.priceChart);
 
   async function loadMetadata(tokenIds: string[], options?: Partial<LoadMetadataOptions>) {
     const { fetchInBackground, persist } = ensureDefaults(options, {
@@ -188,7 +180,7 @@ export const useAssetsStore = defineStore("assets", () => {
     }
   }
 
-  return { blacklist, metadata, prices, priceChart, loadMetadata };
+  return { blacklist, metadata, prices, loadMetadata };
 });
 
 function unknownMetadata(id: string): IAssetInfo {

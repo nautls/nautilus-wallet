@@ -173,7 +173,7 @@ defineExpose({ open: openDialog, close: closeDialog });
       </DrawerHeader>
 
       <ScrollArea type="hover" class="-mx-6 grow">
-        <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
+        <div :class="cn('flex flex-col gap-6 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
             <AssetImageSandbox
               display-external-link
@@ -183,7 +183,7 @@ defineExpose({ open: openDialog, close: closeDialog });
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-6">
             <StatsCard
               class="col-span-2"
               title="Emission Amount"
