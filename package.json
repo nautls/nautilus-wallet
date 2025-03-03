@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@download/blockies": "^1.0.3",
+    "@fleet-sdk/ageusd-plugin": "^0.1.16",
     "@fleet-sdk/babel-fees-plugin": "^0.1.19",
     "@fleet-sdk/blockchain-providers": "^0.8.2",
     "@fleet-sdk/common": "^0.8.0",

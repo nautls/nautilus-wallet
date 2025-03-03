@@ -23,6 +23,9 @@ importers:
       '@download/blockies':
         specifier: ^1.0.3
         version: 1.0.3
+      '@fleet-sdk/ageusd-plugin':
+        specifier: ^0.1.16
+        version: 0.1.16
       '@fleet-sdk/babel-fees-plugin':
         specifier: ^0.1.19
         version: 0.1.19
@@ -583,6 +586,10 @@ packages:
   '@eslint/plugin-kit@0.2.7':
     resolution: {integrity: sha512-JubJ5B2pJ4k4yGxaNLdbjrnk9d/iDz6/q8wOilpIowd6PJPgaxCuHBnBszq7Ce2TyMrywm5r4PnKm6V3iiZF+g==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@fleet-sdk/ageusd-plugin@0.1.16':
+    resolution: {integrity: sha512-HH1JTt12jTvfciT5RG7Twrj2QZgJzQ2ElclPPz7+gsl/tLLEOTzU1G0IsUwrEjuGabI0neYq8LQ27LYyg2/Gag==}
+    engines: {node: '>=18'}
 
   '@fleet-sdk/babel-fees-plugin@0.1.19':
     resolution: {integrity: sha512-W4gNYy95HQW9RO9+UrP5iQRLWi+RoRBl9bBuxDfd730qWgeCgsHAoMpBkwI4hgEOF9eMnphUIYwgDB9rySPesw==}
@@ -4428,6 +4435,12 @@ snapshots:
     dependencies:
       '@eslint/core': 0.12.0
       levn: 0.4.1
+
+  '@fleet-sdk/ageusd-plugin@0.1.16':
+    dependencies:
+      '@fleet-sdk/common': 0.8.0
+      '@fleet-sdk/core': 0.8.2
+      '@fleet-sdk/serializer': 0.8.2
 
   '@fleet-sdk/babel-fees-plugin@0.1.19':
     dependencies:
