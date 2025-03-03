@@ -177,7 +177,7 @@ function refuse() {
     <CardContent class="h-full">
       <div
         v-if="typeof messageData === 'string'"
-        class="-mx-2 max-h-[185px] overflow-y-auto px-2 font-mono text-xs break-all"
+        class="-mx-2 max-h-[200px] overflow-y-auto px-2 font-mono text-xs break-all"
       >
         {{ messageData }}
       </div>
@@ -186,7 +186,7 @@ function refuse() {
         v-else
         :deep="3"
         :data="messageData"
-        class="-mx-2 max-h-[185px] overflow-y-auto"
+        class="-mx-2 max-h-[200px] overflow-y-auto"
       />
     </CardContent>
   </Card>
