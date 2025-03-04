@@ -23,13 +23,13 @@ function component<T extends Component>(
 
 export const dappsManifest: DAppManifestItem[] = [
   {
-    name: "Wallet Optimization",
-    icon: component(CombineIcon, { strokeWidth: 1 }),
-    path: "/dapps/wallet-optimization"
-  },
-  {
     name: "SigmaUSD Protocol",
     icon: component(SigmaUSDLogo),
     path: "/dapps/sigmausd-protocol"
+  },
+  {
+    name: "Wallet Optimization",
+    icon: component(CombineIcon, { strokeWidth: 1 }),
+    path: "/dapps/wallet-optimization"
   }
 ];
