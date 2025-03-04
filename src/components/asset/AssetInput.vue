@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
+import { computed, HTMLAttributes, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
@@ -20,11 +20,13 @@ import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 
 interface Props {
   disposable?: boolean;
+  validate?: boolean;
   asset: AssetBalance;
   modelValue?: BigNumber;
   reservedAmount?: BigNumber;
   minAmount?: BigNumber;
-  class?: string;
+  class?: HTMLAttributes["class"];
+  inputClass?: HTMLAttributes["class"];
 }
 
 const MAX_ASSET_NAME_LEN = 16;
@@ -33,10 +35,12 @@ const MAX_FIAT_PRECISION = 8;
 
 const props = withDefaults(defineProps<Props>(), {
   disposable: false,
+  validate: true,
   modelValue: () => bn(0),
   reservedAmount: undefined,
   minAmount: undefined,
-  class: undefined
+  class: undefined,
+  inputClass: undefined
 });
 
 const basePrecision = props.asset.metadata?.decimals ?? 0;
@@ -45,9 +49,7 @@ let fiatPrecision = MIN_FIAT_PRECISION;
 const emit = defineEmits(["remove", "update:modelValue"]);
 
 const inputEl = useTemplateRef("value-input");
-const maskOpt = reactive<MaskOptions>({
-  numeralDecimalScale: basePrecision
-});
+const maskOpt = reactive<MaskOptions>({ numeralDecimalScale: basePrecision });
 
 const { value: internalValue, patchOptionsQuietly } = useNumericMask(inputEl, maskOpt);
 
@@ -207,7 +209,7 @@ function tokenRate(tokenId: string): number {
 </script>
 
 <template>
-  <FormField :validation="v$">
+  <FormField :validation="props.validate ? v$ : undefined">
     <div
       :class="
         cn(
@@ -235,16 +237,29 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="placeholder:text-muted-foreground w-full min-w-24 bg-transparent outline-hidden"
+          :class="
+            cn(
+              'placeholder:text-muted-foreground w-full min-w-24 bg-transparent font-medium outline-hidden',
+              props.inputClass
+            )
+          "
           placeholder="0"
           @blur="v$.$touch()"
         />
 
         <div class="flex w-auto min-w-max flex-row items-center gap-1 select-none">
-          <span class="grow text-sm whitespace-nowrap">
-            {{ baseCurrencyName }}
-          </span>
-          <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+          <slot
+            v-if="$slots.asset"
+            name="asset"
+            :base-currency-name="baseCurrencyName"
+            :asset="asset"
+          />
+          <template v-else>
+            <span class="grow text-sm font-medium whitespace-nowrap">
+              {{ baseCurrencyName }}
+            </span>
+            <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+          </template>
         </div>
       </div>
 
