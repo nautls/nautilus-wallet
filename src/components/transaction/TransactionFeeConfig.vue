@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "lodash-es";
-import { ChevronsUpDown, InfoIcon, Loader2Icon } from "lucide-vue-next";
+import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -32,6 +32,7 @@ interface Props {
   modelValue: FeeSettings;
   includeMinAmountPerBox?: number;
   disabled?: boolean;
+  maxMultiplier?: number;
 }
 
 const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
@@ -42,7 +43,7 @@ const appStore = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
 
-const props = withDefaults(defineProps<Props>(), { includeMinAmountPerBox: 0 });
+const props = withDefaults(defineProps<Props>(), { includeMinAmountPerBox: 0, maxMultiplier: 10 });
 
 const emit = defineEmits<{ (e: "update:modelValue", payload: FeeSettings): void }>();
 
@@ -261,14 +262,14 @@ function emitSelected() {
                 {{ format.asset.name(intSelected) }}
 
                 <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-                <ChevronsUpDown v-else class="size-4 opacity-50" />
+                <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
               </Button>
             </PopoverTrigger>
           </AssetSelect>
         </div>
       </div>
       <div class="pt-3 pb-2">
-        <Slider v-model="internalMultiplier" :max="10" :step="1" :min="1" />
+        <Slider v-model="internalMultiplier" :max="props.maxMultiplier" :step="1" :min="1" />
       </div>
     </div>
   </FormField>
