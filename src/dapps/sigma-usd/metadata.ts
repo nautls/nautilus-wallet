@@ -13,6 +13,6 @@ export const SIGUSD_INFO: AssetInfo = {
 };
 
 export const SIGSRV_INFO: AssetInfo = {
-  tokenId: SIGMA_USD_PARAMETERS.tokens.stableCoinId,
+  tokenId: SIGMA_USD_PARAMETERS.tokens.reserveCoinId,
   metadata: { name: "SigRSV" }
 };

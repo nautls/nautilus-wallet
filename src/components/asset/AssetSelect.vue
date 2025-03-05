@@ -22,6 +22,7 @@ import { AssetInfo } from "@/types/internal";
 
 export interface Asset extends AssetInfo {
   balance?: BigNumber;
+  disabled?: boolean;
 }
 
 interface Props {
@@ -118,6 +119,7 @@ function filter(items: (T | string)[]) {
             <CommandItem
               v-for="asset in assets"
               :key="asset.tokenId"
+              :disabled="asset.disabled"
               class="gap-2 py-2"
               :value="asset"
               @select.prevent="emitSelected(asset)"
