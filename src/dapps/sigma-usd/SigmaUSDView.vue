@@ -1,21 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, triggerRef } from "vue";
 import { SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
-import {
-  ArrowDownUpIcon,
-  ChevronDownIcon,
-  ChevronsUpDownIcon,
-  LandmarkIcon,
-  Loader2Icon
-} from "lucide-vue-next";
+import { BigNumber } from "bignumber.js";
+import { ArrowDownUpIcon, ChevronDownIcon, LandmarkIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
-import { AssetIcon, AssetInput } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/ui/stats-card";
 import { bn, decimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { AssetInfo } from "@/types/internal";
 import { getBankBox, getOracleBox } from "./blockchainService";
+import { AssetInputSelect } from "./components";
 import { ERG_INFO, SIGUSD_INFO } from "./metadata";
 
 const wallet = useWalletStore();
@@ -25,6 +20,7 @@ const bank = shallowRef<SigmaUSDBank | null>(null);
 const loading = ref(false);
 
 const sigUsd = computed(() => getBalance(SIGUSD_INFO));
+const amount = ref<BigNumber | undefined>();
 
 const bankInfo = computed(() => {
   return {
@@ -71,35 +67,10 @@ function getBalance(asset: AssetInfo) {
         {{ format.bn.format(bankInfo.baseReserves, 3) }} ERG
       </p>
     </StatsCard>
-
+    {{ amount }}
     <div class="relative flex flex-col gap-2">
-      <AssetInput
-        input-class="text-lg"
-        :validate="false"
-        :asset="wallet.balance[0]"
-        class="gap-2 px-4 py-3"
-      >
-        <template #asset="{ asset, baseCurrencyName }">
-          <Button class="px-2.5" variant="outline" @click.prevent.stop="console.log('swap')">
-            <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-            {{ baseCurrencyName }}
-
-            <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-            <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
-          </Button>
-        </template>
-      </AssetInput>
-      <AssetInput input-class="text-lg" :validate="false" :asset="sigUsd!" class="gap-2 px-4 py-3">
-        <template #asset="{ asset, baseCurrencyName }">
-          <Button class="px-2.5" variant="outline" @click.prevent.stop="console.log('swap')">
-            <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-            {{ baseCurrencyName }}
-
-            <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-            <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
-          </Button>
-        </template>
-      </AssetInput>
+      <AssetInputSelect v-model:amount="amount" :selected-asset="sigUsd" :assets="wallet.balance" />
+      <AssetInputSelect v-model:amount="amount" :selected-asset="sigUsd" :assets="wallet.balance" />
 
       <Button
         tabindex="-1"
