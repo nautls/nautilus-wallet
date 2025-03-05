@@ -20,6 +20,7 @@ import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 
 interface Props {
   disposable?: boolean;
+  disabled?: boolean;
   validate?: boolean;
   asset: AssetBalance;
   modelValue?: BigNumber;
@@ -61,7 +62,7 @@ const isHovered = ref(false);
 const isDenom = ref(false);
 
 onMounted(() => {
-  if (props.asset.metadata?.decimals || props.asset.balance.gt(1)) return;
+  if (props.asset.metadata?.decimals || !props.asset.balance.eq(1)) return;
   internalValue.value = props.asset.balance;
 });
 
@@ -213,7 +214,8 @@ function tokenRate(tokenId: string): number {
     <div
       :class="
         cn(
-          'border-input placeholder:text-muted-foreground focus-within:ring-ring relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-within:ring-1 focus-within:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+          'border-input placeholder:text-muted-foreground focus-within:ring-ring relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-within:ring-1 focus-within:outline-hidden',
+          props.disabled && 'border-input/50 cursor-not-allowed focus-within:ring-0',
           props.class
         )
       "
@@ -222,7 +224,7 @@ function tokenRate(tokenId: string): number {
       @mouseout="setHover(false)"
     >
       <Button
-        v-if="disposable"
+        v-if="disposable && !props.disabled"
         v-show="isHovered"
         type="button"
         tabindex="-1"
@@ -237,9 +239,10 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
+          :disabled="props.disabled"
           :class="
             cn(
-              'placeholder:text-muted-foreground w-full min-w-24 bg-transparent font-medium outline-hidden',
+              'placeholder:text-muted-foreground w-full min-w-24 bg-transparent font-medium outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
               props.inputClass
             )
           "
@@ -271,7 +274,12 @@ function tokenRate(tokenId: string): number {
             tabindex="-1"
             variant="minimal"
             size="condensed"
-            class="gap-1 text-xs [&_svg]:size-3"
+            :class="
+              cn(
+                'gap-1 text-xs [&_svg]:size-3',
+                props.disabled && 'pointer-events-none cursor-not-allowed'
+              )
+            "
             @click="toggleDenominating"
           >
             <span>{{ formattedDenom }} {{ denomCurrencyName }}</span>
@@ -287,7 +295,12 @@ function tokenRate(tokenId: string): number {
           tabindex="-1"
           variant="minimal"
           size="condensed"
-          class="gap-1 text-xs [&_svg]:size-3"
+          :class="
+            cn(
+              'gap-1 text-xs [&_svg]:size-3',
+              props.disabled && 'pointer-events-none cursor-not-allowed'
+            )
+          "
           @click="setMaxValue()"
           ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
         >
