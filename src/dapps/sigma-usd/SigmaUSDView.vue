@@ -130,14 +130,20 @@ function asset(
   asset: AssetInfo,
   oddSelection?: Ref<Asset | undefined>
 ): Asset {
+  const balance = wallet.balance.find((b) => b.tokenId === asset.tokenId)?.balance ?? bn(0);
   return {
     ...asset,
-    disabled: !can(action, asset, oddSelection?.value),
-    balance: wallet.balance.find((b) => b.tokenId === asset.tokenId)?.balance ?? bn(0)
+    balance,
+    disabled: !can(action, asset, balance, oddSelection?.value)
   };
 }
 
-function can(action: "buy" | "sell", asset: AssetInfo, oddAsset?: Asset): boolean {
+function can(
+  action: "buy" | "sell",
+  asset: AssetInfo,
+  balance?: BigNumber,
+  oddAsset?: Asset
+): boolean {
   if (asset.tokenId === oddAsset?.tokenId) return false;
   if (asset.tokenId !== ERG_INFO.tokenId && loading.value) return false;
   if (!bank.value) return true; // if it's called before bank is loaded
@@ -146,13 +152,14 @@ function can(action: "buy" | "sell", asset: AssetInfo, oddAsset?: Asset): boolea
     return false; // can't swap between SigUSD and SigSRV
   }
 
+  balance = balance ?? bn(0);
   const rr = bankInfo.value.reserveRatio;
   if (asset.tokenId === SIGUSD_INFO.tokenId) {
-    if (action === "sell") return true; // can always sell SigUSD
+    if (action === "sell") return !balance.gt(0); // can always sell SigUSD if balance is above 0
     return rr >= 400; // can only buy SigUSD if reserve is above 400%
   }
   if (asset.tokenId === SIGSRV_INFO.tokenId) {
-    if (action === "sell") return rr >= 400; // can only sell SigSRV if reserve is above 400%
+    if (action === "sell") return rr >= 400 && !balance.gt(0); // can only sell SigSRV if reserve is above 400% and balance is above 0
     return rr <= 800; // can only buy SigRSV if reserve is below 800%
   }
 

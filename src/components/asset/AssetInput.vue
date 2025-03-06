@@ -272,12 +272,12 @@ function tokenRate(tokenId: string): number {
             :base-currency-name="baseCurrencyName"
             :asset="asset"
           />
-          <template v-else>
+          <div v-else :class="props.disabled && 'opacity-50'">
             <span class="grow text-sm font-medium whitespace-nowrap">
               {{ baseCurrencyName }}
             </span>
             <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
-          </template>
+          </div>
         </div>
       </div>
 
@@ -285,22 +285,18 @@ function tokenRate(tokenId: string): number {
         <div class="text-muted-foreground flex grow flex-row items-center gap-1 text-xs">
           <Button
             v-if="isConvertible"
+            :disabled="props.disabled"
             type="button"
             tabindex="-1"
             variant="minimal"
             size="condensed"
-            :class="
-              cn(
-                'gap-1 text-xs [&_svg]:size-3',
-                props.disabled && 'pointer-events-none cursor-not-allowed'
-              )
-            "
+            class="gap-1 text-xs [&_svg]:size-3"
             @click="toggleDenominating"
           >
             <span>{{ formattedDenom }} {{ denomCurrencyName }}</span>
             <ArrowDownUpIcon class="size-3"
           /></Button>
-          <span v-else>No conversion rate</span>
+          <span v-else :class="disabled && 'opacity-50'">No conversion rate</span>
         </div>
 
         <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
@@ -309,6 +305,7 @@ function tokenRate(tokenId: string): number {
           type="button"
           tabindex="-1"
           variant="minimal"
+          :disabled="props.disabled"
           size="condensed"
           :class="
             cn(
