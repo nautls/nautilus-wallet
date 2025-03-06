@@ -10,9 +10,8 @@ import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AddressState } from "@/types/internal";
+import type { AddressType } from "../connector/rpc/protocol";
 import { getSettings } from "./settings";
-
-export type AddressType = "used" | "unused" | "change";
 
 export async function checkConnection(origin: string) {
   const connection = await connectedDAppsDbService.getByOrigin(origin);

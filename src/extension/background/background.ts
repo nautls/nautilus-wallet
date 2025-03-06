@@ -1,4 +1,3 @@
-import { isEmpty } from "@fleet-sdk/common";
 import { JsonValue } from "type-fest";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { onMessage, sendMessage } from "webext-bridge/background";
@@ -84,11 +83,11 @@ onMessageAuth(InternalRequest.GetBalance, async (msg, walletId) => {
 
 onMessageAuth(InternalRequest.GetAddresses, async (msg, walletId) => {
   const addresses = await getAddresses(walletId, msg.data.filter);
-  if (isEmpty(addresses)) {
+  if (msg.data.filter === "change" && !addresses) {
     return error(APIErrorCode.InternalError, "No addresses found.");
   }
 
-  return success(addresses);
+  return success(addresses ?? []);
 });
 
 onMessageAuth(InternalRequest.GetCurrentHeight, async () => {
