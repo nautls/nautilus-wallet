@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, Ref, ref, shallowRef, triggerRef } from "vue";
+import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch } from "vue";
 import { SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
+import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import { ArrowDownUpIcon, ChevronDownIcon, LandmarkIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
@@ -18,10 +19,13 @@ const format = useFormat();
 
 const bank = shallowRef<SigmaUSDBank | null>(null);
 const loading = ref(false);
-const amount = ref<BigNumber | undefined>();
+const lastChanged = ref<"from" | "to">("from");
 
 const fromAsset = ref<Asset | undefined>(asset("sell", ERG_INFO));
+const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
+const toAmount = ref<BigNumber | undefined>();
+const rate = computed(() => (toAsset.value ? getRate(toAsset.value) : undefined));
 
 const fromAssets = computed(() => [
   asset("sell", ERG_INFO, toAsset),
@@ -50,6 +54,56 @@ onMounted(async () => {
   await fetchBoxes();
   loading.value = false;
 });
+
+watch(fromAsset, () => convert(lastChanged.value, false));
+watch(toAsset, () => convert(lastChanged.value, false));
+const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
+const toWatcher = pausableWatch(toAmount, () => convert("to"));
+
+async function convert(source: "from" | "to", retainSourceInfo = true) {
+  if (!bank.value) return;
+
+  const sourceAsset = source === "from" ? fromAsset.value : toAsset.value;
+  const targetAsset = source === "from" ? toAsset.value : fromAsset.value;
+  const sourceAmount = source === "from" ? fromAmount.value : toAmount.value;
+  const targetAmount = source === "from" ? toAmount : fromAmount;
+  const targetWatcher = source === "from" ? toWatcher : fromWatcher;
+
+  console.log(source);
+
+  if (!sourceAsset || !targetAsset) return;
+  if (sourceAsset.tokenId === targetAsset.tokenId) return;
+
+  console.log("converting...");
+  try {
+    targetWatcher.pause();
+
+    await nextTick(() => {
+      if (!sourceAmount || sourceAmount.isZero()) {
+        targetAmount.value = bn(0);
+        return;
+      }
+
+      if (sourceAsset.tokenId === ERG_INFO.tokenId) {
+        targetAmount.value = sourceAmount.times(getRate(targetAsset));
+      } else {
+        targetAmount.value = sourceAmount.div(getRate(sourceAsset));
+      }
+    });
+  } finally {
+    if (retainSourceInfo) lastChanged.value = source;
+    targetWatcher.resume();
+  }
+}
+
+function getRate(asset: Asset): BigNumber {
+  if (!bank.value) return bn(0);
+  if (asset.tokenId === ERG_INFO.tokenId) return bn(1);
+  if (asset.tokenId === SIGSRV_INFO.tokenId) return bn(bank.value.reserveCoinErgRate.toString());
+  if (asset.tokenId === SIGUSD_INFO.tokenId)
+    return decimalize(bn(bank.value.stableCoinErgRate.toString()), SIGUSD_INFO.metadata?.decimals);
+  return bn(0);
+}
 
 async function fetchBoxes() {
   const [bankBox, oracleBox] = await Promise.all([getBankBox(), getOracleBox()]);
@@ -109,12 +163,12 @@ function can(action: "buy" | "sell", asset: AssetInfo, oddAsset?: Asset): boolea
 
     <div class="relative flex flex-col gap-2">
       <AssetInputSelect
-        v-model:amount="amount"
+        v-model:amount="fromAmount"
         v-model:selected-asset="fromAsset"
         :assets="fromAssets"
       />
       <AssetInputSelect
-        v-model:amount="amount"
+        v-model:amount="toAmount"
         v-model:selected-asset="toAsset"
         :assets="toAssets"
       />
@@ -129,8 +183,14 @@ function can(action: "buy" | "sell", asset: AssetInfo, oddAsset?: Asset): boolea
       </Button>
     </div>
 
-    <div class="text-muted-foreground -mt-4 flex items-center justify-between px-2 text-xs">
-      <div>1 ERG = 1.5 SigUSD</div>
+    <div
+      v-if="bankInfo && rate"
+      class="text-muted-foreground -mt-4 flex items-center justify-between px-2 text-xs"
+    >
+      <div>
+        1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate) }}
+        {{ format.asset.name(toAsset) }}
+      </div>
       <div>
         Fees: 1.2 ERG
         <ChevronDownIcon class="inline size-4 pb-0.5 pl-1" />
