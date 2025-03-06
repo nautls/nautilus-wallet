@@ -44,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   inputClass: undefined
 });
 
-const basePrecision = props.asset.metadata?.decimals ?? 0;
+let basePrecision = props.asset.metadata?.decimals ?? 0;
 let fiatPrecision = MIN_FIAT_PRECISION;
 
 const emit = defineEmits(["remove", "update:modelValue"]);
@@ -52,7 +52,11 @@ const emit = defineEmits(["remove", "update:modelValue"]);
 const inputEl = useTemplateRef("value-input");
 const maskOpt = reactive<MaskOptions>({ numeralDecimalScale: basePrecision });
 
-const { value: internalValue, patchOptionsQuietly } = useNumericMask(inputEl, maskOpt);
+const {
+  value: internalValue,
+  patchOptionsQuietly,
+  patchOptions
+} = useNumericMask(inputEl, maskOpt);
 
 const app = useAppStore();
 const assets = useAssetsStore();
@@ -65,6 +69,14 @@ onMounted(() => {
   if (props.asset.metadata?.decimals || !props.asset.balance.eq(1)) return;
   internalValue.value = props.asset.balance;
 });
+
+watch(
+  () => props.asset,
+  () => {
+    basePrecision = props.asset.metadata?.decimals ?? 0;
+    patchOptions({ numeralDecimalScale: basePrecision });
+  }
+);
 
 const ergPrice = computed(() => assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const isConvertible = computed(() => ergPrice.value && tokenRate(props.asset.tokenId));
@@ -117,7 +129,10 @@ function getZerosAfterDecimal(n: BigNumber) {
 }
 
 const formattedDenom = computed(() =>
-  format.bn.format(denomValue.value, isDenom.value ? props.asset.metadata?.decimals : fiatPrecision)
+  format.bn.format(
+    denomValue.value,
+    isDenom.value ? (props.asset.metadata?.decimals ?? 0) : fiatPrecision
+  )
 );
 
 const baseCurrencyName = computed(() =>
