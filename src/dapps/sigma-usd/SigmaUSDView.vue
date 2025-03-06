@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch } from "vue";
-import { SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
+import { CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import { ArrowDownUpIcon, ChevronDownIcon, LandmarkIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/ui/stats-card";
-import { bn, decimalize } from "@/common/bigNumber";
+import { bn, dbn, undecimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
+import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo } from "@/types/internal";
 import { getBankBox, getOracleBox } from "./blockchainService";
 import { Asset, AssetInputSelect } from "./components";
 import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
+
+const _0 = bn(0);
+const _1 = bn(1);
 
 const wallet = useWalletStore();
 const format = useFormat();
@@ -28,7 +32,7 @@ const toAmount = ref<BigNumber | undefined>();
 const rate = computed(() =>
   toAsset.value && fromAsset.value
     ? toAsset.value.tokenId === ERG_INFO.tokenId
-      ? bn(1).div(getRate(fromAsset.value))
+      ? _1.div(getRate(fromAsset.value))
       : getRate(toAsset.value)
     : undefined
 );
@@ -48,12 +52,23 @@ const toAssets = computed(() => [
 const bankInfo = computed(() => {
   return {
     reserveRatio: Number(bank.value?.reserveRatio ?? 0),
-    baseReserves: decimalize(
-      bn(bank.value?.baseReserves.toString() ?? 0),
-      ERG_INFO.metadata?.decimals
-    )
+    baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals)
   };
 });
+
+const nonErg = computed(() =>
+  fromAsset.value?.tokenId === ERG_TOKEN_ID
+    ? { asset: toAsset.value, amount: toAmount.value }
+    : { asset: fromAsset.value, amount: fromAmount.value }
+);
+
+const allFilled = computed(() => fromAmount.value && toAmount.value);
+const networkFee = computed(() =>
+  allFilled.value ? dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS) : _0
+);
+const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
+const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
+const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
 
 onMounted(async () => {
   loading.value = true;
@@ -65,6 +80,24 @@ watch(fromAsset, () => convert(lastChanged.value, false));
 watch(toAsset, () => convert(lastChanged.value, false));
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
 const toWatcher = pausableWatch(toAmount, () => convert("to"));
+
+function getFeeFor(type: FeeType, asset?: Asset, amount?: BigNumber): BigNumber {
+  if (!bank.value || !asset || !amount) return _0;
+  return dbn(
+    bank.value.getFeeAmountFor(udec(amount, asset.metadata?.decimals), getCoinType(asset), type),
+    ERG_DECIMALS
+  );
+}
+
+function getCoinType(asset: AssetInfo | undefined): CoinType {
+  if (asset?.tokenId === SIGUSD_INFO.tokenId) return "stable";
+  else return "reserve";
+}
+
+function udec(amount: BigNumber | undefined, decimals?: number): bigint {
+  if (!amount) return BigInt(0);
+  return BigInt(undecimalize(amount, decimals).toString());
+}
 
 async function convert(source: "from" | "to", retainSourceInfo = true) {
   if (!bank.value) return;
@@ -86,7 +119,7 @@ async function convert(source: "from" | "to", retainSourceInfo = true) {
 
     await nextTick(() => {
       if (!sourceAmount || sourceAmount.isZero()) {
-        targetAmount.value = bn(0);
+        targetAmount.value = _0;
         return;
       }
 
@@ -103,12 +136,12 @@ async function convert(source: "from" | "to", retainSourceInfo = true) {
 }
 
 function getRate(asset: Asset): BigNumber {
-  if (!bank.value) return bn(0);
-  if (asset.tokenId === ERG_INFO.tokenId) return bn(1);
-  if (asset.tokenId === SIGSRV_INFO.tokenId) return bn(bank.value.reserveCoinErgRate.toString());
+  if (!bank.value) return _0;
+  if (asset.tokenId === ERG_INFO.tokenId) return _1;
   if (asset.tokenId === SIGUSD_INFO.tokenId)
-    return decimalize(bn(bank.value.stableCoinErgRate.toString()), SIGUSD_INFO.metadata?.decimals);
-  return bn(0);
+    return dbn(bank.value.stableCoinErgRate, SIGUSD_INFO.metadata?.decimals);
+  if (asset.tokenId === SIGSRV_INFO.tokenId) return bn(bank.value.reserveCoinErgRate);
+  return _0;
 }
 
 async function fetchBoxes() {
@@ -116,7 +149,12 @@ async function fetchBoxes() {
 
   if (!bank.value) {
     if (!bankBox || !oracleBox) return;
-    bank.value = new SigmaUSDBank(bankBox, oracleBox);
+
+    bank.value = new SigmaUSDBank(bankBox, oracleBox).setImplementorFee({
+      percentage: 22n,
+      precision: 4n,
+      address: "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By"
+    });
     return;
   }
 
@@ -130,7 +168,7 @@ function asset(
   asset: AssetInfo,
   oddSelection?: Ref<Asset | undefined>
 ): Asset {
-  const balance = wallet.balance.find((b) => b.tokenId === asset.tokenId)?.balance ?? bn(0);
+  const balance = wallet.balance.find((b) => b.tokenId === asset.tokenId)?.balance ?? _0;
   return {
     ...asset,
     balance,
@@ -152,14 +190,14 @@ function can(
     return false; // can't swap between SigUSD and SigSRV
   }
 
-  balance = balance ?? bn(0);
+  balance = balance ?? _0;
   const rr = bankInfo.value.reserveRatio;
   if (asset.tokenId === SIGUSD_INFO.tokenId) {
-    if (action === "sell") return !balance.gt(0); // can always sell SigUSD if balance is above 0
+    if (action === "sell") return balance.gt(0); // can always sell SigUSD if balance is above 0
     return rr >= 400; // can only buy SigUSD if reserve is above 400%
   }
   if (asset.tokenId === SIGSRV_INFO.tokenId) {
-    if (action === "sell") return rr >= 400 && !balance.gt(0); // can only sell SigSRV if reserve is above 400% and balance is above 0
+    if (action === "sell") return rr >= 400 && balance.gt(0); // can only sell SigSRV if reserve is above 400% and balance is above 0
     return rr <= 800; // can only buy SigRSV if reserve is below 800%
   }
 
@@ -199,15 +237,24 @@ function can(
 
     <div
       v-if="bankInfo && rate"
-      class="text-muted-foreground -mt-4 flex items-center justify-between px-2 text-xs"
+      class="text-muted-foreground -mt-4 flex items-start justify-between px-2 text-xs"
     >
       <div>
-        1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate, 9) }}
-        {{ format.asset.name(toAsset) }}
+        <ul>
+          <li>
+            1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate, ERG_DECIMALS) }}
+            {{ format.asset.name(toAsset) }}
+          </li>
+        </ul>
       </div>
+
       <div>
-        Fees: 1.2 ERG
-        <ChevronDownIcon class="inline size-4 pb-0.5 pl-1" />
+        <ul>
+          <li>
+            Fees: {{ format.bn.format(totalFee, 4) }} ERG
+            <ChevronDownIcon class="inline size-4 pb-0.5 pl-1" />
+          </li>
+        </ul>
       </div>
     </div>
 
