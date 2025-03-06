@@ -10,8 +10,8 @@ export function decimalize(value: BigNumber | undefined, decimals = 0): BigNumbe
 }
 
 export function undecimalize(value: BigNumber, decimals?: number): BigNumber {
-  if (!decimals) return value;
-  return value.shiftedBy(decimals);
+  if (!decimals && !value.decimalPlaces()) return value;
+  return value.shiftedBy(decimals ?? value.decimalPlaces() ?? 0);
 }
 
 export function bn(value: BNInput): BigNumber;

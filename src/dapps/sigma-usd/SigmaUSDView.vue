@@ -3,8 +3,14 @@ import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch 
 import { CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
-import { ArrowDownUpIcon, ChevronDownIcon, LandmarkIcon } from "lucide-vue-next";
+import { ArrowDownUpIcon, InfoIcon, LandmarkIcon, SettingsIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/ui/stats-card";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
@@ -21,9 +27,10 @@ const _1 = bn(1);
 const wallet = useWalletStore();
 const format = useFormat();
 
-const bank = shallowRef<SigmaUSDBank | null>(null);
+const bank = shallowRef<SigmaUSDBank | undefined>();
 const loading = ref(false);
 const lastChanged = ref<"from" | "to">("from");
+const isFeeBreakdownOpen = ref<string | undefined>();
 
 const fromAsset = ref<Asset | undefined>(asset("sell", ERG_INFO));
 const fromAmount = ref<BigNumber | undefined>();
@@ -69,6 +76,9 @@ const networkFee = computed(() =>
 const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
 const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
+
+// const tcr = computed(() => rate.value); // total conversion rate
+// const tcv = computed(() => bankInfo.value.baseReserves); // total conversion value
 
 onMounted(async () => {
   loading.value = true;
@@ -124,9 +134,13 @@ async function convert(source: "from" | "to", retainSourceInfo = true) {
       }
 
       if (sourceAsset.tokenId === ERG_INFO.tokenId) {
-        targetAmount.value = sourceAmount.times(getRate(targetAsset));
+        targetAmount.value = sourceAmount
+          .times(getRate(targetAsset))
+          .decimalPlaces(targetAsset.metadata?.decimals ?? 0);
       } else {
-        targetAmount.value = sourceAmount.div(getRate(sourceAsset));
+        targetAmount.value = sourceAmount
+          .div(getRate(sourceAsset))
+          .decimalPlaces(targetAsset.metadata?.decimals ?? 0);
       }
     });
   } finally {
@@ -235,30 +249,55 @@ function can(
       </Button>
     </div>
 
-    <div
+    <Accordion
       v-if="bankInfo && rate"
-      class="text-muted-foreground -mt-4 flex items-start justify-between px-2 text-xs"
+      v-model="isFeeBreakdownOpen"
+      type="single"
+      collapsible
+      class="-mt-4"
     >
-      <div>
-        <ul>
-          <li>
-            1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate, ERG_DECIMALS) }}
-            {{ format.asset.name(toAsset) }}
-          </li>
-        </ul>
-      </div>
+      <AccordionItem value="opened" class="border-none">
+        <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
+          <div class="text-muted-foreground flex w-full items-center justify-between px-2">
+            <div>
+              1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate, ERG_DECIMALS) }}
+              {{ format.asset.name(toAsset) }}
+            </div>
+            <div v-if="!isFeeBreakdownOpen">
+              <span class="font-semibold">Fee</span> {{ format.bn.format(totalFee, 4) }} ERG
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
+          <div class="flex items-center justify-between">
+            <div class="font-medium">
+              Protocol Fee <span class="text-muted-foreground">(2%) </span>
+              <InfoIcon class="inline size-3" />
+            </div>
+            <div>{{ format.bn.format(protocolFee) }} ERG</div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-medium">
+              Service Fee <span class="text-muted-foreground">(0.22%) </span>
+              <InfoIcon class="inline size-3" />
+            </div>
+            <div>{{ format.bn.format(uiFee) }} ERG</div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="font-medium">
+              Network Fee <InfoIcon class="inline size-3" /> <SettingsIcon class="inline size-3" />
+            </div>
+            <div>{{ format.bn.format(networkFee) }} ERG</div>
+          </div>
+          <div class="flex items-center justify-between font-semibold">
+            <div>Total Fee</div>
+            <div>{{ format.bn.format(totalFee) }} ERG</div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
 
-      <div>
-        <ul>
-          <li>
-            Fees: {{ format.bn.format(totalFee, 4) }} ERG
-            <ChevronDownIcon class="inline size-4 pb-0.5 pl-1" />
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="grow"></div>
+    <div class="-my-4 grow"></div>
 
     <!-- <TransactionFeeConfig v-model="fee" :disabled="loading" :max-multiplier="100" /> -->
     <Button :disabled="loading" class="w-full">Swap</Button>
