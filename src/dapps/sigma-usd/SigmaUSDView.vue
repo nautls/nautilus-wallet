@@ -25,7 +25,13 @@ const fromAsset = ref<Asset | undefined>(asset("sell", ERG_INFO));
 const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
 const toAmount = ref<BigNumber | undefined>();
-const rate = computed(() => (toAsset.value ? getRate(toAsset.value) : undefined));
+const rate = computed(() =>
+  toAsset.value && fromAsset.value
+    ? toAsset.value.tokenId === ERG_INFO.tokenId
+      ? bn(1).div(getRate(fromAsset.value))
+      : getRate(toAsset.value)
+    : undefined
+);
 
 const fromAssets = computed(() => [
   asset("sell", ERG_INFO, toAsset),
@@ -133,6 +139,7 @@ function asset(
 
 function can(action: "buy" | "sell", asset: AssetInfo, oddAsset?: Asset): boolean {
   if (asset.tokenId === oddAsset?.tokenId) return false;
+  if (asset.tokenId !== ERG_INFO.tokenId && loading.value) return false;
   if (!bank.value) return true; // if it's called before bank is loaded
 
   if (oddAsset && asset.tokenId !== ERG_INFO.tokenId && oddAsset?.tokenId !== ERG_INFO.tokenId) {
@@ -188,7 +195,7 @@ function can(action: "buy" | "sell", asset: AssetInfo, oddAsset?: Asset): boolea
       class="text-muted-foreground -mt-4 flex items-center justify-between px-2 text-xs"
     >
       <div>
-        1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate) }}
+        1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate, 9) }}
         {{ format.asset.name(toAsset) }}
       </div>
       <div>
