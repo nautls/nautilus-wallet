@@ -69,9 +69,9 @@ const nonErg = computed(() =>
     : { asset: fromAsset.value, amount: fromAmount.value }
 );
 
-const allFilled = computed(() => fromAmount.value && toAmount.value);
+const hasInputValues = computed(() => fromAmount.value?.gt(0) && toAmount.value?.gt(0));
 const networkFee = computed(() =>
-  allFilled.value ? dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS) : _0
+  hasInputValues.value ? dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS) : _0
 );
 const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
 const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
@@ -220,9 +220,13 @@ function can(
 </script>
 <template>
   <div class="flex h-full flex-col gap-6 p-6">
-    <StatsCard title="Bank reserves" :icon="LandmarkIcon" content-class="items-end gap-1">
+    <StatsCard
+      title="Bank reserves"
+      :icon="LandmarkIcon"
+      content-class="items-center gap-1 justify-between"
+    >
       <p class="text-xl leading-none font-semibold">{{ bankInfo.reserveRatio }}%</p>
-      <p class="text-muted-foreground text-xs leading-tight">
+      <p class="text-muted-foreground text-xs leading-none">
         {{ format.bn.format(bankInfo.baseReserves, 3) }} ERG
       </p>
     </StatsCard>
@@ -300,6 +304,6 @@ function can(
     <div class="-my-4 grow"></div>
 
     <!-- <TransactionFeeConfig v-model="fee" :disabled="loading" :max-multiplier="100" /> -->
-    <Button :disabled="loading" class="w-full">Swap</Button>
+    <Button :disabled="loading || !hasInputValues" class="w-full">Swap</Button>
   </div>
 </template>
