@@ -265,14 +265,18 @@ function tokenRate(tokenId: string): number {
           @blur="v$.$touch()"
         />
 
-        <div class="flex w-auto min-w-max flex-row items-center gap-1 select-none">
+        <div class="w-auto min-w-max select-none">
           <slot
             v-if="$slots.asset"
             name="asset"
             :base-currency-name="baseCurrencyName"
             :asset="asset"
           />
-          <div v-else :class="props.disabled && 'opacity-50'">
+          <div
+            v-else
+            class="flex flex-row items-center gap-1"
+            :class="props.disabled && 'opacity-50'"
+          >
             <span class="grow text-sm font-medium whitespace-nowrap">
               {{ baseCurrencyName }}
             </span>
