@@ -60,6 +60,8 @@ export type DataWithPayload<T = unknown> = {
   payload: InternalMessagePayload;
 } & T;
 
+export type AddressType = "used" | "unused" | "change";
+
 /**
  * Creates a success result object with the specified data.
  *
