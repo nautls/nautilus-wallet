@@ -15,6 +15,7 @@ interface Props {
   assets: Asset[];
   selectedAsset: Asset | undefined;
   amount: BigNumber | undefined;
+  disabled?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -33,7 +34,7 @@ const amount = useVModel(props, "amount", emits, { passive: true });
     v-model="amount"
     input-class="text-lg"
     :validate="false"
-    :disabled="!selectedAsset"
+    :disabled="!selectedAsset || props.disabled"
     :asset="selectedAsset ?? EMPTY_ASSET"
     class="gap-2 px-4 py-3"
   >
@@ -41,6 +42,7 @@ const amount = useVModel(props, "amount", emits, { passive: true });
       <AssetSelect v-model="selectedAsset" :assets="props.assets">
         <PopoverTrigger as-child>
           <Button
+            :disabled="props.disabled"
             :variant="selectedAsset ? 'outline' : 'default'"
             class="px-2.5"
             @click.prevent.stop

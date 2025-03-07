@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
@@ -84,7 +85,7 @@ const nonErg = computed(() =>
 );
 
 const hasInputValues = computed(() => fromAmount.value?.gt(0) && toAmount.value?.gt(0));
-const networkFee = computed(() => fee.value.value);
+const networkFee = computed(() => (hasInputValues.value ? fee.value.value : _0));
 const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
 const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
@@ -236,10 +237,16 @@ function can(
         :icon="LandmarkIcon"
         content-class="items-end gap-1 justify-between"
       >
-        <p class="text-xl leading-none font-semibold">{{ bankInfo.reserveRatio }}%</p>
-        <p class="text-muted-foreground text-xs leading-tight">
-          Σ {{ format.bn.format(bankInfo.baseReserves, 3) }}
-        </p>
+        <template v-if="loading">
+          <Skeleton class="h-5 w-13" />
+          <Skeleton class="h-3.5 w-12" />
+        </template>
+        <template v-else>
+          <p class="text-xl leading-none font-semibold">{{ bankInfo.reserveRatio }}%</p>
+          <p class="text-muted-foreground text-xs leading-tight">
+            Σ {{ format.bn.format(bankInfo.baseReserves, 3) }}
+          </p>
+        </template>
       </StatsCard>
       <StatsCard
         class="w-full min-w-max"
@@ -247,10 +254,16 @@ function can(
         :icon="DollarSignIcon"
         content-class="items-end gap-1 justify-between"
       >
-        <p class="text-xl leading-none font-semibold">
-          {{ format.currency.amount(bankInfo.stableRate, app.settings.conversionCurrency) }}
-        </p>
-        <p class="text-muted-foreground text-xs leading-tight">1 ERG</p>
+        <template v-if="loading">
+          <Skeleton class="h-5 w-14" />
+          <Skeleton class="h-3.5 w-9" />
+        </template>
+        <template v-else>
+          <p class="text-xl leading-none font-semibold">
+            {{ format.currency.amount(bankInfo.stableRate, app.settings.conversionCurrency) }}
+          </p>
+          <p class="text-muted-foreground text-xs leading-tight">1 ERG</p>
+        </template>
       </StatsCard>
     </div>
 
@@ -258,21 +271,24 @@ function can(
       <AssetInputSelect
         v-model:amount="fromAmount"
         v-model:selected-asset="fromAsset"
+        :disabled="loading"
         :assets="fromAssets"
       />
       <AssetInputSelect
         v-model:amount="toAmount"
         v-model:selected-asset="toAsset"
+        :disabled="loading"
         :assets="toAssets"
       />
 
       <Button
+        :disabled="loading"
         tabindex="-1"
         size="icon"
         variant="outline"
-        class="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2"
+        class="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
       >
-        <ArrowDownUpIcon />
+        <ArrowDownUpIcon class="in-disabled:opacity-50" />
       </Button>
     </div>
 
