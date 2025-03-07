@@ -12,6 +12,7 @@ import {
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import { TransactionFeeConfig } from "@/components/transaction";
 import {
   Accordion,
   AccordionContent,
@@ -19,11 +20,12 @@ import {
   AccordionTrigger
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { StatsCard } from "@/components/ui/stats-card";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
-import { AssetInfo } from "@/types/internal";
+import { AssetInfo, FeeSettings } from "@/types/internal";
 import { getBankBox, getOracleBox } from "./blockchainService";
 import { Asset, AssetInputSelect } from "./components";
 import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
@@ -39,7 +41,6 @@ const bank = shallowRef<SigmaUSDBank | undefined>();
 const loading = ref(false);
 const lastChanged = ref<"from" | "to">("from");
 const isFeeBreakdownOpen = ref<string | undefined>();
-
 const fromAsset = ref<Asset | undefined>(asset("sell", ERG_INFO));
 const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
@@ -51,6 +52,10 @@ const rate = computed(() =>
       : getRate(toAsset.value)
     : undefined
 );
+const fee = ref<FeeSettings>({
+  tokenId: ERG_TOKEN_ID,
+  value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
+});
 
 const fromAssets = computed(() => [
   asset("sell", ERG_INFO, toAsset),
@@ -79,9 +84,7 @@ const nonErg = computed(() =>
 );
 
 const hasInputValues = computed(() => fromAmount.value?.gt(0) && toAmount.value?.gt(0));
-const networkFee = computed(() =>
-  hasInputValues.value ? dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS) : _0
-);
+const networkFee = computed(() => fee.value.value);
 const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
 const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
@@ -310,7 +313,27 @@ function can(
           </div>
           <div class="flex items-center justify-between">
             <div class="font-medium">
-              Network Fee <InfoIcon class="inline size-3" /> <SettingsIcon class="inline size-3" />
+              Network Fee <InfoIcon class="inline size-3" />
+              <Popover>
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="minimal"
+                    :disabled="loading"
+                    class="ml-1 size-3 align-middle"
+                    size="condensed"
+                  >
+                    <SettingsIcon />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="p-0">
+                  <TransactionFeeConfig
+                    v-model="fee"
+                    erg-only
+                    :max-multiplier="1000"
+                    class="border-0 shadow-none"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>{{ format.bn.format(networkFee) }} ERG</div>
           </div>
@@ -324,7 +347,6 @@ function can(
 
     <div class="-my-4 grow"></div>
 
-    <!-- <TransactionFeeConfig v-model="fee" :disabled="loading" :max-multiplier="100" /> -->
     <Button :disabled="loading || !hasInputValues" class="w-full">Swap</Button>
   </div>
 </template>
