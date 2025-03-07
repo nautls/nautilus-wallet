@@ -3,7 +3,14 @@ import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch 
 import { CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
-import { ArrowDownUpIcon, InfoIcon, LandmarkIcon, SettingsIcon } from "lucide-vue-next";
+import {
+  ArrowDownUpIcon,
+  DollarSignIcon,
+  InfoIcon,
+  LandmarkIcon,
+  SettingsIcon
+} from "lucide-vue-next";
+import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import {
   Accordion,
@@ -25,6 +32,7 @@ const _0 = bn(0);
 const _1 = bn(1);
 
 const wallet = useWalletStore();
+const app = useAppStore();
 const format = useFormat();
 
 const bank = shallowRef<SigmaUSDBank | undefined>();
@@ -59,7 +67,8 @@ const toAssets = computed(() => [
 const bankInfo = computed(() => {
   return {
     reserveRatio: Number(bank.value?.reserveRatio ?? 0),
-    baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals)
+    baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals),
+    stableRate: dbn(bank.value?.stableCoinErgRate ?? _0, SIGUSD_INFO.metadata?.decimals)
   };
 });
 
@@ -118,12 +127,9 @@ async function convert(source: "from" | "to", retainSourceInfo = true) {
   const targetAmount = source === "from" ? toAmount : fromAmount;
   const targetWatcher = source === "from" ? toWatcher : fromWatcher;
 
-  console.log(source);
-
   if (!sourceAsset || !targetAsset) return;
   if (sourceAsset.tokenId === targetAsset.tokenId) return;
 
-  console.log("converting...");
   try {
     targetWatcher.pause();
 
@@ -220,16 +226,30 @@ function can(
 </script>
 <template>
   <div class="flex h-full flex-col gap-6 p-6">
-    <StatsCard
-      title="Bank reserves"
-      :icon="LandmarkIcon"
-      content-class="items-center gap-1 justify-between"
-    >
-      <p class="text-xl leading-none font-semibold">{{ bankInfo.reserveRatio }}%</p>
-      <p class="text-muted-foreground text-xs leading-none">
-        {{ format.bn.format(bankInfo.baseReserves, 3) }} ERG
-      </p>
-    </StatsCard>
+    <div class="flex gap-4">
+      <StatsCard
+        class="w-full"
+        title="Bank reserves"
+        :icon="LandmarkIcon"
+        content-class="items-end gap-1 justify-between"
+      >
+        <p class="text-xl leading-none font-semibold">{{ bankInfo.reserveRatio }}%</p>
+        <p class="text-muted-foreground text-xs leading-tight">
+          Σ {{ format.bn.format(bankInfo.baseReserves, 3) }}
+        </p>
+      </StatsCard>
+      <StatsCard
+        class="w-full min-w-max"
+        title="Current rate"
+        :icon="DollarSignIcon"
+        content-class="items-end gap-1 justify-between"
+      >
+        <p class="text-xl leading-none font-semibold">
+          {{ format.currency.amount(bankInfo.stableRate, app.settings.conversionCurrency) }}
+        </p>
+        <p class="text-muted-foreground text-xs leading-tight">1 ERG</p>
+      </StatsCard>
+    </div>
 
     <div class="relative flex flex-col gap-2">
       <AssetInputSelect
@@ -264,7 +284,8 @@ function can(
         <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
           <div class="text-muted-foreground flex w-full items-center justify-between px-2">
             <div>
-              1 {{ format.asset.name(fromAsset) }} = {{ format.bn.format(rate, ERG_DECIMALS) }}
+              1 {{ format.asset.name(fromAsset) }} =
+              {{ format.bn.format(rate, toAsset?.metadata?.decimals) }}
               {{ format.asset.name(toAsset) }}
             </div>
             <div v-if="!isFeeBreakdownOpen">
