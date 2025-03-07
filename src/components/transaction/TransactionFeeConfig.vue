@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
@@ -18,6 +18,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { bn, decimalize } from "@/common/bigNumber";
+import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
@@ -33,6 +34,8 @@ interface Props {
   includeMinAmountPerBox?: number;
   disabled?: boolean;
   maxMultiplier?: number;
+  class?: HTMLAttributes["class"];
+  ergOnly?: boolean;
 }
 
 const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
@@ -43,7 +46,11 @@ const appStore = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
 
-const props = withDefaults(defineProps<Props>(), { includeMinAmountPerBox: 0, maxMultiplier: 10 });
+const props = withDefaults(defineProps<Props>(), {
+  includeMinAmountPerBox: 0,
+  maxMultiplier: 10,
+  class: undefined
+});
 
 const emit = defineEmits<{ (e: "update:modelValue", payload: FeeSettings): void }>();
 
@@ -60,9 +67,7 @@ const tokenUnitsFee = computed(() => minTokenFee.value.times(multiplier.value));
 
 const multiplier = computed<number>({
   get: () => internalMultiplier.value[0],
-  set: (newVal) => {
-    internalMultiplier.value = [newVal];
-  }
+  set: (newVal) => (internalMultiplier.value = [newVal])
 });
 
 const conversionCurrency = computed(() => {
@@ -72,7 +77,7 @@ const conversionCurrency = computed(() => {
 const feeAmount = computed(() => {
   const value =
     intSelected.value.tokenId === ERG_TOKEN_ID ? nanoErgsFee.value : tokenUnitsFee.value;
-  return decimalize(value, intSelected.value.metadata?.decimals || 0);
+  return decimalize(value, intSelected.value.metadata?.decimals ?? 0);
 });
 
 const price = computed(() => {
@@ -144,6 +149,11 @@ async function loadAssets() {
   intSelected.value = { tokenId: ERG_TOKEN_ID, nanoErgsPerToken: bn(0) };
   cachedMinRequired.value = bn(0);
   select(erg);
+
+  if (props.ergOnly) {
+    loading.value = false;
+    return;
+  }
 
   const tokenIds = wallet.nonArtworkBalance
     .filter((x) => x.tokenId !== ERG_TOKEN_ID)
@@ -227,8 +237,13 @@ function emitSelected() {
 <template>
   <FormField :validation="v$">
     <div
-      :class="disabled ? 'pointer-events-none opacity-50' : ''"
-      class="border-input relative flex w-full flex-col gap-1 rounded-md border bg-transparent px-4 py-3 text-sm shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+      :class="
+        cn(
+          'border-input relative flex w-full flex-col gap-1 rounded-md border bg-transparent px-4 py-3 text-sm shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+          disabled && 'pointer-events-none opacity-50',
+          props.class
+        )
+      "
     >
       <div class="flex grow gap-2">
         <div class="flex grow flex-row items-start gap-2">
@@ -252,8 +267,12 @@ function emitSelected() {
         </div>
         <div>
           <AssetSelect v-model="intSelected" :assets="assets" selectable>
-            <PopoverTrigger :disabled="loading">
-              <Button variant="secondary">
+            <PopoverTrigger :disabled="loading || ergOnly">
+              <Button
+                :disabled="loading || ergOnly"
+                variant="secondary"
+                class="disabled:opacity-100"
+              >
                 <asset-icon
                   class="size-4"
                   :token-id="intSelected.tokenId"
@@ -261,8 +280,10 @@ function emitSelected() {
                 />
                 {{ format.asset.name(intSelected) }}
 
-                <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-                <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
+                <template v-if="!ergOnly">
+                  <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
+                  <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
+                </template>
               </Button>
             </PopoverTrigger>
           </AssetSelect>
