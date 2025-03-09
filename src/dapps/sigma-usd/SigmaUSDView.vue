@@ -105,8 +105,13 @@ const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, non
 const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
 
-// const tcr = computed(() => rate.value); // total conversion rate
-// const tcv = computed(() => bankInfo.value.baseReserves); // total conversion value
+/**
+ * Total Conversion Rate (TCR)
+ */
+const tcr = computed(() => {
+  if (!fromAmount.value || !toAmount.value) return _0;
+  return toAmount.value.div(fromAmount.value);
+});
 
 onMounted(async () => {
   loading.value = true;
@@ -403,7 +408,7 @@ async function createTransaction() {
           <div class="text-muted-foreground flex w-full items-center justify-between px-2">
             <div>
               1 {{ format.asset.name(fromAsset) }} =
-              {{ format.bn.format(rate, toAsset?.metadata?.decimals) }}
+              {{ format.bn.format(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)) }}
               {{ format.asset.name(toAsset) }}
             </div>
             <div v-if="!isFeeBreakdownOpen">
