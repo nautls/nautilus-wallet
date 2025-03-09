@@ -42,7 +42,6 @@ import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
 import { createExchangeTransaction } from "./transactionFactory";
 
 const _0 = bn(0);
-const _1 = bn(1);
 
 const wallet = useWalletStore();
 const app = useAppStore();
@@ -64,13 +63,6 @@ const txFee = ref<FeeSettings>({
   value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
 });
 
-const rate = computed(() =>
-  toAsset.value && fromAsset.value
-    ? toAsset.value.tokenId === ERG_INFO.tokenId
-      ? _1.div(getRate(fromAsset.value))
-      : getRate(toAsset.value)
-    : undefined
-);
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
 
 const fromAssets = computed(() => [
@@ -109,7 +101,7 @@ const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiF
  * Total Conversion Rate (TCR)
  */
 const tcr = computed(() => {
-  if (!fromAmount.value || !toAmount.value) return _0;
+  if (!fromAmount.value || !toAmount.value) return;
   return toAmount.value.div(fromAmount.value);
 });
 
@@ -237,15 +229,6 @@ function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: Sigm
   const fees = bank.getProtocolFee(x) + bank.getImplementorFee(x) + txFeeNanoergs.value;
 
   return (x + fees) / p;
-}
-
-function getRate(asset: Asset): BigNumber {
-  if (!bank.value) return _0;
-  if (asset.tokenId === ERG_INFO.tokenId) return _1;
-  if (asset.tokenId === SIGUSD_INFO.tokenId)
-    return dbn(bank.value.stableCoinErgRate, SIGUSD_INFO.metadata?.decimals);
-  if (asset.tokenId === SIGSRV_INFO.tokenId) return bn(bank.value.reserveCoinErgRate);
-  return _0;
 }
 
 async function fetchBoxes() {
@@ -397,7 +380,7 @@ async function createTransaction() {
     </div>
 
     <Accordion
-      v-if="bankInfo && rate"
+      v-if="bankInfo && tcr"
       v-model="isFeeBreakdownOpen"
       type="single"
       collapsible
