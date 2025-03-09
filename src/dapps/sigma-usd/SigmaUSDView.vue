@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch } from "vue";
-import { CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
+import { computed, nextTick, onMounted, Ref, ref, shallowRef, toRaw, triggerRef, watch } from "vue";
+import {
+  ActionType,
+  AgeUSDExchangePlugin,
+  CoinType,
+  FeeType,
+  SigmaUSDBank
+} from "@fleet-sdk/ageusd-plugin";
 import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import {
@@ -11,8 +17,9 @@ import {
   SettingsIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
+import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
-import { TransactionFeeConfig } from "@/components/transaction";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import {
   Accordion,
   AccordionContent,
@@ -23,20 +30,26 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
+import { safeGetChangeAddress } from "@/chains/ergo/transaction/builder";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
 import { getBankBox, getOracleBox } from "./blockchainService";
 import { Asset, AssetInputSelect } from "./components";
 import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
+import { createExchangeTransaction } from "./transactionFactory";
 
 const _0 = bn(0);
 const _1 = bn(1);
 
 const wallet = useWalletStore();
 const app = useAppStore();
+const chain = useChainStore();
 const format = useFormat();
+
+const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const bank = shallowRef<SigmaUSDBank | undefined>();
 const loading = ref(false);
@@ -46,6 +59,11 @@ const fromAsset = ref<Asset | undefined>(asset("sell", ERG_INFO));
 const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
 const toAmount = ref<BigNumber | undefined>();
+const txFee = ref<FeeSettings>({
+  tokenId: ERG_TOKEN_ID,
+  value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
+});
+
 const rate = computed(() =>
   toAsset.value && fromAsset.value
     ? toAsset.value.tokenId === ERG_INFO.tokenId
@@ -53,10 +71,7 @@ const rate = computed(() =>
       : getRate(toAsset.value)
     : undefined
 );
-const fee = ref<FeeSettings>({
-  tokenId: ERG_TOKEN_ID,
-  value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
-});
+const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
 
 const fromAssets = computed(() => [
   asset("sell", ERG_INFO, toAsset),
@@ -85,7 +100,7 @@ const nonErg = computed(() =>
 );
 
 const hasInputValues = computed(() => fromAmount.value?.gt(0) && toAmount.value?.gt(0));
-const networkFee = computed(() => (hasInputValues.value ? fee.value.value : _0));
+const networkFee = computed(() => (hasInputValues.value ? txFee.value.value : _0));
 const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
 const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
@@ -99,6 +114,7 @@ onMounted(async () => {
   loading.value = false;
 });
 
+watch(txFee, () => convert(lastChanged.value, false));
 watch(fromAsset, () => convert(lastChanged.value, false));
 watch(toAsset, () => convert(lastChanged.value, false));
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
@@ -107,7 +123,12 @@ const toWatcher = pausableWatch(toAmount, () => convert("to"));
 function getFeeFor(type: FeeType, asset?: Asset, amount?: BigNumber): BigNumber {
   if (!bank.value || !asset || !amount) return _0;
   return dbn(
-    bank.value.getFeeAmountFor(udec(amount, asset.metadata?.decimals), getCoinType(asset), type),
+    bank.value.getFeeAmountFor(
+      udec(amount, asset.metadata?.decimals),
+      getCoinType(asset),
+      type,
+      txFeeNanoergs.value
+    ),
     ERG_DECIMALS
   );
 }
@@ -122,9 +143,11 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
   return BigInt(undecimalize(amount, decimals).toString());
 }
 
-async function convert(source: "from" | "to", retainSourceInfo = true) {
-  if (!bank.value) return;
+const action = computed<ActionType>(() =>
+  fromAsset.value?.tokenId === ERG_INFO.tokenId ? "minting" : "redeeming"
+);
 
+async function convert(source: "from" | "to", retainSourceInfo = true) {
   const sourceAsset = source === "from" ? fromAsset.value : toAsset.value;
   const targetAsset = source === "from" ? toAsset.value : fromAsset.value;
   const sourceAmount = source === "from" ? fromAmount.value : toAmount.value;
@@ -138,25 +161,77 @@ async function convert(source: "from" | "to", retainSourceInfo = true) {
     targetWatcher.pause();
 
     await nextTick(() => {
-      if (!sourceAmount || sourceAmount.isZero()) {
+      if (!sourceAmount || sourceAmount.isZero() || !bank.value) {
         targetAmount.value = _0;
         return;
       }
 
-      if (sourceAsset.tokenId === ERG_INFO.tokenId) {
-        targetAmount.value = sourceAmount
-          .times(getRate(targetAsset))
-          .decimalPlaces(targetAsset.metadata?.decimals ?? 0);
-      } else {
-        targetAmount.value = sourceAmount
-          .div(getRate(sourceAsset))
-          .decimalPlaces(targetAsset.metadata?.decimals ?? 0);
-      }
+      const decimals = targetAsset.metadata?.decimals ?? 0;
+      targetAmount.value =
+        sourceAsset.tokenId === ERG_INFO.tokenId
+          ? dbn(findTokenAmount(action.value, sourceAmount, targetAsset, bank.value), decimals)
+          : dbn(findErgAmount(action.value, sourceAmount, sourceAsset, bank.value), decimals);
     });
   } finally {
     if (retainSourceInfo) lastChanged.value = source;
     targetWatcher.resume();
   }
+}
+
+function findErgAmount(
+  action: ActionType,
+  token: BigNumber,
+  asset: Asset,
+  bankInstance: SigmaUSDBank
+): bigint {
+  let x = udec(token, asset.metadata?.decimals);
+  return action === "minting"
+    ? bankInstance.getMintingCostFor(x, getCoinType(asset), "total", txFeeNanoergs.value)
+    : bankInstance.getRedeemingAmountFor(x, getCoinType(asset), "total", txFeeNanoergs.value);
+}
+
+function findTokenAmount(
+  action: ActionType,
+  erg: BigNumber,
+  asset: Asset,
+  bankInstance: SigmaUSDBank
+): bigint {
+  return action === "minting"
+    ? findMintingTokenAmount(erg, asset, bankInstance)
+    : findRedeemingTokenAmount(erg, asset, bankInstance);
+}
+
+function findMintingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: SigmaUSDBank): bigint {
+  const type = getCoinType(asset);
+  const txFee = txFeeNanoergs.value;
+  const p = type === "stable" ? bank.stableCoinPrice : bank.reserveCoinPrice;
+
+  let x = udec(ergAmount, ERG_DECIMALS);
+  let c = 0n;
+
+  let low = 0n;
+  let high = x;
+  let mid = 0n;
+
+  while (low <= high) {
+    mid = low + (high - low) / 2n;
+
+    c = bank.getMintingCostFor(mid / p, type, "total", txFee);
+
+    if (c === x || (c < x && c + p > x)) return mid / p;
+    if (c < x) low = mid + 1n;
+    else high = mid - 1n;
+  }
+
+  return mid / p;
+}
+
+function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: SigmaUSDBank): bigint {
+  const p = getCoinType(asset) === "stable" ? bank.stableCoinPrice : bank.reserveCoinPrice;
+  const x = udec(ergAmount, ERG_DECIMALS);
+  const fees = bank.getProtocolFee(x) + bank.getImplementorFee(x) + txFeeNanoergs.value;
+
+  return (x + fees) / p;
 }
 
 function getRate(asset: Asset): BigNumber {
@@ -226,6 +301,30 @@ function can(
   }
 
   return true; // can always buy/sell ERG
+}
+
+function sendTransaction() {
+  openTransactionSignDialog({ transactionBuilder: createTransaction });
+}
+
+async function createTransaction() {
+  if (!bank.value) throw new Error("Bank is not loaded");
+
+  const txOpt = {
+    amount: udec(nonErg.value.amount, nonErg.value.asset?.metadata?.decimals),
+    recipient: safeGetChangeAddress(),
+    transactionFee: toRaw(txFeeNanoergs.value)
+  };
+  const token = getCoinType(nonErg.value.asset);
+
+  return createExchangeTransaction(
+    action.value === "minting"
+      ? AgeUSDExchangePlugin(toRaw(bank.value), { mint: token, ...txOpt })
+      : AgeUSDExchangePlugin(toRaw(bank.value), { redeem: token, ...txOpt }),
+    chain.height,
+    wallet,
+    toRaw(txFee.value)
+  );
 }
 </script>
 <template>
@@ -343,7 +442,7 @@ function can(
                 </PopoverTrigger>
                 <PopoverContent class="p-0">
                   <TransactionFeeConfig
-                    v-model="fee"
+                    v-model="txFee"
                     erg-only
                     :max-multiplier="1000"
                     class="border-0 shadow-none"
@@ -363,6 +462,8 @@ function can(
 
     <div class="-my-4 grow"></div>
 
-    <Button :disabled="loading || !hasInputValues" class="w-full">Swap</Button>
+    <Button :disabled="loading || !hasInputValues" class="w-full" @click="sendTransaction"
+      >Swap</Button
+    >
   </div>
 </template>
