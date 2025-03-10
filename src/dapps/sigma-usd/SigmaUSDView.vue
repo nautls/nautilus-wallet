@@ -104,7 +104,19 @@ const tcr = computed(() => {
 });
 
 watch(txFee, () => convert(lastChanged.value, false));
-watch(fromAsset, () => convert(lastChanged.value, false));
+watch(fromAsset, () => {
+  if (
+    fromAsset.value?.tokenId === toAsset.value?.tokenId || // can't swap between the same asset
+    (fromAsset.value?.tokenId !== ERG_INFO.tokenId && toAsset.value?.tokenId !== ERG_INFO.tokenId) // can't swap between SigUSD and SigSRV
+  ) {
+    lastChanged.value = "from";
+    toAsset.value = undefined;
+    toAmount.value = undefined;
+    return;
+  }
+
+  convert(lastChanged.value, false);
+});
 watch(toAsset, () => convert(lastChanged.value, false));
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
 const toWatcher = pausableWatch(toAmount, () => convert("to"));
@@ -244,12 +256,14 @@ function can(
   balance?: BigNumber,
   oddAsset?: Asset
 ): boolean {
-  if (asset.tokenId === oddAsset?.tokenId) return false;
-  if (asset.tokenId !== ERG_INFO.tokenId && loading.value) return false;
   if (!bank.value) return true; // if it's called before bank is loaded
+  if (asset.tokenId !== ERG_INFO.tokenId && loading.value) return false;
 
-  if (oddAsset && asset.tokenId !== ERG_INFO.tokenId && oddAsset?.tokenId !== ERG_INFO.tokenId) {
-    return false; // can't swap between SigUSD and SigSRV
+  if (action === "buy") {
+    if (asset.tokenId === oddAsset?.tokenId) return false; // can't buy the same asset
+    if (oddAsset && asset.tokenId !== ERG_INFO.tokenId && oddAsset?.tokenId !== ERG_INFO.tokenId) {
+      return false; // can't swap between SigUSD and SigSRV
+    }
   }
 
   balance = balance ?? _0;
