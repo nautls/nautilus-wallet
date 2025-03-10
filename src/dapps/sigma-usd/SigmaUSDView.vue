@@ -10,6 +10,7 @@ import {
 import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import {
+  ArrowDownIcon,
   ArrowDownUpIcon,
   DollarSignIcon,
   InfoIcon,
@@ -62,6 +63,7 @@ const txFee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
   value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
 });
+const flipButtonHover = ref(false);
 
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
 
@@ -101,6 +103,17 @@ const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiF
 const tcr = computed(() => {
   if (!fromAmount.value || !toAmount.value) return;
   return toAmount.value.div(fromAmount.value);
+});
+
+const canFlipAssets = computed(() => {
+  if (!fromAsset.value || !toAsset.value) return false;
+
+  const fromBalance = wallet.balance.find((b) => b.tokenId === fromAsset.value?.tokenId)?.balance;
+  const toBalance = wallet.balance.find((b) => b.tokenId === toAsset.value?.tokenId)?.balance;
+  const canBuy = can("buy", fromAsset.value, fromBalance, toAsset.value, true);
+  const canSell = can("sell", toAsset.value, toBalance, fromAsset.value, true);
+
+  return canBuy && canSell;
 });
 
 watch(txFee, () => convert(lastChanged.value, false));
@@ -254,12 +267,13 @@ function can(
   action: "buy" | "sell",
   asset: AssetInfo,
   balance?: BigNumber,
-  oddAsset?: Asset
+  oddAsset?: Asset,
+  strict = false
 ): boolean {
   if (!bank.value) return true; // if it's called before bank is loaded
   if (asset.tokenId !== ERG_INFO.tokenId && loading.value) return false;
 
-  if (action === "buy") {
+  if (!strict && action === "buy") {
     if (asset.tokenId === oddAsset?.tokenId) return false; // can't buy the same asset
     if (oddAsset && asset.tokenId !== ERG_INFO.tokenId && oddAsset?.tokenId !== ERG_INFO.tokenId) {
       return false; // can't swap between SigUSD and SigSRV
@@ -302,6 +316,23 @@ async function createTransaction() {
     wallet,
     toRaw(txFee.value)
   );
+}
+
+function flipAssets() {
+  if (!canFlipAssets.value) return;
+
+  const from = fromAsset.value;
+  const to = toAsset.value;
+  fromAsset.value = to;
+  toAsset.value = from;
+
+  if (lastChanged.value === "from") {
+    lastChanged.value = "to";
+    toAmount.value = fromAmount.value;
+  } else {
+    lastChanged.value = "from";
+    fromAmount.value = toAmount.value;
+  }
 }
 
 function getFee(feeType: FeeType, asset?: Asset, amount?: BigNumber): BigNumber {
@@ -376,13 +407,20 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       />
 
       <Button
-        :disabled="loading"
+        :disabled="loading || !canFlipAssets"
         tabindex="-1"
         size="icon"
         variant="outline"
         class="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
+        @click="flipAssets"
+        @mouseover="flipButtonHover = true"
+        @mouseout="flipButtonHover = false"
       >
-        <ArrowDownUpIcon class="in-disabled:opacity-50" />
+        <ArrowDownUpIcon
+          v-if="canFlipAssets && flipButtonHover && !loading"
+          class="in-disabled:opacity-50"
+        />
+        <ArrowDownIcon v-else class="in-disabled:opacity-50" />
       </Button>
     </div>
 
