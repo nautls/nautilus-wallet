@@ -54,7 +54,7 @@ const bank = shallowRef<SigmaUSDBank | undefined>();
 const loading = ref(false);
 const lastChanged = ref<"from" | "to">("from");
 const isFeeBreakdownOpen = ref<string | undefined>();
-const fromAsset = ref<Asset | undefined>(asset("sell", ERG_INFO));
+const fromAsset = ref<Asset | undefined>(convertibleAsset("sell", ERG_INFO));
 const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
 const toAmount = ref<BigNumber | undefined>();
@@ -66,24 +66,22 @@ const txFee = ref<FeeSettings>({
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
 
 const fromAssets = computed(() => [
-  asset("sell", ERG_INFO, toAsset),
-  asset("sell", SIGUSD_INFO, toAsset),
-  asset("sell", SIGSRV_INFO, toAsset)
+  convertibleAsset("sell", ERG_INFO, toAsset),
+  convertibleAsset("sell", SIGUSD_INFO, toAsset),
+  convertibleAsset("sell", SIGSRV_INFO, toAsset)
 ]);
 
 const toAssets = computed(() => [
-  asset("buy", ERG_INFO, fromAsset),
-  asset("buy", SIGUSD_INFO, fromAsset),
-  asset("buy", SIGSRV_INFO, fromAsset)
+  convertibleAsset("buy", ERG_INFO, fromAsset),
+  convertibleAsset("buy", SIGUSD_INFO, fromAsset),
+  convertibleAsset("buy", SIGSRV_INFO, fromAsset)
 ]);
 
-const bankInfo = computed(() => {
-  return {
-    reserveRatio: Number(bank.value?.reserveRatio ?? 0),
-    baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals),
-    stableRate: dbn(bank.value?.stableCoinErgRate ?? _0, SIGUSD_INFO.metadata?.decimals)
-  };
-});
+const bankInfo = computed(() => ({
+  reserveRatio: Number(bank.value?.reserveRatio ?? 0),
+  baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals),
+  stableRate: dbn(bank.value?.stableCoinErgRate ?? _0, SIGUSD_INFO.metadata?.decimals)
+}));
 
 const nonErg = computed(() =>
   fromAsset.value?.tokenId === ERG_TOKEN_ID
@@ -93,8 +91,8 @@ const nonErg = computed(() =>
 
 const hasInputValues = computed(() => fromAmount.value?.gt(0) && toAmount.value?.gt(0));
 const networkFee = computed(() => (hasInputValues.value ? txFee.value.value : _0));
-const protocolFee = computed(() => getFeeFor("protocol", nonErg.value.asset, nonErg.value.amount));
-const uiFee = computed(() => getFeeFor("implementor", nonErg.value.asset, nonErg.value.amount));
+const protocolFee = computed(() => getFee("protocol", nonErg.value.asset, nonErg.value.amount));
+const uiFee = computed(() => getFee("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
 
 /**
@@ -105,44 +103,21 @@ const tcr = computed(() => {
   return toAmount.value.div(fromAmount.value);
 });
 
-onMounted(async () => {
-  loading.value = true;
-  await fetchBoxes();
-  loading.value = false;
-});
-
 watch(txFee, () => convert(lastChanged.value, false));
 watch(fromAsset, () => convert(lastChanged.value, false));
 watch(toAsset, () => convert(lastChanged.value, false));
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
 const toWatcher = pausableWatch(toAmount, () => convert("to"));
 
-function getFeeFor(type: FeeType, asset?: Asset, amount?: BigNumber): BigNumber {
-  if (!bank.value || !asset || !amount) return _0;
-  return dbn(
-    bank.value.getFeeAmountFor(
-      udec(amount, asset.metadata?.decimals),
-      getCoinType(asset),
-      type,
-      txFeeNanoergs.value
-    ),
-    ERG_DECIMALS
-  );
-}
-
-function getCoinType(asset: AssetInfo | undefined): CoinType {
-  if (asset?.tokenId === SIGUSD_INFO.tokenId) return "stable";
-  else return "reserve";
-}
-
-function udec(amount: BigNumber | undefined, decimals?: number): bigint {
-  if (!amount) return BigInt(0);
-  return BigInt(undecimalize(amount, decimals).toString());
-}
-
 const action = computed<ActionType>(() =>
   fromAsset.value?.tokenId === ERG_INFO.tokenId ? "minting" : "redeeming"
 );
+
+onMounted(async () => {
+  loading.value = true;
+  await fetchBoxes();
+  loading.value = false;
+});
 
 async function convert(source: "from" | "to", retainSourceInfo = true) {
   const sourceAsset = source === "from" ? fromAsset.value : toAsset.value;
@@ -250,7 +225,7 @@ async function fetchBoxes() {
   triggerRef(bank);
 }
 
-function asset(
+function convertibleAsset(
   action: "buy" | "sell",
   asset: AssetInfo,
   oddSelection?: Ref<Asset | undefined>
@@ -313,6 +288,24 @@ async function createTransaction() {
     wallet,
     toRaw(txFee.value)
   );
+}
+
+function getFee(feeType: FeeType, asset?: Asset, amount?: BigNumber): BigNumber {
+  if (!bank.value || !asset || !amount) return _0;
+
+  const coinType = getCoinType(asset);
+  const txFee = txFeeNanoergs.value;
+  return dbn(bank.value.getFeeAmountFor(udec(amount), coinType, feeType, txFee), ERG_DECIMALS);
+}
+
+function getCoinType(asset: AssetInfo | undefined): CoinType {
+  if (asset?.tokenId === SIGUSD_INFO.tokenId) return "stable";
+  else return "reserve";
+}
+
+function udec(amount: BigNumber | undefined, decimals?: number): bigint {
+  if (!amount) return BigInt(0);
+  return BigInt(undecimalize(amount, decimals).toString());
 }
 </script>
 <template>
