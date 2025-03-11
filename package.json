@@ -87,6 +87,7 @@
     "tailwindcss-animate": "^1.0.7",
     "type-fest": "^4.37.0",
     "typescript": "5.8.2",
+    "typescript-eslint": "^8.26.1",
     "vite": "^6.2.1",
     "vite-plugin-node-polyfills": "^0.23.0",
     "vite-plugin-top-level-await": "^1.5.0",
