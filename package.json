@@ -61,6 +61,7 @@
   "devDependencies": {
     "@ergo-graphql/types": "^0.5.1",
     "@eslint/compat": "^1.2.7",
+    "@eslint/eslintrc": "^3.3.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@nautilus-js/eip12-types": "^0.1.11",
     "@tailwindcss/vite": "^4.0.12",
