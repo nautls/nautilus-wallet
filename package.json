@@ -19,7 +19,7 @@
     "build:inspect": "INSPECT=true vite build",
     "build:docs": "vitepress build docs",
     "test:unit": "vitest run",
-    "test:lint": "eslint ./src",
+    "test:lint": "TIMING=1 eslint ./src",
     "test:format": "prettier ./src --check",
     "fix:format": "prettier ./src --write"
   },
@@ -60,8 +60,7 @@
   },
   "devDependencies": {
     "@ergo-graphql/types": "^0.5.1",
-    "@eslint/compat": "^1.2.7",
-    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.22.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@nautilus-js/eip12-types": "^0.1.11",
     "@tailwindcss/vite": "^4.0.12",
@@ -79,9 +78,7 @@
     "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/tsconfig": "^0.7.0",
     "eslint": "^9.22.0",
-    "eslint-import-resolver-typescript": "^3.8.4",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-vue": "^10.0.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
