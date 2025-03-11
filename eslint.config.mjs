@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { fixupConfigRules } from "@eslint/compat";
 import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
+import pluginVue from "eslint-plugin-vue";
 import parser from "vue-eslint-parser";
 
 const compat = new FlatCompat({
@@ -15,10 +16,10 @@ export default [
   {
     ignores: ["**/node_modules", "**/dist", "**/coverage", "src/components/ui"]
   },
+  ...pluginVue.configs["flat/recommended"],
   ...fixupConfigRules(
     compat.extends(
       "eslint:recommended",
-      "plugin:vue/vue3-recommended",
       "prettier",
       "plugin:@typescript-eslint/recommended",
       "plugin:import/recommended",
