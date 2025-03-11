@@ -105,7 +105,7 @@
       "@types/cleave.js@1.4.12": "patches/@types__cleave.js@1.4.12.patch"
     },
     "overrides": {
-      "esbuild@<=0.24.2": ">=0.25.1",
+      "esbuild@<=0.24.2": ">=0.25.0",
       "webextension-polyfill@<=0.10.0": ">=0.12.0"
     }
   }
