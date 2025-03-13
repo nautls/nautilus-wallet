@@ -12,6 +12,7 @@ import {
   SettingsIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
+import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import {
@@ -38,6 +39,7 @@ const _0 = bn(0);
 
 const wallet = useWalletStore();
 const app = useAppStore();
+const assets = useAssetsStore();
 const format = useFormat();
 
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
@@ -131,7 +133,12 @@ const action = computed<ActionType>(() =>
 
 onMounted(async () => {
   loading.value = true;
-  await fetchBoxes();
+
+  // Load metadata for SigUSD and SigSRV, if not already loaded
+  assets.loadMetadata([SIGUSD_INFO.tokenId, SIGSRV_INFO.tokenId]);
+  // Load bank and oracle boxes
+  await loadBank();
+
   loading.value = false;
 });
 
@@ -222,7 +229,7 @@ function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: Sigm
   return (x + fees) / p;
 }
 
-async function fetchBoxes() {
+async function loadBank() {
   const [bankBox, oracleBox] = await Promise.all([getBankBox(), getOracleBox()]);
 
   if (!bank.value) {
