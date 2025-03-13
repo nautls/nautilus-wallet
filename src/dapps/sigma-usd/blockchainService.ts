@@ -1,37 +1,29 @@
 import { AgeUSDBankBox, OracleBox, SIGMA_USD_PARAMETERS } from "@fleet-sdk/ageusd-plugin";
-import { BoxSource } from "@fleet-sdk/blockchain-providers";
-import { Amount, Box } from "@fleet-sdk/common";
+import type { BoxSource } from "@fleet-sdk/blockchain-providers";
+import type { Box } from "@fleet-sdk/common";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 
-export async function getBankBox(
-  from: BoxSource = "blockchain+mempool"
-): Promise<AgeUSDBankBox | undefined> {
-  const boxes = await graphQLService.getBoxes({
-    where: { ergoTree: SIGMA_USD_PARAMETERS.contract },
-    from
-  });
+export async function getBankBox(from: BoxSource): Promise<AgeUSDBankBox | undefined> {
+  const tokenId = SIGMA_USD_PARAMETERS.tokens.stableCoinId;
+  const ergoTree = SIGMA_USD_PARAMETERS.contract;
 
-  return boxes.find(validBankBox) as AgeUSDBankBox;
+  return getSingleton({ tokenId, ergoTree }, from);
 }
 
-export async function getOracleBox(
-  from: BoxSource = "blockchain+mempool"
-): Promise<OracleBox | undefined> {
-  const boxes = await graphQLService.getBoxes({
-    where: { tokenId: SIGMA_USD_PARAMETERS.oracle.nftId },
-    from
-  });
-
-  if (!boxes.length) return;
-  return boxes[0] as OracleBox;
+export async function getOracleBox(from: BoxSource): Promise<OracleBox | undefined> {
+  return getSingleton({ tokenId: SIGMA_USD_PARAMETERS.oracle.nftId }, from);
 }
 
-function validBankBox(box: Box<Amount>): box is AgeUSDBankBox {
-  return (
-    box.assets.length === 3 &&
-    SIGMA_USD_PARAMETERS.contract === box.ergoTree &&
-    box.assets[0].tokenId === SIGMA_USD_PARAMETERS.tokens.stableCoinId &&
-    box.assets[1].tokenId === SIGMA_USD_PARAMETERS.tokens.reserveCoinId &&
-    box.assets[2].tokenId === SIGMA_USD_PARAMETERS.tokens.nftId
-  );
+interface SingletonQuery {
+  tokenId: string;
+  ergoTree?: string;
+}
+
+async function getSingleton<T extends Box>(
+  where: SingletonQuery,
+  from: BoxSource
+): Promise<T | undefined> {
+  for await (const chunk of graphQLService.streamBoxes({ where, from, take: 1 })) {
+    if (chunk.length) return chunk[0] as unknown as T;
+  }
 }
