@@ -1,12 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, Ref, ref, shallowRef, toRaw, triggerRef, watch } from "vue";
-import {
-  ActionType,
-  AgeUSDExchangePlugin,
-  CoinType,
-  FeeType,
-  SigmaUSDBank
-} from "@fleet-sdk/ageusd-plugin";
+import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch } from "vue";
+import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { pausableWatch } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import {
@@ -18,7 +12,6 @@ import {
   SettingsIcon
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
-import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import {
@@ -31,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
-import { safeGetChangeAddress } from "@/chains/ergo/transaction/builder";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
@@ -46,7 +38,6 @@ const _0 = bn(0);
 
 const wallet = useWalletStore();
 const app = useAppStore();
-const chain = useChainStore();
 const format = useFormat();
 
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
@@ -301,20 +292,13 @@ function sendTransaction() {
 async function createTransaction() {
   if (!bank.value) throw new Error("Bank is not loaded");
 
-  const txOpt = {
-    amount: udec(nonErg.value.amount, nonErg.value.asset?.metadata?.decimals),
-    recipient: safeGetChangeAddress(),
-    transactionFee: toRaw(txFeeNanoergs.value)
-  };
-  const token = getCoinType(nonErg.value.asset);
+  const amount = udec(nonErg.value.amount, nonErg.value.asset?.metadata?.decimals);
+  const coin = getCoinType(nonErg.value.asset);
 
   return createExchangeTransaction(
-    action.value === "minting"
-      ? AgeUSDExchangePlugin(toRaw(bank.value), { mint: token, ...txOpt })
-      : AgeUSDExchangePlugin(toRaw(bank.value), { redeem: token, ...txOpt }),
-    chain.height,
-    wallet,
-    toRaw(txFee.value)
+    bank.value,
+    action.value === "minting" ? { mint: coin, amount } : { redeem: coin, amount },
+    txFeeNanoergs.value
   );
 }
 

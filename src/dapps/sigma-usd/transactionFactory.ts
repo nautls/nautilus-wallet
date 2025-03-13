@@ -1,27 +1,28 @@
+import { AgeUSDExchangeAction, AgeUSDExchangePlugin, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
-import { FleetPlugin, TransactionBuilder } from "@fleet-sdk/core";
+import { TransactionBuilder } from "@fleet-sdk/core";
+import { useChainStore } from "@/stores/chainStore";
+import { useWalletStore } from "@/stores/walletStore";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import {
   safeGetChangeAddress,
-  setFee,
   setSelectionAndChangeStrategy
 } from "@/chains/ergo/transaction/builder";
-import { FeeSettings, StateWallet } from "@/types/internal";
 
 export async function createExchangeTransaction(
-  plugin: FleetPlugin,
-  creationHeight: number,
-  wallet: StateWallet,
-  fee: FeeSettings
+  bank: SigmaUSDBank,
+  action: AgeUSDExchangeAction,
+  transactionFee: bigint
 ): Promise<EIP12UnsignedTransaction> {
-  const inputs = await fetchBoxes(wallet.id);
-  const unsigned = new TransactionBuilder(creationHeight)
-    .from(inputs)
-    .extend(plugin)
-    .sendChangeTo(safeGetChangeAddress());
+  const chain = useChainStore();
+  const wallet = useWalletStore();
+  const recipient = safeGetChangeAddress();
 
-  // await setFee(unsigned, fee);
-  setSelectionAndChangeStrategy(unsigned, wallet.type);
+  const unsigned = new TransactionBuilder(chain.height)
+    .from(await fetchBoxes(wallet.id))
+    // @ts-expect-error @fleet-sdk/ageusd-plugin types wrongly don't support this union type
+    .extend(AgeUSDExchangePlugin(bank, { ...action, recipient, transactionFee }))
+    .sendChangeTo(recipient);
 
-  return unsigned.build().toEIP12Object();
+  return setSelectionAndChangeStrategy(unsigned, wallet.type).build().toEIP12Object();
 }
