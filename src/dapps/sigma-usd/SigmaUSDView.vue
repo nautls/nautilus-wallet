@@ -1,7 +1,18 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, Ref, ref, shallowRef, triggerRef, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  Ref,
+  ref,
+  shallowRef,
+  triggerRef,
+  watch
+} from "vue";
 import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
-import { pausableWatch } from "@vueuse/core";
+import { BoxSource } from "@fleet-sdk/blockchain-providers";
+import { pausableWatch, useIntervalFn } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import {
   ArrowDownIcon,
@@ -13,6 +24,7 @@ import {
 } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
+import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import {
@@ -40,6 +52,7 @@ const _0 = bn(0);
 const wallet = useWalletStore();
 const app = useAppStore();
 const assets = useAssetsStore();
+const chain = useChainStore();
 const format = useFormat();
 
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
@@ -57,6 +70,8 @@ const txFee = ref<FeeSettings>({
   value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
 });
 const flipButtonHover = ref(false);
+const updatingBank = ref(false);
+const bankUpdateInterval = useIntervalFn(() => loadBankFrom("mempool"), 5_000 /* 5 seconds */);
 
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
 
@@ -109,7 +124,11 @@ const canFlipAssets = computed(() => {
   return canBuy && canSell;
 });
 
-watch(txFee, () => convert(lastChanged.value, false));
+watch(
+  () => [txFee.value, bank.value, toAsset.value],
+  () => convert(lastChanged.value, false)
+);
+
 watch(fromAsset, () => {
   if (
     fromAsset.value?.tokenId === toAsset.value?.tokenId || // can't swap between the same asset
@@ -123,7 +142,7 @@ watch(fromAsset, () => {
 
   convert(lastChanged.value, false);
 });
-watch(toAsset, () => convert(lastChanged.value, false));
+
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
 const toWatcher = pausableWatch(toAmount, () => convert("to"));
 
@@ -137,10 +156,12 @@ onMounted(async () => {
   // Load metadata for SigUSD and SigSRV, if not already loaded
   assets.loadMetadata([SIGUSD_INFO.tokenId, SIGSRV_INFO.tokenId]);
   // Load bank and oracle boxes
-  await loadBank();
+  await loadBankFrom("blockchain+mempool");
 
   loading.value = false;
 });
+
+onBeforeUnmount(() => bankUpdateInterval.pause());
 
 async function convert(source: "from" | "to", retainSourceInfo = true) {
   const sourceAsset = source === "from" ? fromAsset.value : toAsset.value;
@@ -226,23 +247,41 @@ function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: Sigm
   return (x + fees) / p;
 }
 
-async function loadBank() {
-  const [bankBox, oracleBox] = await Promise.all([getBankBox(), getOracleBox()]);
+watch(
+  () => chain.height,
+  () => loadBankFrom("blockchain+mempool")
+);
 
-  if (!bank.value) {
-    if (!bankBox || !oracleBox) return;
+async function loadBankFrom(from: BoxSource) {
+  if (updatingBank.value) return;
+  bankUpdateInterval.pause();
 
-    bank.value = new SigmaUSDBank(bankBox, oracleBox).setImplementorFee({
-      percentage: 22n,
-      precision: 4n,
-      address: "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By"
-    });
-    return;
+  // console.log(`loading bank from ${from}`);
+
+  try {
+    const [bankBox, oracleBox] = await Promise.all([getBankBox(from), getOracleBox(from)]);
+
+    if (!bank.value) {
+      if (!bankBox || !oracleBox) return;
+
+      bank.value = new SigmaUSDBank(bankBox, oracleBox).setImplementorFee({
+        percentage: 22n,
+        precision: 4n,
+        address: "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By"
+      });
+      return;
+    }
+
+    if (bankBox) bank.value.bankBox = bankBox;
+    if (oracleBox) bank.value.oracleBox = oracleBox;
+
+    if (bankBox || oracleBox) {
+      triggerRef(bank);
+    }
+  } finally {
+    updatingBank.value = false;
+    bankUpdateInterval.resume();
   }
-
-  if (bankBox) bank.value.bankBox = bankBox;
-  if (oracleBox) bank.value.oracleBox = oracleBox;
-  triggerRef(bank);
 }
 
 function convertibleAsset(
