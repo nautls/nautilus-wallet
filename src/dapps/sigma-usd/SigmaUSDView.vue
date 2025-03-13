@@ -37,10 +37,12 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
+import { SAFE_MAX_CHANGE_TOKEN_LIMIT } from "@/chains/ergo/transaction/builder";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
+import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
-import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
 import { getBankBox, getOracleBox } from "./blockchainService";
 import { Asset, AssetInputSelect } from "./components";
@@ -48,6 +50,7 @@ import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
 import { createExchangeTransaction } from "./transactionFactory";
 
 const _0 = bn(0);
+const MIN_BOX_VAL = dbn(MIN_BOX_VALUE, ERG_DECIMALS);
 
 const wallet = useWalletStore();
 const app = useAppStore();
@@ -73,6 +76,13 @@ const flipButtonHover = ref(false);
 const bankUpdateInterval = useIntervalFn(() => loadBankFrom("mempool"), 5_000 /* 5 seconds */);
 
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
+const reservedErgAmount = computed(() => {
+  if (wallet.balance.length <= 1) return _0;
+
+  const tokensCount = wallet.balance.length;
+  const count = Math.ceil(tokensCount / SAFE_MAX_CHANGE_TOKEN_LIMIT) + 1; // +1 for incoming token
+  return MIN_BOX_VAL.times(count);
+});
 
 const fromAssets = computed(() => [
   convertibleAsset("sell", ERG_INFO, toAsset),
@@ -425,6 +435,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       <AssetInputSelect
         v-model:amount="fromAmount"
         v-model:selected-asset="fromAsset"
+        :reserved-amount="fromAsset && isErg(fromAsset.tokenId) ? reservedErgAmount : undefined"
         :disabled="loading"
         :assets="fromAssets"
       />

@@ -15,6 +15,7 @@ interface Props {
   assets: Asset[];
   selectedAsset: Asset | undefined;
   amount: BigNumber | undefined;
+  reservedAmount?: BigNumber;
   disabled?: boolean;
 }
 
@@ -34,6 +35,7 @@ const amount = useVModel(props, "amount", emits, { passive: true });
     v-model="amount"
     input-class="text-lg"
     :validate="false"
+    :reserved-amount="props.reservedAmount"
     :disabled="!selectedAsset || props.disabled"
     :asset="selectedAsset ?? EMPTY_ASSET"
     class="gap-2 px-4 py-3"
