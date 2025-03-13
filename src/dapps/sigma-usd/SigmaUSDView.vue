@@ -202,16 +202,13 @@ function findMintingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: SigmaU
   const p = type === "stable" ? bank.stableCoinPrice : bank.reserveCoinPrice;
 
   let x = udec(ergAmount, ERG_DECIMALS);
-  let c = 0n;
-
   let low = 0n;
   let high = x;
   let mid = 0n;
 
   while (low <= high) {
     mid = low + (high - low) / 2n;
-
-    c = bank.getMintingCostFor(mid / p, type, "total", txFee);
+    const c = bank.getMintingCostFor(mid / p, type, "total", txFee);
 
     if (c === x || (c < x && c + p > x)) return mid / p;
     if (c < x) low = mid + 1n;

@@ -18,7 +18,7 @@ export function bn(value: BNInput): BigNumber;
 export function bn(value: BNInput | undefined): BigNumber | undefined;
 export function bn(value?: BNInput): BigNumber | undefined {
   const t = typeof value;
-  if (t === undefined) return undefined;
+  if (t === "undefined") return undefined;
   return BigNumber(t === "bigint" ? String(value) : (value as BigNumber.Value));
 }
 
