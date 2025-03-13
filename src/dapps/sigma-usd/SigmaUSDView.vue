@@ -70,7 +70,6 @@ const txFee = ref<FeeSettings>({
   value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
 });
 const flipButtonHover = ref(false);
-const updatingBank = ref(false);
 const bankUpdateInterval = useIntervalFn(() => loadBankFrom("mempool"), 5_000 /* 5 seconds */);
 
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
@@ -253,8 +252,7 @@ watch(
 );
 
 async function loadBankFrom(from: BoxSource) {
-  if (updatingBank.value) return;
-  bankUpdateInterval.pause();
+  if (bankUpdateInterval.isActive) bankUpdateInterval.pause();
 
   // console.log(`loading bank from ${from}`);
 
@@ -272,14 +270,18 @@ async function loadBankFrom(from: BoxSource) {
       return;
     }
 
-    if (bankBox) bank.value.bankBox = bankBox;
-    if (oracleBox) bank.value.oracleBox = oracleBox;
-
-    if (bankBox || oracleBox) {
-      triggerRef(bank);
+    let changed = false;
+    if (bankBox && bankBox.boxId !== bank.value.bankBox.boxId) {
+      changed = true;
+      bank.value.bankBox = bankBox;
     }
+    if (oracleBox && oracleBox.boxId !== bank.value.oracleBox.boxId) {
+      changed = true;
+      bank.value.oracleBox = oracleBox;
+    }
+
+    if (changed) triggerRef(bank);
   } finally {
-    updatingBank.value = false;
     bankUpdateInterval.resume();
   }
 }
