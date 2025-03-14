@@ -479,7 +479,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
     </div>
 
     <Accordion
-      v-if="bankInfo && tcr"
+      v-if="bankInfo && tcr?.isPositive()"
       v-model="isFeeBreakdownOpen"
       type="single"
       collapsible
