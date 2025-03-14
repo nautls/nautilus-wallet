@@ -99,7 +99,9 @@ const toAssets = computed(() => [
 const bankInfo = computed(() => ({
   reserveRatio: Number(bank.value?.reserveRatio ?? 0),
   baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals),
-  stableRate: dbn(bank.value?.stableCoinErgRate ?? _0, SIGUSD_INFO.metadata?.decimals)
+  stableRate: dbn(bank.value?.stableCoinErgRate ?? _0, SIGUSD_INFO.metadata?.decimals),
+  availableReserve: dbn(bank.value?.getAvailable("reserve") ?? 0, SIGSRV_INFO.metadata?.decimals),
+  availableStable: dbn(bank.value?.getAvailable("stable") ?? 0, SIGUSD_INFO.metadata?.decimals)
 }));
 
 const nonErg = computed(() =>
@@ -301,7 +303,19 @@ function convertibleAsset(
   asset: AssetInfo,
   oddSelection?: Ref<Asset | undefined>
 ): Asset {
-  const balance = wallet.balance.find((b) => b.tokenId === asset.tokenId)?.balance ?? _0;
+  let balance: BigNumber;
+  if (action === "sell") {
+    balance = wallet.balance.find((b) => b.tokenId === asset.tokenId)?.balance ?? _0;
+  } else {
+    if (asset.tokenId === SIGUSD_INFO.tokenId) {
+      balance = bankInfo.value.availableStable;
+    } else if (asset.tokenId === SIGSRV_INFO.tokenId) {
+      balance = bankInfo.value.availableReserve;
+    } else {
+      balance = bn(-1); // forces balance hidden state
+    }
+  }
+
   return {
     ...asset,
     balance,

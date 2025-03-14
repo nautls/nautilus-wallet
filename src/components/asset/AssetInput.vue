@@ -303,23 +303,25 @@ function tokenRate(tokenId: string): number {
           <span v-else :class="disabled && 'opacity-50'">No conversion rate</span>
         </div>
 
-        <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
-        <Button
-          v-else
-          type="button"
-          tabindex="-1"
-          variant="minimal"
-          :disabled="props.disabled"
-          size="condensed"
-          :class="
-            cn(
-              'gap-1 text-xs [&_svg]:size-3',
-              props.disabled && 'pointer-events-none cursor-not-allowed'
-            )
-          "
-          @click="setMaxValue()"
-          ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
-        >
+        <template v-if="props.asset.balance.isPositive()">
+          <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
+          <Button
+            v-else
+            type="button"
+            tabindex="-1"
+            variant="minimal"
+            :disabled="props.disabled"
+            size="condensed"
+            :class="
+              cn(
+                'gap-1 text-xs [&_svg]:size-3',
+                props.disabled && 'pointer-events-none cursor-not-allowed'
+              )
+            "
+            @click="setMaxValue()"
+            ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
+          >
+        </template>
       </div>
     </div>
   </FormField>

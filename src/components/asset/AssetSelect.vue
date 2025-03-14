@@ -141,7 +141,7 @@ function filter(items: (T | string)[]) {
               </div>
 
               <div
-                v-if="props.showBalance && asset.balance"
+                v-if="props.showBalance && asset.balance?.isPositive()"
                 class="text-right align-middle text-xs whitespace-nowrap"
               >
                 <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
