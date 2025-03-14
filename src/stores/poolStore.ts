@@ -1,4 +1,4 @@
-import { computed, onUnmounted, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, shallowRef, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { utxoSum } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
@@ -67,7 +67,7 @@ export const usePoolStore = defineStore("pool", () => {
     return balance;
   });
 
-  onUnmounted(interval.pause);
+  onBeforeUnmount(interval.pause);
 
   function resetInterval() {
     interval.pause();

@@ -230,18 +230,18 @@ const v$ = useVuelidate(
         </TransactionEntry>
 
         <TransactionEntry
-          v-if="parsedTx?.totalIncoming?.length"
-          :assets="parsedTx.totalIncoming"
-          type="positive"
-        >
-          Total assets <strong>incoming</strong> to your wallet
-        </TransactionEntry>
-        <TransactionEntry
           v-if="parsedTx?.totalLeaving?.length"
           :assets="parsedTx.totalLeaving"
           type="negative"
         >
           Total assets <strong>leaving</strong> your wallet
+        </TransactionEntry>
+        <TransactionEntry
+          v-if="parsedTx?.totalIncoming?.length"
+          :assets="parsedTx.totalIncoming"
+          type="positive"
+        >
+          Total assets <strong>incoming</strong> to your wallet
         </TransactionEntry>
 
         <Separator label="Transaction details" />

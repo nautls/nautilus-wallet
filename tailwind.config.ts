@@ -28,14 +28,15 @@ export default {
         sans: ["OpenSans"]
       },
       screens: {
-        xs: { max: "639px" } // Custom media query for screen sizes smaller than 'sm'
+        xs: {
+          max: "639px"
+        }
       },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         header: "hsl(var(--header))",
-
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
@@ -86,6 +87,24 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "collapsible-down": "collapsible-down 0.2s ease-in-out",
         "collapsible-up": "collapsible-up 0.2s ease-in-out"
+      },
+      keyframes: {
+        "accordion-down": {
+          from: {
+            height: "0"
+          },
+          to: {
+            height: "var(--reka-accordion-content-height)"
+          }
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--reka-accordion-content-height)"
+          },
+          to: {
+            height: "0"
+          }
+        }
       }
     }
   },

@@ -72,6 +72,11 @@ const routes: Array<RouteRecordRaw> = [
         path: "wallet-optimization",
         name: "wallet-optimization",
         component: () => import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue")
+      },
+      {
+        path: "sigmausd-protocol",
+        name: "sigmausd-protocol",
+        component: () => import("@/dapps/sigma-usd/SigmaUSDView.vue")
       }
     ]
   },
