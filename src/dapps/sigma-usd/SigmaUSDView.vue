@@ -391,9 +391,15 @@ function flipAssets() {
 function getFee(feeType: FeeType, asset?: Asset, amount?: BigNumber): BigNumber {
   if (!bank.value || !asset || !amount) return _0;
 
-  const coinType = getCoinType(asset);
-  const txFee = txFeeNanoergs.value;
-  return dbn(bank.value.getFeeAmountFor(udec(amount), coinType, feeType, txFee), ERG_DECIMALS);
+  return dbn(
+    bank.value.getFeeAmountFor(
+      udec(amount, asset.metadata?.decimals),
+      getCoinType(asset),
+      feeType,
+      txFeeNanoergs.value
+    ),
+    ERG_DECIMALS
+  );
 }
 
 function getCoinType(asset: AssetInfo | undefined): CoinType {
