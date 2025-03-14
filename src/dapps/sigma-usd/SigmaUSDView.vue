@@ -376,8 +376,8 @@ function flipAssets() {
 
   const from = fromAsset.value;
   const to = toAsset.value;
-  fromAsset.value = to;
-  toAsset.value = from;
+  fromAsset.value = fromAssets.value.find((x) => x.tokenId === to?.tokenId);
+  toAsset.value = toAssets.value.find((x) => x.tokenId === from?.tokenId);
 
   if (lastChanged.value === "from") {
     lastChanged.value = "to";
