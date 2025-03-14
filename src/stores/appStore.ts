@@ -170,7 +170,7 @@ export const useAppStore = defineStore("app", () => {
   }
 
   function goTo(name: string) {
-    if (router.currentRoute.value.query.redirect === "false") return;
+    if (window.location.href.includes("redirect=false")) return;
     router.push({ name });
   }
 
