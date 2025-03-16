@@ -148,7 +148,7 @@ const v$ = useVuelidate(
       balance: helpers.withMessage(
         () => `Insufficient ${fromAsset.value?.metadata?.name} balance.`,
         (n: BigNumber) => {
-          if (!fromAsset.value) return true;
+          if (!fromAsset.value || !n) return true;
           return n.lte(fromAsset.value.balance);
         }
       ),
@@ -334,7 +334,7 @@ function getMax(asset: Ref<Asset | undefined>, action: ActionType): BigNumber {
 
 function maxAction(asset: Ref<Asset | undefined>) {
   return (amount: BigNumber) => {
-    if (!asset.value || isErg(asset.value.tokenId)) return true; // can always use ERG
+    if (!asset.value || !amount || isErg(asset.value.tokenId)) return true; // can always use ERG
     return amount.lte(getMax(asset, action.value));
   };
 }
