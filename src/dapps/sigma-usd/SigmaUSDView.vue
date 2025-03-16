@@ -12,6 +12,8 @@ import {
 } from "vue";
 import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { BoxSource } from "@fleet-sdk/blockchain-providers";
+import { useVuelidate } from "@vuelidate/core";
+import { helpers } from "@vuelidate/validators";
 import { pausableWatch, useIntervalFn } from "@vueuse/core";
 import { BigNumber } from "bignumber.js";
 import {
@@ -33,6 +35,7 @@ import {
   AccordionItem,
   AccordionTrigger
 } from "@/components/ui/accordion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,7 +104,9 @@ const bankInfo = computed(() => ({
   baseReserves: dbn(bank.value?.baseReserves ?? 0, ERG_INFO.metadata?.decimals),
   stableRate: dbn(bank.value?.stableCoinErgRate ?? _0, SIGUSD_INFO.metadata?.decimals),
   availableReserve: dbn(bank.value?.getAvailable("reserve") ?? 0, SIGSRV_INFO.metadata?.decimals),
-  availableStable: dbn(bank.value?.getAvailable("stable") ?? 0, SIGUSD_INFO.metadata?.decimals)
+  availableStable: dbn(bank.value?.getAvailable("stable") ?? 0, SIGUSD_INFO.metadata?.decimals),
+  redeemableReserve: dbn(bank.value?.getRedeemable("reserve") ?? 0, SIGSRV_INFO.metadata?.decimals),
+  redeemableStable: dbn(bank.value?.getRedeemable("stable") ?? 0, SIGUSD_INFO.metadata?.decimals)
 }));
 
 const nonErg = computed(() =>
@@ -115,7 +120,9 @@ const networkFee = computed(() => (hasInputValues.value ? txFee.value.value : _0
 const protocolFee = computed(() => getFee("protocol", nonErg.value.asset, nonErg.value.amount));
 const uiFee = computed(() => getFee("implementor", nonErg.value.asset, nonErg.value.amount));
 const totalFee = computed(() => networkFee.value.plus(protocolFee.value.plus(uiFee.value)));
-
+const action = computed<ActionType>(() =>
+  fromAsset.value?.tokenId === ERG_INFO.tokenId ? "minting" : "redeeming"
+);
 /**
  * Total Conversion Rate (TCR)
  */
@@ -134,6 +141,26 @@ const canFlipAssets = computed(() => {
 
   return canBuy && canSell;
 });
+
+const v$ = useVuelidate(
+  computed(() => ({
+    fromAmount: {
+      balance: helpers.withMessage(
+        () => `Insufficient ${fromAsset.value?.metadata?.name} balance.`,
+        (n: BigNumber) => {
+          if (!fromAsset.value) return true;
+          return n.lte(fromAsset.value.balance);
+        }
+      ),
+      maxRedeem: helpers.withMessage(() => buildBankErrorMessage(fromAsset), maxAction(fromAsset))
+    },
+    toAmount: {
+      maxMinting: helpers.withMessage(() => buildBankErrorMessage(toAsset), maxAction(toAsset))
+    }
+  })),
+  { fromAmount, toAmount },
+  { $autoDirty: true, $scope: "sigma-usd" }
+);
 
 watch(
   () => [txFee.value, bank.value, toAsset.value],
@@ -157,8 +184,9 @@ watch(fromAsset, () => {
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
 const toWatcher = pausableWatch(toAmount, () => convert("to"));
 
-const action = computed<ActionType>(() =>
-  fromAsset.value?.tokenId === ERG_INFO.tokenId ? "minting" : "redeeming"
+watch(
+  () => chain.height,
+  () => loadBankFrom("blockchain+mempool")
 );
 
 onMounted(async () => {
@@ -258,11 +286,6 @@ function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: Sigm
   return (x + fees) / p;
 }
 
-watch(
-  () => chain.height,
-  () => loadBankFrom("blockchain+mempool")
-);
-
 async function loadBankFrom(from: BoxSource) {
   if (bankUpdateInterval.isActive) bankUpdateInterval.pause();
 
@@ -296,6 +319,28 @@ async function loadBankFrom(from: BoxSource) {
   } finally {
     bankUpdateInterval.resume();
   }
+}
+
+function getMax(asset: Ref<Asset | undefined>, action: ActionType): BigNumber {
+  const coinType = getCoinType(asset.value);
+  return action === "redeeming"
+    ? coinType === "stable"
+      ? bankInfo.value.redeemableStable
+      : bankInfo.value.redeemableReserve
+    : coinType === "stable"
+      ? bankInfo.value.availableStable
+      : bankInfo.value.availableReserve;
+}
+
+function maxAction(asset: Ref<Asset | undefined>) {
+  return (amount: BigNumber) => {
+    if (!asset.value || isErg(asset.value.tokenId)) return true; // can always use ERG
+    return amount.lte(getMax(asset, action.value));
+  };
+}
+
+function buildBankErrorMessage(asset: Ref<Asset | undefined>) {
+  return `Due to current bank reserves, you cannot ${action.value === "minting" ? "buy" : "sell"} more than ${format.bn.format(getMax(asset, action.value))} ${asset.value?.metadata?.name}.`;
 }
 
 function convertibleAsset(
@@ -508,26 +553,26 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
           <div class="flex items-center justify-between">
             <div class="font-medium">
               Protocol Fee <span class="text-muted-foreground">(2%) </span>
-              <InfoIcon class="inline size-3" />
+              <InfoIcon class="inline size-3.5" />
             </div>
             <div>{{ format.bn.format(protocolFee) }} ERG</div>
           </div>
           <div class="flex items-center justify-between">
             <div class="font-medium">
               Service Fee <span class="text-muted-foreground">(0.22%) </span>
-              <InfoIcon class="inline size-3" />
+              <InfoIcon class="inline size-3.5" />
             </div>
             <div>{{ format.bn.format(uiFee) }} ERG</div>
           </div>
           <div class="flex items-center justify-between">
             <div class="font-medium">
-              Network Fee <InfoIcon class="inline size-3" />
+              Network Fee <InfoIcon class="inline size-3.5" />
               <Popover>
                 <PopoverTrigger as-child>
                   <Button
                     variant="minimal"
                     :disabled="loading"
-                    class="ml-1 size-3 align-middle"
+                    class="ml-1 size-3.5 align-middle"
                     size="condensed"
                   >
                     <SettingsIcon />
@@ -553,9 +598,20 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       </AccordionItem>
     </Accordion>
 
+    <Alert variant="destructive" class="space-x-2" v-if="v$.$errors.length">
+      <AlertDescription class="text-xs">
+        <ul :class="v$.$errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
+          <li v-for="e in v$.$errors" :key="e.$uid">{{ e.$message }}</li>
+        </ul>
+      </AlertDescription>
+    </Alert>
+
     <div class="-my-4 grow"></div>
 
-    <Button :disabled="loading || !hasInputValues" class="w-full" @click="sendTransaction"
+    <Button
+      :disabled="loading || !hasInputValues || v$.$invalid"
+      class="w-full"
+      @click="sendTransaction"
       >Swap</Button
     >
   </div>
