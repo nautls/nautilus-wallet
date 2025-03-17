@@ -55,6 +55,7 @@ import { createExchangeTransaction } from "./transactionFactory";
 
 const _0 = bn(0);
 const MIN_BOX_VAL = dbn(MIN_BOX_VALUE, ERG_DECIMALS);
+const RECOMMENDED_FEE = dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS);
 
 const wallet = useWalletStore();
 const app = useAppStore();
@@ -72,10 +73,7 @@ const fromAsset = ref<Asset | undefined>(convertibleAsset("sell", ERG_INFO));
 const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
 const toAmount = ref<BigNumber | undefined>();
-const txFee = ref<FeeSettings>({
-  tokenId: ERG_TOKEN_ID,
-  value: dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS)
-});
+const txFee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: RECOMMENDED_FEE });
 const flipButtonHover = ref(false);
 const bankUpdateInterval = useIntervalFn(() => loadBankFrom("mempool"), 5_000 /* 5 seconds */);
 
@@ -401,7 +399,15 @@ function can(
 }
 
 function sendTransaction() {
-  openTransactionSignDialog({ transactionBuilder: createTransaction });
+  openTransactionSignDialog({ transactionBuilder: createTransaction, onSuccess: resetInputs });
+}
+
+function resetInputs() {
+  fromAmount.value = _0;
+  toAmount.value = _0;
+  fromAsset.value = fromAssets.value[0];
+  toAsset.value = undefined;
+  txFee.value = { tokenId: ERG_TOKEN_ID, value: RECOMMENDED_FEE };
 }
 
 async function createTransaction() {
