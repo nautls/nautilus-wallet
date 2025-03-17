@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
+import { computed, HTMLAttributes, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
@@ -20,11 +20,14 @@ import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
 
 interface Props {
   disposable?: boolean;
+  disabled?: boolean;
+  validate?: boolean;
   asset: AssetBalance;
   modelValue?: BigNumber;
   reservedAmount?: BigNumber;
   minAmount?: BigNumber;
-  class?: string;
+  class?: HTMLAttributes["class"];
+  inputClass?: HTMLAttributes["class"];
 }
 
 const MAX_ASSET_NAME_LEN = 16;
@@ -33,23 +36,27 @@ const MAX_FIAT_PRECISION = 8;
 
 const props = withDefaults(defineProps<Props>(), {
   disposable: false,
+  validate: true,
   modelValue: () => bn(0),
   reservedAmount: undefined,
   minAmount: undefined,
-  class: undefined
+  class: undefined,
+  inputClass: undefined
 });
 
-const basePrecision = props.asset.metadata?.decimals ?? 0;
+let basePrecision = props.asset.metadata?.decimals ?? 0;
 let fiatPrecision = MIN_FIAT_PRECISION;
 
 const emit = defineEmits(["remove", "update:modelValue"]);
 
 const inputEl = useTemplateRef("value-input");
-const maskOpt = reactive<MaskOptions>({
-  numeralDecimalScale: basePrecision
-});
+const maskOpt = reactive<MaskOptions>({ numeralDecimalScale: basePrecision });
 
-const { value: internalValue, patchOptionsQuietly } = useNumericMask(inputEl, maskOpt);
+const {
+  value: internalValue,
+  patchOptionsQuietly,
+  patchOptions
+} = useNumericMask(inputEl, maskOpt);
 
 const app = useAppStore();
 const assets = useAssetsStore();
@@ -59,9 +66,17 @@ const isHovered = ref(false);
 const isDenom = ref(false);
 
 onMounted(() => {
-  if (props.asset.metadata?.decimals || props.asset.balance.gt(1)) return;
+  if (props.asset.metadata?.decimals || !props.asset.balance.eq(1)) return;
   internalValue.value = props.asset.balance;
 });
+
+watch(
+  () => props.asset,
+  () => {
+    basePrecision = props.asset.metadata?.decimals ?? 0;
+    patchOptions({ numeralDecimalScale: basePrecision });
+  }
+);
 
 const ergPrice = computed(() => assets.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const isConvertible = computed(() => ergPrice.value && tokenRate(props.asset.tokenId));
@@ -114,7 +129,10 @@ function getZerosAfterDecimal(n: BigNumber) {
 }
 
 const formattedDenom = computed(() =>
-  format.bn.format(denomValue.value, isDenom.value ? props.asset.metadata?.decimals : fiatPrecision)
+  format.bn.format(
+    denomValue.value,
+    isDenom.value ? (props.asset.metadata?.decimals ?? 0) : fiatPrecision
+  )
 );
 
 const baseCurrencyName = computed(() =>
@@ -207,11 +225,12 @@ function tokenRate(tokenId: string): number {
 </script>
 
 <template>
-  <FormField :validation="v$">
+  <FormField :validation="props.validate ? v$ : undefined">
     <div
       :class="
         cn(
-          'border-input placeholder:text-muted-foreground focus-within:ring-ring relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-within:ring-1 focus-within:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+          'border-input placeholder:text-muted-foreground focus-within:ring-ring relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-within:ring-1 focus-within:outline-hidden',
+          props.disabled && 'border-input/50 cursor-not-allowed focus-within:ring-0',
           props.class
         )
       "
@@ -220,7 +239,7 @@ function tokenRate(tokenId: string): number {
       @mouseout="setHover(false)"
     >
       <Button
-        v-if="disposable"
+        v-if="disposable && !props.disabled"
         v-show="isHovered"
         type="button"
         tabindex="-1"
@@ -235,16 +254,34 @@ function tokenRate(tokenId: string): number {
       <div class="flex flex-row gap-2 text-sm">
         <input
           ref="value-input"
-          class="placeholder:text-muted-foreground w-full min-w-24 bg-transparent outline-hidden"
+          :disabled="props.disabled"
+          :class="
+            cn(
+              'placeholder:text-muted-foreground w-full min-w-24 bg-transparent font-medium outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+              props.inputClass
+            )
+          "
           placeholder="0"
           @blur="v$.$touch()"
         />
 
-        <div class="flex w-auto min-w-max flex-row items-center gap-1 select-none">
-          <span class="grow text-sm whitespace-nowrap">
-            {{ baseCurrencyName }}
-          </span>
-          <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+        <div class="w-auto min-w-max select-none">
+          <slot
+            v-if="$slots.asset"
+            name="asset"
+            :base-currency-name="baseCurrencyName"
+            :asset="asset"
+          />
+          <div
+            v-else
+            class="flex flex-row items-center gap-1"
+            :class="props.disabled && 'opacity-50'"
+          >
+            <span class="grow text-sm font-medium whitespace-nowrap">
+              {{ baseCurrencyName }}
+            </span>
+            <AssetIcon class="size-4" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+          </div>
         </div>
       </div>
 
@@ -252,6 +289,7 @@ function tokenRate(tokenId: string): number {
         <div class="text-muted-foreground flex grow flex-row items-center gap-1 text-xs">
           <Button
             v-if="isConvertible"
+            :disabled="props.disabled"
             type="button"
             tabindex="-1"
             variant="minimal"
@@ -262,20 +300,28 @@ function tokenRate(tokenId: string): number {
             <span>{{ formattedDenom }} {{ denomCurrencyName }}</span>
             <ArrowDownUpIcon class="size-3"
           /></Button>
-          <span v-else>No conversion rate</span>
+          <span v-else :class="disabled && 'opacity-50'">No conversion rate</span>
         </div>
 
-        <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
-        <Button
-          v-else
-          type="button"
-          tabindex="-1"
-          variant="minimal"
-          size="condensed"
-          class="gap-1 text-xs [&_svg]:size-3"
-          @click="setMaxValue()"
-          ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
-        >
+        <template v-if="props.asset.balance.isPositive()">
+          <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
+          <Button
+            v-else
+            type="button"
+            tabindex="-1"
+            variant="minimal"
+            :disabled="props.disabled"
+            size="condensed"
+            :class="
+              cn(
+                'gap-1 text-xs [&_svg]:size-3',
+                props.disabled && 'pointer-events-none cursor-not-allowed'
+              )
+            "
+            @click="setMaxValue()"
+            ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
+          >
+        </template>
       </div>
     </div>
   </FormField>

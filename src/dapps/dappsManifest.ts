@@ -1,6 +1,7 @@
 import { Component } from "vue";
 import { CombineIcon } from "lucide-vue-next";
 import { ComponentProps } from "@/composables/useProgrammaticDialog";
+import SigmaUSDLogo from "./sigma-usd/sigmausd-logo.svg";
 
 type IconComponent<T extends Component> = {
   component: T;
@@ -13,17 +14,22 @@ export type DAppManifestItem<T extends Component = Component> = {
   path: string;
 };
 
-function wrap<T extends Component>(
+function component<T extends Component>(
   component: T,
-  props: ComponentProps<T, Record<string, unknown>>
+  props?: ComponentProps<T, Record<string, unknown>>
 ): IconComponent<T> {
   return { component, props };
 }
 
 export const dappsManifest: DAppManifestItem[] = [
   {
+    name: "SigmaUSD Protocol",
+    icon: component(SigmaUSDLogo),
+    path: "/dapps/sigmausd-protocol"
+  },
+  {
     name: "Wallet Optimization",
-    icon: wrap(CombineIcon, { strokeWidth: 1 }),
+    icon: component(CombineIcon, { strokeWidth: 1 }),
     path: "/dapps/wallet-optimization"
   }
 ];

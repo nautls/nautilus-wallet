@@ -1,5 +1,7 @@
 import { BigNumber } from "bignumber.js";
 
+type BNInput = BigNumber | string | number | bigint;
+
 export function decimalize(value: BigNumber, decimals?: number): BigNumber;
 export function decimalize(value: BigNumber | undefined, decimal?: number): BigNumber | undefined;
 export function decimalize(value: BigNumber | undefined, decimals = 0): BigNumber | undefined {
@@ -8,15 +10,25 @@ export function decimalize(value: BigNumber | undefined, decimals = 0): BigNumbe
 }
 
 export function undecimalize(value: BigNumber, decimals?: number): BigNumber {
-  if (!decimals) return value;
-  return value.shiftedBy(decimals);
+  if (!decimals && !value.decimalPlaces()) return value;
+  return value.shiftedBy(decimals ?? value.decimalPlaces() ?? 0);
 }
 
-export function bn(value: BigNumber.Value): BigNumber;
-export function bn(value: BigNumber.Value | undefined): BigNumber | undefined;
-export function bn(value?: BigNumber.Value): BigNumber | undefined {
-  if (value === undefined) return undefined;
-  return BigNumber(value);
+export function bn(value: BNInput): BigNumber;
+export function bn(value: BNInput | undefined): BigNumber | undefined;
+export function bn(value?: BNInput): BigNumber | undefined {
+  const t = typeof value;
+  if (t === "undefined") return undefined;
+  return BigNumber(t === "bigint" ? String(value) : (value as BigNumber.Value));
+}
+
+/**
+ * Convert a value to a big number with a specified number of decimals.
+ */
+export function dbn(value: BNInput | bigint, decimal?: number): BigNumber;
+export function dbn(value: BNInput | bigint | undefined, decimal?: number): BigNumber | undefined;
+export function dbn(value: BNInput | bigint | undefined, decimal?: number): BigNumber | undefined {
+  return decimalize(bn(typeof value === "bigint" ? value.toString() : value), decimal);
 }
 
 export function sumBy<T>(collection: T[], iteratee: (value: T) => BigNumber.Value): BigNumber {

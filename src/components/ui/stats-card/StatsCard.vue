@@ -11,6 +11,7 @@ const props = withDefaults(
     displayCopyButton?: boolean;
     class?: HTMLAttributes["class"];
     titleClass?: HTMLAttributes["class"];
+    contentClass?: HTMLAttributes["class"];
   }>(),
   {
     title: undefined,
@@ -18,7 +19,8 @@ const props = withDefaults(
     icon: undefined,
     displayCopyButton: true,
     class: undefined,
-    titleClass: undefined
+    titleClass: undefined,
+    contentClass: undefined
   }
 );
 </script>
@@ -41,7 +43,7 @@ const props = withDefaults(
       <Component :is="icon" v-else-if="icon" class="size-3 text-muted-foreground" />
     </div>
 
-    <div class="flex items-center gap-2">
+    <div :class="cn('flex items-center gap-2', props.contentClass)">
       <slot v-if="$slots.default" />
       <template v-else-if="content">
         <div class="font-semibold text-sm truncate">{{ content }}</div>
