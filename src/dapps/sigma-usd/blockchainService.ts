@@ -10,8 +10,8 @@ export async function getBankBox(from: BoxSource): Promise<AgeUSDBankBox | undef
   return getSingleton({ tokenId, ergoTree }, from);
 }
 
-export async function getOracleBox(from: BoxSource): Promise<OracleBox | undefined> {
-  return getSingleton({ tokenId: SIGMA_USD_PARAMETERS.oracle.nftId }, from);
+export async function getOracleBox(): Promise<OracleBox | undefined> {
+  return getSingleton({ tokenId: SIGMA_USD_PARAMETERS.oracle.nftId }, "blockchain");
 }
 
 interface SingletonQuery {

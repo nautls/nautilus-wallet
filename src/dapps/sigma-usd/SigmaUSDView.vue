@@ -288,10 +288,13 @@ function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: Sigm
 async function loadBankFrom(from: BoxSource) {
   if (bankUpdateInterval.isActive) bankUpdateInterval.pause();
 
-  // console.log(`loading bank from ${from}`);
-
   try {
-    const [bankBox, oracleBox] = await Promise.all([getBankBox(from), getOracleBox(from)]);
+    const [bankBox, oracleBox] = await Promise.all([
+      getBankBox(from),
+      // always load oracle box from the blockchain to avoid tx getting
+      // dropped by oracle updates during price changes
+      from !== "mempool" ? getOracleBox() : undefined
+    ]);
 
     if (!bank.value) {
       if (!bankBox || !oracleBox) return;
@@ -486,7 +489,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       </StatsCard>
       <StatsCard
         class="w-full min-w-max"
-        title="Current rate"
+        title="Oracle rate"
         :icon="DollarSignIcon"
         content-class="items-end gap-1 justify-between"
       >
