@@ -302,7 +302,7 @@ async function loadBankFrom(from: BoxSource) {
       bank.value = new SigmaUSDBank(bankBox, oracleBox).setImplementorFee({
         percentage: 22n,
         precision: 4n,
-        address: "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By"
+        address: "9g2FAxryPZ98qH6W5E3qyVYj2kyqgUE7HjfA1CdBT25FJWewpav"
       });
       return;
     }
