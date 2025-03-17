@@ -40,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SAFE_MAX_CHANGE_TOKEN_LIMIT } from "@/chains/ergo/transaction/builder";
 import { bn, dbn, undecimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
@@ -529,84 +530,114 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       </Button>
     </div>
 
-    <Accordion
-      v-if="bankInfo && tcr?.isPositive()"
-      v-model="isFeeBreakdownOpen"
-      type="single"
-      collapsible
-      class="-mt-4"
-    >
-      <AccordionItem value="opened" class="border-none">
-        <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
-          <div class="text-muted-foreground flex w-full items-center justify-between px-2">
-            <div>
-              1 {{ format.asset.name(fromAsset) }} =
-              {{ format.bn.format(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)) }}
-              {{ format.asset.name(toAsset) }}
+    <div class="-mt-4 -mb-2 grow space-y-4">
+      <Accordion
+        v-if="bankInfo && tcr?.isPositive()"
+        v-model="isFeeBreakdownOpen"
+        type="single"
+        collapsible
+      >
+        <AccordionItem value="opened" class="border-none">
+          <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
+            <div class="text-muted-foreground flex w-full items-center justify-between px-2">
+              <div>
+                1 {{ format.asset.name(fromAsset) }} =
+                {{ format.bn.format(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)) }}
+                {{ format.asset.name(toAsset) }}
+              </div>
+              <div v-if="!isFeeBreakdownOpen">
+                <span class="font-semibold">Fees </span> {{ format.bn.format(totalFee, 4) }} ERG
+              </div>
             </div>
-            <div v-if="!isFeeBreakdownOpen">
-              <span class="font-semibold">Fee</span> {{ format.bn.format(totalFee, 4) }} ERG
-            </div>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
-          <div class="flex items-center justify-between">
-            <div class="font-medium">
-              Protocol Fee <span class="text-muted-foreground">(2%) </span>
-              <InfoIcon class="inline size-3.5" />
-            </div>
-            <div>{{ format.bn.format(protocolFee) }} ERG</div>
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="font-medium">
-              Service Fee <span class="text-muted-foreground">(0.22%) </span>
-              <InfoIcon class="inline size-3.5" />
-            </div>
-            <div>{{ format.bn.format(uiFee) }} ERG</div>
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="font-medium">
-              Network Fee <InfoIcon class="inline size-3.5" />
-              <Popover>
-                <PopoverTrigger as-child>
-                  <Button
-                    variant="minimal"
-                    :disabled="loading"
-                    class="ml-1 size-3.5 align-middle"
-                    size="condensed"
-                  >
-                    <SettingsIcon />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="p-0">
-                  <TransactionFeeConfig
-                    v-model="txFee"
-                    erg-only
-                    :max-multiplier="1000"
-                    class="border-0 shadow-none"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>{{ format.bn.format(networkFee) }} ERG</div>
-          </div>
-          <div class="flex items-center justify-between font-semibold">
-            <div>Total Fee</div>
-            <div>{{ format.bn.format(totalFee) }} ERG</div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+          </AccordionTrigger>
+          <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
+            <div class="flex items-center justify-between">
+              <div class="font-medium">
+                Protocol Fee <span class="text-muted-foreground">(2%) </span>
 
-    <Alert variant="destructive" class="space-x-2" v-if="v$.$errors.length">
-      <AlertDescription class="text-xs">
-        <ul :class="v$.$errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
-          <li v-for="e in v$.$errors" :key="e.$uid">{{ e.$message }}</li>
-        </ul>
-      </AlertDescription>
-    </Alert>
+                <TooltipProvider :delay-duration="100">
+                  <Tooltip>
+                    <TooltipTrigger class="cursor-default pl-1">
+                      <InfoIcon class="inline size-3.5" />
+                    </TooltipTrigger>
+                    <TooltipContent class="max-w-52">
+                      The Protocol Fee directly contributes to the bank reserves.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div>{{ format.bn.format(protocolFee) }} ERG</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="font-medium">
+                Service Fee <span class="text-muted-foreground">(0.22%) </span>
 
-    <div class="-my-4 grow"></div>
+                <TooltipProvider :delay-duration="100">
+                  <Tooltip>
+                    <TooltipTrigger class="cursor-default pl-1">
+                      <InfoIcon class="inline size-3.5" />
+                    </TooltipTrigger>
+                    <TooltipContent class="max-w-52">
+                      Nautilus Wallet charges a flat fee of 0.22% to sustainably fund its
+                      development.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div>{{ format.bn.format(uiFee) }} ERG</div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="font-medium">
+                Network Fee
+                <TooltipProvider :delay-duration="100">
+                  <Tooltip>
+                    <TooltipTrigger class="cursor-default pl-1">
+                      <InfoIcon class="inline size-3.5" />
+                    </TooltipTrigger>
+                    <TooltipContent class="max-w-52">
+                      This is the cost of adding the transaction to the blockchain.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Popover>
+                  <PopoverTrigger as-child>
+                    <Button
+                      variant="minimal"
+                      :disabled="loading"
+                      class="ml-1 size-3.5 align-middle"
+                      size="condensed"
+                    >
+                      <SettingsIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent class="p-0">
+                    <TransactionFeeConfig
+                      v-model="txFee"
+                      erg-only
+                      :max-multiplier="1000"
+                      class="border-0 shadow-none"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>{{ format.bn.format(networkFee) }} ERG</div>
+            </div>
+            <div class="flex items-center justify-between font-semibold">
+              <div>Total Fee</div>
+              <div>{{ format.bn.format(totalFee) }} ERG</div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Alert variant="destructive" class="space-x-2" v-if="v$.$errors.length">
+        <AlertDescription class="text-xs">
+          <ul :class="v$.$errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
+            <li v-for="e in v$.$errors" :key="e.$uid">{{ e.$message }}</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
+    </div>
 
     <Button
       :disabled="loading || !hasInputValues || v$.$invalid"
