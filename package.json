@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -47,7 +47,7 @@
     "ergo-lib-wasm-browser": "^0.28.0",
     "ledger-ergo-js": "^0.2.1",
     "lodash-es": "^4.17.21",
-    "lucide-vue-next": "^0.482.0",
+    "lucide-vue-next": "^0.483.0",
     "pinia": "^3.0.1",
     "reka-ui": "^2.1.0",
     "tailwind-merge": "^3.0.2",
