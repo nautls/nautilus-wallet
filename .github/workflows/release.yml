@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  # workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - network: mainnet
+            target: firefox
+          - network: mainnet
+            target: chrome
+          - network: testnet
+            target: chrome
+          - network: testnet
+            target: firefox
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for ${{ matrix.target }} ${{ matrix.network }}
+        run: pnpm run build:${{ matrix.network }}:${{ matrix.target }}
+
+      - name: Zip build
+        run: |
+          cd dist
+          zip -r ../nautilus-${{ matrix.network }}-${{ matrix.target }}.zip .
+          cd ..
+
+      - name: Upload Release Assets
+        # if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "*.zip"
+
+      # - name: Upload Artifacts
+      #   # if: ${{ github.event_name == 'workflow_dispatch' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: nautilus-${{ matrix.network }}-${{ matrix.target }}
+      #     path: "*.zip"

@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - master
-    tags:
-      - "!**"
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
@@ -73,7 +71,7 @@ jobs:
         with:
           version: 10
 
-      - name: Build using Node.js v${{ matrix.node-version }}
+      - name: Setup Node.js v${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
