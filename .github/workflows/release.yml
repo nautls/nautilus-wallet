@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  pull_request:
+  push:
+    tags: ["v*.*.*"]
+  # workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
@@ -22,6 +24,10 @@ jobs:
             target: firefox
           - network: mainnet
             target: chrome
+          - network: testnet
+            target: chrome
+          - network: testnet
+            target: firefox
     steps:
       - uses: actions/checkout@v4
 
