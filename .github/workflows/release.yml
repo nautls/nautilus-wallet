@@ -46,6 +46,6 @@ jobs:
 
       - name: Upload Artifacts
         # if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: "*.zip"
