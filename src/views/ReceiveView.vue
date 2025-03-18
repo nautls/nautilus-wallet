@@ -119,7 +119,7 @@ function openExplorer(address: string | undefined) {
         <div
           v-for="address in addresses"
           :key="address.script"
-          class="hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2 rounded-md bg-transparent px-2 py-4 transition-colors"
+          class="hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2 rounded-md bg-transparent px-3 py-4 transition-colors"
         >
           <div class="flex items-center gap-2">
             <Button
