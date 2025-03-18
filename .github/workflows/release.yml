@@ -15,7 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ["mainnet:firefox", "mainnet:chrome"]
+        include:
+          - network: mainnet
+            target: firefox
+          - network: mainnet
+            target: chrome
     steps:
       - uses: actions/checkout@v4
 
@@ -32,5 +36,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build for ${{ matrix.target }}
-        run: pnpm run build:${{ matrix.target }}
+      - name: Build for ${{ matrix.target }} ${{ matrix.network }}
+        run: pnpm run build:${{ matrix.network }}:${{ matrix.target }}
+
+      - name: Zip build
+        run: zip -r nautilus-${{ matrix.network }}:${{ matrix.target }}.zip dist
