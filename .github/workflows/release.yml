@@ -41,3 +41,9 @@ jobs:
 
       - name: Zip build
         run: zip -r nautilus-${{ matrix.network }}:${{ matrix.target }}.zip dist
+
+      - name: Upload Artifacts
+        # if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v3
+        with:
+          path: "*.zip"
