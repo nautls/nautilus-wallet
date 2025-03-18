@@ -102,7 +102,9 @@ async function toggleViewMode() {
 
   if (import.meta.env.TARGET === "firefox") {
     app.settings.extension.viewMode = viewMode === "popup" ? "sidebar" : "popup";
-    browser.sidebarAction.toggle();
+    await browser.sidebarAction.toggle();
+
+    if (viewMode === "popup") window.close();
     return;
   }
 
