@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags: ["v*.*.*"]
-    workflow_dispatch:
+    # workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
