@@ -42,7 +42,10 @@ jobs:
         run: pnpm run build:${{ matrix.network }}:${{ matrix.target }}
 
       - name: Zip build
-        run: zip -r nautilus-${{ matrix.network }}-${{ matrix.target }}.zip dist/*
+        run: |
+          cd dist
+          zip -r ../nautilus-${{ matrix.network }}-${{ matrix.target }}.zip .
+          cd ..
 
       - name: Upload Artifacts
         # if: ${{ github.event_name == 'workflow_dispatch' }}
