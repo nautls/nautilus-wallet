@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -47,7 +47,7 @@
     "ergo-lib-wasm-browser": "^0.28.0",
     "ledger-ergo-js": "^0.2.1",
     "lodash-es": "^4.17.21",
-    "lucide-vue-next": "^0.482.0",
+    "lucide-vue-next": "^0.483.0",
     "pinia": "^3.0.1",
     "reka-ui": "^2.1.0",
     "tailwind-merge": "^3.0.2",
@@ -74,7 +74,7 @@
     "@types/w3c-web-usb": "^1.0.10",
     "@types/webextension-polyfill": "^0.12.3",
     "@typescript-eslint/parser": "^8.26.1",
-    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitejs/plugin-vue": "^5.2.3",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/tsconfig": "^0.7.0",
@@ -96,7 +96,7 @@
     "vite-plugin-web-extension": "^4.4.3",
     "vite-svg-loader": "^5.1.0",
     "vitepress": "^1.6.3",
-    "vitest": "^3.0.8",
+    "vitest": "^3.0.9",
     "vue-eslint-parser": "^10.1.1"
   },
   "pnpm": {
@@ -106,7 +106,8 @@
     },
     "overrides": {
       "esbuild@<=0.24.2": ">=0.25.1",
-      "webextension-polyfill@<=0.10.0": ">=0.12.0"
+      "webextension-polyfill@<=0.10.0": ">=0.12.0",
+      "@babel/runtime@<7.26.10": ">=7.26.10"
     },
     "onlyBuiltDependencies": [
       "@swc/core",

@@ -85,7 +85,7 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-6">
-      <div class="mx-auto w-full cursor-default bg-transparent pt-2 pb-4 text-center">
+      <div class="mx-auto w-full cursor-default bg-transparent py-2 pb-4 text-center">
         <h2 class="text-3xl">
           <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
@@ -121,12 +121,12 @@ function openAssetInfoDialog(tokenId: string) {
 
         <TabsContent value="tokens">
           <Transition name="slide-up" appear>
-            <div class="flex flex-col gap-2 pt-2">
+            <div class="flex flex-col pt-1">
               <Button
                 v-for="asset in tokens"
                 :key="asset.tokenId"
                 variant="ghost"
-                class="h-auto p-3 text-left [&_svg]:size-10"
+                class="h-auto px-2 py-3 text-left [&_svg]:size-10"
                 @click="openAssetInfoDialog(asset.tokenId)"
               >
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
