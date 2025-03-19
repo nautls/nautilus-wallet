@@ -569,7 +569,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                     <TooltipTrigger class="cursor-default pl-1">
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent class="max-w-52">
+                    <TooltipContent class="max-w-52 hyphens-auto">
                       The Protocol Fee directly contributes to the bank reserves.
                     </TooltipContent>
                   </Tooltip>
@@ -586,7 +586,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                     <TooltipTrigger class="cursor-default pl-1">
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent class="max-w-52">
+                    <TooltipContent class="max-w-52 hyphens-auto">
                       Nautilus Wallet charges a flat fee of 0.22% to sustainably fund its
                       development.
                     </TooltipContent>
@@ -603,7 +603,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                     <TooltipTrigger class="cursor-default pl-1">
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent class="max-w-52">
+                    <TooltipContent class="max-w-52 hyphens-auto">
                       This is the cost of adding the transaction to the blockchain.
                     </TooltipContent>
                   </Tooltip>
