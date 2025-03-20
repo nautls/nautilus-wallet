@@ -2,6 +2,7 @@
 import { execSync } from "child_process";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -34,6 +35,7 @@ function defEnv(obj: Record<string, unknown>): Record<string, string> {
 
 const plugins = [
   vue(),
+  vueI18n({ include: r("src/locales/**") }),
   tailwindcss(),
   svgLoader(),
   topLevelAwait(),
