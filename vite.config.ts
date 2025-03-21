@@ -35,7 +35,7 @@ function defEnv(obj: Record<string, unknown>): Record<string, string> {
 
 const plugins = [
   vue(),
-  vueI18n({ include: r("src/locales/!(en)*.json") }),
+  vueI18n({ include: r("src/locales/*.json") }),
   tailwindcss(),
   svgLoader(),
   topLevelAwait(),
