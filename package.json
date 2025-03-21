@@ -48,7 +48,6 @@
     "ledger-ergo-js": "^0.2.1",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.483.0",
-    "petite-vue-i18n": "^11.1.2",
     "pinia": "^3.0.1",
     "reka-ui": "^2.1.0",
     "tailwind-merge": "^3.0.2",

@@ -1,6 +1,6 @@
 import { nextTick } from "vue";
-import { createI18n } from "petite-vue-i18n";
-import type { I18n, I18nOptions, Locale } from "petite-vue-i18n";
+import { createI18n } from "vue-i18n";
+import type { I18n, I18nOptions, Locale } from "vue-i18n";
 import en from "../locales/en.json";
 
 type NonLegacyI18n = I18n<

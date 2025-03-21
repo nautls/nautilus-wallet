@@ -93,9 +93,6 @@ importers:
       lucide-vue-next:
         specifier: ^0.483.0
         version: 0.483.0(vue@3.5.13(typescript@5.8.2))
-      petite-vue-i18n:
-        specifier: ^11.1.2
-        version: 11.1.2(vue@3.5.13(typescript@5.8.2))
       pinia:
         specifier: ^3.0.1
         version: 3.0.1(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2))
@@ -7284,6 +7281,7 @@ snapshots:
       '@intlify/shared': 11.1.2
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.8.2)
+    optional: true
 
   picocolors@1.1.1: {}
 
