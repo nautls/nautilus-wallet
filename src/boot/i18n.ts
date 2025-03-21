@@ -1,25 +1,20 @@
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
-import type { I18n, I18nOptions, Locale } from "vue-i18n";
-import type English from "../locales/en.json";
+import type { I18n, I18nOptions } from "vue-i18n";
+import type EnglishMessages from "../locales/en.json";
 
 // import en locale dynamically to avoid the following vite warning:
 //
 // en.json is dynamically imported by i18n.ts but also statically imported
 // by i18n.ts, dynamic import will not move module into another chunk.
 const en = await importLocale("en");
-
-type NonLegacyI18n = I18n<
-  { en: typeof English },
-  Record<string, unknown>,
-  Record<string, unknown>,
-  Locale,
-  false
->;
-
 export const SUPPORTED_LOCALES = ["en", "pt"] as const;
 
-let i18nInstance: NonLegacyI18n;
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
+export type MessageSchema = typeof EnglishMessages;
+
+type LocaleData = Record<string, unknown>;
+let i18nInstance: I18n<LocaleData, LocaleData, LocaleData, Locale, false>;
 
 export function setupI18n() {
   const opt = {
@@ -33,7 +28,7 @@ export function setupI18n() {
 }
 
 export function getLocale(): Locale {
-  return i18nInstance.global.locale.value;
+  return i18nInstance.global.locale.value as Locale;
 }
 
 export async function setLocale(locale: Locale): Promise<void> {
