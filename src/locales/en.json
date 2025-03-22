@@ -1,4 +1,7 @@
 {
+  "common": {
+    "cancel": "Cancel"
+  },
   "nav": {
     "assets": "Assets",
     "history": "History",
@@ -7,7 +10,7 @@
     "dApps": "dApps"
   },
   "walletSwitcher": {
-    "noWalletFound": "No wallet found."
+    "empty": "No wallet found."
   },
   "mainMenu": {
     "newWallet": "New wallet",
@@ -18,5 +21,11 @@
     "totalBalance": "Wallet balance",
     "tokensTitle": "Tokens",
     "collectiblesTitle": "Collectibles"
+  },
+  "history": {
+    "txTitle": "Transaction {txId}",
+    "txState": "Pending | {count} confirmation | {count} confirmations",
+    "empty": "You have no transaction history yet.",
+    "paginateAhead": "Load more transactions..."
   }
 }

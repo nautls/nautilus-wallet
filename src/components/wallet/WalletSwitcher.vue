@@ -152,7 +152,7 @@ async function toggleViewMode() {
         "
       >
         <CommandInput placeholder="Search..." />
-        <CommandEmpty>{{ t("walletSwitcher.noWalletFound") }}</CommandEmpty>
+        <CommandEmpty>{{ t("walletSwitcher.empty") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
             <CommandItem
