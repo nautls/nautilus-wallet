@@ -64,6 +64,7 @@
     "@ergo-graphql/types": "^0.5.1",
     "@eslint/js": "^9.22.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
+    "@intlify/eslint-plugin-vue-i18n": "^4.0.0",
     "@intlify/unplugin-vue-i18n": "^6.0.5",
     "@nautilus-js/eip12-types": "^0.1.11",
     "@tailwindcss/vite": "^4.0.14",
