@@ -1,5 +1,22 @@
 {
-  "message": {
-    "hello": "hello world"
+  "nav": {
+    "assets": "Assets",
+    "history": "History",
+    "receive": "Receive",
+    "send": "Send",
+    "dApps": "dApps"
+  },
+  "walletSwitcher": {
+    "noWalletFound": "No wallet found."
+  },
+  "mainMenu": {
+    "newWallet": "New wallet",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "assets": {
+    "totalBalance": "Wallet balance",
+    "tokensTitle": "Tokens",
+    "collectiblesTitle": "Collectibles"
   }
 }

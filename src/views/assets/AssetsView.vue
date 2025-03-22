@@ -2,6 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { BigNumber } from "bignumber.js";
 import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
@@ -24,6 +25,8 @@ const app = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
 const format = useFormat();
+
+const { t } = useI18n({ useScope: "global" });
 
 const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles">("tokens");
@@ -90,7 +93,7 @@ function openAssetInfoDialog(tokenId: string) {
           <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
         </h2>
-        <p class="text-muted-foreground text-sm">Wallet balance</p>
+        <p class="text-muted-foreground text-sm">{{ t("assets.totalBalance") }}</p>
       </div>
 
       <StorageRentAlert />
@@ -98,9 +101,9 @@ function openAssetInfoDialog(tokenId: string) {
       <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
         <div class="flex flex-row">
           <TabsList>
-            <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            <TabsTrigger value="tokens">{{ t("assets.tokensTitle") }}</TabsTrigger>
             <TabsTrigger value="collectibles" :disabled="!containsArtwork">
-              Collectibles
+              {{ t("assets.collectiblesTitle") }}
             </TabsTrigger>
           </TabsList>
 
@@ -126,8 +129,8 @@ function openAssetInfoDialog(tokenId: string) {
                 v-for="asset in tokens"
                 :key="asset.tokenId"
                 variant="ghost"
-                class="h-auto px-2 py-3 text-left [&_svg]:size-10"
                 @click="openAssetInfoDialog(asset.tokenId)"
+                class="h-auto px-2 py-3 text-left [&_svg]:size-10"
               >
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
@@ -154,7 +157,7 @@ function openAssetInfoDialog(tokenId: string) {
                   <template v-else>
                     <span>{{ format.bn.format(asset.balance) }}</span>
 
-                    <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
+                    <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
                         <TooltipTrigger class="text-muted-foreground text-xs">
                           {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId))) }}

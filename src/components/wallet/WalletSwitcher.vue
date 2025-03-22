@@ -15,6 +15,7 @@ import {
   SunIcon,
   SunMoonIcon
 } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -37,6 +38,7 @@ import { IDbWallet } from "@/types/database";
 const wallet = useWalletStore();
 const app = useAppStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
 
@@ -150,7 +152,7 @@ async function toggleViewMode() {
         "
       >
         <CommandInput placeholder="Search..." />
-        <CommandEmpty>No wallet found.</CommandEmpty>
+        <CommandEmpty>{{ t("walletSwitcher.noWalletFound") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
             <CommandItem
@@ -201,7 +203,7 @@ async function toggleViewMode() {
               @select.prevent="goToAndClose('add-wallet')"
             >
               <PlusCircleIcon class="h-5 w-5 shrink-0" />
-              New wallet
+              {{ t("mainMenu.newWallet") }}
             </CommandItem>
 
             <CommandItem
@@ -210,7 +212,7 @@ async function toggleViewMode() {
               @select.prevent="goToAndClose('wallet-settings')"
             >
               <SettingsIcon class="h-5 w-5 shrink-0" />
-              Settings
+              {{ t("mainMenu.settings") }}
             </CommandItem>
 
             <CommandItem
@@ -219,7 +221,7 @@ async function toggleViewMode() {
               @select.prevent="goToAndClose('about-nautilus')"
             >
               <InfoIcon class="h-5 w-5 shrink-0" />
-              About
+              {{ t("mainMenu.about") }}
             </CommandItem>
           </CommandGroup>
         </CommandList>
