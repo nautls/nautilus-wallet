@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { uniqWith } from "lodash-es";
+import { uniqWith } from "es-toolkit";
 import { bn } from "@/common/bigNumber";
 import { safeFetch } from "@/common/networking";
 import { ERG_TOKEN_ID } from "@/constants/ergo";

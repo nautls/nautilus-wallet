@@ -3,7 +3,7 @@ import { computed, onMounted, ref, toRaw } from "vue";
 import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
 import dayjs from "dayjs";
-import { minBy } from "lodash-es";
+import { minBy } from "es-toolkit";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";

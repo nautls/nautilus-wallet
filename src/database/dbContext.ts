@@ -1,5 +1,5 @@
 import { Dexie, Table } from "dexie";
-import { uniqBy } from "lodash-es";
+import { uniqBy } from "es-toolkit";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import {
   IAssetInfo,

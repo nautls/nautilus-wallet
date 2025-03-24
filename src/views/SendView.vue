@@ -4,7 +4,7 @@ import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import { differenceBy } from "lodash-es";
+import { differenceBy } from "es-toolkit";
 import { CheckCheckIcon } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
