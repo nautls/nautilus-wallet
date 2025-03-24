@@ -28,7 +28,7 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/builder";
 import { summarizeTransaction } from "@/chains/ergo/transaction/summarizer";
 import { bn, decimalize } from "@/common/bigNumber";
-import { DateFormatOptions, formatDate } from "@/common/dateFormat";
+import { useRelativeDateFormatter } from "@/common/dateFormat";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -38,9 +38,7 @@ import type {
   UnconfirmedTransactionSummary
 } from "@/types/transactions";
 
-const RELATIVE_DATE_FORMATTING: DateFormatOptions = {
-  maxRelativeTime: 1_000 * 60 * 60 * 24 * 25 // 25 days
-};
+const MAX_RELATIVE_TIME = 1_000 * 60 * 60 * 24 * 25; // 25 days
 
 const formatter = useFormat();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
@@ -50,7 +48,8 @@ const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
 const pool = usePoolStore();
-const { t } = useI18n();
+const { t, d } = useI18n();
+const { rd } = useRelativeDateFormatter({ t, d, maxRelativeTime: MAX_RELATIVE_TIME });
 
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 const loaded = ref(false);
@@ -140,9 +139,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
                   })
                 }}
               </Link>
-              <span class="text-xs font-normal">{{
-                formatDate(tx.timestamp, RELATIVE_DATE_FORMATTING)
-              }}</span>
+              <span class="text-xs font-normal">{{ rd(tx.timestamp) }}</span>
             </CardTitle>
             <CardDescription class="text-xs">
               <div>

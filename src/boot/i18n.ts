@@ -12,17 +12,31 @@ const en = await importLocale("en");
 // Change the following line when adding more locales
 export const SUPPORTED_LOCALES = ["en", "pt"] as const;
 
-export type MessageSchema = typeof EnglishMessages;
-
+type NonLegacyI18n = I18n<LocaleData, LocaleData, LocaleData, Locale, false>;
 type LocaleData = Record<string, unknown>;
-let i18nInstance: I18n<LocaleData, LocaleData, LocaleData, Locale, false>;
+
+export type MessageSchema = typeof EnglishMessages;
+export type Translator = NonLegacyI18n["global"]["t"];
+export type DateFormatter = NonLegacyI18n["global"]["d"];
+
+let i18nInstance: NonLegacyI18n;
 
 export function setupI18n() {
   return (i18nInstance = createI18n({
     legacy: false,
     locale: "en",
     fallbackLocale: "en",
-    messages: { en }
+    messages: { en },
+    datetimeFormats: {
+      en: {
+        long: {
+          dateStyle: "long"
+        },
+        short: {
+          dateStyle: "short"
+        }
+      }
+    }
   }));
 }
 

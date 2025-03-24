@@ -2,6 +2,18 @@
   "common": {
     "cancel": "Cancel"
   },
+  "datetime": {
+    "now": "just now",
+    "relativeAgo": "{time} ago",
+    "relativeIn": "in {time}",
+    "seconds": "{count} second | {count} seconds",
+    "minutes": "{count} minute | {count} minutes",
+    "hours": "{count} hour | {count} hours",
+    "days": "{count} day | {count} days",
+    "weeks": "{count} week | {count} weeks",
+    "months": "{count} month | {count} months",
+    "years": "{count} year | {count} years"
+  },
   "nav": {
     "assets": "Assets",
     "history": "History",

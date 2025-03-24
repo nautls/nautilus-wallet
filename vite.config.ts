@@ -88,8 +88,6 @@ export default defineConfig(({ mode }) => ({
       "vue",
       "vue-router",
       "pinia",
-      "dayjs",
-      "dayjs/plugin/relativeTime",
       "@fleet-sdk/babel-fees-plugin",
       "ledger-ergo-js",
       "@ledgerhq/hw-transport-webusb",

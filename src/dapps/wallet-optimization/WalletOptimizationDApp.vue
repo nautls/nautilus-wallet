@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, toRaw } from "vue";
 import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
-import dayjs from "dayjs";
 import { minBy } from "lodash-es";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
@@ -12,7 +12,7 @@ import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
-import { formatDate } from "@/common/dateFormat";
+import { useRelativeDateFormatter } from "@/common/dateFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import {
   BLOCK_TIME_IN_MINUTES,
@@ -29,6 +29,8 @@ import { createConsolidationTransaction } from "./transactionFactory";
 const wallet = useWalletStore();
 const app = useAppStore();
 
+const { t, d } = useI18n();
+const { rd } = useRelativeDateFormatter({ t, d, showRelativeTimeQualifier: false });
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const loading = ref(true);
@@ -57,9 +59,9 @@ const minBoxHeight = computed(() => {
 const oldestBox = computed(() => {
   if (loading.value) return "Loading...";
   if (!minBoxHeight.value) return "N/A";
-  return formatDate(
-    dayjs().add(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES), "minutes"),
-    { suffixRelativeTime: false }
+
+  return rd(
+    new Date().setMinutes(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES))
   );
 });
 
