@@ -10,9 +10,9 @@ export default [
   {
     ignores: ["**/node_modules", "**/dist", "**/coverage", "**/docs", "src/components/ui"]
   },
+  jsPlugin.configs.recommended,
   ...tsPlugin.configs.recommended,
   ...vuePlugin.configs["flat/essential"],
-  jsPlugin.configs.recommended,
   {
     languageOptions: {
       globals: {

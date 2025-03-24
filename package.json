@@ -42,7 +42,6 @@
     "cleave.js": "^1.6.0",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "dayjs": "^1.11.13",
     "dexie": "^4.0.11",
     "ergo-lib-wasm-browser": "^0.28.0",
     "ledger-ergo-js": "^0.2.1",
