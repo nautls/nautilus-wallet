@@ -1,5 +1,5 @@
 import { isEmpty } from "@fleet-sdk/common";
-import { difference, uniqBy } from "lodash-es";
+import { difference, uniqBy } from "es-toolkit";
 import { dbContext } from "@/database/dbContext";
 import { IAssetInfo } from "@/types/database";
 

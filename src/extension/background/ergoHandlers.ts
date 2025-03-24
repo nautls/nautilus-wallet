@@ -1,7 +1,7 @@
 import { Box, isDefined, some, utxoSum } from "@fleet-sdk/common";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
-import { groupBy } from "lodash-es";
+import { groupBy } from "es-toolkit";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, sumBy } from "@/common/bigNumber";
