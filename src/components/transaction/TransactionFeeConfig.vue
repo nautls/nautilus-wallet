@@ -183,7 +183,7 @@ async function loadAssets() {
   assets.value = assets.value.concat(
     sortBy(
       newAssets.filter((x) => x.nanoErgsPerToken),
-      (x) => x.nanoErgsPerToken.toNumber()
+      [(x) => x.nanoErgsPerToken.toNumber()]
     )
   );
 
