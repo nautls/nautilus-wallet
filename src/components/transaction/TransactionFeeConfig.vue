@@ -5,7 +5,7 @@ import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
-import { groupBy, maxBy, sortBy } from "lodash-es";
+import { groupBy, maxBy, sortBy } from "es-toolkit";
 import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";

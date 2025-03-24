@@ -1,5 +1,5 @@
 import { BoxSource, ChainProviderBox } from "@fleet-sdk/blockchain-providers";
-import { difference, sortBy, unionBy } from "lodash-es";
+import { difference, sortBy, unionBy } from "es-toolkit";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";

@@ -1,7 +1,7 @@
 import { BabelBox, buildBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { Box, first } from "@fleet-sdk/common";
 import { BigNumber } from "bignumber.js";
-import { orderBy, sortBy } from "lodash-es";
+import { orderBy, sortBy } from "es-toolkit";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn } from "@/common/bigNumber";
 import { safeSigmaDecode } from "./serialization";

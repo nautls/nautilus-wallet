@@ -1,7 +1,7 @@
 import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import type { BigNumber } from "bignumber.js";
-import { groupBy, maxBy } from "lodash-es";
+import { groupBy, maxBy } from "es-toolkit";
 import { useRouter } from "vue-router";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
