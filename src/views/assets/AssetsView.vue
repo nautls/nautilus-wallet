@@ -117,7 +117,13 @@ function openAssetInfoDialog(tokenId: string) {
               </Button>
             </PopoverTrigger>
             <PopoverContent side="left">
-              <Input v-model="filter" placeholder="Search" class="w-full" clearable clear-icon />
+              <Input
+                v-model="filter"
+                :placeholder="t('common.search')"
+                class="w-full"
+                clearable
+                clear-icon
+              />
             </PopoverContent>
           </Popover>
         </div>

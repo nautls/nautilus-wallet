@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
@@ -134,33 +135,69 @@ function openExplorer(address: string | undefined) {
               }}</span>
             </Button>
 
-            <CopyButton :content="address.script" class="size-4" />
-            <Button
-              variant="minimal"
-              size="condensed"
-              class="size-4"
-              @click="openExplorer(address.script)"
-            >
-              <ExternalLinkIcon />
-            </Button>
-            <Button
-              variant="minimal"
-              size="condensed"
-              class="size-4"
-              @click="openQrCodeDialog({ address })"
-            >
-              <QrCodeIcon />
-            </Button>
-            <!-- Verify this address on your Ledger device -->
-            <Button
-              v-if="isLedger"
-              variant="minimal"
-              size="condensed"
-              class="size-4"
-              @click="openAddressVerifyDialog({ address })"
-            >
-              <ShieldCheckIcon />
-            </Button>
+            <div class="space-x-1.5 pb-1">
+              <TooltipProvider :delay-duration="100">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CopyButton
+                      :content="address.script"
+                      class="size-4 align-middle [&_svg]:size-4"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto"> Copy </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider :delay-duration="100">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="minimal"
+                      size="condensed"
+                      class="size-4 align-middle"
+                      @click="openExplorer(address.script)"
+                    >
+                      <ExternalLinkIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto"> Open in Explorer </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider :delay-duration="100">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="minimal"
+                      size="condensed"
+                      class="size-4 align-middle"
+                      @click="openQrCodeDialog({ address })"
+                    >
+                      <QrCodeIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto"> Show QR code </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider :delay-duration="100" v-if="isLedger">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="minimal"
+                      size="condensed"
+                      class="size-4 align-middle"
+                      @click="openAddressVerifyDialog({ address })"
+                    >
+                      <ShieldCheckIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    Verify on your Ledger device
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           <div class="text-right text-xs">
