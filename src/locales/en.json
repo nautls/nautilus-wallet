@@ -1,6 +1,8 @@
 {
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "search": "Search",
+    "copy": "Copy"
   },
   "datetime": {
     "now": "just now",
@@ -39,5 +41,20 @@
     "txState": "Pending | {count} confirmation | {count} confirmations",
     "empty": "You have no transaction history yet.",
     "paginateAhead": "Load more transactions..."
+  },
+  "receive": {
+    "currentAddress": "Current address",
+    "defaultAddress": "Default address",
+    "maxTokensWarning": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
+    "unusedState": "Unused",
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterUnused": "Unused",
+    "openInExplorer": "Open in Explorer",
+    "showQrCode": "Show QR code",
+    "verifyOnLedger": "Verify on the Ledger device",
+
+    "newAddressErrorTitle": "Address generation failed",
+    "newAddressErrorFallbackMessage": "Unable to generate a new address."
   }
 }

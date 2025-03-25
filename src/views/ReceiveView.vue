@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   TriangleAlertIcon
 } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import { AddressQrCodeDialog, AddressVerifyDialog } from "@/components/address";
@@ -30,13 +31,11 @@ import { AddressState, WalletType } from "@/types/internal";
 const app = useAppStore();
 const wallet = useWalletStore();
 const format = useFormat();
+const { t } = useI18n();
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const canAddNewAddress = computed(() => wallet.settings.addressFilter !== "active");
-const defaultAddressTitle = computed(() =>
-  wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address"
-);
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
 const { open: openAddressVerifyDialog } = useProgrammaticDialog(AddressVerifyDialog);
@@ -52,14 +51,14 @@ async function newAddress() {
     await wallet.deriveNewAddress();
   } catch (e) {
     toast({
-      title: "Address generation failed",
-      description: (e as Error)?.message ?? "Unable to generate a new address."
+      title: t("receive.newAddressErrorTitle"),
+      description: (e as Error)?.message ?? t("receive.newAddressErrorFallbackMessage")
     });
   }
 }
 
 function getFormattedErgBalance(address: StateAddress, decimals = 3): string | undefined {
-  if (address.state === AddressState.Unused) return "Unused";
+  if (address.state === AddressState.Unused) return t("receive.unusedState");
   let erg = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount;
   if (!erg) erg = bn(0);
 
@@ -78,7 +77,13 @@ function openExplorer(address: string | undefined) {
       <div class="flex h-full flex-row items-center gap-4">
         <div class="flex h-full w-full flex-col justify-between">
           <CardTitle class="leading-none font-semibold tracking-tight">
-            {{ defaultAddressTitle }}
+            {{
+              t(
+                wallet.settings.avoidAddressReuse
+                  ? "receive.currentAddress"
+                  : "receive.defaultAddress"
+              )
+            }}
           </CardTitle>
           <div class="break-all">
             {{ wallet.changeAddress?.script }}
@@ -90,20 +95,19 @@ function openExplorer(address: string | undefined) {
       </div>
     </Card>
 
-    <Alert v-if="isLedger" class="space-x-2">
+    <Alert v-if="isLedger">
       <TriangleAlertIcon />
       <AlertDescription class="hyphens-auto">
-        Avoid sending more than <strong>20 tokens</strong> in a single transaction to this wallet.
-        Limited device memory could cause your funds to become inaccessible.
+        {{ t("receive.maxTokensWarning", { count: 20 }) }}
       </AlertDescription>
     </Alert>
 
     <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
       <div class="flex flex-row">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="unused">Unused</TabsTrigger>
+          <TabsTrigger value="all">{{ t("receive.filterAll") }}</TabsTrigger>
+          <TabsTrigger value="active">{{ t("receive.filterActive") }}</TabsTrigger>
+          <TabsTrigger value="unused">{{ t("receive.filterUnused") }}</TabsTrigger>
         </TabsList>
 
         <div class="grow"></div>
@@ -144,7 +148,9 @@ function openExplorer(address: string | undefined) {
                       class="size-4 align-middle [&_svg]:size-4"
                     />
                   </TooltipTrigger>
-                  <TooltipContent class="max-w-52 hyphens-auto"> Copy </TooltipContent>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("common.copy") }}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -160,7 +166,9 @@ function openExplorer(address: string | undefined) {
                       <ExternalLinkIcon />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent class="max-w-52 hyphens-auto"> Open in Explorer </TooltipContent>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("receive.openInExplorer") }}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -176,7 +184,9 @@ function openExplorer(address: string | undefined) {
                       <QrCodeIcon />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent class="max-w-52 hyphens-auto"> Show QR code </TooltipContent>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("receive.showQrCode") }}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -193,7 +203,7 @@ function openExplorer(address: string | undefined) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-52 hyphens-auto">
-                    Verify on your Ledger device
+                    {{ t("receive.verifyOnLedger") }}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
