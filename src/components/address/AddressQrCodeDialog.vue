@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { StateAddress } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,8 @@ import { QrCode } from "@/components/ui/qr-code";
 
 const props = defineProps<{ address: StateAddress }>();
 const emit = defineEmits(["close"]);
+
+const { t } = useI18n();
 
 const opened = ref(true);
 
@@ -33,9 +36,9 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
     <DrawerContent>
       <DrawerHeader>
-        <DrawerTitle>Address Details</DrawerTitle>
+        <DrawerTitle>{{ t("addressQrCodeDialog.title") }}</DrawerTitle>
         <DrawerDescription class="break-all">
-          {{ props.address.script }}
+          {{ t("addressQrCodeDialog.description", { address: props.address.script }) }}
         </DrawerDescription>
       </DrawerHeader>
 

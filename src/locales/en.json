@@ -58,6 +58,10 @@
     "newAddressErrorTitle": "Address generation failed",
     "newAddressErrorFallbackMessage": "Unable to generate a new address."
   },
+  "addressQrCodeDialog": {
+    "title": "Address QR code",
+    "description": "Scan this QR code to receive assets in {address}."
+  },
   "send": {
     "recipient": "Recipient",
     "assets": "Assets",
