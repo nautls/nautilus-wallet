@@ -22,7 +22,7 @@ export type DateFormatter = NonLegacyI18n["global"]["d"];
 let i18nInstance: NonLegacyI18n;
 
 export function setupI18n() {
-  return (i18nInstance = createI18n({
+  i18nInstance = createI18n({
     legacy: false,
     locale: "en",
     fallbackLocale: "en",
@@ -37,7 +37,9 @@ export function setupI18n() {
         }
       }
     }
-  }));
+  });
+
+  return i18nInstance;
 }
 
 export function getLocale(): Locale {
