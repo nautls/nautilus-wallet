@@ -6,6 +6,7 @@ import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { differenceBy } from "es-toolkit";
 import { CheckCheckIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
@@ -34,6 +35,7 @@ const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
 const wallet = useWalletStore();
 const route = useRoute();
 
+const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const assetSelector = useTemplateRef("asset-selector");
@@ -45,14 +47,11 @@ const recipient = ref("");
 const v$ = useVuelidate(
   {
     recipient: {
-      required: helpers.withMessage("Please enter the recipient address.", required),
+      required: helpers.withMessage(t("send.emptyAddressError"), required),
       validErgoAddress
     },
     selected: {
-      required: helpers.withMessage(
-        "Please select at least one asset to send this transaction.",
-        required
-      )
+      required: helpers.withMessage(t("send.noSelectedAssetsError"), required)
     }
   },
   { selected, recipient }
@@ -230,7 +229,7 @@ function isFeeAsset(tokenId: string): boolean {
   <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-6 pb-2" @submit="sendTransaction">
       <FormField :validation="v$.recipient">
-        <Label for="recipient">Recipient Address</Label>
+        <Label for="recipient">{{ t("send.recipient") }}</Label>
         <Input
           id="recipient"
           v-model="recipient"
@@ -242,7 +241,7 @@ function isFeeAsset(tokenId: string): boolean {
       </FormField>
 
       <FormField>
-        <Label>Assets</Label>
+        <Label>{{ t("send.assets") }}</Label>
         <div class="grid gap-4">
           <AssetInput
             v-for="item in selected"
@@ -264,9 +263,9 @@ function isFeeAsset(tokenId: string): boolean {
             <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
               <CheckCheckIcon class="size-6 shrink-0" />
               <div class="flex flex-col items-start justify-center text-xs font-bold">
-                Add all assets
+                {{ t("send.addAllAssetsTitle") }}
                 <div class="text-muted-foreground font-normal">
-                  Add all assets to the sending list
+                  {{ t("send.addAllAssetsDescription") }}
                 </div>
               </div>
             </CommandItem>
@@ -278,6 +277,6 @@ function isFeeAsset(tokenId: string): boolean {
 
   <div class="space-y-4 p-6">
     <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
-    <Button type="submit" class="w-full" @click="sendTransaction">Preview</Button>
+    <Button type="submit" class="w-full" @click="sendTransaction">{{ t("common.send") }}</Button>
   </div>
 </template>

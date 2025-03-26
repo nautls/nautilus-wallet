@@ -2,7 +2,9 @@
   "common": {
     "cancel": "Cancel",
     "search": "Search",
-    "copy": "Copy"
+    "copy": "Copy",
+    "close": "Close",
+    "send": "Send"
   },
   "datetime": {
     "now": "just now",
@@ -53,8 +55,15 @@
     "openInExplorer": "Open in Explorer",
     "showQrCode": "Show QR code",
     "verifyOnLedger": "Verify on the Ledger device",
-
     "newAddressErrorTitle": "Address generation failed",
     "newAddressErrorFallbackMessage": "Unable to generate a new address."
+  },
+  "send": {
+    "recipient": "Recipient",
+    "assets": "Assets",
+    "emptyAddressError": "Please enter the recipient address.",
+    "noSelectedAssetsError": "Please select at least one asset to send this transaction.",
+    "addAllAssetsTitle": "Add all assets",
+    "addAllAssetsDescription": "Add all assets to the sending list"
   }
 }
