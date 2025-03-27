@@ -46,7 +46,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
       <DrawerFooter>
         <DrawerClose as-child>
-          <Button variant="outline" type="submit">Close</Button>
+          <Button variant="outline" type="submit">{{ t("common.close") }}</Button>
         </DrawerClose>
       </DrawerFooter>
     </DrawerContent>

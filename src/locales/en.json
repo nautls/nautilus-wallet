@@ -4,7 +4,8 @@
     "search": "Search",
     "copy": "Copy",
     "close": "Close",
-    "send": "Send"
+    "send": "Send",
+    "verify": "Verify"
   },
   "datetime": {
     "now": "just now",
@@ -17,6 +18,9 @@
     "weeks": "{count} week | {count} weeks",
     "months": "{count} month | {count} months",
     "years": "{count} year | {count} years"
+  },
+  "ledgerCommon": {
+    "locked": "Device is locked"
   },
   "nav": {
     "assets": "Assets",
@@ -62,12 +66,23 @@
     "title": "Address QR code",
     "description": "Scan this QR code to receive assets in {address}."
   },
+  "addressVerifyDialog": {
+    "title": "Address Verification",
+    "description": "Ensure that the displayed address and path match exactly what appears on your device.",
+    "addressLabel": "Address",
+    "pathLabel": "Path",
+    "confirmOnDevice": "Confirm address on your device",
+    "confirmed": "Confirmed",
+    "notConfirmed": "Not confirmed",
+    "verificationErrorTitle": "Verification failed",
+    "unknownVerificationError": "An unknown error occurred while verifying the address."
+  },
   "send": {
     "recipient": "Recipient",
     "assets": "Assets",
     "emptyAddressError": "Please enter the recipient address.",
     "noSelectedAssetsError": "Please select at least one asset to send this transaction.",
     "addAllAssetsTitle": "Add all assets",
-    "addAllAssetsDescription": "Add all assets to the sending list"
+    "addAllAssetsDescription": "Add all assets to the sending list."
   }
 }
