@@ -100,24 +100,24 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 <template>
   <Drawer v-model:open="opened" :dismissible="!loading" @update:open="handleOpenUpdates">
     <DrawerContent :dismissible="!loading">
-      <DrawerHeader>
+      <DrawerHeader v-once>
         <DrawerTitle>{{ t("addressVerifyDialog.title") }}</DrawerTitle>
         <DrawerDescription>{{ t("addressVerifyDialog.description") }} ></DrawerDescription>
       </DrawerHeader>
 
-      <Alert>
+      <Alert v-once>
         <AlertTitle>{{ t("addressVerifyDialog.addressLabel") }}</AlertTitle>
         <AlertDescription class="break-all">{{ address.script }}</AlertDescription>
       </Alert>
 
-      <Alert>
+      <Alert v-once>
         <AlertTitle>{{ t("addressVerifyDialog.pathLabel") }}</AlertTitle>
         <AlertDescription class="break-all">{{ path }}</AlertDescription>
       </Alert>
 
       <LedgerDevice ref="ledger-device" />
 
-      <DrawerFooter class="flex flex-row gap-4">
+      <DrawerFooter class="flex flex-row gap-4" v-once>
         <DrawerClose as-child>
           <Button class="w-full" variant="outline" :disabled="loading">{{
             t("common.close")

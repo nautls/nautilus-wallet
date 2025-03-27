@@ -34,7 +34,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
 <template>
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
-    <DrawerContent>
+    <DrawerContent v-once>
       <DrawerHeader>
         <DrawerTitle>{{ t("addressQrCodeDialog.title") }}</DrawerTitle>
         <DrawerDescription class="break-all">
