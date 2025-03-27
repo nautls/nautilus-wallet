@@ -4,6 +4,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance } from "@/stores/walletStore";
@@ -61,6 +62,7 @@ const {
 const app = useAppStore();
 const assets = useAssetsStore();
 const format = useFormat();
+const { t } = useI18n();
 
 const isHovered = ref(false);
 const isDenom = ref(false);
@@ -158,12 +160,15 @@ const v$ = useVuelidate(
     balance: {
       minValue: helpers.withMessage(
         ({ $params }) =>
-          `You need at least ${convert($params.min, "auto")} ${baseCurrencyName.value} to send this transaction`,
+          t("numericValidations.minNamedAsset", {
+            min: $params.min,
+            asset: baseCurrencyName.value
+          }),
         bigNumberMinValue(convert(minRequired.value, "auto"))
       )
     },
     internalValue: {
-      required: helpers.withMessage("Please enter an amount.", required),
+      required: helpers.withMessage(t("numericValidations.required"), required),
       minValue: bigNumberMinValue(convert(props.minAmount, "auto") || bn(0)),
       maxValue: bigNumberMaxValue(available.value)
     }
@@ -300,7 +305,9 @@ function tokenRate(tokenId: string): number {
             <span>{{ formattedDenom }} {{ denomCurrencyName }}</span>
             <ArrowDownUpIcon class="size-3"
           /></Button>
-          <span v-else :class="disabled && 'opacity-50'">No conversion rate</span>
+          <span v-else :class="disabled && 'opacity-50'">{{
+            t("assetInput.noConversionRate")
+          }}</span>
         </div>
 
         <template v-if="props.asset.balance.isPositive()">

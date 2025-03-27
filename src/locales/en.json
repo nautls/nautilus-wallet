@@ -5,7 +5,8 @@
     "copy": "Copy",
     "close": "Close",
     "send": "Send",
-    "verify": "Verify"
+    "verify": "Verify",
+    "tokenId": "Token ID"
   },
   "datetime": {
     "now": "just now",
@@ -41,6 +42,11 @@
     "totalBalance": "Wallet balance",
     "tokensTitle": "Tokens",
     "collectiblesTitle": "Collectibles"
+  },
+  "assetInfoDialog": {
+    "emissionAmount": "Emission Amount",
+    "mintTxId": "Mint TXID",
+    "additionalMetadata": "Additional Metadata"
   },
   "history": {
     "txTitle": "Transaction {txId}",
@@ -84,5 +90,12 @@
     "noSelectedAssetsError": "Please select at least one asset to send this transaction.",
     "addAllAssetsTitle": "Add all assets",
     "addAllAssetsDescription": "Add all assets to the sending list."
+  },
+  "numericValidations": {
+    "minNamedAsset": "You need at least {min} {asset} to send this transaction.",
+    "required": "Please enter an amount."
+  },
+  "assetInput": {
+    "noConversionRate": "No conversion rate"
   }
 }
