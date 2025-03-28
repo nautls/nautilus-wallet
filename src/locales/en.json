@@ -6,7 +6,8 @@
     "close": "Close",
     "send": "Send",
     "verify": "Verify",
-    "tokenId": "Token ID"
+    "tokenId": "Token ID",
+    "fee": "Fee"
   },
   "datetime": {
     "now": "just now",
@@ -97,5 +98,12 @@
   },
   "assetInput": {
     "noConversionRate": "No conversion rate"
+  },
+  "transactionEntry": {
+    "newTokenTitle": "New Token",
+    "newTokenDescription": "This token will be minted in this transaction."
+  },
+  "transactionFeeConfig": {
+    "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction."
   }
 }

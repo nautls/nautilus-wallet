@@ -7,6 +7,7 @@ import { helpers } from "@vuelidate/validators";
 import { BigNumber } from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
 import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -45,6 +46,7 @@ const format = useFormat();
 const appStore = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<Props>(), {
   includeMinAmountPerBox: 0,
@@ -93,7 +95,10 @@ const v$ = useVuelidate(
     feeAmount: {
       minValue: helpers.withMessage(
         ({ $params }) =>
-          `You need to pay a minimum fee of ${$params.min} ${props.modelValue.assetInfo?.name} to send this transaction`,
+          t("transactionFeeConfig.minFeeError", {
+            min: $params.min,
+            name: props.modelValue.assetInfo?.name
+          }),
         bigNumberMinValue(cachedMinRequired.value)
       )
     }
@@ -248,7 +253,7 @@ function emitSelected() {
       <div class="flex grow gap-2">
         <div class="flex grow flex-row items-start gap-2">
           <div class="flex h-full flex-row items-center gap-1">
-            <div class="font-bold">Fee</div>
+            <div class="font-bold" v-once>{{ t("common.fee") }}</div>
             <div>{{ feeAmount.toString() }}</div>
 
             <TooltipProvider :delay-duration="100">
@@ -273,7 +278,7 @@ function emitSelected() {
                 variant="secondary"
                 class="disabled:opacity-100"
               >
-                <asset-icon
+                <AssetIcon
                   class="size-4"
                   :token-id="intSelected.tokenId"
                   :type="intSelected.metadata?.type"

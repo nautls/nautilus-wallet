@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
 import { ArrowDownIcon, MilestoneIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetSignIcon, AssetSignIconVariants } from "@/components/asset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const format = useFormat();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -81,9 +83,9 @@ const format = useFormat();
                     <TooltipTrigger class="text-success inline align-middle">
                       <MilestoneIcon class="size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent class="w-48 px-3 py-2 text-center">
-                      <p class="font-semibold">New Token</p>
-                      <p class="text-xs">This token will be minted in this transaction.</p>
+                    <TooltipContent class="w-48 px-3 py-2 text-center" v-once>
+                      <p class="font-semibold">{{ t("transactionEntry.newTokenTitle") }}</p>
+                      <p class="text-xs">{{ t("transactionEntry.newTokenDescription") }}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
