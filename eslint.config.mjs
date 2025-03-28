@@ -6,7 +6,6 @@ import vuePlugin from "eslint-plugin-vue";
 import tsPlugin from "typescript-eslint";
 import vueParser from "vue-eslint-parser";
 
-/** @type {import('@typescript-eslint/utils').TSESLint.FlatConfig.ConfigFile} */
 export default [
   {
     ignores: ["**/node_modules", "**/dist", "**/coverage", "**/docs", "src/components/ui"]

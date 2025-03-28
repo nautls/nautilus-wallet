@@ -33,7 +33,7 @@ export async function fetchBoxes(
     if (unconfirmed.length > 0) boxes = unionBy(boxes, unconfirmed, (b) => b.boxId);
   }
 
-  return sortBy(boxes, (x) => x.creationHeight).reverse();
+  return sortBy(boxes, [(x) => x.creationHeight]).reverse();
 }
 
 async function getAllAddresses(walletId: number): Promise<string[]> {
