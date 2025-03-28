@@ -151,7 +151,7 @@ async function toggleViewMode() {
             wallets.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
         "
       >
-        <CommandInput placeholder="Search..." />
+        <CommandInput :placeholder="t('common.search')" />
         <CommandEmpty>{{ t("walletSwitcher.empty") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
@@ -201,6 +201,7 @@ async function toggleViewMode() {
               class="gap-2"
               value="add-wallet"
               @select.prevent="goToAndClose('add-wallet')"
+              v-once
             >
               <PlusCircleIcon class="h-5 w-5 shrink-0" />
               {{ t("mainMenu.newWallet") }}
@@ -210,6 +211,7 @@ async function toggleViewMode() {
               class="gap-2"
               value="settings"
               @select.prevent="goToAndClose('wallet-settings')"
+              v-once
             >
               <SettingsIcon class="h-5 w-5 shrink-0" />
               {{ t("mainMenu.settings") }}
@@ -219,6 +221,7 @@ async function toggleViewMode() {
               class="gap-2"
               value="about"
               @select.prevent="goToAndClose('about-nautilus')"
+              v-once
             >
               <InfoIcon class="h-5 w-5 shrink-0" />
               {{ t("mainMenu.about") }}

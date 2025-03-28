@@ -33,6 +33,11 @@
     "wrongPasswordErrorTitle": "Wrong password",
     "wrongPasswordErrorDescription": "Please enter the correct spending password to sign this {object}."
   },
+  "walletType": {
+    "standard": "Standard",
+    "readOnly": "Read-only",
+    "ledger": "Ledger"
+  },
   "nav": {
     "assets": "Assets",
     "history": "History",
