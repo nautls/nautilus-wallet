@@ -7,7 +7,10 @@
     "send": "Send",
     "verify": "Verify",
     "tokenId": "Token ID",
-    "fee": "Fee"
+    "fee": "Fee",
+    "tryAgain": "Try again",
+    "sign": "Sign",
+    "openInExplorer": "Open in explorer"
   },
   "datetime": {
     "now": "just now",
@@ -23,6 +26,12 @@
   },
   "ledgerCommon": {
     "locked": "Device is locked"
+  },
+  "prover": {
+    "spendingPassword": "Spending password",
+    "emptyProofError": "Prover returned no signed data.",
+    "wrongPasswordErrorTitle": "Wrong password",
+    "wrongPasswordErrorDescription": "Please enter the correct spending password to sign this {object}."
   },
   "nav": {
     "assets": "Assets",
@@ -63,7 +72,6 @@
     "filterAll": "All",
     "filterActive": "Active",
     "filterUnused": "Unused",
-    "openInExplorer": "Open in Explorer",
     "showQrCode": "Show QR code",
     "verifyOnLedger": "Verify on the Ledger device",
     "newAddressErrorTitle": "Address generation failed",
@@ -92,9 +100,10 @@
     "addAllAssetsTitle": "Add all assets",
     "addAllAssetsDescription": "Add all assets to the sending list."
   },
-  "numericValidations": {
+  "validations": {
     "minNamedAsset": "You need at least {min} {asset} to send this transaction.",
-    "required": "Please enter an amount."
+    "requiredAmount": "Please enter an amount.",
+    "requiredPassword": "Please enter your spending password."
   },
   "assetInput": {
     "noConversionRate": "No conversion rate"
@@ -105,5 +114,31 @@
   },
   "transactionFeeConfig": {
     "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction."
+  },
+  "transactionSign": {
+    "babelFeeSwap": "Babel Fee swap",
+    "sendingToYourAddress": "Sending to your address",
+    "sendingToContract": "Sending to contract",
+    "sendingToScriptHash": "Sending to Script Hash",
+    "sendingToExternalAddress": "Sending to external address",
+    "broadcastErrorTitle": "Transaction broadcast failed",
+    "burningTitle": "Burning",
+    "burningDescription": "The assets listed below will be lost. Only continue if you know exactly what are you doing.",
+    "burningConfirm": "Burn tokens permanently",
+    "totalOutput": "Total assets leaving your wallet",
+    "totalInput": "Total assets entering your wallet",
+    "details": "Transaction details",
+    "scriptHash": "Script Hash",
+    "networkFee": "Network fee",
+    "readonlyWallet": "Read-only wallet",
+    "unableToSign": "This wallet can't sign transactions."
+  },
+  "transactionSignDialog": {
+    "title": "Transaction Review",
+    "description": "Review the transaction before signing.",
+    "buildErrorTitle": "Transaction build failed",
+    "successTitle": "Transaction sent!",
+    "successDescription": "Your transaction has been successfully signed and sent.",
+    "signErrorTitle": "Transaction signing failed"
   }
 }

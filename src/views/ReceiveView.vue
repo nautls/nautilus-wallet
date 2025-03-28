@@ -167,7 +167,7 @@ function openExplorer(address: string | undefined) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-52 hyphens-auto">
-                    {{ t("receive.openInExplorer") }}
+                    {{ t("common.openInExplorer") }}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

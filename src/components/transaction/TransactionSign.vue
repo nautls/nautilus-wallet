@@ -10,6 +10,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import { AlertCircleIcon, Loader2Icon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -61,6 +62,8 @@ const assets = useAssetsStore();
 const format = useFormat();
 
 const { toast } = useToast();
+const { t } = useI18n();
+
 const pwdInput = useTemplateRef("pwd-input");
 const ledgerDevice = useTemplateRef("ledger-device");
 
@@ -89,16 +92,16 @@ const parsedTx = computed((): TransactionInterpreter | undefined => {
 
 function getOutputTitle(output: OutputInterpreter): string {
   if (output.isBabelSwap) {
-    return "Babel Fee Swap";
+    return t("transactionSign.babelFeeSwap");
   } else if (output.isReceiving) {
-    return "Sending to Your Address";
+    return t("transactionSign.sendingToYourAddress");
   } else if (output.receiverAddressType === AddressType.P2S) {
-    return "Sending to Contract";
+    return t("transactionSign.sendingToContract");
   } else if (output.receiverAddressType === AddressType.P2SH) {
-    return "Sending to Script Hash";
+    return t("transactionSign.sendingToScriptHash");
+  } else {
+    return t("transactionSign.sendingToExternalAddress");
   }
-
-  return "Sending to External Address";
 }
 
 function isP2S(output: OutputInterpreter): boolean {
@@ -126,7 +129,7 @@ async function sign() {
       stateCallback: ledgerDevice.value?.setState
     });
 
-    if (!signed) throw new Error("Prover returned no signed data.");
+    if (!signed) throw new Error(t("prover.emptyProofError"));
 
     if (props.broadcast && !Array.isArray(signed) /* only broadcast full transactions */) {
       const txId = await broadcastTransaction(signed);
@@ -141,9 +144,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: "Wrong password!",
+        title: t("prover.wrongPasswordErrorTitle"),
         variant: "destructive",
-        description: "Please enter the correct spending password to sign this transaction."
+        description: t("prover.wrongPasswordErrorDescription", { object: "transaction" })
       });
       nextTick(() => pwdInput.value?.input?.$el.focus());
 
@@ -156,7 +159,7 @@ async function sign() {
         e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
         e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
       ) {
-        ledgerDevice.value?.setState({ label: "Device is locked", type: "locked" });
+        ledgerDevice.value?.setState({ label: t("ledgerCommon.locked"), type: "locked" });
         return;
       }
     }
@@ -176,16 +179,16 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
     return result.transactionId;
   } catch (e) {
     toast({
-      title: "Transaction broadcast failed",
+      title: t("transactionSign.broadcastErrorTitle"),
       description: typeof e === "string" ? e : (e as Error).message,
       variant: "destructive",
       action: h(
         ToastAction,
         {
           onClick: () => broadcastTransaction(signedTransaction, true),
-          altText: "Try again"
+          altText: t("common.tryAgain")
         },
-        { default: () => "Try again" }
+        { default: () => t("common.tryAgain") }
       )
     });
   } finally {
@@ -197,7 +200,7 @@ const v$ = useVuelidate(
   computed(() => ({
     password: {
       required: helpers.withMessage(
-        "Please enter your spending password.",
+        t("validations.requiredPassword"),
         requiredUnless(isLedger.value)
       )
     }
@@ -220,11 +223,10 @@ const v$ = useVuelidate(
           type="burn"
           variant="destructive"
         >
-          <p>Burning</p>
+          <p v-once>{{ t("transactionSign.burningTitle") }}</p>
           <template #subheader>
-            <span class="text-destructive-foreground/80">
-              The assets listed below will be lost. Only continue if you know exactly what are you
-              doing.
+            <span class="text-destructive-foreground/80" v-once>
+              {{ t("transactionSign.burningDescription") }}
             </span>
           </template>
         </TransactionEntry>
@@ -233,18 +235,20 @@ const v$ = useVuelidate(
           v-if="parsedTx?.totalLeaving?.length"
           :assets="parsedTx.totalLeaving"
           type="negative"
+          v-once
         >
-          Total assets <strong>leaving</strong> your wallet
+          {{ t("transactionSign.totalOutput") }}
         </TransactionEntry>
         <TransactionEntry
           v-if="parsedTx?.totalIncoming?.length"
           :assets="parsedTx.totalIncoming"
           type="positive"
+          v-once
         >
-          Total assets <strong>incoming</strong> to your wallet
+          {{ t("transactionSign.totalInput") }}
         </TransactionEntry>
 
-        <Separator label="Transaction details" />
+        <Separator :label="t('transactionSign.details')" />
 
         <TransactionEntry
           v-for="(output, index) in parsedTx.sending"
@@ -267,15 +271,17 @@ const v$ = useVuelidate(
                 />
               </p>
               <p v-if="isLedger && isP2S(output)">
-                <span class="font-sans font-semibold">Script Hash:</span>
+                <span class="font-sans font-semibold" v-once
+                  >{{ t("transactionSign.scriptHash") }}:</span
+                >
                 {{ output.scriptHash }}
               </p>
             </div>
           </template>
         </TransactionEntry>
 
-        <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative">
-          Network Fee
+        <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative" v-once>
+          {{ t("transactionSign.networkFee") }}
         </TransactionEntry>
 
         <JsonViewer v-if="app.settings.devMode" :data="props.transaction" :deep="1" />
@@ -289,15 +295,16 @@ const v$ = useVuelidate(
       <label
         for="burn"
         class="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        v-once
       >
-        Burn tokens permanently
+        {{ t("transactionSign.burningConfirm") }}
       </label>
     </div>
 
-    <Alert v-if="isReadonly" variant="destructive" class="space-x-2">
+    <Alert v-if="isReadonly" variant="destructive" class="space-x-2" v-once>
       <AlertCircleIcon class="size-5" />
-      <AlertTitle>Read-only wallet</AlertTitle>
-      <AlertDescription>This wallet can't sign transactions.</AlertDescription>
+      <AlertTitle>{{ t("transactionSign.readonlyWallet") }}</AlertTitle>
+      <AlertDescription>{{ t("transactionSign.unableToSign") }}</AlertDescription>
     </Alert>
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
@@ -307,7 +314,7 @@ const v$ = useVuelidate(
         <PasswordInput
           ref="pwd-input"
           v-model="password"
-          placeholder="Spending password"
+          :placeholder="t('prover.spendingPassword')"
           :disabled="loading || signing || !canSign"
           class="w-full"
           @blur="v$.password.$touch()"
@@ -321,11 +328,12 @@ const v$ = useVuelidate(
         variant="outline"
         :disabled="loading || signing"
         @click="emit('refused')"
-        >Cancel</Button
+        v-once
+        >{{ t("common.cancel") }}</Button
       >
       <Button class="w-full" :disabled="loading || signing || !canSign" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
-        <template v-else>Sign</template>
+        <template v-else>{{ t("common.sign") }}</template>
       </Button>
     </div>
   </div>
