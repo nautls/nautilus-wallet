@@ -24,8 +24,12 @@
     "months": "{count} month | {count} months",
     "years": "{count} year | {count} years"
   },
-  "ledgerCommon": {
-    "locked": "Device is locked"
+  "device": {
+    "isLocked": "Device is locked",
+    "connected": "Connected",
+    "ready": "Ready",
+    "connectionError": "Connection error",
+    "reconnecting": "Reconnecting..."
   },
   "prover": {
     "spendingPassword": "Spending password",
@@ -145,5 +149,15 @@
     "successTitle": "Transaction sent!",
     "successDescription": "Your transaction has been successfully signed and sent.",
     "signErrorTitle": "Transaction signing failed"
+  },
+  "ledgerDevice": {
+    "waitingAppClose": "Waiting for the app to be closed",
+    "confirmAppOpen": "Confirm opening the Ergo app",
+    "waitingAppReady": "Waiting for the app to be ready",
+    "userDeniedOpenApp": "Ergo app opening denied by the user",
+    "openingApp": "Error opening the Ergo app",
+    "appId": "App ID: {appId}",
+    "deviceNotFoundErrorTitle": "Device not found!",
+    "deviceNotFoundErrorDescription": "Ensure your device is properly connected and unlocked."
   }
 }

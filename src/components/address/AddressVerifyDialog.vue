@@ -69,7 +69,7 @@ async function verify() {
         e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
         e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
       ) {
-        ledgerDevice.value?.setState({ label: t("ledgerCommon.locked"), type: "locked" });
+        ledgerDevice.value?.setState({ label: t("device.isLocked"), type: "locked" });
         return;
       }
     }

@@ -10,6 +10,7 @@ import {
   LockIcon,
   XIcon
 } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/toast";
 import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
@@ -44,6 +45,7 @@ const state = reactive<ProverState>({
 });
 
 const { toast } = useToast();
+const { t } = useI18n();
 
 onMounted(async () => {
   navigator.usb.addEventListener("connect", onDeviceConnect);
@@ -73,26 +75,26 @@ async function onDeviceConnect({ device }: DeviceConnectionEvent) {
     setState({
       model: app.device.transport.deviceModel?.id,
       connected: true,
-      label: "Connected",
+      label: t("device.connected"),
       type: "ready"
     });
 
     const appInfo = await app.device.getCurrentAppInfo();
     if (appInfo.name === "Ergo") {
-      setState({ label: "Ready", type: "ready" });
+      setState({ label: t("device.ready"), type: "ready" });
     }
   } catch (e) {
     if (
       e instanceof DeviceError &&
       (e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE || e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET)
     ) {
-      setState({ label: "Device is locked", type: "locked" });
+      setState({ label: t("device.isLocked"), type: "locked" });
       return;
     }
 
     setState({
       type: "error",
-      label: "Connection error",
+      label: t("device.connectionError"),
       additionalInfo: extractErrorMessage(e)
     });
   }
@@ -102,7 +104,12 @@ function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
   if (!device || state.busy || device.vendorId !== LEDGER_VENDOR_ID) return;
 
   if (state.connected) {
-    setState({ connected: false, label: "Reconnecting...", appId: undefined, type: "loading" });
+    setState({
+      connected: false,
+      label: t("device.reconnecting"),
+      appId: undefined,
+      type: "loading"
+    });
   } else {
     setState({ connected: false, label: undefined, type: undefined });
   }
@@ -118,19 +125,19 @@ async function openErgoApp(): Promise<boolean> {
 
       if (currentApp.name !== "BOLOS") {
         await app.device.closeApp();
-        setState({ type: "loading", label: "Waiting for the app to be closed" });
+        setState({ type: "loading", label: t("ledgerDevice.waitingAppClose") });
         await sleep(1000); // Wait for the app to be fully closed
       }
 
-      setState({ type: undefined, label: "Confirm opening the Ergo app" });
+      setState({ type: undefined, label: t("ledgerDevice.confirmAppOpen") });
       // device.closeApp() command disconnects the device for some reason,
       // so we need to create a new instance to re-open it
       await new ErgoLedgerApp(await TransportWebUSB.create()).device.openApp("Ergo");
-      setState({ type: "loading", label: "Waiting for the app to be ready" });
+      setState({ type: "loading", label: t("ledgerDevice.waitingAppReady") });
       await sleep(1000); // Wait for the app to be fully opened
     }
 
-    setState({ type: "ready", label: "Ready" });
+    setState({ type: "ready", label: t("device.ready") });
     return true;
   } catch (e) {
     if (e instanceof DeviceError) {
@@ -138,17 +145,17 @@ async function openErgoApp(): Promise<boolean> {
         e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
         e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
       ) {
-        setState({ type: "locked", label: "Device is locked" });
+        setState({ type: "locked", label: t("device.isLocked") });
         return false;
       } else if (e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
-        setState({ type: "error", label: "Ergo app opening denied by the user" });
+        setState({ type: "error", label: t("ledgerDevice.userDeniedOpenApp") });
         return false;
       }
     }
 
     setState({
       type: "error",
-      label: "Error opening the Ergo app",
+      label: t("ledgerDevice.openingApp"),
       additionalInfo: extractErrorMessage(e)
     });
 
@@ -199,15 +206,17 @@ defineExpose({ setState, openErgoApp });
           <p v-if="state.label" class="text-[0.70rem] font-semibold opacity-90">
             {{ state.label }}
           </p>
-          <small v-if="state.appId" class="shrink opacity-70">App ID: {{ appIdHex }}</small>
+          <small v-if="state.appId" class="shrink opacity-70">{{
+            t("ledgerDevice.appId", { appId: appIdHex })
+          }}</small>
         </div>
       </div>
     </div>
 
     <Alert v-else class="space-x-2">
       <CircleAlertIcon />
-      <AlertTitle>Device not found!</AlertTitle>
-      <AlertDescription> Ensure your device is properly connected and unlocked. </AlertDescription>
+      <AlertTitle>{{ t("ledgerDevice.deviceNotFoundErrorTitle") }}</AlertTitle>
+      <AlertDescription>{{ t("ledgerDevice.deviceNotFoundErrorDescription") }}</AlertDescription>
     </Alert>
   </div>
 </template>
