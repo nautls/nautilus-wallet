@@ -39,13 +39,18 @@ export function getLocale(): Locale {
   return _globalInstance.locale.value as Locale;
 }
 
-export async function setLocale(locale: Locale): Promise<void> {
-  if (!(locale in _globalInstance.messages)) {
-    await loadLocale(locale);
+export async function setLocale(locale: string): Promise<void> {
+  const lang =
+    SUPPORTED_LOCALES.find((l) => l === locale) ?? // tries to match the exact locale
+    SUPPORTED_LOCALES.find((l) => locale.startsWith(l)) ?? // tries to match the locale prefix
+    "en"; // default to English
+
+  if (!(lang in _globalInstance.messages)) {
+    await loadLocale(lang);
   }
 
-  _globalInstance.locale.value = locale;
-  document.querySelector("html")?.setAttribute("lang", locale);
+  _globalInstance.locale.value = lang;
+  document.querySelector("html")?.setAttribute("lang", lang);
 }
 
 async function loadLocale(locale: Locale) {
