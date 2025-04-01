@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "@/components/ui/link";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { SUPPORTED_LOCALES } from "@/boot/i18n";
+import { setLocale, SUPPORTED_LOCALES } from "@/boot/i18n";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   MIN_SERVER_VERSION,
@@ -80,13 +80,15 @@ watch(graphQLServer, async () => {
 });
 
 function selectCurrency(currency: string) {
-  app.settings.conversionCurrency = currency;
   currencyState.isPopoverOpen = false;
+  app.settings.conversionCurrency = currency;
 }
 
-function selectLocale(locale: Locale | "auto") {
-  app.settings.locale = locale;
+async function selectLocale(locale: Locale | "auto") {
   localeState.isPopoverOpen = false;
+
+  app.settings.locale = locale;
+  setLocale(locale);
 }
 
 function computedBlacklist(list: string) {
