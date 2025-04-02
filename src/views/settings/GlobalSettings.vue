@@ -335,7 +335,7 @@ const v$ = useVuelidate(
           Experimental <TriangleAlertIcon class="text-warning size-3" />
         </div>
 
-        <div class="text-xs font-normal">
+        <div class="text-xs font-normal hyphens-auto">
           The features under this section are marked as experimental, which means they're not
           stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a
           work in progress, so expect some rough edges.
@@ -345,7 +345,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="0-conf" class="flex flex-col gap-1"
           >Enable 0-conf
-          <div class="text-muted-foreground text-xs font-normal">
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             0-conf, short for zero-confirmations, lets you to spend assets without waiting for
             confirmations. It's fast but carries a risk of being double-spent until confirmed by the
             blockchain.
