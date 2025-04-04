@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
@@ -19,7 +19,7 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import StorageRentAlert from "./components/StorageRentAlert.vue";
+import WalletAlerts from "./components/WalletAlerts.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
@@ -96,7 +96,7 @@ function openAssetInfoDialog(tokenId: string) {
         <p class="text-muted-foreground text-sm">{{ t("assets.totalBalance") }}</p>
       </div>
 
-      <StorageRentAlert />
+      <WalletAlerts />
 
       <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
         <div class="flex flex-row">
