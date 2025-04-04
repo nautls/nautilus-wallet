@@ -10,7 +10,10 @@
     "fee": "Fee",
     "tryAgain": "Try again",
     "sign": "Sign",
-    "openInExplorer": "Open in explorer"
+    "openInExplorer": "Open in explorer",
+    "optimize": "Optimize",
+    "consolidate": "Consolidate",
+    "learnMore": "Learn more"
   },
   "datetime": {
     "now": "just now",
@@ -159,5 +162,11 @@
     "appId": "App ID: {appId}",
     "deviceNotFoundErrorTitle": "Device not found!",
     "deviceNotFoundErrorDescription": "Ensure your device is properly connected and unlocked."
+  },
+  "walletAlerts": {
+    "demurrageTitle": "You may soon incur demurrage",
+    "demurrageDescription": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
+    "fragmentationTitle": "Your wallet looks fragmented",
+    "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
   }
 }
