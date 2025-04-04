@@ -1,5 +1,5 @@
 import { ValidationRuleWithParams } from "@vuelidate/core";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { useFormat } from "../composables/useFormat";
 
 const format = useFormat();

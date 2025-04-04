@@ -1,7 +1,7 @@
 import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
 import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
 import { CherryPickSelectionStrategy, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { useAppStore } from "@/stores/appStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";

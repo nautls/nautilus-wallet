@@ -15,7 +15,7 @@ import { BoxSource } from "@fleet-sdk/blockchain-providers";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import { pausableWatch, useIntervalFn } from "@vueuse/core";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import {
   ArrowDownIcon,
   ArrowDownUpIcon,

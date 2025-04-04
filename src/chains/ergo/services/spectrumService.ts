@@ -1,4 +1,4 @@
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { uniqWith } from "es-toolkit";
 import { bn } from "@/common/bigNumber";
 import { safeFetch } from "@/common/networking";

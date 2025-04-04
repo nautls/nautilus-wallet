@@ -3,7 +3,7 @@ import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { differenceBy } from "es-toolkit";
 import { CheckCheckIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";

@@ -4,7 +4,7 @@ import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/bab
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
 import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";

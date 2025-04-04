@@ -13,6 +13,9 @@ patchedDependencies:
   '@types/cleave.js@1.4.12':
     hash: fe7e1acc309e7fc6ae269dc6e383d767327d6390371e5378bfb54f7beb242eac
     path: patches/@types__cleave.js@1.4.12.patch
+  bignumber.js@9.2.0:
+    hash: 1050951f7b8a8c4eaa7fef842987c7c39c8481a1c8031fe1e69b99b0e8d0753c
+    path: patches/bignumber.js@9.2.0.patch
   webext-bridge@6.0.1:
     hash: 86da7c947ded48ad4c5c8fef87d0b0edb39d166c5395baff65224f1a6c16838f
     path: patches/webext-bridge@6.0.1.patch
@@ -62,7 +65,7 @@ importers:
         version: 13.0.0(vue@3.5.13(typescript@5.8.2))
       bignumber.js:
         specifier: ^9.2.0
-        version: 9.2.0
+        version: 9.2.0(patch_hash=1050951f7b8a8c4eaa7fef842987c7c39c8481a1c8031fe1e69b99b0e8d0753c)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -5533,7 +5536,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  bignumber.js@9.2.0: {}
+  bignumber.js@9.2.0(patch_hash=1050951f7b8a8c4eaa7fef842987c7c39c8481a1c8031fe1e69b99b0e8d0753c): {}
 
   bip32-path@0.4.2: {}
 

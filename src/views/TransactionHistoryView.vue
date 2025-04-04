@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
-import type { BigNumber } from "bignumber.js";
+import type BigNumber from "bignumber.js";
 import { CheckIcon, CircleIcon, ClockIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";

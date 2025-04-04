@@ -1,6 +1,6 @@
 import { BabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { EIP12UnsignedTransaction, TokenId } from "@fleet-sdk/common";
-import { BigNumber } from "bignumber.js";
+import type BigNumber from "bignumber.js";
 
 export enum AddressState {
   Used,

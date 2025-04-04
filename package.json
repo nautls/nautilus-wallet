@@ -102,7 +102,8 @@
   "pnpm": {
     "patchedDependencies": {
       "webext-bridge@6.0.1": "patches/webext-bridge@6.0.1.patch",
-      "@types/cleave.js@1.4.12": "patches/@types__cleave.js@1.4.12.patch"
+      "@types/cleave.js@1.4.12": "patches/@types__cleave.js@1.4.12.patch",
+      "bignumber.js@9.2.0": "patches/bignumber.js@9.2.0.patch"
     },
     "overrides": {
       "esbuild@<=0.24.2": ">=0.25.1",
