@@ -4,12 +4,14 @@ import { ImportIcon, WalletIcon } from "lucide-vue-next";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 const wallet = useWalletStore();
 const hasWallets = computed(() => wallet.id !== 0);
+const commitHash = import.meta.env.GIT_COMMIT_HASH;
 
 /**
  * Navigate to a route in a new tab
@@ -87,7 +89,7 @@ const routes = [
     </div>
   </div>
 
-  <div class="flex h-full flex-col justify-end gap-6 p-6">
+  <div class="flex h-full flex-col justify-end gap-4 p-6">
     <router-link
       v-for="route in routes"
       :key="route.path"
@@ -109,8 +111,21 @@ const routes = [
       </Button>
     </router-link>
 
-    <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()"
-      >Cancel</Button
-    >
+    <div class="grow"></div>
+
+    <div class="space-y-2">
+      <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()"
+        >Cancel</Button
+      >
+      <p class="font-xs text-muted-foreground px-16 text-center">
+        By proceeding, you agree to Nautilus'
+        <Link
+          external
+          class="text-nowrap text-blue-500/80"
+          :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
+          >Terms of Use</Link
+        >
+      </p>
+    </div>
   </div>
 </template>

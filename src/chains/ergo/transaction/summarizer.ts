@@ -4,7 +4,7 @@ import {
 } from "@fleet-sdk/blockchain-providers";
 import { utxoDiff } from "@fleet-sdk/common";
 import { FEE_CONTRACT } from "@fleet-sdk/core";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS } from "@/constants/ergo";
 import { ConfirmedTransactionSummary, UnconfirmedTransactionSummary } from "@/types/transactions";

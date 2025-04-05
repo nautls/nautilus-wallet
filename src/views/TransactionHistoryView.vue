@@ -2,8 +2,9 @@
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { BoxSummary, orderBy, uniqBy } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
-import type { BigNumber } from "bignumber.js";
+import type BigNumber from "bignumber.js";
 import { CheckIcon, CircleIcon, ClockIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
@@ -27,7 +28,7 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/builder";
 import { summarizeTransaction } from "@/chains/ergo/transaction/summarizer";
 import { bn, decimalize } from "@/common/bigNumber";
-import { DateFormatOptions, formatDate } from "@/common/dateFormat";
+import { useRelativeDateFormatter } from "@/common/dateFormat";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -37,9 +38,7 @@ import type {
   UnconfirmedTransactionSummary
 } from "@/types/transactions";
 
-const RELATIVE_DATE_FORMATTING: DateFormatOptions = {
-  maxRelativeTime: 1_000 * 60 * 60 * 24 * 25 // 25 days
-};
+const MAX_RELATIVE_TIME = 1_000 * 60 * 60 * 24 * 25; // 25 days
 
 const formatter = useFormat();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
@@ -49,6 +48,8 @@ const assets = useAssetsStore();
 const chain = useChainStore();
 const app = useAppStore();
 const pool = usePoolStore();
+const { t, d } = useI18n();
+const { rd } = useRelativeDateFormatter({ t, d, maxRelativeTime: MAX_RELATIVE_TIME });
 
 const confirmed = shallowRef<ConfirmedTransactionSummary[]>([]);
 const loaded = ref(false);
@@ -132,20 +133,20 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           <CardHeader class="gap-0.5">
             <CardTitle class="flex flex-row items-center justify-between">
               <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
-                Transaction {{ formatter.string.shorten(tx.transactionId, 7, "none") }}
+                {{
+                  t("history.txTitle", {
+                    txId: formatter.string.shorten(tx.transactionId, 7, "none")
+                  })
+                }}
               </Link>
-              <span class="text-xs font-normal">{{
-                formatDate(tx.timestamp, RELATIVE_DATE_FORMATTING)
-              }}</span>
+              <span class="text-xs font-normal">{{ rd(tx.timestamp) }}</span>
             </CardTitle>
             <CardDescription class="text-xs">
-              <div v-if="tx.confirmed">
-                {{ (chain.height - tx.height + 1).toLocaleString() }} confirmations
-                <CheckIcon class="text-success -ml-1 inline-flex h-3.5" />
-              </div>
-              <div v-else>
-                Pending
+              <div>
+                {{ t("history.txState", tx.confirmed ? chain.height - tx.height + 1 : 0) }}
+                <CheckIcon v-if="tx.confirmed" class="text-success -ml-1 inline-flex h-3.5" />
                 <CircleIcon
+                  v-else
                   class="fill-warning text-warning -ml-1 inline-flex h-3.5 animate-pulse"
                 />
               </div>
@@ -176,7 +177,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               variant="outline"
               @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
             >
-              Cancel
+              {{ t("common.cancel") }}
             </Button>
           </CardFooter>
         </Card>
@@ -209,7 +210,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           class="text-muted-foreground flex flex-col items-center gap-4 text-center text-sm"
         >
           <ClockIcon :size="48" class="stroke-[1.5px]" />
-          You have no transaction history yet.
+          {{ t("history.empty") }}
         </div>
 
         <Button
@@ -218,7 +219,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           variant="outline"
           @click="fetchConfirmedTransactions"
         >
-          Load more transactions...
+          {{ t("history.paginateAhead") }}
         </Button>
       </div>
     </Transition>
