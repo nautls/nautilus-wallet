@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ImportIcon, WalletIcon } from "lucide-vue-next";
+import { I18nT, useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,8 @@ import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 const wallet = useWalletStore();
+const { t } = useI18n();
+
 const hasWallets = computed(() => wallet.id !== 0);
 const commitHash = import.meta.env.GIT_COMMIT_HASH;
 
@@ -47,8 +50,8 @@ const routes = [
       component: WalletIcon,
       class: "stroke-[1px]"
     },
-    title: "Create a new wallet",
-    description: "Create a new Ergo Wallet"
+    title: t("addWalletIndexView.createTitle"),
+    description: t("addWalletIndexView.createDescription")
   },
   {
     path: "/add/hw/ledger",
@@ -56,8 +59,8 @@ const routes = [
       component: LedgerLogo,
       class: "p-1"
     },
-    title: "Connect a Ledger Wallet",
-    description: "Connect your Hardware Wallet"
+    title: t("addWalletIndexView.connectTitle"),
+    description: t("addWalletIndexView.connectDescription")
   },
   {
     path: "/add/import",
@@ -65,8 +68,8 @@ const routes = [
       component: ImportIcon,
       class: "stroke-[1px]"
     },
-    title: "Import a wallet",
-    description: "Import an existing Ergo Wallet"
+    title: t("addWalletIndexView.importTitle"),
+    description: t("addWalletIndexView.importDescription")
   }
 ];
 </script>
@@ -82,10 +85,10 @@ const routes = [
           class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
         />
       </div>
-      <div class="text-xl leading-tight font-semibold tracking-tight">
-        Welcome to Nautilus Wallet
+      <div class="text-xl leading-tight font-semibold tracking-tight" v-once>
+        {{ t("addWalletIndexView.title") }}
       </div>
-      <div class="text-muted-foreground text-sm">Choose an option to get started</div>
+      <div class="text-muted-foreground text-sm" v-once>{{ t("addWalletIndexView.subtitle") }}</div>
     </div>
   </div>
 
@@ -113,19 +116,24 @@ const routes = [
 
     <div class="grow"></div>
 
-    <div class="space-y-2">
-      <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()"
-        >Cancel</Button
+    <div class="space-y-2" v-once>
+      <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()">{{
+        t("common.cancel")
+      }}</Button>
+      <I18nT
+        keypath="addWalletIndexView.kyaAgreement"
+        tag="p"
+        class="font-xs text-muted-foreground px-16 text-center"
       >
-      <p class="font-xs text-muted-foreground px-16 text-center">
-        By proceeding, you agree to Nautilus'
-        <Link
-          external
-          class="text-nowrap text-blue-500/80"
-          :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
-          >Terms of Use</Link
-        >
-      </p>
+        <template #kya>
+          <Link
+            external
+            class="text-nowrap text-blue-500/80"
+            :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
+            >{{ t("addWalletIndexView.kya") }}</Link
+          >
+        </template>
+      </I18nT>
     </div>
   </div>
 </template>

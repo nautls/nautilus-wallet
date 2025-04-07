@@ -168,5 +168,17 @@
     "demurrageDescription": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
     "fragmentationTitle": "Your wallet looks fragmented",
     "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
+  },
+  "addWalletIndexView": {
+    "title": "Welcome to Nautilus Wallet",
+    "subtitle": "Choose an option to get started",
+    "kyaAgreement": "By proceeding, you agree to Nautilus' {kya}",
+    "kya": "Terms of Use",
+    "createTitle": "Create a new wallet",
+    "createDescription": "Create a new Ergo Wallet",
+    "connectTitle": "Connect a Ledger Wallet",
+    "connectDescription": "Connect your Hardware Wallet",
+    "importTitle": "Import a wallet",
+    "importDescription": "Import an existing wallet"
   }
 }
