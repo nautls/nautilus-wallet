@@ -1,15 +1,15 @@
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 import type { Composer, I18n, Locale } from "vue-i18n";
-import type EnglishMessages from "@/locales/en.json";
+import type EnglishMessages from "@/locales/en-US.json";
 
 // import en locale dynamically to avoid the following vite warning: "en.json
 // is dynamically imported by i18n.ts but also statically imported by i18n.ts,
 // dynamic import will not move module into another chunk."
-const en = await importLocale("en");
+const enUS = await importLocale("en-US");
 
 // Change the following line when adding more locales
-export const SUPPORTED_LOCALES = ["en", "pt"] as const;
+export const SUPPORTED_LOCALES = ["en-US", "pt-BR"] as const;
 
 type NonLegacyI18n = I18n<LocaleData, LocaleData, LocaleData, Locale, false>;
 type LocaleData = Record<string, unknown>;
@@ -23,9 +23,9 @@ let _globalInstance: Composer;
 export function setupI18n() {
   const i18n = createI18n({
     legacy: false,
-    locale: "en",
-    fallbackLocale: "en",
-    messages: { en },
+    locale: "en-US",
+    fallbackLocale: "en-US",
+    messages: { "en-US": enUS },
     datetimeFormats: {
       en: { long: { dateStyle: "long" }, short: { dateStyle: "short" } }
     }
@@ -40,10 +40,7 @@ export function getLocale(): Locale {
 }
 
 export async function setLocale(locale: string): Promise<void> {
-  const lang =
-    SUPPORTED_LOCALES.find((l) => l === locale) ?? // tries to match the exact locale
-    SUPPORTED_LOCALES.find((l) => locale.startsWith(l)) ?? // tries to match the locale prefix
-    "en"; // default to English
+  const lang = fallback(locale, SUPPORTED_LOCALES) as Locale;
 
   if (!(lang in _globalInstance.messages)) {
     await loadLocale(lang);
@@ -57,6 +54,21 @@ async function loadLocale(locale: Locale) {
   const messages = await importLocale(locale);
   _globalInstance.setLocaleMessage(locale, messages);
   return nextTick();
+}
+
+export function fallback(locale: string, availableLocales: readonly string[]): Locale {
+  let match = availableLocales.includes(locale)
+    ? locale
+    : availableLocales.find((a) => locale.startsWith(a));
+  if (match) return match as Locale;
+
+  const segments = locale.split("-");
+  if (segments.length) {
+    const language = segments[0] + "-";
+    match = availableLocales.find((a) => a.startsWith(language));
+  }
+
+  return (match ?? "en-US") as Locale;
 }
 
 async function importLocale(locale: Locale) {

@@ -51,7 +51,7 @@ const graphQLServer = ref(app.settings.graphQLServer);
 const nsfwBlacklist = computedBlacklist("nsfw");
 const scamBlacklist = computedBlacklist("scam");
 const currentLocale = computed(() =>
-  app.settings.locale === "auto" ? "Auto" : app.settings.locale.toUpperCase()
+  app.settings.locale === "auto" ? "Auto" : app.settings.locale
 );
 
 onMounted(async () => {
@@ -165,10 +165,7 @@ const v$ = useVuelidate(
                     class="justify-between gap-2 whitespace-nowrap"
                     @select="selectLocale('auto')"
                   >
-                    <div class="font-medium">
-                      Auto (<span class="uppercase">{{ locale }}</span
-                      >)
-                    </div>
+                    <div class="font-medium">Auto ({{ locale }})</div>
 
                     <CheckIcon
                       :class="
@@ -187,7 +184,7 @@ const v$ = useVuelidate(
                     :value="lang"
                     @select="selectLocale(lang)"
                   >
-                    <div class="uppercase">{{ lang }}</div>
+                    <div>{{ lang }}</div>
 
                     <CheckIcon
                       :class="
