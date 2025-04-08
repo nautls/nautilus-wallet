@@ -19,7 +19,6 @@ import { Form, FormField } from "@/components/ui/form";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { DefaultStepper, Step } from "@/components/ui/stepper";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
@@ -27,6 +26,7 @@ import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
+import { Step, Stepper, StepTitle } from "./components";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -46,12 +46,13 @@ const editableIndexes = ref<number[]>([]);
 
 const mnemonicWords = computed(() => mnemonicPhrase.value.split(" "));
 const mnemonicPhraseConfirm = computed(() => mnemonicWordsConfirm.value.join(" "));
-const nexButtonTitle = computed(() =>
+
+const nextButtonTitle = computed(() =>
   step.value === 1
     ? "Create a recovery phrase"
     : step.value === 2
       ? "I've saved these words"
-      : "Verify"
+      : "Confirm"
 );
 
 const infoRules = useVuelidate(
@@ -165,19 +166,23 @@ function newMnemonic() {
 const steps: Step[] = [
   {
     step: 1,
-    title: "Info",
+    title: "Basic info",
+    description: "This information will be used to identify and protect your wallet.",
     icon: FingerprintIcon,
     enabled: ref(true)
   },
   {
     step: 2,
-    title: "Secret",
+    title: "Recovery phrase",
+    description:
+      "These words are the keys to your wallet. Make sure you save them in a secure location.",
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   },
   {
     step: 3,
-    title: "Verify",
+    title: "Confirm your recovery phrase",
+    description: "Complete the missing parts of your recovery phrase.",
     icon: CheckIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }
@@ -185,9 +190,11 @@ const steps: Step[] = [
 </script>
 
 <template>
-  <DefaultStepper v-model="step" :steps="steps" class="py-2" />
+  <Stepper v-model="step" :steps="steps" />
 
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
+    <StepTitle :step="steps[step - 1]" />
+
     <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
@@ -250,13 +257,6 @@ const steps: Step[] = [
 
       <template v-if="step === 3">
         <FormField :validation="verificationRules.mnemonicPhraseConfirm">
-          <Label for="confirm-mnemonic" class="flex flex-col gap-1 pb-3"
-            >Confirm your recovery phrase
-            <span class="text-muted-foreground text-xs font-normal"
-              >Complete the missing parts of your recovery phrase.</span
-            ></Label
-          >
-
           <Mnemonic v-model:words="mnemonicWordsConfirm" :editable="editableIndexes" />
         </FormField>
       </template>
@@ -265,7 +265,7 @@ const steps: Step[] = [
     <div class="flex flex-row gap-4">
       <Button :disabled="loading" class="w-full items-center" @click="next">
         <template v-if="loading"><Loader2Icon class="animate-spin" />Creating wallet...</template>
-        <template v-else>{{ nexButtonTitle }}</template>
+        <template v-else>{{ nextButtonTitle }}</template>
       </Button>
     </div>
   </div>

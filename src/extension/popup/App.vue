@@ -23,11 +23,8 @@ useAppStore(); // Initialize app store to ensure it is loaded
         </Button>
 
         <div class="-ml-9 flex w-full flex-col text-center">
-          <div class="text-xl leading-tight font-semibold tracking-tight">
+          <div class="text-lg leading-tight font-semibold tracking-tight">
             {{ $route.meta.title }}
-          </div>
-          <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
-            {{ $route.meta.description }}
           </div>
         </div>
       </div>

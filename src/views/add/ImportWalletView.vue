@@ -19,8 +19,6 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { DefaultStepper, Step } from "@/components/ui/stepper";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
@@ -28,6 +26,7 @@ import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { WalletType } from "@/types/internal";
 import { validMnemonic, validPublicKey } from "@/validators";
+import { Step, Stepper, StepTitle } from "./components";
 
 const SUPPORTED_MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24]);
 
@@ -54,11 +53,11 @@ const xpk = ref("");
 
 const mnemonicPhrase = computed(() => mnemonicWords.value.join(" "));
 const isReadonly = computed(() => walletType.value === "readonly");
-const nexButtonTitle = computed(() => {
+const nextButtonTitle = computed(() => {
   if (step.value === 1) {
     return isReadonly.value ? "Insert a public key" : "Insert a recovery phrase";
   } else {
-    return "Import wallet";
+    return "Import";
   }
 });
 
@@ -126,7 +125,7 @@ async function next() {
     if (!valid) return;
   }
 
-  if (step.value < steps.length) {
+  if (step.value < steps.value.length) {
     step.value++;
     return;
   }
@@ -191,26 +190,32 @@ function onPaste(event: ClipboardEvent) {
   event.stopPropagation();
 }
 
-const steps: Step[] = [
+const steps = computed<Step[]>(() => [
   {
     step: 1,
-    title: "Info",
+    title: "Basic info",
+    description: "This information will be used to identify and protect your wallet.",
     icon: FingerprintIcon,
     enabled: ref(true)
   },
   {
     step: 2,
-    title: "Secret",
+    title: isReadonly.value ? "Wallet key" : "Wallet secret",
+    description: isReadonly.value
+      ? "Insert the Extended Public Key of your wallet."
+      : "Select the type of secret you want to use and fill it out.",
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }
-];
+]);
 </script>
 
 <template>
-  <DefaultStepper v-model="step" :steps="steps" class="py-2" />
+  <Stepper v-model="step" :steps="steps" />
 
   <div class="flex h-full flex-col gap-6 p-6 pt-4">
+    <StepTitle :step="steps[step - 1]" />
+
     <Form class="flex h-full grow flex-col justify-start gap-4" @paste="onPaste" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
@@ -240,8 +245,6 @@ const steps: Step[] = [
           </Select>
         </FormField>
 
-        <Separator class="my-2" />
-
         <FormField :validation="infoRules.password">
           <Label :disabled="isReadonly" for="password">Spending password</Label>
           <PasswordInput
@@ -269,10 +272,6 @@ const steps: Step[] = [
           <FormField :validation="xpkRules.xpk">
             <Label for="xpk">Extended public key</Label>
             <Textarea id="xpk" v-model="xpk" class="h-40" @blur="xpkRules.xpk.$touch()" />
-            <template #description>
-              Paste your extended public key here. This key allows viewing transaction history and
-              generating new addresses, but it cannot spend or move funds in any way.
-            </template>
           </FormField>
         </template>
 
@@ -303,7 +302,7 @@ const steps: Step[] = [
     <div class="flex flex-row gap-4">
       <Button :disabled="loading" class="w-full items-center" @click="next">
         <template v-if="loading"><Loader2Icon class="animate-spin" />Importing wallet...</template>
-        <template v-else>{{ nexButtonTitle }}</template>
+        <template v-else>{{ nextButtonTitle }}</template>
       </Button>
     </div>
   </div>
