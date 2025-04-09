@@ -10,6 +10,7 @@ import {
   Loader2Icon,
   RotateCwIcon
 } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -32,6 +33,7 @@ const app = useAppStore();
 const wallet = useWalletStore();
 const router = useRouter();
 const { toast } = useToast();
+const { t } = useI18n();
 
 const step = ref(1);
 const walletName = ref("");
@@ -49,27 +51,26 @@ const mnemonicPhraseConfirm = computed(() => mnemonicWordsConfirm.value.join(" "
 
 const nextButtonTitle = computed(() =>
   step.value === 1
-    ? "Create a recovery phrase"
+    ? t("createWalletView.createRecoveryPhrase")
     : step.value === 2
-      ? "I've saved these words"
-      : "Confirm"
+      ? t("createWalletView.iHaveSavedTheseWords")
+      : t("common.confirm")
 );
 
 const infoRules = useVuelidate(
   {
-    walletName: { required: helpers.withMessage("Wallet name is required.", required) },
+    walletName: {
+      required: helpers.withMessage(t("addWalletCommon.requiredWalletName"), required)
+    },
     password: {
-      required: helpers.withMessage("Spending password is required.", required),
+      required: helpers.withMessage(t("addWalletCommon.spendingPasswordRequired"), required),
       minLength: helpers.withMessage(
-        "Spending password requires at least 10 characters.",
+        t("addWalletCommon.minSpendingPasswordLength", { min: 10 }),
         minLength(10)
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(
-        "'Spending password' and 'Confirm password' must match.",
-        sameAs(password)
-      )
+      sameAs: helpers.withMessage(t("addWalletCommon.passwordsMustMatch"), sameAs(password))
     }
   },
   { walletName, password, confirmPassword }
@@ -79,7 +80,7 @@ const verificationRules = useVuelidate(
   {
     mnemonicPhraseConfirm: {
       sameAs: helpers.withMessage(
-        "The recovery phrase does not match the original one.",
+        t("createWalletView.recoveryPhraseDoNotMatch"),
         sameAs(mnemonicPhrase)
       )
     }
@@ -147,7 +148,7 @@ async function next() {
     router.push({ name: "assets" });
   } catch (e) {
     toast({
-      title: "Error creating wallet",
+      title: t("createWalletView.walletCreationErrorTitle"),
       variant: "destructive",
       description: extractErrorMessage(e)
     });
@@ -166,23 +167,22 @@ function newMnemonic() {
 const steps: Step[] = [
   {
     step: 1,
-    title: "Basic info",
-    description: "This information will be used to identify and protect your wallet.",
+    title: t("addWalletCommon.infoStepTitle"),
+    description: t("addWalletCommon.infoStepDescription"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
   {
     step: 2,
-    title: "Recovery phrase",
-    description:
-      "These words are the keys to your wallet. Make sure you save them in a secure location.",
+    title: t("createWalletView.secretStepTitle"),
+    description: t("createWalletView.secretStepDescription"),
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   },
   {
     step: 3,
-    title: "Confirm your recovery phrase",
-    description: "Complete the missing parts of your recovery phrase.",
+    title: t("createWalletView.secretConfirmStepTitle"),
+    description: t("createWalletView.secretConfirmStepDescription"),
     icon: CheckIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }
@@ -198,7 +198,7 @@ const steps: Step[] = [
     <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">Wallet name</Label>
+          <Label for="wallet-name">{{ t("addWalletCommon.walletName") }}</Label>
           <Input
             id="wallet-name"
             v-model="walletName"
@@ -212,7 +212,7 @@ const steps: Step[] = [
         <Separator class="my-2" />
 
         <FormField :validation="infoRules.password">
-          <Label for="password">Spending password</Label>
+          <Label for="password">{{ t("addWalletCommon.spendingPassword") }}</Label>
           <PasswordInput
             id="password"
             v-model="password"
@@ -222,7 +222,7 @@ const steps: Step[] = [
           />
         </FormField>
         <FormField :validation="infoRules.confirmPassword">
-          <Label for="confirm-password">Confirm password</Label>
+          <Label for="confirm-password">{{ t("addWalletCommon.confirmPassword") }}</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
@@ -236,8 +236,12 @@ const steps: Step[] = [
       <template v-else-if="step === 2">
         <Tabs v-model="strength" class="flex w-full items-center gap-0">
           <TabsList class="flex">
-            <TabsTrigger class="w-full" :value="160">15 words</TabsTrigger>
-            <TabsTrigger class="w-full" :value="256">24 words</TabsTrigger>
+            <TabsTrigger class="w-full" :value="160">{{
+              t("addWalletCommon.words", { count: 15 })
+            }}</TabsTrigger>
+            <TabsTrigger class="w-full" :value="256">{{
+              t("addWalletCommon.words", { count: 24 })
+            }}</TabsTrigger>
           </TabsList>
           <div class="grow"></div>
           <Button type="button" variant="ghost" size="icon" @click="newMnemonic">
@@ -264,7 +268,9 @@ const steps: Step[] = [
 
     <div class="flex flex-row gap-4">
       <Button :disabled="loading" class="w-full items-center" @click="next">
-        <template v-if="loading"><Loader2Icon class="animate-spin" />Creating wallet...</template>
+        <template v-if="loading"
+          ><Loader2Icon class="animate-spin" />{{ t("createWalletView.creating") }}</template
+        >
         <template v-else>{{ nextButtonTitle }}</template>
       </Button>
     </div>

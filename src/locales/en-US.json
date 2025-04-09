@@ -13,7 +13,8 @@
     "openInExplorer": "Open in explorer",
     "optimize": "Optimize",
     "consolidate": "Consolidate",
-    "learnMore": "Learn more"
+    "learnMore": "Learn more",
+    "confirm": "Confirm"
   },
   "datetime": {
     "now": "just now",
@@ -169,6 +170,18 @@
     "fragmentationTitle": "Your wallet looks fragmented",
     "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
   },
+  "addWalletCommon": {
+    "walletName": "Wallet name",
+    "spendingPassword": "Spending password",
+    "confirmPassword": "Confirm password",
+    "requiredWalletName": "Wallet name is required.",
+    "spendingPasswordRequired": "Spending password is required.",
+    "minSpendingPasswordLength": "Spending password must be at least {min} characters long.",
+    "passwordsMustMatch": "'Spending password' and 'Confirm password' must match.",
+    "infoStepTitle": "Wallet information",
+    "infoStepDescription": "This information will be used to identify and protect your wallet.",
+    "words": "{count} words"
+  },
   "addWalletIndexView": {
     "title": "Welcome to Nautilus Wallet",
     "subtitle": "Choose an option to get started",
@@ -180,5 +193,16 @@
     "connectDescription": "Connect your Hardware Wallet",
     "importTitle": "Import a wallet",
     "importDescription": "Import an existing wallet"
+  },
+  "createWalletView": {
+    "createRecoveryPhrase": "Create a recovery phrase",
+    "iHaveSavedTheseWords": "I've saved these words",
+    "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
+    "walletCreationErrorTitle": "Wallet creation failed",
+    "secretStepTitle": "Recovery phrase",
+    "secretStepDescription": "These words are the keys to your wallet. Make sure you save them in a secure location.",
+    "secretConfirmStepTitle": "Confirm your recovery phrase",
+    "secretConfirmStepDescription": "Complete the missing parts of your recovery phrase.",
+    "creating": "Creating your wallet..."
   }
 }
