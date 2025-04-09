@@ -14,7 +14,8 @@
     "optimize": "Optimize",
     "consolidate": "Consolidate",
     "learnMore": "Learn more",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "import": "Import"
   },
   "datetime": {
     "now": "just now",
@@ -170,6 +171,10 @@
     "fragmentationTitle": "Your wallet looks fragmented",
     "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
   },
+  "walletCommon": {
+    "xPubKey": "Extended public key",
+    "xPrivKey": "Extended private key"
+  },
   "addWalletCommon": {
     "walletName": "Wallet name",
     "spendingPassword": "Spending password",
@@ -204,5 +209,19 @@
     "secretConfirmStepTitle": "Confirm your recovery phrase",
     "secretConfirmStepDescription": "Complete the missing parts of your recovery phrase.",
     "creating": "Creating your wallet..."
+  },
+  "importWallet": {
+    "insertPubKey": "Insert a public key",
+    "insertRecoveryPhrase": "Insert a recovery phrase",
+    "requiredXPubKey": "Extended public key is required.",
+    "requiredRecoveryPhrase": "Recovery phrase is required.",
+    "walletImportErrorTitle": "Wallet import failed",
+    "importStepTitle": "Insert the Extended Public Key of your wallet.",
+    "importStepDescription": "Select the type of secret you want to use and fill it out.",
+    "walletType": "Wallet type",
+    "selectSecretType": "Select the secret type",
+    "selectWalletType": "Select the wallet type",
+    "words": "{count} words recovery phrase",
+    "importing": "Importing your wallet..."
   }
 }
