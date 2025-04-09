@@ -120,10 +120,12 @@ const routes = [
       <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()">{{
         t("common.cancel")
       }}</Button>
+
       <I18nT
         keypath="addWalletIndexView.kyaAgreement"
         tag="p"
         class="font-xs text-muted-foreground px-16 text-center"
+        scope="global"
       >
         <template #kya>
           <Link
