@@ -60,17 +60,17 @@ const nextButtonTitle = computed(() =>
 const infoRules = useVuelidate(
   {
     walletName: {
-      required: helpers.withMessage(t("addWalletCommon.requiredWalletName"), required)
+      required: helpers.withMessage(t("walletCommon.requiredWalletName"), required)
     },
     password: {
-      required: helpers.withMessage(t("addWalletCommon.spendingPasswordRequired"), required),
+      required: helpers.withMessage(t("walletCommon.spendingPasswordRequired"), required),
       minLength: helpers.withMessage(
-        t("addWalletCommon.minSpendingPasswordLength", { min: 10 }),
+        t("walletCommon.minSpendingPasswordLength", { min: 10 }),
         minLength(10)
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(t("addWalletCommon.passwordsMustMatch"), sameAs(password))
+      sameAs: helpers.withMessage(t("walletCommon.passwordsMustMatch"), sameAs(password))
     }
   },
   { walletName, password, confirmPassword }
@@ -167,8 +167,8 @@ function newMnemonic() {
 const steps: Step[] = [
   {
     step: 1,
-    title: t("addWalletCommon.infoStepTitle"),
-    description: t("addWalletCommon.infoStepDescription"),
+    title: t("walletCommon.infoStepTitle"),
+    description: t("walletCommon.infoStepDescription"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
@@ -198,7 +198,7 @@ const steps: Step[] = [
     <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">{{ t("addWalletCommon.walletName") }}</Label>
+          <Label for="wallet-name">{{ t("walletCommon.walletName") }}</Label>
           <Input
             id="wallet-name"
             v-model="walletName"
@@ -212,7 +212,7 @@ const steps: Step[] = [
         <Separator class="my-2" />
 
         <FormField :validation="infoRules.password">
-          <Label for="password">{{ t("addWalletCommon.spendingPassword") }}</Label>
+          <Label for="password">{{ t("walletCommon.spendingPassword") }}</Label>
           <PasswordInput
             id="password"
             v-model="password"
@@ -222,7 +222,7 @@ const steps: Step[] = [
           />
         </FormField>
         <FormField :validation="infoRules.confirmPassword">
-          <Label for="confirm-password">{{ t("addWalletCommon.confirmPassword") }}</Label>
+          <Label for="confirm-password">{{ t("walletCommon.confirmPassword") }}</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
@@ -237,10 +237,10 @@ const steps: Step[] = [
         <Tabs v-model="strength" class="flex w-full items-center gap-0">
           <TabsList class="flex">
             <TabsTrigger class="w-full" :value="160">{{
-              t("addWalletCommon.words", { count: 15 })
+              t("walletCommon.words", { count: 15 })
             }}</TabsTrigger>
             <TabsTrigger class="w-full" :value="256">{{
-              t("addWalletCommon.words", { count: 24 })
+              t("walletCommon.words", { count: 24 })
             }}</TabsTrigger>
           </TabsList>
           <div class="grow"></div>

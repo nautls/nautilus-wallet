@@ -173,9 +173,7 @@
   },
   "walletCommon": {
     "xPubKey": "Extended public key",
-    "xPrivKey": "Extended private key"
-  },
-  "addWalletCommon": {
+    "xPrivKey": "Extended private key",
     "walletName": "Wallet name",
     "spendingPassword": "Spending password",
     "confirmPassword": "Confirm password",

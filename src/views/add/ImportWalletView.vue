@@ -68,20 +68,20 @@ const nextButtonTitle = computed(() => {
 const infoRules = useVuelidate(
   {
     walletName: {
-      required: helpers.withMessage(t("addWalletCommon.requiredWalletName"), required)
+      required: helpers.withMessage(t("walletCommon.requiredWalletName"), required)
     },
     password: {
       required: helpers.withMessage(
-        t("addWalletCommon.spendingPasswordRequired"),
+        t("walletCommon.spendingPasswordRequired"),
         requiredIf(() => !isReadonly.value)
       ),
       minLength: helpers.withMessage(
-        t("addWalletCommon.minSpendingPasswordLength", { min: 10 }),
+        t("walletCommon.minSpendingPasswordLength", { min: 10 }),
         minLength(10)
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(t("addWalletCommon.passwordsMustMatch"), sameAs(password))
+      sameAs: helpers.withMessage(t("walletCommon.passwordsMustMatch"), sameAs(password))
     }
   },
   { walletName, password, confirmPassword }
@@ -196,8 +196,8 @@ function onPaste(event: ClipboardEvent) {
 const steps = computed<Step[]>(() => [
   {
     step: 1,
-    title: t("addWalletCommon.infoStepTitle"),
-    description: t("addWalletCommon.infoStepDescription"),
+    title: t("walletCommon.infoStepTitle"),
+    description: t("walletCommon.infoStepDescription"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
@@ -222,7 +222,7 @@ const steps = computed<Step[]>(() => [
     <Form class="flex h-full grow flex-col justify-start gap-4" @paste="onPaste" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">{{ t("addWalletCommon.walletName") }}</Label>
+          <Label for="wallet-name">{{ t("walletCommon.walletName") }}</Label>
           <Input
             id="wallet-name"
             v-model="walletName"
@@ -250,7 +250,7 @@ const steps = computed<Step[]>(() => [
 
         <FormField :validation="infoRules.password">
           <Label :disabled="isReadonly" for="password">{{
-            t("addWalletCommon.spendingPassword")
+            t("walletCommon.spendingPassword")
           }}</Label>
           <PasswordInput
             id="password"
@@ -262,7 +262,7 @@ const steps = computed<Step[]>(() => [
         </FormField>
         <FormField :validation="infoRules.confirmPassword">
           <Label :disabled="isReadonly" for="confirm-password">{{
-            t("addWalletCommon.confirmPassword")
+            t("walletCommon.confirmPassword")
           }}</Label>
           <PasswordInput
             id="confirm-password"
