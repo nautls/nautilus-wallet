@@ -51,26 +51,26 @@ const mnemonicPhraseConfirm = computed(() => mnemonicWordsConfirm.value.join(" "
 
 const nextButtonTitle = computed(() =>
   step.value === 1
-    ? t("createWalletView.createRecoveryPhrase")
+    ? t("wallet.create.createRecoveryPhrase")
     : step.value === 2
-      ? t("createWalletView.iHaveSavedTheseWords")
+      ? t("wallet.create.iHaveSavedTheseWords")
       : t("common.confirm")
 );
 
 const infoRules = useVuelidate(
   {
     walletName: {
-      required: helpers.withMessage(t("walletCommon.requiredWalletName"), required)
+      required: helpers.withMessage(t("wallet.requiredWalletName"), required)
     },
     password: {
-      required: helpers.withMessage(t("walletCommon.spendingPasswordRequired"), required),
+      required: helpers.withMessage(t("wallet.spendingPasswordRequired"), required),
       minLength: helpers.withMessage(
-        t("walletCommon.minSpendingPasswordLength", { min: 10 }),
+        t("wallet.minSpendingPasswordLength", { min: 10 }),
         minLength(10)
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(t("walletCommon.passwordsMustMatch"), sameAs(password))
+      sameAs: helpers.withMessage(t("wallet.passwordsMustMatch"), sameAs(password))
     }
   },
   { walletName, password, confirmPassword }
@@ -80,7 +80,7 @@ const verificationRules = useVuelidate(
   {
     mnemonicPhraseConfirm: {
       sameAs: helpers.withMessage(
-        t("createWalletView.recoveryPhraseDoNotMatch"),
+        t("wallet.create.recoveryPhraseDoNotMatch"),
         sameAs(mnemonicPhrase)
       )
     }
@@ -148,7 +148,7 @@ async function next() {
     router.push({ name: "assets" });
   } catch (e) {
     toast({
-      title: t("createWalletView.walletCreationErrorTitle"),
+      title: t("wallet.create.walletCreationErrorTitle"),
       variant: "destructive",
       description: extractErrorMessage(e)
     });
@@ -167,22 +167,22 @@ function newMnemonic() {
 const steps: Step[] = [
   {
     step: 1,
-    title: t("walletCommon.infoStepTitle"),
-    description: t("walletCommon.infoStepDescription"),
+    title: t("wallet.infoStepTitle"),
+    description: t("wallet.infoStepDescription"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
   {
     step: 2,
-    title: t("createWalletView.secretStepTitle"),
-    description: t("createWalletView.secretStepDescription"),
+    title: t("wallet.create.secretStepTitle"),
+    description: t("wallet.create.secretStepDescription"),
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   },
   {
     step: 3,
-    title: t("createWalletView.secretConfirmStepTitle"),
-    description: t("createWalletView.secretConfirmStepDescription"),
+    title: t("wallet.create.secretConfirmStepTitle"),
+    description: t("wallet.create.secretConfirmStepDescription"),
     icon: CheckIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }
@@ -198,7 +198,7 @@ const steps: Step[] = [
     <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">{{ t("walletCommon.walletName") }}</Label>
+          <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
           <Input
             id="wallet-name"
             v-model="walletName"
@@ -212,7 +212,7 @@ const steps: Step[] = [
         <Separator class="my-2" />
 
         <FormField :validation="infoRules.password">
-          <Label for="password">{{ t("walletCommon.spendingPassword") }}</Label>
+          <Label for="password">{{ t("wallet.spendingPassword") }}</Label>
           <PasswordInput
             id="password"
             v-model="password"
@@ -222,7 +222,7 @@ const steps: Step[] = [
           />
         </FormField>
         <FormField :validation="infoRules.confirmPassword">
-          <Label for="confirm-password">{{ t("walletCommon.confirmPassword") }}</Label>
+          <Label for="confirm-password">{{ t("wallet.confirmPassword") }}</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
@@ -237,10 +237,10 @@ const steps: Step[] = [
         <Tabs v-model="strength" class="flex w-full items-center gap-0">
           <TabsList class="flex">
             <TabsTrigger class="w-full" :value="160">{{
-              t("walletCommon.words", { count: 15 })
+              t("wallet.words", { count: 15 })
             }}</TabsTrigger>
             <TabsTrigger class="w-full" :value="256">{{
-              t("walletCommon.words", { count: 24 })
+              t("wallet.words", { count: 24 })
             }}</TabsTrigger>
           </TabsList>
           <div class="grow"></div>
@@ -269,7 +269,7 @@ const steps: Step[] = [
     <div class="flex flex-row gap-4">
       <Button :disabled="loading" class="w-full items-center" @click="next">
         <template v-if="loading"
-          ><Loader2Icon class="animate-spin" />{{ t("createWalletView.creating") }}</template
+          ><Loader2Icon class="animate-spin" />{{ t("wallet.create.creating") }}</template
         >
         <template v-else>{{ nextButtonTitle }}</template>
       </Button>

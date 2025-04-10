@@ -50,8 +50,8 @@ const routes = [
       component: WalletIcon,
       class: "stroke-[1px]"
     },
-    title: t("addWalletIndexView.createTitle"),
-    description: t("addWalletIndexView.createDescription")
+    title: t("wallet.index.createTitle"),
+    description: t("wallet.index.createDescription")
   },
   {
     path: "/add/hw/ledger",
@@ -59,8 +59,8 @@ const routes = [
       component: LedgerLogo,
       class: "p-1"
     },
-    title: t("addWalletIndexView.connectTitle"),
-    description: t("addWalletIndexView.connectDescription")
+    title: t("wallet.index.connectTitle"),
+    description: t("wallet.index.connectDescription")
   },
   {
     path: "/add/import",
@@ -68,8 +68,8 @@ const routes = [
       component: ImportIcon,
       class: "stroke-[1px]"
     },
-    title: t("addWalletIndexView.importTitle"),
-    description: t("addWalletIndexView.importDescription")
+    title: t("wallet.index.importTitle"),
+    description: t("wallet.index.importDescription")
   }
 ];
 </script>
@@ -86,9 +86,9 @@ const routes = [
         />
       </div>
       <div class="text-xl leading-tight font-semibold tracking-tight" v-once>
-        {{ t("addWalletIndexView.title") }}
+        {{ t("wallet.index.title") }}
       </div>
-      <div class="text-muted-foreground text-sm" v-once>{{ t("addWalletIndexView.subtitle") }}</div>
+      <div class="text-muted-foreground text-sm" v-once>{{ t("wallet.index.subtitle") }}</div>
     </div>
   </div>
 
@@ -122,7 +122,7 @@ const routes = [
       }}</Button>
 
       <I18nT
-        keypath="addWalletIndexView.kyaAgreement"
+        keypath="wallet.index.kyaAgreement"
         tag="p"
         class="font-xs text-muted-foreground px-16 text-center"
         scope="global"
@@ -132,7 +132,7 @@ const routes = [
             external
             class="text-nowrap text-blue-500/80"
             :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
-            >{{ t("addWalletIndexView.kya") }}</Link
+            >{{ t("wallet.index.kya") }}</Link
           >
         </template>
       </I18nT>

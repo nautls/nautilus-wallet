@@ -129,7 +129,7 @@ async function sign() {
       stateCallback: ledgerDevice.value?.setState
     });
 
-    if (!signed) throw new Error(t("prover.emptyProofError"));
+    if (!signed) throw new Error(t("wallet.emptyProofError"));
 
     if (props.broadcast && !Array.isArray(signed) /* only broadcast full transactions */) {
       const txId = await broadcastTransaction(signed);
@@ -144,9 +144,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("prover.wrongPasswordErrorTitle"),
+        title: t("wallet.wrongPasswordErrorTitle"),
         variant: "destructive",
-        description: t("prover.wrongPasswordErrorDescription", { object: "transaction" })
+        description: t("wallet.wrongPasswordErrorDescription")
       });
       nextTick(() => pwdInput.value?.input?.$el.focus());
 

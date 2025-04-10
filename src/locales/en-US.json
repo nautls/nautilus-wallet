@@ -36,17 +36,6 @@
     "connectionError": "Connection error",
     "reconnecting": "Reconnecting..."
   },
-  "prover": {
-    "spendingPassword": "Spending password",
-    "emptyProofError": "Prover returned no signed data.",
-    "wrongPasswordErrorTitle": "Wrong password",
-    "wrongPasswordErrorDescription": "Please enter the correct spending password to sign this {object}."
-  },
-  "walletType": {
-    "standard": "Standard",
-    "readOnly": "Read-only",
-    "ledger": "Ledger"
-  },
   "nav": {
     "assets": "Assets",
     "history": "History",
@@ -76,7 +65,7 @@
     "txTitle": "Transaction {txId}",
     "txState": "Pending | {count} confirmation | {count} confirmations",
     "empty": "You have no transaction history yet.",
-    "paginateAhead": "Load more transactions..."
+    "nextPage": "Load more transactions"
   },
   "receive": {
     "currentAddress": "Current address",
@@ -165,17 +154,14 @@
     "deviceNotFoundErrorTitle": "Device not found!",
     "deviceNotFoundErrorDescription": "Ensure your device is properly connected and unlocked."
   },
-  "walletAlerts": {
-    "demurrageTitle": "You may soon incur demurrage",
-    "demurrageDescription": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
-    "fragmentationTitle": "Your wallet looks fragmented",
-    "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
-  },
-  "walletCommon": {
+  "wallet": {
+    "spendingPassword": "Spending password",
+    "emptyProofError": "Prover returned no signed data.",
+    "wrongPasswordErrorTitle": "Wrong password",
+    "wrongPasswordErrorDescription": "Please enter the correct spending password.",
     "xPubKey": "Extended public key",
     "xPrivKey": "Extended private key",
     "walletName": "Wallet name",
-    "spendingPassword": "Spending password",
     "confirmPassword": "Confirm password",
     "requiredWalletName": "Wallet name is required.",
     "spendingPasswordRequired": "Spending password is required.",
@@ -183,43 +169,54 @@
     "passwordsMustMatch": "'Spending password' and 'Confirm password' must match.",
     "infoStepTitle": "Wallet information",
     "infoStepDescription": "This information will be used to identify and protect your wallet.",
-    "words": "{count} words"
-  },
-  "addWalletIndexView": {
-    "title": "Welcome to Nautilus Wallet",
-    "subtitle": "Choose an option to get started",
-    "kyaAgreement": "By proceeding, you agree to Nautilus' {kya}",
-    "kya": "Terms of Use",
-    "createTitle": "Create a new wallet",
-    "createDescription": "Create a new Ergo Wallet",
-    "connectTitle": "Connect a Ledger Wallet",
-    "connectDescription": "Connect your Hardware Wallet",
-    "importTitle": "Import a wallet",
-    "importDescription": "Import an existing wallet"
-  },
-  "createWalletView": {
-    "createRecoveryPhrase": "Create a recovery phrase",
-    "iHaveSavedTheseWords": "I've saved these words",
-    "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
-    "walletCreationErrorTitle": "Wallet creation failed",
-    "secretStepTitle": "Recovery phrase",
-    "secretStepDescription": "These words are the keys to your wallet. Make sure you save them in a secure location.",
-    "secretConfirmStepTitle": "Confirm your recovery phrase",
-    "secretConfirmStepDescription": "Complete the missing parts of your recovery phrase.",
-    "creating": "Creating your wallet..."
-  },
-  "importWallet": {
-    "insertPubKey": "Insert a public key",
-    "insertRecoveryPhrase": "Insert a recovery phrase",
-    "requiredXPubKey": "Extended public key is required.",
-    "requiredRecoveryPhrase": "Recovery phrase is required.",
-    "walletImportErrorTitle": "Wallet import failed",
-    "importStepTitle": "Insert the Extended Public Key of your wallet.",
-    "importStepDescription": "Select the type of secret you want to use and fill it out.",
-    "walletType": "Wallet type",
-    "selectSecretType": "Select the secret type",
-    "selectWalletType": "Select the wallet type",
-    "words": "{count} words recovery phrase",
-    "importing": "Importing your wallet..."
+    "words": "{count} words",
+    "type": {
+      "standard": "Standard",
+      "readonly": "Read-only",
+      "ledger": "Ledger"
+    },
+    "alerts": {
+      "demurrageTitle": "You may soon incur demurrage",
+      "demurrageDescription": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
+      "fragmentationTitle": "Your wallet looks fragmented",
+      "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
+    },
+    "index": {
+      "title": "Welcome to Nautilus Wallet",
+      "subtitle": "Choose an option to get started",
+      "kyaAgreement": "By proceeding, you agree to Nautilus' {kya}",
+      "kya": "Terms of Use",
+      "createTitle": "Create a new wallet",
+      "createDescription": "Create a new Ergo Wallet",
+      "connectTitle": "Connect a Ledger Wallet",
+      "connectDescription": "Connect your Hardware Wallet",
+      "importTitle": "Import a wallet",
+      "importDescription": "Import an existing wallet"
+    },
+    "create": {
+      "createRecoveryPhrase": "Create a recovery phrase",
+      "iHaveSavedTheseWords": "I've saved these words",
+      "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
+      "walletCreationErrorTitle": "Wallet creation failed",
+      "secretStepTitle": "Recovery phrase",
+      "secretStepDescription": "These words are the keys to your wallet. Make sure you save them in a secure location.",
+      "secretConfirmStepTitle": "Confirm your recovery phrase",
+      "secretConfirmStepDescription": "Complete the missing parts of your recovery phrase.",
+      "creating": "Creating your wallet..."
+    },
+    "import": {
+      "insertPubKey": "Insert a public key",
+      "insertRecoveryPhrase": "Insert a recovery phrase",
+      "requiredXPubKey": "Extended public key is required.",
+      "requiredRecoveryPhrase": "Recovery phrase is required.",
+      "walletImportErrorTitle": "Wallet import failed",
+      "importStepTitle": "Insert the Extended Public Key of your wallet.",
+      "importStepDescription": "Select the type of secret you want to use and fill it out.",
+      "walletType": "Wallet type",
+      "selectSecretType": "Select the secret type",
+      "selectWalletType": "Select the wallet type",
+      "words": "{count} words recovery phrase",
+      "importing": "Importing your wallet..."
+    }
   }
 }

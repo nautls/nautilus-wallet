@@ -64,11 +64,11 @@ watch(
 function walletTypeToString(type: WalletType): string {
   switch (type) {
     case WalletType.Standard:
-      return t("walletType.standard");
+      return t("wallet.type.standard");
     case WalletType.ReadOnly:
-      return t("walletType.readOnly");
+      return t("wallet.type.readonly");
     case WalletType.Ledger:
-      return t("walletType.ledger");
+      return t("wallet.type.ledger");
     default:
       return "";
   }

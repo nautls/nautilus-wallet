@@ -219,7 +219,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           variant="outline"
           @click="fetchConfirmedTransactions"
         >
-          {{ t("history.paginateAhead") }}
+          {{ t("history.nextPage") }}
         </Button>
       </div>
     </Transition>
