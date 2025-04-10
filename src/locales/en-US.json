@@ -34,7 +34,17 @@
     "connected": "Connected",
     "ready": "Ready",
     "connectionError": "Connection error",
-    "reconnecting": "Reconnecting..."
+    "notFoundErrorTitle": "Device not found!",
+    "notFoundErrorDescription": "Ensure your device is properly connected and unlocked.",
+    "reconnecting": "Reconnecting...",
+    "ledger": {
+      "waitingAppClose": "Waiting for the app to be closed",
+      "confirmAppOpen": "Confirm opening the Ergo app",
+      "waitingAppReady": "Waiting for the app to be ready",
+      "userDeniedOpenApp": "Ergo app opening denied by the user",
+      "openingApp": "Error opening the Ergo app",
+      "appId": "App ID: {appId}"
+    }
   },
   "nav": {
     "assets": "Assets",
@@ -143,16 +153,6 @@
     "successTitle": "Transaction sent!",
     "successDescription": "Your transaction has been successfully signed and sent.",
     "signErrorTitle": "Transaction signing failed"
-  },
-  "ledgerDevice": {
-    "waitingAppClose": "Waiting for the app to be closed",
-    "confirmAppOpen": "Confirm opening the Ergo app",
-    "waitingAppReady": "Waiting for the app to be ready",
-    "userDeniedOpenApp": "Ergo app opening denied by the user",
-    "openingApp": "Error opening the Ergo app",
-    "appId": "App ID: {appId}",
-    "deviceNotFoundErrorTitle": "Device not found!",
-    "deviceNotFoundErrorDescription": "Ensure your device is properly connected and unlocked."
   },
   "wallet": {
     "spendingPassword": "Spending password",

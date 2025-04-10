@@ -125,15 +125,15 @@ async function openErgoApp(): Promise<boolean> {
 
       if (currentApp.name !== "BOLOS") {
         await app.device.closeApp();
-        setState({ type: "loading", label: t("ledgerDevice.waitingAppClose") });
+        setState({ type: "loading", label: t("device.ledger.waitingAppClose") });
         await sleep(1000); // Wait for the app to be fully closed
       }
 
-      setState({ type: undefined, label: t("ledgerDevice.confirmAppOpen") });
+      setState({ type: undefined, label: t("device.ledger.confirmAppOpen") });
       // device.closeApp() command disconnects the device for some reason,
       // so we need to create a new instance to re-open it
       await new ErgoLedgerApp(await TransportWebUSB.create()).device.openApp("Ergo");
-      setState({ type: "loading", label: t("ledgerDevice.waitingAppReady") });
+      setState({ type: "loading", label: t("device.ledger.waitingAppReady") });
       await sleep(1000); // Wait for the app to be fully opened
     }
 
@@ -148,14 +148,14 @@ async function openErgoApp(): Promise<boolean> {
         setState({ type: "locked", label: t("device.isLocked") });
         return false;
       } else if (e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
-        setState({ type: "error", label: t("ledgerDevice.userDeniedOpenApp") });
+        setState({ type: "error", label: t("device.ledger.userDeniedOpenApp") });
         return false;
       }
     }
 
     setState({
       type: "error",
-      label: t("ledgerDevice.openingApp"),
+      label: t("device.ledger.openingApp"),
       additionalInfo: extractErrorMessage(e)
     });
 
@@ -207,7 +207,7 @@ defineExpose({ setState, openErgoApp });
             {{ state.label }}
           </p>
           <small v-if="state.appId" class="shrink opacity-70">{{
-            t("ledgerDevice.appId", { appId: appIdHex })
+            t("device.ledger.appId", { appId: appIdHex })
           }}</small>
         </div>
       </div>
@@ -215,8 +215,8 @@ defineExpose({ setState, openErgoApp });
 
     <Alert v-else class="space-x-2">
       <CircleAlertIcon />
-      <AlertTitle>{{ t("ledgerDevice.deviceNotFoundErrorTitle") }}</AlertTitle>
-      <AlertDescription>{{ t("ledgerDevice.deviceNotFoundErrorDescription") }}</AlertDescription>
+      <AlertTitle>{{ t("device.notFoundErrorTitle") }}</AlertTitle>
+      <AlertDescription>{{ t("device.notFoundErrorDescription") }}</AlertDescription>
     </Alert>
   </div>
 </template>
