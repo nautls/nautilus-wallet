@@ -152,7 +152,7 @@ async function toggleViewMode() {
         "
       >
         <CommandInput :placeholder="t('common.search')" />
-        <CommandEmpty>{{ t("walletSwitcher.empty") }}</CommandEmpty>
+        <CommandEmpty>{{ t("header.menu.noWalletFound") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
             <CommandItem
@@ -204,7 +204,7 @@ async function toggleViewMode() {
               v-once
             >
               <PlusCircleIcon class="h-5 w-5 shrink-0" />
-              {{ t("mainMenu.newWallet") }}
+              {{ t("header.menu.newWallet") }}
             </CommandItem>
 
             <CommandItem
@@ -214,7 +214,7 @@ async function toggleViewMode() {
               v-once
             >
               <SettingsIcon class="h-5 w-5 shrink-0" />
-              {{ t("mainMenu.settings") }}
+              {{ t("header.menu.settings") }}
             </CommandItem>
 
             <CommandItem
@@ -224,7 +224,7 @@ async function toggleViewMode() {
               v-once
             >
               <InfoIcon class="h-5 w-5 shrink-0" />
-              {{ t("mainMenu.about") }}
+              {{ t("header.menu.about") }}
             </CommandItem>
           </CommandGroup>
         </CommandList>

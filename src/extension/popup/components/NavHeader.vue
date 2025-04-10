@@ -10,11 +10,11 @@ const { t } = useI18n();
 
 const readonly = computed(() => wallet.type === WalletType.ReadOnly);
 const navItems = [
-  { to: "/", icon: ChartPieIcon, label: t("nav.assets"), disabled: ref(false) },
-  { to: "/history", icon: ClockIcon, label: t("nav.history"), disabled: ref(false) },
-  { to: "/receive", icon: DownloadIcon, label: t("nav.receive"), disabled: ref(false) },
-  { to: "/send", icon: SendIcon, label: t("nav.send"), disabled: readonly },
-  { to: "/dapps", icon: LayoutGridIcon, label: t("nav.dApps"), disabled: readonly }
+  { to: "/", icon: ChartPieIcon, label: t("header.nav.assets"), disabled: ref(false) },
+  { to: "/history", icon: ClockIcon, label: t("header.nav.history"), disabled: ref(false) },
+  { to: "/receive", icon: DownloadIcon, label: t("header.nav.receive"), disabled: ref(false) },
+  { to: "/send", icon: SendIcon, label: t("header.nav.send"), disabled: readonly },
+  { to: "/dapps", icon: LayoutGridIcon, label: t("header.nav.dApps"), disabled: readonly }
 ];
 </script>
 

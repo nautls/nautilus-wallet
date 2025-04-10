@@ -46,20 +46,20 @@
       "appId": "App ID: {appId}"
     }
   },
-  "nav": {
-    "assets": "Assets",
-    "history": "History",
-    "receive": "Receive",
-    "send": "Send",
-    "dApps": "dApps"
-  },
-  "walletSwitcher": {
-    "empty": "No wallet found."
-  },
-  "mainMenu": {
-    "newWallet": "New wallet",
-    "settings": "Settings",
-    "about": "About"
+  "header": {
+    "nav": {
+      "assets": "Assets",
+      "history": "History",
+      "receive": "Receive",
+      "send": "Send",
+      "dApps": "dApps"
+    },
+    "menu": {
+      "noWalletFound": "No wallet found.",
+      "newWallet": "New wallet",
+      "settings": "Settings",
+      "about": "About"
+    }
   },
   "assets": {
     "totalBalance": "Wallet balance",
