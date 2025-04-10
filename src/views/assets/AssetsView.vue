@@ -93,7 +93,7 @@ function openAssetInfoDialog(tokenId: string) {
           <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
         </h2>
-        <p class="text-muted-foreground text-sm">{{ t("assets.totalBalance") }}</p>
+        <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
       </div>
 
       <WalletAlerts />
@@ -101,9 +101,9 @@ function openAssetInfoDialog(tokenId: string) {
       <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
         <div class="flex flex-row">
           <TabsList>
-            <TabsTrigger value="tokens">{{ t("assets.tokensTitle") }}</TabsTrigger>
+            <TabsTrigger value="tokens">{{ t("asset.tabs.tokens") }}</TabsTrigger>
             <TabsTrigger value="collectibles" :disabled="!containsArtwork">
-              {{ t("assets.collectiblesTitle") }}
+              {{ t("asset.tabs.collectibles") }}
             </TabsTrigger>
           </TabsList>
 

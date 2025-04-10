@@ -188,7 +188,7 @@ defineExpose({ open: openDialog, close: closeDialog });
           <div class="grid grid-cols-2 gap-6">
             <StatsCard
               class="col-span-2"
-              :title="t('assetInfoDialog.emissionAmount')"
+              :title="t('asset.info.emissionAmount')"
               :content="emissionAmount"
               :icon="HandCoinsIcon"
             />
@@ -198,14 +198,14 @@ defineExpose({ open: openDialog, close: closeDialog });
               :icon="KeyRoundIcon"
             />
             <StatsCard
-              :title="t('assetInfoDialog.mintTxId')"
+              :title="t('asset.info.mintTxId')"
               :content="asset?.mintingTransactionId ?? ''"
               :icon="MilestoneIcon"
             />
           </div>
 
           <template v-if="description.meta && description.meta.size">
-            <Separator :label="t('assetInfoDialog.additionalMetadata')" class="my-2" />
+            <Separator :label="t('asset.info.additionalMetadata')" class="my-2" />
 
             <div class="grid grid-cols-1 gap-4">
               <StatsCard

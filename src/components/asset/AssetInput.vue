@@ -305,9 +305,7 @@ function tokenRate(tokenId: string): number {
             <span>{{ formattedDenom }} {{ denomCurrencyName }}</span>
             <ArrowDownUpIcon class="size-3"
           /></Button>
-          <span v-else :class="disabled && 'opacity-50'">{{
-            t("assetInput.noConversionRate")
-          }}</span>
+          <span v-else :class="disabled && 'opacity-50'">{{ t("asset.noConversionRate") }}</span>
         </div>
 
         <template v-if="props.asset.balance.isPositive()">

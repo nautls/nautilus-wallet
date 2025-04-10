@@ -62,21 +62,26 @@
       "about": "About"
     }
   },
-  "assets": {
+  "asset": {
     "totalBalance": "Wallet balance",
-    "tokensTitle": "Tokens",
-    "collectiblesTitle": "Collectibles"
+    "noConversionRate": "No conversion rate",
+    "tabs": {
+      "tokens": "Tokens",
+      "collectibles": "Collectibles"
+    },
+    "info": {
+      "emissionAmount": "Emission Amount",
+      "mintTxId": "Mint TXID",
+      "additionalMetadata": "Additional Metadata"
+    }
   },
-  "assetInfoDialog": {
-    "emissionAmount": "Emission Amount",
-    "mintTxId": "Mint TXID",
-    "additionalMetadata": "Additional Metadata"
-  },
-  "history": {
-    "txTitle": "Transaction {txId}",
-    "txState": "Pending | {count} confirmation | {count} confirmations",
-    "empty": "You have no transaction history yet.",
-    "nextPage": "Load more transactions"
+  "transaction": {
+    "history": {
+      "txTitle": "Transaction {txId}",
+      "txState": "Pending | {count} confirmation | {count} confirmations",
+      "empty": "You have no transaction history yet.",
+      "nextPage": "Load more transactions"
+    }
   },
   "address": {
     "filter": {
@@ -126,9 +131,6 @@
     "minNamedAsset": "You need at least {min} {asset} to send this transaction.",
     "requiredAmount": "Please enter an amount.",
     "requiredPassword": "Please enter your spending password."
-  },
-  "assetInput": {
-    "noConversionRate": "No conversion rate"
   },
   "transactionEntry": {
     "newTokenTitle": "New Token",
