@@ -47,11 +47,11 @@ const recipient = ref("");
 const v$ = useVuelidate(
   {
     recipient: {
-      required: helpers.withMessage(t("send.emptyAddressError"), required),
+      required: helpers.withMessage(t("transaction.send.emptyAddressError"), required),
       validErgoAddress
     },
     selected: {
-      required: helpers.withMessage(t("send.noSelectedAssetsError"), required)
+      required: helpers.withMessage(t("transaction.send.noSelectedAssetsError"), required)
     }
   },
   { selected, recipient }
@@ -229,7 +229,7 @@ function isFeeAsset(tokenId: string): boolean {
   <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-6 pb-2" @submit="sendTransaction">
       <FormField :validation="v$.recipient">
-        <Label for="recipient">{{ t("send.recipient") }}</Label>
+        <Label for="recipient">{{ t("transaction.send.recipient") }}</Label>
         <Input
           id="recipient"
           v-model="recipient"
@@ -241,7 +241,7 @@ function isFeeAsset(tokenId: string): boolean {
       </FormField>
 
       <FormField>
-        <Label>{{ t("send.assets") }}</Label>
+        <Label>{{ t("transaction.send.assets") }}</Label>
         <div class="grid gap-4">
           <AssetInput
             v-for="item in selected"
@@ -263,9 +263,9 @@ function isFeeAsset(tokenId: string): boolean {
             <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
               <CheckCheckIcon class="size-6 shrink-0" />
               <div class="flex flex-col items-start justify-center text-xs font-bold">
-                {{ t("send.addAllAssetsTitle") }}
+                {{ t("transaction.send.addAllAssetsTitle") }}
                 <div class="text-muted-foreground font-normal">
-                  {{ t("send.addAllAssetsDescription") }}
+                  {{ t("transaction.send.addAllAssetsDescription") }}
                 </div>
               </div>
             </CommandItem>

@@ -95,7 +95,7 @@ const v$ = useVuelidate(
     feeAmount: {
       minValue: helpers.withMessage(
         ({ $params }) =>
-          t("transactionFeeConfig.minFeeError", {
+          t("transaction.send.minFeeError", {
             min: $params.min,
             name: props.modelValue.assetInfo?.name
           }),

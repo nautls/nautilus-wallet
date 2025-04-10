@@ -54,7 +54,7 @@ async function buildTransaction() {
   } catch (e) {
     const errorMessage = extractErrorMessage(e);
     toast({
-      title: t("transactionSignDialog.buildErrorTitle"),
+      title: t("transaction.sign.buildErrorTitle"),
       description: errorMessage,
       variant: "destructive"
     });
@@ -75,8 +75,8 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
   if (Array.isArray(signed)) return;
 
   toast({
-    title: t("transactionSignDialog.successTitle"),
-    description: t("transactionSignDialog.successDescription"),
+    title: t("transaction.sign.successTitle"),
+    description: t("transaction.sign.successDescription"),
     action: h(
       ToastAction,
       {
@@ -94,7 +94,7 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
 
 function onFail(errorMessage: string) {
   toast({
-    title: t("transactionSignDialog.signErrorTitle"),
+    title: t("transaction.sign.signErrorTitle"),
     description: errorMessage,
     variant: "destructive"
   });
@@ -118,8 +118,8 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
     <DrawerContent class="max-h-[90vh]">
       <DrawerHeader v-once>
-        <DrawerTitle>{{ t("transactionSignDialog.title") }}</DrawerTitle>
-        <DrawerDescription>{{ t("transactionSignDialog.description") }}</DrawerDescription>
+        <DrawerTitle>{{ t("transaction.sign.reviewTxTitle") }}</DrawerTitle>
+        <DrawerDescription>{{ t("transaction.sign.reviewTxDescription") }}</DrawerDescription>
       </DrawerHeader>
 
       <TransactionSign

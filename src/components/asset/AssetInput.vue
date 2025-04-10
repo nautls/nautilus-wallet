@@ -160,7 +160,7 @@ const v$ = useVuelidate(
     balance: {
       minValue: helpers.withMessage(
         ({ $params }) =>
-          t("validations.minNamedAsset", {
+          t("transaction.send.minNamedAssetError", {
             min: $params.min,
             asset: baseCurrencyName.value
           }),
@@ -168,7 +168,7 @@ const v$ = useVuelidate(
       )
     },
     internalValue: {
-      required: helpers.withMessage(t("validations.requiredAmount"), required),
+      required: helpers.withMessage(t("transaction.sign.requiredPasswordError"), required),
       minValue: bigNumberMinValue(convert(props.minAmount, "auto") || bn(0)),
       maxValue: bigNumberMaxValue(available.value)
     }

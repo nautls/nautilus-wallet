@@ -134,7 +134,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             <CardTitle class="flex flex-row items-center justify-between">
               <Link class="text-sm" external :href="getTransactionExplorerUrl(tx.transactionId)">
                 {{
-                  t("history.txTitle", {
+                  t("transaction.history.txTitle", {
                     txId: formatter.string.shorten(tx.transactionId, 7, "none")
                   })
                 }}
@@ -143,7 +143,9 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
             </CardTitle>
             <CardDescription class="text-xs">
               <div>
-                {{ t("history.txState", tx.confirmed ? chain.height - tx.height + 1 : 0) }}
+                {{
+                  t("transaction.history.txState", tx.confirmed ? chain.height - tx.height + 1 : 0)
+                }}
                 <CheckIcon v-if="tx.confirmed" class="text-success -ml-1 inline-flex h-3.5" />
                 <CircleIcon
                   v-else
@@ -210,7 +212,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           class="text-muted-foreground flex flex-col items-center gap-4 text-center text-sm"
         >
           <ClockIcon :size="48" class="stroke-[1.5px]" />
-          {{ t("history.empty") }}
+          {{ t("transaction.history.empty") }}
         </div>
 
         <Button
@@ -219,7 +221,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           variant="outline"
           @click="fetchConfirmedTransactions"
         >
-          {{ t("history.nextPage") }}
+          {{ t("transaction.history.nextPage") }}
         </Button>
       </div>
     </Transition>

@@ -92,15 +92,15 @@ const parsedTx = computed((): TransactionInterpreter | undefined => {
 
 function getOutputTitle(output: OutputInterpreter): string {
   if (output.isBabelSwap) {
-    return t("transactionSign.babelFeeSwap");
+    return t("transaction.sign.babelFeeSwap");
   } else if (output.isReceiving) {
-    return t("transactionSign.sendingToYourAddress");
+    return t("transaction.sign.sendingToYourAddress");
   } else if (output.receiverAddressType === AddressType.P2S) {
-    return t("transactionSign.sendingToContract");
+    return t("transaction.sign.sendingToContract");
   } else if (output.receiverAddressType === AddressType.P2SH) {
-    return t("transactionSign.sendingToScriptHash");
+    return t("transaction.sign.sendingToScriptHash");
   } else {
-    return t("transactionSign.sendingToExternalAddress");
+    return t("transaction.sign.sendingToExternalAddress");
   }
 }
 
@@ -179,7 +179,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
     return result.transactionId;
   } catch (e) {
     toast({
-      title: t("transactionSign.broadcastErrorTitle"),
+      title: t("transaction.sign.broadcastErrorTitle"),
       description: typeof e === "string" ? e : (e as Error).message,
       variant: "destructive",
       action: h(
@@ -200,7 +200,7 @@ const v$ = useVuelidate(
   computed(() => ({
     password: {
       required: helpers.withMessage(
-        t("validations.requiredPassword"),
+        t("transaction.sign.requiredPasswordError"),
         requiredUnless(isLedger.value)
       )
     }
@@ -223,10 +223,10 @@ const v$ = useVuelidate(
           type="burn"
           variant="destructive"
         >
-          <p v-once>{{ t("transactionSign.burningTitle") }}</p>
+          <p v-once>{{ t("transaction.sign.burningTitle") }}</p>
           <template #subheader>
             <span class="text-destructive-foreground/80" v-once>
-              {{ t("transactionSign.burningDescription") }}
+              {{ t("transaction.sign.burningDescription") }}
             </span>
           </template>
         </TransactionEntry>
@@ -237,7 +237,7 @@ const v$ = useVuelidate(
           type="negative"
           v-once
         >
-          {{ t("transactionSign.totalOutput") }}
+          {{ t("transaction.sign.totalOutput") }}
         </TransactionEntry>
         <TransactionEntry
           v-if="parsedTx?.totalIncoming?.length"
@@ -245,10 +245,10 @@ const v$ = useVuelidate(
           type="positive"
           v-once
         >
-          {{ t("transactionSign.totalInput") }}
+          {{ t("transaction.sign.totalInput") }}
         </TransactionEntry>
 
-        <Separator :label="t('transactionSign.details')" />
+        <Separator :label="t('transaction.sign.details')" />
 
         <TransactionEntry
           v-for="(output, index) in parsedTx.sending"
@@ -272,7 +272,7 @@ const v$ = useVuelidate(
               </p>
               <p v-if="isLedger && isP2S(output)">
                 <span class="font-sans font-semibold" v-once
-                  >{{ t("transactionSign.scriptHash") }}:</span
+                  >{{ t("transaction.sign.scriptHash") }}:</span
                 >
                 {{ output.scriptHash }}
               </p>
@@ -281,7 +281,7 @@ const v$ = useVuelidate(
         </TransactionEntry>
 
         <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative" v-once>
-          {{ t("transactionSign.networkFee") }}
+          {{ t("transaction.sign.networkFee") }}
         </TransactionEntry>
 
         <JsonViewer v-if="app.settings.devMode" :data="props.transaction" :deep="1" />
@@ -297,14 +297,14 @@ const v$ = useVuelidate(
         class="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         v-once
       >
-        {{ t("transactionSign.burningConfirm") }}
+        {{ t("transaction.sign.burningConfirm") }}
       </label>
     </div>
 
     <Alert v-if="isReadonly" variant="destructive" class="space-x-2" v-once>
       <AlertCircleIcon class="size-5" />
-      <AlertTitle>{{ t("transactionSign.readonlyWallet") }}</AlertTitle>
-      <AlertDescription>{{ t("transactionSign.unableToSign") }}</AlertDescription>
+      <AlertTitle>{{ t("transaction.sign.readonlyWallet") }}</AlertTitle>
+      <AlertDescription>{{ t("transaction.sign.unableToSign") }}</AlertDescription>
     </Alert>
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
@@ -314,7 +314,7 @@ const v$ = useVuelidate(
         <PasswordInput
           ref="pwd-input"
           v-model="password"
-          :placeholder="t('prover.spendingPassword')"
+          :placeholder="t('wallet.spendingPassword')"
           :disabled="loading || signing || !canSign"
           class="w-full"
           @blur="v$.password.$touch()"

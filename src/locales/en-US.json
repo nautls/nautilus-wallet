@@ -75,14 +75,6 @@
       "additionalMetadata": "Additional Metadata"
     }
   },
-  "transaction": {
-    "history": {
-      "txTitle": "Transaction {txId}",
-      "txState": "Pending | {count} confirmation | {count} confirmations",
-      "empty": "You have no transaction history yet.",
-      "nextPage": "Load more transactions"
-    }
-  },
   "address": {
     "filter": {
       "all": "All",
@@ -119,51 +111,51 @@
       "unknownVerificationError": "An unknown error occurred while verifying the address."
     }
   },
-  "send": {
-    "recipient": "Recipient",
-    "assets": "Assets",
-    "emptyAddressError": "Please enter the recipient address.",
-    "noSelectedAssetsError": "Please select at least one asset to send this transaction.",
-    "addAllAssetsTitle": "Add all assets",
-    "addAllAssetsDescription": "Add all assets to the sending list."
-  },
-  "validations": {
-    "minNamedAsset": "You need at least {min} {asset} to send this transaction.",
-    "requiredAmount": "Please enter an amount.",
-    "requiredPassword": "Please enter your spending password."
-  },
-  "transactionEntry": {
-    "newTokenTitle": "New Token",
-    "newTokenDescription": "This token will be minted in this transaction."
-  },
-  "transactionFeeConfig": {
-    "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction."
-  },
-  "transactionSign": {
-    "babelFeeSwap": "Babel Fee swap",
-    "sendingToYourAddress": "Sending to your address",
-    "sendingToContract": "Sending to contract",
-    "sendingToScriptHash": "Sending to Script Hash",
-    "sendingToExternalAddress": "Sending to external address",
-    "broadcastErrorTitle": "Transaction broadcast failed",
-    "burningTitle": "Burning",
-    "burningDescription": "The assets listed below will be lost. Only continue if you know exactly what are you doing.",
-    "burningConfirm": "Burn tokens permanently",
-    "totalOutput": "Total assets leaving your wallet",
-    "totalInput": "Total assets entering your wallet",
-    "details": "Transaction details",
-    "scriptHash": "Script Hash",
-    "networkFee": "Network fee",
-    "readonlyWallet": "Read-only wallet",
-    "unableToSign": "This wallet can't sign transactions."
-  },
-  "transactionSignDialog": {
-    "title": "Transaction Review",
-    "description": "Review the transaction before signing.",
-    "buildErrorTitle": "Transaction build failed",
-    "successTitle": "Transaction sent!",
-    "successDescription": "Your transaction has been successfully signed and sent.",
-    "signErrorTitle": "Transaction signing failed"
+  "transaction": {
+    "history": {
+      "txTitle": "Transaction {txId}",
+      "txState": "Pending | {count} confirmation | {count} confirmations",
+      "empty": "You have no transaction history yet.",
+      "nextPage": "Load more transactions"
+    },
+    "send": {
+      "recipient": "Recipient",
+      "assets": "Assets",
+      "addAllAssetsTitle": "Add all assets",
+      "addAllAssetsDescription": "Add all assets to the sending list.",
+      "minNamedAssetError": "You need at least {min} {asset} to send this transaction.",
+      "requiredAmountError": "Please enter an amount.",
+      "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction.",
+      "emptyAddressError": "Please enter the recipient address.",
+      "noSelectedAssetsError": "Please select at least one asset to send this transaction."
+    },
+    "sign": {
+      "babelFeeSwap": "Babel Fee swap",
+      "sendingToYourAddress": "Sending to your address",
+      "sendingToContract": "Sending to contract",
+      "sendingToScriptHash": "Sending to Script Hash",
+      "sendingToExternalAddress": "Sending to external address",
+      "broadcastErrorTitle": "Transaction broadcast failed",
+      "newTokenTitle": "New Token",
+      "newTokenDescription": "This token will be minted in this transaction.",
+      "burningTitle": "Burning",
+      "burningDescription": "The assets listed below will be lost. Only continue if you know exactly what are you doing.",
+      "burningConfirm": "Burn tokens permanently",
+      "totalOutput": "Total assets leaving your wallet",
+      "totalInput": "Total assets entering your wallet",
+      "details": "Transaction details",
+      "scriptHash": "Script Hash",
+      "networkFee": "Network fee",
+      "readonlyWallet": "Read-only wallet",
+      "unableToSign": "This wallet can't sign transactions.",
+      "reviewTxTitle": "Transaction Review",
+      "reviewTxDescription": "Review the transaction before signing.",
+      "requiredPasswordError": "Please enter your spending password.",
+      "buildErrorTitle": "Transaction build failed",
+      "successTitle": "Transaction sent!",
+      "successDescription": "Your transaction has been successfully signed and sent.",
+      "signErrorTitle": "Transaction signing failed"
+    }
   },
   "wallet": {
     "spendingPassword": "Spending password",
