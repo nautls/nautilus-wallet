@@ -102,7 +102,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
     <DrawerContent :dismissible="!loading">
       <DrawerHeader v-once>
         <DrawerTitle>{{ t("address.verify.title") }}</DrawerTitle>
-        <DrawerDescription>{{ t("address.verify.description") }} ></DrawerDescription>
+        <DrawerDescription>{{ t("address.verify.description") }} </DrawerDescription>
       </DrawerHeader>
 
       <Alert v-once>
