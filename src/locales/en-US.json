@@ -11,6 +11,7 @@
     "tryAgain": "Try again",
     "sign": "Sign",
     "openInExplorer": "Open in explorer",
+    "showQrCode": "Show QR code",
     "optimize": "Optimize",
     "consolidate": "Consolidate",
     "learnMore": "Learn more",
@@ -77,33 +78,41 @@
     "empty": "You have no transaction history yet.",
     "nextPage": "Load more transactions"
   },
-  "receive": {
-    "currentAddress": "Current address",
-    "defaultAddress": "Default address",
-    "maxTokensWarning": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
-    "unusedState": "Unused",
-    "filterAll": "All",
-    "filterActive": "Active",
-    "filterUnused": "Unused",
-    "showQrCode": "Show QR code",
-    "verifyOnLedger": "Verify on the Ledger device",
-    "newAddressErrorTitle": "Address generation failed",
-    "newAddressErrorFallbackMessage": "Unable to generate a new address."
-  },
-  "addressQrCodeDialog": {
-    "title": "Address QR code",
-    "description": "Scan this QR code to receive assets in {address}."
-  },
-  "addressVerifyDialog": {
-    "title": "Address Verification",
-    "description": "Ensure that the displayed address and path match exactly what appears on your device.",
-    "addressLabel": "Address",
-    "pathLabel": "Path",
-    "confirmOnDevice": "Confirm address on your device",
-    "confirmed": "Confirmed",
-    "notConfirmed": "Not confirmed",
-    "verificationErrorTitle": "Verification failed",
-    "unknownVerificationError": "An unknown error occurred while verifying the address."
+  "address": {
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "unused": "Unused"
+    },
+    "state": {
+      "used": "Used",
+      "unused": "Unused"
+    },
+    "label": {
+      "address": "Address",
+      "path": "Path",
+      "current": "Current address",
+      "default": "Default address"
+    },
+    "receive": {
+      "maxTokensWarning": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
+      "verifyOnLedger": "Verify on the Ledger device",
+      "newAddressErrorTitle": "Address generation failed",
+      "newAddressErrorFallbackMessage": "Unable to generate a new address."
+    },
+    "qrCode": {
+      "title": "Address QR code",
+      "description": "Scan this QR code to receive assets in {address}."
+    },
+    "verify": {
+      "title": "Address Verification",
+      "description": "Ensure that the displayed address and path match exactly what appears on your device.",
+      "confirmOnDevice": "Confirm address on your device",
+      "confirmed": "Confirmed",
+      "notConfirmed": "Not confirmed",
+      "verificationErrorTitle": "Verification failed",
+      "unknownVerificationError": "An unknown error occurred while verifying the address."
+    }
   },
   "send": {
     "recipient": "Recipient",

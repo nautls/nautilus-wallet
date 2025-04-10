@@ -46,23 +46,23 @@ async function verify() {
 
     setState({
       type: undefined,
-      label: t("addressVerifyDialog.confirmOnDevice"),
+      label: t("address.verify.confirmOnDevice"),
       appId: app.authToken
     });
     const network = MAINNET ? Network.Mainnet : Network.Testnet;
     const confirmed = await app.showAddress(path.value, network);
 
     if (confirmed) {
-      setState({ type: "success", label: t("addressVerifyDialog.confirmed") });
+      setState({ type: "success", label: t("address.verify.confirmed") });
       emit("accepted");
     } else {
-      setState({ type: "error", label: t("addressVerifyDialog.notConfirmed") });
+      setState({ type: "error", label: t("address.verify.notConfirmed") });
       emit("refused");
     }
   } catch (e) {
     if (e instanceof DeviceError) {
       if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
-        setState({ type: "error", label: t("addressVerifyDialog.notConfirmed") });
+        setState({ type: "error", label: t("address.verify.notConfirmed") });
         emit("refused");
         return;
       } else if (
@@ -75,8 +75,8 @@ async function verify() {
     }
 
     toast({
-      title: t("addressVerifyDialog.verificationErrorTitle"),
-      description: extractErrorMessage(e, t("addressVerifyDialog.unknownVerificationError"))
+      title: t("address.verify.verificationErrorTitle"),
+      description: extractErrorMessage(e, t("address.verify.unknownVerificationError"))
     });
 
     log.error(e);
@@ -101,17 +101,17 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
   <Drawer v-model:open="opened" :dismissible="!loading" @update:open="handleOpenUpdates">
     <DrawerContent :dismissible="!loading">
       <DrawerHeader v-once>
-        <DrawerTitle>{{ t("addressVerifyDialog.title") }}</DrawerTitle>
-        <DrawerDescription>{{ t("addressVerifyDialog.description") }} ></DrawerDescription>
+        <DrawerTitle>{{ t("address.verify.title") }}</DrawerTitle>
+        <DrawerDescription>{{ t("address.verify.description") }} ></DrawerDescription>
       </DrawerHeader>
 
       <Alert v-once>
-        <AlertTitle>{{ t("addressVerifyDialog.addressLabel") }}</AlertTitle>
+        <AlertTitle>{{ t("address.label.address") }}</AlertTitle>
         <AlertDescription class="break-all">{{ address.script }}</AlertDescription>
       </Alert>
 
       <Alert v-once>
-        <AlertTitle>{{ t("addressVerifyDialog.pathLabel") }}</AlertTitle>
+        <AlertTitle>{{ t("address.label.path") }}</AlertTitle>
         <AlertDescription class="break-all">{{ path }}</AlertDescription>
       </Alert>
 

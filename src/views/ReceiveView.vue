@@ -51,14 +51,14 @@ async function newAddress() {
     await wallet.deriveNewAddress();
   } catch (e) {
     toast({
-      title: t("receive.newAddressErrorTitle"),
-      description: (e as Error)?.message ?? t("receive.newAddressErrorFallbackMessage")
+      title: t("address.receive.newAddressErrorTitle"),
+      description: (e as Error)?.message ?? t("address.receive.newAddressErrorFallbackMessage")
     });
   }
 }
 
 function getFormattedErgBalance(address: StateAddress, decimals = 3): string | undefined {
-  if (address.state === AddressState.Unused) return t("receive.unusedState");
+  if (address.state === AddressState.Unused) return t("address.state.unused");
   let erg = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount;
   if (!erg) erg = bn(0);
 
@@ -80,8 +80,8 @@ function openExplorer(address: string | undefined) {
             {{
               t(
                 wallet.settings.avoidAddressReuse
-                  ? "receive.currentAddress"
-                  : "receive.defaultAddress"
+                  ? "address.label.current"
+                  : "address.label.default"
               )
             }}
           </CardTitle>
@@ -98,16 +98,16 @@ function openExplorer(address: string | undefined) {
     <Alert v-if="isLedger">
       <TriangleAlertIcon />
       <AlertDescription class="hyphens-auto">
-        {{ t("receive.maxTokensWarning", { count: 20 }) }}
+        {{ t("address.receive.maxTokensWarning", { count: 20 }) }}
       </AlertDescription>
     </Alert>
 
     <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
       <div class="flex flex-row">
         <TabsList>
-          <TabsTrigger value="all">{{ t("receive.filterAll") }}</TabsTrigger>
-          <TabsTrigger value="active">{{ t("receive.filterActive") }}</TabsTrigger>
-          <TabsTrigger value="unused">{{ t("receive.filterUnused") }}</TabsTrigger>
+          <TabsTrigger value="all">{{ t("address.filter.all") }}</TabsTrigger>
+          <TabsTrigger value="active">{{ t("address.filter.active") }}</TabsTrigger>
+          <TabsTrigger value="unused">{{ t("address.filter.unused") }}</TabsTrigger>
         </TabsList>
 
         <div class="grow"></div>
@@ -185,7 +185,7 @@ function openExplorer(address: string | undefined) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-52 hyphens-auto">
-                    {{ t("receive.showQrCode") }}
+                    {{ t("common.showQrCode") }}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -203,7 +203,7 @@ function openExplorer(address: string | undefined) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-52 hyphens-auto">
-                    {{ t("receive.verifyOnLedger") }}
+                    {{ t("address.receive.verifyOnLedger") }}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
