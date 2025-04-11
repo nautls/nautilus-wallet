@@ -3,6 +3,7 @@ import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
 import BigNumber from "bignumber.js";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { AssetIcon } from "@/components/asset";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ defineExpose({ close: closePopover, clearSearch });
 const format = useFormat();
 const app = useAppStore();
 
+const { t } = useI18n();
 const selected = useVModel(props, "modelValue", emit, { passive: true }) as Ref<T | undefined>;
 const isOpen = ref(false);
 const searchTerm = ref("");
@@ -57,7 +59,7 @@ const popoverWidth = ref("");
 
 const normalizedSearchTerm = computed(() => normalize(searchTerm.value));
 
-useResizeObserver(useTemplateRef("test"), ([entry]) => {
+useResizeObserver(useTemplateRef("popover"), ([entry]) => {
   popoverWidth.value = `width: ${Math.floor(entry.contentRect.width)}px;`;
 });
 
@@ -95,7 +97,7 @@ function filter(items: (T | string)[]) {
 
 <template>
   <Popover v-model:open="isOpen">
-    <div ref="test">
+    <div ref="popover">
       <slot v-if="$slots.default" />
       <PopoverTrigger v-else as-child>
         <Button
@@ -104,7 +106,7 @@ function filter(items: (T | string)[]) {
           role="combobox"
           class="w-full items-center gap-0"
         >
-          <span class="grow">Add asset</span>
+          <span class="grow">{{ t("asset.add") }}</span>
           <ChevronsUpDownIcon class="float-end -ml-4 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -112,8 +114,8 @@ function filter(items: (T | string)[]) {
 
     <PopoverContent class="min-w-[200px] p-0" :style="popoverWidth">
       <Command v-model:search-term="searchTerm" class="max-h-[210px]" :filter-function="filter">
-        <CommandInput placeholder="Search asset..." />
-        <CommandEmpty>No assets found.</CommandEmpty>
+        <CommandInput :placeholder="t('common.search')" />
+        <CommandEmpty>{{ t("asset.noAssetsFound") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
             <CommandItem

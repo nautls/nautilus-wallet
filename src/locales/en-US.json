@@ -70,6 +70,8 @@
   "asset": {
     "totalBalance": "Wallet balance",
     "noConversionRate": "No conversion rate",
+    "add": "Add asset",
+    "noAssetsFound": "No assets found.",
     "tabs": {
       "tokens": "Tokens",
       "collectibles": "Collectibles"
@@ -167,6 +169,7 @@
     "wrongPasswordErrorTitle": "Wrong password",
     "wrongPasswordErrorDescription": "Please enter the correct spending password.",
     "xPubKey": "Extended public key",
+    "xPubKeyDescription": "Extended public keys allow viewing transaction history and generating new addresses, but they cannot spend or move funds in any way.",
     "xPrivKey": "Extended private key",
     "walletName": "Wallet name",
     "confirmPassword": "Confirm password",
