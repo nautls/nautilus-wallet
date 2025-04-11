@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
+import { Locale } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +13,8 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
+  CommandSeparator
 } from "@/components/ui/command";
 import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "@/components/ui/link";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/boot/i18n";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   MIN_SERVER_VERSION,
@@ -30,6 +33,11 @@ import { cn } from "@/common/utils";
 import { validUrl } from "@/validators";
 
 const app = useAppStore();
+
+const localeState = reactive({
+  available: SUPPORTED_LOCALES,
+  isPopoverOpen: false
+});
 
 const currencyState = reactive({
   available: [app.settings.conversionCurrency ?? "usd"],
@@ -42,6 +50,9 @@ const graphQLServer = ref(app.settings.graphQLServer);
 
 const nsfwBlacklist = computedBlacklist("nsfw");
 const scamBlacklist = computedBlacklist("scam");
+const currentLocale = computed(() =>
+  app.settings.locale === "auto" ? "System default" : LANGUAGE_LABELS.get(app.settings.locale)
+);
 
 onMounted(async () => {
   currencyState.loading = true;
@@ -69,8 +80,15 @@ watch(graphQLServer, async () => {
 });
 
 function selectCurrency(currency: string) {
-  app.settings.conversionCurrency = currency;
   currencyState.isPopoverOpen = false;
+  app.settings.conversionCurrency = currency;
+}
+
+async function selectLocale(locale: Locale | "auto") {
+  localeState.isPopoverOpen = false;
+
+  app.settings.locale = locale;
+  setLocale(locale);
 }
 
 function computedBlacklist(list: string) {
@@ -120,6 +138,72 @@ const v$ = useVuelidate(
 
 <template>
   <div class="space-y-6">
+    <Card class="flex flex-col gap-4 p-6">
+      <div class="flex items-center justify-between gap-4">
+        <Label class="flex flex-col gap-2"
+          >Display Language
+          <div class="text-muted-foreground text-xs font-normal">
+            Use this option to set the default app language.
+          </div></Label
+        >
+      </div>
+
+      <Popover v-model:open="localeState.isPopoverOpen">
+        <PopoverTrigger as-child>
+          <Button variant="outline">
+            <span class="grow">{{ currentLocale }}</span>
+            <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent class="p-0">
+          <Command reset-search-term-on-blur>
+            <CommandInput placeholder="Search" />
+            <CommandList class="max-h-[200px]">
+              <CommandGroup>
+                <CommandItem
+                  value="auto"
+                  class="justify-between gap-2 whitespace-nowrap"
+                  @select="selectLocale('auto')"
+                >
+                  <div class="font-medium">System default</div>
+
+                  <CheckIcon
+                    :class="
+                      cn(
+                        'mr-2 h-4 w-4',
+                        app.settings.locale === 'auto' ? 'opacity-100' : 'opacity-0'
+                      )
+                    "
+                  />
+                </CommandItem>
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup>
+                <CommandItem
+                  v-for="lang in localeState.available"
+                  :key="lang"
+                  class="justify-between gap-2"
+                  :value="lang"
+                  @select="selectLocale(lang)"
+                >
+                  <div>{{ LANGUAGE_LABELS.get(lang) }}</div>
+
+                  <CheckIcon
+                    :class="
+                      cn('mr-2 h-4 w-4', lang === app.settings.locale ? 'opacity-100' : 'opacity-0')
+                    "
+                  />
+                </CommandItem>
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </Card>
+
     <Card class="flex flex-col gap-6 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2"
@@ -144,7 +228,7 @@ const v$ = useVuelidate(
 
           <PopoverContent class="max-w-[110px] p-0">
             <Command reset-search-term-on-blur>
-              <CommandInput placeholder="Search..." />
+              <CommandInput placeholder="Search" />
               <CommandEmpty>No currencies found.</CommandEmpty>
               <CommandList class="max-h-[200px]">
                 <CommandGroup>
@@ -249,7 +333,7 @@ const v$ = useVuelidate(
           Experimental <TriangleAlertIcon class="text-warning size-3" />
         </div>
 
-        <div class="text-xs font-normal">
+        <div class="text-xs font-normal hyphens-auto">
           The features under this section are marked as experimental, which means they're not
           stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a
           work in progress, so expect some rough edges.
@@ -259,7 +343,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="0-conf" class="flex flex-col gap-1"
           >Enable 0-conf
-          <div class="text-muted-foreground text-xs font-normal">
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             0-conf, short for zero-confirmations, lets you to spend assets without waiting for
             confirmations. It's fast but carries a risk of being double-spent until confirmed by the
             blockchain.

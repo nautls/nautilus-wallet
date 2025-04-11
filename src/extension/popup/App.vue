@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineAsyncComponent, watch } from "vue";
 import { ChevronLeftIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
@@ -7,23 +6,9 @@ import { Button } from "@/components/ui/button";
 import Toaster from "@/components/ui/toast/Toaster.vue";
 import { WalletSwitcher } from "@/components/wallet";
 import { isPopup } from "@/common/browser";
-import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import NavHeader from "./components/NavHeader.vue";
 
-const app = useAppStore();
-
-const { open: openKyaDialog } = useProgrammaticDialog(
-  defineAsyncComponent(() => import("@/components/KYADialog.vue"))
-);
-
-watch(
-  () => app.loading,
-  (loading) => {
-    if (loading || app.settings.isKyaAccepted) return;
-    openKyaDialog();
-  },
-  { once: true }
-);
+useAppStore(); // Initialize app store to ensure it is loaded
 </script>
 
 <template>
@@ -38,11 +23,8 @@ watch(
         </Button>
 
         <div class="-ml-9 flex w-full flex-col text-center">
-          <div class="text-xl leading-tight font-semibold tracking-tight">
+          <div class="text-lg leading-tight font-semibold tracking-tight">
             {{ $route.meta.title }}
-          </div>
-          <div v-if="$route.meta.description" class="text-muted-foreground text-sm">
-            {{ $route.meta.description }}
           </div>
         </div>
       </div>

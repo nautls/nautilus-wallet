@@ -1,4 +1,4 @@
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import { AssetInfo } from "@/types/internal";
 

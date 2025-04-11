@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ImportIcon, WalletIcon } from "lucide-vue-next";
+import { I18nT, useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
 const wallet = useWalletStore();
+const { t } = useI18n();
+
 const hasWallets = computed(() => wallet.id !== 0);
+const commitHash = import.meta.env.GIT_COMMIT_HASH;
 
 /**
  * Navigate to a route in a new tab
@@ -45,8 +50,8 @@ const routes = [
       component: WalletIcon,
       class: "stroke-[1px]"
     },
-    title: "Create a new wallet",
-    description: "Create a new Ergo Wallet"
+    title: t("wallet.index.createTitle"),
+    description: t("wallet.index.createDescription")
   },
   {
     path: "/add/hw/ledger",
@@ -54,8 +59,8 @@ const routes = [
       component: LedgerLogo,
       class: "p-1"
     },
-    title: "Connect a Ledger Wallet",
-    description: "Connect your Hardware Wallet"
+    title: t("wallet.index.connectTitle"),
+    description: t("wallet.index.connectDescription")
   },
   {
     path: "/add/import",
@@ -63,8 +68,8 @@ const routes = [
       component: ImportIcon,
       class: "stroke-[1px]"
     },
-    title: "Import a wallet",
-    description: "Import an existing Ergo Wallet"
+    title: t("wallet.index.importTitle"),
+    description: t("wallet.index.importDescription")
   }
 ];
 </script>
@@ -80,14 +85,14 @@ const routes = [
           class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
         />
       </div>
-      <div class="text-xl leading-tight font-semibold tracking-tight">
-        Welcome to Nautilus Wallet
+      <div class="text-xl leading-tight font-semibold tracking-tight" v-once>
+        {{ t("wallet.index.title") }}
       </div>
-      <div class="text-muted-foreground text-sm">Choose an option to get started</div>
+      <div class="text-muted-foreground text-sm" v-once>{{ t("wallet.index.subtitle") }}</div>
     </div>
   </div>
 
-  <div class="flex h-full flex-col justify-end gap-6 p-6">
+  <div class="flex h-full flex-col justify-end gap-4 p-6">
     <router-link
       v-for="route in routes"
       :key="route.path"
@@ -109,8 +114,28 @@ const routes = [
       </Button>
     </router-link>
 
-    <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()"
-      >Cancel</Button
-    >
+    <div class="grow"></div>
+
+    <div class="space-y-2" v-once>
+      <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()">{{
+        t("common.cancel")
+      }}</Button>
+
+      <I18nT
+        keypath="wallet.index.kyaAgreement"
+        tag="p"
+        class="font-xs text-muted-foreground px-16 text-center"
+        scope="global"
+      >
+        <template #kya>
+          <Link
+            external
+            class="text-nowrap text-blue-500/80"
+            :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
+            >{{ t("wallet.index.kya") }}</Link
+          >
+        </template>
+      </I18nT>
+    </div>
   </div>
 </template>

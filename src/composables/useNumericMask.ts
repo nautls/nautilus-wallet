@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, Ref, shallowRef, watch } from "vue";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import Cleave, { CleaveOnChangedEvent, CleaveOptions } from "cleave.js";
 import { bn } from "@/common/bigNumber";
 
