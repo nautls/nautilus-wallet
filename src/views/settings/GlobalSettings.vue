@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
-import { Locale, useI18n } from "vue-i18n";
+import { Locale } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +13,8 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
+  CommandSeparator
 } from "@/components/ui/command";
 import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "@/components/ui/link";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { setLocale, SUPPORTED_LOCALES } from "@/boot/i18n";
+import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/boot/i18n";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   MIN_SERVER_VERSION,
@@ -32,7 +33,6 @@ import { cn } from "@/common/utils";
 import { validUrl } from "@/validators";
 
 const app = useAppStore();
-const { locale } = useI18n();
 
 const localeState = reactive({
   available: SUPPORTED_LOCALES,
@@ -51,7 +51,7 @@ const graphQLServer = ref(app.settings.graphQLServer);
 const nsfwBlacklist = computedBlacklist("nsfw");
 const scamBlacklist = computedBlacklist("scam");
 const currentLocale = computed(() =>
-  app.settings.locale === "auto" ? "Auto" : app.settings.locale
+  app.settings.locale === "auto" ? "System default" : LANGUAGE_LABELS.get(app.settings.locale)
 );
 
 onMounted(async () => {
@@ -138,7 +138,7 @@ const v$ = useVuelidate(
 
 <template>
   <div class="space-y-6">
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2"
           >Display Language
@@ -146,61 +146,62 @@ const v$ = useVuelidate(
             Use this option to set the default app language.
           </div></Label
         >
-
-        <Popover v-model:open="localeState.isPopoverOpen">
-          <PopoverTrigger as-child>
-            <Button variant="outline" class="min-w-[100px]">
-              <span class="grow">{{ currentLocale }}</span>
-              <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-
-          <PopoverContent class="max-w-[130px] p-0">
-            <Command reset-search-term-on-blur>
-              <CommandInput placeholder="Search" />
-              <CommandList class="max-h-[200px]">
-                <CommandGroup>
-                  <CommandItem
-                    value="auto"
-                    class="justify-between gap-2 whitespace-nowrap"
-                    @select="selectLocale('auto')"
-                  >
-                    <div class="font-medium">Auto ({{ locale }})</div>
-
-                    <CheckIcon
-                      :class="
-                        cn(
-                          'mr-2 h-4 w-4',
-                          app.settings.locale === 'auto' ? 'opacity-100' : 'opacity-0'
-                        )
-                      "
-                    />
-                  </CommandItem>
-
-                  <CommandItem
-                    v-for="lang in localeState.available"
-                    :key="lang"
-                    class="justify-between gap-2"
-                    :value="lang"
-                    @select="selectLocale(lang)"
-                  >
-                    <div>{{ lang }}</div>
-
-                    <CheckIcon
-                      :class="
-                        cn(
-                          'mr-2 h-4 w-4',
-                          lang === app.settings.locale ? 'opacity-100' : 'opacity-0'
-                        )
-                      "
-                    />
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
       </div>
+
+      <Popover v-model:open="localeState.isPopoverOpen">
+        <PopoverTrigger as-child>
+          <Button variant="outline">
+            <span class="grow">{{ currentLocale }}</span>
+            <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent class="p-0">
+          <Command reset-search-term-on-blur>
+            <CommandInput placeholder="Search" />
+            <CommandList class="max-h-[200px]">
+              <CommandGroup>
+                <CommandItem
+                  value="auto"
+                  class="justify-between gap-2 whitespace-nowrap"
+                  @select="selectLocale('auto')"
+                >
+                  <div class="font-medium">System default</div>
+
+                  <CheckIcon
+                    :class="
+                      cn(
+                        'mr-2 h-4 w-4',
+                        app.settings.locale === 'auto' ? 'opacity-100' : 'opacity-0'
+                      )
+                    "
+                  />
+                </CommandItem>
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup>
+                <CommandItem
+                  v-for="lang in localeState.available"
+                  :key="lang"
+                  class="justify-between gap-2"
+                  :value="lang"
+                  @select="selectLocale(lang)"
+                >
+                  <div>{{ LANGUAGE_LABELS.get(lang) }}</div>
+
+                  <CheckIcon
+                    :class="
+                      cn('mr-2 h-4 w-4', lang === app.settings.locale ? 'opacity-100' : 'opacity-0')
+                    "
+                  />
+                </CommandItem>
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </Card>
 
     <Card class="flex flex-col gap-6 p-6">
