@@ -16,7 +16,8 @@
     "consolidate": "Consolidate",
     "learnMore": "Learn more",
     "confirm": "Confirm",
-    "import": "Import"
+    "import": "Import",
+    "select": "Select"
   },
   "datetime": {
     "now": "just now",

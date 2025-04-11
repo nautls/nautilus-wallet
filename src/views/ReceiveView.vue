@@ -215,7 +215,7 @@ function openExplorer(address: string | undefined) {
             <template v-else>
               <span>{{ getFormattedErgBalance(address) }}</span>
               <span v-if="address.assets.length > 1" class="text-muted-foreground">
-                +{{ address.assets.length - 1 }}</span
+                {{ " +" + (address.assets.length - 1) }}</span
               >
             </template>
           </div>

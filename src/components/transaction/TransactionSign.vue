@@ -271,9 +271,9 @@ const v$ = useVuelidate(
                 />
               </p>
               <p v-if="isLedger && isP2S(output)">
-                <span class="font-sans font-semibold" v-once
-                  >{{ t("transaction.sign.scriptHash") }}:</span
-                >
+                <span class="font-sans font-semibold" v-once>{{
+                  t("transaction.sign.scriptHash") + ":"
+                }}</span>
                 {{ output.scriptHash }}
               </p>
             </div>
