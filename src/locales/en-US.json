@@ -17,7 +17,8 @@
     "learnMore": "Learn more",
     "confirm": "Confirm",
     "import": "Import",
-    "select": "Select"
+    "select": "Select",
+    "confirmed": "Confirmed"
   },
   "datetime": {
     "now": "just now",
@@ -33,17 +34,20 @@
   },
   "device": {
     "isLocked": "Device is locked",
-    "connected": "Connected",
     "ready": "Ready",
+    "connect": "Connect",
+    "connected": "Connected",
+    "reconnecting": "Reconnecting...",
+    "connecting": "Connecting...",
     "connectionError": "Connection error",
     "notFoundErrorTitle": "Device not found!",
     "notFoundErrorDescription": "Ensure your device is properly connected and unlocked.",
-    "reconnecting": "Reconnecting...",
     "ledger": {
       "waitingAppClose": "Waiting for the app to be closed",
       "confirmAppOpen": "Confirm opening the Ergo app",
       "waitingAppReady": "Waiting for the app to be ready",
       "userDeniedOpenApp": "Ergo app opening denied by the user",
+      "deniedByUser": "Denied by the user",
       "openingApp": "Error opening the Ergo app",
       "appId": "App ID: {appId}"
     }
@@ -106,7 +110,6 @@
       "title": "Address Verification",
       "description": "Ensure that the displayed address and path match exactly what appears on your device.",
       "confirmOnDevice": "Confirm address on your device",
-      "confirmed": "Confirmed",
       "notConfirmed": "Not confirmed",
       "verificationErrorTitle": "Verification failed",
       "unknownVerificationError": "An unknown error occurred while verifying the address."
@@ -221,6 +224,17 @@
       "selectWalletType": "Select the wallet type",
       "words": "{count} words recovery phrase",
       "importing": "Importing your wallet..."
+    },
+    "connect": {
+      "confirmXPubExport": "Confirm export Extended Public Key",
+      "notExported": "Not exported",
+      "verificationErrorTitle": "Verification failed",
+      "verificationUnknownError": "An unknown error occurred while verifying the address.",
+      "successTitle": "Wallet connected!",
+      "popupViewMode": "popup",
+      "sidePanelViewMode": "side panel",
+      "successDescription": "Your Ledger device has been successfully connected. You can now open Nautilus Wallet in the browser's {viewMode}.",
+      "openInViewMode": "Open Nautilus in the {viewMode}"
     }
   }
 }

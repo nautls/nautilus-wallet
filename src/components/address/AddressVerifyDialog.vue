@@ -53,7 +53,7 @@ async function verify() {
     const confirmed = await app.showAddress(path.value, network);
 
     if (confirmed) {
-      setState({ type: "success", label: t("address.verify.confirmed") });
+      setState({ type: "success", label: t("common.confirmed") });
       emit("accepted");
     } else {
       setState({ type: "error", label: t("address.verify.notConfirmed") });
