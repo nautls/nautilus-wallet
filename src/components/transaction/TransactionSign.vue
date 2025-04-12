@@ -328,7 +328,6 @@ const v$ = useVuelidate(
         variant="outline"
         :disabled="loading || signing"
         @click="emit('refused')"
-        v-once
         >{{ t("common.cancel") }}</Button
       >
       <Button class="w-full" :disabled="loading || signing || !canSign" @click="sign">
