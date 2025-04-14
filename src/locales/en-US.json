@@ -18,7 +18,9 @@
     "confirm": "Confirm",
     "import": "Import",
     "select": "Select",
-    "confirmed": "Confirmed"
+    "confirmed": "Confirmed",
+    "export": "Export",
+    "remove": "Remove"
   },
   "datetime": {
     "now": "just now",
@@ -61,7 +63,7 @@
       "dApps": "dApps"
     },
     "menu": {
-      "noWalletFound": "No wallet found.",
+      "noWalletsFound": "No wallets found.",
       "newWallet": "New wallet",
       "settings": "Settings",
       "about": "About"
@@ -238,6 +240,54 @@
       "sidePanelViewMode": "side panel",
       "successDescription": "Your Ledger device has been successfully connected. You can now open Nautilus Wallet in the browser's {viewMode}.",
       "openInViewMode": "Open Nautilus in the {viewMode}"
+    }
+  },
+  "settings": {
+    "systemDefault": "System default",
+    "tabs": {
+      "global": "Global",
+      "wallet": "Wallet",
+      "connections": "Connections"
+    },
+    "global": {
+      "displayLanguage": "Display language",
+      "displayLanguageDesc": "Select the language for the Nautilus Wallet interface.",
+      "conversionCurrency": "Conversion currency",
+      "conversionCurrencyDesc": "Select the currency for conversion rates.",
+      "noCurrenciesFound": "No currencies found.",
+      "devMode": "Developer mode",
+      "devModeDesc": "Enable developer mode to access advanced features.",
+      "tokenBlacklists": "Token blacklists",
+      "tokenBlacklistsDesc": "Manage token blacklists to hide unwanted tokens.",
+      "nsfwTokensBlacklist": "NSFW tokens",
+      "nsfwTokensBlacklistDesc": "Hide NSFW (Not Safe For Work) tokens.",
+      "scamTokensBlacklist": "Scam tokens",
+      "scamTokensBlacklistDesc": "Hide scam tokens.",
+      "gqlServer": "GraphQL server",
+      "gqlServerDesc": "Set the main GraphQL server endpoint.",
+      "requiredGql": "GraphQL URL is required.",
+      "wrongServerNetwork": "Wrong server network.",
+      "unsupportedServerVersion": "Unsupported server version. Nautilus requires at least version {version}.",
+      "explorerUrl": "Explorer URL",
+      "explorerUrlDesc": "Set the default Ergo block explorer.",
+      "requiredExplorer": "Explorer URL is required.",
+      "experimental": "Experimental",
+      "experimentalDesc": "The features under this section are marked as experimental, which means they're not stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a work in progress, so expect some rough edges.",
+      "zeroConf": "Enable 0-conf",
+      "zeroConfDesc": "0-conf, short for zero-confirmations, lets you to spend assets without waiting for confirmations. It's fast but carries a risk of being double-spent until confirmed by the blockchain."
+    },
+    "wallet": {
+      "walletNameDesc": "Set a name for your wallet.",
+      "avoidAddressReuse": "Avoid address reuse",
+      "avoidAddressReuseDesc": "Enable this option to prevent the same address from being used for multiple transactions. This helps protect your privacy.",
+      "xPubKeyDesc": "Use this option to export the Extended Public Key of your wallet.",
+      "removeWallet": "Remove wallet",
+      "removeWalletDesc": "Use this option to remove the current wallet from the app.",
+      "walletRemoveConfirmation": "Are you absolutely sure?",
+      "walletRemoveConfirmationDesc": "Removing a wallet doesn't affect its blockchain balance, and you can restore it later. However, make sure you still have the information needed to restore it. Without it, removing the wallet can result in an irreversible loss of funds."
+    },
+    "connections": {
+      "noConnectedApps": "You have no connected apps yet."
     }
   }
 }

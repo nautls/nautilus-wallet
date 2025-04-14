@@ -152,7 +152,7 @@ async function toggleViewMode() {
         "
       >
         <CommandInput :placeholder="t('common.search')" />
-        <CommandEmpty>{{ t("header.menu.noWalletFound") }}</CommandEmpty>
+        <CommandEmpty>{{ t("header.menu.noWalletsFound") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
             <CommandItem

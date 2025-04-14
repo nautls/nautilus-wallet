@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { CableIcon, TrashIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import AppItem from "@/components/AppItem.vue";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { IDbDAppConnection } from "@/types/database";
 
 const app = useAppStore();
+const { t } = useI18n();
 
 const connections = ref<IDbDAppConnection[]>([]);
 const loading = ref(true);
@@ -40,7 +42,7 @@ async function remove(origin: string) {
       class="text-muted-foreground mt-10 flex flex-col items-center gap-4 text-center text-sm"
     >
       <CableIcon :size="48" class="stroke-[1.5px]" />
-      You have no connected dApps yet.
+      {{ t("settings.connections.noConnectedApps") }}
     </div>
 
     <template v-else>
