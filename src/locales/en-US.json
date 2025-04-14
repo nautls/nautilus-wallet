@@ -20,7 +20,9 @@
     "select": "Select",
     "confirmed": "Confirmed",
     "export": "Export",
-    "remove": "Remove"
+    "remove": "Remove",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use"
   },
   "datetime": {
     "now": "just now",
@@ -196,8 +198,7 @@
     "index": {
       "title": "Welcome to Nautilus Wallet",
       "subtitle": "Choose an option to get started",
-      "kyaAgreement": "By proceeding, you agree to Nautilus' {kya}",
-      "kya": "Terms of Use",
+      "kyaAgreement": "By proceeding, you agree to Nautilus' {termsOfUse}",
       "create": "Create a new wallet",
       "createDesc": "Create a new Ergo Wallet",
       "connect": "Connect a Ledger Wallet",
@@ -289,5 +290,10 @@
     "connections": {
       "noConnectedApps": "You have no connected apps yet."
     }
+  },
+  "about": {
+    "nautilusWallet": "Nautilus Wallet",
+    "quote": "Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
+    "donation": "Support Nautilus Team by donating to {address}."
   }
 }

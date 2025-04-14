@@ -127,12 +127,12 @@ const routes = [
         class="font-xs text-muted-foreground px-16 text-center"
         scope="global"
       >
-        <template #kya>
+        <template #termsOfUse>
           <Link
             external
             class="text-nowrap text-blue-500/80"
             :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
-            >{{ t("wallet.index.kya") }}</Link
+            >{{ t("common.termsOfUse") }}</Link
           >
         </template>
       </I18nT>
