@@ -161,7 +161,7 @@ async function next() {
     router.push({ name: "assets" });
   } catch (e) {
     toast({
-      title: t("wallet.import.walletImportErrorTitle"),
+      title: t("wallet.import.walletImportError"),
       variant: "destructive",
       description: extractErrorMessage(e)
     });
@@ -196,8 +196,8 @@ function onPaste(event: ClipboardEvent) {
 const steps = computed<Step[]>(() => [
   {
     step: 1,
-    title: t("wallet.infoStepTitle"),
-    description: t("wallet.infoStepDescription"),
+    title: t("wallet.infoStep"),
+    description: t("wallet.infoStepDesc"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
@@ -205,8 +205,8 @@ const steps = computed<Step[]>(() => [
     step: 2,
     title: isReadonly.value ? "Wallet key" : "Wallet secret",
     description: isReadonly.value
-      ? t("wallet.import.importStepTitle")
-      : t("wallet.import.importStepDescription"),
+      ? t("wallet.import.importStep")
+      : t("wallet.import.importStepDesc"),
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }

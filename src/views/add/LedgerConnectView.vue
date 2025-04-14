@@ -122,7 +122,7 @@ async function add() {
     }
 
     toast({
-      title: t("wallet.connect.verificationErrorTitle"),
+      title: t("wallet.connect.verificationError"),
       description: extractErrorMessage(e, t("wallet.connect.verificationUnknownError"))
     });
 
@@ -163,9 +163,9 @@ async function add() {
   <AlertDialog :open="connected">
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>{{ t("wallet.connect.successTitle") }}</AlertDialogTitle>
+        <AlertDialogTitle>{{ t("wallet.connect.success") }}</AlertDialogTitle>
         <AlertDialogDescription>
-          {{ t("wallet.connect.successDescription", { viewMode: formattedViewMode }) }}
+          {{ t("wallet.connect.successDesc", { viewMode: formattedViewMode }) }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>

@@ -22,11 +22,11 @@ function openUrl(url: string) {
 
 <template>
   <Alert v-if="wallet.health.hasOldUtxos" variant="destructive">
-    <AlertTitle>{{ t("wallet.alerts.demurrageTitle") }}</AlertTitle>
+    <AlertTitle>{{ t("wallet.alerts.demurrage") }}</AlertTitle>
 
     <div class="space-y-4">
       <AlertDescription class="hyphens-auto">
-        {{ t("wallet.alerts.demurrageDescription") }}
+        {{ t("wallet.alerts.demurrageDesc") }}
       </AlertDescription>
 
       <Button class="w-full" variant="ghost" @click="() => openUrl(STORAGE_RENT_URL)"
@@ -37,10 +37,10 @@ function openUrl(url: string) {
   </Alert>
 
   <Alert v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT">
-    <AlertTitle>{{ t("wallet.alerts.fragmentationTitle") }}</AlertTitle>
+    <AlertTitle>{{ t("wallet.alerts.fragmentation") }}</AlertTitle>
 
     <AlertDescription class="hyphens-auto">
-      {{ t("wallet.alerts.fragmentationDescription") }}
+      {{ t("wallet.alerts.fragmentationDesc") }}
     </AlertDescription>
 
     <Button class="mt-4 w-full" @click="goToOptimizationDapp">{{ t("common.optimize") }}</Button>

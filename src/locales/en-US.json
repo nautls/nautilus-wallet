@@ -42,8 +42,8 @@
     "reconnecting": "Reconnecting...",
     "connecting": "Connecting...",
     "connectionError": "Connection error",
-    "notFoundErrorTitle": "Device not found!",
-    "notFoundErrorDescription": "Ensure your device is properly connected and unlocked.",
+    "notFoundError": "Device not found!",
+    "notFoundErrorDesc": "Ensure your device is properly connected and unlocked.",
     "ledger": {
       "waitingAppClose": "Waiting for the app to be closed",
       "confirmAppOpen": "Confirm opening the Ergo app",
@@ -103,7 +103,7 @@
     "receive": {
       "maxTokensWarning": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
       "verifyOnLedger": "Verify on the Ledger device",
-      "newAddressErrorTitle": "Address generation failed",
+      "newAddressError": "Address generation failed",
       "newAddressErrorFallbackMessage": "Unable to generate a new address."
     },
     "qrCode": {
@@ -115,7 +115,7 @@
       "description": "Ensure that the displayed address and path match exactly what appears on your device.",
       "confirmOnDevice": "Confirm address on your device",
       "notConfirmed": "Not confirmed",
-      "verificationErrorTitle": "Verification failed",
+      "verificationError": "Verification failed",
       "unknownVerificationError": "An unknown error occurred while verifying the address."
     }
   },
@@ -129,8 +129,8 @@
     "send": {
       "recipient": "Recipient",
       "assets": "Assets",
-      "addAllAssetsTitle": "Add all assets",
-      "addAllAssetsDescription": "Add all assets to the sending list.",
+      "addAllAssets": "Add all assets",
+      "addAllAssetsDesc": "Add all assets to the sending list.",
       "minNamedAssetError": "You need at least {min} {asset} to send this transaction.",
       "requiredAmountError": "Please enter an amount.",
       "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction.",
@@ -143,11 +143,11 @@
       "sendingToContract": "Sending to contract",
       "sendingToScriptHash": "Sending to Script Hash",
       "sendingToExternalAddress": "Sending to external address",
-      "broadcastErrorTitle": "Transaction broadcast failed",
-      "newTokenTitle": "New Token",
-      "newTokenDescription": "This token will be minted in this transaction.",
-      "burningTitle": "Burning",
-      "burningDescription": "The assets listed below will be lost. Only continue if you know exactly what are you doing.",
+      "broadcastError": "Transaction broadcast failed",
+      "newToken": "New Token",
+      "newTokenDesc": "This token will be minted in this transaction.",
+      "burning": "Burning",
+      "burningDesc": "The assets listed below will be lost. Only continue if you know exactly what are you doing.",
       "burningConfirm": "Burn tokens permanently",
       "totalOutput": "Total assets leaving your wallet",
       "totalInput": "Total assets entering your wallet",
@@ -156,22 +156,22 @@
       "networkFee": "Network fee",
       "readonlyWallet": "Read-only wallet",
       "unableToSign": "This wallet can't sign transactions.",
-      "reviewTxTitle": "Transaction Review",
-      "reviewTxDescription": "Review the transaction before signing.",
+      "reviewTx": "Transaction Review",
+      "reviewTxDesc": "Review the transaction before signing.",
       "requiredPasswordError": "Please enter your spending password.",
-      "buildErrorTitle": "Transaction build failed",
-      "successTitle": "Transaction sent!",
-      "successDescription": "Your transaction has been successfully signed and sent.",
-      "signErrorTitle": "Transaction signing failed"
+      "buildError": "Transaction build failed",
+      "success": "Transaction sent!",
+      "successDesc": "Your transaction has been successfully signed and sent.",
+      "signError": "Transaction signing failed"
     }
   },
   "wallet": {
     "spendingPassword": "Spending password",
     "emptyProofError": "Prover returned no signed data.",
-    "wrongPasswordErrorTitle": "Wrong password",
-    "wrongPasswordErrorDescription": "Please enter the correct spending password.",
+    "wrongPasswordError": "Wrong password",
+    "wrongPasswordErrorDesc": "Please enter the correct spending password.",
     "xPubKey": "Extended public key",
-    "xPubKeyDescription": "Extended public keys allow viewing transaction history and generating new addresses, but they cannot spend or move funds in any way.",
+    "xPubKeyDesc": "Extended public keys allow viewing transaction history and generating new addresses, but they cannot spend or move funds in any way.",
     "xPrivKey": "Extended private key",
     "walletName": "Wallet name",
     "confirmPassword": "Confirm password",
@@ -179,8 +179,8 @@
     "spendingPasswordRequired": "Spending password is required.",
     "minSpendingPasswordLength": "Spending password must be at least {min} characters long.",
     "passwordsMustMatch": "'Spending password' and 'Confirm password' must match.",
-    "infoStepTitle": "Wallet information",
-    "infoStepDescription": "This information will be used to identify and protect your wallet.",
+    "infoStep": "Wallet information",
+    "infoStepDesc": "This information will be used to identify and protect your wallet.",
     "words": "{count} words",
     "type": {
       "standard": "Standard",
@@ -188,32 +188,32 @@
       "ledger": "Ledger"
     },
     "alerts": {
-      "demurrageTitle": "You may soon incur demurrage",
-      "demurrageDescription": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
-      "fragmentationTitle": "Your wallet looks fragmented",
-      "fragmentationDescription": "Consider optimizing your wallet for improved performance and efficiency."
+      "demurrage": "You may soon incur demurrage",
+      "demurrageDesc": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
+      "fragmentation": "Your wallet looks fragmented",
+      "fragmentationDesc": "Consider optimizing your wallet for improved performance and efficiency."
     },
     "index": {
       "title": "Welcome to Nautilus Wallet",
       "subtitle": "Choose an option to get started",
       "kyaAgreement": "By proceeding, you agree to Nautilus' {kya}",
       "kya": "Terms of Use",
-      "createTitle": "Create a new wallet",
-      "createDescription": "Create a new Ergo Wallet",
-      "connectTitle": "Connect a Ledger Wallet",
-      "connectDescription": "Connect your Hardware Wallet",
-      "importTitle": "Import a wallet",
-      "importDescription": "Import an existing wallet"
+      "create": "Create a new wallet",
+      "createDesc": "Create a new Ergo Wallet",
+      "connect": "Connect a Ledger Wallet",
+      "connectDesc": "Connect your Hardware Wallet",
+      "import": "Import a wallet",
+      "importDesc": "Import an existing wallet"
     },
     "create": {
       "createRecoveryPhrase": "Create a recovery phrase",
       "iHaveSavedTheseWords": "I've saved these words",
       "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
-      "walletCreationErrorTitle": "Wallet creation failed",
-      "secretStepTitle": "Recovery phrase",
-      "secretStepDescription": "These words are the keys to your wallet. Make sure you save them in a secure location.",
-      "secretConfirmStepTitle": "Confirm your recovery phrase",
-      "secretConfirmStepDescription": "Complete the missing parts of your recovery phrase.",
+      "walletCreationError": "Wallet creation failed",
+      "secretStep": "Recovery phrase",
+      "secretStepDesc": "These words are the keys to your wallet. Make sure you save them in a secure location.",
+      "secretConfirmStep": "Confirm your recovery phrase",
+      "secretConfirmStepDesc": "Complete the missing parts of your recovery phrase.",
       "creating": "Creating your wallet..."
     },
     "import": {
@@ -221,9 +221,9 @@
       "insertRecoveryPhrase": "Insert a recovery phrase",
       "requiredXPubKey": "Extended public key is required.",
       "requiredRecoveryPhrase": "Recovery phrase is required.",
-      "walletImportErrorTitle": "Wallet import failed",
-      "importStepTitle": "Insert the Extended Public Key of your wallet.",
-      "importStepDescription": "Select the type of secret you want to use and fill it out.",
+      "walletImportError": "Wallet import failed",
+      "importStep": "Insert the Extended Public Key of your wallet.",
+      "importStepDesc": "Select the type of secret you want to use and fill it out.",
       "walletType": "Wallet type",
       "selectSecretType": "Select the secret type",
       "selectWalletType": "Select the wallet type",
@@ -233,12 +233,12 @@
     "connect": {
       "confirmXPubExport": "Confirm export Extended Public Key",
       "notExported": "Not exported",
-      "verificationErrorTitle": "Verification failed",
+      "verificationError": "Verification failed",
       "verificationUnknownError": "An unknown error occurred while verifying the address.",
-      "successTitle": "Wallet connected!",
+      "success": "Wallet connected!",
       "popupViewMode": "popup",
       "sidePanelViewMode": "side panel",
-      "successDescription": "Your Ledger device has been successfully connected. You can now open Nautilus Wallet in the browser's {viewMode}.",
+      "successDesc": "Your Ledger device has been successfully connected. You can now open Nautilus Wallet in the browser's {viewMode}.",
       "openInViewMode": "Open Nautilus in the {viewMode}"
     }
   },

@@ -144,9 +144,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("wallet.wrongPasswordErrorTitle"),
+        title: t("wallet.wrongPasswordError"),
         variant: "destructive",
-        description: t("wallet.wrongPasswordErrorDescription")
+        description: t("wallet.wrongPasswordErrorDesc")
       });
       nextTick(() => pwdInput.value?.input?.$el.focus());
 
@@ -179,7 +179,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
     return result.transactionId;
   } catch (e) {
     toast({
-      title: t("transaction.sign.broadcastErrorTitle"),
+      title: t("transaction.sign.broadcastError"),
       description: typeof e === "string" ? e : (e as Error).message,
       variant: "destructive",
       action: h(
@@ -223,10 +223,10 @@ const v$ = useVuelidate(
           type="burn"
           variant="destructive"
         >
-          <p v-once>{{ t("transaction.sign.burningTitle") }}</p>
+          <p v-once>{{ t("transaction.sign.burning") }}</p>
           <template #subheader>
             <span class="text-destructive-foreground/80" v-once>
-              {{ t("transaction.sign.burningDescription") }}
+              {{ t("transaction.sign.burningDesc") }}
             </span>
           </template>
         </TransactionEntry>

@@ -75,7 +75,7 @@ async function verify() {
     }
 
     toast({
-      title: t("address.verify.verificationErrorTitle"),
+      title: t("address.verify.verificationError"),
       description: extractErrorMessage(e, t("address.verify.unknownVerificationError"))
     });
 

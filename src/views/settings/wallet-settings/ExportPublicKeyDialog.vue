@@ -41,9 +41,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
     <DrawerContent>
       <DrawerHeader>
         <DrawerTitle>{{ t("wallet.xPubKey") }}</DrawerTitle>
-        <DrawerDescription class="hyphens-auto">{{
-          t("wallet.xPubKeyDescription")
-        }}</DrawerDescription>
+        <DrawerDescription class="hyphens-auto">{{ t("wallet.xPubKeyDesc") }}</DrawerDescription>
       </DrawerHeader>
 
       <QrCode :data="xpk" class="m-auto size-[200px]" />

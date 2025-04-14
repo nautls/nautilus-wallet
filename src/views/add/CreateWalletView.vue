@@ -148,7 +148,7 @@ async function next() {
     router.push({ name: "assets" });
   } catch (e) {
     toast({
-      title: t("wallet.create.walletCreationErrorTitle"),
+      title: t("wallet.create.walletCreationError"),
       variant: "destructive",
       description: extractErrorMessage(e)
     });
@@ -167,22 +167,22 @@ function newMnemonic() {
 const steps: Step[] = [
   {
     step: 1,
-    title: t("wallet.infoStepTitle"),
-    description: t("wallet.infoStepDescription"),
+    title: t("wallet.infoStep"),
+    description: t("wallet.infoStepDesc"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
   {
     step: 2,
-    title: t("wallet.create.secretStepTitle"),
-    description: t("wallet.create.secretStepDescription"),
+    title: t("wallet.create.secretStep"),
+    description: t("wallet.create.secretStepDesc"),
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   },
   {
     step: 3,
-    title: t("wallet.create.secretConfirmStepTitle"),
-    description: t("wallet.create.secretConfirmStepDescription"),
+    title: t("wallet.create.secretConfirmStep"),
+    description: t("wallet.create.secretConfirmStepDesc"),
     icon: CheckIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }

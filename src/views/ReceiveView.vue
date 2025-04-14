@@ -51,7 +51,7 @@ async function newAddress() {
     await wallet.deriveNewAddress();
   } catch (e) {
     toast({
-      title: t("address.receive.newAddressErrorTitle"),
+      title: t("address.receive.newAddressError"),
       description: (e as Error)?.message ?? t("address.receive.newAddressErrorFallbackMessage")
     });
   }

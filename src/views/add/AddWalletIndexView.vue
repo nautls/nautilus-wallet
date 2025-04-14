@@ -50,8 +50,8 @@ const routes = [
       component: WalletIcon,
       class: "stroke-[1px]"
     },
-    title: t("wallet.index.createTitle"),
-    description: t("wallet.index.createDescription")
+    title: t("wallet.index.create"),
+    description: t("wallet.index.createDesc")
   },
   {
     path: "/add/hw/ledger",
@@ -59,8 +59,8 @@ const routes = [
       component: LedgerLogo,
       class: "p-1"
     },
-    title: t("wallet.index.connectTitle"),
-    description: t("wallet.index.connectDescription")
+    title: t("wallet.index.connect"),
+    description: t("wallet.index.connectDesc")
   },
   {
     path: "/add/import",
@@ -68,8 +68,8 @@ const routes = [
       component: ImportIcon,
       class: "stroke-[1px]"
     },
-    title: t("wallet.index.importTitle"),
-    description: t("wallet.index.importDescription")
+    title: t("wallet.index.import"),
+    description: t("wallet.index.importDesc")
   }
 ];
 </script>

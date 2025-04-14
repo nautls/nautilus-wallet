@@ -84,8 +84,8 @@ const { t } = useI18n();
                       <MilestoneIcon class="size-3.5" />
                     </TooltipTrigger>
                     <TooltipContent class="w-48 px-3 py-2 text-center" v-once>
-                      <p class="font-semibold">{{ t("transaction.sign.newTokenTitle") }}</p>
-                      <p class="text-xs">{{ t("transaction.sign.newTokenDescription") }}</p>
+                      <p class="font-semibold">{{ t("transaction.sign.newToken") }}</p>
+                      <p class="text-xs">{{ t("transaction.sign.newTokenDesc") }}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

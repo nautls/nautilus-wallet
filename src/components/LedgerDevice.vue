@@ -215,8 +215,8 @@ defineExpose({ setState, openErgoApp });
 
     <Alert v-else class="space-x-2">
       <CircleAlertIcon />
-      <AlertTitle>{{ t("device.notFoundErrorTitle") }}</AlertTitle>
-      <AlertDescription>{{ t("device.notFoundErrorDescription") }}</AlertDescription>
+      <AlertTitle>{{ t("device.notFoundError") }}</AlertTitle>
+      <AlertDescription>{{ t("device.notFoundErrorDesc") }}</AlertDescription>
     </Alert>
   </div>
 </template>

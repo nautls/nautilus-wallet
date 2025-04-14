@@ -263,9 +263,9 @@ function isFeeAsset(tokenId: string): boolean {
             <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
               <CheckCheckIcon class="size-6 shrink-0" />
               <div class="flex flex-col items-start justify-center text-xs font-bold">
-                {{ t("transaction.send.addAllAssetsTitle") }}
+                {{ t("transaction.send.addAllAssets") }}
                 <div class="text-muted-foreground font-normal">
-                  {{ t("transaction.send.addAllAssetsDescription") }}
+                  {{ t("transaction.send.addAllAssetsDesc") }}
                 </div>
               </div>
             </CommandItem>
