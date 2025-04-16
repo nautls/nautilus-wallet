@@ -169,7 +169,11 @@ function openAssetInfoDialog(tokenId: string) {
                           {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId))) }}
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
-                          <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
+                          <p class="pb-1 font-bold">
+                            {{
+                              t("common.amount.named", { amount: 1, name: asset.metadata?.name })
+                            }}
+                          </p>
                           <p>{{ formatCurrencyAmount(price(asset.tokenId)) }}</p>
                           <p v-if="!isErg(asset.tokenId)">
                             {{ formatCoinPrice(rate(asset.tokenId)) }}

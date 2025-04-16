@@ -21,8 +21,16 @@
     "confirmed": "Confirmed",
     "export": "Export",
     "remove": "Remove",
+    "swap": "Swap",
     "privacyPolicy": "Privacy Policy",
-    "termsOfUse": "Terms of Use"
+    "termsOfUse": "Terms of Use",
+    "healthy": "Healthy",
+    "unhealthy": "Unhealthy",
+    "amount": {
+      "percent": "{amount}%",
+      "currency": "{symbol} {amount}",
+      "named": "{amount} {name}"
+    }
   },
   "datetime": {
     "now": "just now",
@@ -295,5 +303,33 @@
     "nautilusWallet": "Nautilus Wallet",
     "quote": "Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
     "donation": "Support Nautilus Team by donating to {address}."
+  },
+  "dapps": {
+    "sigmaUsd": {
+      "title": "SigmaUSD Protocol",
+      "insufficientBalance": "Insufficient {asset} balance.",
+      "blockedAction": "Due to current bank reserves, you cannot {action} more than {amount} {asset}.",
+      "feeSummary": "Fees {amount}",
+      "protocolFee": "Protocol Fee ({rate})",
+      "protocolFeeDesc": "The Protocol Fee directly contributes to the bank reserves.",
+      "serviceFee": "Service Fee({rate})",
+      "serviceFeeDesc": "Nautilus Wallet charges a flat fee to sustainably fund its development.",
+      "networkFee": "Network Fee",
+      "networkFeeDesc": "This is the cost of adding the transaction to the blockchain.",
+      "totalFee": "Total Fee"
+    },
+    "walletOptimizer": {
+      "title": "Wallet Optimizer",
+      "description": "Use this tool merge your UTxOs, boosting performance and avoiding {demurrage} fee.",
+      "demurrage": "demurrage",
+      "size": "{count} {size}",
+      "bytes": "bytes",
+      "utxoCount": "UTxO count",
+      "oldestUtxo": "Oldest UTxO",
+      "walletSize": "Wallet size",
+      "walletHealth": "Wallet health",
+      "buy": "buy",
+      "sell": "sell"
+    }
   }
 }

@@ -24,6 +24,7 @@ import {
   LandmarkIcon,
   SettingsIcon
 } from "lucide-vue-next";
+import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
@@ -62,6 +63,7 @@ const app = useAppStore();
 const assets = useAssetsStore();
 const chain = useChainStore();
 const format = useFormat();
+const { t } = useI18n();
 
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
@@ -145,7 +147,7 @@ const v$ = useVuelidate(
   computed(() => ({
     fromAmount: {
       balance: helpers.withMessage(
-        () => `Insufficient ${fromAsset.value?.metadata?.name} balance.`,
+        () => t("dapps.sigmaUsd.insufficientBalance", { asset: fromAsset.value?.metadata?.name }),
         (n: BigNumber) => {
           if (!fromAsset.value || !n) return true;
           return n.lte(fromAsset.value.balance);
@@ -342,7 +344,12 @@ function maxAction(asset: Ref<Asset | undefined>) {
 }
 
 function buildBankErrorMessage(asset: Ref<Asset | undefined>) {
-  return `Due to current bank reserves, you cannot ${action.value === "minting" ? "buy" : "sell"} more than ${format.bn.format(getMax(asset, action.value))} ${asset.value?.metadata?.name}.`;
+  return t("dapps.sigmaUsd.blockedAction", {
+    action:
+      action.value === "minting" ? t("dapps.walletOptimizer.buy") : t("dapps.walletOptimizer.sell"),
+    amount: format.bn.format(getMax(asset, action.value)),
+    asset: asset.value?.metadata?.name
+  });
 }
 
 function convertibleAsset(
@@ -466,6 +473,14 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
   if (!amount) return BigInt(0);
   return BigInt(undecimalize(amount, decimals).toString());
 }
+
+function tAmount(amount: number | string | undefined, name?: string): string {
+  return t("common.amount.named", { amount, name });
+}
+
+function tPercent(amount: number | string | undefined): string {
+  return t("common.amount.percent", { amount });
+}
 </script>
 <template>
   <div class="flex h-full flex-col gap-6 p-6">
@@ -481,9 +496,16 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
           <Skeleton class="h-3.5 w-12" />
         </template>
         <template v-else>
-          <p class="text-xl leading-none font-semibold">{{ bankInfo.reserveRatio }}%</p>
+          <p class="text-xl leading-none font-semibold">
+            {{ tPercent(bankInfo.reserveRatio) }}
+          </p>
           <p class="text-muted-foreground text-xs leading-tight">
-            Σ {{ format.bn.format(bankInfo.baseReserves, 3) }}
+            {{
+              t("common.amount.currency", {
+                symbol: "Σ",
+                amount: format.bn.format(bankInfo.baseReserves, 3)
+              })
+            }}
           </p>
         </template>
       </StatsCard>
@@ -501,7 +523,9 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
           <p class="text-xl leading-none font-semibold">
             {{ format.currency.amount(bankInfo.stableRate, app.settings.conversionCurrency) }}
           </p>
-          <p class="text-muted-foreground text-xs leading-tight">1 ERG</p>
+          <p class="text-muted-foreground text-xs leading-tight" v-once>
+            {{ tAmount(1, "ERG") }}
+          </p>
         </template>
       </StatsCard>
     </div>
@@ -550,19 +574,38 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
           <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
             <div class="text-muted-foreground flex w-full items-center justify-between px-2">
               <div>
-                1 {{ format.asset.name(fromAsset) }} =
-                {{ format.bn.format(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)) }}
-                {{ format.asset.name(toAsset) }}
+                {{
+                  tAmount(1, format.asset.name(fromAsset)) +
+                  " = " +
+                  tAmount(
+                    format.bn.format(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)),
+                    format.asset.name(toAsset)
+                  )
+                }}
               </div>
-              <div v-if="!isFeeBreakdownOpen">
-                <span class="font-semibold">Fees </span> {{ format.bn.format(totalFee, 4) }} ERG
-              </div>
+              <I18nT
+                v-if="!isFeeBreakdownOpen"
+                keypath="dapps.sigmaUsd.feeSummary"
+                tag="div"
+                class="font-semibold"
+                scope="global"
+              >
+                <template #amount>
+                  <span class="font-normal">{{
+                    tAmount(format.bn.format(totalFee, 4), "ERG")
+                  }}</span>
+                </template>
+              </I18nT>
             </div>
           </AccordionTrigger>
           <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
             <div class="flex items-center justify-between">
               <div class="font-medium">
-                Protocol Fee <span class="text-muted-foreground">(2%) </span>
+                <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
+                  <template #rate>
+                    <span class="text-muted-foreground" v-once>{{ tPercent(2) }}</span>
+                  </template>
+                </I18nT>
 
                 <TooltipProvider :delay-duration="100">
                   <Tooltip>
@@ -570,16 +613,20 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
                     <TooltipContent class="max-w-52 hyphens-auto">
-                      The Protocol Fee directly contributes to the bank reserves.
+                      {{ t("dapps.sigmaUsd.protocolFeeDesc") }}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div>{{ format.bn.format(protocolFee) }} ERG</div>
+              <div>{{ tAmount(format.bn.format(protocolFee), "ERG") }}</div>
             </div>
             <div class="flex items-center justify-between">
               <div class="font-medium">
-                Service Fee <span class="text-muted-foreground">(0.22%) </span>
+                <I18nT keypath="dapps.sigmaUsd.serviceFee" scope="global">
+                  <template #rate>
+                    <span class="text-muted-foreground" v-once>{{ tPercent(0.22) }}</span>
+                  </template>
+                </I18nT>
 
                 <TooltipProvider :delay-duration="100">
                   <Tooltip>
@@ -587,24 +634,23 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
                     <TooltipContent class="max-w-52 hyphens-auto">
-                      Nautilus Wallet charges a flat fee of 0.22% to sustainably fund its
-                      development.
+                      {{ t("dapps.sigmaUsd.serviceFeeDesc") }}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div>{{ format.bn.format(uiFee) }} ERG</div>
+              <div>{{ tAmount(format.bn.format(uiFee), "ERG") }}</div>
             </div>
             <div class="flex items-center justify-between">
               <div class="font-medium">
-                Network Fee
+                {{ t("dapps.sigmaUsd.networkFee") }}
                 <TooltipProvider :delay-duration="100">
                   <Tooltip>
                     <TooltipTrigger class="cursor-default pl-1">
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
                     <TooltipContent class="max-w-52 hyphens-auto">
-                      This is the cost of adding the transaction to the blockchain.
+                      {{ t("dapps.sigmaUsd.networkFeeDesc") }}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -629,11 +675,11 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                   </PopoverContent>
                 </Popover>
               </div>
-              <div>{{ format.bn.format(networkFee) }} ERG</div>
+              <div>{{ tAmount(format.bn.format(networkFee), "ERG") }}</div>
             </div>
             <div class="flex items-center justify-between font-semibold">
-              <div>Total Fee</div>
-              <div>{{ format.bn.format(totalFee) }} ERG</div>
+              <div>{{ t("dapps.sigmaUsd.totalFee") }}</div>
+              <div>{{ tAmount(format.bn.format(totalFee), "ERG") }}</div>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -652,7 +698,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       :disabled="loading || !hasInputValues || v$.$invalid"
       class="w-full"
       @click="sendTransaction"
-      >Swap</Button
+      >{{ t("common.swap") }}</Button
     >
   </div>
 </template>
