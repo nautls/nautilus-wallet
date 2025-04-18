@@ -331,5 +331,10 @@
       "buy": "buy",
       "sell": "sell"
     }
+  },
+  "connector": {
+    "connect": {
+      "header": "{host} requests to connect with Nautilus."
+    }
   }
 }

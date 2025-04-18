@@ -6,7 +6,7 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionSign } from "@/components/transaction";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import DappPlateHeader from "@/extension/connector/components/DappPlateHeader.vue";
+import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
@@ -112,12 +112,12 @@ function closeWindow() {
 </script>
 
 <template>
-  <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon">
+  <RequestHeader :origin="request?.origin" :favicon="request?.favicon">
     <template v-if="isPartialSign">
       requests to <span class="font-semibold">partially</span> sign a transaction
     </template>
     <template v-else>requests to sign a transaction</template>
-  </DappPlateHeader>
+  </RequestHeader>
 
   <TransactionSign
     :transaction="request?.data.transaction"

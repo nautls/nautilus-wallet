@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
+import { useI18n } from "vue-i18n";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,7 +9,7 @@ import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import { WalletItem } from "@/components/wallet";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { walletsDbService } from "@/database/walletsDbService";
-import DappPlateHeader from "@/extension/connector/components/DappPlateHeader.vue";
+import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { InternalRequest } from "@/extension/connector/rpc/protocol";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
@@ -17,6 +18,8 @@ import { IDbWallet, NotNullId } from "@/types/database";
 const selected = ref(0);
 const request = ref<AsyncRequest>();
 const wallets = ref<NotNullId<IDbWallet>[]>([]);
+
+const { t } = useI18n();
 
 const detachBeforeUnloadEvent = useEventListener(window, "beforeunload", refuse);
 
@@ -54,9 +57,11 @@ function refuse() {
 </script>
 
 <template>
-  <DappPlateHeader :origin="request?.origin" :favicon="request?.favicon">
-    requests to connect with Nautilus
-  </DappPlateHeader>
+  <RequestHeader
+    :origin="request?.origin"
+    :favicon="request?.favicon"
+    i18n-keypath="connector.connect.header"
+  />
 
   <Card class="grow py-1">
     <ScrollArea class="h-full">

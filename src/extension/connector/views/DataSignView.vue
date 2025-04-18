@@ -19,7 +19,7 @@ import { useToast } from "@/components/ui/toast";
 import { signMessage } from "@/chains/ergo/signing";
 import { PasswordError } from "@/common/errors";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import DappPlateHeader from "@/extension/connector/components/DappPlateHeader.vue";
+import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
 import { error, InternalRequest, success } from "@/extension/connector/rpc/protocol";
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
@@ -164,9 +164,9 @@ function refuse() {
 </script>
 
 <template>
-  <DappPlateHeader :favicon="request?.favicon" :origin="request?.origin">
+  <RequestHeader :favicon="request?.favicon" :origin="request?.origin">
     requests to sign a message
-  </DappPlateHeader>
+  </RequestHeader>
 
   <Card class="grow">
     <CardHeader>
