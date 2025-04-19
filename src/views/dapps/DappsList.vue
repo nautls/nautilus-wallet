@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { Button } from "@/components/ui/button";
 import { dappsManifest } from "@/dapps/dappsManifest";
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -18,7 +21,7 @@ import { dappsManifest } from "@/dapps/dappsManifest";
         @click="navigate"
       >
         <component :is="dapp.icon.component" class="m-auto" v-bind="dapp.icon.props" />
-        <span class="text-xs"> {{ dapp.name }} </span>
+        <span class="text-xs"> {{ t(`dapps.${dapp.tileKeypath}`) }} </span>
       </Button>
     </router-link>
   </div>

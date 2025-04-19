@@ -4,7 +4,9 @@ import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import { useColorMode } from "@vueuse/core";
 import AES from "crypto-js/aes";
+import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
+import { setLocale } from "@/boot/i18n";
 import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { hdKeyPool } from "@/common/objectPool";
@@ -28,6 +30,7 @@ export type Settings = {
   hideBalances: boolean;
   blacklistedTokensLists: string[];
   zeroConf: boolean;
+  locale: Locale | "auto";
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
 };
@@ -51,6 +54,7 @@ const usePrivateState = defineStore("_app", () => ({
 }));
 
 export const useAppStore = defineStore("app", () => {
+  const viewTitle = ref("");
   const privateState = usePrivateState();
   const chain = useChainStore();
   const router = useRouter();
@@ -64,6 +68,7 @@ export const useAppStore = defineStore("app", () => {
 
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
+    setLocale(settings.value.locale !== "auto" ? settings.value.locale : navigator.language);
 
     // If KYA is not accepted and there are wallets, migrate settings from localStorage
     if (!settings.value.isKyaAccepted && privateState.wallets.length) {
@@ -83,6 +88,12 @@ export const useAppStore = defineStore("app", () => {
     if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
 
     privateState.loading = false;
+  });
+
+  // clean up view title on route change
+  watch(router.currentRoute, () => {
+    if (!viewTitle.value) return;
+    viewTitle.value = "";
   });
 
   watch(
@@ -180,7 +191,8 @@ export const useAppStore = defineStore("app", () => {
     loading,
     updateWallet,
     deleteWallet,
-    putWallet
+    putWallet,
+    viewTitle
   };
 });
 

@@ -2,6 +2,7 @@
 import { ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
 const wallet = useWalletStore();
 const app = useAppStore();
+const { t } = useI18n();
 
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
 
@@ -35,7 +37,7 @@ watch(walletName, (newName) => {
 });
 
 const v$ = useVuelidate(
-  { walletName: { required: helpers.withMessage("Wallet name is required.", required) } },
+  { walletName: { required: helpers.withMessage(t("wallet.requiredWalletName"), required) } },
   { walletName },
   { $autoDirty: true }
 );
@@ -45,18 +47,18 @@ const v$ = useVuelidate(
   <div class="space-y-6">
     <Card class="flex flex-col gap-6 p-6">
       <FormField :validation="v$.walletName">
-        <Label for="name-input">Wallet Name</Label>
+        <Label for="name-input">{{ t("wallet.walletName") }}</Label>
         <Input id="name-input" v-model="walletName" />
-        <template #description>Set the internal wallet name.</template>
+        <template #description>{{ t("settings.wallet.walletNameDesc") }}</template>
       </FormField>
 
       <div class="flex items-center justify-between gap-4">
-        <Label for="address-reuse" class="flex flex-col gap-1"
-          >Avoid Address Reuse
-          <div class="text-muted-foreground text-xs">
-            Enable this option to avoid reusing the same address for multiple transactions.
-          </div></Label
-        >
+        <Label for="address-reuse" class="flex flex-col gap-1">
+          {{ t("settings.wallet.avoidAddressReuse") }}
+          <div class="text-muted-foreground text-xs hyphens-auto">
+            {{ t("settings.wallet.avoidAddressReuseDesc") }}
+          </div>
+        </Label>
         <Switch id="address-reuse" v-model="wallet.settings.avoidAddressReuse" />
       </div>
     </Card>
@@ -64,45 +66,43 @@ const v$ = useVuelidate(
     <Card class="flex flex-col gap-6 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1"
-          >Public Key
-          <div class="text-muted-foreground text-xs">
-            Use this option to export your public key.
+          >{{ t("wallet.xPubKey") }}
+          <div class="text-muted-foreground text-xs hyphens-auto">
+            {{ t("settings.wallet.xPubKeyDesc") }}
           </div></Label
         >
-        <Button variant="outline" @click="openPublicKeyDialog">Export</Button>
+        <Button variant="outline" @click="openPublicKeyDialog">{{ t("common.export") }}</Button>
       </div>
     </Card>
 
     <Card class="bg-destructive/15 flex flex-col gap-6 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1">
-          Remove Wallet
-          <div class="text-muted-foreground text-xs">
-            Use this option to remove the current wallet.
+          {{ t("settings.wallet.removeWallet") }}
+          <div class="text-muted-foreground text-xs hyphens-auto">
+            {{ t("settings.wallet.removeWalletDesc") }}
           </div>
         </Label>
         <Drawer>
           <DrawerTrigger as-child>
-            <Button variant="destructive">Remove</Button>
+            <Button variant="destructive">{{ t("common.remove") }}</Button>
           </DrawerTrigger>
 
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Are you absolutely sure?</DrawerTitle>
+              <DrawerTitle v-once>{{ t("settings.wallet.walletRemoveConfirmation") }}</DrawerTitle>
             </DrawerHeader>
-            <div>
-              Removing a wallet won't affect its blockchain balance, and you can restore it later.
-              However, ensure you still have the details needed for restoration. Without them,
-              removing the wallet can lead to irreversible loss of funds.
+            <div v-once>
+              {{ t("settings.wallet.walletRemoveConfirmationDesc") }}
             </div>
             <DrawerFooter>
               <DrawerClose>
-                <Button variant="outline" class="w-full">Cancel</Button>
+                <Button variant="outline" class="w-full">{{ t("common.cancel") }}</Button>
               </DrawerClose>
               <DrawerClose>
-                <Button variant="destructive" class="w-full" @click="app.deleteWallet(wallet.id)"
-                  >Remove</Button
-                >
+                <Button variant="destructive" class="w-full" @click="app.deleteWallet(wallet.id)">{{
+                  t("common.remove")
+                }}</Button>
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>

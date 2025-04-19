@@ -1,5 +1,5 @@
 import { Box, BoxSummary } from "@fleet-sdk/common";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 
 export type TransactionSummary = {
   transactionId: string;
