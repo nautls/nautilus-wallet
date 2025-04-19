@@ -147,11 +147,7 @@ function openAssetInfoDialog(tokenId: string) {
                   <p>{{ format.asset.name(asset) }}</p>
 
                   <p class="text-muted-foreground truncate text-xs">
-                    {{
-                      isErg(asset.tokenId)
-                        ? "Ergo"
-                        : format.string.shorten(asset.tokenId, 7, "none")
-                    }}
+                    {{ format.asset.id(asset.tokenId) }}
                   </p>
                 </div>
 

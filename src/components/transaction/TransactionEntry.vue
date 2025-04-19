@@ -91,9 +91,7 @@ const { t } = useI18n();
                 </TooltipProvider>
               </div>
               <div class="text-xs opacity-60">
-                {{
-                  isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
-                }}
+                {{ format.asset.id(asset.tokenId) }}
               </div>
             </div>
             <div class="text-right align-middle whitespace-nowrap">

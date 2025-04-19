@@ -136,9 +136,7 @@ function filter(items: (T | string)[]) {
                   {{ format.asset.name(asset) }}
                 </div>
                 <div v-if="props.showTokenId" class="text-muted-foreground">
-                  {{
-                    isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
-                  }}
+                  {{ format.asset.id(asset.tokenId) }}
                 </div>
               </div>
 

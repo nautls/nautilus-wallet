@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { isErg } from "@/common/utils";
 import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import { AssetInfo } from "@/types/internal";
 
@@ -57,6 +58,9 @@ const ASSET_FORMATTERS = {
       val.metadata?.name || val.tokenId,
       val.metadata?.name ? maxLen : Math.floor(maxLen / 2)
     );
+  },
+  id(tokenId: string, maxLen = 7): string {
+    return isErg(tokenId) ? "Ergo" : STRING_FORMATTERS.shorten(tokenId, maxLen, "none");
   }
 };
 
