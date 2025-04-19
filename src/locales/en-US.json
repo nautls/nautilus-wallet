@@ -26,6 +26,7 @@
     "termsOfUse": "Terms of Use",
     "healthy": "Healthy",
     "unhealthy": "Unhealthy",
+    "authenticate": "Authenticate",
     "amount": {
       "percent": "{amount}%",
       "currency": "{symbol} {amount}",
@@ -164,11 +165,8 @@
       "details": "Transaction details",
       "scriptHash": "Script Hash",
       "networkFee": "Network fee",
-      "readonlyWallet": "Read-only wallet",
-      "unableToSign": "This wallet can't sign transactions.",
       "reviewTx": "Transaction Review",
       "reviewTxDesc": "Review the transaction before signing.",
-      "requiredPasswordError": "Please enter your spending password.",
       "buildError": "Transaction build failed",
       "success": "Transaction sent!",
       "successDesc": "Your transaction has been successfully signed and sent.",
@@ -177,9 +175,10 @@
   },
   "wallet": {
     "spendingPassword": "Spending password",
-    "emptyProofError": "Prover returned no signed data.",
-    "wrongPasswordError": "Wrong password",
-    "wrongPasswordErrorDesc": "Please enter the correct spending password.",
+    "emptyProof": "Prover returned no signed data.",
+    "requiredSpendingPassword": "Please enter your spending password.",
+    "wrongPassword": "Wrong password",
+    "wrongPasswordDesc": "Please enter the correct spending password.",
     "xPubKey": "Extended public key",
     "xPubKeyDesc": "Extended public keys allow viewing transaction history and generating new addresses, but they cannot spend or move funds in any way.",
     "xPrivKey": "Extended private key",
@@ -191,7 +190,11 @@
     "passwordsMustMatch": "'Spending password' and 'Confirm password' must match.",
     "infoStep": "Wallet information",
     "infoStepDesc": "This information will be used to identify and protect your wallet.",
+    "cantSignData": "This wallet can't sign data.",
+    "cantSignTx": "This wallet can't sign transactions.",
     "words": "{count} words",
+    "readonlyWallet": "Read-only wallet",
+    "ledgerWallet": "Ledger wallet",
     "type": {
       "standard": "Standard",
       "readonly": "Read-only",
@@ -336,6 +339,23 @@
     "connect": {
       "header": "{host} requests to connect with Nautilus.",
       "connect": "Connect"
+    },
+    "auth": {
+      "header": "{host} requests a proof that the selected address belongs to you.",
+      "selectedAddress": "Selected address"
+    },
+    "signData": {
+      "header": "{host} requests to sign a message.",
+      "dataType": {
+        "text": "Text message",
+        "json": "JSON object",
+        "hash": "Hash message",
+        "binary": "Binary data"
+      }
+    },
+    "signTx": {
+      "fullTxHeader": "{host} requests to sign a transaction.",
+      "partialTxHeader": "{host} requests to partially sign a transaction"
     }
   }
 }

@@ -129,7 +129,7 @@ async function sign() {
       stateCallback: ledgerDevice.value?.setState
     });
 
-    if (!signed) throw new Error(t("wallet.emptyProofError"));
+    if (!signed) throw new Error(t("wallet.emptyProof"));
 
     if (props.broadcast && !Array.isArray(signed) /* only broadcast full transactions */) {
       const txId = await broadcastTransaction(signed);
@@ -144,9 +144,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("wallet.wrongPasswordError"),
+        title: t("wallet.wrongPassword"),
         variant: "destructive",
-        description: t("wallet.wrongPasswordErrorDesc")
+        description: t("wallet.wrongPasswordDesc")
       });
       nextTick(() => pwdInput.value?.input?.$el.focus());
 
@@ -200,7 +200,7 @@ const v$ = useVuelidate(
   computed(() => ({
     password: {
       required: helpers.withMessage(
-        t("transaction.sign.requiredPasswordError"),
+        t("wallet.requiredSpendingPassword"),
         requiredUnless(isLedger.value)
       )
     }
@@ -303,8 +303,8 @@ const v$ = useVuelidate(
 
     <Alert v-if="isReadonly" variant="destructive" class="space-x-2" v-once>
       <AlertCircleIcon class="size-5" />
-      <AlertTitle>{{ t("transaction.sign.readonlyWallet") }}</AlertTitle>
-      <AlertDescription>{{ t("transaction.sign.unableToSign") }}</AlertDescription>
+      <AlertTitle>{{ t("wallet.readonlyWallet") }}</AlertTitle>
+      <AlertDescription>{{ t("wallet.cantSignTx") }}</AlertDescription>
     </Alert>
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />

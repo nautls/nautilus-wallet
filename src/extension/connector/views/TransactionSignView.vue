@@ -112,12 +112,13 @@ function closeWindow() {
 </script>
 
 <template>
-  <RequestHeader :origin="request?.origin" :favicon="request?.favicon">
-    <template v-if="isPartialSign">
-      requests to <span class="font-semibold">partially</span> sign a transaction
-    </template>
-    <template v-else>requests to sign a transaction</template>
-  </RequestHeader>
+  <RequestHeader
+    :i18n-keypath="
+      isPartialSign ? 'connector.signTx.partialTxHeader' : 'connector.signTx.fullTxHeader'
+    "
+    :origin="request?.origin"
+    :favicon="request?.favicon"
+  />
 
   <TransactionSign
     :transaction="request?.data.transaction"

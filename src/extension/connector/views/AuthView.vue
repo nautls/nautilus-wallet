@@ -4,6 +4,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { WalletType } from "@/types/internal";
 const app = useWalletStore();
 const wallet = useWalletStore();
 const { toast } = useToast();
+const { t } = useI18n();
 
 const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
@@ -38,7 +40,7 @@ const $v = useVuelidate(
   {
     password: {
       required: helpers.withMessage(
-        "A spending password is required for data signing.",
+        t("wallet.requiredSpendingPassword"),
         requiredUnless(isLedger.value)
       )
     }
@@ -91,7 +93,7 @@ async function authenticate() {
       password.value
     );
 
-    if (!request.value) return proverError("Prover returned undefined.");
+    if (!request.value) return proverError(t("wallet.emptyProof"));
     request.value.resolve(success(result));
 
     detachBeforeUnloadListener();
@@ -99,9 +101,9 @@ async function authenticate() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: "Wrong password!",
+        title: t("wallet.wrongPassword"),
         variant: "destructive",
-        description: "Please enter the correct spending password to authenticate."
+        description: t("wallet.wrongPasswordDesc")
       });
     } else {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
@@ -126,15 +128,17 @@ function refuse() {
 </script>
 
 <template>
-  <RequestHeader :favicon="request?.favicon" :origin="request?.origin">
-    requests a proof that the selected address belongs to you
-  </RequestHeader>
+  <RequestHeader
+    i18n-keypath="connector.auth.header"
+    :favicon="request?.favicon"
+    :origin="request?.origin"
+  />
 
   <div class="grow"></div>
 
   <Card>
     <CardHeader>
-      <CardTitle>Selected address</CardTitle>
+      <CardTitle>{{ t("connector.auth.selectedAddress") }}</CardTitle>
     </CardHeader>
 
     <CardContent class="break-all">{{ request?.data.address }}</CardContent>
@@ -145,16 +149,16 @@ function refuse() {
   <div class="flex flex-col gap-4">
     <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
       <AlertCircleIcon class="size-5" />
-      <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
-      <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
-      <AlertDescription>This wallet can't sign data.</AlertDescription>
+      <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
+      <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
+      <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
     </Alert>
 
     <Form v-else @submit="authenticate">
       <FormField :validation="$v.password">
         <PasswordInput
           v-model="password"
-          placeholder="Spending password"
+          :placeholder="t('wallet.spendingPassword')"
           type="password"
           @blur="$v.password.$touch"
         />
@@ -162,9 +166,9 @@ function refuse() {
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
+      <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
       <Button class="w-full" :disabled="isReadonly || isLedger" @click="authenticate">
-        Authenticate
+        {{ t("common.authenticate") }}
       </Button>
     </div>
   </div>

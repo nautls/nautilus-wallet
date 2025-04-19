@@ -7,6 +7,7 @@ import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "lucide-vue-next";
 import type { JsonObject } from "type-fest";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -30,6 +31,7 @@ import { WalletType } from "@/types/internal";
 const app = useAppStore();
 const wallet = useWalletStore();
 const { toast } = useToast();
+const { t } = useI18n();
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
@@ -48,7 +50,7 @@ const $v = useVuelidate(
   {
     password: {
       required: helpers.withMessage(
-        "A spending password is required for data signing.",
+        t("wallet.requiredSpendingPassword"),
         requiredUnless(isLedger.value)
       )
     }
@@ -89,14 +91,14 @@ function decodeMessageData(message: ErgoMessage) {
 function decodeMessageType(message: ErgoMessage) {
   switch (message.type) {
     case MessageType.String:
-      return "Text";
+      return t("connector.signData.dataType.text");
     case MessageType.Json:
-      return "JSON";
+      return t("connector.signData.dataType.json");
     case MessageType.Hash:
-      return "Hash";
-    default:
+      return t("connector.signData.dataType.hash");
     case MessageType.Binary:
-      return "Binary";
+    default:
+      return t("connector.signData.dataType.binary");
   }
 }
 
@@ -129,7 +131,7 @@ async function sign() {
       password.value
     );
 
-    if (!request.value) return proverError("Prover returned undefined.");
+    if (!request.value) return proverError(t("wallet.emptyProof"));
     request.value.resolve(success(proof));
 
     detachUnloadListener();
@@ -137,9 +139,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: "Wrong password!",
+        title: t("wallet.wrongPassword"),
         variant: "destructive",
-        description: "Please enter the correct spending password to authenticate."
+        description: t("wallet.wrongPasswordDesc")
       });
     } else {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
@@ -164,13 +166,15 @@ function refuse() {
 </script>
 
 <template>
-  <RequestHeader :favicon="request?.favicon" :origin="request?.origin">
-    requests to sign a message
-  </RequestHeader>
+  <RequestHeader
+    i18n-keypath="connector.signData.header"
+    :favicon="request?.favicon"
+    :origin="request?.origin"
+  />
 
   <Card class="grow">
     <CardHeader>
-      <CardTitle>{{ messageType }} message</CardTitle>
+      <CardTitle>{{ messageType }}</CardTitle>
       <CardDescription class="text-xs break-all">{{ encodedMessage }}</CardDescription>
     </CardHeader>
 
@@ -194,16 +198,16 @@ function refuse() {
   <div class="flex flex-col gap-4">
     <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
       <AlertCircleIcon class="size-5" />
-      <AlertTitle v-if="isReadonly">Read-only wallet</AlertTitle>
-      <AlertTitle v-else-if="isLedger">Ledger wallet</AlertTitle>
-      <AlertDescription>This wallet can't sign data.</AlertDescription>
+      <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
+      <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
+      <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
     </Alert>
 
     <Form v-else @submit="sign">
       <FormField :validation="$v.password">
         <PasswordInput
           v-model="password"
-          placeholder="Spending password"
+          :placeholder="t('wallet.spendingPassword')"
           type="password"
           @blur="$v.password.$touch"
         />
@@ -211,8 +215,10 @@ function refuse() {
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button class="w-full" variant="outline" @click="cancel">Cancel</Button>
-      <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">Sign</Button>
+      <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
+      <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">{{
+        t("common.sign")
+      }}</Button>
     </div>
   </div>
 </template>

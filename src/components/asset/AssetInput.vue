@@ -168,7 +168,7 @@ const v$ = useVuelidate(
       )
     },
     internalValue: {
-      required: helpers.withMessage(t("transaction.sign.requiredPasswordError"), required),
+      required: helpers.withMessage(t("transaction.send.requiredAmountError"), required),
       minValue: bigNumberMinValue(convert(props.minAmount, "auto") || bn(0)),
       maxValue: bigNumberMaxValue(available.value)
     }
