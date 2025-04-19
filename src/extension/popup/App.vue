@@ -8,7 +8,7 @@ import { WalletSwitcher } from "@/components/wallet";
 import { isPopup } from "@/common/browser";
 import NavHeader from "./components/NavHeader.vue";
 
-useAppStore(); // Initialize app store to ensure it is loaded
+const app = useAppStore();
 </script>
 
 <template>
@@ -17,14 +17,14 @@ useAppStore(); // Initialize app store to ensure it is loaded
     :class="{ 'max-w-[360px]': isPopup() }"
   >
     <template v-if="$route.meta.fullPage">
-      <div v-if="$route.meta.title" class="flex w-full flex-row items-center p-6">
+      <div v-if="app.viewTitle" class="flex w-full flex-row items-center p-6">
         <Button class="z-10" variant="ghost" size="icon" @click="$router.back">
           <ChevronLeftIcon />
         </Button>
 
         <div class="-ml-9 flex w-full flex-col text-center">
           <div class="text-lg leading-tight font-semibold tracking-tight">
-            {{ $route.meta.title }}
+            {{ app.viewTitle }}
           </div>
         </div>
       </div>

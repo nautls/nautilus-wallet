@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
@@ -106,6 +106,10 @@ const mnemonicRules = useVuelidate(
   },
   { mnemonicPhrase }
 );
+
+onMounted(() => {
+  app.viewTitle = t("wallet.index.import");
+});
 
 watch(walletType, () => {
   password.value = "";

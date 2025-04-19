@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { hex } from "@fleet-sdk/crypto";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { useVuelidate } from "@vuelidate/core";
@@ -45,6 +45,10 @@ const formattedViewMode = computed(() => {
   return app.settings.extension.viewMode === "popup"
     ? t("wallet.connect.popupViewMode")
     : t("wallet.connect.sidePanelViewMode");
+});
+
+onMounted(() => {
+  app.viewTitle = t("wallet.index.connect");
 });
 
 async function switchToViewMode() {

@@ -54,6 +54,7 @@ const usePrivateState = defineStore("_app", () => ({
 }));
 
 export const useAppStore = defineStore("app", () => {
+  const viewTitle = ref("");
   const privateState = usePrivateState();
   const chain = useChainStore();
   const router = useRouter();
@@ -87,6 +88,12 @@ export const useAppStore = defineStore("app", () => {
     if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
 
     privateState.loading = false;
+  });
+
+  // clean up view title on route change
+  watch(router.currentRoute, () => {
+    if (!viewTitle.value) return;
+    viewTitle.value = "";
   });
 
   watch(
@@ -184,7 +191,8 @@ export const useAppStore = defineStore("app", () => {
     loading,
     updateWallet,
     deleteWallet,
-    putWallet
+    putWallet,
+    viewTitle
   };
 });
 

@@ -49,6 +49,10 @@ const editableIndexes = ref<number[]>([]);
 const mnemonicWords = computed(() => mnemonicPhrase.value.split(" "));
 const mnemonicPhraseConfirm = computed(() => mnemonicWordsConfirm.value.join(" "));
 
+onMounted(() => {
+  app.viewTitle = t("wallet.index.create");
+});
+
 const nextButtonTitle = computed(() =>
   step.value === 1
     ? t("wallet.create.createRecoveryPhrase")

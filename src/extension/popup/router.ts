@@ -18,31 +18,19 @@ const routes: Array<RouteRecordRaw> = [
     path: "/add/new",
     name: "add-standard-wallet",
     component: () => import("@/views/add/CreateWalletView.vue"),
-    meta: {
-      fullPage: true,
-      title: "Create New Wallet",
-      description: "Create a new Ergo Wallet"
-    }
+    meta: { fullPage: true }
   },
   {
     path: "/add/hw/ledger",
     name: "add-hw-ledger",
     component: () => import("@/views/add/LedgerConnectView.vue"),
-    meta: {
-      fullPage: true,
-      title: "Connect Ledger Wallet",
-      description: "Connect your Hardware Wallet"
-    }
+    meta: { fullPage: true }
   },
   {
     path: "/add/import",
     name: "import-wallet",
     component: () => import("@/views/add/ImportWalletView.vue"),
-    meta: {
-      fullPage: true,
-      title: "Import Wallet",
-      description: "Import an existing Ergo Wallet"
-    }
+    meta: { fullPage: true }
   },
   {
     path: "/history",
