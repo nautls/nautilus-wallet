@@ -28,9 +28,7 @@ import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { createRBFCancellationTransaction } from "@/chains/ergo/transaction/builder";
 import { summarizeTransaction } from "@/chains/ergo/transaction/summarizer";
 import { bn, decimalize } from "@/common/bigNumber";
-import { useRelativeDateFormatter } from "@/common/dateFormat";
-import { useFormat } from "@/composables";
-import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { useFormat, useProgrammaticDialog, useRelativeDateFormatter } from "@/composables";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { AddressState } from "@/types/internal";
 import type {

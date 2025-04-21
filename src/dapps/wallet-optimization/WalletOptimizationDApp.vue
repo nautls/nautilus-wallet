@@ -12,8 +12,7 @@ import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
-import { useRelativeDateFormatter } from "@/common/dateFormat";
-import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { useProgrammaticDialog, useRelativeDateFormatter } from "@/composables";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
