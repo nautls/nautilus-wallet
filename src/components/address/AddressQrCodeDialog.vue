@@ -13,11 +13,12 @@ import {
   DrawerTitle
 } from "@/components/ui/drawer";
 import { QrCode } from "@/components/ui/qr-code";
+import { useFormat } from "@/composables";
 
 const props = defineProps<{ address: StateAddress }>();
 const emit = defineEmits(["close"]);
-
 const { t } = useI18n();
+const format = useFormat();
 
 const opened = ref(true);
 
@@ -37,8 +38,12 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
     <DrawerContent v-once>
       <DrawerHeader>
         <DrawerTitle>{{ t("address.qrCode.title") }}</DrawerTitle>
-        <DrawerDescription class="break-all">
-          {{ t("address.qrCode.description", { address: props.address.script }) }}
+        <DrawerDescription class="hyphens-auto">
+          {{
+            t("address.qrCode.description", {
+              address: format.string.shorten(props.address.script, 20)
+            })
+          }}
         </DrawerDescription>
       </DrawerHeader>
 

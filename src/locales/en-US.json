@@ -46,7 +46,7 @@
     "years": "{count} year | {count} years"
   },
   "device": {
-    "isLocked": "Device is locked",
+    "isLocked": "The device is locked",
     "ready": "Ready",
     "connect": "Connect",
     "connected": "Connected",
@@ -304,7 +304,7 @@
   },
   "about": {
     "nautilusWallet": "Nautilus Wallet",
-    "quote": "Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
+    "quote": "Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
     "donation": "Support Nautilus Team by donating to {address}."
   },
   "dapps": {

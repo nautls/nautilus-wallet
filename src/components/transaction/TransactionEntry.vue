@@ -90,7 +90,7 @@ const { t } = useI18n();
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div class="text-xs opacity-60">
+              <div class="text-xs opacity-60" v-once>
                 {{ format.asset.id(asset.tokenId) }}
               </div>
             </div>

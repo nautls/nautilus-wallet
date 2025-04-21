@@ -11,6 +11,7 @@ const enUS = await importLocale("en-US");
 // Supported languages must be ordered by the most used to the least used. Use
 // https://www.ethnologue.com/insights/ethnologue200/ for reference.
 export const SUPPORTED_LOCALES = ["en-US", "pt-BR"] as const;
+const DEFAULT_LOCALE = "en-US" as const;
 
 // Labels must be in the target language following the format: "Language (Country)", where
 // "Country" is optional and must follow the ISO 3166-1 alpha-2 system (two letter country code).
@@ -32,11 +33,11 @@ let _globalInstance: Composer;
 export function setupI18n() {
   const i18n = createI18n({
     legacy: false,
-    locale: "en-US",
-    fallbackLocale: "en-US",
-    messages: { "en-US": enUS },
+    locale: DEFAULT_LOCALE,
+    fallbackLocale: DEFAULT_LOCALE,
+    messages: { [DEFAULT_LOCALE]: enUS },
     datetimeFormats: {
-      en: { long: { dateStyle: "long" }, short: { dateStyle: "short" } }
+      [DEFAULT_LOCALE]: { long: { dateStyle: "long" }, short: { dateStyle: "short" } }
     }
   });
 
