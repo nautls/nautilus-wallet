@@ -26,11 +26,7 @@
     "termsOfUse": "Terms of Use",
     "healthy": "Healthy",
     "unhealthy": "Unhealthy",
-    "authenticate": "Authenticate",
-    "amount": {
-      "currency": "{symbol} {amount}",
-      "named": "{amount} {name}"
-    }
+    "authenticate": "Authenticate"
   },
   "datetime": {
     "now": "just now",

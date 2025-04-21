@@ -71,8 +71,8 @@ function rate(tokenId: string): number {
   return assetsStore.prices.get(tokenId)?.erg ?? 0;
 }
 
-function formatCurrencyAmount(value: BigNumber, decimals = 2): string {
-  return format.currency.amount(value, app.settings.conversionCurrency, decimals);
+function formatCurrencyAmount(value: BigNumber, decimals?: number): string {
+  return format.number.currency(value, app.settings.conversionCurrency, decimals);
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
@@ -90,7 +90,7 @@ function openAssetInfoDialog(tokenId: string) {
     <div class="flex flex-col gap-4 p-6">
       <div class="mx-auto w-full cursor-default bg-transparent py-2 pb-4 text-center">
         <h2 class="text-3xl">
-          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
+          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }}</span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
         </h2>
         <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
@@ -162,15 +162,13 @@ function openAssetInfoDialog(tokenId: string) {
                     <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
                         <TooltipTrigger class="text-muted-foreground text-xs">
-                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId))) }}
+                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId)), 2) }}
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
                           <p class="pb-1 font-bold">
-                            {{
-                              t("common.amount.named", { amount: 1, name: asset.metadata?.name })
-                            }}
+                            {{ format.number.namedCurrency(1, asset.metadata?.name) }}
                           </p>
-                          <p>{{ formatCurrencyAmount(price(asset.tokenId)) }}</p>
+                          <p>{{ formatCurrencyAmount(price(asset.tokenId), 2) }}</p>
                           <p v-if="!isErg(asset.tokenId)">
                             {{ formatCoinPrice(rate(asset.tokenId)) }}
                           </p>
