@@ -13,6 +13,11 @@ const COMPACT_FORMATTER = Intl.NumberFormat("en", {
   maximumFractionDigits: 2
 });
 
+const PERCENT_FORMATTER = Intl.NumberFormat("en", {
+  style: "percent",
+  maximumFractionDigits: 2
+});
+
 function format(value: number, maximumFractionDigits: number): string {
   return Intl.NumberFormat("en", {
     maximumFractionDigits,
@@ -70,16 +75,20 @@ const BN_FORMATTERS = {
     if (value.gte(shortenThreshold)) return COMPACT_FORMATTER.format(value.toNumber());
     if (decimalPlaces === undefined) return value.toFormat();
     return format(value.toNumber(), decimalPlaces);
+  },
+  percent(value?: BigNumber | number): string {
+    const val = typeof value === "number" ? value : value?.toNumber();
+    return PERCENT_FORMATTER.format(val ?? 0);
   }
 };
 
 const CURRENCY_FORMATTERS = {
-  amount(value: BigNumber, currencyId: string, decimals = 2): string {
+  amount(value: BigNumber, currencyCode: string, decimals = 2): string {
     const formattedValue = BN_FORMATTERS.format(value, decimals);
-    const currencySymbol = currencySymbolMap.get(currencyId);
+    const currencySymbol = currencySymbolMap.get(currencyCode);
     return currencySymbol
       ? `${currencySymbol} ${formattedValue}`
-      : `${formattedValue} ${STRING_FORMATTERS.uppercase(currencyId)}`;
+      : `${formattedValue} ${STRING_FORMATTERS.uppercase(currencyCode)}`;
   }
 };
 

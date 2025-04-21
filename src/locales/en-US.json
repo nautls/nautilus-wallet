@@ -28,7 +28,6 @@
     "unhealthy": "Unhealthy",
     "authenticate": "Authenticate",
     "amount": {
-      "percent": "{amount}%",
       "currency": "{symbol} {amount}",
       "named": "{amount} {name}"
     }

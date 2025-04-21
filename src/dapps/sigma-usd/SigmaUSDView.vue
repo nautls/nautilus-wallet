@@ -477,10 +477,6 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
 function tAmount(amount: number | string | undefined, name?: string): string {
   return t("common.amount.named", { amount, name });
 }
-
-function tPercent(amount: number | string | undefined): string {
-  return t("common.amount.percent", { amount });
-}
 </script>
 <template>
   <div class="flex h-full flex-col gap-6 p-6">
@@ -497,7 +493,7 @@ function tPercent(amount: number | string | undefined): string {
         </template>
         <template v-else>
           <p class="text-xl leading-none font-semibold">
-            {{ tPercent(bankInfo.reserveRatio) }}
+            {{ format.bn.percent(bankInfo.reserveRatio / 100) }}
           </p>
           <p class="text-muted-foreground text-xs leading-tight">
             {{
@@ -603,7 +599,7 @@ function tPercent(amount: number | string | undefined): string {
               <div class="font-medium">
                 <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
                   <template #rate>
-                    <span class="text-muted-foreground" v-once>{{ tPercent(2) }}</span>
+                    <span class="text-muted-foreground" v-once>{{ format.bn.percent(0.02) }}</span>
                   </template>
                 </I18nT>
 
@@ -624,7 +620,9 @@ function tPercent(amount: number | string | undefined): string {
               <div class="font-medium">
                 <I18nT keypath="dapps.sigmaUsd.serviceFee" scope="global">
                   <template #rate>
-                    <span class="text-muted-foreground" v-once>{{ tPercent(0.22) }}</span>
+                    <span class="text-muted-foreground" v-once>{{
+                      format.bn.percent(0.0022)
+                    }}</span>
                   </template>
                 </I18nT>
 
