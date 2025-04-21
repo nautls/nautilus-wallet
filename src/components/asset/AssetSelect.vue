@@ -149,7 +149,7 @@ function filter(items: (T | string)[]) {
                 </div>
                 <template v-else>
                   <div>
-                    {{ format.bn.format(asset.balance) }}
+                    {{ format.number.decimal(asset.balance) }}
                   </div>
                 </template>
               </div>

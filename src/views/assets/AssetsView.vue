@@ -76,7 +76,7 @@ function formatCurrencyAmount(value: BigNumber, decimals = 2): string {
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
-  return `Σ ${format.bn.format(BigNumber(amount ?? 0), decimals)}`;
+  return `Σ ${format.number.decimal(BigNumber(amount ?? 0), decimals)}`;
 }
 
 function openAssetInfoDialog(tokenId: string) {
@@ -157,7 +157,7 @@ function openAssetInfoDialog(tokenId: string) {
                     <Skeleton class="h-3 w-3/4 animate-none" />
                   </template>
                   <template v-else>
-                    <span>{{ format.bn.format(asset.balance) }}</span>
+                    <span>{{ format.number.decimal(asset.balance) }}</span>
 
                     <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
@@ -211,7 +211,7 @@ function openAssetInfoDialog(tokenId: string) {
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
                   class="absolute top-1 right-1 flex h-6 min-w-6 rounded-full bg-slate-900/70 px-2 py-0.5 font-normal text-neutral-100"
                 >
-                  <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
+                  <span class="m-auto">{{ format.number.decimal(nft.balance) }}</span>
                 </div>
 
                 <!-- clickable overlay -->

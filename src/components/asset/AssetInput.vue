@@ -131,7 +131,7 @@ function getZerosAfterDecimal(n: BigNumber) {
 }
 
 const formattedDenom = computed(() =>
-  format.bn.format(
+  format.number.decimal(
     denomValue.value,
     isDenom.value ? (props.asset.metadata?.decimals ?? 0) : fiatPrecision
   )
@@ -324,7 +324,7 @@ function tokenRate(tokenId: string): number {
               )
             "
             @click="setMaxValue()"
-            ><ArrowUpLeftIcon /> {{ format.bn.format(available) }}</Button
+            ><ArrowUpLeftIcon /> {{ format.number.decimal(available) }}</Button
           >
         </template>
       </div>

@@ -62,7 +62,7 @@ function getFormattedErgBalance(address: StateAddress, decimals = 3): string | u
   let erg = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount;
   if (!erg) erg = bn(0);
 
-  return `${format.bn.format(erg, decimals, 1_000)} ERG`;
+  return `${format.number.decimal(erg, decimals, 1_000)} ERG`;
 }
 
 function openExplorer(address: string | undefined) {

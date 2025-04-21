@@ -347,7 +347,7 @@ function buildBankErrorMessage(asset: Ref<Asset | undefined>) {
   return t("dapps.sigmaUsd.blockedAction", {
     action:
       action.value === "minting" ? t("dapps.walletOptimizer.buy") : t("dapps.walletOptimizer.sell"),
-    amount: format.bn.format(getMax(asset, action.value)),
+    amount: format.number.decimal(getMax(asset, action.value)),
     asset: asset.value?.metadata?.name
   });
 }
@@ -493,13 +493,13 @@ function tAmount(amount: number | string | undefined, name?: string): string {
         </template>
         <template v-else>
           <p class="text-xl leading-none font-semibold">
-            {{ format.bn.percent(bankInfo.reserveRatio / 100) }}
+            {{ format.number.percent(bankInfo.reserveRatio / 100) }}
           </p>
           <p class="text-muted-foreground text-xs leading-tight">
             {{
               t("common.amount.currency", {
                 symbol: "Σ",
-                amount: format.bn.format(bankInfo.baseReserves, 3)
+                amount: format.number.decimal(bankInfo.baseReserves, 3)
               })
             }}
           </p>
@@ -574,7 +574,7 @@ function tAmount(amount: number | string | undefined, name?: string): string {
                   tAmount(1, format.asset.name(fromAsset)) +
                   " = " +
                   tAmount(
-                    format.bn.format(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)),
+                    format.number.decimal(tcr, Math.min(toAsset?.metadata?.decimals ?? 0, 4)),
                     format.asset.name(toAsset)
                   )
                 }}
@@ -588,7 +588,7 @@ function tAmount(amount: number | string | undefined, name?: string): string {
               >
                 <template #amount>
                   <span class="font-normal">{{
-                    tAmount(format.bn.format(totalFee, 4), "ERG")
+                    tAmount(format.number.decimal(totalFee, 4), "ERG")
                   }}</span>
                 </template>
               </I18nT>
@@ -599,7 +599,9 @@ function tAmount(amount: number | string | undefined, name?: string): string {
               <div class="font-medium">
                 <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
                   <template #rate>
-                    <span class="text-muted-foreground" v-once>{{ format.bn.percent(0.02) }}</span>
+                    <span class="text-muted-foreground" v-once>{{
+                      format.number.percent(0.02)
+                    }}</span>
                   </template>
                 </I18nT>
 
@@ -614,14 +616,14 @@ function tAmount(amount: number | string | undefined, name?: string): string {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div>{{ tAmount(format.bn.format(protocolFee), "ERG") }}</div>
+              <div>{{ tAmount(format.number.decimal(protocolFee), "ERG") }}</div>
             </div>
             <div class="flex items-center justify-between">
               <div class="font-medium">
                 <I18nT keypath="dapps.sigmaUsd.serviceFee" scope="global">
                   <template #rate>
                     <span class="text-muted-foreground" v-once>{{
-                      format.bn.percent(0.0022)
+                      format.number.percent(0.0022)
                     }}</span>
                   </template>
                 </I18nT>
@@ -637,7 +639,7 @@ function tAmount(amount: number | string | undefined, name?: string): string {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div>{{ tAmount(format.bn.format(uiFee), "ERG") }}</div>
+              <div>{{ tAmount(format.number.decimal(uiFee), "ERG") }}</div>
             </div>
             <div class="flex items-center justify-between">
               <div class="font-medium">
@@ -673,11 +675,11 @@ function tAmount(amount: number | string | undefined, name?: string): string {
                   </PopoverContent>
                 </Popover>
               </div>
-              <div>{{ tAmount(format.bn.format(networkFee), "ERG") }}</div>
+              <div>{{ tAmount(format.number.decimal(networkFee), "ERG") }}</div>
             </div>
             <div class="flex items-center justify-between font-semibold">
               <div>{{ t("dapps.sigmaUsd.totalFee") }}</div>
-              <div>{{ tAmount(format.bn.format(totalFee), "ERG") }}</div>
+              <div>{{ tAmount(format.number.decimal(totalFee), "ERG") }}</div>
             </div>
           </AccordionContent>
         </AccordionItem>

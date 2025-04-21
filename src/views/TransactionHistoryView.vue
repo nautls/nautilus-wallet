@@ -166,7 +166,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
               </div>
               <div>
                 <Skeleton v-if="app.settings.hideBalances" class="h-5 w-16" />
-                <template v-else>{{ formatter.bn.format(positive(asset.amount)) }}</template>
+                <template v-else>{{ formatter.number.decimal(positive(asset.amount)) }}</template>
               </div>
             </div>
           </CardContent>

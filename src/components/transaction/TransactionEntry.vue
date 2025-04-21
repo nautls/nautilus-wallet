@@ -95,7 +95,7 @@ const { t } = useI18n();
               </div>
             </div>
             <div class="text-right align-middle whitespace-nowrap">
-              {{ format.bn.format(asset.amount) }}
+              {{ format.number.decimal(asset.amount) }}
             </div>
           </div>
         </div>

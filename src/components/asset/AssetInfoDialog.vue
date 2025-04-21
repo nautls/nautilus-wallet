@@ -50,7 +50,7 @@ const emissionAmount = computed(() => {
     amount = decimalize(amount, asset.value.decimals);
   }
 
-  return format.bn.format(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
+  return format.number.decimal(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
 });
 
 const isImageNft = computed(() => {

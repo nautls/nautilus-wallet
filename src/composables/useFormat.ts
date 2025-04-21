@@ -69,8 +69,8 @@ const ASSET_FORMATTERS = {
   }
 };
 
-const BN_FORMATTERS = {
-  format(value?: BigNumber, decimalPlaces?: number, shortenThreshold = 1_000_000) {
+const NUMBER_FORMATTERS = {
+  decimal(value?: BigNumber, decimalPlaces?: number, shortenThreshold = 1_000_000) {
     if (!value) return "";
     if (value.gte(shortenThreshold)) return COMPACT_FORMATTER.format(value.toNumber());
     if (decimalPlaces === undefined) return value.toFormat();
@@ -84,7 +84,7 @@ const BN_FORMATTERS = {
 
 const CURRENCY_FORMATTERS = {
   amount(value: BigNumber, currencyCode: string, decimals = 2): string {
-    const formattedValue = BN_FORMATTERS.format(value, decimals);
+    const formattedValue = NUMBER_FORMATTERS.decimal(value, decimals);
     const currencySymbol = currencySymbolMap.get(currencyCode);
     return currencySymbol
       ? `${currencySymbol} ${formattedValue}`
@@ -94,7 +94,7 @@ const CURRENCY_FORMATTERS = {
 
 const FORMATTERS = {
   string: STRING_FORMATTERS,
-  bn: BN_FORMATTERS,
+  number: NUMBER_FORMATTERS,
   asset: ASSET_FORMATTERS,
   currency: CURRENCY_FORMATTERS
 };
