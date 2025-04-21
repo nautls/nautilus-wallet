@@ -479,7 +479,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
     <div class="flex gap-4">
       <StatsCard
         class="w-full"
-        title="Bank reserves"
+        :title="t('dapps.sigmaUsd.bankReserves')"
         :icon="LandmarkIcon"
         content-class="items-end gap-1 justify-between"
       >
@@ -498,7 +498,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       </StatsCard>
       <StatsCard
         class="w-full min-w-max"
-        title="Oracle rate"
+        :title="t('dapps.sigmaUsd.oracleRate')"
         :icon="DollarSignIcon"
         content-class="items-end gap-1 justify-between"
       >

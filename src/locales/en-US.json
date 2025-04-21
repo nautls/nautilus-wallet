@@ -314,7 +314,9 @@
       "serviceFeeDesc": "Nautilus Wallet charges a flat fee to sustainably fund its development.",
       "networkFee": "Network Fee",
       "networkFeeDesc": "This is the cost of adding the transaction to the blockchain.",
-      "totalFee": "Total Fee"
+      "totalFee": "Total Fee",
+      "bankReserves": "Bank reserves",
+      "oracleRate": "Current rate"
     },
     "walletOptimizer": {
       "title": "Wallet Optimizer",
