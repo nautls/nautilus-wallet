@@ -638,7 +638,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                 {{ t("dapps.sigmaUsd.networkFee") }}
                 <TooltipProvider :delay-duration="100">
                   <Tooltip>
-                    <TooltipTrigger class="cursor-default pl-1">
+                    <TooltipTrigger class="cursor-default">
                       <InfoIcon class="inline size-3.5" />
                     </TooltipTrigger>
                     <TooltipContent class="max-w-52 hyphens-auto">

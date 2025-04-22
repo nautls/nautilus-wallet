@@ -310,7 +310,7 @@
       "feeSummary": "Fees {amount}",
       "protocolFee": "Protocol Fee ({rate})",
       "protocolFeeDesc": "The Protocol Fee directly contributes to the bank reserves.",
-      "serviceFee": "Service Fee({rate})",
+      "serviceFee": "Service Fee ({rate})",
       "serviceFeeDesc": "Nautilus Wallet charges a flat fee to sustainably fund its development.",
       "networkFee": "Network Fee",
       "networkFeeDesc": "This is the cost of adding the transaction to the blockchain.",

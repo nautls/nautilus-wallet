@@ -1,8 +1,8 @@
 import { Component } from "vue";
 import { CombineIcon } from "lucide-vue-next";
 import { PickupKeys } from "vue-i18n";
-import { MessageSchema } from "@/boot/i18n";
 import { ComponentProps } from "@/composables/useProgrammaticDialog";
+import { MessageSchema } from "@/i18n";
 import SigmaUSDLogo from "./sigma-usd/sigmausd-logo.svg";
 
 type IconComponent<T extends Component> = {

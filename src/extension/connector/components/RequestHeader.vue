@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ComponentI18nScope, I18nT, PickupPaths } from "vue-i18n";
-import { MessageSchema } from "@/boot/i18n";
+import { MessageSchema } from "@/i18n";
 
 interface Props {
   origin?: string;

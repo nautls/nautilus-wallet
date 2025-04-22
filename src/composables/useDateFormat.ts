@@ -1,4 +1,4 @@
-import { DateFormatter, Translator } from "@/boot/i18n";
+import { DateFormatter, Translator } from "@/i18n";
 
 export interface DateFormatOptions {
   t: Translator;

@@ -1,7 +1,7 @@
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 import type { Composer, I18n, Locale } from "vue-i18n";
-import type EnglishMessages from "@/locales/en-US.json";
+import type EnglishMessages from "./locales/en-US.json";
 
 // import en locale dynamically to avoid the following vite warning: "en.json is dynamically
 // imported by i18n.ts but also statically imported by i18n.ts, dynamic import will not move
@@ -82,5 +82,5 @@ export function fallback(locale: string, availableLocales: readonly string[]): L
 }
 
 async function importLocale(locale: Locale) {
-  return import(`@/locales/${locale}.json`).then((r) => r.default || r);
+  return import(`./locales/${locale}.json`).then((r) => r.default || r);
 }

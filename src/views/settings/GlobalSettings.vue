@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
-import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/boot/i18n";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   MIN_SERVER_VERSION,
@@ -29,6 +28,7 @@ import {
   validateServerVersion
 } from "@/chains/ergo/services/graphQlService";
 import { cn } from "@/common/utils";
+import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/i18n";
 import { validUrl } from "@/validators";
 
 const app = useAppStore();

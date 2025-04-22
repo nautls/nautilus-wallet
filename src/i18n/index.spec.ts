@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fallback } from "./i18n";
+import { fallback } from ".";
 
 describe("locale fallback", () => {
   const locales = ["en-US", "en-GB", "pt-BR", "de-DE", "de-AT"];
