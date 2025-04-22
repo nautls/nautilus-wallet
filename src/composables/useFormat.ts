@@ -23,7 +23,9 @@ function format(value: number, maximumFractionDigits: number): string {
   return Intl.NumberFormat("en", {
     maximumFractionDigits,
     minimumFractionDigits: maximumFractionDigits >= 2 ? 2 : undefined,
-    ...(value < 0.01 ? { minimumSignificantDigits: 2, maximumSignificantDigits: 2 } : {})
+    ...(value < 0.01 && maximumFractionDigits <= 2
+      ? { minimumSignificantDigits: 2, maximumSignificantDigits: 2 }
+      : {})
   }).format(value);
 }
 
