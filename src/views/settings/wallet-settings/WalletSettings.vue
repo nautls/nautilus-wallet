@@ -44,8 +44,8 @@ const v$ = useVuelidate(
 </script>
 
 <template>
-  <div class="space-y-6">
-    <Card class="flex flex-col gap-6 p-6">
+  <div class="space-y-4">
+    <Card class="flex flex-col gap-4 p-6">
       <FormField :validation="v$.walletName">
         <Label for="name-input">{{ t("wallet.walletName") }}</Label>
         <Input id="name-input" v-model="walletName" />
@@ -55,7 +55,7 @@ const v$ = useVuelidate(
       <div class="flex items-center justify-between gap-4">
         <Label for="address-reuse" class="flex flex-col gap-1">
           {{ t("settings.wallet.avoidAddressReuse") }}
-          <div class="text-muted-foreground text-xs hyphens-auto">
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.avoidAddressReuseDesc") }}
           </div>
         </Label>
@@ -63,11 +63,11 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1"
           >{{ t("wallet.xPubKey") }}
-          <div class="text-muted-foreground text-xs hyphens-auto">
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.xPubKeyDesc") }}
           </div></Label
         >
@@ -75,11 +75,11 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="bg-destructive/15 flex flex-col gap-6 p-6">
+    <Card class="bg-destructive/15 flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-1">
           {{ t("settings.wallet.removeWallet") }}
-          <div class="text-muted-foreground text-xs hyphens-auto">
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.removeWalletDesc") }}
           </div>
         </Label>

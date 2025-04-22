@@ -85,9 +85,9 @@
       "collectibles": "Collectibles"
     },
     "info": {
-      "emissionAmount": "Emission Amount",
+      "emissionAmount": "Emission amount",
       "mintTxId": "Mint TXID",
-      "additionalMetadata": "Additional Metadata"
+      "additionalMetadata": "Additional metadata"
     }
   },
   "address": {
@@ -206,9 +206,9 @@
       "subtitle": "Choose an option to get started",
       "kyaAgreement": "By proceeding, you agree to Nautilus' {termsOfUse}",
       "create": "Create a new wallet",
-      "createDesc": "Create a new Ergo Wallet",
-      "connect": "Connect a Ledger Wallet",
-      "connectDesc": "Connect your Hardware Wallet",
+      "createDesc": "Create a new Ergo wallet",
+      "connect": "Connect a Ledger wallet",
+      "connectDesc": "Connect your hardware wallet",
       "import": "Import a wallet",
       "importDesc": "Import an existing wallet"
     },
@@ -300,7 +300,7 @@
   "about": {
     "nautilusWallet": "Nautilus Wallet",
     "quote": "Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
-    "donation": "Support Nautilus Team by donating to {address}."
+    "donation": "Support Nautilus Wallet development by donating to {address}."
   },
   "dapps": {
     "sigmaUsd": {

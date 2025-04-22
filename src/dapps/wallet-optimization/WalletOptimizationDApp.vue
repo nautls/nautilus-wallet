@@ -120,7 +120,7 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-6">
+  <div class="flex h-full flex-col gap-4 p-4">
     <div class="grid grid-cols-2 gap-4">
       <DataPoint
         :title="t('dapps.walletOptimizer.utxoCount')"
@@ -165,7 +165,7 @@ function formatBytes(bytes: number, decimals = 1) {
 
     <div class="space-y-4">
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
-      <Button :disabled="loading" class="w-full" @click="sendTransaction">{{
+      <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction">{{
         t("common.optimize")
       }}</Button>
     </div>

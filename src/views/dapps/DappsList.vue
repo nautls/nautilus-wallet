@@ -7,7 +7,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="grid grid-cols-2 justify-stretch gap-4 p-6 sm:grid-cols-4 md:grid-cols-2">
+  <div class="grid grid-cols-2 justify-stretch gap-4 p-4 sm:grid-cols-4 md:grid-cols-2">
     <router-link
       v-for="dapp in dappsManifest"
       :key="dapp.path"

@@ -72,7 +72,7 @@ function openExplorer(address: string | undefined) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-6 pb-3">
+  <div class="flex flex-col gap-4 p-4 pb-2">
     <Card class="p-6 text-sm">
       <div class="flex h-full flex-row items-center gap-4">
         <div class="flex h-full w-full flex-col justify-between">
@@ -98,7 +98,7 @@ function openExplorer(address: string | undefined) {
     <Alert v-if="isLedger">
       <TriangleAlertIcon />
       <AlertDescription class="hyphens-auto">
-        {{ t("address.receive.maxTokensWarning", { count: 20 }) }}
+        {{ t("address.receive.maxTokensWarning", { count: 100 }) }}
       </AlertDescription>
     </Alert>
 
@@ -120,7 +120,7 @@ function openExplorer(address: string | undefined) {
 
   <ScrollArea type="scroll">
     <Transition name="slide-up" appear>
-      <div class="flex flex-col gap-0 px-6 pb-6">
+      <div class="flex flex-col gap-0 px-4 pb-4">
         <div
           v-for="address in addresses"
           :key="address.script"

@@ -227,7 +227,7 @@ function isFeeAsset(tokenId: string): boolean {
 
 <template>
   <ScrollArea type="scroll" class="grow">
-    <Form class="space-y-4 p-6 pb-2" @submit="sendTransaction">
+    <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
       <FormField :validation="v$.recipient">
         <Label for="recipient">{{ t("transaction.send.recipient") }}</Label>
         <Input
@@ -275,8 +275,10 @@ function isFeeAsset(tokenId: string): boolean {
     </Form>
   </ScrollArea>
 
-  <div class="space-y-4 p-6">
+  <div class="space-y-4 p-4">
     <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
-    <Button type="submit" class="w-full" @click="sendTransaction">{{ t("common.send") }}</Button>
+    <Button type="submit" size="lg" class="w-full" @click="sendTransaction">{{
+      t("common.send")
+    }}</Button>
   </div>
 </template>

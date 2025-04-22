@@ -11,7 +11,7 @@ defineProps<Props>();
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col py-2">
     <h1 v-if="step.title" class="text-sm font-semibold">{{ step.title }}</h1>
     <p v-if="step.description" class="text-muted-foreground text-xs font-normal">
       {{ step.description }}

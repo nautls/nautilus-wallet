@@ -475,7 +475,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
 }
 </script>
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
+  <div class="flex h-full flex-col gap-4 p-4">
     <div class="flex gap-4">
       <StatsCard
         class="w-full"
@@ -550,7 +550,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       </Button>
     </div>
 
-    <div class="-mt-4 -mb-2 grow space-y-4">
+    <div class="-mt-2 -mb-2 grow space-y-4">
       <Accordion
         v-if="bankInfo && tcr?.isPositive()"
         v-model="isFeeBreakdownOpen"
@@ -689,6 +689,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
     <Button
       :disabled="loading || !hasInputValues || v$.$invalid"
       class="w-full"
+      size="lg"
       @click="sendTransaction"
       >{{ t("common.swap") }}</Button
     >

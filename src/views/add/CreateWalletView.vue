@@ -194,9 +194,8 @@ const steps: Step[] = [
 </script>
 
 <template>
-  <Stepper v-model="step" :steps="steps" />
-
-  <div class="flex h-full flex-col gap-6 p-6 pt-4">
+  <div class="flex h-full flex-col gap-4 p-4">
+    <Stepper v-model="step" :steps="steps" />
     <StepTitle :step="steps[step - 1]" />
 
     <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">

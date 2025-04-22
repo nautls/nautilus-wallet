@@ -166,59 +166,61 @@ function refuse() {
 </script>
 
 <template>
-  <RequestHeader
-    i18n-keypath="connector.signData.header"
-    :favicon="request?.favicon"
-    :origin="request?.origin"
-  />
+  <div class="flex h-full flex-col justify-between gap-4">
+    <RequestHeader
+      i18n-keypath="connector.signData.header"
+      :favicon="request?.favicon"
+      :origin="request?.origin"
+    />
 
-  <Card class="grow">
-    <CardHeader>
-      <CardTitle>{{ messageType }}</CardTitle>
-      <CardDescription class="text-xs break-all">{{ encodedMessage }}</CardDescription>
-    </CardHeader>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ messageType }}</CardTitle>
+        <CardDescription class="text-xs break-all">{{ encodedMessage }}</CardDescription>
+      </CardHeader>
 
-    <CardContent class="h-full">
-      <div
-        v-if="typeof messageData === 'string'"
-        class="-mx-2 max-h-[200px] overflow-y-auto px-2 font-mono text-xs break-all"
-      >
-        {{ messageData }}
-      </div>
+      <CardContent class="flex flex-col">
+        <div
+          v-if="typeof messageData === 'string'"
+          class="-mx-2 max-h-[225px] overflow-y-auto px-2 font-mono text-xs break-all"
+        >
+          {{ messageData }}
+        </div>
 
-      <JsonViewer
-        v-else
-        :deep="3"
-        :data="messageData"
-        class="-mx-2 max-h-[200px] overflow-y-auto"
-      />
-    </CardContent>
-  </Card>
-
-  <div class="flex flex-col gap-4">
-    <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
-      <AlertCircleIcon class="size-5" />
-      <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
-      <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
-      <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
-    </Alert>
-
-    <Form v-else @submit="sign">
-      <FormField :validation="$v.password">
-        <PasswordInput
-          v-model="password"
-          :placeholder="t('wallet.spendingPassword')"
-          type="password"
-          @blur="$v.password.$touch"
+        <JsonViewer
+          v-else
+          :deep="3"
+          :data="messageData"
+          class="-mx-2 h-full max-h-[225px] overflow-y-auto"
         />
-      </FormField>
-    </Form>
+      </CardContent>
+    </Card>
 
-    <div class="flex flex-row gap-4">
-      <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-      <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">{{
-        t("common.sign")
-      }}</Button>
+    <div class="flex flex-col gap-4">
+      <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+        <AlertCircleIcon class="size-5" />
+        <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
+        <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
+        <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
+      </Alert>
+
+      <Form v-else @submit="sign">
+        <FormField :validation="$v.password">
+          <PasswordInput
+            v-model="password"
+            :placeholder="t('wallet.spendingPassword')"
+            type="password"
+            @blur="$v.password.$touch"
+          />
+        </FormField>
+      </Form>
+
+      <div class="flex flex-row gap-4">
+        <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
+        <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">{{
+          t("common.sign")
+        }}</Button>
+      </div>
     </div>
   </div>
 </template>

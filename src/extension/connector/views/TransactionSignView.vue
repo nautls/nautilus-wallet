@@ -121,6 +121,7 @@ function closeWindow() {
   />
 
   <TransactionSign
+    class="-mx-4 px-4"
     :transaction="request?.data.transaction"
     :inputs-to-sign="inputsToSign"
     :broadcast="false"

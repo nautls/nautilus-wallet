@@ -6,7 +6,6 @@ import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Link } from "@/components/ui/link";
-import Separator from "@/components/ui/separator/Separator.vue";
 import { useFormat } from "@/composables/useFormat";
 import { WalletType } from "@/types/internal";
 import pkg from "../../package.json";
@@ -29,7 +28,7 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
+  <div class="flex h-full flex-col gap-6 p-4">
     <img src="/icons/app/logo.svg?url" class="m-auto size-20" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
@@ -51,11 +50,11 @@ function goDonate() {
     <I18nT keypath="about.donation" tag="div" class="text-center text-sm" scope="global">
       <template #address>
         <span v-if="readonly">
-          {{ format.string.shorten(donationAddress, 20) }}
+          {{ format.string.shorten(donationAddress, 15) }}
           <CopyButton :content="donationAddress" class="size-3" />
         </span>
         <Button v-else variant="link" class="m-0 p-0" size="condensed" @click="goDonate()">{{
-          format.string.shorten(donationAddress, 30)
+          format.string.shorten(donationAddress, 15)
         }}</Button>
       </template>
     </I18nT>
@@ -102,13 +101,15 @@ function goDonate() {
       ></Link>
     </div>
 
-    <div class="flex flex-row items-center justify-center gap-3 text-center text-sm">
+    <div
+      class="text-muted-foreground flex flex-row items-center justify-evenly text-center text-sm"
+    >
       <Link
         external
         :href="`https://github.com/nautls/nautilus-wallet/blob/${gitHash}/docs/legal/privacy-policy.md`"
         >{{ t("common.privacyPolicy") }}</Link
       >
-      <Separator orientation="vertical" class="" />
+      <!-- <Separator orientation="vertical" /> -->
       <Link
         external
         :href="`https://github.com/nautls/nautilus-wallet/blob/${gitHash}/docs/legal/kya.md`"

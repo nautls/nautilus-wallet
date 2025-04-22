@@ -139,8 +139,8 @@ async function add() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col justify-between gap-6 p-6">
-    <Form class="flex flex-col justify-start gap-4" @submit="add">
+  <div class="flex h-full flex-col justify-between gap-4 p-4">
+    <Form class="flex flex-col justify-start gap-4 pt-4" @submit="add">
       <FormField :validation="v$.walletName">
         <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
         <Input

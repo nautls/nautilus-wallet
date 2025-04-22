@@ -15,7 +15,7 @@ const domain = computed(() => props.origin || "???");
 </script>
 
 <template>
-  <div class="text-center">
+  <div class="py-2 text-center">
     <img v-if="favicon" :src="favicon" class="mr-1 inline size-6" />
     <I18nT :keypath="props.i18nKeypath" :scope="props.i18nScope ?? 'global'">
       <template #host>

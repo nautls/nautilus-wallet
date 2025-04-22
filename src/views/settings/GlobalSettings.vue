@@ -139,7 +139,7 @@ const v$ = useVuelidate(
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4">
     <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2">
@@ -206,7 +206,7 @@ const v$ = useVuelidate(
       </Popover>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2">
           {{ t("settings.global.conversionCurrency") }}
@@ -260,7 +260,7 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
         <Label for="dev-mode" class="flex flex-col gap-1">
           {{ t("settings.global.devMode") }}
@@ -272,7 +272,7 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <Label class="flex flex-col gap-1">
         {{ t("settings.global.tokenBlacklists") }}
         <div class="text-muted-foreground text-xs font-normal">
@@ -300,7 +300,7 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex flex-col gap-2">
         <FormField :validation="v$.graphQLServer">
           <Label for="gql-server">{{ t("settings.global.gqlServer") }}</Label>
@@ -330,7 +330,7 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="bg-warning/10 flex flex-col gap-6 p-6">
+    <Card class="bg-warning/10 flex flex-col gap-4 p-6">
       <Label class="flex flex-col gap-2">
         <div class="flex items-center gap-1">
           {{ t("settings.global.experimental") }}

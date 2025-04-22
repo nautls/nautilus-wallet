@@ -11,7 +11,7 @@ const { t } = useI18n();
 
 <template>
   <ScrollArea type="scroll">
-    <Tabs default-value="global-settings" class="w-full p-6">
+    <Tabs default-value="global-settings" class="w-full p-4">
       <TabsList class="flex w-full">
         <TabsTrigger class="w-full" value="global-settings">{{
           t("settings.tabs.global")
@@ -24,7 +24,7 @@ const { t } = useI18n();
         }}</TabsTrigger>
       </TabsList>
 
-      <div class="py-4">
+      <div class="py-2">
         <TabsContent value="global-settings"><GlobalSettings /></TabsContent>
         <TabsContent value="wallet-settings"><WalletSettings /></TabsContent>
         <TabsContent value="connections"><ConnectedApps /> </TabsContent>

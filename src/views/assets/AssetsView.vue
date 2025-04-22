@@ -87,8 +87,8 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex flex-col gap-4 p-6">
-      <div class="mx-auto w-full cursor-default bg-transparent py-2 pb-4 text-center">
+    <div class="flex flex-col gap-4 p-4">
+      <div class="mx-auto w-full cursor-default bg-transparent py-4 text-center">
         <h2 class="text-3xl">
           <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }}</span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
@@ -136,7 +136,7 @@ function openAssetInfoDialog(tokenId: string) {
                 :key="asset.tokenId"
                 variant="ghost"
                 @click="openAssetInfoDialog(asset.tokenId)"
-                class="h-auto px-2 py-3 text-left [&_svg]:size-10"
+                class="h-auto p-3 text-left [&_svg]:size-10"
               >
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 

@@ -75,48 +75,48 @@ const routes = [
 </script>
 
 <template>
-  <div class="flex flex-row items-center gap-4 px-6 pt-8">
-    <div class="flex w-full flex-col text-center">
-      <div class="relative m-auto mb-4 size-24">
-        <div
-          class="absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-yellow-500 from-50% to-sky-500 to-50% blur-lg"
-        ></div>
-        <NautilusLogo
-          class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
-        />
-      </div>
-      <div class="text-xl leading-tight font-semibold tracking-tight" v-once>
-        {{ t("wallet.index.title") }}
-      </div>
-      <div class="text-muted-foreground text-sm" v-once>{{ t("wallet.index.subtitle") }}</div>
-    </div>
-  </div>
-
-  <div class="flex h-full flex-col justify-end gap-4 p-6">
-    <router-link
-      v-for="route in routes"
-      :key="route.path"
-      v-slot="{ navigate }"
-      :to="route.path"
-      custom
-    >
-      <Button
-        variant="outline"
-        class="h-auto w-full justify-center gap-6 px-6 py-4 text-left whitespace-normal [&_svg]:size-10"
-        @click="handle(navigate, route.path)"
-      >
-        <component :is="route.icon.component" :class="route.icon.class" />
-
-        <div class="flex w-full flex-col">
-          <span class="font-semibold">{{ route.title }}</span>
-          <span class="text-muted-foreground text-xs">{{ route.description }}</span>
+  <div class="flex h-full flex-col gap-4 p-4">
+    <div class="flex flex-row items-center gap-4 pt-2">
+      <div class="flex w-full flex-col text-center">
+        <div class="relative m-auto mb-4 size-24">
+          <div
+            class="absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-yellow-500 from-50% to-sky-500 to-50% blur-lg"
+          ></div>
+          <NautilusLogo
+            class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          />
         </div>
-      </Button>
-    </router-link>
+        <div class="text-xl leading-tight font-semibold tracking-tight" v-once>
+          {{ t("wallet.index.title") }}
+        </div>
+        <div class="text-muted-foreground text-sm" v-once>{{ t("wallet.index.subtitle") }}</div>
+      </div>
+    </div>
 
-    <div class="grow"></div>
+    <div class="flex grow flex-col justify-center gap-4">
+      <router-link
+        v-for="route in routes"
+        :key="route.path"
+        v-slot="{ navigate }"
+        :to="route.path"
+        custom
+      >
+        <Button
+          variant="outline"
+          class="h-auto w-full justify-center gap-2 px-6 py-4 text-left whitespace-normal [&_svg]:size-10"
+          @click="handle(navigate, route.path)"
+        >
+          <component :is="route.icon.component" :class="route.icon.class" />
 
-    <div class="space-y-2" v-once>
+          <div class="flex w-full flex-col">
+            <span class="font-semibold">{{ route.title }}</span>
+            <span class="text-muted-foreground text-xs">{{ route.description }}</span>
+          </div>
+        </Button>
+      </router-link>
+    </div>
+
+    <div class="flex flex-col justify-center gap-2">
       <Button v-if="hasWallets" variant="outline" class="w-full" @click="$router.back()">{{
         t("common.cancel")
       }}</Button>
@@ -124,7 +124,7 @@ const routes = [
       <I18nT
         keypath="wallet.index.kyaAgreement"
         tag="p"
-        class="font-xs text-muted-foreground px-16 text-center"
+        class="font-xs text-muted-foreground px-6 text-center"
         scope="global"
       >
         <template #termsOfUse>

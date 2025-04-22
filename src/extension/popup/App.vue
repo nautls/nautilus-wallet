@@ -17,7 +17,7 @@ const app = useAppStore();
     :class="{ 'max-w-[360px]': isPopup() }"
   >
     <template v-if="$route.meta.fullPage">
-      <div v-if="app.viewTitle" class="flex w-full flex-row items-center p-6">
+      <div v-if="app.viewTitle" class="flex w-full flex-row items-center p-4 pb-0">
         <Button class="z-10" variant="ghost" size="icon" @click="$router.back">
           <ChevronLeftIcon />
         </Button>

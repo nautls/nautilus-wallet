@@ -36,7 +36,7 @@ async function remove(origin: string) {
 </script>
 
 <template>
-  <div v-if="!loading" class="space-y-6">
+  <div v-if="!loading" class="space-y-4">
     <div
       v-if="!connections.length"
       class="text-muted-foreground mt-10 flex flex-col items-center gap-4 text-center text-sm"
@@ -49,7 +49,7 @@ async function remove(origin: string) {
       <Card
         v-for="(connection, i) in connections"
         :key="i"
-        class="relative flex flex-col gap-6 py-6"
+        class="relative flex flex-col gap-4 py-6"
       >
         <Button
           tabindex="-1"
