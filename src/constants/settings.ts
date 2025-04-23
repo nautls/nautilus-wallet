@@ -1,7 +1,5 @@
 import { DEFAULT_SERVER_URL } from "@/chains/ergo/services/graphQlService";
-import { DEFAULT_IPFS_GATEWAY } from "./assets";
 import { MAINNET } from "./ergo";
-import { DEFAULT_EXPLORER_URL } from "./explorer";
 
 export const DEFAULT_SETTINGS = {
   lastOpenedWalletId: 0,
@@ -9,8 +7,8 @@ export const DEFAULT_SETTINGS = {
   conversionCurrency: "usd",
   devMode: !MAINNET,
   graphQLServer: DEFAULT_SERVER_URL,
-  explorerUrl: DEFAULT_EXPLORER_URL,
-  ipfsGateway: DEFAULT_IPFS_GATEWAY,
+  explorerUrl: MAINNET ? "https://sigmaspace.io/en" : "https://testnet.ergoplatform.com",
+  ipfsGateway: "https://ipfs.io/ipfs/",
   hideBalances: false,
   blacklistedTokensLists: ["nsfw", "scam"],
   zeroConf: false,

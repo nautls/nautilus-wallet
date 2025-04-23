@@ -3,7 +3,9 @@ import { computed, HTMLAttributes, ref, watch } from "vue";
 import { CircleAlertIcon, ExternalLinkIcon, LoaderCircleIcon } from "lucide-vue-next";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
-import { CONTENT_SANDBOX_URL, IPFS_PROTOCOL_PREFIX } from "@/constants/assets";
+
+const CONTENT_SANDBOX_URL = "https://nautilus-nft-sandbox.azurewebsites.net";
+const IPFS_PROTOCOL_PREFIX = "ipfs://";
 
 const props = defineProps<{
   src?: string;
