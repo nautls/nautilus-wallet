@@ -316,7 +316,9 @@
       "networkFeeDesc": "This is the cost of adding the transaction to the blockchain.",
       "totalFee": "Total Fee",
       "bankReserves": "Bank reserves",
-      "oracleRate": "Current rate"
+      "oracleRate": "Current rate",
+      "buy": "buy",
+      "sell": "sell"
     },
     "walletOptimizer": {
       "title": "Wallet Optimizer",
@@ -327,9 +329,7 @@
       "utxoCount": "UTxO count",
       "oldestUtxo": "Oldest UTxO",
       "walletSize": "Wallet size",
-      "walletHealth": "Wallet health",
-      "buy": "buy",
-      "sell": "sell"
+      "walletHealth": "Wallet health"
     }
   },
   "connector": {
