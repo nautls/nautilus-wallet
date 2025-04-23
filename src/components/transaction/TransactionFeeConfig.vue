@@ -163,7 +163,11 @@ async function loadAssets() {
   const tokenIds = wallet.nonArtworkBalance
     .filter((x) => x.tokenId !== ERG_TOKEN_ID)
     .map((x) => x.tokenId);
-  if (isEmpty(tokenIds)) return;
+
+  if (isEmpty(tokenIds)) {
+    loading.value = false;
+    return;
+  }
 
   const allBoxes = await fetchBabelBoxes(tokenIds);
   const groups = groupBy(allBoxes.filter(isValidBabelBox), (box) =>

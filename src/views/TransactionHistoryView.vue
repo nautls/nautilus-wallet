@@ -211,7 +211,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
 
         <div
           v-else-if="loaded && !txHistory?.length"
-          class="text-muted-foreground flex flex-col items-center gap-4 text-center text-sm"
+          class="text-muted-foreground mt-28 flex flex-col items-center gap-4 text-center text-sm"
         >
           <ClockIcon :size="48" class="stroke-[1.5px]" />
           {{ t("transaction.history.empty") }}
