@@ -345,8 +345,7 @@ function maxAction(asset: Ref<Asset | undefined>) {
 
 function buildBankErrorMessage(asset: Ref<Asset | undefined>) {
   return t("dapps.sigmaUsd.blockedAction", {
-    action:
-      action.value === "minting" ? t("dapps.walletOptimizer.buy") : t("dapps.walletOptimizer.sell"),
+    action: action.value === "minting" ? t("dapps.sigmaUsd.buy") : t("dapps.sigmaUsd.sell"),
     amount: format.number.decimal(getMax(asset, action.value)),
     asset: asset.value?.metadata?.name
   });
