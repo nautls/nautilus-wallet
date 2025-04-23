@@ -2,6 +2,7 @@
 import { execSync } from "child_process";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -34,6 +35,7 @@ function defEnv(obj: Record<string, unknown>): Record<string, string> {
 
 const plugins = [
   vue(),
+  vueI18n({ include: r("src/i18n/locales/*.json") }),
   tailwindcss(),
   svgLoader(),
   topLevelAwait(),
@@ -86,8 +88,6 @@ export default defineConfig(({ mode }) => ({
       "vue",
       "vue-router",
       "pinia",
-      "dayjs",
-      "dayjs/plugin/relativeTime",
       "@fleet-sdk/babel-fees-plugin",
       "ledger-ergo-js",
       "@ledgerhq/hw-transport-webusb",

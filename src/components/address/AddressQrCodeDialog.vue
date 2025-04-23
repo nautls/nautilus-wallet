@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { StateAddress } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,9 +13,12 @@ import {
   DrawerTitle
 } from "@/components/ui/drawer";
 import { QrCode } from "@/components/ui/qr-code";
+import { useFormat } from "@/composables";
 
 const props = defineProps<{ address: StateAddress }>();
 const emit = defineEmits(["close"]);
+const { t } = useI18n();
+const format = useFormat();
 
 const opened = ref(true);
 
@@ -31,11 +35,15 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
 <template>
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
-    <DrawerContent>
+    <DrawerContent v-once>
       <DrawerHeader>
-        <DrawerTitle>Address Details</DrawerTitle>
-        <DrawerDescription class="break-all">
-          {{ props.address.script }}
+        <DrawerTitle>{{ t("address.qrCode.title") }}</DrawerTitle>
+        <DrawerDescription class="hyphens-auto">
+          {{
+            t("address.qrCode.description", {
+              address: format.string.shorten(props.address.script, 20)
+            })
+          }}
         </DrawerDescription>
       </DrawerHeader>
 
@@ -43,7 +51,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
       <DrawerFooter>
         <DrawerClose as-child>
-          <Button variant="outline" type="submit">Close</Button>
+          <Button variant="outline" type="submit">{{ t("common.close") }}</Button>
         </DrawerClose>
       </DrawerFooter>
     </DrawerContent>

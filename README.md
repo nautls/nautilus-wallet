@@ -17,7 +17,7 @@
 </p>
 
 <blockquote align="center">
-  <i>Built-in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.</i>
+  <i>Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.</i>
 </blockquote>
 
 &nbsp;

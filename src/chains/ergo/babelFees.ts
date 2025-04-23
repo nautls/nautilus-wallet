@@ -1,6 +1,6 @@
 import { BabelBox, buildBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { Box, first } from "@fleet-sdk/common";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { orderBy, sortBy } from "es-toolkit";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn } from "@/common/bigNumber";
@@ -24,7 +24,7 @@ export async function fetchBabelBoxes(tokenIds: string[], price = bn(0)): Promis
       !boxes.some((x) => x.additionalRegisters.R6?.endsWith(box.boxId))
   ) as BabelBox[];
 
-  return sortBy(babelBoxes, (box) => box.creationHeight);
+  return sortBy(babelBoxes, [(box) => box.creationHeight]);
 }
 
 function isPriceAcceptable(box: BabelBox, price: BigNumber): boolean {
@@ -42,7 +42,8 @@ export function selectBestBabelBox(boxes: BabelBox[], amount: BigNumber): BabelB
   return first(
     orderBy(
       boxes.filter((box) => amount.times(getNanoErgsPerTokenRate(box)).lte(box.value.toString())),
-      (box) => getNanoErgsPerTokenRate(box)
-    ).reverse()
+      [(box) => getNanoErgsPerTokenRate(box)],
+      ["desc"]
+    )
   );
 }

@@ -3,7 +3,7 @@ import { AddressType, EIP12UnsignedInput, first, isEmpty } from "@fleet-sdk/comm
 import { ErgoAddress, Network } from "@fleet-sdk/core";
 import { utf8 } from "@fleet-sdk/crypto";
 import { decode } from "@fleet-sdk/serializer";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { bn, decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";

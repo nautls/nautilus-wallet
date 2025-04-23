@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { HTMLAttributes, nextTick, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
+import { useI18n } from "vue-i18n";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
 import { cn } from "@/common/utils";
@@ -22,6 +23,8 @@ const props = defineProps<{
 }>();
 
 const id = useId();
+const { t } = useI18n();
+
 const checksum = ref("");
 const canvasId = ref(`wlt-${id}-checksum`);
 
@@ -61,11 +64,11 @@ watch(
 function walletTypeToString(type: WalletType): string {
   switch (type) {
     case WalletType.Standard:
-      return "Standard";
+      return t("wallet.type.standard");
     case WalletType.ReadOnly:
-      return "Read-only";
+      return t("wallet.type.readonly");
     case WalletType.Ledger:
-      return "Ledger";
+      return t("wallet.type.ledger");
     default:
       return "";
   }

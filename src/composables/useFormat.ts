@@ -1,4 +1,6 @@
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
+import { bn } from "@/common/bigNumber";
+import { isErg } from "@/common/utils";
 import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import { AssetInfo } from "@/types/internal";
 
@@ -12,10 +14,18 @@ const COMPACT_FORMATTER = Intl.NumberFormat("en", {
   maximumFractionDigits: 2
 });
 
+const PERCENT_FORMATTER = Intl.NumberFormat("en", {
+  style: "percent",
+  maximumFractionDigits: 2
+});
+
 function format(value: number, maximumFractionDigits: number): string {
   return Intl.NumberFormat("en", {
     maximumFractionDigits,
-    minimumFractionDigits: maximumFractionDigits >= 2 ? 2 : undefined
+    minimumFractionDigits: maximumFractionDigits >= 2 ? 2 : undefined,
+    ...(value < 0.01 && maximumFractionDigits <= 2
+      ? { minimumSignificantDigits: 2, maximumSignificantDigits: 2 }
+      : {})
   }).format(value);
 }
 
@@ -57,31 +67,42 @@ const ASSET_FORMATTERS = {
       val.metadata?.name || val.tokenId,
       val.metadata?.name ? maxLen : Math.floor(maxLen / 2)
     );
+  },
+  id(tokenId: string, maxLen = 7): string {
+    return isErg(tokenId) ? "Ergo" : STRING_FORMATTERS.shorten(tokenId, maxLen, "none");
   }
 };
 
-const BN_FORMATTERS = {
-  format(value?: BigNumber, decimalPlaces?: number, shortenThreshold = 1_000_000) {
+const NUMBER_FORMATTERS = {
+  decimal(value: BigNumber | undefined, decimalPlaces?: number, shortenThreshold = 1_000_000) {
     if (!value) return "";
     if (value.gte(shortenThreshold)) return COMPACT_FORMATTER.format(value.toNumber());
     if (decimalPlaces === undefined) return value.toFormat();
     return format(value.toNumber(), decimalPlaces);
-  }
-};
-
-const CURRENCY_FORMATTERS = {
-  amount(value: BigNumber, currencyId: string, decimals = 2): string {
-    const formattedValue = BN_FORMATTERS.format(value, decimals);
-    const currencySymbol = currencySymbolMap.get(currencyId);
+  },
+  percent(value: BigNumber | number | undefined): string {
+    const val = typeof value === "number" ? value : value?.toNumber();
+    return PERCENT_FORMATTER.format(val ?? 0);
+  },
+  currency(value: BigNumber, currencyCode: string, decimals?: number): string {
+    const formattedValue = this.decimal(value, decimals);
+    const currencySymbol = currencySymbolMap.get(currencyCode);
     return currencySymbol
       ? `${currencySymbol} ${formattedValue}`
-      : `${formattedValue} ${STRING_FORMATTERS.uppercase(currencyId)}`;
+      : `${formattedValue} ${STRING_FORMATTERS.uppercase(currencyCode)}`;
+  },
+  namedCurrency(
+    value: BigNumber | number | undefined,
+    ticker: string | undefined,
+    decimals?: number
+  ): string {
+    const formattedValue = this.decimal(typeof value === "number" ? bn(value) : value, decimals);
+    return `${formattedValue} ${ticker ?? ""}`;
   }
 };
 
 const FORMATTERS = {
   string: STRING_FORMATTERS,
-  bn: BN_FORMATTERS,
-  asset: ASSET_FORMATTERS,
-  currency: CURRENCY_FORMATTERS
+  number: NUMBER_FORMATTERS,
+  asset: ASSET_FORMATTERS
 };

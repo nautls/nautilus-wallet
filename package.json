@@ -42,7 +42,6 @@
     "cleave.js": "^1.6.0",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "dayjs": "^1.11.13",
     "dexie": "^4.0.11",
     "ergo-lib-wasm-browser": "^0.28.0",
     "es-toolkit": "^1.34.1",
@@ -54,6 +53,7 @@
     "uqr": "^0.1.2",
     "vaul-vue": "^0.4.1",
     "vue": "^3.5.13",
+    "vue-i18n": "^11.1.2",
     "vue-json-pretty": "2.4.0",
     "vue-router": "^4.5.0",
     "webext-bridge": "^6.0.1",
@@ -63,6 +63,8 @@
     "@ergo-graphql/types": "^0.5.1",
     "@eslint/js": "^9.23.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
+    "@intlify/eslint-plugin-vue-i18n": "^4.0.1",
+    "@intlify/unplugin-vue-i18n": "^6.0.5",
     "@nautilus-js/eip12-types": "^0.1.11",
     "@tailwindcss/vite": "^4.1.2",
     "@tsconfig/node20": "^20.1.5",
@@ -101,7 +103,8 @@
   "pnpm": {
     "patchedDependencies": {
       "webext-bridge@6.0.1": "patches/webext-bridge@6.0.1.patch",
-      "@types/cleave.js@1.4.12": "patches/@types__cleave.js@1.4.12.patch"
+      "@types/cleave.js@1.4.12": "patches/@types__cleave.js@1.4.12.patch",
+      "bignumber.js@9.2.0": "patches/bignumber.js@9.2.0.patch"
     },
     "overrides": {
       "esbuild@<=0.24.2": ">=0.25.1",

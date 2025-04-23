@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
+import { Locale, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,12 +13,12 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
+  CommandSeparator
 } from "@/components/ui/command";
 import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "@/components/ui/link";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
@@ -27,9 +28,16 @@ import {
   validateServerVersion
 } from "@/chains/ergo/services/graphQlService";
 import { cn } from "@/common/utils";
+import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/i18n";
 import { validUrl } from "@/validators";
 
 const app = useAppStore();
+const { t } = useI18n();
+
+const localeState = reactive({
+  available: SUPPORTED_LOCALES,
+  isPopoverOpen: false
+});
 
 const currencyState = reactive({
   available: [app.settings.conversionCurrency ?? "usd"],
@@ -42,6 +50,11 @@ const graphQLServer = ref(app.settings.graphQLServer);
 
 const nsfwBlacklist = computedBlacklist("nsfw");
 const scamBlacklist = computedBlacklist("scam");
+const currentLocale = computed(() =>
+  app.settings.locale === "auto"
+    ? t("settings.systemDefault")
+    : LANGUAGE_LABELS.get(app.settings.locale)
+);
 
 onMounted(async () => {
   currencyState.loading = true;
@@ -69,8 +82,15 @@ watch(graphQLServer, async () => {
 });
 
 function selectCurrency(currency: string) {
-  app.settings.conversionCurrency = currency;
   currencyState.isPopoverOpen = false;
+  app.settings.conversionCurrency = currency;
+}
+
+async function selectLocale(locale: Locale | "auto") {
+  localeState.isPopoverOpen = false;
+
+  app.settings.locale = locale;
+  setLocale(locale);
 }
 
 function computedBlacklist(list: string) {
@@ -92,21 +112,21 @@ function computedBlacklist(list: string) {
 const v$ = useVuelidate(
   {
     explorerUrl: {
-      required: helpers.withMessage("Explorer URL is required.", required),
+      required: helpers.withMessage(t("settings.global.requiredExplorer"), required),
       validUrl
     },
     graphQLServer: {
-      required: helpers.withMessage("GraphQL Server is required.", required),
+      required: helpers.withMessage(t("settings.global.requiredGql"), required),
       validUrl,
       network: helpers.withMessage(
-        "Wrong server network.",
+        t("settings.global.wrongServerNetwork"),
         helpers.withAsync(async (url: string) => {
           if (!url) return true;
           return await validateServerNetwork(url);
         })
       ),
       version: helpers.withMessage(
-        `Unsupported server version. Nautilus requires at least version ${MIN_SERVER_VERSION.join(".")}.`,
+        t("settings.global.unsupportedServerVersion", { version: MIN_SERVER_VERSION.join(".") }),
         helpers.withAsync(async (url: string) => {
           if (!url) return true;
           return await validateServerVersion(url);
@@ -119,15 +139,81 @@ const v$ = useVuelidate(
 </script>
 
 <template>
-  <div class="space-y-6">
-    <Card class="flex flex-col gap-6 p-6">
+  <div class="space-y-4">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-2"
-          >Conversion Currency
+        <Label class="flex flex-col gap-2">
+          {{ t("settings.global.displayLanguage") }}
           <div class="text-muted-foreground text-xs font-normal">
-            Use this option to set the default currency for conversion.
-          </div></Label
-        >
+            {{ t("settings.global.displayLanguageDesc") }}
+          </div>
+        </Label>
+      </div>
+
+      <Popover v-model:open="localeState.isPopoverOpen">
+        <PopoverTrigger as-child>
+          <Button variant="outline">
+            <span class="grow">{{ currentLocale }}</span>
+            <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent class="p-0">
+          <Command reset-search-term-on-blur>
+            <CommandInput :placeholder="t('common.search')" />
+            <CommandList class="max-h-[200px]">
+              <CommandGroup>
+                <CommandItem
+                  value="auto"
+                  class="justify-between gap-2 whitespace-nowrap"
+                  @select="selectLocale('auto')"
+                >
+                  <div class="font-medium">{{ t("settings.systemDefault") }}</div>
+
+                  <CheckIcon
+                    :class="
+                      cn(
+                        'mr-2 h-4 w-4',
+                        app.settings.locale === 'auto' ? 'opacity-100' : 'opacity-0'
+                      )
+                    "
+                  />
+                </CommandItem>
+              </CommandGroup>
+
+              <CommandSeparator />
+
+              <CommandGroup>
+                <CommandItem
+                  v-for="lang in localeState.available"
+                  :key="lang"
+                  class="justify-between gap-2"
+                  :value="lang"
+                  @select="selectLocale(lang)"
+                >
+                  <div>{{ LANGUAGE_LABELS.get(lang) }}</div>
+
+                  <CheckIcon
+                    :class="
+                      cn('mr-2 h-4 w-4', lang === app.settings.locale ? 'opacity-100' : 'opacity-0')
+                    "
+                  />
+                </CommandItem>
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </Card>
+
+    <Card class="flex flex-col gap-4 p-6">
+      <div class="flex items-center justify-between gap-4">
+        <Label class="flex flex-col gap-2">
+          {{ t("settings.global.conversionCurrency") }}
+          <div class="text-muted-foreground text-xs font-normal">
+            {{ t("settings.global.conversionCurrencyDesc") }}
+          </div>
+        </Label>
 
         <Popover v-model:open="currencyState.isPopoverOpen">
           <PopoverTrigger as-child>
@@ -144,8 +230,8 @@ const v$ = useVuelidate(
 
           <PopoverContent class="max-w-[110px] p-0">
             <Command reset-search-term-on-blur>
-              <CommandInput placeholder="Search..." />
-              <CommandEmpty>No currencies found.</CommandEmpty>
+              <CommandInput :placeholder="t('common.search')" />
+              <CommandEmpty>{{ t("settings.global.noCurrenciesFound") }}</CommandEmpty>
               <CommandList class="max-h-[200px]">
                 <CommandGroup>
                   <CommandItem
@@ -174,49 +260,50 @@ const v$ = useVuelidate(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
-        <Label for="dev-mode" class="flex flex-col gap-1"
-          >Developer Mode
-          <div class="text-muted-foreground text-xs font-normal">Enable advanced tools.</div></Label
+        <Label for="dev-mode" class="flex flex-col gap-1">
+          {{ t("settings.global.devMode") }}
+          <div class="text-muted-foreground text-xs font-normal">
+            {{ t("settings.global.devModeDesc") }}
+          </div></Label
         >
         <Switch id="dev-mode" v-model="app.settings.devMode" />
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
-      <Label class="flex flex-col gap-1"
-        >Token Blacklists
+    <Card class="flex flex-col gap-4 p-6">
+      <Label class="flex flex-col gap-1">
+        {{ t("settings.global.tokenBlacklists") }}
         <div class="text-muted-foreground text-xs font-normal">
-          Ergo
-          <Link external href="https://github.com/sigmanauts/token-id-blacklist"
-            >tokens blacklists</Link
-          >
-          are maintained by the
-          <Link external href="https://sigmanauts.com/">Sigmanauts community.</Link>
+          {{ t("settings.global.tokenBlacklistsDesc") }}
         </div>
       </Label>
 
       <div class="flex items-center justify-between gap-4">
-        <Label for="nsfw-blacklist" class="flex flex-col gap-1"
-          >NSFW Tokens
-          <div class="text-muted-foreground text-xs font-normal">Hide NSFW tokens.</div></Label
-        >
+        <Label for="nsfw-blacklist" class="flex flex-col gap-1">
+          {{ t("settings.global.nsfwTokensBlacklist") }}
+          <div class="text-muted-foreground text-xs font-normal">
+            {{ t("settings.global.nsfwTokensBlacklistDesc") }}
+          </div>
+        </Label>
         <Switch id="nsfw-blacklist" v-model="nsfwBlacklist" />
       </div>
       <div class="flex items-center justify-between gap-4">
         <Label for="scam-blacklist" class="flex flex-col gap-1"
-          >Scam Tokens
-          <div class="text-muted-foreground text-xs font-normal">Hide Scam tokens.</div></Label
+          >{{ t("settings.global.scamTokensBlacklist") }}
+          <div class="text-muted-foreground text-xs font-normal">
+            {{ t("settings.global.scamTokensBlacklistDesc") }}
+          </div></Label
         >
         <Switch id="scam-blacklist" v-model="scamBlacklist" />
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-6 p-6">
+    <Card class="flex flex-col gap-4 p-6">
       <div class="flex flex-col gap-2">
         <FormField :validation="v$.graphQLServer">
-          <Label for="gql-server">GraphQL Server</Label>
+          <Label for="gql-server">{{ t("settings.global.gqlServer") }}</Label>
           <div class="relative w-full max-w-sm items-center">
             <Input
               id="gql-server"
@@ -230,39 +317,36 @@ const v$ = useVuelidate(
               <Loader2Icon class="text-muted-foreground size-4 animate-spin" />
             </span>
           </div>
-          <template #description>Set the main GraphQL server endpoint.</template>
+          <template #description>{{ t("settings.global.gqlServerDesc") }}</template>
         </FormField>
       </div>
 
       <div class="flex flex-col gap-2">
         <FormField :validation="v$.explorerUrl">
-          <Label for="explorer-url">Explorer URL</Label>
+          <Label for="explorer-url">{{ t("settings.global.explorerUrl") }}</Label>
           <Input id="explorer-url" v-model="explorerUrl" />
-          <template #description>Set the default Ergo block explorer.</template>
+          <template #description>{{ t("settings.global.explorerUrlDesc") }}</template>
         </FormField>
       </div>
     </Card>
 
-    <Card class="bg-warning/10 flex flex-col gap-6 p-6">
+    <Card class="bg-warning/10 flex flex-col gap-4 p-6">
       <Label class="flex flex-col gap-2">
         <div class="flex items-center gap-1">
-          Experimental <TriangleAlertIcon class="text-warning size-3" />
+          {{ t("settings.global.experimental") }}
+          <TriangleAlertIcon class="text-warning size-3" />
         </div>
 
-        <div class="text-xs font-normal">
-          The features under this section are marked as experimental, which means they're not
-          stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a
-          work in progress, so expect some rough edges.
+        <div class="text-xs font-normal hyphens-auto">
+          {{ t("settings.global.experimentalDesc") }}
         </div>
       </Label>
 
       <div class="flex items-center justify-between gap-4">
-        <Label for="0-conf" class="flex flex-col gap-1"
-          >Enable 0-conf
-          <div class="text-muted-foreground text-xs font-normal">
-            0-conf, short for zero-confirmations, lets you to spend assets without waiting for
-            confirmations. It's fast but carries a risk of being double-spent until confirmed by the
-            blockchain.
+        <Label for="0-conf" class="flex flex-col gap-1">
+          {{ t("settings.global.zeroConf") }}
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+            {{ t("settings.global.zeroConfDesc") }}
           </div></Label
         >
         <Switch id="0-conf" v-model="app.settings.zeroConf" />

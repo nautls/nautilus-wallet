@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
@@ -18,12 +19,14 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import StorageRentAlert from "./components/StorageRentAlert.vue";
+import WalletAlerts from "./components/WalletAlerts.vue";
 
 const app = useAppStore();
 const assetsStore = useAssetsStore();
 const wallet = useWalletStore();
 const format = useFormat();
+
+const { t } = useI18n({ useScope: "global" });
 
 const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles">("tokens");
@@ -68,12 +71,12 @@ function rate(tokenId: string): number {
   return assetsStore.prices.get(tokenId)?.erg ?? 0;
 }
 
-function formatCurrencyAmount(value: BigNumber, decimals = 2): string {
-  return format.currency.amount(value, app.settings.conversionCurrency, decimals);
+function formatCurrencyAmount(value: BigNumber, decimals?: number): string {
+  return format.number.currency(value, app.settings.conversionCurrency, decimals);
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
-  return `Σ ${format.bn.format(BigNumber(amount ?? 0), decimals)}`;
+  return `Σ ${format.number.decimal(BigNumber(amount ?? 0), decimals)}`;
 }
 
 function openAssetInfoDialog(tokenId: string) {
@@ -84,23 +87,23 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex flex-col gap-4 p-6">
-      <div class="mx-auto w-full cursor-default bg-transparent py-2 pb-4 text-center">
+    <div class="flex flex-col gap-4 p-4">
+      <div class="mx-auto w-full cursor-default bg-transparent py-4 text-center">
         <h2 class="text-3xl">
-          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal) }}</span>
+          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }}</span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
         </h2>
-        <p class="text-muted-foreground text-sm">Wallet balance</p>
+        <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
       </div>
 
-      <StorageRentAlert />
+      <WalletAlerts />
 
       <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
         <div class="flex flex-row">
           <TabsList>
-            <TabsTrigger value="tokens">Tokens</TabsTrigger>
+            <TabsTrigger value="tokens">{{ t("asset.tabs.tokens") }}</TabsTrigger>
             <TabsTrigger value="collectibles" :disabled="!containsArtwork">
-              Collectibles
+              {{ t("asset.tabs.collectibles") }}
             </TabsTrigger>
           </TabsList>
 
@@ -114,7 +117,13 @@ function openAssetInfoDialog(tokenId: string) {
               </Button>
             </PopoverTrigger>
             <PopoverContent side="left">
-              <Input v-model="filter" placeholder="Search" class="w-full" clearable clear-icon />
+              <Input
+                v-model="filter"
+                :placeholder="t('common.search')"
+                class="w-full"
+                clearable
+                clear-icon
+              />
             </PopoverContent>
           </Popover>
         </div>
@@ -126,8 +135,8 @@ function openAssetInfoDialog(tokenId: string) {
                 v-for="asset in tokens"
                 :key="asset.tokenId"
                 variant="ghost"
-                class="h-auto px-2 py-3 text-left [&_svg]:size-10"
                 @click="openAssetInfoDialog(asset.tokenId)"
+                class="h-auto p-3 text-left [&_svg]:size-10"
               >
                 <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
@@ -138,11 +147,7 @@ function openAssetInfoDialog(tokenId: string) {
                   <p>{{ format.asset.name(asset) }}</p>
 
                   <p class="text-muted-foreground truncate text-xs">
-                    {{
-                      isErg(asset.tokenId)
-                        ? "Ergo"
-                        : format.string.shorten(asset.tokenId, 7, "none")
-                    }}
+                    {{ format.asset.id(asset.tokenId) }}
                   </p>
                 </div>
 
@@ -152,16 +157,18 @@ function openAssetInfoDialog(tokenId: string) {
                     <Skeleton class="h-3 w-3/4 animate-none" />
                   </template>
                   <template v-else>
-                    <span>{{ format.bn.format(asset.balance) }}</span>
+                    <span>{{ format.number.decimal(asset.balance) }}</span>
 
-                    <TooltipProvider v-if="rate(asset.tokenId)" :delay-duration="100">
+                    <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
                         <TooltipTrigger class="text-muted-foreground text-xs">
-                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId))) }}
+                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId)), 2) }}
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
-                          <p class="pb-1 font-bold">1 {{ asset.metadata?.name }}</p>
-                          <p>{{ formatCurrencyAmount(price(asset.tokenId)) }}</p>
+                          <p class="pb-1 font-bold">
+                            {{ format.number.namedCurrency(1, asset.metadata?.name) }}
+                          </p>
+                          <p>{{ formatCurrencyAmount(price(asset.tokenId), 2) }}</p>
                           <p v-if="!isErg(asset.tokenId)">
                             {{ formatCoinPrice(rate(asset.tokenId)) }}
                           </p>
@@ -202,7 +209,7 @@ function openAssetInfoDialog(tokenId: string) {
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
                   class="absolute top-1 right-1 flex h-6 min-w-6 rounded-full bg-slate-900/70 px-2 py-0.5 font-normal text-neutral-100"
                 >
-                  <span class="m-auto">{{ format.bn.format(nft.balance) }}</span>
+                  <span class="m-auto">{{ format.number.decimal(nft.balance) }}</span>
                 </div>
 
                 <!-- clickable overlay -->

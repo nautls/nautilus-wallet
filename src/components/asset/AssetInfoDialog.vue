@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetImageSandbox } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ type JsonDescription = {
 };
 
 const format = useFormat();
+const { t } = useI18n();
 
 const props = defineProps<Props>();
 const emit = defineEmits(["close"]);
@@ -48,7 +50,7 @@ const emissionAmount = computed(() => {
     amount = decimalize(amount, asset.value.decimals);
   }
 
-  return format.bn.format(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
+  return format.number.decimal(amount ?? bn(0), undefined, Number.MAX_SAFE_INTEGER);
 });
 
 const isImageNft = computed(() => {
@@ -173,7 +175,7 @@ defineExpose({ open: openDialog, close: closeDialog });
       </DrawerHeader>
 
       <ScrollArea type="hover" class="-mx-6 grow">
-        <div :class="cn('flex flex-col gap-6 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
+        <div :class="cn('flex flex-col gap-4 px-6', isImageNft ? 'max-h-[50vh]' : 'max-h-[45vh]')">
           <div v-if="isImageNft && contentUrl" class="relative">
             <AssetImageSandbox
               display-external-link
@@ -183,23 +185,27 @@ defineExpose({ open: openDialog, close: closeDialog });
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-2 gap-4">
             <StatsCard
               class="col-span-2"
-              title="Emission Amount"
+              :title="t('asset.info.emissionAmount')"
               :content="emissionAmount"
               :icon="HandCoinsIcon"
             />
-            <StatsCard title="Token ID" :content="asset?.id ?? ''" :icon="KeyRoundIcon" />
             <StatsCard
-              title="Mint TXID"
+              :title="t('common.tokenId')"
+              :content="asset?.id ?? ''"
+              :icon="KeyRoundIcon"
+            />
+            <StatsCard
+              :title="t('asset.info.mintTxId')"
               :content="asset?.mintingTransactionId ?? ''"
               :icon="MilestoneIcon"
             />
           </div>
 
           <template v-if="description.meta && description.meta.size">
-            <Separator label="Additional Metadata" class="my-2" />
+            <Separator :label="t('asset.info.additionalMetadata')" class="my-2" />
 
             <div class="grid grid-cols-1 gap-4">
               <StatsCard
@@ -214,9 +220,9 @@ defineExpose({ open: openDialog, close: closeDialog });
         </div>
       </ScrollArea>
 
-      <DrawerFooter>
+      <DrawerFooter v-once>
         <DrawerClose as-child>
-          <Button variant="outline" type="submit">Close</Button>
+          <Button variant="outline" type="submit">{{ t("common.close") }}</Button>
         </DrawerClose>
       </DrawerFooter>
     </DrawerContent>

@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, toRaw } from "vue";
 import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
-import dayjs from "dayjs";
 import { minBy } from "es-toolkit";
+import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
@@ -12,8 +12,7 @@ import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, decimalize } from "@/common/bigNumber";
-import { formatDate } from "@/common/dateFormat";
-import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { useProgrammaticDialog, useRelativeDateFormatter } from "@/composables";
 import {
   BLOCK_TIME_IN_MINUTES,
   ERG_DECIMALS,
@@ -29,6 +28,8 @@ import { createConsolidationTransaction } from "./transactionFactory";
 const wallet = useWalletStore();
 const app = useAppStore();
 
+const { t, d } = useI18n();
+const { rd } = useRelativeDateFormatter({ t, d, showRelativeTimeQualifier: false });
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const loading = ref(true);
@@ -55,11 +56,10 @@ const minBoxHeight = computed(() => {
 });
 
 const oldestBox = computed(() => {
-  if (loading.value) return "Loading...";
-  if (!minBoxHeight.value) return "N/A";
-  return formatDate(
-    dayjs().add(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES), "minutes"),
-    { suffixRelativeTime: false }
+  if (loading.value || !minBoxHeight.value) return "";
+
+  return rd(
+    new Date().setMinutes(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES))
   );
 });
 
@@ -72,7 +72,9 @@ const utxoHealth = computed(() => {
   return { count, age, size, overall };
 });
 
-const healthStatus = computed(() => (utxoHealth.value.overall ? "Healthy" : "Unhealthy"));
+const healthStatus = computed(() =>
+  utxoHealth.value.overall ? t("common.healthy") : t("common.unhealthy")
+);
 
 async function loadBoxes() {
   setLoading(true);
@@ -105,11 +107,12 @@ async function createTransaction() {
 }
 
 function formatBytes(bytes: number, decimals = 1) {
-  if (!+bytes) return "0 bytes";
+  const b = t("dapps.walletOptimizer.bytes");
+  if (!+bytes) return b;
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const sizes = [b, "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
@@ -117,44 +120,54 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-6">
+  <div class="flex h-full flex-col gap-4 p-4">
     <div class="grid grid-cols-2 gap-4">
       <DataPoint
-        title="UTxO count"
+        :title="t('dapps.walletOptimizer.utxoCount')"
         :loading="loading"
         :healthy="utxoHealth.count"
         :content="boxes.length.toString()"
       />
       <DataPoint
-        title="Oldest UTxO"
+        :title="t('dapps.walletOptimizer.oldestUtxo')"
         :loading="loading"
         :healthy="utxoHealth.age"
         :content="oldestBox"
       />
       <DataPoint
-        title="Wallet size"
+        :title="t('dapps.walletOptimizer.walletSize')"
         :loading="loading"
         :healthy="utxoHealth.size"
         :content="formatBytes(walletSize)"
       />
       <DataPoint
-        title="Health"
+        :title="t('dapps.walletOptimizer.walletHealth')"
         :loading="loading"
         :healthy="utxoHealth.overall"
         :content="healthStatus"
       />
     </div>
 
-    <div class="text-muted-foreground grow text-xs">
-      Use this tool merge your UTxOs, boosting performance and avoiding
-      <Link external href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
-        >demurrage</Link
-      >.
-    </div>
+    <I18nT
+      keypath="dapps.walletOptimizer.description"
+      tag="div"
+      class="text-muted-foreground grow text-xs hyphens-auto"
+      scope="global"
+    >
+      <template #demurrage>
+        <Link
+          external
+          href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
+          >{{ t("dapps.walletOptimizer.demurrage") }}</Link
+        >
+      </template>
+    </I18nT>
 
     <div class="space-y-4">
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
-      <Button :disabled="loading" class="w-full" @click="sendTransaction">Optimize</Button>
+      <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction">{{
+        t("common.optimize")
+      }}</Button>
     </div>
   </div>
 </template>

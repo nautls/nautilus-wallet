@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
 import { ArrowDownIcon, MilestoneIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetSignIcon, AssetSignIconVariants } from "@/components/asset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const format = useFormat();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -81,21 +83,19 @@ const format = useFormat();
                     <TooltipTrigger class="text-success inline align-middle">
                       <MilestoneIcon class="size-3.5" />
                     </TooltipTrigger>
-                    <TooltipContent class="w-48 px-3 py-2 text-center">
-                      <p class="font-semibold">New Token</p>
-                      <p class="text-xs">This token will be minted in this transaction.</p>
+                    <TooltipContent class="w-48 px-3 py-2 text-center" v-once>
+                      <p class="font-semibold">{{ t("transaction.sign.newToken") }}</p>
+                      <p class="text-xs">{{ t("transaction.sign.newTokenDesc") }}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
-              <div class="text-xs opacity-60">
-                {{
-                  isErg(asset.tokenId) ? "Ergo" : format.string.shorten(asset.tokenId, 7, "none")
-                }}
+              <div class="text-xs opacity-60" v-once>
+                {{ format.asset.id(asset.tokenId) }}
               </div>
             </div>
             <div class="text-right align-middle whitespace-nowrap">
-              {{ format.bn.format(asset.amount) }}
+              {{ format.number.decimal(asset.amount) }}
             </div>
           </div>
         </div>

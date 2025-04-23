@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
 import { FingerprintIcon, KeyRoundIcon, Loader2Icon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -19,8 +20,6 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { DefaultStepper, Step } from "@/components/ui/stepper";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
@@ -28,6 +27,7 @@ import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { WalletType } from "@/types/internal";
 import { validMnemonic, validPublicKey } from "@/validators";
+import { Step, Stepper, StepTitle } from "./components";
 
 const SUPPORTED_MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24]);
 
@@ -35,6 +35,7 @@ const app = useAppStore();
 const wallet = useWalletStore();
 const router = useRouter();
 const { toast } = useToast();
+const { t } = useI18n();
 
 const walletName = ref("");
 const password = ref("");
@@ -54,32 +55,33 @@ const xpk = ref("");
 
 const mnemonicPhrase = computed(() => mnemonicWords.value.join(" "));
 const isReadonly = computed(() => walletType.value === "readonly");
-const nexButtonTitle = computed(() => {
+const nextButtonTitle = computed(() => {
   if (step.value === 1) {
-    return isReadonly.value ? "Insert a public key" : "Insert a recovery phrase";
+    return isReadonly.value
+      ? t("wallet.import.insertPubKey")
+      : t("wallet.import.insertRecoveryPhrase");
   } else {
-    return "Import wallet";
+    return t("common.import");
   }
 });
 
 const infoRules = useVuelidate(
   {
-    walletName: { required: helpers.withMessage("Wallet name is required.", required) },
+    walletName: {
+      required: helpers.withMessage(t("wallet.requiredWalletName"), required)
+    },
     password: {
       required: helpers.withMessage(
-        "Spending password is required.",
+        t("wallet.spendingPasswordRequired"),
         requiredIf(() => !isReadonly.value)
       ),
       minLength: helpers.withMessage(
-        "Spending password requires at least 10 characters.",
+        t("wallet.minSpendingPasswordLength", { min: 10 }),
         minLength(10)
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(
-        "'Spending password' and 'Confirm password' must match.",
-        sameAs(password)
-      )
+      sameAs: helpers.withMessage(t("wallet.passwordsMustMatch"), sameAs(password))
     }
   },
   { walletName, password, confirmPassword }
@@ -88,7 +90,7 @@ const infoRules = useVuelidate(
 const xpkRules = useVuelidate(
   {
     xpk: {
-      required: helpers.withMessage("Extended public key is required.", required),
+      required: helpers.withMessage(t("wallet.import.requiredXPubKey"), required),
       validPublicKey
     }
   },
@@ -98,12 +100,16 @@ const xpkRules = useVuelidate(
 const mnemonicRules = useVuelidate(
   {
     mnemonicPhrase: {
-      required: helpers.withMessage("Recovery phrase is required.", required),
+      required: helpers.withMessage(t("wallet.import.requiredRecoveryPhrase"), required),
       validMnemonic
     }
   },
   { mnemonicPhrase }
 );
+
+onMounted(() => {
+  app.viewTitle = t("wallet.index.import");
+});
 
 watch(walletType, () => {
   password.value = "";
@@ -126,7 +132,7 @@ async function next() {
     if (!valid) return;
   }
 
-  if (step.value < steps.length) {
+  if (step.value < steps.value.length) {
     step.value++;
     return;
   }
@@ -159,7 +165,7 @@ async function next() {
     router.push({ name: "assets" });
   } catch (e) {
     toast({
-      title: "Error importing wallet",
+      title: t("wallet.import.walletImportError"),
       variant: "destructive",
       description: extractErrorMessage(e)
     });
@@ -191,30 +197,35 @@ function onPaste(event: ClipboardEvent) {
   event.stopPropagation();
 }
 
-const steps: Step[] = [
+const steps = computed<Step[]>(() => [
   {
     step: 1,
-    title: "Info",
+    title: t("wallet.infoStep"),
+    description: t("wallet.infoStepDesc"),
     icon: FingerprintIcon,
     enabled: ref(true)
   },
   {
     step: 2,
-    title: "Secret",
+    title: isReadonly.value ? "Wallet key" : "Wallet secret",
+    description: isReadonly.value
+      ? t("wallet.import.importStep")
+      : t("wallet.import.importStepDesc"),
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }
-];
+]);
 </script>
 
 <template>
-  <DefaultStepper v-model="step" :steps="steps" class="py-2" />
+  <div class="flex h-full flex-col gap-4 p-4">
+    <Stepper v-model="step" :steps="steps" />
+    <StepTitle :step="steps[step - 1]" />
 
-  <div class="flex h-full flex-col gap-6 p-6 pt-4">
     <Form class="flex h-full grow flex-col justify-start gap-4" @paste="onPaste" @submit="next">
       <template v-if="step === 1">
         <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">Wallet name</Label>
+          <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
           <Input
             id="wallet-name"
             v-model="walletName"
@@ -226,24 +237,22 @@ const steps: Step[] = [
         </FormField>
 
         <FormField>
-          <Label for="wallet-type">Wallet type</Label>
+          <Label for="wallet-type">{{ t("wallet.import.walletType") }}</Label>
           <Select v-model="walletType">
             <SelectTrigger id="wallet-type">
-              <SelectValue placeholder="Select a fruit" />
+              <SelectValue :placeholder="t('wallet.import.selectWalletType')" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="readonly">Read-only</SelectItem>
+                <SelectItem value="standard">{{ t("wallet.type.standard") }}</SelectItem>
+                <SelectItem value="readonly">{{ t("wallet.type.readonly") }}</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
         </FormField>
 
-        <Separator class="my-2" />
-
         <FormField :validation="infoRules.password">
-          <Label :disabled="isReadonly" for="password">Spending password</Label>
+          <Label :disabled="isReadonly" for="password">{{ t("wallet.spendingPassword") }}</Label>
           <PasswordInput
             id="password"
             v-model="password"
@@ -253,7 +262,9 @@ const steps: Step[] = [
           />
         </FormField>
         <FormField :validation="infoRules.confirmPassword">
-          <Label :disabled="isReadonly" for="confirm-password">Confirm password</Label>
+          <Label :disabled="isReadonly" for="confirm-password">{{
+            t("wallet.confirmPassword")
+          }}</Label>
           <PasswordInput
             id="confirm-password"
             v-model="confirmPassword"
@@ -267,12 +278,8 @@ const steps: Step[] = [
       <template v-else-if="step === 2">
         <template v-if="isReadonly">
           <FormField :validation="xpkRules.xpk">
-            <Label for="xpk">Extended public key</Label>
+            <Label for="xpk">{{ t("wallet.xPubKey") }}</Label>
             <Textarea id="xpk" v-model="xpk" class="h-40" @blur="xpkRules.xpk.$touch()" />
-            <template #description>
-              Paste your extended public key here. This key allows viewing transaction history and
-              generating new addresses, but it cannot spend or move funds in any way.
-            </template>
           </FormField>
         </template>
 
@@ -280,12 +287,18 @@ const steps: Step[] = [
           <FormField>
             <Select v-model="wordsCountStr">
               <SelectTrigger>
-                <SelectValue class="font-medium" placeholder="Select the secret type" />
+                <SelectValue
+                  class="font-medium"
+                  :placeholder="t('wallet.import.selectSecretType')"
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem v-for="l in SUPPORTED_MNEMONIC_LENGTHS" :key="l" :value="l.toString()"
-                    >{{ l }} words recovery phrase</SelectItem
+                  <SelectItem
+                    v-for="l in SUPPORTED_MNEMONIC_LENGTHS"
+                    :key="l"
+                    :value="l.toString()"
+                    >{{ t("wallet.import.words", { count: l }) }}</SelectItem
                   >
                   <!-- <SelectItem value="sk">Private Key</SelectItem> -->
                 </SelectGroup>
@@ -302,8 +315,10 @@ const steps: Step[] = [
 
     <div class="flex flex-row gap-4">
       <Button :disabled="loading" class="w-full items-center" @click="next">
-        <template v-if="loading"><Loader2Icon class="animate-spin" />Importing wallet...</template>
-        <template v-else>{{ nexButtonTitle }}</template>
+        <template v-if="loading"
+          ><Loader2Icon class="animate-spin" />{{ t("wallet.import.importing") }}</template
+        >
+        <template v-else>{{ nextButtonTitle }}</template>
       </Button>
     </div>
   </div>

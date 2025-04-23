@@ -2,6 +2,7 @@
 import { h, ref, watch } from "vue";
 import { EIP12UnsignedTransaction, SignedInput, SignedTransaction } from "@fleet-sdk/common";
 import { ExternalLinkIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import {
   Drawer,
@@ -31,6 +32,7 @@ const emit = defineEmits<Emits>();
 const app = useAppStore();
 
 const { toast } = useToast();
+const { t } = useI18n();
 
 const transaction = ref<EIP12UnsignedTransaction>();
 const opened = ref(true);
@@ -52,7 +54,7 @@ async function buildTransaction() {
   } catch (e) {
     const errorMessage = extractErrorMessage(e);
     toast({
-      title: "Transaction build failed",
+      title: t("transaction.sign.buildError"),
       description: errorMessage,
       variant: "destructive"
     });
@@ -73,13 +75,13 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
   if (Array.isArray(signed)) return;
 
   toast({
-    title: "Transaction sent!",
-    description: "Your transaction has been successfully signed and sent.",
+    title: t("transaction.sign.success"),
+    description: t("transaction.sign.successDesc"),
     action: h(
       ToastAction,
       {
         onClick: () => openExplorer(signed.id),
-        altText: "View in explorer",
+        altText: t("common.openInExplorer"),
         class: "size-9 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
       },
       { default: () => h(ExternalLinkIcon) }
@@ -92,7 +94,7 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
 
 function onFail(errorMessage: string) {
   toast({
-    title: "Transaction signing failed",
+    title: t("transaction.sign.signError"),
     description: errorMessage,
     variant: "destructive"
   });
@@ -115,9 +117,9 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 <template>
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
     <DrawerContent class="max-h-[90vh]">
-      <DrawerHeader>
-        <DrawerTitle>Transaction Review</DrawerTitle>
-        <DrawerDescription>Review the transaction before signing.</DrawerDescription>
+      <DrawerHeader v-once>
+        <DrawerTitle>{{ t("transaction.sign.reviewTx") }}</DrawerTitle>
+        <DrawerDescription>{{ t("transaction.sign.reviewTxDesc") }}</DrawerDescription>
       </DrawerHeader>
 
       <TransactionSign

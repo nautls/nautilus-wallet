@@ -1,17 +1,10 @@
 <script setup lang="ts">
 import { type HTMLAttributes } from "vue";
 import { useVModel } from "@vueuse/core";
-import { CheckIcon } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
-import {
-  Step,
-  Stepper,
-  StepperItem,
-  StepperSeparator,
-  StepperTitle,
-  StepperTrigger
-} from ".";
+import { Stepper, StepperItem, StepperSeparator, StepperTrigger } from "@/components/ui/stepper";
 import { cn } from "@/common/utils";
+import { Step } from ".";
 
 interface Props {
   steps: Step[];
@@ -39,33 +32,23 @@ const modelValue = useVModel(props, "modelValue", emit, { passive: true, default
       v-slot="{ state }"
       class="relative flex w-full flex-col items-center justify-center"
       :step="step.step"
-      :disabled=" !step.enabled.value"
+      :disabled="!step.enabled.value"
     >
       <StepperSeparator
         v-if="step.step !== steps[steps.length - 1].step"
-        class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-5 block h-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary"
+        class="bg-muted group-data-[state=completed]:bg-primary absolute top-5 right-[calc(-50%+10px)] left-[calc(50%+20px)] block h-0.5 shrink-0 rounded-full"
       />
 
-      <StepperTrigger as-child >
-        <Button 
+      <StepperTrigger as-child>
+        <Button
           :variant="state === 'completed' || state === 'active' ? 'default' : 'outline'"
           size="icon"
-          class="z-10 rounded-full shrink-0"
-          :class="[state === 'active' && 'ring-2 ring-ring ring-offset-2 ring-offset-background']"
+          class="z-10 shrink-0 rounded-full"
+          :class="[state === 'active' && 'ring-ring ring-offset-background ring-2 ring-offset-2']"
         >
-          <CheckIcon v-if="state === 'completed'" class="size-5" />
-          <component :is="step.icon" v-else />
+          <component :is="step.icon" />
         </Button>
       </StepperTrigger>
-
-      <div v-if="step.title" class="flex flex-col items-center text-center">
-        <StepperTitle
-          :class="[state === 'active' && 'text-primary']"
-          class="text-xs font-semibold transition lg:text-base"
-        >
-          {{ step.title }}
-        </StepperTitle>
-      </div>
     </StepperItem>
   </Stepper>
 </template>

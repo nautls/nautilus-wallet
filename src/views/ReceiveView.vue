@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   TriangleAlertIcon
 } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import { AddressQrCodeDialog, AddressVerifyDialog } from "@/components/address";
@@ -20,6 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
@@ -29,13 +31,11 @@ import { AddressState, WalletType } from "@/types/internal";
 const app = useAppStore();
 const wallet = useWalletStore();
 const format = useFormat();
+const { t } = useI18n();
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const canAddNewAddress = computed(() => wallet.settings.addressFilter !== "active");
-const defaultAddressTitle = computed(() =>
-  wallet.settings.avoidAddressReuse ? "Your current address" : "Your default address"
-);
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
 const { open: openAddressVerifyDialog } = useProgrammaticDialog(AddressVerifyDialog);
@@ -51,18 +51,18 @@ async function newAddress() {
     await wallet.deriveNewAddress();
   } catch (e) {
     toast({
-      title: "Address generation failed",
-      description: (e as Error)?.message ?? "Unable to generate a new address."
+      title: t("address.receive.newAddressError"),
+      description: (e as Error)?.message ?? t("address.receive.newAddressErrorFallbackMessage")
     });
   }
 }
 
 function getFormattedErgBalance(address: StateAddress, decimals = 3): string | undefined {
-  if (address.state === AddressState.Unused) return "Unused";
+  if (address.state === AddressState.Unused) return t("address.state.unused");
   let erg = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount;
   if (!erg) erg = bn(0);
 
-  return `${format.bn.format(erg, decimals, 1_000)} ERG`;
+  return `${format.number.decimal(erg, decimals, 1_000)} ERG`;
 }
 
 function openExplorer(address: string | undefined) {
@@ -72,12 +72,18 @@ function openExplorer(address: string | undefined) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-6 pb-3">
+  <div class="flex flex-col gap-4 p-4 pb-2">
     <Card class="p-6 text-sm">
       <div class="flex h-full flex-row items-center gap-4">
         <div class="flex h-full w-full flex-col justify-between">
           <CardTitle class="leading-none font-semibold tracking-tight">
-            {{ defaultAddressTitle }}
+            {{
+              t(
+                wallet.settings.avoidAddressReuse
+                  ? "address.label.current"
+                  : "address.label.default"
+              )
+            }}
           </CardTitle>
           <div class="break-all">
             {{ wallet.changeAddress?.script }}
@@ -89,20 +95,19 @@ function openExplorer(address: string | undefined) {
       </div>
     </Card>
 
-    <Alert v-if="isLedger" class="space-x-2">
+    <Alert v-if="isLedger">
       <TriangleAlertIcon />
       <AlertDescription class="hyphens-auto">
-        Avoid sending more than <strong>20 tokens</strong> in a single transaction to this wallet.
-        Limited device memory could cause your funds to become inaccessible.
+        {{ t("address.receive.maxTokensWarning", { count: 100 }) }}
       </AlertDescription>
     </Alert>
 
     <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
       <div class="flex flex-row">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="unused">Unused</TabsTrigger>
+          <TabsTrigger value="all">{{ t("address.filter.all") }}</TabsTrigger>
+          <TabsTrigger value="active">{{ t("address.filter.active") }}</TabsTrigger>
+          <TabsTrigger value="unused">{{ t("address.filter.unused") }}</TabsTrigger>
         </TabsList>
 
         <div class="grow"></div>
@@ -115,7 +120,7 @@ function openExplorer(address: string | undefined) {
 
   <ScrollArea type="scroll">
     <Transition name="slide-up" appear>
-      <div class="flex flex-col gap-0 px-6 pb-6">
+      <div class="flex flex-col gap-0 px-4 pb-4">
         <div
           v-for="address in addresses"
           :key="address.script"
@@ -134,33 +139,75 @@ function openExplorer(address: string | undefined) {
               }}</span>
             </Button>
 
-            <CopyButton :content="address.script" class="size-4" />
-            <Button
-              variant="minimal"
-              size="condensed"
-              class="size-4"
-              @click="openExplorer(address.script)"
-            >
-              <ExternalLinkIcon />
-            </Button>
-            <Button
-              variant="minimal"
-              size="condensed"
-              class="size-4"
-              @click="openQrCodeDialog({ address })"
-            >
-              <QrCodeIcon />
-            </Button>
-            <!-- Verify this address on your Ledger device -->
-            <Button
-              v-if="isLedger"
-              variant="minimal"
-              size="condensed"
-              class="size-4"
-              @click="openAddressVerifyDialog({ address })"
-            >
-              <ShieldCheckIcon />
-            </Button>
+            <div class="space-x-1.5 pb-1">
+              <TooltipProvider :delay-duration="100">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <CopyButton
+                      :content="address.script"
+                      class="size-4 align-middle [&_svg]:size-4"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("common.copy") }}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider :delay-duration="100">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="minimal"
+                      size="condensed"
+                      class="size-4 align-middle"
+                      @click="openExplorer(address.script)"
+                    >
+                      <ExternalLinkIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("common.openInExplorer") }}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider :delay-duration="100">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="minimal"
+                      size="condensed"
+                      class="size-4 align-middle"
+                      @click="openQrCodeDialog({ address })"
+                    >
+                      <QrCodeIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("common.showQrCode") }}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider :delay-duration="100" v-if="isLedger">
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      variant="minimal"
+                      size="condensed"
+                      class="size-4 align-middle"
+                      @click="openAddressVerifyDialog({ address })"
+                    >
+                      <ShieldCheckIcon />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-52 hyphens-auto">
+                    {{ t("address.receive.verifyOnLedger") }}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           <div class="text-right text-xs">
@@ -168,7 +215,7 @@ function openExplorer(address: string | undefined) {
             <template v-else>
               <span>{{ getFormattedErgBalance(address) }}</span>
               <span v-if="address.assets.length > 1" class="text-muted-foreground">
-                +{{ address.assets.length - 1 }}</span
+                {{ " +" + (address.assets.length - 1) }}</span
               >
             </template>
           </div>

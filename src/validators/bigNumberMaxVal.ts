@@ -1,4 +1,4 @@
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { useFormat } from "../composables/useFormat";
 
 const format = useFormat();
@@ -22,7 +22,7 @@ export default function (max: BigNumber) {
   return {
     $validator: validator(max),
     $message: ({ $params }: { $params: Params }) =>
-      `The amount should be less than or equal to ${format.bn.format($params.max)}`,
+      `The amount should be less than or equal to ${format.number.decimal($params.max)}`,
     $params: { max, type: "maxValue" } as Params
   };
 }

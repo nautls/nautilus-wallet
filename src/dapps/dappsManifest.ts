@@ -1,6 +1,8 @@
 import { Component } from "vue";
 import { CombineIcon } from "lucide-vue-next";
+import { PickupKeys } from "vue-i18n";
 import { ComponentProps } from "@/composables/useProgrammaticDialog";
+import { MessageSchema } from "@/i18n";
 import SigmaUSDLogo from "./sigma-usd/sigmausd-logo.svg";
 
 type IconComponent<T extends Component> = {
@@ -9,7 +11,7 @@ type IconComponent<T extends Component> = {
 };
 
 export type DAppManifestItem<T extends Component = Component> = {
-  name: string;
+  tileKeypath: PickupKeys<MessageSchema, "dapps">;
   icon: IconComponent<T>;
   path: string;
 };
@@ -23,12 +25,12 @@ function component<T extends Component>(
 
 export const dappsManifest: DAppManifestItem[] = [
   {
-    name: "SigmaUSD Protocol",
+    tileKeypath: "sigmaUsd.title",
     icon: component(SigmaUSDLogo),
     path: "/dapps/sigmausd-protocol"
   },
   {
-    name: "Wallet Optimization",
+    tileKeypath: "walletOptimizer.title",
     icon: component(CombineIcon, { strokeWidth: 1 }),
     path: "/dapps/wallet-optimization"
   }

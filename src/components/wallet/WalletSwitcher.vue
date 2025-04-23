@@ -15,6 +15,7 @@ import {
   SunIcon,
   SunMoonIcon
 } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -37,6 +38,7 @@ import { IDbWallet } from "@/types/database";
 const wallet = useWalletStore();
 const app = useAppStore();
 const router = useRouter();
+const { t } = useI18n();
 
 const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
 
@@ -149,8 +151,8 @@ async function toggleViewMode() {
             wallets.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
         "
       >
-        <CommandInput placeholder="Search..." />
-        <CommandEmpty>No wallet found.</CommandEmpty>
+        <CommandInput :placeholder="t('common.search')" />
+        <CommandEmpty>{{ t("header.menu.noWalletsFound") }}</CommandEmpty>
         <CommandList>
           <CommandGroup>
             <CommandItem
@@ -199,27 +201,30 @@ async function toggleViewMode() {
               class="gap-2"
               value="add-wallet"
               @select.prevent="goToAndClose('add-wallet')"
+              v-once
             >
               <PlusCircleIcon class="h-5 w-5 shrink-0" />
-              New wallet
+              {{ t("header.menu.newWallet") }}
             </CommandItem>
 
             <CommandItem
               class="gap-2"
               value="settings"
               @select.prevent="goToAndClose('wallet-settings')"
+              v-once
             >
               <SettingsIcon class="h-5 w-5 shrink-0" />
-              Settings
+              {{ t("header.menu.settings") }}
             </CommandItem>
 
             <CommandItem
               class="gap-2"
               value="about"
               @select.prevent="goToAndClose('about-nautilus')"
+              v-once
             >
               <InfoIcon class="h-5 w-5 shrink-0" />
-              About
+              {{ t("header.menu.about") }}
             </CommandItem>
           </CommandGroup>
         </CommandList>

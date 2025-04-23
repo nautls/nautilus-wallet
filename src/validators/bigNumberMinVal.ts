@@ -1,5 +1,5 @@
 import { ValidationRuleWithParams } from "@vuelidate/core";
-import { BigNumber } from "bignumber.js";
+import BigNumber from "bignumber.js";
 import { useFormat } from "../composables/useFormat";
 
 const format = useFormat();
@@ -18,7 +18,7 @@ export default function (min: BigNumber): ValidationRuleWithParams<{ min: BigNum
   return {
     $validator: validator(min),
     $message: ({ $params }) =>
-      `The amount should be greater than or equal to ${format.bn.format($params.min)}`,
+      `The amount should be greater than or equal to ${format.number.decimal($params.min)}`,
     $params: { min }
   };
 }

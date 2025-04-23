@@ -14,10 +14,10 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
 
 <template>
   <div
-    class="bg-background flex h-screen min-w-[360px] flex-col gap-6 overflow-hidden p-6 text-sm md:mx-auto md:w-4/12 md:shadow-lg"
+    class="bg-background flex h-screen min-w-[360px] flex-col gap-4 overflow-hidden p-4 text-sm md:mx-auto md:w-4/12 md:shadow-lg"
   >
     <div
-      class="bg-header -mx-6 -mt-6 flex flex-row items-center gap-6 px-6 py-4"
+      class="bg-header -mx-4 -mt-4 flex flex-row items-center gap-4 px-6 py-4"
       :class="$route.meta.fullPage ? 'justify-center' : 'justify-between'"
     >
       <WalletItem v-if="!$route.meta.fullPage && currentWalletItem" :wallet="currentWalletItem" />

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { hex } from "@fleet-sdk/crypto";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
 import { Loader2Icon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import LedgerDevice from "@/components/LedgerDevice.vue";
@@ -33,6 +34,7 @@ import { WalletType } from "@/types/internal";
 const app = useAppStore();
 const wallet = useWalletStore();
 const { toast } = useToast();
+const { t } = useI18n();
 
 const walletName = ref("");
 const loading = ref(false);
@@ -40,7 +42,13 @@ const connected = ref(false);
 const ledgerDevice = useTemplateRef("ledger-device");
 
 const formattedViewMode = computed(() => {
-  return app.settings.extension.viewMode === "popup" ? "popup" : "side panel";
+  return app.settings.extension.viewMode === "popup"
+    ? t("wallet.connect.popupViewMode")
+    : t("wallet.connect.sidePanelViewMode");
+});
+
+onMounted(() => {
+  app.viewTitle = t("wallet.index.connect");
 });
 
 async function switchToViewMode() {
@@ -59,7 +67,7 @@ async function switchToViewMode() {
 }
 
 const v$ = useVuelidate(
-  { walletName: { required: helpers.withMessage("Wallet name is required.", required) } },
+  { walletName: { required: helpers.withMessage(t("wallet.requiredWalletName"), required) } },
   { walletName }
 );
 
@@ -79,17 +87,17 @@ async function add() {
 
     setState({
       type: undefined,
-      label: "Confirm export Extended Public Key",
+      label: t("wallet.connect.confirmXPubExport"),
       appId: ledgerApp.authToken
     });
 
     const ledgerXpk = await ledgerApp.getExtendedPublicKey("m/44'/429'/0'");
     if (!ledgerXpk) {
-      setState({ type: "error", label: "Not exported" });
+      setState({ type: "error", label: t("wallet.connect.notExported") });
       return;
     }
 
-    setState({ type: "success", label: "Confirmed" });
+    setState({ type: "success", label: t("common.confirmed") });
 
     const extendedPublicKey = hex.encode(HdKey.fromPublicKey(ledgerXpk, "m/0").extendedPublicKey);
     const walletId = await app.putWallet({
@@ -102,14 +110,14 @@ async function add() {
   } catch (e) {
     if (e instanceof DeviceError) {
       if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
-        setState({ type: "error", label: "Denied by the user", appId: undefined });
+        setState({ type: "error", label: t("device.ledger.deniedByUser"), appId: undefined });
         return;
       } else if (
         e.code === RETURN_CODE.GLOBAL_LOCKED_DEVICE ||
         e.code === RETURN_CODE.GLOBAL_PIN_NOT_SET
       ) {
         ledgerDevice.value?.setState({
-          label: "Device is locked",
+          label: t("device.isLocked"),
           type: "locked",
           appId: undefined
         });
@@ -118,8 +126,8 @@ async function add() {
     }
 
     toast({
-      title: "Verification failed",
-      description: extractErrorMessage(e, "An unknown error occurred while verifying the address.")
+      title: t("wallet.connect.verificationError"),
+      description: extractErrorMessage(e, t("wallet.connect.verificationUnknownError"))
     });
 
     log.error(e);
@@ -131,10 +139,10 @@ async function add() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col justify-between gap-6 p-6">
-    <Form class="flex flex-col justify-start gap-4" @submit="add">
+  <div class="flex h-full flex-col justify-between gap-4 p-4">
+    <Form class="flex flex-col justify-start gap-4 pt-4" @submit="add">
       <FormField :validation="v$.walletName">
-        <Label for="wallet-name">Wallet name</Label>
+        <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
         <Input
           id="wallet-name"
           v-model="walletName"
@@ -149,23 +157,24 @@ async function add() {
     <LedgerDevice ref="ledger-device" />
 
     <Button :disabled="loading" type="button" class="w-full" @click="add">
-      <template v-if="loading"><Loader2Icon class="animate-spin" />Connecting...</template>
-      <template v-else>Connect</template>
+      <template v-if="loading"
+        ><Loader2Icon class="animate-spin" />{{ t("device.connecting") }}</template
+      >
+      <template v-else>{{ t("device.connect") }}</template>
     </Button>
   </div>
 
   <AlertDialog :open="connected">
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Connected!</AlertDialogTitle>
+        <AlertDialogTitle>{{ t("wallet.connect.success") }}</AlertDialogTitle>
         <AlertDialogDescription>
-          Your Ledger device has been successfully connected. You can now open Nautilus Wallet in
-          the browser's {{ formattedViewMode }}.
+          {{ t("wallet.connect.successDesc", { viewMode: formattedViewMode }) }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogAction class="w-full" @click="switchToViewMode"
-          >Open Nautilus in the {{ formattedViewMode }}
+          >{{ t("wallet.connect.openInViewMode", { viewMode: formattedViewMode }) }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

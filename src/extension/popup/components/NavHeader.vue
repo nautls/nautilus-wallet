@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ChartPieIcon, ClockIcon, DownloadIcon, LayoutGridIcon, SendIcon } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import { WalletType } from "@/types/internal";
 
 const wallet = useWalletStore();
+const { t } = useI18n();
 
 const readonly = computed(() => wallet.type === WalletType.ReadOnly);
 const navItems = [
-  { to: "/", icon: ChartPieIcon, label: "Overview", disabled: ref(false) },
-  { to: "/history", icon: ClockIcon, label: "History", disabled: ref(false) },
-  { to: "/receive", icon: DownloadIcon, label: "Receive", disabled: ref(false) },
-  { to: "/send", icon: SendIcon, label: "Send", disabled: readonly },
-  { to: "/dapps", icon: LayoutGridIcon, label: "DApps", disabled: readonly }
+  { to: "/", icon: ChartPieIcon, label: t("header.nav.assets"), disabled: ref(false) },
+  { to: "/history", icon: ClockIcon, label: t("header.nav.history"), disabled: ref(false) },
+  { to: "/receive", icon: DownloadIcon, label: t("header.nav.receive"), disabled: ref(false) },
+  { to: "/send", icon: SendIcon, label: t("header.nav.send"), disabled: readonly },
+  { to: "/dapps", icon: LayoutGridIcon, label: t("header.nav.dApps"), disabled: readonly }
 ];
 </script>
 

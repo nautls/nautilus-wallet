@@ -2,6 +2,7 @@ import {
   AllowedComponentProps,
   Component,
   createVNode,
+  getCurrentInstance,
   onUnmounted,
   render,
   VNode,
@@ -26,6 +27,7 @@ export function useProgrammaticDialog<T extends DialogLikeComponent>(
   initialProps?: ComponentProps<T>
 ) {
   const props = { ...initialProps };
+  const context = getCurrentInstance()?.appContext ?? null;
   let instance: InstanceType<T> | null;
   let vnode: VNode | null;
   let container: HTMLDivElement | null;
@@ -35,6 +37,7 @@ export function useProgrammaticDialog<T extends DialogLikeComponent>(
 
     container = document.createElement("div");
     vnode = createVNode(component, props);
+    vnode.appContext = context; // Required for components that use provide/inject and vue-i18n
 
     render(vnode, container);
     instance = vnode.component?.exposed as InstanceType<T>;
