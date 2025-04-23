@@ -27,6 +27,7 @@ export type Settings = {
   devMode: boolean;
   graphQLServer: string;
   explorerUrl: string;
+  ipfsGateway: string;
   hideBalances: boolean;
   blacklistedTokensLists: string[];
   zeroConf: boolean;

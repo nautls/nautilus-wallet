@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, ref, watch } from "vue";
 import { CircleAlertIcon, ExternalLinkIcon, LoaderCircleIcon } from "lucide-vue-next";
+import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
-import {
-  CONTENT_SANDBOX_URL,
-  IPFS_GENERAL_GATEWAY,
-  IPFS_PROTOCOL_PREFIX,
-  IPFS_VIDEO_GATEWAY
-} from "@/constants/assets";
+
+const CONTENT_SANDBOX_URL = "https://nautilus-nft-sandbox.azurewebsites.net";
+const IPFS_PROTOCOL_PREFIX = "ipfs://";
 
 const props = defineProps<{
   src?: string;
@@ -18,11 +16,14 @@ const props = defineProps<{
   displayExternalLink?: boolean;
 }>();
 
+const app = useAppStore();
 const loading = ref(true);
 
 const content = computed(() => resolveIpfs(props.src));
 const isContentUrl = computed(() => content.value?.startsWith("http"));
-
+const gateway = computed(() =>
+  app.settings.ipfsGateway.endsWith("/") ? app.settings.ipfsGateway : `${app.settings.ipfsGateway}/`
+);
 const sandboxUrl = computed(() => {
   if (!props.src) return;
 
@@ -45,11 +46,10 @@ function openLink(url: string | undefined) {
   window.open(url, "_blank");
 }
 
-function resolveIpfs(url?: string, isVideo = false): string {
+function resolveIpfs(url?: string): string {
   if (!url) return "";
   if (!url.startsWith(IPFS_PROTOCOL_PREFIX)) return url;
-  if (isVideo) return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_VIDEO_GATEWAY);
-  return url.replace(IPFS_PROTOCOL_PREFIX, IPFS_GENERAL_GATEWAY);
+  return url.replace(IPFS_PROTOCOL_PREFIX, gateway.value);
 }
 </script>
 

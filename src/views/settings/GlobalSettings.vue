@@ -47,6 +47,7 @@ const currencyState = reactive({
 
 const explorerUrl = ref(app.settings.explorerUrl);
 const graphQLServer = ref(app.settings.graphQLServer);
+const ipfsGateway = ref(app.settings.ipfsGateway);
 
 const nsfwBlacklist = computedBlacklist("nsfw");
 const scamBlacklist = computedBlacklist("scam");
@@ -79,6 +80,13 @@ watch(graphQLServer, async () => {
   if (!valid) return;
 
   app.settings.graphQLServer = graphQLServer.value;
+});
+
+watch(ipfsGateway, async () => {
+  const valid = await v$.value.ipfsGateway.$validate();
+  if (!valid) return;
+
+  app.settings.ipfsGateway = ipfsGateway.value;
 });
 
 function selectCurrency(currency: string) {
@@ -132,9 +140,13 @@ const v$ = useVuelidate(
           return await validateServerVersion(url);
         })
       )
+    },
+    ipfsGateway: {
+      required: helpers.withMessage(t("settings.global.requiredIpfs"), required),
+      validUrl
     }
   },
-  { explorerUrl, graphQLServer }
+  { explorerUrl, graphQLServer, ipfsGateway }
 );
 </script>
 
@@ -317,7 +329,6 @@ const v$ = useVuelidate(
               <Loader2Icon class="text-muted-foreground size-4 animate-spin" />
             </span>
           </div>
-          <template #description>{{ t("settings.global.gqlServerDesc") }}</template>
         </FormField>
       </div>
 
@@ -325,7 +336,13 @@ const v$ = useVuelidate(
         <FormField :validation="v$.explorerUrl">
           <Label for="explorer-url">{{ t("settings.global.explorerUrl") }}</Label>
           <Input id="explorer-url" v-model="explorerUrl" />
-          <template #description>{{ t("settings.global.explorerUrlDesc") }}</template>
+        </FormField>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <FormField :validation="v$.ipfsGateway">
+          <Label for="ipfs-gateway">{{ t("settings.global.ipfsGateway") }}</Label>
+          <Input id="ipfs-gateway" v-model="ipfsGateway" />
         </FormField>
       </div>
     </Card>
