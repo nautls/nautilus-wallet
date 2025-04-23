@@ -8,8 +8,8 @@ import type EnglishMessages from "./locales/en-US.json";
 // module into another chunk."
 const enUS = await importLocale("en-US");
 
-// Supported languages must be ordered by the most used to the least used. Use
-// https://www.ethnologue.com/insights/ethnologue200/ for reference.
+// Supported languages must be ordered by the most used to the least used.
+// See https://www.ethnologue.com/insights/ethnologue200/ for reference.
 export const SUPPORTED_LOCALES = ["en-US", "pt-BR"] as const;
 const DEFAULT_LOCALE = "en-US" as const;
 
@@ -33,6 +33,7 @@ export function setupI18n() {
     locale: DEFAULT_LOCALE,
     fallbackLocale: DEFAULT_LOCALE,
     messages: { [DEFAULT_LOCALE]: enUS },
+    pluralizationRules: { "ru-RU": threeFormPluralRules },
     datetimeFormats: {
       [DEFAULT_LOCALE]: { long: { dateStyle: "long" }, short: { dateStyle: "short" } }
     }
@@ -80,4 +81,18 @@ export function fallback(locale: string, availableLocales: readonly string[]): L
 
 async function importLocale(locale: Locale) {
   return import(`./locales/${locale}.json`).then((r) => r.default || r);
+}
+
+/**
+ * Slavic-style pluralization rules
+ */
+function threeFormPluralRules(choice: number, choicesLength: number) {
+  if (choice === 0) return 0;
+
+  const teen = choice > 10 && choice < 20;
+  const endsWithOne = choice % 10 === 1;
+
+  if (!teen && endsWithOne) return 1;
+  if (!teen && choice % 10 >= 2 && choice % 10 <= 4) return 2;
+  return choicesLength < 4 ? 2 : 3;
 }
