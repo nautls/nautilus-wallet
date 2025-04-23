@@ -1,6 +1,6 @@
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
-import type { Composer, I18n, Locale } from "vue-i18n";
+import type { Composer, Locale } from "vue-i18n";
 import type EnglishMessages from "./locales/en-US.json";
 
 // import en locale dynamically to avoid the following vite warning: "en.json is dynamically
@@ -21,12 +21,9 @@ export const LANGUAGE_LABELS = new Map<Locale, string>([
   ["pt-BR", "Português (BR)"] // Portuguese (Brazil)
 ]);
 
-type NonLegacyI18n = I18n<LocaleData, LocaleData, LocaleData, Locale, false>;
-type LocaleData = Record<string, unknown>;
-
 export type MessageSchema = typeof EnglishMessages;
-export type Translator = NonLegacyI18n["global"]["t"];
-export type DateFormatter = NonLegacyI18n["global"]["d"];
+export type Translator = Composer["t"];
+export type DateFormatter = Composer["d"];
 
 let _globalInstance: Composer;
 
@@ -78,7 +75,7 @@ export function fallback(locale: string, availableLocales: readonly string[]): L
     match = availableLocales.find((a) => a.startsWith(language));
   }
 
-  return (match ?? "en-US") as Locale;
+  return (match ?? DEFAULT_LOCALE) as Locale;
 }
 
 async function importLocale(locale: Locale) {
