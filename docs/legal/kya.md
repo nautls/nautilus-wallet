@@ -4,7 +4,7 @@ Nautilus is an open source tool for interacting with the Ergo Blockchain.
 
 **Notice that:**
 
-1. We do not log, collect, profile, share, or sell your data. For more information, please refer to our [Privacy Policy](/privacy-policy.md)
+1. We do not log, collect, profile, share, or sell your data. For more information, please refer to our [Privacy Policy](./privacy-policy.md)
 2. Nautilus operates on a live blockchain, thus transactions are final, and irreversible once they have **confirmed** status;
 3. Every transaction can be viewed and checked via [block explorer](https://sigmaspace.io/en);
 4. All the code is open source and available for public review;
