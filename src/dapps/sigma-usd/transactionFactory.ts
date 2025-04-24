@@ -20,7 +20,6 @@ export async function createExchangeTransaction(
 
   const unsigned = new TransactionBuilder(chain.height)
     .from(await fetchBoxes(wallet.id))
-    // @ts-expect-error @fleet-sdk/ageusd-plugin types wrongly don't support this union type
     .extend(AgeUSDExchangePlugin(bank, { ...action, recipient, transactionFee }))
     .sendChangeTo(recipient);
 
