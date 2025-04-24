@@ -1,7 +1,7 @@
-diff --git a/bignumber.d.ts b/bignumber.d.ts
-index 3e950b714e9ad0032a3ab93da8876d24412216ab..53ee5772a8c55256ee09a49d424e4e507910104b 100644
---- a/bignumber.d.ts
-+++ b/bignumber.d.ts
+diff --git a/types.d.ts b/types.d.ts
+index 8e51dd630d79129842eec2f5b54ceec23517b360..79240195124551afaa84205e59b57d27bd77f28d 100644
+--- a/types.d.ts
++++ b/types.d.ts
 @@ -325,9 +325,6 @@ declare namespace BigNumber {
  
  declare class BigNumber implements BigNumber.Instance {
