@@ -318,7 +318,7 @@
       "bankReserves": "Cadangan bank",
       "oracleRate": "Nilai tukar saat ini",
       "buy": "beli",
-      "jual": "jual"
+      "sell": "jual"
     },
     "walletOptimizer": {
       "title": "Pengoptimal Dompet",
