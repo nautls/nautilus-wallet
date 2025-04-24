@@ -10,15 +10,16 @@ const enUS = await importLocale("en-US");
 
 // Supported languages must be ordered by the most used to the least used.
 // See https://www.ethnologue.com/insights/ethnologue200/ for reference.
-export const SUPPORTED_LOCALES = ["en-US", "pt-BR"] as const;
+export const SUPPORTED_LOCALES = ["en-US", "pt-BR", "id-ID"] as const;
 const DEFAULT_LOCALE = "en-US" as const;
 
 // Labels must be in the target language following the format: "Language (Country)", where
 // "Country" is optional and must follow the ISO 3166-1 alpha-2 system (two letter country
 // code). e.g. "English (US)", "Português (BR)"
 export const LANGUAGE_LABELS = new Map<Locale, string>([
-  ["en-US", "English (US)"], //  English (United States)
-  ["pt-BR", "Português (BR)"] // Portuguese (Brazil)
+  ["en-US", "English (US)"], //         English (United States)
+  ["pt-BR", "Português (BR)"], //       Portuguese (Brazil)
+  ["id-ID", "Bahasa Indonesia (ID)"] // Indonesian (Indonesia)
 ]);
 
 export type MessageSchema = typeof EnglishMessages;
