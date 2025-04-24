@@ -200,7 +200,7 @@
       "demurrageDesc": "UTxO yang memegang token harus memiliki ERG yang cukup untuk menutupi biaya demurrage, atau Anda berisiko kehilangannya. Konsolidasikan aset Anda untuk menghindari hal ini.",
       "fragmentation": "Dompet Anda tampak terfragmentasi",
       "fragmentationDesc": "Pertimbangkan untuk mengoptimalkan dompet milik Anda demi peningkatan kinerja dan efisiensi."
-},
+    },
     "index": {
       "title": "Selamat datang di Dompet Nautilus",
       "subtitle": "Pilih opsi untuk memulai",
@@ -222,7 +222,7 @@
       "secretConfirmStep": "Konfirmasikan frasa pemulihan Anda",
       "secretConfirmStepDesc": "Lengkapi bagian yang hilang dari frasa pemulihan milik Anda.",
       "creating": "Membuat dompet milik Anda..."
-},
+    },
     "import": {
       "insertPubKey": "Masukkan kunci publik",
       "insertRecoveryPhrase": "Masukkan frasa pemulihan",
