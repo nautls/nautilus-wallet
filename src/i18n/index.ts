@@ -11,7 +11,7 @@ const enUS = await importLocale("en-US");
 
 // Supported languages must be ordered by the most used to the least used.
 // See https://www.ethnologue.com/insights/ethnologue200/ for reference.
-export const SUPPORTED_LOCALES = ["en-US", "pt-BR", "ru-RU", "id-ID"] as const;
+export const SUPPORTED_LOCALES = ["en-US", "pt-BR", "ru-RU", "de-DE", "id-ID"] as const;
 const DEFAULT_LOCALE = "en-US" as const;
 
 // Labels must be in the target language following the format: "Language (Country)", where
@@ -21,6 +21,7 @@ export const LANGUAGE_LABELS = new Map<Locale, string>([
   ["en-US", "English (US)"], //         English (United States)
   ["pt-BR", "Português (BR)"], //       Portuguese (Brazil)
   ["ru-RU", "Русский (RU)"], //         Russian (Russia)
+  ["de-DE", "Deutsch (DE)"], //         German (Germany)
   ["id-ID", "Bahasa Indonesia (ID)"] // Indonesian (Indonesia)
 ]);
 
@@ -36,9 +37,14 @@ export function setupI18n() {
     locale: DEFAULT_LOCALE,
     fallbackLocale: DEFAULT_LOCALE,
     messages: { [DEFAULT_LOCALE]: enUS },
-    pluralRules: { "ru-RU": russianPluralRules },
+    pluralRules: {
+      "ru-RU": russianPluralRules
+    },
     datetimeFormats: {
-      [DEFAULT_LOCALE]: { long: { dateStyle: "long" }, short: { dateStyle: "short" } }
+      [DEFAULT_LOCALE]: {
+        long: { dateStyle: "long" },
+        short: { dateStyle: "short" }
+      }
     }
   });
 
