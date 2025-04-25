@@ -2,6 +2,7 @@ import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 import type { Composer, Locale } from "vue-i18n";
 import type EnglishMessages from "./locales/en-US.json";
+import { russianPluralRules } from "./plural-rules/ru";
 
 // import en locale dynamically to avoid the following vite warning: "en.json is dynamically
 // imported by i18n.ts but also statically imported by i18n.ts, dynamic import will not move
@@ -35,7 +36,7 @@ export function setupI18n() {
     locale: DEFAULT_LOCALE,
     fallbackLocale: DEFAULT_LOCALE,
     messages: { [DEFAULT_LOCALE]: enUS },
-    pluralizationRules: { "ru-RU": threeFormPluralRules },
+    pluralRules: { "ru-RU": russianPluralRules },
     datetimeFormats: {
       [DEFAULT_LOCALE]: { long: { dateStyle: "long" }, short: { dateStyle: "short" } }
     }
@@ -83,18 +84,4 @@ export function fallback(locale: string, availableLocales: readonly string[]): L
 
 async function importLocale(locale: Locale) {
   return import(`./locales/${locale}.json`).then((r) => r.default || r);
-}
-
-/**
- * Slavic-style pluralization rules
- */
-function threeFormPluralRules(choice: number, choicesLength: number) {
-  if (choice === 0) return 0;
-
-  const teen = choice > 10 && choice < 20;
-  const endsWithOne = choice % 10 === 1;
-
-  if (!teen && endsWithOne) return 1;
-  if (!teen && choice % 10 >= 2 && choice % 10 <= 4) return 2;
-  return choicesLength < 4 ? 2 : 3;
 }
