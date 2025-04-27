@@ -26,7 +26,7 @@ function buildDescription(mode: string, network: Network) {
   if (mode === "staging")
     return "Canary distribution of Nautilus Wallet, for testing and development purposes.";
   return network === "mainnet"
-    ? "Privacy Wallet Designed for Ergo Network"
+    ? "A secure and user-friendly wallet for the Ergo Platform"
     : "Testnet distribution of Nautilus Wallet";
 }
 
