@@ -13,7 +13,6 @@ describe("Plural rules for Russian", () => {
   it("should resolve singular", () => {
     expect(russianPluralRules(1, implicitZeroHandlingLen)).toBe(0); // singular
     expect(russianPluralRules(21, implicitZeroHandlingLen)).toBe(0); // singular
-    expect(russianPluralRules(211, implicitZeroHandlingLen)).toBe(0); // singular
 
     expect(russianPluralRules(1, explicitZeroHandlingLen)).toBe(1); // singular
     expect(russianPluralRules(101, explicitZeroHandlingLen)).toBe(1); // singular

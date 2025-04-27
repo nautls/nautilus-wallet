@@ -7,14 +7,31 @@ const enum PluralForm {
 
 /**
  * Russian pluralization rules
+ *  - 1, 21, 31… → Singular
+ *  - 2–4, 22–24… → Paucal
+ *  - 0, 5–20, 11–14, … → Plural
  */
 export function russianPluralRules(value: number, optsLength: 3 | 4): number {
-  if (value === 0) return resolve(PluralForm.Zero, optsLength);
+  const abs = Math.abs(value); // in case of negative numbers
+  const mod10 = abs % 10;
+  const mod100 = abs % 100;
 
-  const teen = value > 10 && value < 20;
-  if (!teen && value % 10 === 1) return resolve(PluralForm.Singular, optsLength);
-  if (!teen && value % 10 >= 2 && value % 10 <= 4) return resolve(PluralForm.Paucal, optsLength);
-  return resolve(PluralForm.Plural, optsLength);
+  let form: PluralForm;
+
+  if (abs === 0) {
+    form = PluralForm.Zero;
+  } else if (mod100 >= 11 && mod100 <= 14) {
+    // 11-14 are always plural
+    form = PluralForm.Plural;
+  } else if (mod10 === 1) {
+    form = PluralForm.Singular;
+  } else if (mod10 >= 2 && mod10 <= 4) {
+    form = PluralForm.Paucal;
+  } else {
+    form = PluralForm.Plural;
+  }
+
+  return resolve(form, optsLength);
 }
 
 /**
