@@ -12,7 +12,7 @@ const enum PluralForm {
  *  - 0, 5–20, 11–14, … → Plural
  */
 export function russianPluralRules(value: number, optsLength: 3 | 4): number {
-  const abs = Math.abs(value); // на случай отрицательных чисел
+  const abs = Math.abs(value); // in case of negative numbers
   const mod10 = abs % 10;
   const mod100 = abs % 100;
 
@@ -21,7 +21,7 @@ export function russianPluralRules(value: number, optsLength: 3 | 4): number {
   if (abs === 0) {
     form = PluralForm.Zero;
   } else if (mod100 >= 11 && mod100 <= 14) {
-    // “подростковые” 11-14 всегда → plural
+    // 11-14 are always plural
     form = PluralForm.Plural;
   } else if (mod10 === 1) {
     form = PluralForm.Singular;
