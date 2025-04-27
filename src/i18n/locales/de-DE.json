@@ -107,7 +107,7 @@
       "default": "Standardadresse"
     },
     "receive": {
-      "maxTokensWarning": "Sende nicht mehr als {count} Token in einer einzelnen Transaktion an diese Wallet. Begrenzter Gerätespeicher könnte sonst deine Gelder unzugänglich machen.",
+      "maxTokensWarning": "Sende nicht mehr als {count} Token in einer einzelnen Transaktion an diese Wallet. Begrenzter Gerätespeicher könnte sonst deine Assets unzugänglich machen.",
       "verifyOnLedger": "Auf Ledger verifizieren",
       "newAddressError": "Adressenerstellung fehlgeschlagen",
       "newAddressErrorFallbackMessage": "Neue Adresse konnte nicht erzeugt werden."
@@ -175,7 +175,7 @@
     "wrongPassword": "Falsches Passwort",
     "wrongPasswordDesc": "Bitte gib das korrekte Ausgabepasswort ein.",
     "xPubKey": "Erweiterter öffentlicher Schlüssel",
-    "xPubKeyDesc": "Erweiterte öffentliche Schlüssel ermöglichen das Anzeigen der Transaktionshistorie und das Erzeugen neuer Adressen, können jedoch keine Gelder ausgeben.",
+    "xPubKeyDesc": "Erweiterte öffentliche Schlüssel ermöglichen das Anzeigen der Transaktionshistorie und das Erzeugen neuer Adressen, können jedoch keine Assets ausgeben.",
     "xPrivKey": "Erweiterter privater Schlüssel",
     "walletName": "Wallet-Name",
     "confirmPassword": "Passwort bestätigen",
@@ -291,7 +291,7 @@
       "removeWallet": "Wallet entfernen",
       "removeWalletDesc": "Verwende diese Option, um die aktuelle Wallet aus der App zu entfernen.",
       "walletRemoveConfirmation": "Bist du absolut sicher?",
-      "walletRemoveConfirmationDesc": "Das Entfernen einer Wallet beeinflusst das Guthaben in der Blockchain nicht, und du kannst sie später wiederherstellen. Stelle jedoch sicher, dass du die nötigen Informationen dafür besitzt. Andernfalls führt das Entfernen zu dauerhaftem Verlust der Gelder."
+      "walletRemoveConfirmationDesc": "Das Entfernen einer Wallet beeinflusst das Guthaben in der Blockchain nicht, und du kannst sie später wiederherstellen. Stelle jedoch sicher, dass du die nötigen Informationen dafür besitzt. Andernfalls führt das Entfernen zu dauerhaftem Verlust der Assets."
     },
     "connections": {
       "noConnectedApps": "Du hast noch keine verbundenen Apps."
