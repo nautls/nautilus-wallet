@@ -30,15 +30,33 @@
   },
   "datetime": {
     "now": "just now",
-    "relativeAgo": "{time} ago",
-    "relativeIn": "in {time}",
     "seconds": "{count} second | {count} seconds",
     "minutes": "{count} minute | {count} minutes",
     "hours": "{count} hour | {count} hours",
     "days": "{count} day | {count} days",
     "weeks": "{count} week | {count} weeks",
     "months": "{count} month | {count} months",
-    "years": "{count} year | {count} years"
+    "years": "{count} year | {count} years",
+    "relative": {
+      "past": {
+        "seconds": "{count} second ago | {count} seconds ago",
+        "minutes": "{count} minute ago | {count} minutes ago",
+        "hours": "{count} hour ago | {count} hours ago",
+        "days": "{count} day ago | {count} days ago",
+        "weeks": "{count} week ago | {count} weeks ago",
+        "months": "{count} month ago | {count} months ago",
+        "years": "{count} year ago | {count} years ago"
+      },
+      "future": {
+        "seconds": "in {count} second | in {count} seconds",
+        "minutes": "in {count} minute | in {count} minutes",
+        "hours": "in {count} hour | in {count} hours",
+        "days": "in {count} day | in {count} days",
+        "weeks": "in {count} week | in {count} weeks",
+        "months": "in {count} month | in {count} months",
+        "years": "in {count} year | in {count} years"
+      }
+    }
   },
   "device": {
     "isLocked": "The device is locked",
