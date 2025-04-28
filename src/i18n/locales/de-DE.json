@@ -30,15 +30,33 @@
   },
   "datetime": {
     "now": "gerade eben",
-    "relativeAgo": "vor {time}",
-    "relativeIn": "in {time}",
     "seconds": "{count} Sekunde | {count} Sekunden",
     "minutes": "{count} Minute | {count} Minuten",
     "hours": "{count} Stunde | {count} Stunden",
     "days": "{count} Tag | {count} Tage",
     "weeks": "{count} Woche | {count} Wochen",
     "months": "{count} Monat | {count} Monate",
-    "years": "{count} Jahr | {count} Jahre"
+    "years": "{count} Jahr | {count} Jahre",
+    "relative": {
+      "past": {
+        "seconds": "vor {count} Sekunde | vor {count} Sekunden",
+        "minutes": "vor {count} Minute | vor {count} Minuten",
+        "hours": "vor {count} Stunde | vor {count} Stunden",
+        "days": "vor {count} Tag | vor {count} Tagen",
+        "weeks": "vor {count} Woche | vor {count} Wochen",
+        "months": "vor {count} Monat | vor {count} Monaten",
+        "years": "vor {count} Jahr | vor {count} Jahren"
+      },
+      "future": {
+        "seconds": "in {count} Sekunde | in {count} Sekunden",
+        "minutes": "in {count} Minute | in {count} Minuten",
+        "hours": "in {count} Stunde | in {count} Stunden",
+        "days": "in {count} Tag | in {count} Tagen",
+        "weeks": "in {count} Woche | in {count} Wochen",
+        "months": "in {count} Monat | in {count} Monaten",
+        "years": "in {count} Jahr | in {count} Jahren"
+      }
+    }
   },
   "device": {
     "isLocked": "Gerät ist gesperrt",
