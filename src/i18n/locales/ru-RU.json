@@ -30,15 +30,33 @@
   },
   "datetime": {
     "now": "только что",
-    "relativeAgo": "{time} назад",
-    "relativeIn": "через {time}",
     "seconds": "{count} секунда | {count} секунды | {count} секунд",
     "minutes": "{count} минута | {count} минуты | {count} минут",
     "hours": "{count} час | {count} часа | {count} часов",
     "days": "{count} день | {count} дня | {count} дней",
     "weeks": "{count} неделя | {count} недели | {count} недель",
     "months": "{count} месяц | {count} месяца | {count} месяцев",
-    "years": "{count} год | {count} года | {count} лет"
+    "years": "{count} год | {count} года | {count} лет",
+    "relative": {
+      "past": {
+        "seconds": "{count} секунду назад | {count} секунды назад | {count} секунд назад",
+        "minutes": "{count} минуту назад | {count} минуты назад | {count} минут назад",
+        "hours": "{count} час назад | {count} часа назад | {count} часов назад",
+        "days": "{count} день назад | {count} дня назад | {count} дней назад",
+        "weeks": "{count} неделю назад | {count} недели назад | {count} недель назад",
+        "months": "{count} месяц назад | {count} месяца назад | {count} месяцев назад",
+        "years": "{count} год назад | {count} года назад | {count} лет назад"
+      },
+      "future": {
+        "seconds": "через {count} секунду | через {count} секунды | через {count} секунд",
+        "minutes": "через {count} минуту | через {count} минуты | через {count} минут",
+        "hours": "через {count} час | через {count} часа | через {count} часов",
+        "days": "через {count} день | через {count} дня | через {count} дней",
+        "weeks": "через {count} неделю | через {count} недели | через {count} недель",
+        "months": "через {count} месяц | через {count} месяца | через {count} месяцев",
+        "years": "через {count} год | через {count} года | через {count} лет"
+      }
+    }
   },
   "device": {
     "isLocked": "Устройство заблокировано",
