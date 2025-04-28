@@ -1,0 +1,376 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "search": "Suchen",
+    "copy": "Kopieren",
+    "close": "Schließen",
+    "send": "Senden",
+    "verify": "Überprüfen",
+    "tokenId": "Token-ID",
+    "fee": "Gebühr",
+    "tryAgain": "Erneut versuchen",
+    "sign": "Signieren",
+    "openInExplorer": "Im Explorer öffnen",
+    "showQrCode": "QR-Code anzeigen",
+    "optimize": "Optimieren",
+    "consolidate": "Konsolidieren",
+    "learnMore": "Mehr erfahren",
+    "confirm": "Bestätigen",
+    "import": "Importieren",
+    "select": "Auswählen",
+    "confirmed": "Bestätigt",
+    "export": "Exportieren",
+    "remove": "Entfernen",
+    "swap": "Tauschen",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "termsOfUse": "Nutzungsbedingungen",
+    "healthy": "Gesund",
+    "unhealthy": "Ungesund",
+    "authenticate": "Authentifizieren"
+  },
+  "datetime": {
+    "now": "gerade eben",
+    "seconds": "{count} Sekunde | {count} Sekunden",
+    "minutes": "{count} Minute | {count} Minuten",
+    "hours": "{count} Stunde | {count} Stunden",
+    "days": "{count} Tag | {count} Tage",
+    "weeks": "{count} Woche | {count} Wochen",
+    "months": "{count} Monat | {count} Monate",
+    "years": "{count} Jahr | {count} Jahre",
+    "relative": {
+      "past": {
+        "seconds": "vor {count} Sekunde | vor {count} Sekunden",
+        "minutes": "vor {count} Minute | vor {count} Minuten",
+        "hours": "vor {count} Stunde | vor {count} Stunden",
+        "days": "vor {count} Tag | vor {count} Tagen",
+        "weeks": "vor {count} Woche | vor {count} Wochen",
+        "months": "vor {count} Monat | vor {count} Monaten",
+        "years": "vor {count} Jahr | vor {count} Jahren"
+      },
+      "future": {
+        "seconds": "in {count} Sekunde | in {count} Sekunden",
+        "minutes": "in {count} Minute | in {count} Minuten",
+        "hours": "in {count} Stunde | in {count} Stunden",
+        "days": "in {count} Tag | in {count} Tagen",
+        "weeks": "in {count} Woche | in {count} Wochen",
+        "months": "in {count} Monat | in {count} Monaten",
+        "years": "in {count} Jahr | in {count} Jahren"
+      }
+    }
+  },
+  "device": {
+    "isLocked": "Gerät ist gesperrt",
+    "ready": "Bereit",
+    "connect": "Verbinden",
+    "connected": "Verbunden",
+    "reconnecting": "Verbindung wird wiederhergestellt...",
+    "connecting": "Verbinden...",
+    "connectionError": "Verbindungsfehler",
+    "notFoundError": "Gerät nicht gefunden!",
+    "notFoundErrorDesc": "Stell sicher, dass dein Gerät richtig angeschlossen und entsperrt ist.",
+    "ledger": {
+      "waitingAppClose": "Warte, bis die App geschlossen wird",
+      "confirmAppOpen": "Öffne die Ergo-App",
+      "waitingAppReady": "Warte, bis die App bereit ist",
+      "userDeniedOpenApp": "Öffnen der Ergo-App abgelehnt",
+      "deniedByUser": "Abgelehnt",
+      "openingApp": "Fehler beim Öffnen der Ergo-App",
+      "appId": "App-ID: {appId}"
+    }
+  },
+  "header": {
+    "nav": {
+      "assets": "Assets",
+      "history": "Verlauf",
+      "receive": "Empfangen",
+      "send": "Senden",
+      "dApps": "dApps"
+    },
+    "menu": {
+      "noWalletsFound": "Keine Wallets gefunden.",
+      "newWallet": "Neue Wallet",
+      "settings": "Einstellungen",
+      "about": "Info"
+    }
+  },
+  "asset": {
+    "totalBalance": "Wallet-Guthaben",
+    "noConversionRate": "Kein Umrechnungskurs",
+    "add": "Asset hinzufügen",
+    "noAssetsFound": "Keine Assets gefunden.",
+    "tabs": {
+      "tokens": "Token",
+      "collectibles": "Sammlerstücke"
+    },
+    "info": {
+      "emissionAmount": "Emissionsmenge",
+      "mintTxId": "Mint-TXID",
+      "additionalMetadata": "Zusätzliche Metadaten"
+    }
+  },
+  "address": {
+    "filter": {
+      "all": "Alle",
+      "active": "Aktiv",
+      "unused": "Unbenutzt"
+    },
+    "state": {
+      "used": "Benutzt",
+      "unused": "Unbenutzt"
+    },
+    "label": {
+      "address": "Adresse",
+      "path": "Pfad",
+      "current": "Aktuelle Adresse",
+      "default": "Standardadresse"
+    },
+    "receive": {
+      "maxTokensWarning": "Sende nicht mehr als {count} Token in einer einzelnen Transaktion an diese Wallet. Begrenzter Gerätespeicher könnte sonst deine Assets unzugänglich machen.",
+      "verifyOnLedger": "Auf Ledger verifizieren",
+      "newAddressError": "Adressenerstellung fehlgeschlagen",
+      "newAddressErrorFallbackMessage": "Neue Adresse konnte nicht erzeugt werden."
+    },
+    "qrCode": {
+      "title": "Adress-QR-Code",
+      "description": "Scanne diesen QR-Code, um Assets an {address} zu empfangen."
+    },
+    "verify": {
+      "title": "Adressverifizierung",
+      "description": "Stell sicher, dass die angezeigte Adresse und der Pfad exakt mit deinem Gerät übereinstimmen.",
+      "confirmOnDevice": "Adresse auf dem Gerät bestätigen",
+      "notConfirmed": "Nicht bestätigt",
+      "verificationError": "Verifizierung fehlgeschlagen",
+      "unknownVerificationError": "Beim Verifizieren der Adresse ist ein unbekannter Fehler aufgetreten."
+    }
+  },
+  "transaction": {
+    "history": {
+      "txTitle": "Transaktion {txId}",
+      "txState": "Ausstehend | {count} Bestätigung | {count} Bestätigungen",
+      "empty": "Du hast noch keine Transaktionshistorie.",
+      "nextPage": "Weitere Transaktionen laden"
+    },
+    "send": {
+      "recipient": "Empfänger",
+      "assets": "Assets",
+      "addAllAssets": "Alle Assets hinzufügen",
+      "addAllAssetsDesc": "Alle Assets zur Sendliste hinzufügen.",
+      "minNamedAssetError": "Du benötigst mindestens {min} {asset}, um diese Transaktion zu senden.",
+      "requiredAmountError": "Bitte gib einen Betrag ein.",
+      "minFeeError": "Die Mindestgebühr für diese Transaktion beträgt {min} {name}.",
+      "emptyAddressError": "Bitte gib die Empfängeradresse ein.",
+      "noSelectedAssetsError": "Bitte wähle mindestens ein Asset zum Senden aus."
+    },
+    "sign": {
+      "babelFeeSwap": "Babel-Fee-Tausch",
+      "sendingToYourAddress": "Senden an deine Adresse",
+      "sendingToContract": "Senden an Vertrag",
+      "sendingToScriptHash": "Senden an Script-Hash",
+      "sendingToExternalAddress": "Senden an externe Adresse",
+      "broadcastError": "Senden der Transaktion fehlgeschlagen",
+      "newToken": "Neuer Token",
+      "newTokenDesc": "Dieser Token wird erstellt.",
+      "burning": "Verbrennen",
+      "burningDesc": "Die unten aufgeführten Assets gehen verloren. Fahr nur fort, wenn du genau weißt, was du tust.",
+      "burningConfirm": "Token dauerhaft verbrennen",
+      "totalOutput": "Gesamte Assets, die deine Wallet verlassen",
+      "totalInput": "Gesamte Assets, die deine Wallet erreichen",
+      "details": "Transaktionsdetails",
+      "scriptHash": "Script-Hash",
+      "networkFee": "Netzwerkgebühr",
+      "reviewTx": "Transaktion überprüfen",
+      "reviewTxDesc": "Überprüf die Transaktion, bevor du sie signierst.",
+      "buildError": "Transaktion konnte nicht erstellt werden",
+      "success": "Transaktion gesendet!",
+      "successDesc": "Deine Transaktion wurde erfolgreich signiert und gesendet.",
+      "signError": "Signieren der Transaktion fehlgeschlagen"
+    }
+  },
+  "wallet": {
+    "spendingPassword": "Ausgabepasswort",
+    "emptyProof": "Prover hat keine signierten Daten zurückgegeben.",
+    "requiredSpendingPassword": "Bitte gib dein Ausgabepasswort ein.",
+    "wrongPassword": "Falsches Passwort",
+    "wrongPasswordDesc": "Bitte gib das korrekte Ausgabepasswort ein.",
+    "xPubKey": "Erweiterter öffentlicher Schlüssel",
+    "xPubKeyDesc": "Erweiterte öffentliche Schlüssel ermöglichen das Anzeigen der Transaktionshistorie und das Erzeugen neuer Adressen, können jedoch keine Assets ausgeben.",
+    "xPrivKey": "Erweiterter privater Schlüssel",
+    "walletName": "Wallet-Name",
+    "confirmPassword": "Passwort bestätigen",
+    "requiredWalletName": "Wallet-Name ist erforderlich.",
+    "spendingPasswordRequired": "Ausgabepasswort ist erforderlich.",
+    "minSpendingPasswordLength": "Das Ausgabepasswort muss mindestens {min} Zeichen lang sein.",
+    "passwordsMustMatch": "„Ausgabepasswort“ und „Passwort bestätigen“ müssen übereinstimmen.",
+    "infoStep": "Wallet-Informationen",
+    "infoStepDesc": "Diese Informationen werden verwendet, um deine Wallet zu identifizieren und zu schützen.",
+    "cantSignData": "Diese Wallet kann keine Daten signieren.",
+    "cantSignTx": "Diese Wallet kann keine Transaktionen signieren.",
+    "words": "{count} Wörter",
+    "readonlyWallet": "Nur-Lesen-Wallet",
+    "ledgerWallet": "Ledger-Wallet",
+    "type": {
+      "standard": "Standard",
+      "readonly": "Nur lesen",
+      "ledger": "Ledger"
+    },
+    "alerts": {
+      "demurrage": "Bald kann Demurrage anfallen",
+      "demurrageDesc": "UTxOs mit Token müssen genügend ERG enthalten, um die Demurrage-Gebühr zu decken, sonst riskierst du, sie zu verlieren. Konsolidiere deine Assets, um das zu vermeiden.",
+      "fragmentation": "Deine Wallet wirkt fragmentiert",
+      "fragmentationDesc": "Erwäge, deine Wallet zu optimieren, um Leistung und Effizienz zu verbessern."
+    },
+    "index": {
+      "title": "Willkommen bei der Nautilus-Wallet",
+      "subtitle": "Wähle eine Option, um zu beginnen",
+      "kyaAgreement": "Indem du fortfährst, stimmst du den {termsOfUse} von Nautilus zu",
+      "create": "Neue Wallet erstellen",
+      "createDesc": "Erstelle eine neue Ergo-Wallet",
+      "connect": "Ledger-Wallet verbinden",
+      "connectDesc": "Verbinde deine Hardware-Wallet",
+      "import": "Wallet importieren",
+      "importDesc": "Eine bestehende Wallet importieren"
+    },
+    "create": {
+      "createRecoveryPhrase": "Wiederherstellungsphrase erstellen",
+      "iHaveSavedTheseWords": "Ich habe diese Wörter gespeichert",
+      "recoveryPhraseDoNotMatch": "Die Wiederherstellungsphrase stimmt nicht mit der ursprünglichen überein.",
+      "walletCreationError": "Wallet-Erstellung fehlgeschlagen",
+      "secretStep": "Wiederherstellungsphrase",
+      "secretStepDesc": "Diese Wörter sind die Schlüssel zu deiner Wallet. Bewahre sie sicher auf.",
+      "secretConfirmStep": "Wiederherstellungsphrase bestätigen",
+      "secretConfirmStepDesc": "Vervollständige die fehlenden Teile deiner Wiederherstellungsphrase.",
+      "creating": "Deine Wallet wird erstellt..."
+    },
+    "import": {
+      "insertPubKey": "Öffentlichen Schlüssel eingeben",
+      "insertRecoveryPhrase": "Wiederherstellungsphrase eingeben",
+      "requiredXPubKey": "Erweiterter öffentlicher Schlüssel ist erforderlich.",
+      "requiredRecoveryPhrase": "Wiederherstellungsphrase ist erforderlich.",
+      "walletImportError": "Wallet-Import fehlgeschlagen",
+      "importStep": "Gib den erweiterten öffentlichen Schlüssel deiner Wallet ein.",
+      "importStepDesc": "Wähle den Secret-Typ und füll ihn aus.",
+      "walletType": "Wallet-Typ",
+      "selectSecretType": "Secret-Typ auswählen",
+      "selectWalletType": "Wallet-Typ auswählen",
+      "words": "Wiederherstellungsphrase mit {count} Wörtern",
+      "importing": "Deine Wallet wird importiert..."
+    },
+    "connect": {
+      "confirmXPubExport": "Export des erweiterten öffentlichen Schlüssels bestätigen",
+      "notExported": "Nicht exportiert",
+      "verificationError": "Verifizierung fehlgeschlagen",
+      "verificationUnknownError": "Beim Verifizieren der Adresse ist ein unbekannter Fehler aufgetreten.",
+      "success": "Wallet verbunden!",
+      "popupViewMode": "Popup",
+      "sidePanelViewMode": "Seitenleiste",
+      "successDesc": "Dein Ledger-Gerät wurde erfolgreich verbunden. Du kannst jetzt Nautilus Wallet im {viewMode} des Browsers öffnen.",
+      "openInViewMode": "Nautilus im {viewMode} öffnen"
+    }
+  },
+  "settings": {
+    "systemDefault": "Systemstandard",
+    "tabs": {
+      "global": "Allgemein",
+      "wallet": "Wallet",
+      "connections": "Verbindungen"
+    },
+    "global": {
+      "displayLanguage": "Anzeigesprache",
+      "displayLanguageDesc": "Wähle die Sprache der Nautilus-Oberfläche.",
+      "conversionCurrency": "Umrechnungswährung",
+      "conversionCurrencyDesc": "Wähle die Währung für Umrechnungskurse.",
+      "noCurrenciesFound": "Keine Währungen gefunden.",
+      "devMode": "Entwicklermodus",
+      "devModeDesc": "Aktiviere den Entwicklermodus, um auf erweiterte Funktionen zuzugreifen.",
+      "tokenBlacklists": "Token-Blacklists",
+      "tokenBlacklistsDesc": "Verwalte Token-Blacklists, um unerwünschte Token auszublenden.",
+      "nsfwTokensBlacklist": "NSFW-Token",
+      "nsfwTokensBlacklistDesc": "NSFW-Token (nicht arbeitsplatzgeeignet) ausblenden.",
+      "scamTokensBlacklist": "Betrugs-Token",
+      "scamTokensBlacklistDesc": "Betrugs-Token ausblenden.",
+      "gqlServer": "GraphQL-Server",
+      "requiredGql": "GraphQL-URL ist erforderlich.",
+      "wrongServerNetwork": "Falsches Server-Netzwerk.",
+      "unsupportedServerVersion": "Nicht unterstützte Server-Version. Nautilus benötigt mindestens Version {version}.",
+      "explorerUrl": "Explorer-URL",
+      "requiredExplorer": "Explorer-URL ist erforderlich.",
+      "ipfsGateway": "IPFS-Gateway",
+      "requiredIpfs": "IPFS-Gateway-URL ist erforderlich.",
+      "experimental": "Experimentell",
+      "experimentalDesc": "Die Funktionen in diesem Abschnitt sind experimentell und nicht stabil. Nutze sie mit Vorsicht; sie können Fehler enthalten oder sich stark ändern.",
+      "zeroConf": "0-conf aktivieren",
+      "zeroConfDesc": "0-conf (Zero-Confirmations) — ermöglicht das Ausgeben von Assets ohne Bestätigungs­wartezeit. Schnell, aber es besteht das Risiko doppelter Ausgaben, bis die Transaktion in den nächsten Block aufgenommen ist."
+    },
+    "wallet": {
+      "walletNameDesc": "Gib deiner Wallet einen Namen.",
+      "avoidAddressReuse": "Adresswiederverwendung verhindern",
+      "avoidAddressReuseDesc": "Aktiviere diese Option, um zu verhindern, dass dieselbe Adresse für mehrere Transaktionen verwendet wird. Das schützt deine Privatsphäre.",
+      "xPubKeyDesc": "Verwende diese Option, um den erweiterten öffentlichen Schlüssel deiner Wallet zu exportieren.",
+      "removeWallet": "Wallet entfernen",
+      "removeWalletDesc": "Verwende diese Option, um die aktuelle Wallet aus der App zu entfernen.",
+      "walletRemoveConfirmation": "Bist du absolut sicher?",
+      "walletRemoveConfirmationDesc": "Das Entfernen einer Wallet beeinflusst das Guthaben in der Blockchain nicht, und du kannst sie später wiederherstellen. Stelle jedoch sicher, dass du die nötigen Informationen dafür besitzt. Andernfalls führt das Entfernen zu dauerhaftem Verlust der Assets."
+    },
+    "connections": {
+      "noConnectedApps": "Du hast noch keine verbundenen Apps."
+    }
+  },
+  "about": {
+    "nautilusWallet": "Nautilus-Wallet",
+    "quote": "Im Verborgenen erschaffen, aus Funden, die kein Auge je suchte. Streift durch ferne Wasser, fernab der Macht irdischer Reiche.",
+    "donation": "Unterstütze die Entwicklung der Nautilus-Wallet mit einer Spende an {address}."
+  },
+  "dapps": {
+    "sigmaUsd": {
+      "title": "SigmaUSD-Protokoll",
+      "insufficientBalance": "Unzureichender {asset}-Kontostand.",
+      "blockedAction": "Aufgrund der aktuellen Bankreserven kannst du nicht mehr als {amount} {asset} {action}.",
+      "feeSummary": "Gebühren {amount}",
+      "protocolFee": "Protokollgebühr ({rate})",
+      "protocolFeeDesc": "Die Protokollgebühr fließt direkt in die Bankreserven.",
+      "serviceFee": "Servicegebühr ({rate})",
+      "serviceFeeDesc": "Die Nautilus-Wallet erhebt eine Pauschalgebühr, um ihre Entwicklung nachhaltig zu finanzieren.",
+      "networkFee": "Netzwerkgebühr",
+      "networkFeeDesc": "Dies sind die Kosten für das Hinzufügen der Transaktion zur Blockchain.",
+      "totalFee": "Gesamtgebühr",
+      "bankReserves": "Bankreserven",
+      "oracleRate": "Aktueller Kurs",
+      "buy": "kaufen",
+      "sell": "verkaufen"
+    },
+    "walletOptimizer": {
+      "title": "Wallet-Optimierer",
+      "description": "Nutze dieses Tool, um deine UTxOs zusammenzuführen, die Leistung zu steigern und die {demurrage}-Gebühr zu vermeiden.",
+      "demurrage": "Demurrage",
+      "size": "{count} {size}",
+      "bytes": "Bytes",
+      "utxoCount": "UTxO-Anzahl",
+      "oldestUtxo": "Ältester UTxO",
+      "walletSize": "Wallet-Größe",
+      "walletHealth": "Wallet-Gesundheit"
+    }
+  },
+  "connector": {
+    "connect": {
+      "header": "{host} möchte eine Verbindung mit Nautilus herstellen.",
+      "connect": "Verbinden"
+    },
+    "auth": {
+      "header": "{host} fordert einen Nachweis, dass die ausgewählte Adresse dir gehört.",
+      "selectedAddress": "Ausgewählte Adresse"
+    },
+    "signData": {
+      "header": "{host} möchte eine Nachricht signieren.",
+      "dataType": {
+        "text": "Textnachricht",
+        "json": "JSON-Objekt",
+        "hash": "Hash-Nachricht",
+        "binary": "Binärdaten"
+      }
+    },
+    "signTx": {
+      "fullTxHeader": "{host} möchte eine Transaktion signieren.",
+      "partialTxHeader": "{host} möchte eine Transaktion teilweise signieren"
+    }
+  }
+}
