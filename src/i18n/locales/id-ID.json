@@ -30,15 +30,33 @@
   },
   "datetime": {
     "now": "baru saja",
-    "relativeAgo": "{time} yang lalu",
-    "relativeIn": "dalam {time}",
     "seconds": "{count} detik | {count} detik",
     "minutes": "{count} menit | {count} menit",
     "hours": "{count} jam | {count} jam",
     "days": "{count} hari | {count} hari",
     "weeks": "{count} minggu | {count} minggu",
     "months": "{count} bulan | {count} bulan",
-    "years": "{count} tahun | {count} tahun"
+    "years": "{count} tahun | {count} tahun",
+    "relative": {
+      "past": {
+        "seconds": "{count} detik yang lalu | {count} detik yang lalu",
+        "minutes": "{count} menit yang lalu | {count} menit yang lalu",
+        "hours": "{count} jam yang lalu | {count} jam yang lalu",
+        "days": "{count} hari yang lalu | {count} hari yang lalu",
+        "weeks": "{count} minggu yang lalu | {count} minggu yang lalu",
+        "months": "{count} bulan yang lalu | {count} bulan yang lalu",
+        "years": "{count} tahun yang lalu | {count} tahun yang lalu"
+      },
+      "future": {
+        "seconds": "dalam {count} detik | dalam {count} detik",
+        "minutes": "dalam {count} menit | dalam {count} menit",
+        "hours": "dalam {count} jam | dalam {count} jam",
+        "days": "dalam {count} hari | dalam {count} hari",
+        "weeks": "dalam {count} minggu | dalam {count} minggu",
+        "months": "dalam {count} bulan | dalam {count} bulan",
+        "years": "dalam {count} tahun | dalam {count} tahun"
+      }
+    }
   },
   "device": {
     "isLocked": "Perangkat terkunci",
