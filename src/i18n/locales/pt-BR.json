@@ -30,15 +30,33 @@
   },
   "datetime": {
     "now": "agora mesmo",
-    "relativeAgo": "há {time}",
-    "relativeIn": "em {time}",
     "seconds": "{count} segundo | {count} segundos",
     "minutes": "{count} minuto | {count} minutos",
     "hours": "{count} hora | {count} horas",
     "days": "{count} dia | {count} dias",
     "weeks": "{count} semana | {count} semanas",
     "months": "{count} mês | {count} meses",
-    "years": "{count} ano | {count} anos"
+    "years": "{count} ano | {count} anos",
+    "relative": {
+      "past": {
+        "seconds": "há {count} segundo | há {count} segundos",
+        "minutes": "há {count} minuto | há {count} minutos",
+        "hours": "há {count} hora | há {count} horas",
+        "days": "há {count} dia | há {count} dias",
+        "weeks": "há {count} semana | há {count} semanas",
+        "months": "há {count} mês | há {count} meses",
+        "years": "há {count} ano | há {count} anos"
+      },
+      "future": {
+        "seconds": "em {count} segundo | em {count} segundos",
+        "minutes": "em {count} minuto | em {count} minutos",
+        "hours": "em {count} hora | em {count} horas",
+        "days": "em {count} dia | em {count} dias",
+        "weeks": "em {count} semana | em {count} semanas",
+        "months": "em {count} mês | em {count} meses",
+        "years": "em {count} ano | em {count} anos"
+      }
+    }
   },
   "device": {
     "isLocked": "O dispositivo está bloqueado",

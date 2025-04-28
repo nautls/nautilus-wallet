@@ -9,6 +9,16 @@ export interface DateFormatOptions {
 
 type DateInput = Date | number | string;
 
+const enum TimeUnit {
+  Now = "now",
+  Second = "seconds",
+  Minute = "minutes",
+  Hour = "hours",
+  Day = "days",
+  Month = "months",
+  Year = "years"
+}
+
 export function useRelativeDateFormatter(options: DateFormatOptions) {
   return {
     rd: (date: DateInput): string => {
@@ -27,17 +37,17 @@ export function useRelativeDateFormatter(options: DateFormatOptions) {
   };
 }
 
-export function formatRelativeTime(date: Date, showQualifier: boolean, t: DateFormatter): string {
+export function formatRelativeTime(date: Date, useQualifier: boolean, t: DateFormatter): string {
   const now = new Date();
   const isFuture = date > now;
   let diff = Math.abs((date.getTime() - now.getTime()) / 1000);
 
   if (diff < 60) return t("datetime.now");
-  if ((diff = d(diff, 60)) < 60) return fmt("datetime.minutes", diff, showQualifier, isFuture, t);
-  if ((diff = d(diff, 60)) < 24) return fmt("datetime.hours", diff, showQualifier, isFuture, t);
-  if ((diff = d(diff, 24)) < 30) return fmt("datetime.days", diff, showQualifier, isFuture, t);
-  if ((diff = d(diff, 30)) < 12) return fmt("datetime.months", diff, showQualifier, isFuture, t);
-  return fmt("datetime.years", d(diff, 12), showQualifier, isFuture, t);
+  if ((diff = d(diff, 60)) < 60) return fmt(TimeUnit.Minute, diff, useQualifier, isFuture, t);
+  if ((diff = d(diff, 60)) < 24) return fmt(TimeUnit.Hour, diff, useQualifier, isFuture, t);
+  if ((diff = d(diff, 24)) < 30) return fmt(TimeUnit.Day, diff, useQualifier, isFuture, t);
+  if ((diff = d(diff, 30)) < 12) return fmt(TimeUnit.Month, diff, useQualifier, isFuture, t);
+  return fmt(TimeUnit.Year, d(diff, 12), useQualifier, isFuture, t);
 }
 
 function d(n: number, interval: number): number {
@@ -45,15 +55,13 @@ function d(n: number, interval: number): number {
 }
 
 function fmt(
-  tag: string,
+  unit: TimeUnit,
   count: number,
-  showQualifier: boolean,
+  useQualifier: boolean,
   isFuture: boolean,
   t: Translator
 ): string {
-  const time = t(tag, { count });
-
-  return showQualifier
-    ? t(isFuture ? "datetime.relativeIn" : "datetime.relativeAgo", { time })
-    : time;
+  return useQualifier
+    ? t(isFuture ? `datetime.relative.future.${unit}` : `datetime.relative.past.${unit}`, { count })
+    : t(`datetime.${unit}`, { count });
 }
