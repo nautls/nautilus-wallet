@@ -1,0 +1,376 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "search": "Rechercher",
+    "copy": "Copier",
+    "close": "Fermer",
+    "send": "Envoyer",
+    "verify": "Vérifier",
+    "tokenId": "ID du jeton",
+    "fee": "Frais",
+    "tryAgain": "Réessayer",
+    "sign": "Signer",
+    "openInExplorer": "Ouvrir dans l'explorateur",
+    "showQrCode": "Afficher le code QR",
+    "optimize": "Optimiser",
+    "consolidate": "Consolider",
+    "learnMore": "En savoir plus",
+    "confirm": "Confirmer",
+    "import": "Importer",
+    "select": "Sélectionner",
+    "confirmed": "Confirmé",
+    "export": "Exporter",
+    "remove": "Supprimer",
+    "swap": "Échanger",
+    "privacyPolicy": "Politique de confidentialité",
+    "termsOfUse": "Conditions d'utilisation",
+    "healthy": "Sain",
+    "unhealthy": "À risque",
+    "authenticate": "Authentifier"
+  },
+  "datetime": {
+    "now": "à l'instant",
+    "seconds": "{count} seconde | {count} secondes",
+    "minutes": "{count} minute | {count} minutes",
+    "hours": "{count} heure | {count} heures",
+    "days": "{count} jour | {count} jours",
+    "weeks": "{count} semaine | {count} semaines",
+    "months": "{count} mois | {count} mois",
+    "years": "{count} an | {count} ans",
+    "relative": {
+      "past": {
+        "seconds": "il y a {count} seconde | il y a {count} secondes",
+        "minutes": "il y a {count} minute | il y a {count} minutes",
+        "hours": "il y a {count} heure | il y a {count} heures",
+        "days": "il y a {count} jour | il y a {count} jours",
+        "weeks": "il y a {count} semaine | il y a {count} semaines",
+        "months": "il y a {count} mois | il y a {count} mois",
+        "years": "il y a {count} an | il y a {count} ans"
+      },
+      "future": {
+        "seconds": "dans {count} seconde | dans {count} secondes",
+        "minutes": "dans {count} minute | dans {count} minutes",
+        "hours": "dans {count} heure | dans {count} heures",
+        "days": "dans {count} jour | dans {count} jours",
+        "weeks": "dans {count} semaine | dans {count} semaines",
+        "months": "dans {count} mois | dans {count} mois",
+        "years": "dans {count} an | dans {count} ans"
+      }
+    }
+  },
+  "device": {
+    "isLocked": "L'appareil est verrouillé",
+    "ready": "Prêt",
+    "connect": "Connecter",
+    "connected": "Connecté",
+    "reconnecting": "Reconnexion...",
+    "connecting": "Connexion...",
+    "connectionError": "Erreur de connexion",
+    "notFoundError": "Appareil introuvable !",
+    "notFoundErrorDesc": "Assurez-vous que votre appareil est correctement connecté et déverrouillé.",
+    "ledger": {
+      "waitingAppClose": "En attente de la fermeture de l'application",
+      "confirmAppOpen": "Confirmer l'ouverture de l'application Ergo",
+      "waitingAppReady": "En attente de la disponibilité de l'application",
+      "userDeniedOpenApp": "Ouverture de l'application Ergo refusée par l'utilisateur",
+      "deniedByUser": "Refusé par l'utilisateur",
+      "openingApp": "Erreur lors de l'ouverture de l'application Ergo",
+      "appId": "ID de l'application : {appId}"
+    }
+  },
+  "header": {
+    "nav": {
+      "assets": "Actifs",
+      "history": "Historique",
+      "receive": "Recevoir",
+      "send": "Envoyer",
+      "dApps": "dApps"
+    },
+    "menu": {
+      "noWalletsFound": "Aucun portefeuille trouvé.",
+      "newWallet": "Nouveau portefeuille",
+      "settings": "Paramètres",
+      "about": "À propos"
+    }
+  },
+  "asset": {
+    "totalBalance": "Solde du portefeuille",
+    "noConversionRate": "Aucun taux de conversion",
+    "add": "Ajouter un actif",
+    "noAssetsFound": "Aucun actif trouvé.",
+    "tabs": {
+      "tokens": "Jetons",
+      "collectibles": "Objets de collection"
+    },
+    "info": {
+      "emissionAmount": "Montant de l'émission",
+      "mintTxId": "ID de transaction de frappe",
+      "additionalMetadata": "Métadonnées supplémentaires"
+    }
+  },
+  "address": {
+    "filter": {
+      "all": "Tous",
+      "active": "Actifs",
+      "unused": "Inutilisés"
+    },
+    "state": {
+      "used": "Utilisé",
+      "unused": "Inutilisé"
+    },
+    "label": {
+      "address": "Adresse",
+      "path": "Chemin",
+      "current": "Adresse actuelle",
+      "default": "Adresse par défaut"
+    },
+    "receive": {
+      "maxTokensWarning": "Évitez d'envoyer plus de {count} jetons en une seule transaction vers ce portefeuille. La mémoire limitée de l'appareil pourrait rendre vos fonds inaccessibles.",
+      "verifyOnLedger": "Vérifier sur l'appareil Ledger",
+      "newAddressError": "Échec de la génération de l'adresse",
+      "newAddressErrorFallbackMessage": "Impossible de générer une nouvelle adresse."
+    },
+    "qrCode": {
+      "title": "Code QR de l'adresse",
+      "description": "Scannez ce code QR pour recevoir des actifs à l'adresse {address}."
+    },
+    "verify": {
+      "title": "Vérification de l'adresse",
+      "description": "Assurez-vous que l'adresse et le chemin affichés correspondent exactement à ce qui apparaît sur votre appareil.",
+      "confirmOnDevice": "Confirmer l'adresse sur votre appareil",
+      "notConfirmed": "Non confirmé",
+      "verificationError": "Échec de la vérification",
+      "unknownVerificationError": "Une erreur inconnue s'est produite lors de la vérification de l'adresse."
+    }
+  },
+  "transaction": {
+    "history": {
+      "txTitle": "Transaction {txId}",
+      "txState": "En attente | {count} confirmation | {count} confirmations",
+      "empty": "Vous n'avez pas encore d'historique de transactions.",
+      "nextPage": "Charger plus de transactions"
+    },
+    "send": {
+      "recipient": "Destinataire",
+      "assets": "Actifs",
+      "addAllAssets": "Ajouter tous les actifs",
+      "addAllAssetsDesc": "Ajouter tous les actifs à la liste des envois.",
+      "minNamedAssetError": "Vous avez besoin d'au moins {min} {asset} pour envoyer cette transaction.",
+      "requiredAmountError": "Veuillez entrer un montant.",
+      "minFeeError": "Vous devez payer des frais minimums de {min} {name} pour envoyer cette transaction.",
+      "emptyAddressError": "Veuillez entrer l'adresse du destinataire.",
+      "noSelectedAssetsError": "Veuillez sélectionner au moins un actif pour envoyer cette transaction."
+    },
+    "sign": {
+      "babelFeeSwap": "Échange de frais Babel",
+      "sendingToYourAddress": "Envoi à votre adresse",
+      "sendingToContract": "Envoi au contrat",
+      "sendingToScriptHash": "Envoi au hachage de script",
+      "sendingToExternalAddress": "Envoi à une adresse externe",
+      "broadcastError": "Échec de la diffusion de la transaction",
+      "newToken": "Nouveau jeton",
+      "newTokenDesc": "Ce jeton sera frappé dans cette transaction.",
+      "burning": "Brûler",
+      "burningDesc": "Les actifs listés ci-dessous seront perdus. Continuez uniquement si vous savez exactement ce que vous faites.",
+      "burningConfirm": "Brûler les jetons définitivement",
+      "totalOutput": "Total des actifs quittant votre portefeuille",
+      "totalInput": "Total des actifs entrant dans votre portefeuille",
+      "details": "Détails de la transaction",
+      "scriptHash": "Hachage de script",
+      "networkFee": "Frais de réseau",
+      "reviewTx": "Revoir la transaction",
+      "reviewTxDesc": "Revoir la transaction avant de signer.",
+      "buildError": "Échec de la construction de la transaction",
+      "success": "Transaction envoyée !",
+      "successDesc": "Votre transaction a été signée et envoyée avec succès.",
+      "signError": "Échec de la signature de la transaction"
+    }
+  },
+  "wallet": {
+    "spendingPassword": "Mot de passe de dépense",
+    "emptyProof": "Le prouveur n'a renvoyé aucune donnée signée.",
+    "requiredSpendingPassword": "Veuillez entrer votre mot de passe de dépense.",
+    "wrongPassword": "Mot de passe incorrect",
+    "wrongPasswordDesc": "Veuillez entrer le mot de passe de dépense correct.",
+    "xPubKey": "Clé publique étendue",
+    "xPubKeyDesc": "Les clés publiques étendues permettent de consulter l'historique des transactions et de générer de nouvelles adresses, mais elles ne peuvent pas dépenser ou déplacer des fonds.",
+    "xPrivKey": "Clé privée étendue",
+    "walletName": "Nom du portefeuille",
+    "confirmPassword": "Confirmer le mot de passe",
+    "requiredWalletName": "Le nom du portefeuille est obligatoire.",
+    "spendingPasswordRequired": "Le mot de passe de dépense est obligatoire.",
+    "minSpendingPasswordLength": "Le mot de passe de dépense doit comporter au moins {min} caractères.",
+    "passwordsMustMatch": "Le 'mot de passe de dépense' et le 'confirmer mot de passe' doivent correspondre.",
+    "infoStep": "Informations sur le portefeuille",
+    "infoStepDesc": "Ces informations seront utilisées pour identifier et protéger votre portefeuille.",
+    "cantSignData": "Ce portefeuille ne peut pas signer de données.",
+    "cantSignTx": "Ce portefeuille ne peut pas signer de transactions.",
+    "words": "{count} mots",
+    "readonlyWallet": "Portefeuille en lecture seule",
+    "ledgerWallet": "Portefeuille Ledger",
+    "type": {
+      "standard": "Standard",
+      "readonly": "Lecture seule",
+      "ledger": "Ledger"
+    },
+    "alerts": {
+      "demurrage": "Vous pourriez bientôt encourir des frais de dépréciation",
+      "demurrageDesc": "Les UTxO contenant des jetons doivent avoir suffisamment d'ERG pour couvrir les frais de dépréciation, sinon vous risquez de les perdre. Consolidez vos actifs pour éviter cela.",
+      "fragmentation": "Votre portefeuille semble fragmenté",
+      "fragmentationDesc": "Envisagez d'optimiser votre portefeuille pour améliorer les performances et l'efficacité."
+    },
+    "index": {
+      "title": "Bienvenue dans le portefeuille Nautilus",
+      "subtitle": "Choisissez une option pour commencer",
+      "kyaAgreement": "En continuant, vous acceptez les {termsOfUse} de Nautilus",
+      "create": "Créer un nouveau portefeuille",
+      "createDesc": "Créer un nouveau portefeuille Ergo",
+      "connect": "Connecter un portefeuille Ledger",
+      "connectDesc": "Connectez votre portefeuille matériel",
+      "import": "Importer un portefeuille",
+      "importDesc": "Importer un portefeuille existant"
+    },
+    "create": {
+      "createRecoveryPhrase": "Créer une phrase de récupération",
+      "iHaveSavedTheseWords": "J'ai sauvegardé ces mots",
+      "recoveryPhraseDoNotMatch": "La phrase de récupération ne correspond pas à l'originale.",
+      "walletCreationError": "Échec de la création du portefeuille",
+      "secretStep": "Phrase de récupération",
+      "secretStepDesc": "Ces mots sont les clés de votre portefeuille. Assurez-vous de les sauvegarder dans un endroit sécurisé.",
+      "secretConfirmStep": "Confirmez votre phrase de récupération",
+      "secretConfirmStepDesc": "Complétez les parties manquantes de votre phrase de récupération.",
+      "creating": "Création de votre portefeuille..."
+    },
+    "import": {
+      "insertPubKey": "Insérez une clé publique",
+      "insertRecoveryPhrase": "Insérez une phrase de récupération",
+      "requiredXPubKey": "La clé publique étendue est obligatoire.",
+      "requiredRecoveryPhrase": "La phrase de récupération est obligatoire.",
+      "walletImportError": "Échec de l'importation du portefeuille",
+      "importStep": "Insérez la clé publique étendue de votre portefeuille.",
+      "importStepDesc": "Sélectionnez le type de secret que vous souhaitez utiliser et remplissez-le.",
+      "walletType": "Type de portefeuille",
+      "selectSecretType": "Sélectionnez le type de secret",
+      "selectWalletType": "Sélectionnez le type de portefeuille",
+      "words": "Phrase de récupération de {count} mots",
+      "importing": "Importation de votre portefeuille..."
+    },
+    "connect": {
+      "confirmXPubExport": "Confirmer l'exportation de la clé publique étendue",
+      "notExported": "Non exportée",
+      "verificationError": "Échec de la vérification",
+      "verificationUnknownError": "Une erreur inconnue s'est produite lors de la vérification de l'adresse.",
+      "success": "Portefeuille connecté !",
+      "popupViewMode": "popup",
+      "sidePanelViewMode": "panneau latéral",
+      "successDesc": "Votre appareil Ledger a été connecté avec succès. Vous pouvez maintenant ouvrir le portefeuille Nautilus dans le {viewMode} du navigateur.",
+      "openInViewMode": "Ouvrir Nautilus dans le {viewMode}"
+    }
+  },
+  "settings": {
+    "systemDefault": "Par défaut du système",
+    "tabs": {
+      "global": "Global",
+      "wallet": "Portefeuille",
+      "connections": "Connexions"
+    },
+    "global": {
+      "displayLanguage": "Langue d'affichage",
+      "displayLanguageDesc": "Sélectionnez la langue de l'interface du portefeuille Nautilus.",
+      "conversionCurrency": "Devise de conversion",
+      "conversionCurrencyDesc": "Sélectionnez la devise pour les taux de conversion.",
+      "noCurrenciesFound": "Aucune devise trouvée.",
+      "devMode": "Mode développeur",
+      "devModeDesc": "Activez le mode développeur pour accéder à des fonctionnalités avancées.",
+      "tokenBlacklists": "Listes de jetons bloqués",
+      "tokenBlacklistsDesc": "Gérez les listes de jetons bloqués pour masquer les jetons indésirables.",
+      "nsfwTokensBlacklist": "Jetons NSFW",
+      "nsfwTokensBlacklistDesc": "Masquez les jetons NSFW (Non adaptés au travail).",
+      "scamTokensBlacklist": "Jetons frauduleux",
+      "scamTokensBlacklistDesc": "Masquez les jetons frauduleux.",
+      "gqlServer": "Serveur GraphQL",
+      "requiredGql": "L'URL GraphQL est obligatoire.",
+      "wrongServerNetwork": "Réseau du serveur incorrect.",
+      "unsupportedServerVersion": "Version du serveur non prise en charge. Nautilus nécessite au moins la version {version}.",
+      "explorerUrl": "URL de l'explorateur",
+      "requiredExplorer": "L'URL de l'explorateur est obligatoire.",
+      "ipfsGateway": "Passerelle IPFS",
+      "requiredIpfs": "L'URL de la passerelle IPFS est obligatoire.",
+      "experimental": "Expérimental",
+      "experimentalDesc": "Les fonctionnalités de cette section sont marquées comme expérimentales, ce qui signifie qu'elles ne sont pas stables. Utilisez-les avec prudence, car elles peuvent contenir des bugs ou subir des modifications importantes. C'est un travail en cours, donc attendez-vous à quelques imperfections.",
+      "zeroConf": "Activer 0-conf",
+      "zeroConfDesc": "0-conf, abréviation de zéro-confirmations, vous permet de dépenser des actifs sans attendre les confirmations. C'est rapide mais comporte un risque de double dépense tant que la blockchain n'a pas confirmé."
+    },
+    "wallet": {
+      "walletNameDesc": "Définissez un nom pour votre portefeuille.",
+      "avoidAddressReuse": "Éviter la réutilisation d'adresses",
+      "avoidAddressReuseDesc": "Activez cette option pour empêcher la réutilisation de la même adresse pour plusieurs transactions. Cela aide à protéger votre vie privée.",
+      "xPubKeyDesc": "Utilisez cette option pour exporter la clé publique étendue de votre portefeuille.",
+      "removeWallet": "Supprimer le portefeuille",
+      "removeWalletDesc": "Utilisez cette option pour supprimer le portefeuille actuel de l'application.",
+      "walletRemoveConfirmation": "Êtes-vous absolument sûr ?",
+      "walletRemoveConfirmationDesc": "La suppression d'un portefeuille n'affecte pas son solde sur la blockchain, et vous pouvez le restaurer plus tard. Cependant, assurez-vous d'avoir encore les informations nécessaires pour le restaurer. Sinon, supprimer le portefeuille peut entraîner une perte irréversible de fonds."
+    },
+    "connections": {
+      "noConnectedApps": "Vous n'avez encore aucune application connectée."
+    }
+  },
+  "about": {
+    "nautilusWallet": "Portefeuille Nautilus",
+    "quote": "Construit en secret, en se procurant des pièces auprès de sources inconnues. Parcourt les mers au-delà de la portée des gouvernements terrestres.",
+    "donation": "Soutenez le développement du portefeuille Nautilus en faisant un don à {address}."
+  },
+  "dapps": {
+    "sigmaUsd": {
+      "title": "Protocole SigmaUSD",
+      "insufficientBalance": "Solde insuffisant en {asset}.",
+      "blockedAction": "En raison des réserves bancaires actuelles, vous ne pouvez pas {action} plus de {amount} {asset}.",
+      "feeSummary": "Frais {amount}",
+      "protocolFee": "Frais de protocole ({rate})",
+      "protocolFeeDesc": "Les frais de protocole contribuent directement aux réserves bancaires.",
+      "serviceFee": "Frais de service ({rate})",
+      "serviceFeeDesc": "Le portefeuille Nautilus applique des frais fixes pour financer durablement son développement.",
+      "networkFee": "Frais de réseau",
+      "networkFeeDesc": "C'est le coût d'ajouter la transaction à la blockchain.",
+      "totalFee": "Frais totaux",
+      "bankReserves": "Réserves bancaires",
+      "oracleRate": "Taux actuel",
+      "buy": "acheter",
+      "sell": "vendre"
+    },
+    "walletOptimizer": {
+      "title": "Optimiseur de portefeuille",
+      "description": "Utilisez cet outil pour fusionner vos UTxO, améliorer les performances et éviter les frais de {demurrage}.",
+      "demurrage": "dépréciation",
+      "size": "{count} {size}",
+      "bytes": "octets",
+      "utxoCount": "Nombre d'UTxO",
+      "oldestUtxo": "Le plus ancien UTxO",
+      "walletSize": "Taille du portefeuille",
+      "walletHealth": "Santé du portefeuille"
+    }
+  },
+  "connector": {
+    "connect": {
+      "header": "{host} demande à se connecter au portefeuille Nautilus.",
+      "connect": "Connecter"
+    },
+    "auth": {
+      "header": "{host} demande une preuve que l'adresse sélectionnée vous appartient.",
+      "selectedAddress": "Adresse sélectionnée"
+    },
+    "signData": {
+      "header": "{host} demande de signer un message.",
+      "dataType": {
+        "text": "Message texte",
+        "json": "Objet JSON",
+        "hash": "Message haché",
+        "binary": "Données binaires"
+      }
+    },
+    "signTx": {
+      "fullTxHeader": "{host} demande de signer une transaction.",
+      "partialTxHeader": "{host} demande de signer partiellement une transaction"
+    }
+  }
+}
