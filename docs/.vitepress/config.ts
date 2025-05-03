@@ -1,4 +1,5 @@
 import { defineConfig } from "vitepress";
+import llmstxt from "vitepress-plugin-llms";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -11,6 +12,11 @@ export default defineConfig({
     ["link", { rel: "icon", href: "/logo.svg" }] // favicon
   ],
 
+  vite: {
+    // @ts-expect-error vite version mismatch
+    plugins: [llmstxt({ ignoreFiles: ["legal/*", "index.md"] })]
+  },
+
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     editLink: {
@@ -22,20 +28,10 @@ export default defineConfig({
     sidebar: [
       {
         text: "dApp Connector API",
-        base: "/dapp-connector/",
         items: [
-          {
-            text: "API Overview",
-            link: "api-overview"
-          },
-          {
-            text: "Connecting to a Wallet",
-            link: "wallet-connection"
-          },
-          {
-            text: "Interacting with a Wallet",
-            link: "wallet-interaction"
-          }
+          { text: "API Overview", link: "/dapp-connector/api-overview" },
+          { text: "Connecting to a Wallet", link: "/dapp-connector/wallet-connection" },
+          { text: "Interacting with a Wallet", link: "/dapp-connector/wallet-interaction" }
         ]
       }
     ],
