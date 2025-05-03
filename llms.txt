@@ -1,0 +1,14 @@
+# Nautilus Wallet
+
+> Ergo Platform
+
+Technical Documentation
+
+## Table of Contents
+
+### dApp Connector API
+
+- [API Overview](/dapp-connector/api-overview.md)
+- [Connecting to a Wallet](/dapp-connector/wallet-connection.md)
+- [Interacting With a Wallet](/dapp-connector/wallet-interaction.md)
+
