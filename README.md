@@ -43,7 +43,7 @@ Nautilus Wallet is a community-driven wallet built for the Ergo platform with a 
 
 - [Thechnical documentation](https://docs.nautiluswallet.com/)
 
-## Project setup
+## Project setup [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/nautls/nautilus-wallet)
 
 ```
 pnpm i
