@@ -1,0 +1,376 @@
+{
+  "common": {
+    "cancel": "取消",
+    "search": "搜索",
+    "copy": "复制",
+    "close": "关闭",
+    "send": "发送",
+    "verify": "验证",
+    "tokenId": "令牌 ID",
+    "fee": "费用",
+    "tryAgain": "重试",
+    "sign": "签署",
+    "openInExplorer": "在浏览器中打开",
+    "showQrCode": "显示二维码",
+    "optimize": "优化",
+    "consolidate": "合并",
+    "learnMore": "了解更多",
+    "confirm": "确认",
+    "import": "导入",
+    "select": "选择",
+    "confirmed": "已确认",
+    "export": "导出",
+    "remove": "移除",
+    "swap": "交换",
+    "privacyPolicy": "隐私政策",
+    "termsOfUse": "使用条款",
+    "healthy": "健康",
+    "unhealthy": "不健康",
+    "authenticate": "认证"
+  },
+  "datetime": {
+    "now": "刚刚",
+    "seconds": "{count} 秒 | {count} 秒",
+    "minutes": "{count} 分钟 | {count} 分钟",
+    "hours": "{count} 小时 | {count} 小时",
+    "days": "{count} 天 | {count} 天",
+    "weeks": "{count} 周 | {count} 周",
+    "months": "{count} 月 | {count} 月",
+    "years": "{count} 年 | {count} 年",
+    "relative": {
+      "past": {
+        "seconds": "{count} 秒前 | {count} 秒前",
+        "minutes": "{count} 分钟前 | {count} 分钟前",
+        "hours": "{count} 小时前 | {count} 小时前",
+        "days": "{count} 天前 | {count} 天前",
+        "weeks": "{count} 周前 | {count} 周前",
+        "months": "{count} 月前 | {count} 月前",
+        "years": "{count} 年前 | {count} 年前"
+      },
+      "future": {
+        "seconds": "{count} 秒后 | {count} 秒后",
+        "minutes": "{count} 分钟后 | {count} 分钟后",
+        "hours": "{count} 小时后 | {count} 小时后",
+        "days": "{count} 天后 | {count} 天后",
+        "weeks": "{count} 周后 | {count} 周后",
+        "months": "{count} 月后 | {count} 月后",
+        "years": "{count} 年后 | {count} 年后"
+      }
+    }
+  },
+  "device": {
+    "isLocked": "设备已锁定",
+    "ready": "准备就绪",
+    "connect": "连接",
+    "connected": "已连接",
+    "reconnecting": "重新连接中...",
+    "connecting": "连接中...",
+    "connectionError": "连接错误",
+    "notFoundError": "未找到设备！",
+    "notFoundErrorDesc": "确保您的设备已正确连接并解锁。",
+    "ledger": {
+      "waitingAppClose": "等待应用关闭",
+      "confirmAppOpen": "确认打开 Ergo 应用",
+      "waitingAppReady": "等待应用准备就绪",
+      "userDeniedOpenApp": "用户拒绝打开 Ergo 应用",
+      "deniedByUser": "用户拒绝",
+      "openingApp": "打开 Ergo 应用时出错",
+      "appId": "应用 ID: {appId}"
+    }
+  },
+  "header": {
+    "nav": {
+      "assets": "资产",
+      "history": "历史",
+      "receive": "接收",
+      "send": "发送",
+      "dApps": "dApps"
+    },
+    "menu": {
+      "noWalletsFound": "未找到钱包。",
+      "newWallet": "新建钱包",
+      "settings": "设置",
+      "about": "关于"
+    }
+  },
+  "asset": {
+    "totalBalance": "钱包余额",
+    "noConversionRate": "无兑换率",
+    "add": "添加资产",
+    "noAssetsFound": "未找到资产。",
+    "tabs": {
+      "tokens": "代币",
+      "collectibles": "收藏品"
+    },
+    "info": {
+      "emissionAmount": "发行量",
+      "mintTxId": "铸造交易 ID",
+      "additionalMetadata": "附加元数据"
+    }
+  },
+  "address": {
+    "filter": {
+      "all": "全部",
+      "active": "活跃",
+      "unused": "未使用"
+    },
+    "state": {
+      "used": "已使用",
+      "unused": "未使用"
+    },
+    "label": {
+      "address": "地址",
+      "path": "路径",
+      "current": "当前地址",
+      "default": "默认地址"
+    },
+    "receive": {
+      "maxTokensWarning": "避免在单笔交易中向此钱包发送超过 {count} 个代币。设备内存有限可能导致资金无法访问。",
+      "verifyOnLedger": "在 Ledger 设备上验证",
+      "newAddressError": "地址生成失败",
+      "newAddressErrorFallbackMessage": "无法生成新地址。"
+    },
+    "qrCode": {
+      "title": "地址二维码",
+      "description": "扫描此二维码以接收资产到 {address}。"
+    },
+    "verify": {
+      "title": "地址验证",
+      "description": "确保显示的地址和路径与设备上显示的完全匹配。",
+      "confirmOnDevice": "在设备上确认地址",
+      "notConfirmed": "未确认",
+      "verificationError": "验证失败",
+      "unknownVerificationError": "验证地址时发生未知错误。"
+    }
+  },
+  "transaction": {
+    "history": {
+      "txTitle": "交易 {txId}",
+      "txState": "待处理 | {count} 次确认 | {count} 次确认",
+      "empty": "您尚无交易历史。",
+      "nextPage": "加载更多交易"
+    },
+    "send": {
+      "recipient": "接收者",
+      "assets": "资产",
+      "addAllAssets": "添加所有资产",
+      "addAllAssetsDesc": "将所有资产添加到发送列表。",
+      "minNamedAssetError": "您至少需要 {min} {asset} 才能发送此交易。",
+      "requiredAmountError": "请输入金额。",
+      "minFeeError": "您需要支付至少 {min} {name} 的费用才能发送此交易。",
+      "emptyAddressError": "请输入接收者地址。",
+      "noSelectedAssetsError": "请至少选择一个资产以发送此交易。"
+    },
+    "sign": {
+      "babelFeeSwap": "Babel 费用交换",
+      "sendingToYourAddress": "发送到您的地址",
+      "sendingToContract": "发送到合约",
+      "sendingToScriptHash": "发送到脚本哈希",
+      "sendingToExternalAddress": "发送到外部地址",
+      "broadcastError": "交易广播失败",
+      "newToken": "新代币",
+      "newTokenDesc": "此交易将铸造该代币。",
+      "burning": "销毁",
+      "burningDesc": "以下列出的资产将丢失。仅在完全了解后继续。",
+      "burningConfirm": "永久销毁代币",
+      "totalOutput": "离开您钱包的资产总额",
+      "totalInput": "进入您钱包的资产总额",
+      "details": "交易详情",
+      "scriptHash": "脚本哈希",
+      "networkFee": "网络费用",
+      "reviewTx": "交易审核",
+      "reviewTxDesc": "在签署前审核交易。",
+      "buildError": "交易构建失败",
+      "success": "交易已发送！",
+      "successDesc": "您的交易已成功签署并发送。",
+      "signError": "交易签署失败"
+    }
+  },
+  "wallet": {
+    "spendingPassword": "支付密码",
+    "emptyProof": "证明者未返回签署数据。",
+    "requiredSpendingPassword": "请输入支付密码。",
+    "wrongPassword": "密码错误",
+    "wrongPasswordDesc": "请输入正确的支付密码。",
+    "xPubKey": "扩展公钥",
+    "xPubKeyDesc": "扩展公钥允许查看交易历史和生成新地址，但无法支出或移动资金。",
+    "xPrivKey": "扩展私钥",
+    "walletName": "钱包名称",
+    "confirmPassword": "确认密码",
+    "requiredWalletName": "需要钱包名称。",
+    "spendingPasswordRequired": "需要支付密码。",
+    "minSpendingPasswordLength": "支付密码长度至少为 {min} 个字符。",
+    "passwordsMustMatch": "“支付密码”和“确认密码”必须匹配。",
+    "infoStep": "钱包信息",
+    "infoStepDesc": "此信息将用于识别和保护您的钱包。",
+    "cantSignData": "此钱包无法签署数据。",
+    "cantSignTx": "此钱包无法签署交易。",
+    "words": "{count} 个单词",
+    "readonlyWallet": "只读钱包",
+    "ledgerWallet": "Ledger 钱包",
+    "type": {
+      "standard": "标准",
+      "readonly": "只读",
+      "ledger": "Ledger"
+    },
+    "alerts": {
+      "demurrage": "您可能很快会产生滞纳费用",
+      "demurrageDesc": "持有代币的 UTxO 必须有足够的 ERG 来支付滞纳费用，否则您有可能失去它们。合并您的资产以避免此问题。",
+      "fragmentation": "您的钱包看起来很分散",
+      "fragmentationDesc": "考虑优化钱包以提高性能和效率。"
+    },
+    "index": {
+      "title": "欢迎使用 Nautilus 钱包",
+      "subtitle": "选择一个选项开始",
+      "kyaAgreement": "继续操作即表示您同意 Nautilus 的 {termsOfUse}",
+      "create": "创建新钱包",
+      "createDesc": "创建新的 Ergo 钱包",
+      "connect": "连接 Ledger 钱包",
+      "connectDesc": "连接您的硬件钱包",
+      "import": "导入钱包",
+      "importDesc": "导入现有钱包"
+    },
+    "create": {
+      "createRecoveryPhrase": "创建恢复短语",
+      "iHaveSavedTheseWords": "我已保存这些单词",
+      "recoveryPhraseDoNotMatch": "恢复短语与原始短语不匹配。",
+      "walletCreationError": "钱包创建失败",
+      "secretStep": "恢复短语",
+      "secretStepDesc": "这些单词是您的钱包密钥。请确保将它们保存在安全的地方。",
+      "secretConfirmStep": "确认您的恢复短语",
+      "secretConfirmStepDesc": "完成恢复短语的缺失部分。",
+      "creating": "正在创建您的钱包..."
+    },
+    "import": {
+      "insertPubKey": "输入公钥",
+      "insertRecoveryPhrase": "输入恢复短语",
+      "requiredXPubKey": "需要扩展公钥。",
+      "requiredRecoveryPhrase": "需要恢复短语。",
+      "walletImportError": "导入钱包失败",
+      "importStep": "输入您的钱包扩展公钥。",
+      "importStepDesc": "选择您想使用的密钥类型并填写。",
+      "walletType": "钱包类型",
+      "selectSecretType": "选择密钥类型",
+      "selectWalletType": "选择钱包类型",
+      "words": "{count} 个单词恢复短语",
+      "importing": "正在导入您的钱包..."
+    },
+    "connect": {
+      "confirmXPubExport": "确认导出扩展公钥",
+      "notExported": "未导出",
+      "verificationError": "验证失败",
+      "verificationUnknownError": "验证地址时发生未知错误。",
+      "success": "钱包已连接！",
+      "popupViewMode": "弹出视图",
+      "sidePanelViewMode": "侧面板视图",
+      "successDesc": "您的 Ledger 设备已成功连接。您现在可以在浏览器的 {viewMode} 中打开 Nautilus 钱包。",
+      "openInViewMode": "在 {viewMode} 中打开 Nautilus"
+    }
+  },
+  "settings": {
+    "systemDefault": "系统默认",
+    "tabs": {
+      "global": "全局",
+      "wallet": "钱包",
+      "connections": "连接"
+    },
+    "global": {
+      "displayLanguage": "显示语言",
+      "displayLanguageDesc": "选择 Nautilus 钱包界面的语言。",
+      "conversionCurrency": "转换货币",
+      "conversionCurrencyDesc": "选择兑换率的货币类型。",
+      "noCurrenciesFound": "未找到货币。",
+      "devMode": "开发者模式",
+      "devModeDesc": "启用开发者模式以访问高级功能。",
+      "tokenBlacklists": "代币黑名单",
+      "tokenBlacklistsDesc": "管理代币黑名单以隐藏不需要的代币。",
+      "nsfwTokensBlacklist": "NSFW 代币",
+      "nsfwTokensBlacklistDesc": "隐藏 NSFW（不适合工作场所）的代币。",
+      "scamTokensBlacklist": "骗局代币",
+      "scamTokensBlacklistDesc": "隐藏骗局代币。",
+      "gqlServer": "GraphQL 服务器",
+      "requiredGql": "需要 GraphQL URL。",
+      "wrongServerNetwork": "错误的服务器网络。",
+      "unsupportedServerVersion": "不支持的服务器版本。Nautilus 至少需要版本 {version}。",
+      "explorerUrl": "浏览器 URL",
+      "requiredExplorer": "需要浏览器 URL。",
+      "ipfsGateway": "IPFS 网关",
+      "requiredIpfs": "需要 IPFS 网关 URL。",
+      "experimental": "实验性功能",
+      "experimentalDesc": "此部分的功能标记为实验性，这意味着它们不稳定。使用时需谨慎，因为可能存在错误或经历重大更改。它仍在开发中，因此可能不够完善。",
+      "zeroConf": "启用 0-conf",
+      "zeroConfDesc": "0-conf 是零确认的简称，它允许您在无需等待确认的情况下使用资产。这种方式快速但在区块链确认前有被双花的风险。"
+    },
+    "wallet": {
+      "walletNameDesc": "为您的钱包设置一个名称。",
+      "avoidAddressReuse": "避免地址重用",
+      "avoidAddressReuseDesc": "启用此选项以防止同一地址用于多笔交易。这有助于保护您的隐私。",
+      "xPubKeyDesc": "使用此选项导出您的钱包扩展公钥。",
+      "removeWallet": "删除钱包",
+      "removeWalletDesc": "使用此选项从应用中删除当前钱包。",
+      "walletRemoveConfirmation": "您确定吗？",
+      "walletRemoveConfirmationDesc": "删除钱包不会影响其区块链余额，您以后可以恢复它。但是，请确保您仍然有恢复所需的信息。否则，删除钱包可能会导致不可逆的资金损失。"
+    },
+    "connections": {
+      "noConnectedApps": "您尚未连接任何应用。"
+    }
+  },
+  "about": {
+    "nautilusWallet": "Nautilus 钱包",
+    "quote": "秘密构建，从未命名的来源采购零件。航行在超越陆地政府范围的海洋。",
+    "donation": "通过捐赠至 {address} 支持 Nautilus 钱包开发。"
+  },
+  "dapps": {
+    "sigmaUsd": {
+      "title": "SigmaUSD 协议",
+      "insufficientBalance": "{asset} 余额不足。",
+      "blockedAction": "由于当前银行储备，您无法 {action} 超过 {amount} {asset}。",
+      "feeSummary": "费用 {amount}",
+      "protocolFee": "协议费用 ({rate})",
+      "protocolFeeDesc": "协议费用直接贡献于银行储备。",
+      "serviceFee": "服务费 ({rate})",
+      "serviceFeeDesc": "Nautilus 钱包收取固定费用以可持续资助其开发。",
+      "networkFee": "网络费用",
+      "networkFeeDesc": "这是将交易添加到区块链的成本。",
+      "totalFee": "总费用",
+      "bankReserves": "银行储备",
+      "oracleRate": "当前汇率",
+      "buy": "购买",
+      "sell": "出售"
+    },
+    "walletOptimizer": {
+      "title": "钱包优化器",
+      "description": "使用此工具合并您的 UTxO，提升性能并避免 {demurrage} 费用。",
+      "demurrage": "滞纳费用",
+      "size": "{count} {size}",
+      "bytes": "字节",
+      "utxoCount": "UTxO 数量",
+      "oldestUtxo": "最老的 UTxO",
+      "walletSize": "钱包大小",
+      "walletHealth": "钱包健康状态"
+    }
+  },
+  "connector": {
+    "connect": {
+      "header": "{host} 请求与 Nautilus 连接。",
+      "connect": "连接"
+    },
+    "auth": {
+      "header": "{host} 请求证明所选地址属于您。",
+      "selectedAddress": "所选地址"
+    },
+    "signData": {
+      "header": "{host} 请求签署一条消息。",
+      "dataType": {
+        "text": "文本消息",
+        "json": "JSON 对象",
+        "hash": "哈希消息",
+        "binary": "二进制数据"
+      }
+    },
+    "signTx": {
+      "fullTxHeader": "{host} 请求签署一笔交易。",
+      "partialTxHeader": "{host} 请求部分签署一笔交易"
+    }
+  }
+}
