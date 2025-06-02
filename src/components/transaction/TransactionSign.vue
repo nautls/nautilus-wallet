@@ -279,7 +279,7 @@ const v$ = useVuelidate(
           </template>
         </TransactionEntry>
 
-        <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative" v-once>
+        <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative">
           {{ t("transaction.sign.networkFee") }}
         </TransactionEntry>
 
