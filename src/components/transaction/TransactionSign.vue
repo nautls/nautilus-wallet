@@ -236,7 +236,6 @@ const v$ = useVuelidate(
           v-if="parsedTx?.totalLeaving?.length"
           :assets="parsedTx.totalLeaving"
           type="negative"
-          v-once
         >
           {{ t("transaction.sign.totalOutput") }}
         </TransactionEntry>
@@ -244,7 +243,6 @@ const v$ = useVuelidate(
           v-if="parsedTx?.totalIncoming?.length"
           :assets="parsedTx.totalIncoming"
           type="positive"
-          v-once
         >
           {{ t("transaction.sign.totalInput") }}
         </TransactionEntry>
@@ -281,7 +279,7 @@ const v$ = useVuelidate(
           </template>
         </TransactionEntry>
 
-        <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative" v-once>
+        <TransactionEntry v-if="parsedTx?.fee" :assets="parsedTx.fee.assets" type="negative">
           {{ t("transaction.sign.networkFee") }}
         </TransactionEntry>
 
