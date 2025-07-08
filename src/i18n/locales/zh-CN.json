@@ -125,7 +125,6 @@
       "default": "默认地址"
     },
     "receive": {
-      "maxTokensWarning": "避免在单笔交易中向此钱包发送超过 {count} 个代币。设备内存有限可能导致资金无法访问。",
       "verifyOnLedger": "在 Ledger 设备上验证",
       "newAddressError": "地址生成失败",
       "newAddressErrorFallbackMessage": "无法生成新地址。"

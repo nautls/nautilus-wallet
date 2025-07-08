@@ -125,7 +125,6 @@
       "default": "Alamat bawaan"
     },
     "receive": {
-      "maxTokensWarning": "Hindari mengirim lebih dari {count} token dalam satu transaksi ke dompet ini. Memori perangkat yang terbatas dapat menyebabkan dana Anda tidak dapat diakses.",
       "verifyOnLedger": "Verifikasi pada perangkat Ledger",
       "newAddressError": "Gagal dalam membuat alamat",
       "newAddressErrorFallbackMessage": "Tidak dapat membuat alamat baru."
