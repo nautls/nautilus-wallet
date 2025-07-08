@@ -125,7 +125,7 @@
       "default": "Default address"
     },
     "receive": {
-      "maxTokensWarning": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
+      "": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
       "verifyOnLedger": "Verify on the Ledger device",
       "newAddressError": "Address generation failed",
       "newAddressErrorFallbackMessage": "Unable to generate a new address."

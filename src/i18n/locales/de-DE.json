@@ -125,7 +125,6 @@
       "default": "Standardadresse"
     },
     "receive": {
-      "maxTokensWarning": "Sende nicht mehr als {count} Token in einer einzelnen Transaktion an diese Wallet. Begrenzter Gerätespeicher könnte sonst deine Assets unzugänglich machen.",
       "verifyOnLedger": "Auf Ledger verifizieren",
       "newAddressError": "Adressenerstellung fehlgeschlagen",
       "newAddressErrorFallbackMessage": "Neue Adresse konnte nicht erzeugt werden."

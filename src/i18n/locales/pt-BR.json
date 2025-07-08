@@ -125,7 +125,6 @@
       "default": "Endereço padrão"
     },
     "receive": {
-      "maxTokensWarning": "Evite enviar mais de {count} tokens em uma única transação para esta carteira. As limitações de memória do dispositivo podem tornar seus fundos inacessíveis.",
       "verifyOnLedger": "Verificar no dispositivo Ledger",
       "newAddressError": "Falha ao gerar endereço",
       "newAddressErrorFallbackMessage": "Não foi possível gerar um novo endereço."

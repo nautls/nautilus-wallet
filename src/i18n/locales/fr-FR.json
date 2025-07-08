@@ -125,7 +125,6 @@
       "default": "Adresse par défaut"
     },
     "receive": {
-      "maxTokensWarning": "Évitez d'envoyer plus de {count} jetons en une seule transaction vers ce portefeuille. La mémoire limitée de l'appareil pourrait rendre vos fonds inaccessibles.",
       "verifyOnLedger": "Vérifier sur l'appareil Ledger",
       "newAddressError": "Échec de la génération de l'adresse",
       "newAddressErrorFallbackMessage": "Impossible de générer une nouvelle adresse."
