@@ -2,6 +2,7 @@
 import type { HTMLAttributes } from "vue";
 import VueJsonPretty from "vue-json-pretty";
 import { cn } from "@/common/utils";
+import { CopyButton } from "../copy-button";
 
 import "vue-json-pretty/lib/styles.css";
 
@@ -17,7 +18,7 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-  <div :class="cn('rounded-xl bg-secondary p-4 text-secondary-foreground shadow-sm', props.class)">
+  <div :class="cn('relative rounded-xl bg-secondary p-4 text-secondary-foreground shadow-sm', props.class)">
     <VueJsonPretty
       :data="props.data"
       :deep="props.deep"
@@ -26,6 +27,8 @@ const props = defineProps<Props>();
       :show-length="true"
       :show-line="false"
     />
+
+    <CopyButton class="absolute top-4 right-4 size-4" :content="JSON.stringify(props.data, null, 2)" />
   </div>
 </template>
 
