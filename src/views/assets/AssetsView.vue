@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import BigNumber from "bignumber.js";
-import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { CreditCardIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -87,13 +87,14 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex flex-col gap-4 p-4">
-      <div class="mx-auto w-full cursor-default bg-transparent py-4 text-center">
-        <h2 class="text-3xl">
-          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }}</span>
+    <div class="flex flex-col gap-4 p-4 pt-2">
+      <div class="flex cursor-default items-center justify-around bg-transparent py-4">
+        <h2 class="text-xl">
+          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }} </span>
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
+          <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
         </h2>
-        <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
+        <Button variant="outline" class="mb-2"> <CreditCardIcon />Buy ERG</Button>
       </div>
 
       <WalletAlerts />
