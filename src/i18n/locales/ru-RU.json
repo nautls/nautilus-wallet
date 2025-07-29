@@ -26,7 +26,8 @@
     "termsOfUse": "Условия использования",
     "healthy": "Здоров",
     "unhealthy": "Нездоров",
-    "authenticate": "Аутентифицировать"
+    "authenticate": "Аутентифицировать",
+    "buyErg": "Купить ERG"
   },
   "datetime": {
     "now": "только что",

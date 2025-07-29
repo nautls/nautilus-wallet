@@ -94,7 +94,7 @@ function openAssetInfoDialog(tokenId: string) {
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
           <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
         </h2>
-        <Button variant="outline" class="mb-2"> <CreditCardIcon />Buy ERG</Button>
+        <Button variant="outline" class="mb-2"> <CreditCardIcon />{{ t("common.buyErg") }}</Button>
       </div>
 
       <WalletAlerts />

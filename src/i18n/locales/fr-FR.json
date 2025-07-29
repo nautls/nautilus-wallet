@@ -26,7 +26,8 @@
     "termsOfUse": "Conditions d'utilisation",
     "healthy": "Sain",
     "unhealthy": "À risque",
-    "authenticate": "Authentifier"
+    "authenticate": "Authentifier",
+    "buyErg": "Acheter ERG"
   },
   "datetime": {
     "now": "à l'instant",
