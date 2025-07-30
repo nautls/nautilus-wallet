@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import BigNumber from "bignumber.js";
-import { CreditCardIcon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetImageSandbox, AssetInfoDialog } from "@/components/asset";
+import BuyErgButton from "@/components/BuyErgButton.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -94,7 +95,7 @@ function openAssetInfoDialog(tokenId: string) {
           <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
           <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
         </h2>
-        <Button variant="outline" class="mb-2"> <CreditCardIcon />{{ t("common.buyErg") }}</Button>
+        <BuyErgButton />
       </div>
 
       <WalletAlerts />
