@@ -88,13 +88,18 @@ function openAssetInfoDialog(tokenId: string) {
 
 <template>
   <ScrollArea type="scroll">
-    <div class="flex flex-col gap-4 p-4 pt-2">
+    <div class="flex flex-col gap-4 p-4">
       <div class="flex cursor-default items-center justify-around bg-transparent py-4">
-        <h2 class="text-xl">
-          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }} </span>
-          <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
+        <div>
+          <h2 class="text-xl">
+            <span v-if="!app.settings.hideBalances"
+              >{{ formatCurrencyAmount(walletTotal, 2) }}
+            </span>
+            <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
+          </h2>
           <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
-        </h2>
+        </div>
+
         <BuyErgButton />
       </div>
 
