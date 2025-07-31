@@ -26,7 +26,8 @@
     "termsOfUse": "Terms of Use",
     "healthy": "Healthy",
     "unhealthy": "Unhealthy",
-    "authenticate": "Authenticate"
+    "authenticate": "Authenticate",
+    "buyErg": "Buy ERG"
   },
   "datetime": {
     "now": "just now",
