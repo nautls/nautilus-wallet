@@ -9,9 +9,9 @@ export type ErgoTokenBlacklist = {
 };
 
 class ErgoTokensBlacklist {
-  async fetch(): Promise<ErgoTokenBlacklist> {
+  async fetch(): Promise<ErgoTokenBlacklist | undefined> {
     const data = await safeFetch<ErgoTokenBlacklist>(SIGMANAUTS_BLACKLIST_URL);
-    return data ?? { nsfw: [], scam: [] };
+    return data;
   }
 }
 

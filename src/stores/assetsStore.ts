@@ -98,6 +98,8 @@ export const useAssetsStore = defineStore("assets", () => {
     if (!force && !elapsed(BLACKLIST_UPDATE_INTERVAL, lastUpdated)) return;
 
     const ergoBlacklists = await ergoTokenBlacklistService.fetch();
+    if (!ergoBlacklists) return;
+
     privateState.blacklist = { ...ergoBlacklists, lastUpdated: Date.now() };
   }
 
