@@ -91,7 +91,7 @@ function openAssetInfoDialog(tokenId: string) {
     <div class="flex flex-col gap-4 p-4">
       <div class="flex cursor-default items-center justify-around bg-transparent py-4">
         <div>
-          <h2 class="text-xl">
+          <h2 class="text-2xl">
             <span v-if="!app.settings.hideBalances"
               >{{ formatCurrencyAmount(walletTotal, 2) }}
             </span>
