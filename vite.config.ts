@@ -41,7 +41,7 @@ const plugins = [
   topLevelAwait(),
   wasmLoader(),
   objectLogger(env),
-  nodePolyfills({ include: ["buffer"] }), // required by @ledgerhq/* packages
+  nodePolyfills({ include: ["buffer", "stream"] }), // required by @ledgerhq/* packages
   INSPECT_BUNDLE ? visualizer({ open: true, filename: "dist/bundle-stats.html" }) : undefined
 ];
 

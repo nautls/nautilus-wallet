@@ -227,6 +227,8 @@
       "createDesc": "Create a new Ergo wallet",
       "connect": "Connect a Ledger wallet",
       "connectDesc": "Connect your hardware wallet",
+      "connectKeystone": "Connect a Keystone wallet",
+      "connectKeystoneDesc": "Connect your hardware wallet",
       "import": "Import a wallet",
       "importDesc": "Import an existing wallet"
     },

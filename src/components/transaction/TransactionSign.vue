@@ -34,6 +34,7 @@ import { useFormat } from "@/composables";
 import { WalletType } from "@/types/internal";
 import { TransactionEntry } from ".";
 import LedgerDevice from "../LedgerDevice.vue";
+import KeystoneDevice from "../KeystoneDevice.vue";
 
 interface Props {
   transaction?: EIP12UnsignedTransaction;
@@ -67,12 +68,16 @@ const { t } = useI18n();
 
 const pwdInput = useTemplateRef("pwd-input");
 const ledgerDevice = useTemplateRef("ledger-device");
+const keystoneDevice = useTemplateRef("keystone-device");
 
 const password = ref("");
 const hasBurnAgreement = ref(false);
 const signing = ref(false);
+const display = ref(false);
+const scanning = ref(false);
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
+const isKeystone = computed(() => wallet.type === WalletType.Keystone);
 const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const canSign = computed(
   () =>
@@ -109,6 +114,11 @@ function isP2S(output: OutputInterpreter): boolean {
   return output.receiverAddressType === AddressType.P2S;
 }
 
+function startQrScan() {
+  keystoneDevice.value?.startScan();
+  scanning.value = true;
+}
+
 async function sign() {
   if (!canSign.value || !props.transaction) return;
 
@@ -123,12 +133,20 @@ async function sign() {
       if (!ready) return;
     }
 
+    let stateCallback = ledgerDevice.value?.setState;
+    if (isKeystone.value) {
+      stateCallback = keystoneDevice.value?.setState;
+      display.value = true;
+    }
+
     const signed = await signTransaction({
       transaction: props.transaction,
       password: password.value,
       inputsToSign: props.inputsToSign,
-      stateCallback: ledgerDevice.value?.setState
+      stateCallback: stateCallback,
+      stateRetrieval: keystoneDevice.value?.getState
     });
+    display.value = false;
 
     if (!signed) throw new Error(t("wallet.emptyProof"));
 
@@ -202,7 +220,7 @@ const v$ = useVuelidate(
     password: {
       required: helpers.withMessage(
         t("wallet.requiredSpendingPassword"),
-        requiredUnless(isLedger.value)
+        requiredUnless(isLedger.value || isKeystone.value),
       )
     }
   })),
@@ -307,6 +325,7 @@ const v$ = useVuelidate(
     </Alert>
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
+    <KeystoneDevice v-else-if="isKeystone" ref="keystone-device" class="pb-2"/>
 
     <Form v-else @submit="sign">
       <FormField :validation="v$.password">
@@ -325,11 +344,19 @@ const v$ = useVuelidate(
       <Button
         class="w-full"
         variant="outline"
-        :disabled="loading || signing"
+        :disabled="loading || (signing && !isKeystone)"
         @click="emit('refused')"
-        >{{ t("common.cancel") }}</Button
-      >
-      <Button class="w-full" :disabled="loading || signing || !canSign" @click="sign">
+        >{{ t("common.cancel") }}</Button>
+
+      <Button
+        class="w-full"
+        v-if="isKeystone && display"
+        :disabled="scanning"
+        @click="startQrScan"
+      ><Loader2Icon v-if="scanning" class="animate-spin" />
+        {{ "2. Scan response from Keystone" }}</Button>
+
+      <Button v-if="!display" class="w-full" :disabled="loading || signing || !canSign" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>{{ t("common.sign") }}</template>
       </Button>

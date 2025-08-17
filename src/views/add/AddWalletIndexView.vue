@@ -7,6 +7,7 @@ import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
+import KeystoneLogo from "@/assets/images/hw-devices/keystone-logo.svg";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
@@ -61,6 +62,15 @@ const routes = [
     },
     title: t("wallet.index.connect"),
     description: t("wallet.index.connectDesc")
+  },
+  {
+    path: "/add/hw/keystone",
+    icon: {
+      component: KeystoneLogo,
+      class: "p-1"
+    },
+    title: t("wallet.index.connectKeystone"),
+    description: t("wallet.index.connectKeystoneDesc")
   },
   {
     path: "/add/import",

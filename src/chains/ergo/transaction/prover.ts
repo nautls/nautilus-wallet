@@ -13,7 +13,7 @@ import {
   ErgoBoxes,
   ErgoStateContext,
   Parameters,
-  PreHeader,
+  PreHeader, ReducedTransaction,
   SecretKey,
   SecretKeys,
   Tokens,
@@ -22,12 +22,18 @@ import {
   Wallet
 } from "ergo-lib-wasm-browser";
 import { BoxCandidate, ErgoLedgerApp, Network, Token, UnsignedBox } from "ledger-ergo-js";
+import { deserializeTransaction, serializeReducedTransaction } from "keystone-ergo-js";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
+import { ErgoAsset, ErgoSignedTx, ErgoSignRequest, ErgoUnspentBox } from "@keystonehq/bc-ur-registry-ergo";
+import * as uuid from "uuid";
+import { sleep } from "@/common/utils.ts";
+import { toBuffer, toHex } from "@keystonehq/keystone-sdk/dist/utils";
+import { hex } from "@fleet-sdk/crypto";
 
-export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready";
+export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready" | "scanning" | "display" | "scanned";
 
 export type LedgerDeviceModelId =
   | "blue" // Ledger Blue
@@ -45,24 +51,32 @@ export interface ProverState {
   additionalInfo?: string;
   busy?: boolean;
   appId?: number;
+  request?: ErgoSignRequest;
+  response?: ErgoSignedTx;
 }
 
 export type PartialSignState = Partial<ProverState>;
 
 export type StateCallback = (newState: PartialSignState) => void;
 
+export type StateRetrieval = () => PartialSignState;
+
 export class Prover {
   #from!: IndexedAddress[];
   #useLedger!: boolean;
+  #useKeystone!: boolean;
   #changeIndex!: number;
   #deriver!: HdKey;
   #headers?: BlockHeaders;
 
   #callbackFn?: StateCallback;
 
+  #retrievalFn?: StateRetrieval;
+
   constructor(deriver: HdKey) {
     this.#deriver = deriver;
     this.#useLedger = false;
+    this.#useKeystone = false;
   }
 
   from(addresses: IndexedAddress[]): Prover {
@@ -83,8 +97,21 @@ export class Prover {
     return this;
   }
 
+  setRetrieval(retrieval?: () => PartialSignState): Prover {
+    if (retrieval) {
+      this.#retrievalFn = retrieval as () => PartialSignState;
+    }
+
+    return this;
+  }
+
   useLedger(use = true): Prover {
     this.#useLedger = use;
+    return this;
+  }
+
+  useKeystone(use = true): Prover {
+    this.#useKeystone = use;
     return this;
   }
 
@@ -131,12 +158,21 @@ export class Prover {
   }
 
   async #signTx(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
-    if (!this.#useLedger) {
-      const wallet = this.#buildWallet();
-      const signContext = this.#buildContext();
-      return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
+    if(this.#useLedger) {
+      return this.#signTxWithLedger(unsigned, unspentBoxes, dataInputs);
     }
 
+    const signContext = this.#buildContext();
+
+    if (this.#useKeystone) {
+      return this.#signTxWithKeystone(signContext, unsigned, unspentBoxes, dataInputs);
+    }
+
+    const wallet = this.#buildWallet();
+    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
+  }
+
+  async #signTxWithLedger(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
     try {
       this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
 
@@ -169,6 +205,42 @@ export class Prover {
     }
   }
 
+  async #signTxWithKeystone(stateContext: ErgoStateContext, unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
+    const reducedUnsigned = ReducedTransaction.from_unsigned_tx(unsigned, unspentBoxes, dataInputs, stateContext);
+
+    const signData = toBuffer(
+      serializeReducedTransaction({
+       ...JSON.parse(reducedUnsigned.to_json())
+      }).encode(hex)
+    );
+
+    const signRequest = ErgoSignRequest.constructErgoSignRequest(
+      uuid.v4(),
+      signData,
+      mapKeystoneDerivationPaths(unsigned, unspentBoxes, this.#from),
+      mapKeystoneBoxes(unsigned, unspentBoxes),
+      "nautilus"
+    );
+
+    this.#reportState({
+      type: "display",
+      label: "1. Scan with Keystone",
+      request: signRequest
+    })
+
+    while (true) { // wait for qr scan
+      const state = this.#getState();
+      if (state?.type === "scanned") {
+        break;
+      }
+      await sleep(1000);
+    }
+
+    const signResponse = this.#getState()?.response;
+    this.#reportState({ type: "success", label: "Signed" });
+    return deserializeTransaction(toHex(signResponse?.getSignedTx()));
+  }
+
   #signInputs(
     tx: UnsignedTransaction,
     inputs: ErgoBoxes,
@@ -193,6 +265,11 @@ export class Prover {
   #reportState(state: PartialSignState) {
     if (!this.#callbackFn) return;
     this.#callbackFn(state);
+  }
+
+  #getState() {
+    if (!this.#retrievalFn) return;
+    return this.#retrievalFn();
   }
 
   #buildContext() {
@@ -281,6 +358,54 @@ function mapLedgerOutputs(tx: UnsignedTransaction) {
   }
 
   return outputs;
+}
+
+function mapKeystoneBoxes(tx: UnsignedTransaction, inputs: ErgoBoxes) {
+  const mappedBoxes: ErgoUnspentBox[] = [];
+  for (let i = 0; i < tx.inputs().len(); i++) {
+    const input = tx.inputs().get(i);
+    const box = getBoxById(inputs, input.box_id().to_str());
+    if (!box) throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
+    mappedBoxes.push(
+      new ErgoUnspentBox({
+        boxId: box.box_id().to_str(),
+        value: box.value().as_i64().to_str(),
+        ergoTree: box.ergo_tree().sigma_serialize_bytes().toString(),
+        assets: mapKeystoneTokens(box.tokens()),
+      })
+    )
+  }
+  return mappedBoxes;
+}
+
+function mapKeystoneTokens(wasmTokens: Tokens) {
+  const tokens: ErgoAsset[] = [];
+  for (let i = 0; i < wasmTokens.len(); i++) {
+    tokens.push(new ErgoAsset(
+      wasmTokens.get(i).id().to_str(),
+      wasmTokens.get(i).amount().as_i64().to_str())
+    );
+  }
+  return tokens;
+}
+
+function mapKeystoneDerivationPaths(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: IndexedAddress[]) {
+  const mappedDerivationPaths: string[] = [];
+  for (let i = 0; i < tx.inputs().len(); i++) {
+    const input = tx.inputs().get(i);
+    const box = getBoxById(inputs, input.box_id().to_str());
+    if (!box) throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
+
+    const ergoTree = box.ergo_tree().to_base16_bytes().toString();
+    const path =
+      addresses.find((a) => a.script === addressFromErgoTree(ergoTree)) ?? first(addresses);
+    if (!path) throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
+
+    mappedDerivationPaths.push(
+      `${DERIVATION_PATH}/${path.index}`
+    );
+  }
+  return mappedDerivationPaths;
 }
 
 export async function getPrivateDeriver(walletId: number, password: string): Promise<HdKey> {

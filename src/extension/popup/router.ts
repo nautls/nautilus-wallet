@@ -27,6 +27,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { fullPage: true }
   },
   {
+    path: "/add/hw/keystone",
+    name: "add-hw-keystone",
+    component: () => import("@/views/add/KeystoneConnectView.vue"),
+    meta: { fullPage: true }
+  },
+  {
     path: "/add/import",
     name: "import-wallet",
     component: () => import("@/views/add/ImportWalletView.vue"),
