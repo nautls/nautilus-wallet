@@ -13,7 +13,8 @@ import {
   ErgoBoxes,
   ErgoStateContext,
   Parameters,
-  PreHeader, ReducedTransaction,
+  PreHeader,
+  ReducedTransaction,
   SecretKey,
   SecretKeys,
   Tokens,
@@ -27,13 +28,26 @@ import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
-import { ErgoAsset, ErgoSignedTx, ErgoSignRequest, ErgoUnspentBox } from "@keystonehq/bc-ur-registry-ergo";
+import {
+  ErgoAsset,
+  ErgoSignedTx,
+  ErgoSignRequest,
+  ErgoUnspentBox
+} from "@keystonehq/bc-ur-registry-ergo";
 import * as uuid from "uuid";
 import { sleep } from "@/common/utils.ts";
 import { toBuffer, toHex } from "@keystonehq/keystone-sdk/dist/utils";
 import { hex } from "@fleet-sdk/crypto";
 
-export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready" | "scanning" | "display" | "scanned";
+export type ProverStateType =
+  | "success"
+  | "error"
+  | "loading"
+  | "locked"
+  | "ready"
+  | "scanning"
+  | "display"
+  | "scanned";
 
 export type LedgerDeviceModelId =
   | "blue" // Ledger Blue
@@ -131,7 +145,7 @@ export class Prover {
   async signTransaction(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     const signed = await this.#signTx(tx, inputs, dataInputs);
-    return signed.to_js_eip12();
+    return signed;
   }
 
   async signInputs(
@@ -158,7 +172,7 @@ export class Prover {
   }
 
   async #signTx(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
-    if(this.#useLedger) {
+    if (this.#useLedger) {
       return this.#signTxWithLedger(unsigned, unspentBoxes, dataInputs);
     }
 
@@ -169,10 +183,14 @@ export class Prover {
     }
 
     const wallet = this.#buildWallet();
-    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs);
+    return wallet.sign_transaction(signContext, unsigned, unspentBoxes, dataInputs).to_js_eip12();
   }
 
-  async #signTxWithLedger(unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
+  async #signTxWithLedger(
+    unsigned: UnsignedTransaction,
+    unspentBoxes: ErgoBoxes,
+    dataInputs: ErgoBoxes
+  ) {
     try {
       this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
 
@@ -205,12 +223,22 @@ export class Prover {
     }
   }
 
-  async #signTxWithKeystone(stateContext: ErgoStateContext, unsigned: UnsignedTransaction, unspentBoxes: ErgoBoxes, dataInputs: ErgoBoxes) {
-    const reducedUnsigned = ReducedTransaction.from_unsigned_tx(unsigned, unspentBoxes, dataInputs, stateContext);
+  async #signTxWithKeystone(
+    stateContext: ErgoStateContext,
+    unsigned: UnsignedTransaction,
+    unspentBoxes: ErgoBoxes,
+    dataInputs: ErgoBoxes
+  ) {
+    const reducedUnsigned = ReducedTransaction.from_unsigned_tx(
+      unsigned,
+      unspentBoxes,
+      dataInputs,
+      stateContext
+    );
 
     const signData = toBuffer(
       serializeReducedTransaction({
-       ...JSON.parse(reducedUnsigned.to_json())
+        ...JSON.parse(reducedUnsigned.to_json())
       }).encode(hex)
     );
 
@@ -226,9 +254,10 @@ export class Prover {
       type: "display",
       label: "1. Scan with Keystone",
       request: signRequest
-    })
+    });
 
-    while (true) { // wait for qr scan
+    while (true) {
+      // wait for qr scan
       const state = this.#getState();
       if (state?.type === "scanned") {
         break;
@@ -371,9 +400,9 @@ function mapKeystoneBoxes(tx: UnsignedTransaction, inputs: ErgoBoxes) {
         boxId: box.box_id().to_str(),
         value: box.value().as_i64().to_str(),
         ergoTree: box.ergo_tree().sigma_serialize_bytes().toString(),
-        assets: mapKeystoneTokens(box.tokens()),
+        assets: mapKeystoneTokens(box.tokens())
       })
-    )
+    );
   }
   return mappedBoxes;
 }
@@ -381,15 +410,18 @@ function mapKeystoneBoxes(tx: UnsignedTransaction, inputs: ErgoBoxes) {
 function mapKeystoneTokens(wasmTokens: Tokens) {
   const tokens: ErgoAsset[] = [];
   for (let i = 0; i < wasmTokens.len(); i++) {
-    tokens.push(new ErgoAsset(
-      wasmTokens.get(i).id().to_str(),
-      wasmTokens.get(i).amount().as_i64().to_str())
+    tokens.push(
+      new ErgoAsset(wasmTokens.get(i).id().to_str(), wasmTokens.get(i).amount().as_i64().to_str())
     );
   }
   return tokens;
 }
 
-function mapKeystoneDerivationPaths(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: IndexedAddress[]) {
+function mapKeystoneDerivationPaths(
+  tx: UnsignedTransaction,
+  inputs: ErgoBoxes,
+  addresses: IndexedAddress[]
+) {
   const mappedDerivationPaths: string[] = [];
   for (let i = 0; i < tx.inputs().len(); i++) {
     const input = tx.inputs().get(i);
@@ -401,9 +433,7 @@ function mapKeystoneDerivationPaths(tx: UnsignedTransaction, inputs: ErgoBoxes, 
       addresses.find((a) => a.script === addressFromErgoTree(ergoTree)) ?? first(addresses);
     if (!path) throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
 
-    mappedDerivationPaths.push(
-      `${DERIVATION_PATH}/${path.index}`
-    );
+    mappedDerivationPaths.push(`${DERIVATION_PATH}/${path.index}`);
   }
   return mappedDerivationPaths;
 }
