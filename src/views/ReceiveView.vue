@@ -1,17 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-  CirclePlusIcon,
-  ExternalLinkIcon,
-  QrCodeIcon,
-  ShieldCheckIcon,
-  TriangleAlertIcon
-} from "lucide-vue-next";
+import { CirclePlusIcon, ExternalLinkIcon, QrCodeIcon, ShieldCheckIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import { AddressQrCodeDialog, AddressVerifyDialog } from "@/components/address";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -95,13 +88,6 @@ function openExplorer(address: string | undefined) {
       </div>
     </Card>
 
-    <Alert v-if="isLedger">
-      <TriangleAlertIcon />
-      <AlertDescription class="hyphens-auto">
-        {{ t("address.receive.maxTokensWarning", { count: 100 }) }}
-      </AlertDescription>
-    </Alert>
-
     <Tabs v-model="wallet.settings.addressFilter" class="pt-4">
       <div class="flex flex-row">
         <TabsList>
@@ -111,9 +97,9 @@ function openExplorer(address: string | undefined) {
         </TabsList>
 
         <div class="grow"></div>
-        <Button variant="ghost" size="icon" :disabled="!canAddNewAddress" @click="newAddress"
-          ><CirclePlusIcon
-        /></Button>
+        <Button variant="ghost" size="icon" :disabled="!canAddNewAddress" @click="newAddress">
+          <CirclePlusIcon />
+        </Button>
       </div>
     </Tabs>
   </div>

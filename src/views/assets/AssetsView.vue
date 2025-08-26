@@ -7,6 +7,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetImageSandbox, AssetInfoDialog } from "@/components/asset";
+import BuyErgButton from "@/components/BuyErgButton.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -88,12 +89,18 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
-      <div class="mx-auto w-full cursor-default bg-transparent py-4 text-center">
-        <h2 class="text-3xl">
-          <span v-if="!app.settings.hideBalances">{{ formatCurrencyAmount(walletTotal, 2) }}</span>
-          <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
-        </h2>
-        <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
+      <div class="flex cursor-default items-center justify-around bg-transparent py-4">
+        <div>
+          <h2 class="text-2xl">
+            <span v-if="!app.settings.hideBalances"
+              >{{ formatCurrencyAmount(walletTotal, 2) }}
+            </span>
+            <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
+          </h2>
+          <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
+        </div>
+
+        <BuyErgButton />
       </div>
 
       <WalletAlerts />

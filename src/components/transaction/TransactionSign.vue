@@ -318,7 +318,7 @@ const v$ = useVuelidate(
       </label>
     </div>
 
-    <Alert v-if="isReadonly" variant="destructive" class="space-x-2" v-once>
+    <Alert v-if="isReadonly" variant="destructive" class="space-x-2">
       <AlertCircleIcon class="size-5" />
       <AlertTitle>{{ t("wallet.readonlyWallet") }}</AlertTitle>
       <AlertDescription>{{ t("wallet.cantSignTx") }}</AlertDescription>
