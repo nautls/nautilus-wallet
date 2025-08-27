@@ -33,8 +33,8 @@ import { cn, extractErrorMessage } from "@/common/utils";
 import { useFormat } from "@/composables";
 import { WalletType } from "@/types/internal";
 import { TransactionEntry } from ".";
-import LedgerDevice from "../LedgerDevice.vue";
 import KeystoneDevice from "../KeystoneDevice.vue";
+import LedgerDevice from "../LedgerDevice.vue";
 
 interface Props {
   transaction?: EIP12UnsignedTransaction;
@@ -220,7 +220,7 @@ const v$ = useVuelidate(
     password: {
       required: helpers.withMessage(
         t("wallet.requiredSpendingPassword"),
-        requiredUnless(isLedger.value || isKeystone.value),
+        requiredUnless(isLedger.value || isKeystone.value)
       )
     }
   })),
@@ -325,7 +325,7 @@ const v$ = useVuelidate(
     </Alert>
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
-    <KeystoneDevice v-else-if="isKeystone" ref="keystone-device" class="pb-2"/>
+    <KeystoneDevice v-else-if="isKeystone" ref="keystone-device" class="pb-2" />
 
     <Form v-else @submit="sign">
       <FormField :validation="v$.password">
@@ -346,17 +346,20 @@ const v$ = useVuelidate(
         variant="outline"
         :disabled="loading || (signing && !isKeystone)"
         @click="emit('refused')"
-        >{{ t("common.cancel") }}</Button>
+        >{{ t("common.cancel") }}</Button
+      >
+
+      <Button class="w-full" v-if="isKeystone && display" :disabled="scanning" @click="startQrScan"
+        ><Loader2Icon v-if="scanning" class="animate-spin" />
+        {{ "2. Scan response from Keystone" }}</Button
+      >
 
       <Button
+        v-if="!display"
         class="w-full"
-        v-if="isKeystone && display"
-        :disabled="scanning"
-        @click="startQrScan"
-      ><Loader2Icon v-if="scanning" class="animate-spin" />
-        {{ "2. Scan response from Keystone" }}</Button>
-
-      <Button v-if="!display" class="w-full" :disabled="loading || signing || !canSign" @click="sign">
+        :disabled="loading || signing || !canSign"
+        @click="sign"
+      >
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>{{ t("common.sign") }}</template>
       </Button>

@@ -109,9 +109,10 @@ export async function signTransaction({
 
   const isLedger = wallet.type === WalletType.Ledger;
   const isKeystone = wallet.type === WalletType.Keystone;
-  const deriver = isLedger || isKeystone
-    ? hdKeyPool.get(wallet.publicKey)
-    : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
+  const deriver =
+    isLedger || isKeystone
+      ? hdKeyPool.get(wallet.publicKey)
+      : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
 
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);

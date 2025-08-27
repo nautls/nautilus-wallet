@@ -6,8 +6,8 @@ import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
-import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import KeystoneLogo from "@/assets/images/hw-devices/keystone-logo.svg";
+import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
 import { browser } from "@/common/browser";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 
