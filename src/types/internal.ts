@@ -10,7 +10,8 @@ export enum AddressState {
 export enum WalletType {
   Standard,
   ReadOnly,
-  Ledger
+  Ledger,
+  Keystone
 }
 
 export enum Network {

@@ -33,6 +33,7 @@ export interface TransactionSigningParams {
   transaction: EIP12UnsignedTransaction;
   password: string;
   stateCallback?: SignStateReportCallback;
+  stateRetrieval?: SignStateRetrieval;
   inputsToSign?: number[];
 }
 
@@ -77,11 +78,13 @@ export async function signAuthMessage(
 }
 
 type SignStateReportCallback = (newState: Partial<SigningState>) => void;
+type SignStateRetrieval = () => Partial<SigningState>;
 
 export async function signTransaction({
   transaction,
   password,
   stateCallback: callback,
+  stateRetrieval: retrieval,
   inputsToSign
 }: TransactionSigningParams): Promise<SignedTransaction | SignedInput[]> {
   const walletId = wallet.id;
@@ -105,9 +108,11 @@ export async function signTransaction({
   if (callback) callback({ statusText: "Loading context..." });
 
   const isLedger = wallet.type === WalletType.Ledger;
-  const deriver = isLedger
-    ? hdKeyPool.get(wallet.publicKey)
-    : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
+  const isKeystone = wallet.type === WalletType.Keystone;
+  const deriver =
+    isLedger || isKeystone
+      ? hdKeyPool.get(wallet.publicKey)
+      : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
 
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);
@@ -117,9 +122,11 @@ export async function signTransaction({
   const prover = new Prover(deriver)
     .from(addresses)
     .useLedger(isLedger)
+    .useKeystone(isKeystone)
     .changeIndex(changeIndex)
     .setHeaders(blockHeaders)
-    .setCallback(callback);
+    .setCallback(callback)
+    .setRetrieval(retrieval);
 
   return some(inputsToSign)
     ? prover.signInputs(transaction, inputsToSign)
