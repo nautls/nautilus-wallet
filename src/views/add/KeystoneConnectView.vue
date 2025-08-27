@@ -14,6 +14,7 @@ import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import HdKey from "@/chains/ergo/hdKey.ts";
+import { log } from "@/common/logger";
 import { WalletType } from "@/types/internal.ts";
 
 const app = useAppStore();
@@ -37,7 +38,7 @@ const handleScan = (result: UR) => {
     ergoAccount.value = account.keys[0];
     scanning.value = false;
   } catch (e) {
-    console.error(e);
+    log.error(e);
   }
 };
 

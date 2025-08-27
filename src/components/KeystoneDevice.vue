@@ -1,31 +1,23 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import { Buffer } from "@keystonehq/bc-ur-registry";
-import { ErgoSignedTx, ErgoSignRequest } from "@keystonehq/bc-ur-registry-ergo";
+import { ErgoSignedTx } from "@keystonehq/bc-ur-registry-ergo";
 import { UR } from "@keystonehq/keystone-sdk";
-import { useI18n } from "vue-i18n";
 import KeystoneAnimatedQr from "@/components/KeystoneAnimatedQr.vue";
 import KeystoneQrReader from "@/components/KeystoneQrReader.vue";
-import { useToast } from "@/components/ui/toast";
 import { ProverState } from "@/chains/ergo/transaction/prover.ts";
+import { log } from "@/common/logger";
 
 interface Props {
   initialState?: ProverState;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  initialState: () => ({
-    state: undefined
-  })
-});
+const props = defineProps<Props>();
 
 const state = reactive<ProverState>({
-  type: props.initialState.type,
-  label: props.initialState.label
+  type: props.initialState?.type,
+  label: props.initialState?.label
 });
-
-const { toast } = useToast();
-const { t } = useI18n();
 
 function setState(newState: ProverState) {
   Object.assign(state, newState);
@@ -44,7 +36,7 @@ const handleScan = (ur: UR) => {
       response: ergoSignedTx
     });
   } catch (e) {
-    console.error(e);
+    log.error(e);
   }
 };
 
@@ -60,7 +52,7 @@ defineExpose({ setState, getState, startScan });
 
 <template>
   <div class="flex h-min flex-col items-center gap-2">
-    <div class="mx-auto h-[100px] h-max">
+    <div class="mx-auto h-max">
       <keystone-qr-reader v-if="state.type === 'scanning'" :handle-scan="handleScan" />
       <keystone-animated-qr
         class="max-h-52"
