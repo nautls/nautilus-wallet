@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
+import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { useI18n } from "vue-i18n";
 import { StateAddress } from "@/stores/walletStore";
@@ -42,7 +42,7 @@ async function verify() {
     if (!ready) return;
 
     setState({ busy: true });
-    const app = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
+    const app = new ErgoLedgerApp(await WebHIDTransport.create()).useAuthToken();
 
     setState({
       type: undefined,
