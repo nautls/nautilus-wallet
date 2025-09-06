@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { hex } from "@fleet-sdk/crypto";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
+import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
@@ -83,7 +83,7 @@ async function add() {
     if (!ready) return;
 
     setState({ busy: true });
-    const ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
+    const ledgerApp = new ErgoLedgerApp(await WebHIDTransport.create()).useAuthToken();
 
     setState({
       type: undefined,

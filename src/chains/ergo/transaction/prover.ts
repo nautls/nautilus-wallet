@@ -6,7 +6,7 @@ import {
   SignedInput,
   SignedTransaction
 } from "@fleet-sdk/common";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
+import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import {
   Address,
   BlockHeaders,
@@ -140,7 +140,7 @@ export class Prover {
     try {
       this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
 
-      const ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
+      const ledgerApp = new ErgoLedgerApp(await WebHIDTransport.create()).useAuthToken();
 
       this.#reportState({
         type: undefined,
