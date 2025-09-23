@@ -34,6 +34,7 @@ export type Settings = {
   locale: Locale | "auto";
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
+  ledger: { transport: "webhid" | "webusb" };
 };
 
 type StandardWallet = {
@@ -109,7 +110,9 @@ export const useAppStore = defineStore("app", () => {
 
   watch(
     () => settings.value.colorMode,
-    () => (colorMode.value = settings.value.colorMode)
+    () => {
+      colorMode.value = settings.value.colorMode;
+    }
   );
 
   const loading = computed(() => privateState.loading);
@@ -174,7 +177,7 @@ export const useAppStore = defineStore("app", () => {
     const boxesToCheck = dbBoxes.filter(
       (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= UTXO_CHECK_INTERVAL
     );
-    if (boxesToCheck.length == 0) return;
+    if (boxesToCheck.length === 0) return;
 
     const txIds = uniq(boxesToCheck.map((b) => b.spentTxId));
     const mempool = await graphQLService.mempoolTransactionsLookup(txIds);
