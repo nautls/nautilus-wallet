@@ -10,6 +10,5 @@ export function createTransport(type: TransportType): Promise<Transport> {
   if (type === "webhid") {
     return WebHIDTransport.create();
   }
-
   return WebUSBTransport.create();
 }
