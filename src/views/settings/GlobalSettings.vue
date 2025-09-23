@@ -27,6 +27,7 @@ import {
   validateServerNetwork,
   validateServerVersion
 } from "@/chains/ergo/services/graphQlService";
+import { TransportType } from "@/common/ledger";
 import { cn } from "@/common/utils";
 import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/i18n";
 import { validUrl } from "@/validators";
@@ -111,7 +112,7 @@ async function selectLocale(locale: Locale | "auto") {
   setLocale(locale);
 }
 
-function selectLedgerTransport(transport: (typeof ledgerTransportsState.available)[number]) {
+function selectLedgerTransport(transport: TransportType) {
   ledgerTransportsState.isPopoverOpen = false;
   app.settings.ledger.transport = transport;
 }

@@ -33,6 +33,7 @@
     "@fleet-sdk/crypto": "^0.11.0",
     "@fleet-sdk/serializer": "^0.11.0",
     "@fleet-sdk/wallet": "^0.12.0",
+    "@ledgerhq/hw-transport": "^6.29.8",
     "@ledgerhq/hw-transport-webusb": "^6.29.8",
     "@ledgerhq/hw-transport-webhid": "^6.29.8",
     "@vuelidate/core": "^2.0.3",

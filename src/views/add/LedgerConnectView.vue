@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { hex } from "@fleet-sdk/crypto";
-import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
@@ -27,6 +26,7 @@ import { useToast } from "@/components/ui/toast";
 import HdKey from "@/chains/ergo/hdKey";
 import { StateCallback } from "@/chains/ergo/transaction/prover";
 import { browser } from "@/common/browser";
+import { createTransport } from "@/common/ledger";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { WalletType } from "@/types/internal";
@@ -83,7 +83,9 @@ async function add() {
     if (!ready) return;
 
     setState({ busy: true });
-    const ledgerApp = new ErgoLedgerApp(await WebHIDTransport.create()).useAuthToken();
+    const ledgerApp = new ErgoLedgerApp(
+      await createTransport(app.settings.ledger.transport)
+    ).useAuthToken();
 
     setState({
       type: undefined,

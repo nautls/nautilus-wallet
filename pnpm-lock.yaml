@@ -50,6 +50,9 @@ importers:
       '@fleet-sdk/wallet':
         specifier: ^0.12.0
         version: 0.12.0
+      '@ledgerhq/hw-transport':
+        specifier: ^6.29.8
+        version: 6.31.10
       '@ledgerhq/hw-transport-webhid':
         specifier: ^6.29.8
         version: 6.30.6
@@ -984,9 +987,6 @@ packages:
 
   '@ledgerhq/hw-transport@6.31.10':
     resolution: {integrity: sha512-ruNtkTPMO3rFCaSM+oPTOXXerzxWFZF43pAHVAHhsjiQGhLWzLSkMc7qBEpWIpZPubKRAbWSXR2zXBIJPNy8oQ==}
-
-  '@ledgerhq/hw-transport@6.31.8':
-    resolution: {integrity: sha512-iH74gILq8BkkLX1Il0wNhcYp1BJ3tjR18fdok4KEdU86i9dOXRKfLbWNhDDFf1px/pMrsGlDS4SpaO74janeEA==}
 
   '@ledgerhq/logs@6.13.0':
     resolution: {integrity: sha512-4+qRW2Pc8V+btL0QEmdB2X+uyx0kOWMWE1/LWsq5sZy3Q5tpi4eItJS6mB0XL3wGW59RQ+8bchNQQ1OW/va8Og==}
@@ -5465,20 +5465,13 @@ snapshots:
     dependencies:
       '@ledgerhq/devices': 8.4.8
       '@ledgerhq/errors': 6.23.0
-      '@ledgerhq/hw-transport': 6.31.8
+      '@ledgerhq/hw-transport': 6.31.10
       '@ledgerhq/logs': 6.13.0
 
   '@ledgerhq/hw-transport@6.31.10':
     dependencies:
       '@ledgerhq/devices': 8.5.1
       '@ledgerhq/errors': 6.25.0
-      '@ledgerhq/logs': 6.13.0
-      events: 3.3.0
-
-  '@ledgerhq/hw-transport@6.31.8':
-    dependencies:
-      '@ledgerhq/devices': 8.4.8
-      '@ledgerhq/errors': 6.23.0
       '@ledgerhq/logs': 6.13.0
       events: 3.3.0
 

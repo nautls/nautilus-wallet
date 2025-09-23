@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive } from "vue";
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
 import {
   CheckCheckIcon,
@@ -11,11 +10,13 @@ import {
   XIcon
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
+import { useAppStore } from "@/stores/appStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/toast";
 import LedgerNanoS from "@/assets/images/hw-devices/ledger-nanosp.svg?skipsvgo";
 import LedgerNanoX from "@/assets/images/hw-devices/ledger-nanox.svg?skipsvgo";
 import { ProverState } from "@/chains/ergo/transaction/prover";
+import { createTransport } from "@/common/ledger";
 import { extractErrorMessage, sleep } from "@/common/utils";
 
 const LEDGER_VENDOR_ID = 0x2c97; // https://github.com/LedgerHQ/ledger-live/blob/22714d2324898b853332363f2a522d72bbed0d3a/libs/ledgerjs/packages/devices/src/index.ts#L141
@@ -44,6 +45,7 @@ const state = reactive<ProverState>({
   label: props.initialState.label
 });
 
+const app = useAppStore();
 const { toast } = useToast();
 const { t } = useI18n();
 
@@ -70,16 +72,16 @@ async function onDeviceConnect({ device }: DeviceConnectionEvent) {
   if (state.connected || state.busy || !device || device.vendorId !== LEDGER_VENDOR_ID) return;
 
   try {
-    const app = new ErgoLedgerApp(await TransportWebUSB.create());
+    const ledger = new ErgoLedgerApp(await createTransport(app.settings.ledger.transport));
 
     setState({
-      model: app.device.transport.deviceModel?.id,
+      model: ledger.device.transport.deviceModel?.id,
       connected: true,
       label: t("device.connected"),
       type: "ready"
     });
 
-    const appInfo = await app.device.getCurrentAppInfo();
+    const appInfo = await ledger.device.getCurrentAppInfo();
     if (appInfo.name === "Ergo") {
       setState({ label: t("device.ready"), type: "ready" });
     }
@@ -117,14 +119,14 @@ function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
 
 async function openErgoApp(): Promise<boolean> {
   try {
-    const app = new ErgoLedgerApp(await TransportWebUSB.create());
+    const ledger = new ErgoLedgerApp(await createTransport(app.settings.ledger.transport));
 
-    const currentApp = await app.device.getCurrentAppInfo();
+    const currentApp = await ledger.device.getCurrentAppInfo();
     if (currentApp.name !== "Ergo") {
       setState({ busy: true, connected: true });
 
       if (currentApp.name !== "BOLOS") {
-        await app.device.closeApp();
+        await ledger.device.closeApp();
         setState({ type: "loading", label: t("device.ledger.waitingAppClose") });
         await sleep(1000); // Wait for the app to be fully closed
       }
@@ -132,7 +134,9 @@ async function openErgoApp(): Promise<boolean> {
       setState({ type: undefined, label: t("device.ledger.confirmAppOpen") });
       // device.closeApp() command disconnects the device for some reason,
       // so we need to create a new instance to re-open it
-      await new ErgoLedgerApp(await TransportWebUSB.create()).device.openApp("Ergo");
+      await new ErgoLedgerApp(await createTransport(app.settings.ledger.transport)).device.openApp(
+        "Ergo"
+      );
       setState({ type: "loading", label: t("device.ledger.waitingAppReady") });
       await sleep(1000); // Wait for the app to be fully opened
     }

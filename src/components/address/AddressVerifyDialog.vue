@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
-import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import { DeviceError, ErgoLedgerApp, Network, RETURN_CODE } from "ledger-ergo-js";
 import { useI18n } from "vue-i18n";
+import { useAppStore } from "@/stores/appStore";
 import { StateAddress } from "@/stores/walletStore";
 import LedgerDevice from "@/components/LedgerDevice.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/drawer";
 import { useToast } from "@/components/ui/toast";
 import { StateCallback } from "@/chains/ergo/transaction/prover";
+import { createTransport } from "@/common/ledger";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
@@ -28,6 +29,7 @@ const props = defineProps<{ address: StateAddress }>();
 const opened = ref(true);
 const loading = ref(false);
 const ledgerDevice = useTemplateRef("ledger-device");
+const app = useAppStore();
 const { toast } = useToast();
 const { t } = useI18n();
 
@@ -42,15 +44,17 @@ async function verify() {
     if (!ready) return;
 
     setState({ busy: true });
-    const app = new ErgoLedgerApp(await WebHIDTransport.create()).useAuthToken();
+    const ledger = new ErgoLedgerApp(
+      await createTransport(app.settings.ledger.transport)
+    ).useAuthToken();
 
     setState({
       type: undefined,
       label: t("address.verify.confirmOnDevice"),
-      appId: app.authToken
+      appId: ledger.authToken
     });
     const network = MAINNET ? Network.Mainnet : Network.Testnet;
-    const confirmed = await app.showAddress(path.value, network);
+    const confirmed = await ledger.showAddress(path.value, network);
 
     if (confirmed) {
       setState({ type: "success", label: t("common.confirmed") });

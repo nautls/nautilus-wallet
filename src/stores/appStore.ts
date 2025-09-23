@@ -19,6 +19,7 @@ import { setLocale } from "@/i18n";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { Network, WalletType } from "@/types/internal";
 import { useChainStore } from "./chainStore";
+import { TransportType } from "@/common/ledger";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -34,7 +35,7 @@ export type Settings = {
   locale: Locale | "auto";
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
-  ledger: { transport: "webhid" | "webusb" };
+  ledger: { transport: TransportType };
 };
 
 type StandardWallet = {

@@ -6,7 +6,6 @@ import {
   SignedInput,
   SignedTransaction
 } from "@fleet-sdk/common";
-import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import {
   Address,
   BlockHeaders,
@@ -26,6 +25,7 @@ import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
+import { createTransport, TransportType } from "@/common/ledger";
 
 export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready";
 
@@ -57,6 +57,7 @@ export class Prover {
   #changeIndex!: number;
   #deriver!: HdKey;
   #headers?: BlockHeaders;
+  #ledgerTransportType?: TransportType;
 
   #callbackFn?: StateCallback;
 
@@ -85,6 +86,11 @@ export class Prover {
 
   useLedger(use = true): Prover {
     this.#useLedger = use;
+    return this;
+  }
+
+  withTransport(transport: TransportType): Prover {
+    this.#ledgerTransportType = transport;
     return this;
   }
 
@@ -140,7 +146,13 @@ export class Prover {
     try {
       this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
 
-      const ledgerApp = new ErgoLedgerApp(await WebHIDTransport.create()).useAuthToken();
+      if (!this.#ledgerTransportType) {
+        throw Error("Ledger transport type is not set.");
+      }
+
+      const ledgerApp = new ErgoLedgerApp(
+        await createTransport(this.#ledgerTransportType)
+      ).useAuthToken();
 
       this.#reportState({
         type: undefined,
