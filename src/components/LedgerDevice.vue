@@ -136,12 +136,7 @@ async function openErgoApp(): Promise<boolean> {
       }
 
       setState({ type: undefined, label: t("device.ledger.confirmAppOpen") });
-      // device.closeApp() command disconnects the device for some reason,
-      // so we need to create a new instance to re-open it
       await ledger.device.openApp("Ergo");
-      // await new ErgoLedgerApp(await createTransport(app.settings.ledger.transport)).device.openApp(
-      //   "Ergo"
-      // );
       setState({ type: "loading", label: t("device.ledger.waitingAppReady") });
       await sleep(1000); // Wait for the app to be fully opened
     }
