@@ -71,8 +71,9 @@ const screenPosition = computed(() =>
 async function onDeviceConnect({ device }: DeviceConnectionEvent) {
   if (state.connected || state.busy || !device || device.vendorId !== LEDGER_VENDOR_ID) return;
 
+  let ledger: ErgoLedgerApp | null = null;
   try {
-    const ledger = new ErgoLedgerApp(await createTransport(app.settings.ledger.transport));
+    ledger = new ErgoLedgerApp(await createTransport(app.settings.ledger.transport));
 
     setState({
       model: ledger.device.transport.deviceModel?.id,
@@ -99,6 +100,8 @@ async function onDeviceConnect({ device }: DeviceConnectionEvent) {
       label: t("device.connectionError"),
       additionalInfo: extractErrorMessage(e)
     });
+  } finally {
+    await ledger?.device.transport.close();
   }
 }
 
@@ -118,8 +121,9 @@ function onDeviceDisconnect({ device }: DeviceConnectionEvent) {
 }
 
 async function openErgoApp(): Promise<boolean> {
+  let ledger: ErgoLedgerApp | null = null;
   try {
-    const ledger = new ErgoLedgerApp(await createTransport(app.settings.ledger.transport));
+    ledger = new ErgoLedgerApp(await createTransport(app.settings.ledger.transport));
 
     const currentApp = await ledger.device.getCurrentAppInfo();
     if (currentApp.name !== "Ergo") {
@@ -134,9 +138,10 @@ async function openErgoApp(): Promise<boolean> {
       setState({ type: undefined, label: t("device.ledger.confirmAppOpen") });
       // device.closeApp() command disconnects the device for some reason,
       // so we need to create a new instance to re-open it
-      await new ErgoLedgerApp(await createTransport(app.settings.ledger.transport)).device.openApp(
-        "Ergo"
-      );
+      await ledger.device.openApp("Ergo");
+      // await new ErgoLedgerApp(await createTransport(app.settings.ledger.transport)).device.openApp(
+      //   "Ergo"
+      // );
       setState({ type: "loading", label: t("device.ledger.waitingAppReady") });
       await sleep(1000); // Wait for the app to be fully opened
     }
@@ -166,6 +171,7 @@ async function openErgoApp(): Promise<boolean> {
     return false;
   } finally {
     setState({ busy: false });
+    await ledger?.device.transport.close();
   }
 }
 
