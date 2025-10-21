@@ -14,5 +14,6 @@ export const DEFAULT_SETTINGS = {
   zeroConf: false,
   locale: "auto" as const,
   colorMode: "auto" as const,
-  extension: { viewMode: "popup" as const }
+  extension: { viewMode: "popup" as const },
+  ledger: { transport: "webusb" as const }
 };

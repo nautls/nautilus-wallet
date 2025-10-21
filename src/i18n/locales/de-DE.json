@@ -299,7 +299,9 @@
       "experimental": "Experimentell",
       "experimentalDesc": "Die Funktionen in diesem Abschnitt sind experimentell und nicht stabil. Nutze sie mit Vorsicht; sie können Fehler enthalten oder sich stark ändern.",
       "zeroConf": "0-conf aktivieren",
-      "zeroConfDesc": "0-conf (Zero-Confirmations) — ermöglicht das Ausgeben von Assets ohne Bestätigungs­wartezeit. Schnell, aber es besteht das Risiko doppelter Ausgaben, bis die Transaktion in den nächsten Block aufgenommen ist."
+      "zeroConfDesc": "0-conf (Zero-Confirmations) — ermöglicht das Ausgeben von Assets ohne Bestätigungs­wartezeit. Schnell, aber es besteht das Risiko doppelter Ausgaben, bis die Transaktion in den nächsten Block aufgenommen ist.",
+      "ledger": "Ledger-Hardware-Wallet",
+      "ledgerTransportDesc": "Wählen Sie die Transportmethode aus, die Sie mit Ihrer Ledger-Hardware-Wallet verwenden möchten."
     },
     "wallet": {
       "walletNameDesc": "Gib deiner Wallet einen Namen.",

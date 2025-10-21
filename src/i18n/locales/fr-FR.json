@@ -299,7 +299,9 @@
       "experimental": "Expérimental",
       "experimentalDesc": "Les fonctionnalités de cette section sont marquées comme expérimentales, ce qui signifie qu'elles ne sont pas stables. Utilisez-les avec prudence, car elles peuvent contenir des bugs ou subir des modifications importantes. C'est un travail en cours, donc attendez-vous à quelques imperfections.",
       "zeroConf": "Activer 0-conf",
-      "zeroConfDesc": "0-conf, abréviation de zéro-confirmations, vous permet de dépenser des actifs sans attendre les confirmations. C'est rapide mais comporte un risque de double dépense tant que la blockchain n'a pas confirmé."
+      "zeroConfDesc": "0-conf, abréviation de zéro-confirmations, vous permet de dépenser des actifs sans attendre les confirmations. C'est rapide mais comporte un risque de double dépense tant que la blockchain n'a pas confirmé.",
+      "ledger": "Portefeuille matériel Ledger",
+      "ledgerTransportDesc": "Sélectionnez la méthode de transport à utiliser avec votre portefeuille matériel Ledger."
     },
     "wallet": {
       "walletNameDesc": "Définissez un nom pour votre portefeuille.",

@@ -27,6 +27,7 @@ import {
   validateServerNetwork,
   validateServerVersion
 } from "@/chains/ergo/services/graphQlService";
+import { TransportType } from "@/common/ledger";
 import { cn } from "@/common/utils";
 import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/i18n";
 import { validUrl } from "@/validators";
@@ -44,6 +45,16 @@ const currencyState = reactive({
   isPopoverOpen: false,
   loading: true
 });
+
+const ledgerTransportsState = reactive({
+  available: ["webusb", "webhid"] as const,
+  isPopoverOpen: false
+});
+
+const transportsDisplayName = new Map([
+  ["webusb", "WebUSB"],
+  ["webhid", "WebHID"]
+]);
 
 const explorerUrl = ref(app.settings.explorerUrl);
 const graphQLServer = ref(app.settings.graphQLServer);
@@ -99,6 +110,11 @@ async function selectLocale(locale: Locale | "auto") {
 
   app.settings.locale = locale;
   setLocale(locale);
+}
+
+function selectLedgerTransport(transport: TransportType) {
+  ledgerTransportsState.isPopoverOpen = false;
+  app.settings.ledger.transport = transport;
 }
 
 function computedBlacklist(list: string) {
@@ -344,6 +360,56 @@ const v$ = useVuelidate(
           <Label for="ipfs-gateway">{{ t("settings.global.ipfsGateway") }}</Label>
           <Input id="ipfs-gateway" v-model="ipfsGateway" />
         </FormField>
+      </div>
+    </Card>
+
+    <Card class="flex flex-col gap-4 p-6">
+      <Label class="flex flex-col gap-2">{{ t("settings.global.ledger") }}</Label>
+      <div class="flex items-center justify-between gap-4">
+        <Label class="flex flex-col gap-2">
+          <div class="text-muted-foreground text-xs font-normal">
+            {{ t("settings.global.ledgerTransportDesc") }}
+          </div>
+        </Label>
+
+        <Popover v-model:open="ledgerTransportsState.isPopoverOpen">
+          <PopoverTrigger as-child>
+            <Button variant="outline" class="min-w-[110px]">
+              <span class="grow">{{
+                transportsDisplayName.get(app.settings.ledger.transport)
+              }}</span>
+              <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent class="max-w-[110px] p-0">
+            <Command reset-search-term-on-blur>
+              <CommandInput :placeholder="t('common.search')" />
+              <CommandList class="max-h-[200px]">
+                <CommandGroup>
+                  <CommandItem
+                    v-for="transport in ledgerTransportsState.available"
+                    :key="transport"
+                    class="justify-between gap-2"
+                    :value="transport"
+                    @select="selectLedgerTransport(transport)"
+                  >
+                    <div>{{ transportsDisplayName.get(transport) }}</div>
+
+                    <CheckIcon
+                      :class="
+                        cn(
+                          'mr-2 h-4 w-4',
+                          transport === app.settings.ledger.transport ? 'opacity-100' : 'opacity-0'
+                        )
+                      "
+                    />
+                  </CommandItem>
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
     </Card>
 

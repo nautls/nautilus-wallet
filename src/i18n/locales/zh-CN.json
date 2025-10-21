@@ -299,7 +299,9 @@
       "experimental": "实验性功能",
       "experimentalDesc": "此部分的功能标记为实验性，这意味着它们不稳定。使用时需谨慎，因为可能存在错误或经历重大更改。它仍在开发中，因此可能不够完善。",
       "zeroConf": "启用 0-conf",
-      "zeroConfDesc": "0-conf 是零确认的简称，它允许您在无需等待确认的情况下使用资产。这种方式快速但在区块链确认前有被双花的风险。"
+      "zeroConfDesc": "0-conf 是零确认的简称，它允许您在无需等待确认的情况下使用资产。这种方式快速但在区块链确认前有被双花的风险。",
+      "ledger": "Ledger 硬件钱包",
+      "ledgerTransportDesc": "请选择与 Ledger 硬件钱包一起使用的传输方式."
     },
     "wallet": {
       "walletNameDesc": "为您的钱包设置一个名称。",

@@ -300,7 +300,9 @@
       "experimental": "Experimental",
       "experimentalDesc": "The features under this section are marked as experimental, which means they're not stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a work in progress, so expect some rough edges.",
       "zeroConf": "Enable 0-conf",
-      "zeroConfDesc": "0-conf, short for zero-confirmations, lets you to spend assets without waiting for confirmations. It's fast but carries a risk of being double-spent until confirmed by the blockchain."
+      "zeroConfDesc": "0-conf, short for zero-confirmations, lets you to spend assets without waiting for confirmations. It's fast but carries a risk of being double-spent until confirmed by the blockchain.",
+      "ledger": "Ledger hardware wallet",
+      "ledgerTransportDesc": "Select the transport method to use with your Ledger hardware wallet."
     },
     "wallet": {
       "walletNameDesc": "Set a name for your wallet.",

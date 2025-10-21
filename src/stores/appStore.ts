@@ -19,6 +19,7 @@ import { setLocale } from "@/i18n";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { Network, WalletType } from "@/types/internal";
 import { useChainStore } from "./chainStore";
+import { TransportType } from "@/common/ledger";
 
 export type Settings = {
   lastOpenedWalletId: number;
@@ -34,6 +35,7 @@ export type Settings = {
   locale: Locale | "auto";
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
+  ledger: { transport: TransportType };
 };
 
 type StandardWallet = {
@@ -109,7 +111,9 @@ export const useAppStore = defineStore("app", () => {
 
   watch(
     () => settings.value.colorMode,
-    () => (colorMode.value = settings.value.colorMode)
+    () => {
+      colorMode.value = settings.value.colorMode;
+    }
   );
 
   const loading = computed(() => privateState.loading);
@@ -174,7 +178,7 @@ export const useAppStore = defineStore("app", () => {
     const boxesToCheck = dbBoxes.filter(
       (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= UTXO_CHECK_INTERVAL
     );
-    if (boxesToCheck.length == 0) return;
+    if (boxesToCheck.length === 0) return;
 
     const txIds = uniq(boxesToCheck.map((b) => b.spentTxId));
     const mempool = await graphQLService.mempoolTransactionsLookup(txIds);
