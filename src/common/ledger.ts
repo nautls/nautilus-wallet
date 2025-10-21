@@ -5,8 +5,6 @@ import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 export type TransportType = "webhid" | "webusb";
 
 export function createTransport(type: TransportType): Promise<Transport> {
-  console.log("Creating transport of type:", type);
-
   if (type === "webhid") {
     return WebHIDTransport.create();
   }

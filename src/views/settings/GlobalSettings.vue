@@ -364,11 +364,11 @@ const v$ = useVuelidate(
     </Card>
 
     <Card class="flex flex-col gap-4 p-6">
-      <Label class="flex flex-col gap-2"> Ledger Hardware Wallet </Label>
+      <Label class="flex flex-col gap-2">{{ t("settings.global.ledger") }}</Label>
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col gap-2">
           <div class="text-muted-foreground text-xs font-normal">
-            Select the transport method to connect to your Ledger device.
+            {{ t("settings.global.ledgerTransportDesc") }}
           </div>
         </Label>
 
