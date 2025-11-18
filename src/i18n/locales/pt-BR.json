@@ -299,7 +299,9 @@
       "experimental": "Experimental",
       "experimentalDesc": "Os recursos desta seção são marcados como experimentais, o que significa que não são estáveis. Use com cautela, pois podem conter bugs ou passar por mudanças significativas. Também podem estar em desenvolvimento, então espere algumas imperfeições.",
       "zeroConf": "Ativar 0-conf",
-      "zeroConfDesc": "0-conf, abreviação de zero confirmações, permite enviar ativos sem ter que aguardar confirmações. É rápido, mas há risco de transações serem canceladas ou substituidas enquanto pendentes."
+      "zeroConfDesc": "0-conf, abreviação de zero confirmações, permite enviar ativos sem ter que aguardar confirmações. É rápido, mas há risco de transações serem canceladas ou substituidas enquanto pendentes.",
+      "ledger": "Ledger hardware wallet",
+      "ledgerTransportDesc": "Selecione o método de transporte a ser usado com sua carteira física Ledger."
     },
     "wallet": {
       "walletNameDesc": "Defina um nome para sua carteira.",

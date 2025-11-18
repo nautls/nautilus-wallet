@@ -299,7 +299,9 @@
       "experimental": "Eksperimental",
       "experimentalDesc": "Fitur-fitur di bawah bagian ini ditandai sebagai eksperimental, yang berarti tidak stabil. Gunakan dengan hati-hati, karena mungkin mengandung bug atau mengalami perubahan signifikan. Ini masih dalam tahap pengerjaan, jadi harap bersabar.",
       "zeroConf": "Aktifkan 0-conf",
-      "zeroConfDesc": "0-conf, kependekan dari zero-confirmations, memungkinkan Anda untuk membelanjakan aset tanpa menunggu konfirmasi. Cepat tetapi berisiko dibelanjakan dua kali hingga dikonfirmasi oleh blockchain."
+      "zeroConfDesc": "0-conf, kependekan dari zero-confirmations, memungkinkan Anda untuk membelanjakan aset tanpa menunggu konfirmasi. Cepat tetapi berisiko dibelanjakan dua kali hingga dikonfirmasi oleh blockchain.",
+      "ledger": "Dompet perangkat keras Ledger",
+      "ledgerTransportDesc": "Pilih metode transport yang akan digunakan dengan dompet perangkat keras Ledger Anda."
     },
     "wallet": {
       "walletNameDesc": "Tetapkan nama untuk dompet milik Anda.",

@@ -90,7 +90,6 @@ export default defineConfig(({ mode }) => ({
       "pinia",
       "@fleet-sdk/babel-fees-plugin",
       "ledger-ergo-js",
-      "@ledgerhq/hw-transport-webusb",
       "ergo-lib-wasm-browser",
       "vue-json-pretty",
       "uqr"

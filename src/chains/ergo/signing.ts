@@ -18,6 +18,7 @@ import { extractAddressesFromInputs } from "./extraction";
 import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
 import { getPrivateDeriver, Prover } from "./transaction/prover";
+import { useAppStore } from "@/stores/appStore";
 
 export interface UnsignedAuthMessage {
   message: string;
@@ -38,6 +39,7 @@ export interface TransactionSigningParams {
 }
 
 const wallet = useWalletStore();
+const app = useAppStore();
 
 /**
  * Creates a EIP-28 signing message
@@ -123,6 +125,7 @@ export async function signTransaction({
     .from(addresses)
     .useLedger(isLedger)
     .useKeystone(isKeystone)
+    .withTransport(app.settings.ledger.transport)
     .changeIndex(changeIndex)
     .setHeaders(blockHeaders)
     .setCallback(callback)

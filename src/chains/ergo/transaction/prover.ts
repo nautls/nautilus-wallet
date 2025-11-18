@@ -6,7 +6,6 @@ import {
   SignedInput,
   SignedTransaction
 } from "@fleet-sdk/common";
-import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
 import {
   Address,
   BlockHeaders,
@@ -38,6 +37,7 @@ import * as uuid from "uuid";
 import { sleep } from "@/common/utils.ts";
 import { toBuffer, toHex } from "@keystonehq/keystone-sdk/dist/utils";
 import { hex } from "@fleet-sdk/crypto";
+import { createTransport, TransportType } from "@/common/ledger";
 
 export type ProverStateType =
   | "success"
@@ -82,6 +82,7 @@ export class Prover {
   #changeIndex!: number;
   #deriver!: HdKey;
   #headers?: BlockHeaders;
+  #ledgerTransportType?: TransportType;
 
   #callbackFn?: StateCallback;
 
@@ -126,6 +127,11 @@ export class Prover {
 
   useKeystone(use = true): Prover {
     this.#useKeystone = use;
+    return this;
+  }
+
+  withTransport(transport: TransportType): Prover {
+    this.#ledgerTransportType = transport;
     return this;
   }
 
@@ -194,7 +200,13 @@ export class Prover {
     try {
       this.#reportState({ busy: true }); // Prevents the UI to keep sending requests to the device
 
-      const ledgerApp = new ErgoLedgerApp(await WebUSBTransport.create()).useAuthToken();
+      if (!this.#ledgerTransportType) {
+        throw Error("Ledger transport type is not set.");
+      }
+
+      const ledgerApp = new ErgoLedgerApp(
+        await createTransport(this.#ledgerTransportType)
+      ).useAuthToken();
 
       this.#reportState({
         type: undefined,
