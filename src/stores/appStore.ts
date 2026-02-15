@@ -47,7 +47,7 @@ type StandardWallet = {
 
 type ReadOnlyWallet = {
   name: string;
-  type: WalletType.ReadOnly | WalletType.Ledger;
+  type: WalletType.ReadOnly | WalletType.Ledger | WalletType.Keystone;
   extendedPublicKey: string;
 };
 
