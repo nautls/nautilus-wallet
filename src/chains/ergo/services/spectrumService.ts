@@ -10,8 +10,7 @@ export type AssetPriceRate = {
   [tokenId: string]: { erg: number };
 };
 
-// https://api.spectrum.fi/v1/docs
-const BASE_URL = "https://api.spectrum.fi";
+const BASE_URL = "https://dex-api.sigmaspace.io";
 
 export type SpectrumPool = {
   id: string;
