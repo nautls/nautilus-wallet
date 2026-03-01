@@ -19,6 +19,7 @@ export const SUPPORTED_LOCALES = [
   "ru-RU",
   "id-ID",
   "ms-MS",
+  "jv-JV",
   "de-DE"
 ] as const;
 const DEFAULT_LOCALE = "en-US" as const;
@@ -33,7 +34,8 @@ export const LANGUAGE_LABELS = new Map<Locale, string>([
   ["pt-BR", "Português (BR)"], //         Portuguese (Brazil)
   ["ru-RU", "Русский (RU)"], //           Russian (Russia)
   ["id-ID", "Bahasa Indonesia (ID)"], //  Indonesian (Indonesia)
-  ["ms-MS", "Melayu (MS)"], //  Melayu (Malaysian)
+  ["ms-MS", "Melayu (MS)"], //            Melayu (Malaysian)
+  ["jv-JV", "Basa Jawa (ID)"], //         Javanese (Javanese)
   ["de-DE", "Deutsch (DE)"] //            German (Germany)
 ]);
 
