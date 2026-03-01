@@ -101,8 +101,8 @@
     "vue-eslint-parser": "^10.4.0"
   },
   "engines": {
-    "node": ">=18",
-    "pnpm": ">=9"
+    "node": ">=20",
+    "pnpm": ">=10"
   },
   "pnpm": {
     "patchedDependencies": {
