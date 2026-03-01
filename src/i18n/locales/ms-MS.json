@@ -1,0 +1,377 @@
+{
+  "common": {
+    "cancel": "Batal",
+    "search": "Cari",
+    "copy": "Salin",
+    "close": "Tutup",
+    "send": "Hantar",
+    "verify": "Sahkan",
+    "tokenId": "ID Token",
+    "fee": "Bayaran",
+    "tryAgain": "Cuba lagi",
+    "sign": "Tandatangan",
+    "openInExplorer": "Buka dalam penjelajah",
+    "showQrCode": "Tunjuk kod QR",
+    "optimize": "Optimumkan",
+    "consolidate": "Gabung",
+    "learnMore": "Ketahui lebih lanjut",
+    "confirm": "Sahkan",
+    "import": "Import",
+    "select": "Pilih",
+    "confirmed": "Disahkan",
+    "export": "Eksport",
+    "remove": "Buang",
+    "swap": "Tukar",
+    "privacyPolicy": "Dasar Privasi",
+    "termsOfUse": "Syarat Penggunaan",
+    "healthy": "Sihat",
+    "unhealthy": "Tidak sihat",
+    "authenticate": "Sahkan",
+    "buyErg": "Beli ERG"
+  },
+  "datetime": {
+    "now": "sebentar tadi",
+    "seconds": "{count} saat | {count} saat",
+    "minutes": "{count} minit | {count} minit",
+    "hours": "{count} jam | {count} jam",
+    "days": "{count} hari | {count} hari",
+    "weeks": "{count} minggu | {count} minggu",
+    "months": "{count} bulan | {count} bulan",
+    "years": "{count} tahun | {count} tahun",
+    "relative": {
+      "past": {
+        "seconds": "{count} saat yang lalu | {count} saat yang lalu",
+        "minutes": "{count} minit yang lalu | {count} minit yang lalu",
+        "hours": "{count} jam yang lalu | {count} jam yang lalu",
+        "days": "{count} hari yang lalu | {count} hari yang lalu",
+        "weeks": "{count} minggu yang lalu | {count} minggu yang lalu",
+        "months": "{count} bulan yang lalu | {count} bulan yang lalu",
+        "years": "{count} tahun yang lalu | {count} tahun yang lalu"
+      },
+      "future": {
+        "seconds": "dalam {count} saat | dalam {count} saat",
+        "minutes": "dalam {count} minit | dalam {count} minit",
+        "hours": "dalam {count} jam | dalam {count} jam",
+        "days": "dalam {count} hari | dalam {count} hari",
+        "weeks": "dalam {count} minggu | dalam {count} minggu",
+        "months": "dalam {count} bulan | dalam {count} bulan",
+        "years": "dalam {count} tahun | dalam {count} tahun"
+      }
+    }
+  },
+  "device": {
+    "isLocked": "Peranti dikunci",
+    "ready": "Sedia",
+    "connect": "Sambung",
+    "connected": "Disambungkan",
+    "reconnecting": "Menyambung semula...",
+    "connecting": "Menyambung...",
+    "connectionError": "Ralat sambungan",
+    "notFoundError": "Peranti tidak ditemui!",
+    "notFoundErrorDesc": "Pastikan peranti anda disambungkan dan tidak dikunci dengan betul.",
+    "ledger": {
+      "waitingAppClose": "Menunggu apl ditutup",
+      "confirmAppOpen": "Sahkan pembukaan apl Ergo",
+      "waitingAppReady": "Menunggu apl sedia",
+      "userDeniedOpenApp": "Pembukaan apl Ergo ditolak oleh pengguna",
+      "deniedByUser": "Ditolak oleh pengguna",
+      "openingApp": "Ralat membuka apl Ergo",
+      "appId": "ID Apl: {appId}"
+    }
+  },
+  "header": {
+    "nav": {
+      "assets": "Aset",
+      "history": "Sejarah",
+      "receive": "Terima",
+      "send": "Hantar",
+      "dApps": "dApps"
+    },
+    "menu": {
+      "noWalletsFound": "Tiada dompet ditemui.",
+      "newWallet": "Dompet baharu",
+      "settings": "Tetapan",
+      "about": "Tentang"
+    }
+  },
+  "asset": {
+    "totalBalance": "Baki dompet",
+    "noConversionRate": "Tiada kadar penukaran",
+    "add": "Tambah aset",
+    "noAssetsFound": "Tiada aset ditemui.",
+    "tabs": {
+      "tokens": "Token",
+      "collectibles": "Barang koleksi"
+    },
+    "info": {
+      "emissionAmount": "Jumlah emisi",
+      "mintTxId": "Mint TXID",
+      "additionalMetadata": "Metadata tambahan"
+    }
+  },
+  "address": {
+    "filter": {
+      "all": "Semua",
+      "active": "Aktif",
+      "unused": "Tidak digunakan"
+    },
+    "state": {
+      "used": "Digunakan",
+      "unused": "Tidak digunakan"
+    },
+    "label": {
+      "address": "Alamat",
+      "path": "Laluan",
+      "current": "Alamat semasa",
+      "default": "Alamat lalai"
+    },
+    "receive": {
+      "": "Elakkan daripada menghantar lebih daripada {count} token dalam satu transaksi ke dompet ini. Memori peranti yang terhad boleh menyebabkan dana anda tidak dapat diakses.",
+      "verifyOnLedger": "Sahkan pada peranti Ledger",
+      "newAddressError": "Penjanaan alamat gagal",
+      "newAddressErrorFallbackMessage": "Tidak dapat menjana alamat baharu."
+    },
+    "qrCode": {
+      "title": "Kod QR Alamat",
+      "description": "Imbas kod QR ini untuk menerima aset dalam {address}."
+    },
+    "verify": {
+      "title": "Pengesahan Alamat",
+      "description": "Pastikan alamat dan laluan yang dipaparkan sepadan tepat dengan apa yang terpapar pada peranti anda.",
+      "confirmOnDevice": "Sahkan alamat pada peranti anda",
+      "notConfirmed": "Tidak disahkan",
+      "verificationError": "Pengesahan gagal",
+      "unknownVerificationError": "Ralat tidak diketahui berlaku semasa mengesahkan alamat."
+    }
+  },
+  "transaction": {
+    "history": {
+      "txTitle": "Transaksi {txId}",
+      "txState": "Menunggu | {count} pengesahan | {count} pengesahan",
+      "empty": "Anda belum mempunyai sejarah transaksi lagi.",
+      "nextPage": "Muat lebih banyak transaksi"
+    },
+    "send": {
+      "recipient": "Penerima",
+      "assets": "Aset",
+      "addAllAssets": "Tambah semua aset",
+      "addAllAssetsDesc": "Tambah semua aset ke senarai penghantaran.",
+      "minNamedAssetError": "Anda memerlukan sekurang-kurangnya {min} {asset} untuk menghantar transaksi ini.",
+      "requiredAmountError": "Sila masukkan jumlah.",
+      "minFeeError": "Anda perlu membayar bayaran minimum sebanyak {min} {name} untuk menghantar transaksi ini.",
+      "emptyAddressError": "Sila masukkan alamat penerima.",
+      "noSelectedAssetsError": "Sila pilih sekurang-kurangnya satu aset untuk menghantar transaksi ini."
+    },
+    "sign": {
+      "babelFeeSwap": "Pertukaran Bayaran Babel",
+      "sendingToYourAddress": "Menghantar ke alamat anda",
+      "sendingToContract": "Menghantar ke kontrak",
+      "sendingToScriptHash": "Menghantar ke Skrip Hash",
+      "sendingToExternalAddress": "Menghantar ke alamat luaran",
+      "broadcastError": "Siaran transaksi gagal",
+      "newToken": "Token Baharu",
+      "newTokenDesc": "Token ini akan dicetak dalam transaksi ini.",
+      "burning": "Pembakaran",
+      "burningDesc": "Aset yang disenaraikan di bawah akan hilang. Teruskan hanya jika anda tahu apa yang anda lakukan.",
+      "burningConfirm": "Bakar token secara kekal",
+      "totalOutput": "Jumlah aset yang keluar dari dompet anda",
+      "totalInput": "Jumlah aset yang masuk ke dompet anda",
+      "details": "Butiran transaksi",
+      "scriptHash": "Skrip Hash",
+      "networkFee": "Bayaran rangkaian",
+      "reviewTx": "Semakan Transaksi",
+      "reviewTxDesc": "Semak transaksi sebelum menandatanganinya.",
+      "buildError": "Pembinaan transaksi gagal",
+      "success": "Transaksi dihantar!",
+      "successDesc": "Transaksi anda telah berjaya ditandatangani dan dihantar.",
+      "signError": "Penandatanganan transaksi gagal"
+    }
+  },
+  "wallet": {
+    "spendingPassword": "Kata laluan perbelanjaan",
+    "emptyProof": "Prover tidak mengembalikan data yang ditandatangani.",
+    "requiredSpendingPassword": "Sila masukkan kata laluan perbelanjaan anda.",
+    "wrongPassword": "Kata laluan salah",
+    "wrongPasswordDesc": "Sila masukkan kata laluan perbelanjaan yang betul.",
+    "xPubKey": "Kunci awam lanjutan",
+    "xPubKeyDesc": "Kunci awam lanjutan membenarkan melihat sejarah transaksi dan menjana alamat baharu, tetapi tidak boleh membelanjakan atau memindahkan dana dalam apa jua cara.",
+    "xPrivKey": "Kunci peribadi lanjutan",
+    "walletName": "Nama dompet",
+    "confirmPassword": "Sahkan kata laluan",
+    "requiredWalletName": "Nama dompet diperlukan.",
+    "spendingPasswordRequired": "Kata laluan perbelanjaan diperlukan.",
+    "minSpendingPasswordLength": "Kata laluan perbelanjaan mesti sekurang-kurangnya {min} aksara panjang.",
+    "passwordsMustMatch": "'Kata laluan perbelanjaan' dan 'Sahkan kata laluan' mesti sepadan.",
+    "infoStep": "Maklumat dompet",
+    "infoStepDesc": "Maklumat ini akan digunakan untuk mengenal pasti dan melindungi dompet anda.",
+    "cantSignData": "Dompet ini tidak boleh menandatangani data.",
+    "cantSignTx": "Dompet ini tidak boleh menandatangani transaksi.",
+    "words": "{count} perkataan",
+    "readonlyWallet": "Dompet baca sahaja",
+    "ledgerWallet": "Dompet Ledger",
+    "type": {
+      "standard": "Standard",
+      "readonly": "Baca sahaja",
+      "ledger": "Ledger"
+    },
+    "alerts": {
+      "demurrage": "Anda mungkin akan dikenakan demurrage tidak lama lagi",
+      "demurrageDesc": "UTxOs yang memegang token mesti mempunyai ERG yang mencukupi untuk menampung bayaran demurrage, atau anda berisiko kehilangannya. Gabungkan aset anda untuk mengelakkan ini.",
+      "fragmentation": "Dompet anda kelihatan berpecah-pecah",
+      "fragmentationDesc": "Pertimbangkan untuk mengoptimumkan dompet anda untuk prestasi dan kecekapan yang lebih baik."
+    },
+    "index": {
+      "title": "Selamat datang ke Nautilus Wallet",
+      "subtitle": "Pilih pilihan untuk bermula",
+      "kyaAgreement": "Dengan meneruskan, anda bersetuju dengan {termsOfUse} Nautilus",
+      "create": "Cipta dompet baharu",
+      "createDesc": "Cipta dompet Ergo baharu",
+      "connect": "Sambungkan dompet Ledger",
+      "connectDesc": "Sambungkan dompet perkakasan anda",
+      "import": "Import dompet",
+      "importDesc": "Import dompet sedia ada"
+    },
+    "create": {
+      "createRecoveryPhrase": "Cipta frasa pemulihan",
+      "iHaveSavedTheseWords": "Saya telah menyimpan perkataan ini",
+      "recoveryPhraseDoNotMatch": "Frasa pemulihan tidak sepadan dengan yang asal.",
+      "walletCreationError": "Penciptaan dompet gagal",
+      "secretStep": "Frasa pemulihan",
+      "secretStepDesc": "Perkataan ini adalah kunci kepada dompet anda. Pastikan anda menyimpannya di lokasi yang selamat.",
+      "secretConfirmStep": "Sahkan frasa pemulihan anda",
+      "secretConfirmStepDesc": "Lengkapkan bahagian yang hilang dalam frasa pemulihan anda.",
+      "creating": "Mencipta dompet anda..."
+    },
+    "import": {
+      "insertPubKey": "Masukkan kunci awam",
+      "insertRecoveryPhrase": "Masukkan frasa pemulihan",
+      "requiredXPubKey": "Kunci awam lanjutan diperlukan.",
+      "requiredRecoveryPhrase": "Frasa pemulihan diperlukan.",
+      "walletImportError": "Import dompet gagal",
+      "importStep": "Masukkan Kunci Awam Lanjutan dompet anda.",
+      "importStepDesc": "Pilih jenis rahsia yang anda mahu gunakan dan isikannya.",
+      "walletType": "Jenis dompet",
+      "selectSecretType": "Pilih jenis rahsia",
+      "selectWalletType": "Pilih jenis dompet",
+      "words": "{count} perkataan frasa pemulihan",
+      "importing": "Mengimport dompet anda..."
+    },
+    "connect": {
+      "confirmXPubExport": "Sahkan eksport Kunci Awam Lanjutan",
+      "notExported": "Tidak dieksport",
+      "verificationError": "Pengesahan gagal",
+      "verificationUnknownError": "Ralat tidak diketahui berlaku semasa mengesahkan alamat.",
+      "success": "Dompet disambungkan!",
+      "popupViewMode": "pop timbul",
+      "sidePanelViewMode": "panel sisi",
+      "successDesc": "Peranti Ledger anda telah berjaya disambungkan. Anda kini boleh membuka Nautilus Wallet dalam {viewMode} pelayar.",
+      "openInViewMode": "Buka Nautilus dalam {viewMode}"
+    }
+  },
+  "settings": {
+    "systemDefault": "Lalai sistem",
+    "tabs": {
+      "global": "Global",
+      "wallet": "Dompet",
+      "connections": "Sambungan"
+    },
+    "global": {
+      "displayLanguage": "Bahasa paparan",
+      "displayLanguageDesc": "Pilih bahasa untuk antara muka Nautilus Wallet.",
+      "conversionCurrency": "Mata wang penukaran",
+      "conversionCurrencyDesc": "Pilih mata wang untuk kadar penukaran.",
+      "noCurrenciesFound": "Tiada mata wang ditemui.",
+      "devMode": "Mod pembangun",
+      "devModeDesc": "Dayakan mod pembangun untuk mengakses ciri-ciri lanjutan.",
+      "tokenBlacklists": "Senarai hitam token",
+      "tokenBlacklistsDesc": "Urus senarai hitam token untuk menyembunyikan token yang tidak diingini.",
+      "nsfwTokensBlacklist": "Token NSFW",
+      "nsfwTokensBlacklistDesc": "Sembunyikan token NSFW (Tidak Selamat Untuk Kerja).",
+      "scamTokensBlacklist": "Token penipuan",
+      "scamTokensBlacklistDesc": "Sembunyikan token penipuan.",
+      "gqlServer": "Pelayan GraphQL",
+      "requiredGql": "URL GraphQL diperlukan.",
+      "wrongServerNetwork": "Rangkaian pelayan salah.",
+      "unsupportedServerVersion": "Versi pelayan tidak disokong. Nautilus memerlukan sekurang-kurangnya versi {version}.",
+      "explorerUrl": "URL Penjelajah",
+      "requiredExplorer": "URL Penjelajah diperlukan.",
+      "ipfsGateway": "Gerbang IPFS",
+      "requiredIpfs": "URL Gerbang IPFS diperlukan.",
+      "experimental": "Eksperimen",
+      "experimentalDesc": "Ciri-ciri di bawah bahagian ini ditandakan sebagai eksperimen, yang bermaksud ia tidak stabil. Gunakannya dengan berhati-hati, kerana ia mungkin mengandungi pepijat atau menjalani perubahan ketara. Ia adalah kerja yang sedang berjalan, jadi jangkakan beberapa kesulitan.",
+      "zeroConf": "Dayakan 0-conf",
+      "zeroConfDesc": "0-conf, singkatan untuk sifar-pengesahan, membolehkan anda membelanjakan aset tanpa menunggu pengesahan. Ia pantas tetapi membawa risiko digandakan sehingga disahkan oleh blockchain."
+    },
+    "wallet": {
+      "walletNameDesc": "Tetapkan nama untuk dompet anda.",
+      "avoidAddressReuse": "Elakkan penggunaan semula alamat",
+      "avoidAddressReuseDesc": "Dayakan pilihan ini untuk mengelakkan alamat yang sama daripada digunakan untuk pelbagai transaksi. Ini membantu melindungi privasi anda.",
+      "xPubKeyDesc": "Gunakan pilihan ini untuk mengeksport Kunci Awam Lanjutan dompet anda.",
+      "removeWallet": "Buang dompet",
+      "removeWalletDesc": "Gunakan pilihan ini untuk membuang dompet semasa daripada apl.",
+      "walletRemoveConfirmation": "Adakah anda benar-benar pasti?",
+      "walletRemoveConfirmationDesc": "Membuang dompet tidak menjejaskan baki blockchainnya, dan anda boleh memulihkannya kemudian. Walau bagaimanapun, pastikan anda masih mempunyai maklumat yang diperlukan untuk memulihkannya. Tanpa maklumat tersebut, membuang dompet boleh mengakibatkan kehilangan dana yang tidak dapat dipulihkan."
+    },
+    "connections": {
+      "noConnectedApps": "Anda belum mempunyai apl yang disambungkan lagi."
+    }
+  },
+  "about": {
+    "nautilusWallet": "Nautilus Wallet",
+    "quote": "Dibina secara rahsia, mendapatkan bahagian daripada sumber yang tidak dinamakan. Mengembara di lautan di luar jangkauan kerajaan berasaskan darat.",
+    "donation": "Sokong pembangunan Nautilus Wallet dengan menderma kepada {address}."
+  },
+  "dapps": {
+    "sigmaUsd": {
+      "title": "Protokol SigmaUSD",
+      "insufficientBalance": "Baki {asset} tidak mencukupi.",
+      "blockedAction": "Disebabkan rizab bank semasa, anda tidak boleh {action} lebih daripada {amount} {asset}.",
+      "feeSummary": "Bayaran {amount}",
+      "protocolFee": "Bayaran Protokol ({rate})",
+      "protocolFeeDesc": "Bayaran Protokol secara langsung menyumbang kepada rizab bank.",
+      "serviceFee": "Bayaran Perkhidmatan ({rate})",
+      "serviceFeeDesc": "Nautilus Wallet mengenakan bayaran tetap untuk membiayai pembangunannya secara mampan.",
+      "networkFee": "Bayaran Rangkaian",
+      "networkFeeDesc": "Ini adalah kos untuk menambah transaksi ke blockchain.",
+      "totalFee": "Jumlah Bayaran",
+      "bankReserves": "Rizab bank",
+      "oracleRate": "Kadar semasa",
+      "buy": "beli",
+      "sell": "jual"
+    },
+    "walletOptimizer": {
+      "title": "Pengoptimum Dompet",
+      "description": "Gunakan alat ini untuk menggabungkan UTxOs anda, meningkatkan prestasi dan mengelakkan bayaran {demurrage}.",
+      "demurrage": "demurrage",
+      "size": "{count} {size}",
+      "bytes": "bait",
+      "utxoCount": "Kiraan UTxO",
+      "oldestUtxo": "UTxO tertua",
+      "walletSize": "Saiz dompet",
+      "walletHealth": "Kesihatan dompet"
+    }
+  },
+  "connector": {
+    "connect": {
+      "header": "{host} meminta untuk menyambung dengan Nautilus.",
+      "connect": "Sambung"
+    },
+    "auth": {
+      "header": "{host} meminta bukti bahawa alamat yang dipilih adalah milik anda.",
+      "selectedAddress": "Alamat yang dipilih"
+    },
+    "signData": {
+      "header": "{host} meminta untuk menandatangani mesej.",
+      "dataType": {
+        "text": "Mesej teks",
+        "json": "Objek JSON",
+        "hash": "Mesej hash",
+        "binary": "Data binari"
+      }
+    },
+    "signTx": {
+      "fullTxHeader": "{host} meminta untuk menandatangani transaksi.",
+      "partialTxHeader": "{host} meminta untuk menandatangani transaksi sebahagiannya"
+    }
+  }
+}
