@@ -1,7 +1,6 @@
-import { Ref, ref, shallowRef } from "vue";
-import { pausableWatch, StorageSerializers, toValue, tryOnScopeDispose } from "@vueuse/core";
+import { Ref, ref, shallowRef, toValue, MaybeRefOrGetter } from "vue";
+import { pausableWatch, StorageSerializers, tryOnScopeDispose } from "@vueuse/core";
 import type {
-  MaybeRefOrGetter,
   RemovableRef,
   StorageLikeAsync,
   UseStorageAsyncOptions
