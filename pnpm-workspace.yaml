@@ -1,0 +1,6 @@
+minimumReleaseAge: 10080
+allowBuilds:
+  "@swc/core": true
+  esbuild: true
+  spawn-sync: true
+  vue-demi: true
