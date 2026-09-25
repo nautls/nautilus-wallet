@@ -5,7 +5,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { differenceBy } from "es-toolkit";
-import { CheckCheckIcon } from "lucide-vue-next";
+import { CheckCheckIcon, CheckCircle2Icon, Globe2Icon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
@@ -16,6 +16,7 @@ import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import {
   createP2PTransaction,
@@ -28,6 +29,7 @@ import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
+import { isErgoDomain, resolveErgoDomain, ResolvedErgoDomain } from "@/chains/ergo/services/domainResolver";
 
 const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
 const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
@@ -43,12 +45,18 @@ const selected = ref<TxAssetAmount[]>([]);
 const fee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: INITIAL_FEE_VAL });
 const password = ref("");
 const recipient = ref("");
+const resolvedDomain = ref<ResolvedErgoDomain>();
+const resolvingDomain = ref(false);
+const domainError = ref("");
+
+const recipientAddress = computed(() => resolvedDomain.value?.address ?? recipient.value.trim());
+const typedDomain = computed(() => isErgoDomain(recipient.value));
 
 const v$ = useVuelidate(
   {
     recipient: {
       required: helpers.withMessage(t("transaction.send.emptyAddressError"), required),
-      validErgoAddress
+      validErgoAddress: (value: string) => isErgoDomain(value) || validErgoAddress.$validator(value)
     },
     selected: {
       required: helpers.withMessage(t("transaction.send.noSelectedAssetsError"), required)
@@ -115,6 +123,24 @@ watch(
   }
 );
 
+watch(recipient, async (value) => {
+  resolvedDomain.value = undefined;
+  domainError.value = "";
+  const name = value.trim().toLowerCase();
+  if (!isErgoDomain(name)) return;
+  resolvingDomain.value = true;
+  try {
+    const result = await resolveErgoDomain(name);
+    if (recipient.value.trim().toLowerCase() === name) resolvedDomain.value = result;
+  } catch (error) {
+    if (recipient.value.trim().toLowerCase() === name) {
+      domainError.value = error instanceof Error ? error.message : "This name could not be resolved.";
+    }
+  } finally {
+    if (recipient.value.trim().toLowerCase() === name) resolvingDomain.value = false;
+  }
+});
+
 watch(
   () => selected.value.length,
   () => v$.value.selected.$touch()
@@ -138,11 +164,15 @@ function scrollToErrorElement() {
 async function sendTransaction() {
   const valid = await v$.value.$validate();
   if (!valid) return scrollToErrorElement();
+  if (isErgoDomain(recipient.value) && (!resolvedDomain.value || resolvingDomain.value)) {
+    domainError.value = "Wait for the domain to resolve before sending.";
+    return;
+  }
 
   openTransactionSignDialog({
     transactionBuilder: async () =>
       createP2PTransaction({
-        recipientAddress: recipient.value,
+        recipientAddress: recipientAddress.value,
         assets: selected.value,
         fee: fee.value,
         walletType: wallet.type
@@ -151,6 +181,8 @@ async function sendTransaction() {
       selected.value = [];
       setErgAsSelected();
       recipient.value = "";
+      resolvedDomain.value = undefined;
+      domainError.value = "";
       password.value = "";
       v$.value.$reset();
     }
@@ -229,15 +261,48 @@ function isFeeAsset(tokenId: string): boolean {
   <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
       <FormField :validation="v$.recipient">
-        <Label for="recipient">{{ t("transaction.send.recipient") }}</Label>
-        <Input
-          id="recipient"
-          v-model="recipient"
-          type="text"
-          spellcheck="false"
-          class="w-full"
-          @blur="v$.recipient.$touch()"
-        />
+        <Label for="recipient">Address or ErgoName</Label>
+        <div class="relative">
+          <Input
+            id="recipient"
+            v-model="recipient"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Enter an Ergo address or name.erg"
+            :class="{ 'pr-10': typedDomain }"
+            @blur="v$.recipient.$touch()"
+          />
+          <Loader2Icon
+            v-if="resolvingDomain"
+            class="text-muted-foreground absolute top-2 right-3 size-5 animate-spin"
+          />
+          <Globe2Icon
+            v-else-if="typedDomain"
+            class="text-muted-foreground absolute top-2 right-3 size-5"
+          />
+        </div>
+        <p class="text-muted-foreground text-xs">Send to an Ergo address or resolve an ErgoName ending in .erg or .ergo.</p>
+
+        <Alert v-if="resolvingDomain" class="bg-muted/40 mt-2 space-x-2 py-2">
+          <Loader2Icon class="size-4 animate-spin" />
+          <AlertTitle>Resolving Ergo Domain</AlertTitle>
+          <AlertDescription>{{ recipient.trim().toLowerCase() }}</AlertDescription>
+        </Alert>
+        <Alert v-else-if="resolvedDomain" class="border-success/40 bg-success/5 mt-2 space-x-2 py-2">
+          <CheckCircle2Icon class="text-success size-4" />
+          <AlertTitle>{{ resolvedDomain.name }} resolved</AlertTitle>
+          <AlertDescription class="grid gap-1">
+            <span class="text-muted-foreground text-xs">Recipient address</span>
+            <span class="font-mono text-xs break-all">{{ resolvedDomain.address }}</span>
+            <span class="text-muted-foreground text-xs">Valid through block {{ resolvedDomain.expiryHeight }}</span>
+          </AlertDescription>
+        </Alert>
+        <Alert v-else-if="domainError" variant="destructive-outline" class="mt-2 space-x-2 py-2">
+          <TriangleAlertIcon class="size-4" />
+          <AlertTitle>Domain unavailable</AlertTitle>
+          <AlertDescription>{{ domainError }}</AlertDescription>
+        </Alert>
       </FormField>
 
       <FormField>

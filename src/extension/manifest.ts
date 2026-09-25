@@ -55,6 +55,9 @@ export function buildManifest(
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
     },
     permissions: ["storage", "tabs", ...(browser === "chrome" ? ["sidePanel"] : [])],
+    // Development resolver only. Production builds should replace this exact
+    // origin with the audited public Ergo Domains resolver endpoint.
+    host_permissions: ["http://127.0.0.1:3032/*"],
     action: {
       default_popup: r("popup/index.html"),
       default_title: "Nautilus Wallet"
