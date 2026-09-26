@@ -2,10 +2,10 @@
 import { computed, HTMLAttributes, nextTick, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
 import { useI18n } from "vue-i18n";
+import { useWalletStore } from "@/stores/walletStore";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
 import { cn } from "@/common/utils";
-import { useWalletStore } from "@/stores/walletStore";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
 
