@@ -5,6 +5,7 @@ import { groupBy, maxBy } from "es-toolkit";
 import { useRouter } from "vue-router";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import type { OldBox } from "@/chains/ergo/services/graphQlService";
 import { hdKeyPool } from "@/common/objectPool";
 import { patchArray } from "@/common/reactivity";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
@@ -75,8 +76,10 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     type: ref(WalletType.Standard),
     publicKey: ref(""),
     chainCode: ref(""),
+    watchAddress: ref(""),
     lastSynced: ref(0),
     hasOldUtxos: ref(false),
+    oldUtxos: ref<OldBox[]>([]),
     addresses,
     assets,
     patchAddresses,
@@ -230,7 +233,8 @@ export const useWalletStore = defineStore("wallet", () => {
 
   const health = computed(() => ({
     utxoCount: 0, // see: https://github.com/nautls/nautilus-wallet/issues/176
-    hasOldUtxos: privateState.hasOldUtxos
+    hasOldUtxos: privateState.hasOldUtxos,
+    oldUtxos: privateState.oldUtxos
   }));
 
   /**
@@ -285,8 +289,10 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.type = wlt.type;
     privateState.publicKey = wlt.publicKey;
     privateState.chainCode = wlt.chainCode;
+    privateState.watchAddress = wlt.watchAddress ?? "";
     privateState.lastSynced = wlt.lastSynced ?? 0;
     privateState.hasOldUtxos = false;
+    privateState.oldUtxos = [];
     name.value = wlt.name;
     settings.value = wlt.settings;
 
@@ -296,14 +302,27 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.assets = dbAssets;
 
     const dbAddresses = await addressesDbService.getByWalletId(walletId);
+    if (privateState.watchAddress && !dbAddresses.some((x) => x.script === privateState.watchAddress)) {
+      const watchedAddress: IDbAddress = {
+        type: AddressType.P2PK,
+        state: AddressState.Unused,
+        script: privateState.watchAddress,
+        index: 0,
+        walletId
+      };
+      await addressesDbService.put(watchedAddress);
+      dbAddresses.push(watchedAddress);
+    }
     privateState.addresses = dbAddresses;
 
     appStore.settings.lastOpenedWalletId = walletId;
 
-    hdKeyPool.alloc(
-      privateState.publicKey,
-      HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
-    );
+    if (!privateState.watchAddress) {
+      hdKeyPool.alloc(
+        privateState.publicKey,
+        HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
+      );
+    }
 
     if (opt.syncInBackground) {
       sync();
@@ -315,6 +334,9 @@ export const useWalletStore = defineStore("wallet", () => {
   }
 
   async function deriveNewAddress() {
+    if (privateState.watchAddress) {
+      throw new Error("An address-only watch wallet cannot derive new addresses.");
+    }
     const lastUsed = addresses.value.findLastIndex((x) => x.state === AddressState.Used);
     if (addresses.value.length - lastUsed > CHUNK_DERIVE_LENGTH) {
       throw new RangeError(
@@ -338,10 +360,11 @@ export const useWalletStore = defineStore("wallet", () => {
   }
 
   async function checkOldUtxos() {
-    privateState.hasOldUtxos = await graphQLService.checkBoxesOlderThan(
+    privateState.oldUtxos = await graphQLService.getBoxesOlderThan(
       chain.height - HEALTHY_BLOCKS_AGE,
       privateState.addresses.filter((x) => x.state === AddressState.Used).map((x) => x.script)
     );
+    privateState.hasOldUtxos = privateState.oldUtxos.length > 0;
   }
 
   // #region private actions
@@ -350,14 +373,16 @@ export const useWalletStore = defineStore("wallet", () => {
     setSyncing(true);
 
     const walletId = privateState.id;
-    const deriver = hdKeyPool.get(privateState.publicKey);
+    const deriver = privateState.watchAddress ? undefined : hdKeyPool.get(privateState.publicKey);
     const addressesChunks = [] as IDbAddress[][];
     const assetsChunks = [] as IDbAsset[][];
     let offset = 0;
     let keepChecking = true;
 
     while (keepChecking && walletId === privateState.id) {
-      const derived = getOrDerive(privateState.addresses, deriver, CHUNK_DERIVE_LENGTH, offset);
+      const derived = privateState.watchAddress
+        ? privateState.addresses.filter((address) => address.script === privateState.watchAddress)
+        : getOrDerive(privateState.addresses, deriver!, CHUNK_DERIVE_LENGTH, offset);
       const info = await graphQLService.getAddressesInfo(derived.map((x) => x.script));
 
       addressesChunks.push(
@@ -388,7 +413,7 @@ export const useWalletStore = defineStore("wallet", () => {
       );
 
       offset += derived.length;
-      keepChecking = info.some((x) => x.used);
+      keepChecking = !privateState.watchAddress && info.some((x) => x.used);
     }
 
     if (walletId !== privateState.id) return; // ensure we are still on the same wallet
@@ -398,7 +423,8 @@ export const useWalletStore = defineStore("wallet", () => {
       privateState.addresses,
       addressesChunks.flat(),
       privateState.assets,
-      assetsChunks.flat()
+      assetsChunks.flat(),
+      Boolean(privateState.watchAddress)
     );
 
     // persist data
@@ -454,11 +480,14 @@ function getChanges(
   currentAddresses: IDbAddress[],
   newAddress: IDbAddress[],
   currentAssets: IDbAsset[],
-  newAssets: IDbAsset[]
+  newAssets: IDbAsset[],
+  retainUnusedAddresses = false
 ) {
   const sortedAddresses = newAddress.sort((a, b) => a.index - b.index);
   const latUsedIndex = sortedAddresses.findLastIndex((a) => a.state === AddressState.Used);
-  const prunedAddresses = sortedAddresses.slice(0, latUsedIndex + 2); // keep last used and next unused
+  const prunedAddresses = retainUnusedAddresses
+    ? sortedAddresses
+    : sortedAddresses.slice(0, latUsedIndex + 2); // keep last used and next unused
 
   const changedAddresses = prunedAddresses.filter((newAddress) => {
     const currentAddress = currentAddresses.find((x) => x.script === newAddress.script);

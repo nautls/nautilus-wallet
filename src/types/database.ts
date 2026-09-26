@@ -19,6 +19,8 @@ export interface IDbWallet {
   type: WalletType;
   publicKey: string;
   chainCode: string;
+  /** A single public address monitored by an address-only watch wallet. */
+  watchAddress?: string;
   mnemonic?: string;
   settings: WalletSettings;
   lastSynced?: number;

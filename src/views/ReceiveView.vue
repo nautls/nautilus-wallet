@@ -27,8 +27,11 @@ const format = useFormat();
 const { t } = useI18n();
 
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
+const isReadOnly = computed(() => wallet.type === WalletType.ReadOnly);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
-const canAddNewAddress = computed(() => wallet.settings.addressFilter !== "active");
+const canAddNewAddress = computed(
+  () => !isReadOnly.value && wallet.settings.addressFilter !== "active"
+);
 
 const { open: openQrCodeDialog } = useProgrammaticDialog(AddressQrCodeDialog);
 const { open: openAddressVerifyDialog } = useProgrammaticDialog(AddressVerifyDialog);

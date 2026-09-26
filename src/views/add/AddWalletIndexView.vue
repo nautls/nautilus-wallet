@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ImportIcon, WalletIcon } from "lucide-vue-next";
+import { EyeIcon, ImportIcon, WalletIcon } from "lucide-vue-next";
 import { I18nT, useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";
@@ -70,6 +70,15 @@ const routes = [
     },
     title: t("wallet.index.import"),
     description: t("wallet.index.importDesc")
+  },
+  {
+    path: "/add/import?mode=readonly",
+    icon: {
+      component: EyeIcon,
+      class: "stroke-[1px]"
+    },
+    title: t("wallet.index.watchOnly"),
+    description: t("wallet.index.watchOnlyDesc")
   }
 ];
 </script>

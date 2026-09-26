@@ -5,7 +5,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
 import { FingerprintIcon, KeyRoundIcon, Loader2Icon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import { Mnemonic } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { WalletType } from "@/types/internal";
-import { validMnemonic, validPublicKey } from "@/validators";
+import { validErgoAddress, validMnemonic, validPublicKey } from "@/validators";
 import { Step, Stepper, StepTitle } from "./components";
 
 const SUPPORTED_MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24]);
@@ -34,6 +34,7 @@ const SUPPORTED_MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24]);
 const app = useAppStore();
 const wallet = useWalletStore();
 const router = useRouter();
+const route = useRoute();
 const { toast } = useToast();
 const { t } = useI18n();
 
@@ -43,7 +44,9 @@ const confirmPassword = ref("");
 const mnemonicWords = ref<string[]>([]);
 const loading = ref(false);
 const step = ref(1);
-const walletType = ref<"standard" | "readonly">("standard");
+const walletType = ref<"standard" | "readonly">(
+  route.query.mode === "readonly" ? "readonly" : "standard"
+);
 
 const wordsCount = ref(15);
 const wordsCountStr = computed({
@@ -52,14 +55,16 @@ const wordsCountStr = computed({
 });
 
 const xpk = ref("");
+const address = ref("");
+const watchSource = ref<"address" | "xpub">("address");
 
 const mnemonicPhrase = computed(() => mnemonicWords.value.join(" "));
 const isReadonly = computed(() => walletType.value === "readonly");
+const isAddressWatch = computed(() => isReadonly.value && watchSource.value === "address");
 const nextButtonTitle = computed(() => {
   if (step.value === 1) {
-    return isReadonly.value
-      ? t("wallet.import.insertPubKey")
-      : t("wallet.import.insertRecoveryPhrase");
+    if (isAddressWatch.value) return t("wallet.import.insertAddress");
+    return isReadonly.value ? t("wallet.import.insertPubKey") : t("wallet.import.insertRecoveryPhrase");
   } else {
     return t("common.import");
   }
@@ -120,6 +125,21 @@ watch(walletType, () => {
 });
 
 watch(
+  () => route.query.mode,
+  (mode) => (walletType.value = mode === "readonly" ? "readonly" : "standard")
+);
+
+const addressRules = useVuelidate(
+  {
+    address: {
+      required: helpers.withMessage(t("wallet.import.requiredAddress"), required),
+      validErgoAddress
+    }
+  },
+  { address }
+);
+
+watch(
   wordsCount,
   (length) =>
     (mnemonicWords.value = Array.from({ length }).map((_, i) => mnemonicWords.value[i] ?? "")),
@@ -138,8 +158,10 @@ async function next() {
   }
 
   if (isReadonly.value) {
-    const validXpk = await xpkRules.value.$validate();
-    if (!validXpk) return;
+    const valid = isAddressWatch.value
+      ? await addressRules.value.$validate()
+      : await xpkRules.value.$validate();
+    if (!valid) return;
   } else {
     const validMnemonic = await mnemonicRules.value.$validate();
     if (!validMnemonic) return;
@@ -149,11 +171,11 @@ async function next() {
     loading.value = true;
 
     const walletId = isReadonly.value
-      ? await app.putWallet({
-          name: walletName.value,
-          type: WalletType.ReadOnly,
-          extendedPublicKey: xpk.value
-        })
+      ? await app.putWallet(
+          isAddressWatch.value
+            ? { name: walletName.value, type: WalletType.ReadOnly, watchAddress: address.value }
+            : { name: walletName.value, type: WalletType.ReadOnly, extendedPublicKey: xpk.value }
+        )
       : await app.putWallet({
           name: walletName.value,
           type: WalletType.Standard,
@@ -207,10 +229,12 @@ const steps = computed<Step[]>(() => [
   },
   {
     step: 2,
-    title: isReadonly.value ? "Wallet key" : "Wallet secret",
-    description: isReadonly.value
-      ? t("wallet.import.importStep")
-      : t("wallet.import.importStepDesc"),
+    title: isAddressWatch.value ? t("wallet.import.address") : isReadonly.value ? "Wallet key" : "Wallet secret",
+    description: isAddressWatch.value
+      ? t("wallet.import.addressStepDesc")
+      : isReadonly.value
+        ? t("wallet.import.importStep")
+        : t("wallet.import.importStepDesc"),
     icon: KeyRoundIcon,
     enabled: computed(() => !infoRules.value.$invalid)
   }
@@ -277,7 +301,23 @@ const steps = computed<Step[]>(() => [
 
       <template v-else-if="step === 2">
         <template v-if="isReadonly">
-          <FormField :validation="xpkRules.xpk">
+          <FormField>
+            <Label for="watch-source">{{ t("wallet.import.watchSource") }}</Label>
+            <Select v-model="watchSource">
+              <SelectTrigger id="watch-source"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="address">{{ t("wallet.import.singleAddress") }}</SelectItem>
+                  <SelectItem value="xpub">{{ t("wallet.import.extendedAccount") }}</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField v-if="isAddressWatch" :validation="addressRules.address">
+            <Label for="watch-address">{{ t("wallet.import.address") }}</Label>
+            <Input id="watch-address" v-model="address" placeholder="9..." @blur="addressRules.address.$touch()" />
+          </FormField>
+          <FormField v-else :validation="xpkRules.xpk">
             <Label for="xpk">{{ t("wallet.xPubKey") }}</Label>
             <Textarea id="xpk" v-model="xpk" class="h-40" @blur="xpkRules.xpk.$touch()" />
           </FormField>

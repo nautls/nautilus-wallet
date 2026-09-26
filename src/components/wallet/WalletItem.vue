@@ -35,8 +35,8 @@ function getFirstByte(hex: string): number {
 watch(
   () => props.wallet,
   () => {
-    const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
-    checksum.value = calcCip4ImageHash(xpk);
+    const seed = props.wallet.watchAddress ?? mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
+    checksum.value = calcCip4ImageHash(seed);
 
     const i = getFirstByte(checksum.value) % COLORS.length;
     const [primary, background, spot] = COLORS[i];

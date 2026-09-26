@@ -89,6 +89,8 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
+      <WalletAlerts />
+
       <div class="flex cursor-default items-center justify-around bg-transparent py-4">
         <div>
           <h2 class="text-2xl">
@@ -102,8 +104,6 @@ function openAssetInfoDialog(tokenId: string) {
 
         <BuyErgButton />
       </div>
-
-      <WalletAlerts />
 
       <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
         <div class="flex flex-row">

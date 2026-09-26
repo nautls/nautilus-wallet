@@ -7,6 +7,7 @@ import AES from "crypto-js/aes";
 import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
+import { validateAddress } from "@/chains/ergo/addresses";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
@@ -18,6 +19,8 @@ import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { setLocale } from "@/i18n";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { Network, WalletType } from "@/types/internal";
+import { AddressState, AddressType } from "@/types/internal";
+import { addressesDbService } from "@/database/addressesDbService";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
 
@@ -45,10 +48,16 @@ type StandardWallet = {
   password: string;
 };
 
-type ReadOnlyWallet = {
+type ExtendedPublicKeyWallet = {
   name: string;
   type: WalletType.ReadOnly | WalletType.Ledger;
   extendedPublicKey: string;
+};
+
+type AddressWatchWallet = {
+  name: string;
+  type: WalletType.ReadOnly;
+  watchAddress: string;
 };
 
 const usePrivateState = defineStore("_app", () => ({
@@ -135,19 +144,28 @@ export const useAppStore = defineStore("app", () => {
     privateState.wallets.splice(index, 1);
   }
 
-  async function putWallet(data: StandardWallet | ReadOnlyWallet): Promise<number> {
-    const key =
-      data.type === WalletType.Standard
+  async function putWallet(
+    data: StandardWallet | ExtendedPublicKeyWallet | AddressWatchWallet
+  ): Promise<number> {
+    const isAddressWatch = "watchAddress" in data;
+    if (isAddressWatch && !validateAddress(data.watchAddress)) {
+      throw new Error("Enter a valid Ergo address for a watch-only wallet.");
+    }
+
+    const key = isAddressWatch
+      ? undefined
+      : data.type === WalletType.Standard
         ? await HdKey.fromMnemonic(data.mnemonic)
         : HdKey.fromPublicKey(data.extendedPublicKey);
 
-    hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
+    if (key) hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
     const dbObj: IDbWallet = {
       name: data.name.trim(),
       network: Network.ErgoMainnet,
       type: data.type,
-      publicKey: hex.encode(key.publicKey),
-      chainCode: hex.encode(key.chainCode),
+      publicKey: isAddressWatch ? `watch:${data.watchAddress}` : hex.encode(key!.publicKey),
+      chainCode: isAddressWatch ? "" : hex.encode(key!.chainCode),
+      watchAddress: isAddressWatch ? data.watchAddress : undefined,
       mnemonic:
         data.type === WalletType.Standard
           ? AES.encrypt(data.mnemonic, data.password).toString()
@@ -161,6 +179,16 @@ export const useAppStore = defineStore("app", () => {
 
     const walletId = await walletsDbService.put(dbObj);
     dbObj.id = walletId;
+
+    if (isAddressWatch) {
+      await addressesDbService.put({
+        type: AddressType.P2PK,
+        state: AddressState.Unused,
+        script: data.watchAddress,
+        index: 0,
+        walletId
+      });
+    }
 
     const index = privateState.wallets.findIndex((w) => w.id === walletId);
     if (index > -1) {
