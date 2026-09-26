@@ -48,6 +48,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/SendView.vue")
   },
   {
+    path: "/address-book",
+    name: "address-book",
+    component: () => import("@/views/AddressBookView.vue")
+  },
+  {
     path: "/dapps",
     component: () => import("@/views/dapps/DAppsView.vue"),
     children: [

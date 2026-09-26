@@ -61,6 +61,7 @@ class WalletsDbService {
   public async delete(walletId: number): Promise<void> {
     await Promise.all([
       dbContext.addresses.where({ walletId }).delete(),
+      dbContext.addressBook.where({ walletId }).delete(),
       dbContext.assets.where({ walletId }).delete(),
       dbContext.connectedDApps.where({ walletId }).delete(),
       dbContext.utxos.where({ walletId }).delete(),

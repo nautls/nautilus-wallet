@@ -17,19 +17,26 @@ const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
 </script>
 
 <template>
-  <Alert v-if="wallet.health.hasOldUtxos" variant="destructive" class="flex items-center gap-3 py-3">
+  <Alert
+    v-if="wallet.health.hasOldUtxos"
+    variant="destructive"
+    class="flex flex-col gap-2 p-3 sm:flex-row sm:items-center"
+  >
     <div class="min-w-0 grow">
-      <AlertTitle class="truncate">{{ t("wallet.alerts.storageRent") }}</AlertTitle>
-      <AlertDescription class="truncate text-xs">
+      <AlertTitle class="text-sm leading-tight">{{ t("wallet.alerts.storageRent") }}</AlertTitle>
+      <AlertDescription class="mt-0.5 truncate text-xs">
         {{ t("wallet.alerts.storageRentBox", { boxId: firstOldBox?.boxId.slice(0, 12) }) }}
         <template v-if="additionalOldBoxes">
           {{ t("wallet.alerts.storageRentAdditional", { count: additionalOldBoxes }) }}
         </template>
       </AlertDescription>
     </div>
-    <Button size="sm" class="shrink-0" @click="goToOptimizationDapp">{{
-      t("common.consolidate")
-    }}</Button>
+    <Button
+      size="sm"
+      class="border-destructive-foreground/35 bg-destructive-foreground/10 text-destructive-foreground hover:bg-destructive-foreground/20 w-full shrink-0 border shadow-none sm:w-auto"
+      @click="goToOptimizationDapp"
+      >{{ t("common.consolidate") }}</Button
+    >
   </Alert>
 
   <Alert v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT">

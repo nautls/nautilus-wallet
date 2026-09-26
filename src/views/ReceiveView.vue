@@ -86,8 +86,17 @@ function openExplorer(address: string | undefined) {
             {{ wallet.changeAddress?.script }}
             <CopyButton class="size-3" :content="wallet.changeAddress?.script" />
           </div>
-          <div v-if="currentErgoDomains.length" class="text-primary mt-1 text-xs font-medium">
-            {{ currentErgoDomains.map((domain) => domain.name).join(" · ") }}
+          <div
+            v-if="currentErgoDomains.length"
+            class="text-primary mt-1 flex items-center gap-1 text-xs font-medium"
+          >
+            <span class="truncate">{{
+              currentErgoDomains.map((domain) => domain.name).join(" · ")
+            }}</span>
+            <CopyButton
+              class="size-3 shrink-0"
+              :content="currentErgoDomains.map((domain) => domain.name).join(' · ')"
+            />
           </div>
         </div>
 
@@ -132,12 +141,26 @@ function openExplorer(address: string | undefined) {
                   format.string.shorten(address.script, 8)
                 }}</span>
               </Button>
-              <span
+              <div
                 v-if="wallet.getErgoDomains(address.script).length"
-                class="text-primary truncate pl-6 text-xs font-medium"
+                class="text-primary flex min-w-0 items-center gap-1 pl-6 text-xs font-medium"
               >
-                {{ wallet.getErgoDomains(address.script).map((domain) => domain.name).join(" · ") }}
-              </span>
+                <span class="truncate">{{
+                  wallet
+                    .getErgoDomains(address.script)
+                    .map((domain) => domain.name)
+                    .join(" · ")
+                }}</span>
+                <CopyButton
+                  class="size-3 shrink-0"
+                  :content="
+                    wallet
+                      .getErgoDomains(address.script)
+                      .map((domain) => domain.name)
+                      .join(' · ')
+                  "
+                />
+              </div>
             </div>
 
             <div class="space-x-1.5 pb-1">

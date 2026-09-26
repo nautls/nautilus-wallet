@@ -3,6 +3,7 @@ import { uniqBy } from "es-toolkit";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import {
   IAssetInfo,
+  IDbAddressBookEntry,
   IDbAddress,
   IDbAsset,
   IDbDAppConnection,
@@ -17,6 +18,7 @@ class NautilusDb extends Dexie {
   connectedDApps!: Table<IDbDAppConnection, string>;
   utxos!: Table<IDbUtxo, string>;
   assetInfo!: Table<IAssetInfo, string>;
+  addressBook!: Table<IDbAddressBookEntry, number>;
 
   constructor() {
     super("nautilusDb");
@@ -77,6 +79,8 @@ class NautilusDb extends Dexie {
           delete wallet.settings[hideUsedAddresses];
         });
     });
+
+    this.version(8).stores({ addressBook: "++id, walletId, &[walletId+address]" });
   }
 }
 

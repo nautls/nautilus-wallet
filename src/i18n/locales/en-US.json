@@ -144,6 +144,22 @@
       "unknownVerificationError": "An unknown error occurred while verifying the address."
     }
   },
+  "addressBook": {
+    "title": "Address book",
+    "subtitle": "Saved locally in this wallet",
+    "addContact": "Add contact",
+    "name": "Name",
+    "ergoAddress": "Ergo address",
+    "save": "Save contact",
+    "saving": "Saving…",
+    "contacts": "Contacts",
+    "empty": "No saved addresses yet.",
+    "useForSend": "Use for this send",
+    "addName": "Add a contact name",
+    "addNameDesc": "Give this address a name you will recognise.",
+    "invalidAddress": "Invalid Ergo address",
+    "invalidAddressDesc": "Enter a valid mainnet Ergo address."
+  },
   "transaction": {
     "history": {
       "txTitle": "Transaction {txId}",

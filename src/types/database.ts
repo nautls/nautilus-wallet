@@ -20,6 +20,14 @@ export type IErgoDomain = {
   recordBoxId: string;
 };
 
+export interface IDbAddressBookEntry {
+  id?: number;
+  walletId: number;
+  name: string;
+  address: string;
+  createdAt: number;
+}
+
 export interface IDbWallet {
   id?: number;
   name: string;

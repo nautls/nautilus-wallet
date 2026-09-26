@@ -5,19 +5,31 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { differenceBy } from "es-toolkit";
-import { CheckCheckIcon, CheckCircle2Icon, Globe2Icon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
+import {
+  BookUserIcon,
+  CheckCheckIcon,
+  CheckCircle2Icon,
+  Globe2Icon,
+  Loader2Icon,
+  TriangleAlertIcon
+} from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
+import {
+  isErgoDomain,
+  ResolvedErgoDomain,
+  resolveErgoDomain
+} from "@/chains/ergo/services/domainResolver";
 import {
   createP2PTransaction,
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
@@ -29,13 +41,13 @@ import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
-import { isErgoDomain, resolveErgoDomain, ResolvedErgoDomain } from "@/chains/ergo/services/domainResolver";
 
 const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
 const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
 
 const wallet = useWalletStore();
 const route = useRoute();
+const router = useRouter();
 
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
@@ -134,7 +146,8 @@ watch(recipient, async (value) => {
     if (recipient.value.trim().toLowerCase() === name) resolvedDomain.value = result;
   } catch (error) {
     if (recipient.value.trim().toLowerCase() === name) {
-      domainError.value = error instanceof Error ? error.message : "This name could not be resolved.";
+      domainError.value =
+        error instanceof Error ? error.message : "This name could not be resolved.";
     }
   } finally {
     if (recipient.value.trim().toLowerCase() === name) resolvingDomain.value = false;
@@ -185,6 +198,7 @@ async function sendTransaction() {
       domainError.value = "";
       password.value = "";
       v$.value.$reset();
+      router.replace({ name: "assets" });
     }
   });
 }
@@ -255,6 +269,10 @@ function removeDisposableSelections() {
 function isFeeAsset(tokenId: string): boolean {
   return tokenId === fee.value.tokenId;
 }
+
+function openAddressBook() {
+  router.push({ name: "address-book", query: { select: "send" } });
+}
 </script>
 
 <template>
@@ -262,40 +280,58 @@ function isFeeAsset(tokenId: string): boolean {
     <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
       <FormField :validation="v$.recipient">
         <Label for="recipient">Address or ErgoName</Label>
-        <div class="relative">
-          <Input
-            id="recipient"
-            v-model="recipient"
-            type="text"
-            spellcheck="false"
-            autocomplete="off"
-            placeholder="Enter an Ergo address or name.erg"
-            :class="{ 'pr-10': typedDomain }"
-            @blur="v$.recipient.$touch()"
-          />
-          <Loader2Icon
-            v-if="resolvingDomain"
-            class="text-muted-foreground absolute top-2 right-3 size-5 animate-spin"
-          />
-          <Globe2Icon
-            v-else-if="typedDomain"
-            class="text-muted-foreground absolute top-2 right-3 size-5"
-          />
+        <div class="flex gap-2">
+          <div class="relative min-w-0 grow">
+            <Input
+              id="recipient"
+              v-model="recipient"
+              type="text"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="Enter an Ergo address or name.erg"
+              :class="{ 'pr-10': typedDomain }"
+              @blur="v$.recipient.$touch()"
+            />
+            <Loader2Icon
+              v-if="resolvingDomain"
+              class="text-muted-foreground absolute top-2 right-3 size-5 animate-spin"
+            />
+            <Globe2Icon
+              v-else-if="typedDomain"
+              class="text-muted-foreground absolute top-2 right-3 size-5"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            title="Address book"
+            @click="openAddressBook"
+          >
+            <BookUserIcon />
+          </Button>
         </div>
-        <p class="text-muted-foreground text-xs">Send to an Ergo address or resolve an ErgoName ending in .erg or .ergo.</p>
+        <p class="text-muted-foreground text-xs">
+          Send to an Ergo address or resolve an ErgoName ending in .erg or .ergo.
+        </p>
 
         <Alert v-if="resolvingDomain" class="bg-muted/40 mt-2 space-x-2 py-2">
           <Loader2Icon class="size-4 animate-spin" />
           <AlertTitle>Resolving Ergo Domain</AlertTitle>
           <AlertDescription>{{ recipient.trim().toLowerCase() }}</AlertDescription>
         </Alert>
-        <Alert v-else-if="resolvedDomain" class="border-success/40 bg-success/5 mt-2 space-x-2 py-2">
+        <Alert
+          v-else-if="resolvedDomain"
+          class="border-success/40 bg-success/5 mt-2 space-x-2 py-2"
+        >
           <CheckCircle2Icon class="text-success size-4" />
           <AlertTitle>{{ resolvedDomain.name }} resolved</AlertTitle>
           <AlertDescription class="grid gap-1">
             <span class="text-muted-foreground text-xs">Recipient address</span>
             <span class="font-mono text-xs break-all">{{ resolvedDomain.address }}</span>
-            <span class="text-muted-foreground text-xs">Valid through block {{ resolvedDomain.expiryHeight }}</span>
+            <span class="text-muted-foreground text-xs"
+              >Valid through block {{ resolvedDomain.expiryHeight }}</span
+            >
           </AlertDescription>
         </Alert>
         <Alert v-else-if="domainError" variant="destructive-outline" class="mt-2 space-x-2 py-2">

@@ -35,7 +35,9 @@ function getFirstByte(hex: string): number {
 watch(
   () => props.wallet,
   () => {
-    const seed = props.wallet.watchAddress ?? mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
+    const seed =
+      props.wallet.watchAddress ??
+      mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
     checksum.value = calcCip4ImageHash(seed);
 
     const i = getFirstByte(checksum.value) % COLORS.length;
@@ -87,7 +89,7 @@ function walletTypeToString(type: WalletType): string {
         class="w-full max-w-[110px] truncate text-sm leading-tight"
         :class="concise ? 'max-w-[125px] font-normal' : 'font-semibold'"
       >
-        {{ wallet.ergoDomains?.[0]?.name ?? wallet.name }}
+        {{ wallet.name }}
       </div>
 
       <div class="text-muted-foreground text-xs leading-tight">
