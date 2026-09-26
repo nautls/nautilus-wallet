@@ -3,11 +3,12 @@ import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { PasswordError } from "@/common/errors";
 import { dbContext } from "@/database/dbContext";
-import { IDbWallet, NotNullId } from "@/types/database";
+import { IDbWallet, IErgoDomain, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
 
 export type WalletPatch = {
   name?: string;
+  ergoDomains?: IErgoDomain[];
   settings?: WalletSettings;
   lastSynced?: number;
 };

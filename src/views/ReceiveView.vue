@@ -29,6 +29,7 @@ const { t } = useI18n();
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 const isReadOnly = computed(() => wallet.type === WalletType.ReadOnly);
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
+const currentErgoDomains = computed(() => wallet.getErgoDomains(wallet.changeAddress?.script));
 const canAddNewAddress = computed(
   () => !isReadOnly.value && wallet.settings.addressFilter !== "active"
 );
@@ -85,6 +86,9 @@ function openExplorer(address: string | undefined) {
             {{ wallet.changeAddress?.script }}
             <CopyButton class="size-3" :content="wallet.changeAddress?.script" />
           </div>
+          <div v-if="currentErgoDomains.length" class="text-primary mt-1 text-xs font-medium">
+            {{ currentErgoDomains.map((domain) => domain.name).join(" · ") }}
+          </div>
         </div>
 
         <QrCode :data="wallet.changeAddress?.script" class="size-32" />
@@ -115,18 +119,26 @@ function openExplorer(address: string | undefined) {
           :key="address.script"
           class="hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2 rounded-md bg-transparent px-3 py-4 transition-colors"
         >
-          <div class="flex items-center gap-2">
-            <Button
-              variant="minimal"
-              size="condensed"
-              class="flex h-4 items-center gap-2"
-              @click="setDefaultAddress(address)"
-            >
-              <Checkbox :model-value="wallet.settings.defaultChangeIndex === address.index" />
-              <span class="text-foreground font-mono whitespace-nowrap">{{
-                format.string.shorten(address.script, 8)
-              }}</span>
-            </Button>
+          <div class="flex min-w-0 items-center gap-2">
+            <div class="flex min-w-0 flex-col">
+              <Button
+                variant="minimal"
+                size="condensed"
+                class="flex h-4 items-center gap-2"
+                @click="setDefaultAddress(address)"
+              >
+                <Checkbox :model-value="wallet.settings.defaultChangeIndex === address.index" />
+                <span class="text-foreground font-mono whitespace-nowrap">{{
+                  format.string.shorten(address.script, 8)
+                }}</span>
+              </Button>
+              <span
+                v-if="wallet.getErgoDomains(address.script).length"
+                class="text-primary truncate pl-6 text-xs font-medium"
+              >
+                {{ wallet.getErgoDomains(address.script).map((domain) => domain.name).join(" · ") }}
+              </span>
+            </div>
 
             <div class="space-x-1.5 pb-1">
               <TooltipProvider :delay-duration="100">

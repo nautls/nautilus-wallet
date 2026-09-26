@@ -4,6 +4,7 @@ import type BigNumber from "bignumber.js";
 import { groupBy, maxBy } from "es-toolkit";
 import { useRouter } from "vue-router";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
+import { findErgoDomainsForAddresses } from "@/chains/ergo/services/domainResolver";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import type { OldBox } from "@/chains/ergo/services/graphQlService";
 import { hdKeyPool } from "@/common/objectPool";
@@ -12,7 +13,7 @@ import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constan
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { assetIconMap } from "@/mappers/assetIconMap";
-import { IDbAddress, IDbAsset } from "@/types/database";
+import { IDbAddress, IDbAsset, IErgoDomain } from "@/types/database";
 import {
   AddressState,
   AddressType,
@@ -77,6 +78,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     publicKey: ref(""),
     chainCode: ref(""),
     watchAddress: ref(""),
+    ergoDomains: ref<IErgoDomain[]>([]),
     lastSynced: ref(0),
     hasOldUtxos: ref(false),
     oldUtxos: ref<OldBox[]>([]),
@@ -290,6 +292,7 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.publicKey = wlt.publicKey;
     privateState.chainCode = wlt.chainCode;
     privateState.watchAddress = wlt.watchAddress ?? "";
+    privateState.ergoDomains = wlt.ergoDomains ?? [];
     privateState.lastSynced = wlt.lastSynced ?? 0;
     privateState.hasOldUtxos = false;
     privateState.oldUtxos = [];
@@ -444,7 +447,26 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.lastSynced = Date.now();
 
     checkOldUtxos();
+    await refreshErgoDomains(walletId);
     setSyncing(false);
+  }
+
+  async function refreshErgoDomains(walletId: number) {
+    try {
+      const domains = await findErgoDomainsForAddresses(
+        privateState.addresses.map((address) => address.script)
+      );
+      if (walletId !== privateState.id) return;
+
+      const serialized = JSON.stringify(domains);
+      if (serialized === JSON.stringify(privateState.ergoDomains)) return;
+
+      privateState.ergoDomains = domains;
+      await appStore.updateWallet(walletId, { ergoDomains: domains });
+    } catch {
+      // A name lookup must never make the wallet sync fail. The last verified result
+      // remains visible until the next successful refresh.
+    }
   }
 
   function setSyncing(value: boolean) {
@@ -463,6 +485,10 @@ export const useWalletStore = defineStore("wallet", () => {
     loading: computed(() => privateState.loading),
     syncing: computed(() => privateState.syncing),
     health,
+    ergoDomains: computed(() => privateState.ergoDomains),
+    getErgoDomains(address: string | undefined) {
+      return address ? privateState.ergoDomains.filter((domain) => domain.address === address) : [];
+    },
     name,
     settings,
     addresses,

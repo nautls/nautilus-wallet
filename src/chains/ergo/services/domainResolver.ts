@@ -16,6 +16,7 @@ const REGISTRY_NFT_ID = "d0205941ebcadbef0236d483a8a7a8e354f3ed1add0e470284a1336
 const REGISTRY_ROLE = "0e184572676f446f6d61696e732c5265676973747261722c5635";
 const HISTORY_PAGE_SIZE = 100;
 const MAX_HISTORY_PAGES = 20;
+const RECORDS_PAGE_SIZE = 200;
 
 type ExplorerRegister = {
   serializedValue?: string;
@@ -45,6 +46,12 @@ type ExplorerPage<T> = {
   total: number;
 };
 
+type DomainRegistration = {
+  name: string;
+  tokenId: string;
+  recordAddress: string;
+};
+
 export type ResolvedErgoDomain = {
   name: string;
   address: string;
@@ -62,7 +69,9 @@ export async function resolveErgoDomain(value: string): Promise<ResolvedErgoDoma
   if (!isErgoDomain(name)) throw new Error("Enter a valid .erg or .ergo name.");
 
   const registry = await getLiveRegistry();
-  const registration = await findRegistration(name, registry.address);
+  const registration = (await getRegistrations(registry.address)).find(
+    (registration) => registration.name === name
+  );
   if (!registration) throw new Error("This name is not registered in Ergo Domains V5.");
 
   const record = await getLiveRecord(registration.tokenId, name);
@@ -83,6 +92,49 @@ export async function resolveErgoDomain(value: string): Promise<ResolvedErgoDoma
   return { name, address, expiryHeight, tokenId: registration.tokenId, recordBoxId: record.boxId };
 }
 
+/**
+ * Finds active V5 names that currently resolve to one of the supplied wallet addresses.
+ * Both the registration history and the live record box are verified before a name is used.
+ */
+export async function findErgoDomainsForAddresses(addresses: string[]): Promise<ResolvedErgoDomain[]> {
+  const wantedAddresses = new Set(addresses.filter(validateAddress));
+  if (wantedAddresses.size === 0) return [];
+
+  const registry = await getLiveRegistry();
+  const registrations = await getRegistrations(registry.address);
+  if (registrations.length === 0) return [];
+
+  const currentHeight = await getCurrentHeight();
+  const tokenToRegistration = new Map(registrations.map((registration) => [registration.tokenId, registration]));
+  const recordAddresses = [...new Set(registrations.map((registration) => registration.recordAddress))];
+  const records = await getActiveRecordBoxes(recordAddresses);
+  const domains: ResolvedErgoDomain[] = [];
+
+  for (const record of records) {
+    if (!(await treeMatches(record.ergoTree, RECORD_TREE_HASH))) continue;
+
+    const tokenId = record.assets.find((asset) => String(asset.amount) === "1")?.tokenId;
+    const registration = tokenId ? tokenToRegistration.get(tokenId) : undefined;
+    const expiryHeight = getIntegerRegister(record, "R6");
+    const publicKey = extractPkFromSigmaConstant(getSerializedRegister(record, "R5"));
+    if (!registration || !expiryHeight || expiryHeight <= currentHeight || !publicKey) continue;
+    if (getTextRegister(record, "R7") !== registration.name) continue;
+
+    const address = addressFromPk(publicKey);
+    if (!wantedAddresses.has(address)) continue;
+
+    domains.push({
+      name: registration.name,
+      address,
+      expiryHeight,
+      tokenId: registration.tokenId,
+      recordBoxId: record.boxId
+    });
+  }
+
+  return domains.sort((a, b) => b.expiryHeight - a.expiryHeight || a.name.localeCompare(b.name));
+}
+
 async function getLiveRegistry(): Promise<ExplorerBox> {
   const page = await getExplorer<ExplorerPage<ExplorerBox>>(
     `/boxes/unspent/byTokenId/${REGISTRY_NFT_ID}?offset=0&limit=10`
@@ -101,10 +153,10 @@ async function getLiveRegistry(): Promise<ExplorerBox> {
   throw new Error("The Ergo Domains V5 registry singleton could not be verified.");
 }
 
-async function findRegistration(
-  name: string,
-  registrarAddress: string
-): Promise<{ tokenId: string } | undefined> {
+async function getRegistrations(registrarAddress: string): Promise<DomainRegistration[]> {
+  const registrations: DomainRegistration[] = [];
+  const registeredTokens = new Set<string>();
+
   for (let page = 0; page < MAX_HISTORY_PAGES; page++) {
     const offset = page * HISTORY_PAGE_SIZE;
     const history = await getExplorer<ExplorerPage<ExplorerTransaction>>(
@@ -126,20 +178,25 @@ async function findRegistration(
         getSerializedRegister(nextRegistry, "R4") !== REGISTRY_ROLE ||
         !(await treeMatches(nextRegistry.ergoTree, REGISTRAR_TREE_HASH)) ||
         !(await treeMatches(record.ergoTree, RECORD_TREE_HASH)) ||
-        getTextRegister(record, "R7") !== name
+        !getTextRegister(record, "R7")
       ) {
         continue;
       }
 
       const mintedTokenId = transaction.inputs[0]?.boxId;
-      if (!mintedTokenId || !hasToken(record, mintedTokenId)) continue;
+      const name = getTextRegister(record, "R7")!;
+      if (!mintedTokenId || !hasToken(record, mintedTokenId) || registeredTokens.has(mintedTokenId))
+        continue;
 
-      return { tokenId: mintedTokenId };
+      registeredTokens.add(mintedTokenId);
+      registrations.push({ name, tokenId: mintedTokenId, recordAddress: record.address });
     }
 
     if (history.items.length < HISTORY_PAGE_SIZE || offset + history.items.length >= history.total)
       break;
   }
+
+  return registrations;
 }
 
 async function getLiveRecord(tokenId: string, name: string): Promise<ExplorerBox | undefined> {
@@ -177,6 +234,32 @@ async function getCurrentHeight(): Promise<number> {
   const height = info.fullHeight ?? info.headersHeight;
   if (!Number.isSafeInteger(height)) throw new Error("Unable to read the current Ergo block height.");
   return height;
+}
+
+async function getActiveRecordBoxes(recordAddresses: string[]): Promise<ExplorerBox[]> {
+  const records: ExplorerBox[] = [];
+
+  for (let skip = 0; ; skip += RECORDS_PAGE_SIZE) {
+    const response = await fetch(EXPLORER_GRAPHQL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        query:
+          "query ActiveErgoDomainRecords($addresses: [String!], $skip: Int, $take: Int) { boxes(addresses: $addresses, spent: false, skip: $skip, take: $take) { boxId address ergoTree assets { tokenId amount } additionalRegisters } }",
+        variables: { addresses: recordAddresses, skip, take: RECORDS_PAGE_SIZE }
+      }),
+      signal: AbortSignal.timeout(8_000)
+    });
+    const payload = (await response.json()) as { data?: { boxes?: ExplorerBox[] } };
+    if (!response.ok || !payload.data?.boxes) {
+      throw new Error("Unable to read active Ergo Domains records from the official GraphQL API.");
+    }
+
+    records.push(...payload.data.boxes);
+    if (payload.data.boxes.length < RECORDS_PAGE_SIZE) break;
+  }
+
+  return records;
 }
 
 async function getExplorer<T>(path: string): Promise<T> {

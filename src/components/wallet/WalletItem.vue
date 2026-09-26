@@ -87,7 +87,7 @@ function walletTypeToString(type: WalletType): string {
         class="w-full max-w-[110px] truncate text-sm leading-tight"
         :class="concise ? 'max-w-[125px] font-normal' : 'font-semibold'"
       >
-        {{ wallet.name }}
+        {{ wallet.ergoDomains?.[0]?.name ?? wallet.name }}
       </div>
 
       <div class="text-muted-foreground text-xs leading-tight">
