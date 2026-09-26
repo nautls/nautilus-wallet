@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { HTMLAttributes, nextTick, ref, useId, watch } from "vue";
+import { computed, HTMLAttributes, nextTick, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
 import { useI18n } from "vue-i18n";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
 import { cn } from "@/common/utils";
+import { useWalletStore } from "@/stores/walletStore";
 import { IDbWallet } from "@/types/database";
 import { WalletType } from "@/types/internal";
 
@@ -24,9 +25,15 @@ const props = defineProps<{
 
 const id = useId();
 const { t } = useI18n();
+const activeWallet = useWalletStore();
 
 const checksum = ref("");
 const canvasId = ref(`wlt-${id}-checksum`);
+const displayName = computed(() => {
+  const activeDomain =
+    props.wallet.id === activeWallet.id ? activeWallet.ergoDomains[0]?.name : undefined;
+  return activeDomain ?? props.wallet.ergoDomains?.[0]?.name ?? props.wallet.name;
+});
 
 function getFirstByte(hex: string): number {
   return Number.parseInt(hex.substring(0, 2), 16);
@@ -89,7 +96,7 @@ function walletTypeToString(type: WalletType): string {
         class="w-full max-w-[110px] truncate text-sm leading-tight"
         :class="concise ? 'max-w-[125px] font-normal' : 'font-semibold'"
       >
-        {{ wallet.ergoDomains?.[0]?.name ?? wallet.name }}
+        {{ displayName }}
       </div>
 
       <div class="text-muted-foreground text-xs leading-tight">
