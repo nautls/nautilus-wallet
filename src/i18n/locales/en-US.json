@@ -106,6 +106,7 @@
     },
     "names": {
       "empty": "No verified ErgoNames resolve to this wallet yet.",
+      "refreshing": "Checking verified ErgoNames…",
       "primary": "Primary",
       "setPrimary": "Set primary",
       "resolvesTo": "Resolves to",

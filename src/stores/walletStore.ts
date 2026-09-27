@@ -468,11 +468,11 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.lastSynced = Date.now();
 
     checkOldUtxos();
-    await refreshErgoDomains(walletId);
+    await refreshErgoDomainsForWallet(walletId);
     setSyncing(false);
   }
 
-  async function refreshErgoDomains(walletId: number) {
+  async function refreshErgoDomainsForWallet(walletId: number) {
     try {
       const domains = await findErgoDomainsForAddresses(
         privateState.addresses.map((address) => address.script)
@@ -501,6 +501,10 @@ export const useWalletStore = defineStore("wallet", () => {
     }
   }
 
+  async function refreshErgoDomains() {
+    await refreshErgoDomainsForWallet(privateState.id);
+  }
+
   function setSyncing(value: boolean) {
     privateState.syncing = value;
   }
@@ -519,6 +523,7 @@ export const useWalletStore = defineStore("wallet", () => {
     health,
     ergoDomains: computed(() => privateState.ergoDomains),
     primaryErgoDomain,
+    refreshErgoDomains,
     getErgoDomains(address: string | undefined) {
       return address ? privateState.ergoDomains.filter((domain) => domain.address === address) : [];
     },

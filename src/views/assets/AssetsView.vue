@@ -33,6 +33,7 @@ const { t } = useI18n({ useScope: "global" });
 
 const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles" | "names">("tokens");
+const refreshingNames = ref(false);
 const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
@@ -61,6 +62,18 @@ watch(
     currentTab.value = "tokens";
   }
 );
+
+async function onTabChange(tab: "tokens" | "collectibles" | "names") {
+  filter.value = "";
+  if (tab !== "names") return;
+
+  refreshingNames.value = true;
+  try {
+    await wallet.refreshErgoDomains();
+  } finally {
+    refreshingNames.value = false;
+  }
+}
 
 function filtered(assets: AssetBalance[]): AssetBalance[] {
   if (normalizedFilter.value === "" || assets.length === 0) return assets;
@@ -120,7 +133,7 @@ function isPrimaryDomain(tokenId: string) {
         <BuyErgButton />
       </div>
 
-      <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
+      <Tabs v-model="currentTab" class="w-full" @update:model-value="onTabChange">
         <div class="flex flex-row">
           <TabsList>
             <TabsTrigger value="tokens">{{ t("asset.tabs.tokens") }}</TabsTrigger>
@@ -250,11 +263,11 @@ function isPrimaryDomain(tokenId: string) {
           <Transition name="slide-up" appear>
             <div class="space-y-3 px-1 py-3">
               <Card
-                v-if="!domains.length"
+                v-if="refreshingNames || !domains.length"
                 class="text-muted-foreground flex flex-col items-center gap-2 p-7 text-center text-sm"
               >
                 <Globe2Icon class="size-7" />
-                <p>{{ t("asset.names.empty") }}</p>
+                <p>{{ refreshingNames ? t("asset.names.refreshing") : t("asset.names.empty") }}</p>
               </Card>
 
               <Card v-for="domain in domains" :key="domain.tokenId" class="p-4">
