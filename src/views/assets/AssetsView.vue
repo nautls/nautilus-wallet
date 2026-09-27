@@ -293,7 +293,7 @@ function isPrimaryDomain(tokenId: string) {
                     <p class="text-muted-foreground text-xs">
                       {{
                         t("asset.names.expiresAt", {
-                          height: format.number.decimal(domain.expiryHeight)
+                          height: format.number.decimal(bn(domain.expiryHeight))
                         })
                       }}
                     </p>
