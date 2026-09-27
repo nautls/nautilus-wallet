@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { HTMLAttributes, nextTick, ref, useId, watch } from "vue";
+import { computed, HTMLAttributes, nextTick, ref, useId, watch } from "vue";
 import { renderIcon } from "@download/blockies";
 import { useI18n } from "vue-i18n";
+import { useWalletStore } from "@/stores/walletStore";
 import { calcCip4ImageHash } from "@/chains/ergo/checksum";
 import { mountExtendedPublicKey } from "@/common/serializer";
 import { cn } from "@/common/utils";
@@ -24,9 +25,20 @@ const props = defineProps<{
 
 const id = useId();
 const { t } = useI18n();
+const activeWallet = useWalletStore();
 
 const checksum = ref("");
 const canvasId = ref(`wlt-${id}-checksum`);
+const displayName = computed(() => {
+  const activeDomain =
+    props.wallet.id === activeWallet.id ? activeWallet.primaryErgoDomain?.name : undefined;
+  const savedDomain = props.wallet.ergoDomains?.find(
+    (domain) => domain.tokenId === props.wallet.primaryErgoDomainTokenId
+  );
+  return (
+    activeDomain ?? savedDomain?.name ?? props.wallet.ergoDomains?.[0]?.name ?? props.wallet.name
+  );
+});
 
 function getFirstByte(hex: string): number {
   return Number.parseInt(hex.substring(0, 2), 16);
@@ -35,8 +47,10 @@ function getFirstByte(hex: string): number {
 watch(
   () => props.wallet,
   () => {
-    const xpk = mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
-    checksum.value = calcCip4ImageHash(xpk);
+    const seed =
+      props.wallet.watchAddress ??
+      mountExtendedPublicKey(props.wallet.publicKey, props.wallet.chainCode);
+    checksum.value = calcCip4ImageHash(seed);
 
     const i = getFirstByte(checksum.value) % COLORS.length;
     const [primary, background, spot] = COLORS[i];
@@ -87,7 +101,7 @@ function walletTypeToString(type: WalletType): string {
         class="w-full max-w-[110px] truncate text-sm leading-tight"
         :class="concise ? 'max-w-[125px] font-normal' : 'font-semibold'"
       >
-        {{ wallet.name }}
+        {{ displayName }}
       </div>
 
       <div class="text-muted-foreground text-xs leading-tight">

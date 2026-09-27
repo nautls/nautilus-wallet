@@ -86,13 +86,14 @@ export async function validateServerNetwork(url: string): Promise<boolean> {
 
 const ADDRESS_INFO_QUERY = `query addresses($addresses: [String!]!) { addresses(addresses: $addresses) { address used balance { nanoErgs assets { amount tokenId } } } }`;
 const CURRENT_HEIGHT_QUERY = `query currentHeight { blockHeaders(take: 1) { height } }`;
-const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 1 ) { creationHeight } }`;
+const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 3 ) { boxId creationHeight } }`;
 const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
 const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
 
 type AddressInfoResponse = { addresses: Address[] };
 type CurrentHeightResponse = { blockHeaders: { height: number }[] };
-type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
+export type OldBox = { boxId: string; creationHeight: number };
+type OldBoxesCheckResponse = { boxes: OldBox[] };
 type TokensResponse = { tokens: Token[] };
 type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
 
@@ -139,16 +140,17 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     }
   }
 
-  async checkBoxesOlderThan(height: number, addresses: string[]): Promise<boolean> {
-    if (isEmpty(addresses)) return false;
+  async getBoxesOlderThan(height: number, addresses: string[]): Promise<OldBox[]> {
+    if (isEmpty(addresses)) return [];
 
+    const oldBoxes: OldBox[] = [];
     const chunks = chunk(addresses, MAX_PARAMS_PER_REQUEST);
     for (const addresses of chunks) {
       const response = await this.#checkOldBoxes({ maxHeight: height, addresses });
-      if (response.data.boxes.length) return true;
+      oldBoxes.push(...response.data.boxes);
     }
 
-    return false;
+    return oldBoxes.sort((a, b) => a.creationHeight - b.creationHeight).slice(0, 3);
   }
 
   async getAssetsMetadata(tokenIds: string[]): Promise<IAssetInfo[] | undefined> {

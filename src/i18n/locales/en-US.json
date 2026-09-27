@@ -101,7 +101,16 @@
     "noAssetsFound": "No assets found.",
     "tabs": {
       "tokens": "Tokens",
-      "collectibles": "Collectibles"
+      "collectibles": "Collectibles",
+      "names": "Names"
+    },
+    "names": {
+      "empty": "No verified ErgoNames resolve to this wallet yet.",
+      "refreshing": "Checking verified ErgoNames…",
+      "primary": "Primary",
+      "setPrimary": "Set primary",
+      "resolvesTo": "Resolves to",
+      "expiresAt": "Expires at block {height}"
     },
     "info": {
       "emissionAmount": "Emission amount",
@@ -143,6 +152,22 @@
       "verificationError": "Verification failed",
       "unknownVerificationError": "An unknown error occurred while verifying the address."
     }
+  },
+  "addressBook": {
+    "title": "Address book",
+    "subtitle": "Saved locally in this wallet",
+    "addContact": "Add contact",
+    "name": "Name",
+    "ergoAddress": "Ergo address",
+    "save": "Save contact",
+    "saving": "Saving…",
+    "contacts": "Contacts",
+    "empty": "No saved addresses yet.",
+    "useForSend": "Use for this send",
+    "addName": "Add a contact name",
+    "addNameDesc": "Give this address a name you will recognise.",
+    "invalidAddress": "Invalid Ergo address",
+    "invalidAddressDesc": "Enter a valid mainnet Ergo address."
   },
   "transaction": {
     "history": {
@@ -217,6 +242,11 @@
     "alerts": {
       "demurrage": "You may soon incur demurrage",
       "demurrageDesc": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
+      "storageRent": "Storage rent attention needed",
+      "storageRentBox": "Box {boxId}… is over the warning age",
+      "storageRentAdditional": " · +{count}",
+      "storageRentDesc": "One or more UTxOs are at least three years old. Ergo can charge storage rent after four years without movement. Consolidate before then.",
+      "storageRentReadOnlyDesc": "One or more UTxOs are at least three years old. This wallet cannot sign, so open the signing wallet that controls these addresses and consolidate before storage rent can be charged.",
       "fragmentation": "Your wallet looks fragmented",
       "fragmentationDesc": "Consider optimizing your wallet for improved performance and efficiency."
     },
@@ -229,7 +259,9 @@
       "connect": "Connect a Ledger wallet",
       "connectDesc": "Connect your hardware wallet",
       "import": "Import a wallet",
-      "importDesc": "Import an existing wallet"
+      "importDesc": "Import an existing wallet",
+      "watchOnly": "Add a watch-only wallet",
+      "watchOnlyDesc": "Monitor balances and storage-rent risk with an extended public key"
     },
     "create": {
       "createRecoveryPhrase": "Create a recovery phrase",
@@ -243,12 +275,19 @@
       "creating": "Creating your wallet..."
     },
     "import": {
+      "address": "Ergo address",
+      "addressStepDesc": "Watch a single public address. No seed phrase or signing key is imported.",
+      "extendedAccount": "Extended public key (advanced)",
+      "insertAddress": "Insert an Ergo address",
       "insertPubKey": "Insert a public key",
       "insertRecoveryPhrase": "Insert a recovery phrase",
+      "requiredAddress": "An Ergo address is required.",
       "requiredXPubKey": "Extended public key is required.",
       "requiredRecoveryPhrase": "Recovery phrase is required.",
       "walletImportError": "Wallet import failed",
       "importStep": "Insert the Extended Public Key of your wallet.",
+      "singleAddress": "Single Ergo address",
+      "watchSource": "What do you want to watch?",
       "importStepDesc": "Select the type of secret you want to use and fill it out.",
       "walletType": "Wallet type",
       "selectSecretType": "Select the secret type",

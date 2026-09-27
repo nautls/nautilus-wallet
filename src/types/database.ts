@@ -12,6 +12,22 @@ import {
 
 export type NotNullId<T extends { id?: number }> = T & { id: number };
 
+export type IErgoDomain = {
+  name: string;
+  address: string;
+  expiryHeight: number;
+  tokenId: string;
+  recordBoxId: string;
+};
+
+export interface IDbAddressBookEntry {
+  id?: number;
+  walletId: number;
+  name: string;
+  address: string;
+  createdAt: number;
+}
+
 export interface IDbWallet {
   id?: number;
   name: string;
@@ -19,6 +35,12 @@ export interface IDbWallet {
   type: WalletType;
   publicKey: string;
   chainCode: string;
+  /** A single public address monitored by an address-only watch wallet. */
+  watchAddress?: string;
+  /** Verified, active V5 Ergo Domains resolving to this wallet's addresses. */
+  ergoDomains?: IErgoDomain[];
+  /** Token id of the verified Ergo Domain selected for the wallet label. */
+  primaryErgoDomainTokenId?: string;
   mnemonic?: string;
   settings: WalletSettings;
   lastSynced?: number;

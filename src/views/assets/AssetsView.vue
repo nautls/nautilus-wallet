@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import BigNumber from "bignumber.js";
-import { SearchCheckIcon, SearchIcon } from "lucide-vue-next";
+import { CheckIcon, Globe2Icon, SearchCheckIcon, SearchIcon } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -9,6 +9,8 @@ import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetImageSandbox, AssetInfoDialog } from "@/components/asset";
 import BuyErgButton from "@/components/BuyErgButton.vue";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,7 +32,8 @@ const format = useFormat();
 const { t } = useI18n({ useScope: "global" });
 
 const filter = ref("");
-const currentTab = ref<"tokens" | "collectibles">("tokens");
+const currentTab = ref<"tokens" | "collectibles" | "names">("tokens");
+const refreshingNames = ref(false);
 const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
@@ -39,6 +42,11 @@ const tokens = computed(() => filtered(wallet.nonArtworkBalance));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
+);
+const domains = computed(() =>
+  wallet.ergoDomains.filter((domain) =>
+    normalizedFilter.value === "" ? true : domain.name.includes(normalizedFilter.value)
+  )
 );
 
 const walletTotal = computed(() =>
@@ -54,6 +62,18 @@ watch(
     currentTab.value = "tokens";
   }
 );
+
+async function onTabChange(tab: "tokens" | "collectibles" | "names") {
+  filter.value = "";
+  if (tab !== "names") return;
+
+  refreshingNames.value = true;
+  try {
+    await wallet.refreshErgoDomains();
+  } finally {
+    refreshingNames.value = false;
+  }
+}
 
 function filtered(assets: AssetBalance[]): AssetBalance[] {
   if (normalizedFilter.value === "" || assets.length === 0) return assets;
@@ -84,11 +104,21 @@ function openAssetInfoDialog(tokenId: string) {
   if (tokenId === ERG_TOKEN_ID) return;
   _openAssetInfoDialog({ tokenId });
 }
+
+function shortAddress(address: string) {
+  return format.string.shorten(address, 8);
+}
+
+function isPrimaryDomain(tokenId: string) {
+  return wallet.primaryErgoDomain?.tokenId === tokenId;
+}
 </script>
 
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
+      <WalletAlerts />
+
       <div class="flex cursor-default items-center justify-around bg-transparent py-4">
         <div>
           <h2 class="text-2xl">
@@ -103,15 +133,14 @@ function openAssetInfoDialog(tokenId: string) {
         <BuyErgButton />
       </div>
 
-      <WalletAlerts />
-
-      <Tabs v-model="currentTab" class="w-full" @update:model-value="() => (filter = '')">
+      <Tabs v-model="currentTab" class="w-full" @update:model-value="onTabChange">
         <div class="flex flex-row">
           <TabsList>
             <TabsTrigger value="tokens">{{ t("asset.tabs.tokens") }}</TabsTrigger>
             <TabsTrigger value="collectibles" :disabled="!containsArtwork">
               {{ t("asset.tabs.collectibles") }}
             </TabsTrigger>
+            <TabsTrigger value="names">{{ t("asset.tabs.names") }}</TabsTrigger>
           </TabsList>
 
           <div class="grow"></div>
@@ -226,6 +255,69 @@ function openAssetInfoDialog(tokenId: string) {
                   @click="openAssetInfoDialog(nft.tokenId)"
                 ></Button>
               </div>
+            </div>
+          </Transition>
+        </TabsContent>
+
+        <TabsContent value="names">
+          <Transition name="slide-up" appear>
+            <div class="space-y-3 px-1 py-3">
+              <Card
+                v-if="refreshingNames || !domains.length"
+                class="text-muted-foreground flex flex-col items-center gap-2 p-7 text-center text-sm"
+              >
+                <Globe2Icon class="size-7" />
+                <p>{{ refreshingNames ? t("asset.names.refreshing") : t("asset.names.empty") }}</p>
+              </Card>
+
+              <Card v-for="domain in domains" :key="domain.tokenId" class="p-4">
+                <div class="flex items-start gap-3">
+                  <div
+                    class="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg"
+                  >
+                    <Globe2Icon class="size-5" />
+                  </div>
+                  <div class="min-w-0 grow">
+                    <div class="flex items-center gap-2">
+                      <p class="truncate text-sm font-semibold">{{ domain.name }}</p>
+                      <span
+                        v-if="isPrimaryDomain(domain.tokenId)"
+                        class="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                      >
+                        {{ t("asset.names.primary") }}
+                      </span>
+                    </div>
+                    <p class="text-muted-foreground mt-1 text-xs">
+                      {{ t("asset.names.resolvesTo") }} {{ shortAddress(domain.address) }}
+                    </p>
+                    <p class="text-muted-foreground text-xs">
+                      {{
+                        t("asset.names.expiresAt", {
+                          height: format.number.decimal(bn(domain.expiryHeight))
+                        })
+                      }}
+                    </p>
+                  </div>
+                  <CopyButton :content="domain.name" class="mt-0.5 size-4 shrink-0" />
+                </div>
+
+                <div class="mt-3 flex items-center gap-2 border-t pt-3">
+                  <span class="text-muted-foreground min-w-0 grow truncate font-mono text-xs">
+                    {{ domain.tokenId }}
+                  </span>
+                  <Button
+                    v-if="!isPrimaryDomain(domain.tokenId)"
+                    variant="outline"
+                    size="xs"
+                    @click="wallet.setPrimaryErgoDomain(domain.tokenId)"
+                  >
+                    {{ t("asset.names.setPrimary") }}
+                  </Button>
+                  <span v-else class="text-primary flex items-center gap-1 text-xs font-medium">
+                    <CheckIcon class="size-3" /> {{ t("asset.names.primary") }}
+                  </span>
+                </div>
+              </Card>
             </div>
           </Transition>
         </TabsContent>

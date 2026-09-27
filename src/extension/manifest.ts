@@ -55,6 +55,13 @@ export function buildManifest(
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
     },
     permissions: ["storage", "tabs", ...(browser === "chrome" ? ["sidePanel"] : [])],
+    // Ergo Domains resolves directly from the official Explorer services; no
+    // third-party resolver or local development server is required.
+    host_permissions: [
+      "https://api.ergoplatform.com/*",
+      "https://gql.ergoplatform.com/*",
+      "https://api2.mewfinance.com/*"
+    ],
     action: {
       default_popup: r("popup/index.html"),
       default_title: "Nautilus Wallet"

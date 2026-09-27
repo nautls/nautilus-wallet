@@ -3,11 +3,13 @@ import AES from "crypto-js/aes";
 import utf8Enc from "crypto-js/enc-utf8";
 import { PasswordError } from "@/common/errors";
 import { dbContext } from "@/database/dbContext";
-import { IDbWallet, NotNullId } from "@/types/database";
+import { IDbWallet, IErgoDomain, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
 
 export type WalletPatch = {
   name?: string;
+  ergoDomains?: IErgoDomain[];
+  primaryErgoDomainTokenId?: string;
   settings?: WalletSettings;
   lastSynced?: number;
 };
@@ -60,6 +62,7 @@ class WalletsDbService {
   public async delete(walletId: number): Promise<void> {
     await Promise.all([
       dbContext.addresses.where({ walletId }).delete(),
+      dbContext.addressBook.where({ walletId }).delete(),
       dbContext.assets.where({ walletId }).delete(),
       dbContext.connectedDApps.where({ walletId }).delete(),
       dbContext.utxos.where({ walletId }).delete(),
