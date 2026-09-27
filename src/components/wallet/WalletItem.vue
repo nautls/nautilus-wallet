@@ -31,8 +31,13 @@ const checksum = ref("");
 const canvasId = ref(`wlt-${id}-checksum`);
 const displayName = computed(() => {
   const activeDomain =
-    props.wallet.id === activeWallet.id ? activeWallet.ergoDomains[0]?.name : undefined;
-  return activeDomain ?? props.wallet.ergoDomains?.[0]?.name ?? props.wallet.name;
+    props.wallet.id === activeWallet.id ? activeWallet.primaryErgoDomain?.name : undefined;
+  const savedDomain = props.wallet.ergoDomains?.find(
+    (domain) => domain.tokenId === props.wallet.primaryErgoDomainTokenId
+  );
+  return (
+    activeDomain ?? savedDomain?.name ?? props.wallet.ergoDomains?.[0]?.name ?? props.wallet.name
+  );
 });
 
 function getFirstByte(hex: string): number {

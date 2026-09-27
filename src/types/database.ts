@@ -39,6 +39,8 @@ export interface IDbWallet {
   watchAddress?: string;
   /** Verified, active V5 Ergo Domains resolving to this wallet's addresses. */
   ergoDomains?: IErgoDomain[];
+  /** Token id of the verified Ergo Domain selected for the wallet label. */
+  primaryErgoDomainTokenId?: string;
   mnemonic?: string;
   settings: WalletSettings;
   lastSynced?: number;

@@ -79,6 +79,7 @@ const usePrivateStateStore = defineStore("_wallet", () => {
     chainCode: ref(""),
     watchAddress: ref(""),
     ergoDomains: ref<IErgoDomain[]>([]),
+    primaryErgoDomainTokenId: ref<string | undefined>(),
     lastSynced: ref(0),
     hasOldUtxos: ref(false),
     oldUtxos: ref<OldBox[]>([]),
@@ -239,6 +240,13 @@ export const useWalletStore = defineStore("wallet", () => {
     oldUtxos: privateState.oldUtxos
   }));
 
+  const primaryErgoDomain = computed(
+    () =>
+      privateState.ergoDomains.find(
+        (domain) => domain.tokenId === privateState.primaryErgoDomainTokenId
+      ) ?? privateState.ergoDomains[0]
+  );
+
   /**
    * Returns all addresses with their assets, sorted by index
    */
@@ -293,6 +301,7 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.chainCode = wlt.chainCode;
     privateState.watchAddress = wlt.watchAddress ?? "";
     privateState.ergoDomains = wlt.ergoDomains ?? [];
+    privateState.primaryErgoDomainTokenId = wlt.primaryErgoDomainTokenId;
     privateState.lastSynced = wlt.lastSynced ?? 0;
     privateState.hasOldUtxos = false;
     privateState.oldUtxos = [];
@@ -305,7 +314,10 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.assets = dbAssets;
 
     const dbAddresses = await addressesDbService.getByWalletId(walletId);
-    if (privateState.watchAddress && !dbAddresses.some((x) => x.script === privateState.watchAddress)) {
+    if (
+      privateState.watchAddress &&
+      !dbAddresses.some((x) => x.script === privateState.watchAddress)
+    ) {
       const watchedAddress: IDbAddress = {
         type: AddressType.P2PK,
         state: AddressState.Unused,
@@ -368,6 +380,15 @@ export const useWalletStore = defineStore("wallet", () => {
       privateState.addresses.filter((x) => x.state === AddressState.Used).map((x) => x.script)
     );
     privateState.hasOldUtxos = privateState.oldUtxos.length > 0;
+  }
+
+  async function setPrimaryErgoDomain(tokenId: string) {
+    if (!privateState.ergoDomains.some((domain) => domain.tokenId === tokenId)) {
+      throw new Error("The selected ErgoName is not active in this wallet.");
+    }
+
+    privateState.primaryErgoDomainTokenId = tokenId;
+    await appStore.updateWallet(privateState.id, { primaryErgoDomainTokenId: tokenId });
   }
 
   // #region private actions
@@ -459,10 +480,21 @@ export const useWalletStore = defineStore("wallet", () => {
       if (walletId !== privateState.id) return;
 
       const serialized = JSON.stringify(domains);
-      if (serialized === JSON.stringify(privateState.ergoDomains)) return;
+      const primaryErgoDomainTokenId = domains.some(
+        (domain) => domain.tokenId === privateState.primaryErgoDomainTokenId
+      )
+        ? privateState.primaryErgoDomainTokenId
+        : undefined;
+      if (
+        serialized === JSON.stringify(privateState.ergoDomains) &&
+        primaryErgoDomainTokenId === privateState.primaryErgoDomainTokenId
+      ) {
+        return;
+      }
 
       privateState.ergoDomains = domains;
-      await appStore.updateWallet(walletId, { ergoDomains: domains });
+      privateState.primaryErgoDomainTokenId = primaryErgoDomainTokenId;
+      await appStore.updateWallet(walletId, { ergoDomains: domains, primaryErgoDomainTokenId });
     } catch {
       // A name lookup must never make the wallet sync fail. The last verified result
       // remains visible until the next successful refresh.
@@ -486,6 +518,7 @@ export const useWalletStore = defineStore("wallet", () => {
     syncing: computed(() => privateState.syncing),
     health,
     ergoDomains: computed(() => privateState.ergoDomains),
+    primaryErgoDomain,
     getErgoDomains(address: string | undefined) {
       return address ? privateState.ergoDomains.filter((domain) => domain.address === address) : [];
     },
@@ -498,6 +531,7 @@ export const useWalletStore = defineStore("wallet", () => {
     nonArtworkBalance,
     artworkBalance,
     load,
+    setPrimaryErgoDomain,
     deriveNewAddress
   };
 });

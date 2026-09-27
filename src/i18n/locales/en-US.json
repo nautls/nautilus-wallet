@@ -101,7 +101,15 @@
     "noAssetsFound": "No assets found.",
     "tabs": {
       "tokens": "Tokens",
-      "collectibles": "Collectibles"
+      "collectibles": "Collectibles",
+      "names": "Names"
+    },
+    "names": {
+      "empty": "No verified ErgoNames resolve to this wallet yet.",
+      "primary": "Primary",
+      "setPrimary": "Set primary",
+      "resolvesTo": "Resolves to",
+      "expiresAt": "Expires at block {height}"
     },
     "info": {
       "emissionAmount": "Emission amount",

@@ -9,6 +9,7 @@ import { WalletSettings } from "@/types/internal";
 export type WalletPatch = {
   name?: string;
   ergoDomains?: IErgoDomain[];
+  primaryErgoDomainTokenId?: string;
   settings?: WalletSettings;
   lastSynced?: number;
 };
