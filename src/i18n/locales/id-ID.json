@@ -277,6 +277,11 @@
     "global": {
       "displayLanguage": "Bahasa antarmuka",
       "displayLanguageDesc": "Pilih bahasa untuk antarmuka Dompet Nautilus.",
+      "colorMode": "Tema warna",
+      "colorModeDesc": "Pilih tampilan Nautilus atau ikuti pengaturan sistem.",
+      "colorModeAuto": "Sistem",
+      "colorModeLight": "Terang",
+      "colorModeDark": "Gelap",
       "conversionCurrency": "Mata uang konversi",
       "conversionCurrencyDesc": "Pilih mata uang untuk nilai tukar.",
       "noCurrenciesFound": "Tidak ada mata uang yang ditemukan.",

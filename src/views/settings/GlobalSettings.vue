@@ -2,7 +2,15 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, TriangleAlertIcon } from "lucide-vue-next";
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  Loader2Icon,
+  MoonIcon,
+  SunIcon,
+  SunMoonIcon,
+  TriangleAlertIcon
+} from "lucide-vue-next";
 import { Locale, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
@@ -21,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
   MIN_SERVER_VERSION,
@@ -45,6 +54,12 @@ const currencyState = reactive({
   isPopoverOpen: false,
   loading: true
 });
+
+const colorModes = computed(() => [
+  { value: "auto", icon: SunMoonIcon, label: t("settings.global.colorModeAuto") },
+  { value: "light", icon: SunIcon, label: t("settings.global.colorModeLight") },
+  { value: "dark", icon: MoonIcon, label: t("settings.global.colorModeDark") }
+]);
 
 const ledgerTransportsState = reactive({
   available: ["webusb", "webhid"] as const,
@@ -232,6 +247,30 @@ const v$ = useVuelidate(
           </Command>
         </PopoverContent>
       </Popover>
+    </Card>
+
+    <Card class="flex flex-col gap-4 p-6">
+      <Label class="flex flex-col gap-2">
+        {{ t("settings.global.colorMode") }}
+        <div class="text-muted-foreground text-xs font-normal">
+          {{ t("settings.global.colorModeDesc") }}
+        </div>
+      </Label>
+
+      <Tabs v-model="app.settings.colorMode">
+        <TabsList class="flex w-full">
+          <TabsTrigger
+            v-for="mode in colorModes"
+            :key="mode.value"
+            :value="mode.value"
+            :title="mode.label"
+            class="min-w-0 flex-1 basis-0 py-1.5 [&>span]:min-w-0"
+          >
+            <component :is="mode.icon" class="mx-auto mb-1 block size-4" />
+            {{ mode.label }}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
     </Card>
 
     <Card class="flex flex-col gap-4 p-6">

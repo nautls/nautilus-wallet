@@ -277,6 +277,11 @@
     "global": {
       "displayLanguage": "Anzeigesprache",
       "displayLanguageDesc": "Wähle die Sprache der Nautilus-Oberfläche.",
+      "colorMode": "Farbschema",
+      "colorModeDesc": "Wählen Sie das Erscheinungsbild von Nautilus oder folgen Sie der Systemeinstellung.",
+      "colorModeAuto": "System",
+      "colorModeLight": "Hell",
+      "colorModeDark": "Dunkel",
       "conversionCurrency": "Umrechnungswährung",
       "conversionCurrencyDesc": "Wähle die Währung für Umrechnungskurse.",
       "noCurrenciesFound": "Keine Währungen gefunden.",

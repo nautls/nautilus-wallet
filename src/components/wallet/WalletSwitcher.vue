@@ -86,7 +86,7 @@ function toggleValuesVisibility() {
 }
 
 function prefersDarkColors() {
-  return window.matchMedia("(prefers-color-scheme: dark)");
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 function toggleColorMode() {

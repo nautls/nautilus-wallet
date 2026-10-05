@@ -57,15 +57,24 @@ test.describe("wallet switcher", () => {
     await expect(popup.page).toHaveURL(/#\/add$/);
   });
 
-  test("toggles the color mode", async ({ popup }) => {
-    // the system color scheme is light, so the first toggle from "auto" should go dark
-    test.fail(true, "matchMedia() result is used as a boolean, so 'auto' always toggles to light");
-
+  test("toggles to dark from auto on a light system", async ({ popup }) => {
     const page = popup.page;
     await popup.walletSwitcher.click();
     await page.locator("button:has(svg.lucide-sun-moon)").click();
 
-    await expect(page.locator("html")).toHaveClass(/dark/, { timeout: 3_000 });
+    await expect(page.locator("html")).toHaveClass(/dark/);
+  });
+
+  test("toggles to light from auto on a dark system", async ({ popup }) => {
+    const page = popup.page;
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect(page.locator("html")).toHaveClass(/dark/);
+
+    await popup.walletSwitcher.click();
+    await page.locator("button:has(svg.lucide-sun-moon)").click();
+
+    await expect(page.locator("button:has(svg.lucide-moon)")).toBeVisible();
+    await expect(page.locator("html")).not.toHaveClass(/dark/);
   });
 
   test("toggles between light and dark color modes", async ({ popup }) => {
@@ -73,10 +82,12 @@ test.describe("wallet switcher", () => {
     await popup.walletSwitcher.click();
 
     await page.locator("button:has(svg.lucide-sun-moon)").click();
-    await page.locator("button:has(svg.lucide-moon)").click();
     await expect(page.locator("html")).toHaveClass(/dark/);
 
     await page.locator("button:has(svg.lucide-sun)").click();
     await expect(page.locator("html")).not.toHaveClass(/dark/);
+
+    await page.locator("button:has(svg.lucide-moon)").click();
+    await expect(page.locator("html")).toHaveClass(/dark/);
   });
 });

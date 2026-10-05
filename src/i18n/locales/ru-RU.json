@@ -277,6 +277,11 @@
     "global": {
       "displayLanguage": "Язык интерфейса",
       "displayLanguageDesc": "Выберите язык интерфейса кошелька Nautilus.",
+      "colorMode": "Цветовая тема",
+      "colorModeDesc": "Выберите оформление Nautilus или используйте системную настройку.",
+      "colorModeAuto": "Система",
+      "colorModeLight": "Светлая",
+      "colorModeDark": "Тёмная",
       "conversionCurrency": "Базовая валюта",
       "conversionCurrencyDesc": "Выберите валюту для отображения курса.",
       "noCurrenciesFound": "Валюты не найдены.",

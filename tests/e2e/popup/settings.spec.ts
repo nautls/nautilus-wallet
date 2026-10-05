@@ -48,6 +48,34 @@ test.describe("settings", () => {
       await expect(page.getByRole("heading", { name: /€\s?18\.75/ })).toBeVisible();
     });
 
+    test("changes the color theme", async ({ popup }) => {
+      await popup.goto("/settings");
+      const page = popup.page;
+      const html = page.locator("html");
+
+      await expect(page.getByRole("tab", { name: "System" })).toHaveAttribute(
+        "data-state",
+        "active"
+      );
+      await expect(html).not.toHaveClass(/dark/);
+
+      await page.getByRole("tab", { name: "Dark" }).click();
+      await expect(html).toHaveClass(/dark/);
+      await page.reload();
+      await expect(html).toHaveClass(/dark/);
+      await expect(page.getByRole("tab", { name: "Dark" })).toHaveAttribute("data-state", "active");
+
+      await page.getByRole("tab", { name: "Light" }).click();
+      await expect(html).not.toHaveClass(/dark/);
+
+      // "System" follows the OS preference
+      await page.getByRole("tab", { name: "System" }).click();
+      await page.emulateMedia({ colorScheme: "dark" });
+      await expect(html).toHaveClass(/dark/);
+      await page.emulateMedia({ colorScheme: "light" });
+      await expect(html).not.toHaveClass(/dark/);
+    });
+
     test("changes the display language", async ({ popup }) => {
       await popup.goto("/settings");
       const page = popup.page;
@@ -57,6 +85,9 @@ test.describe("settings", () => {
 
       await expect(page.getByRole("tab", { name: "Allgemein" })).toBeVisible();
       await expect(page.getByRole("tab", { name: "Verbindungen" })).toBeVisible();
+      // labels built in script are translated without reloading
+      await expect(page.getByRole("tab", { name: "Hell" })).toBeVisible();
+      await expect(page.getByRole("tab", { name: "Dunkel" })).toBeVisible();
     });
 
     test("validates the GraphQL server", async ({ popup, chain }) => {
