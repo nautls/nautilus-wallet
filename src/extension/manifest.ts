@@ -1,6 +1,6 @@
 import type { Manifest } from "webextension-polyfill";
-import pkg from "../../package.json";
-import { EXT_ENTRY_ROOT } from "../constants/extension";
+import pkg from "../../package.json" with { type: "json" };
+import { EXT_ENTRY_ROOT } from "../constants/extension.ts";
 
 type Network = "mainnet" | "testnet";
 type Browser = "chrome" | "firefox";

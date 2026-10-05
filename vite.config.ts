@@ -9,7 +9,6 @@ import vue from "@vitejs/plugin-vue";
 import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig, PluginOption } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
-import topLevelAwait from "vite-plugin-top-level-await";
 import wasmLoader from "vite-plugin-wasm";
 import webExtension from "vite-plugin-web-extension";
 import svgLoader from "vite-svg-loader";
@@ -39,7 +38,6 @@ const plugins = [
   vueI18n({ include: r("src/i18n/locales/*.json") }),
   tailwindcss(),
   svgLoader(),
-  topLevelAwait(),
   wasmLoader(),
   objectLogger(env),
   nodePolyfills({ include: ["buffer"] }), // required by @ledgerhq/* packages
@@ -81,21 +79,11 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
+    // top-level await is required by vite-plugin-wasm
+    target: ["chrome89", "edge89", "firefox89", "safari15"],
     chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
     outDir: r("dist")
-  },
-  optimizeDeps: {
-    include: [
-      "vue",
-      "vue-router",
-      "pinia",
-      "@fleet-sdk/babel-fees-plugin",
-      "ledger-ergo-js",
-      "ergo-lib-wasm-browser",
-      "vue-json-pretty",
-      "uqr"
-    ]
   },
   server: {
     port,

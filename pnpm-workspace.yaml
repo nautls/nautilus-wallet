@@ -1,9 +1,8 @@
-minimumReleaseAge: 10080 # 7 days
 allowBuilds:
-  "@swc/core": true
   esbuild: true
   spawn-sync: false
   vue-demi: true
+minimumReleaseAge: 10080 # 7 days
 overrides:
   esbuild@<=0.24.2: ">=0.25.5"
   webextension-polyfill@<=0.10.0: ">=0.12.0"
