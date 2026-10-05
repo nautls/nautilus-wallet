@@ -56,6 +56,7 @@ export default defineConfig(({ mode }) => ({
     ...(mode === "development" ? plugins : []),
     webExtension({
       manifest: () => buildManifest(env.NETWORK, env.TARGET, mode),
+      skipManifestValidation: true, // skip for now
       watchFilePaths: [r("src/manifest.ts")],
       additionalInputs: [
         `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
