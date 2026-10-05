@@ -24,3 +24,8 @@ pnpm-debug.log*
 
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/

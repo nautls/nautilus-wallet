@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+/// <reference types="vitest/config" />
 import { execSync } from "child_process";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
@@ -99,6 +100,10 @@ export default defineConfig(({ mode }) => ({
     port,
     strictPort: true,
     hmr: { port }
+  },
+  test: {
+    // end-to-end tests are run by Playwright
+    exclude: ["**/node_modules/**", "tests/e2e/**"]
   }
 }));
 
