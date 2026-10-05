@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { usePreferredDark } from "@vueuse/core";
 import {
   CheckIcon,
   ChevronsUpDownIcon,
@@ -12,8 +13,7 @@ import {
   MoonIcon,
   PlusCircleIcon,
   SettingsIcon,
-  SunIcon,
-  SunMoonIcon
+  SunIcon
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -85,17 +85,13 @@ function toggleValuesVisibility() {
   app.settings.hideBalances = !app.settings.hideBalances;
 }
 
-function prefersDarkColors() {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
+const prefersDark = usePreferredDark();
+const isDark = computed(() =>
+  app.settings.colorMode === "auto" ? prefersDark.value : app.settings.colorMode === "dark"
+);
 
 function toggleColorMode() {
-  const mode = app.settings.colorMode;
-  if (mode === "auto") {
-    app.settings.colorMode = prefersDarkColors() ? "light" : "dark";
-  } else {
-    app.settings.colorMode = mode === "dark" ? "light" : "dark";
-  }
+  app.settings.colorMode = isDark.value ? "light" : "dark";
 }
 
 async function toggleViewMode() {
@@ -185,9 +181,8 @@ async function toggleViewMode() {
             <EyeOffIcon v-else />
           </Button>
           <Button class="cursor-default" variant="ghost" size="icon" @click="toggleColorMode">
-            <SunIcon v-if="app.settings.colorMode === 'dark'" />
-            <MoonIcon v-else-if="app.settings.colorMode === 'light'" />
-            <SunMoonIcon v-else />
+            <SunIcon v-if="isDark" />
+            <MoonIcon v-else />
           </Button>
           <Button class="cursor-default" variant="ghost" size="icon" @click="toggleViewMode">
             <Maximize2Icon v-if="isPopupView" />
