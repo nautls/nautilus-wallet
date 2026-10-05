@@ -57,37 +57,50 @@ test.describe("wallet switcher", () => {
     await expect(popup.page).toHaveURL(/#\/add$/);
   });
 
-  test("toggles to dark from auto on a light system", async ({ popup }) => {
+  test("toggles from auto to the opposite of a light system", async ({ popup }) => {
     const page = popup.page;
     await popup.walletSwitcher.click();
-    await page.locator("button:has(svg.lucide-sun-moon)").click();
 
+    // the button shows the mode it switches to
+    await page.locator("button:has(svg.lucide-moon)").click();
     await expect(page.locator("html")).toHaveClass(/dark/);
+    await expect(page.locator("button:has(svg.lucide-sun)")).toBeVisible();
   });
 
-  test("toggles to light from auto on a dark system", async ({ popup }) => {
+  test("toggles from auto to the opposite of a dark system", async ({ popup }) => {
     const page = popup.page;
     await page.emulateMedia({ colorScheme: "dark" });
     await expect(page.locator("html")).toHaveClass(/dark/);
-
     await popup.walletSwitcher.click();
-    await page.locator("button:has(svg.lucide-sun-moon)").click();
-
-    await expect(page.locator("button:has(svg.lucide-moon)")).toBeVisible();
-    await expect(page.locator("html")).not.toHaveClass(/dark/);
-  });
-
-  test("toggles between light and dark color modes", async ({ popup }) => {
-    const page = popup.page;
-    await popup.walletSwitcher.click();
-
-    await page.locator("button:has(svg.lucide-sun-moon)").click();
-    await expect(page.locator("html")).toHaveClass(/dark/);
 
     await page.locator("button:has(svg.lucide-sun)").click();
     await expect(page.locator("html")).not.toHaveClass(/dark/);
+    await expect(page.locator("button:has(svg.lucide-moon)")).toBeVisible();
+  });
 
-    await page.locator("button:has(svg.lucide-moon)").click();
-    await expect(page.locator("html")).toHaveClass(/dark/);
+  test("follows system changes while in auto mode", async ({ popup }) => {
+    const page = popup.page;
+    await popup.walletSwitcher.click();
+    await expect(page.locator("button:has(svg.lucide-moon)")).toBeVisible();
+
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect(page.locator("button:has(svg.lucide-sun)")).toBeVisible();
+  });
+
+  test("only toggles between light and dark", async ({ popup }) => {
+    const page = popup.page;
+    await popup.walletSwitcher.click();
+
+    for (const [icon, dark] of [
+      ["moon", true],
+      ["sun", false],
+      ["moon", true]
+    ] as const) {
+      await page.locator(`button:has(svg.lucide-${icon})`).click();
+      if (dark) await expect(page.locator("html")).toHaveClass(/dark/);
+      else await expect(page.locator("html")).not.toHaveClass(/dark/);
+    }
+
+    await expect(page.locator("svg.lucide-sun-moon")).toHaveCount(0);
   });
 });
