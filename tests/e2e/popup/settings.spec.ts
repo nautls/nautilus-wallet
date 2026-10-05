@@ -1,16 +1,5 @@
 import { expect, fundWallet, test } from "../fixtures/test";
 import { WALLET_A, WALLET_B } from "../fixtures/wallets";
-import type { Popup } from "../pages/popup";
-
-/**
- * Reopens the popup once after onboarding. The first reopen migrates settings,
- * see "keeps settings changed right after onboarding" below.
- */
-async function reopen(popup: Popup, route = "/") {
-  await popup.goto(route);
-  await popup.page.reload();
-  await expect(popup.walletSwitcher).toBeVisible();
-}
 
 test.describe("settings", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -20,7 +9,7 @@ test.describe("settings", () => {
 
   test.describe("global", () => {
     test("toggles developer mode", async ({ popup }) => {
-      await reopen(popup, "/settings");
+      await popup.goto("/settings");
       const devMode = popup.page.locator("#dev-mode");
 
       await expect(devMode).not.toBeChecked();
@@ -32,17 +21,18 @@ test.describe("settings", () => {
     });
 
     test("keeps settings changed right after onboarding", async ({ popup }) => {
-      // `isKyaAccepted` is never set during onboarding, so the next time the popup opens
-      // appStore treats it as a legacy install and resets every setting to its default.
-      test.fail(true, "settings are reset the first time the popup is reopened");
-
+      await popup.importWallet(WALLET_B);
       await popup.goto("/settings");
-      const devMode = popup.page.locator("#dev-mode");
-      await devMode.click();
-      await expect(devMode).toBeChecked();
+      const page = popup.page;
+      await page.locator("#dev-mode").click();
+      await page.getByRole("button", { name: "usd" }).click();
+      await page.getByRole("option", { name: "eur" }).click();
 
-      await popup.page.reload();
-      await expect(devMode).toBeChecked({ timeout: 3_000 });
+      await page.reload();
+      await expect(page.locator("#dev-mode")).toBeChecked();
+      await expect(page.getByRole("button", { name: "eur" })).toBeVisible();
+      // the last opened wallet is kept too, instead of falling back to the first one
+      await expect(popup.walletSwitcher).toContainText(WALLET_B.name);
     });
 
     test("changes the conversion currency", async ({ popup }) => {
@@ -70,7 +60,7 @@ test.describe("settings", () => {
     });
 
     test("validates the GraphQL server", async ({ popup, chain }) => {
-      await reopen(popup, "/settings");
+      await popup.goto("/settings");
       const page = popup.page;
       const input = page.locator("#gql-server");
 
@@ -112,7 +102,7 @@ test.describe("settings", () => {
     });
 
     test("toggles token blacklists and 0-conf", async ({ popup }) => {
-      await reopen(popup, "/settings");
+      await popup.goto("/settings");
       const page = popup.page;
 
       for (const id of ["#nsfw-blacklist", "#scam-blacklist"]) {
