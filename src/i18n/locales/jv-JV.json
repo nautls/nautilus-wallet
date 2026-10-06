@@ -1,0 +1,377 @@
+{
+  "common": {
+    "cancel": "Batalke",
+    "search": "Goleki",
+    "copy": "Salin",
+    "close": "Tutup",
+    "send": "Kirimke",
+    "verify": "Verifikasi",
+    "tokenId": "ID Token",
+    "fee": "Biayane",
+    "tryAgain": "Cobi malih",
+    "sign": "Tandha tangan",
+    "openInExplorer": "Buka ing penjelajah",
+    "showQrCode": "Tampilaken kode QR",
+    "optimize": "Optimalaken",
+    "consolidate": "Konsolidasi",
+    "learnMore": "Sinau langkung kathah",
+    "confirm": "Konfirmasi",
+    "import": "Impor",
+    "select": "Pilih",
+    "confirmed": "Dikonfirmasi",
+    "export": "Ekspor",
+    "remove": "Busak",
+    "swap": "Ngentosi",
+    "privacyPolicy": "Kawicaksanan Privasi",
+    "termsOfUse": "Katentuan Panggunaan",
+    "healthy": "Waras",
+    "unhealthy": "Mboten sehat",
+    "authenticate": "Otentikasi",
+    "buyErg": "Tumbas ERG"
+  },
+  "datetime": {
+    "now": "nembe wae",
+    "seconds": "{count} detik | {count} detik",
+    "minutes": "{count} menit | {count} menit",
+    "hours": "{count} jam | {count} jam",
+    "days": "{count} dinten | {count} dinten",
+    "weeks": "{count} minggu | {count} minggu",
+    "months": "{count} wulan | {count} wulan",
+    "years": "{count} taun | {count} taun",
+    "relative": {
+      "past": {
+        "seconds": "{count} detik kepengker | {count} detik kepengker",
+        "minutes": "{count} menit kepengker | {count} menit kepengker",
+        "hours": "{count} jam kepengker | {count} jam kepengker",
+        "days": "{count} dinten kepengker | {count} dinten kepengker",
+        "weeks": "{count} minggu kepengker | {count} minggu kepengker",
+        "months": "{count} wulan kepengker | {count} wulan kepengker",
+        "years": "{count} taun kepengker | {count} taun kepengker"
+      },
+      "future": {
+        "seconds": "ing {count} detik | ing {count} detik",
+        "minutes": "ing {count} menit | ing {count} menit",
+        "hours": "ing {count} jam | ing {count} jam",
+        "days": "ing {count} dinten | ing {count} dinten",
+        "weeks": "ing {count} minggu | ing {count} minggu",
+        "months": "ing {count} wulan | ing {count} wulan",
+        "years": "ing {count} taun | ing {count} taun"
+      }
+    }
+  },
+  "device": {
+    "isLocked": "Piranti kaunci",
+    "ready": "Siap",
+    "connect": "Sambungaken",
+    "connected": "Kasambung",
+    "reconnecting": "Nyambungaken malih...",
+    "connecting": "Nyambungaken...",
+    "connectionError": "Salah sambungan",
+    "notFoundError": "Piranti mboten kapanggihaken!",
+    "notFoundErrorDesc": "Priksa manawi piranti panjenengan kasambung kanthi leres lan mboten kaunci.",
+    "ledger": {
+      "waitingAppClose": "Ngentosi aplikasi dipuntutup",
+      "confirmAppOpen": "Konfirmasi mbukak aplikasi Ergo",
+      "waitingAppReady": "Ngentosi aplikasi siap",
+      "userDeniedOpenApp": "Mbukak aplikasi Ergo dipuntampik dening pangguna",
+      "deniedByUser": "Dipuntampik dening pangguna",
+      "openingApp": "Salah nalika mbukak aplikasi Ergo",
+      "appId": "ID Aplikasi: {appId}"
+    }
+  },
+  "header": {
+    "nav": {
+      "assets": "Aset",
+      "history": "Riwayat",
+      "receive": "Tampa",
+      "send": "Kirimke",
+      "dApps": "dApps"
+    },
+    "menu": {
+      "noWalletsFound": "Mboten wonten dompet kapanggihaken.",
+      "newWallet": "Dompet enggal",
+      "settings": "Setelan",
+      "about": "Babagan"
+    }
+  },
+  "asset": {
+    "total": "Duwit dompet",
+    "noConversionRate": "Mboten wonten kurs konversi",
+    "add": "Tambah aset",
+    "noAssetsFound": "Mboten wonten aset kapanggihaken.",
+    "tabs": {
+      "tokens": "Token",
+      "collectibles": "Barang koleksi"
+    },
+    "info": {
+      "emissionAmount": "Jumlah emisi",
+      "mintTxId": "Mint TXID",
+      "additionalMetadata": "Metadata tambahan"
+    }
+  },
+  "address": {
+    "filter": {
+      "all": "Sedaya",
+      "active": "Aktif",
+      "unused": "Mboten dipunginakaken"
+    },
+    "state": {
+      "used": "Dipunginakaken",
+      "unused": "Mboten dipunginakaken"
+    },
+    "label": {
+      "address": "Alamat",
+      "path": "Jalur",
+      "current": "Alamat sakniki",
+      "default": "Alamat standar"
+    },
+    "receive": {
+      "": "Aja ngirim langkung saking {count} token ing setunggal transaksi dhateng dompet punika. Memori piranti ingkang winates saged njalari dana panjenengan mboten saged dipunakses.",
+      "verifyOnLedger": "Verifikasi ing piranti Ledger",
+      "newAddressError": "Gagal ngasilaken alamat",
+      "newAddressErrorFallbackMessage": "Mboten saged ngasilaken alamat enggal."
+    },
+    "qrCode": {
+      "title": "Kode QR Alamat",
+      "description": "Pindai kode QR punika kangge nampi aset ing {address}."
+    },
+    "verify": {
+      "title": "Verifikasi Alamat",
+      "description": "Priksa manawi alamat lan jalur ingkang dipuntampilaken sami persis kaliyan ingkang wonten ing piranti panjenengan.",
+      "confirmOnDevice": "Konfirmasi alamat ing piranti panjenengan",
+      "notConfirmed": "Dereng dikonfirmasi",
+      "verificationError": "Verifikasi gagal",
+      "unknownVerificationError": "Salah ingkang mboten dipunmangertosi dumados nalika verifikasi alamat."
+    }
+  },
+  "transaction": {
+    "history": {
+      "txTitle": "Transaksi {txId}",
+      "txState": "Pending | {count} konfirmasi | {count} konfirmasi",
+      "empty": "Panjenengan dereng gadhah riwayat transaksi.",
+      "nextPage": "Muat langkung kathah transaksi"
+    },
+    "send": {
+      "recipient": "Panampi",
+      "assets": "Aset",
+      "addAllAssets": "Tambah sedaya aset",
+      "addAllAssetsDesc": "Tambah sedaya aset dhateng dhaptar kirim.",
+      "minNamedAssetError": "Panjenengan mbetahaken paling mboten {min} {asset} kangge ngirim transaksi punika.",
+      "requiredAmountError": "Mangga lebetaken jumlah.",
+      "minFeeError": "Panjenengan kedah mbayar biaya minimal {min} {name} kangge ngirim transaksi punika.",
+      "emptyAddressError": "Mangga lebetaken alamat panampi.",
+      "noSelectedAssetsError": "Mangga pilih paling mboten setunggal aset kangge ngirim transaksi punika."
+    },
+    "sign": {
+      "babelFeeSwap": "Ngentosi Biaya Babel",
+      "sendingToYourAddress": "Nirimaken dhateng alamat panjenengan",
+      "sendingToContract": "Nirimaken dhateng kontrak",
+      "sendingToScriptHash": "Nirimaken dhateng Script Hash",
+      "sendingToExternalAddress": "Nirimaken dhateng alamat eksternal",
+      "broadcastError": "Transmisi transaksi gagal",
+      "newToken": "Token Enggal",
+      "newTokenDesc": "Token punika badhe dipun-mint ing transaksi punika.",
+      "burning": "Bakar",
+      "burningDesc": "Aset ing ngandhap punika badhe ical. Cekapaken kemawon menawi panjenengan mangertos persis menapa ingkang panjenengan lampahi.",
+      "burningConfirm": "Bakar token kanthi permanen",
+      "totalOutput": "Total aset ingkang medal saking dompet panjenengan",
+      "totalInput": "Total aset ingkang mlebet dhateng dompet panjenengan",
+      "details": "Rincian transaksi",
+      "scriptHash": "Script Hash",
+      "networkFee": "Biaya jaringan",
+      "reviewTx": "Review Transaksi",
+      "reviewTxDesc": "Review transaksi sadurunge nggunakake tanda tangan.",
+      "buildError": "Nggawe transaksi gagal",
+      "success": "Transaksi ka kirim!",
+      "successDesc": "Transaksi panjenengan sampun kasil ditandhani lan dikirim.",
+      "signError": "Tanda tangan transaksi gagal"
+    }
+  },
+  "wallet": {
+    "spendingPassword": "Sandi pangeluaran",
+    "emptyProof": "Prover mboten ngasilaken data ingkang ditandhani.",
+    "requiredSpendingPassword": "Mangga lebetaken sandi pangeluaran panjenengan.",
+    "wrongPassword": "Sandi salah",
+    "wrongPasswordDesc": "Mangga lebetaken sandi pangeluaran ingkang leres.",
+    "xPubKey": "Kunci publik dipunwiyaraken",
+    "xPubKeyDesc": "Kunci publik ingkang dipunwiyaraken ngidini ningali riwayat transaksi lan ngasilaken alamat enggal, nanging mboten saged ngginakaken utawi mindhah dana.",
+    "xPrivKey": "Kunci pribadi dipunwiyaraken",
+    "walletName": "Jeneng dompet",
+    "confirmPassword": "Konfirmasi sandi",
+    "requiredWalletName": "Jeneng dompet dipunbetahaken.",
+    "spendingPasswordRequired": "Sandi pangeluaran dipunbetahaken.",
+    "minSpendingPasswordLength": "Sandi pangeluaran kedah paling mboten {min} karakter.",
+    "passwordsMustMatch": "'Sandi pangeluaran' lan 'Konfirmasi sandi' kedah sami.",
+    "infoStep": "Informasi dompet",
+    "infoStepDesc": "Informasi punika badhe dipunginakaken kangge ngidentifikasi lan nglindungi dompet panjenengan.",
+    "cantSignData": "Dompet punika mboten saged nandhani data.",
+    "cantSignTx": "Dompet punika mboten saged nandhani transaksi.",
+    "words": "{count} tembung",
+    "readonlyWallet": "Dompet mung-waca",
+    "ledgerWallet": "Dompet Ledger",
+    "type": {
+      "standard": "Standar",
+      "readonly": "Mung-waca",
+      "ledger": "Ledger"
+    },
+    "alerts": {
+      "demurrage": "Panjenengan saged enggal kena biaya demurrage",
+      "demurrageDesc": "UTxO ingkang nyepeng token kedah gadhah ERG ingkang cekap kangge nutupi biaya demurrage, utawi panjenengan resiko ical. Konsolidasi aset panjenengan kangge ngindhari punika.",
+      "fragmentation": "Dompet panjenengan katingal pecah-pecah",
+      "fragmentationDesc": "Coba optimalaken dompet panjenengan kangge kinerja lan efisiensi ingkang langkung sae."
+    },
+    "index": {
+      "title": "Sugeng rawuh ing Nautilus Wallet",
+      "subtitle": "Pilih pilihan kangge miwiti",
+      "kyaAgreement": "Kanthi nerusaken, panjenengan sarujuk kaliyan {termsOfUse} Nautilus",
+      "create": "Nggawe dompet enggal",
+      "createDesc": "Nggawe dompet Ergo enggal",
+      "connect": "Sambungaken dompet Ledger",
+      "connectDesc": "Sambungaken dompet hardware panjenengan",
+      "import": "Impor dompet",
+      "importDesc": "Impor dompet ingkang sampun wonten"
+    },
+    "create": {
+      "createRecoveryPhrase": "Nggawe frasa pemulihan",
+      "iHaveSavedTheseWords": "Kula sampun nyimpen tembung-tembung punika",
+      "recoveryPhraseDoNotMatch": "Frasa pemulihan mboten sami kaliyan aslinipun.",
+      "walletCreationError": "Nggawe dompet gagal",
+      "secretStep": "Frasa pemulihan",
+      "secretStepDesc": "Tembung-tembung punika minangka kunci dhateng dompet panjenengan. Priksa manawi panjenengan nyimpen ing papan ingkang aman.",
+      "secretConfirmStep": "Konfirmasi frasa pemulihan panjenengan",
+      "secretConfirmStepDesc": "Lengkapi bagean ingkang ical saking frasa pemulihan panjenengan.",
+      "creating": "Nggawe dompet panjenengan..."
+    },
+    "import": {
+      "insertPubKey": "Lebetaken kunci publik",
+      "insertRecoveryPhrase": "Lebetaken frasa pemulihan",
+      "requiredXPubKey": "Kunci publik dipunwiyaraken dipunbetahaken.",
+      "requiredRecoveryPhrase": "Frasa pemulihan dipunbetahaken.",
+      "walletImportError": "Impor dompet gagal",
+      "importStep": "Lebetaken Kunci Publik ingkang Dipunwiyaraken saking dompet panjenengan.",
+      "importStepDesc": "Pilih jinis rahasia ingkang badhe dipunginakaken lan isi.",
+      "walletType": "Jinis dompet",
+      "selectSecretType": "Pilih jinis rahasia",
+      "selectWalletType": "Pilih jinis dompet",
+      "words": "{count} tembung frasa pemulihan",
+      "importing": "Ngimpor dompet panjenengan..."
+    },
+    "connect": {
+      "confirmXPubExport": "Konfirmasi ekspor Kunci Publik Dipunwiyaraken",
+      "notExported": "Mboten diekspor",
+      "verificationError": "Verifikasi gagal",
+      "verificationUnknownError": "Salah ingkang mboten dipunmangertosi dumados nalika verifikasi alamat.",
+      "success": "Dompet kasambung!",
+      "popupViewMode": "popup",
+      "sidePanelViewMode": "panel sisih",
+      "successDesc": "Piranti Ledger panjenengan sampun kasil kasambung. Panjenengan saged mbukak Nautilus Wallet ing {viewMode} peramban.",
+      "openInViewMode": "Buka Nautilus ing {viewMode}"
+    }
+  },
+  "settings": {
+    "systemDefault": "Sistem standar",
+    "tabs": {
+      "global": "Global",
+      "wallet": "Dompet",
+      "connections": "Sambungan"
+    },
+    "global": {
+      "displayLanguage": "Basa tampilan",
+      "displayLanguageDesc": "Pilih basa kangge antarmuka Nautilus Wallet.",
+      "conversionCurrency": "Mata uang konversi",
+      "conversionCurrencyDesc": "Pilih mata uang kangge kurs konversi.",
+      "noCurrenciesFound": "Mboten wonten mata uang kapanggihaken.",
+      "devMode": "Mode pengembang",
+      "devModeDesc": "Aktifaken mode pengembang kangge ngakses fitur-fitur canggih.",
+      "tokenBlacklists": "Dhaptar ireng token",
+      "tokenBlacklistsDesc": "Ngatur dhaptar ireng token kangge ndhelikake token ingkang mboten dipunbetahaken.",
+      "nsfwTokensBlacklist": "Token NSFW",
+      "nsfwTokensBlacklistDesc": "Ndhelikake token NSFW (Mboten Aman Kangge Pakaryan).",
+      "scamTokensBlacklist": "Token penipuan",
+      "scamTokensBlacklistDesc": "Ndhelikake token penipuan.",
+      "gqlServer": "Server GraphQL",
+      "requiredGql": "URL GraphQL dipunbetahaken.",
+      "wrongServerNetwork": "Jaringan server salah.",
+      "unsupportedServerVersion": "Versi server mboten didukung. Nautilus mbutuhake paling mboten versi {version}.",
+      "explorerUrl": "URL Penjelajah",
+      "requiredExplorer": "URL Penjelajah dipunbetahaken.",
+      "ipfsGateway": "IPFS Gateway",
+      "requiredIpfs": "URL IPFS Gateway dipunbetahaken.",
+      "experimental": "Eksperimental",
+      "experimentalDesc": "Fitur ing ngandhap bagean punika dipun tandhani minangka eksperimental, ingkang tegesipun mboten stabil. Gunakaken kanthi ngati-ati, amargi saged ngandhut bug utawi ngalami owah-owahan signifikan. Punika minangka proyek ingkang taksih dipungarap, dados mugi mboten kaget menawi wonten kekirangan.",
+      "zeroConf": "Aktifaken 0-conf",
+      "zeroConfDesc": "0-conf, cekakan saking zero-confirmations, ngidini panjenengan ngginakaken aset tanpa ngentosi konfirmasi. Punika cepet nanging gadhah resiko dipunbelanjakaken kaping pindho ngantos dikonfirmasi dening blockchain."
+    },
+    "wallet": {
+      "walletNameDesc": "Setel jeneng kangge dompet panjenengan.",
+      "avoidAddressReuse": "Ngindhari panggunaan malih alamat",
+      "avoidAddressReuseDesc": "Aktifaken pilihan punika kangge nyegah alamat ingkang sami dipunginakaken kangge kathah transaksi. Punika mbantu nglindungi privasi panjenengan.",
+      "xPubKeyDesc": "Gunakaken pilihan punika kangge ngekspor Kunci Publik ingkang Dipunwiyaraken saking dompet panjenengan.",
+      "removeWallet": "Busak dompet",
+      "removeWalletDesc": "Gunakaken pilihan punika kangge mbusek dompet sakniki saking aplikasi.",
+      "walletRemoveConfirmation": "Panjenengan yakin banget?",
+      "walletRemoveConfirmationDesc": "Mbusek dompet mboten mangaribawani Duwitmu blockchain, lan panjenengan saged mulihaken mengko. Nanging, priksa manawi panjenengan taksih gadhah informasi ingkang dipunbetahaken kangge mulihaken. Tanpa punika, mbusek dompet saged njalari mundhut dana ingkang mboten saged dipunbalekaken."
+    },
+    "connections": {
+      "noConnectedApps": "Panjenengan dereng gadhah aplikasi ingkang kasambung."
+    }
+  },
+  "about": {
+    "nautilusWallet": "Nautilus Wallet",
+    "quote": "Dipunbangun kanthi rahasia, sumber bagean saking sumber ingkang mboten dipunsebutaken jenengipun. Njelajahi sagara ing ngajeng panguwaos pamarentahan ing dharatan.",
+    "donation": "Dukung pangembangan Nautilus Wallet kanthi nyumbang dhateng {address}."
+  },
+  "dapps": {
+    "sigmaUsd": {
+      "title": "Protokol SigmaUSD",
+      "insufficientBalance": "Duwitmu {asset} mboten cekap.",
+      "blockedAction": "Amargi cadangan bank sakniki, panjenengan mboten saged {action} langkung saking {amount} {asset}.",
+      "feeSummary": "Biaya {amount}",
+      "protocolFee": "Biaya Protokol ({rate})",
+      "protocolFeeDesc": "Biaya Protokol langsung nyumbang dhateng cadangan bank.",
+      "serviceFee": "Biaya Layanan ({rate})",
+      "serviceFeeDesc": "Nautilus Wallet ngisi biaya datar kangge nyukupi pangembangan kanthi lestari.",
+      "networkFee": "Biaya Jaringan",
+      "networkFeeDesc": "Punika biaya kangge nambahaken transaksi dhateng blockchain.",
+      "totalFee": "Total Biaya",
+      "bankReserves": "Cadangan bank",
+      "oracleRate": "Kurs sakniki",
+      "buy": "tumbas",
+      "sell": "adol"
+    },
+    "walletOptimizer": {
+      "title": "Optimalisasi Dompet",
+      "description": "Gunakaken piranti punika kangge nggabungaken UTxO panjenengan, ningkataken kinerja lan ngindhari biaya {demurrage}.",
+      "demurrage": "demurrage",
+      "size": "{count} {size}",
+      "bytes": "bait",
+      "utxoCount": "Cacahipun UTxO",
+      "oldestUtxo": "UTxO paling sepuh",
+      "walletSize": "Ukuran dompet",
+      "walletHealth": "Kesehatan dompet"
+    }
+  },
+  "connector": {
+    "connect": {
+      "header": "{host} nyuwun kangge nyambung kaliyan Nautilus.",
+      "connect": "Sambungaken"
+    },
+    "auth": {
+      "header": "{host} nyuwun bukti menawi alamat ingkang dipunpilih punika kagungan panjenengan.",
+      "selectedAddress": "Alamat ingkang dipunpilih"
+    },
+    "signData": {
+      "header": "{host} nyuwun nandhani pesen.",
+      "dataType": {
+        "text": "Pesen teks",
+        "json": "Obyek JSON",
+        "hash": "Pesen hash",
+        "binary": "Data biner"
+      }
+    },
+    "signTx": {
+      "fullTxHeader": "{host} nyuwun nandhani transaksi.",
+      "partialTxHeader": "{host} nyuwun nandhani transaksi sebagean"
+    }
+  }
+}
