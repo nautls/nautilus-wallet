@@ -19,7 +19,12 @@ export function bn(value: BNInput | undefined): BigNumber | undefined;
 export function bn(value?: BNInput): BigNumber | undefined {
   const t = typeof value;
   if (t === "undefined") return undefined;
-  return BigNumber(t === "bigint" ? String(value) : (value as BigNumber.Value));
+
+  try {
+    return BigNumber(t === "bigint" ? String(value) : (value as BigNumber.Value));
+  } catch {
+    return BigNumber("NaN");
+  }
 }
 
 /**
