@@ -1,4 +1,4 @@
-import { expect, type BrowserContext, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 
 export type Outcome<T> =
   | { ok: true; value: T }
@@ -49,9 +49,20 @@ export async function withConnectorWindow<R>(
   return { win, result };
 }
 
-export async function expectWindowClosed(win: Page) {
-  if (win.isClosed()) return;
-  await win.waitForEvent("close");
+/**
+ * Clicks a button that closes its own window. The window can close before
+ * Playwright receives the click acknowledgement, which makes `click()` throw
+ * "Target page, context or browser has been closed", so that error is ignored
+ * as long as the window actually closes.
+ */
+export async function clickToClose(target: Locator) {
+  const win = target.page();
+  await Promise.all([
+    win.isClosed() ? undefined : win.waitForEvent("close"),
+    target.click().catch((e: Error) => {
+      if (!/Target page, context or browser has been closed/.test(e.message)) throw e;
+    })
+  ]);
 }
 
 /** Asserts that the request header shows the requesting dApp host. */
@@ -66,8 +77,7 @@ export async function connectDapp(context: BrowserContext, dapp: Page, walletNam
   );
 
   await win.getByRole("button", { name: walletName }).click();
-  await win.getByRole("button", { name: "Connect", exact: true }).click();
-  await expectWindowClosed(win);
+  await clickToClose(win.getByRole("button", { name: "Connect", exact: true }));
 
   expect(await result).toEqual({ ok: true, value: true });
 }

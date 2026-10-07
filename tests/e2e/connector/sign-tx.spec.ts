@@ -5,9 +5,9 @@ import { RECIPIENT_ADDRESS, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wal
 import { DAPP_HOST } from "../mocks/services";
 import { toast } from "../pages/common";
 import {
+  clickToClose,
   connectDapp,
   expectRequestFrom,
-  expectWindowClosed,
   invoke,
   withConnectorWindow
 } from "../pages/connector";
@@ -44,8 +44,7 @@ test.describe("dApp transaction signing", () => {
       await expect(win.getByText("Alice")).toBeVisible();
 
       await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
-      await win.getByRole("button", { name: "Sign" }).click();
-      await expectWindowClosed(win);
+      await clickToClose(win.getByRole("button", { name: "Sign" }));
 
       const outcome = await result;
       expect(outcome.ok).toBe(true);
@@ -92,8 +91,7 @@ test.describe("dApp transaction signing", () => {
       expect(win.isClosed()).toBe(false);
 
       await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
-      await sign.click();
-      await expectWindowClosed(win);
+      await clickToClose(sign);
       expect((await result).ok).toBe(true);
     });
 
@@ -104,8 +102,7 @@ test.describe("dApp transaction signing", () => {
         await buildTransaction(chain, WALLET_A)
       );
 
-      await win.getByRole("button", { name: "Cancel" }).click();
-      await expectWindowClosed(win);
+      await clickToClose(win.getByRole("button", { name: "Cancel" }));
 
       expect(await result).toEqual({ ok: false, error: { code: 2, info: "User rejected." } });
     });
@@ -118,6 +115,7 @@ test.describe("dApp transaction signing", () => {
       );
 
       await expect(win.getByRole("button", { name: "Sign" })).toBeVisible();
+      await expectRequestFrom(win, DAPP_HOST);
       await win.close({ runBeforeUnload: true });
 
       expect(await result).toEqual({ ok: false, error: { code: 2, info: "User rejected." } });
@@ -191,7 +189,7 @@ test.describe("dApp transaction signing", () => {
     await expect(win.getByText("This wallet can't sign transactions.")).toBeVisible();
     await expect(win.getByRole("button", { name: "Sign" })).toBeDisabled();
 
-    await win.getByRole("button", { name: "Cancel" }).click();
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
     expect(await result).toEqual({ ok: false, error: { code: 2, info: "User rejected." } });
   });
 });

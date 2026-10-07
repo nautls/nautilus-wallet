@@ -2,9 +2,9 @@ import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
 import { DAPP_HOST } from "../mocks/services";
 import {
+  clickToClose,
   connectDapp,
   expectRequestFrom,
-  expectWindowClosed,
   invoke,
   withConnectorWindow
 } from "../pages/connector";
@@ -46,8 +46,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       await expect(win.getByText(address)).toBeVisible();
 
       await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
-      await win.getByRole("button", { name: "Authenticate" }).click();
-      await expectWindowClosed(win);
+      await clickToClose(win.getByRole("button", { name: "Authenticate" }));
 
       const outcome = await result;
       expect(outcome.ok).toBe(true);
@@ -70,8 +69,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       await win.getByRole("button", { name: "Authenticate" }).click();
       await expect(win.getByText("Please enter your spending password.")).toBeVisible();
 
-      await win.getByRole("button", { name: "Cancel" }).click();
-      await expectWindowClosed(win);
+      await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
     });
 
@@ -82,6 +80,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       });
 
       await expect(win.getByRole("heading", { name: "Selected address" })).toBeVisible();
+      await expectRequestFrom(win, DAPP_HOST);
       await win.close({ runBeforeUnload: true });
 
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
@@ -110,7 +109,7 @@ test.describe("dApp authentication (EIP-28)", () => {
     await expect(win.getByText("Read-only wallet")).toBeVisible();
     await expect(win.getByRole("button", { name: "Authenticate" })).toBeDisabled();
 
-    await win.getByRole("button", { name: "Cancel" }).click();
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
     expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
   });
 });
