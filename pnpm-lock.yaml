@@ -11,7 +11,7 @@ overrides:
 patchedDependencies:
   '@types/cleave.js@1.4.12': fe7e1acc309e7fc6ae269dc6e383d767327d6390371e5378bfb54f7beb242eac
   bignumber.js@10.0.2: e0b42419e86b13abdcc0c2728fb7971457807f8ae6b3a869bbd3eb4e6f3769a9
-  webext-bridge@6.0.1: 86da7c947ded48ad4c5c8fef87d0b0edb39d166c5395baff65224f1a6c16838f
+  webext-bridge@6.0.1: 805067cbc95ca3c89f20df8b09e93d7b2537f201bda0da865306a73151f57929
 
 importers:
 
@@ -121,7 +121,7 @@ importers:
         version: 4.6.4(vue@3.5.43(typescript@6.0.3))
       webext-bridge:
         specifier: ^6.0.1
-        version: 6.0.1(patch_hash=86da7c947ded48ad4c5c8fef87d0b0edb39d166c5395baff65224f1a6c16838f)
+        version: 6.0.1(patch_hash=805067cbc95ca3c89f20df8b09e93d7b2537f201bda0da865306a73151f57929)
       webextension-polyfill:
         specifier: ^0.12.0
         version: 0.12.0
@@ -9855,7 +9855,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  webext-bridge@6.0.1(patch_hash=86da7c947ded48ad4c5c8fef87d0b0edb39d166c5395baff65224f1a6c16838f):
+  webext-bridge@6.0.1(patch_hash=805067cbc95ca3c89f20df8b09e93d7b2537f201bda0da865306a73151f57929):
     dependencies:
       '@types/webextension-polyfill': 0.8.3
       nanoevents: 6.0.2
