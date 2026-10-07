@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ImportIcon, WalletIcon } from "lucide-vue-next";
+import { ImportIcon, WalletIcon } from "@lucide/vue";
 import { I18nT, useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import NautilusLogo from "@/components/NautilusLogo.vue";

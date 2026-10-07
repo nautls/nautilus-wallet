@@ -1,5 +1,5 @@
 import { Component } from "vue";
-import { CombineIcon } from "lucide-vue-next";
+import { CombineIcon } from "@lucide/vue";
 import { PickupKeys } from "vue-i18n";
 import { ComponentProps } from "@/composables/useProgrammaticDialog";
 import { MessageSchema } from "@/i18n";

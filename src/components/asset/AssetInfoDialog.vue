@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "lucide-vue-next";
+import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetImageSandbox } from "@/components/asset";
 import { Button } from "@/components/ui/button";

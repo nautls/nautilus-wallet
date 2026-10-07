@@ -6,7 +6,7 @@ import { useForwardPropsEmits } from 'reka-ui'
 import { DrawerContent, DrawerPortal } from 'vaul-vue'
 import DrawerOverlay from './DrawerOverlay.vue'
 import { target } from '@/common/env'
-import { XIcon } from 'lucide-vue-next'
+import { XIcon } from '@lucide/vue'
 import { DrawerClose } from 'vaul-vue'
 
 interface Props extends DialogContentProps {
@@ -44,7 +44,7 @@ const forwarded = useForwardPropsEmits(props, emits)
         </DrawerClose>
       </template>
 
-      
+
     </DrawerContent>
   </DrawerPortal>
 </template>
