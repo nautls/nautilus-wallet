@@ -2,9 +2,9 @@ import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, WALLET_A, WALLET_B } from "../fixtures/wallets";
 import { DAPP_HOST } from "../mocks/services";
 import {
+  clickToClose,
   connectDapp,
   expectRequestFrom,
-  expectWindowClosed,
   invoke,
   withConnectorWindow
 } from "../pages/connector";
@@ -33,9 +33,7 @@ test.describe("dApp connection", () => {
 
     await win.getByRole("button", { name: /Alice/ }).click();
     await expect(connect).toBeEnabled();
-    await connect.click();
-
-    await expectWindowClosed(win);
+    await clickToClose(connect);
     expect(await result).toEqual({ ok: true, value: true });
 
     const state = await dapp.evaluate(async () => ({
@@ -61,7 +59,7 @@ test.describe("dApp connection", () => {
     );
 
     await win.getByRole("button", { name: /Alice/ }).click();
-    await win.getByRole("button", { name: "Connect", exact: true }).click();
+    await clickToClose(win.getByRole("button", { name: "Connect", exact: true }));
     expect(await result).toEqual({ ok: true, value: true });
 
     expect(await dapp.evaluate(() => typeof window.ergo)).toBe("undefined");
@@ -77,8 +75,7 @@ test.describe("dApp connection", () => {
       invoke(dapp, () => window.ergoConnector.nautilus.connect())
     );
 
-    await win.getByRole("button", { name: "Cancel" }).click();
-    await expectWindowClosed(win);
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
 
     expect(await result).toEqual({ ok: true, value: false });
     expect(await dapp.evaluate(() => window.ergoConnector.nautilus.isAuthorized())).toBe(false);
@@ -90,6 +87,8 @@ test.describe("dApp connection", () => {
       invoke(dapp, () => window.ergoConnector.nautilus.connect())
     );
 
+    // the request is only bound to the window once it's loaded; closing earlier leaves it pending
+    await expectRequestFrom(win, DAPP_HOST);
     await win.close({ runBeforeUnload: true });
 
     expect(await result).toEqual({ ok: true, value: false });
@@ -102,7 +101,7 @@ test.describe("dApp connection", () => {
     );
 
     await win.getByRole("button", { name: /Alice/ }).click();
-    await win.getByRole("button", { name: "Connect", exact: true }).click();
+    await clickToClose(win.getByRole("button", { name: "Connect", exact: true }));
 
     expect(await result).toEqual({ ok: true, value: true });
     expect(await dapp.evaluate(() => window.ergo_check_read_access!())).toBe(true);

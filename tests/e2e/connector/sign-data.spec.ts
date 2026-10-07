@@ -3,9 +3,9 @@ import { addressOf, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
 import { DAPP_HOST } from "../mocks/services";
 import { toast } from "../pages/common";
 import {
+  clickToClose,
   connectDapp,
   expectRequestFrom,
-  expectWindowClosed,
   invoke,
   withConnectorWindow
 } from "../pages/connector";
@@ -47,8 +47,7 @@ test.describe("dApp data signing", () => {
       await expect(win.getByText("hello nautilus")).toBeVisible();
 
       await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
-      await win.getByRole("button", { name: "Sign" }).click();
-      await expectWindowClosed(win);
+      await clickToClose(win.getByRole("button", { name: "Sign" }));
 
       const outcome = await result;
       expect(outcome).toEqual({ ok: true, value: expect.stringMatching(/^[0-9a-f]{112}$/) });
@@ -80,7 +79,7 @@ test.describe("dApp data signing", () => {
       await win.getByRole("button", { name: "Sign" }).click();
       await expect(toast(win, "Wrong password")).toBeVisible();
 
-      await win.getByRole("button", { name: "Cancel" }).click();
+      await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
     });
 
@@ -90,8 +89,7 @@ test.describe("dApp data signing", () => {
         message: "hello"
       });
 
-      await win.getByRole("button", { name: "Cancel" }).click();
-      await expectWindowClosed(win);
+      await clickToClose(win.getByRole("button", { name: "Cancel" }));
 
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
     });
@@ -129,7 +127,7 @@ test.describe("dApp data signing", () => {
     await expect(win.getByRole("button", { name: "Sign" })).toBeDisabled();
     await expect(win.getByRole("textbox", { name: "Spending password" })).toHaveCount(0);
 
-    await win.getByRole("button", { name: "Cancel" }).click();
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
     expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
   });
 });
