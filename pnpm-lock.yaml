@@ -36,13 +36,13 @@ importers:
         specifier: ^0.12.0
         version: 0.12.0
       '@ledgerhq/hw-transport':
-        specifier: ^6.29.8
+        specifier: ^6.32.0
         version: 6.32.0
       '@ledgerhq/hw-transport-webhid':
-        specifier: ^6.29.8
+        specifier: ^6.31.0
         version: 6.31.0
       '@ledgerhq/hw-transport-webusb':
-        specifier: ^6.29.8
+        specifier: ^6.30.0
         version: 6.30.0
       '@vuelidate/core':
         specifier: ^2.0.3
@@ -145,11 +145,11 @@ importers:
         specifier: ^4.1.5
         version: 4.2.1(vite@6.4.1(@types/node@20.19.43)(jiti@2.6.1)(lightningcss@1.31.1)(yaml@2.8.2))
       '@tsconfig/node20':
-        specifier: ^20.1.6
+        specifier: ^20.1.9
         version: 20.1.9
       '@types/chrome':
-        specifier: ^0.0.332
-        version: 0.0.332
+        specifier: ^0.1.37
+        version: 0.1.43
       '@types/cleave.js':
         specifier: ^1.4.12
         version: 1.4.12
@@ -163,13 +163,13 @@ importers:
         specifier: ^20.19.43
         version: 20.19.43
       '@types/w3c-web-usb':
-        specifier: ^1.0.10
+        specifier: ^1.0.13
         version: 1.0.13
       '@types/webextension-polyfill':
-        specifier: ^0.12.3
+        specifier: ^0.12.5
         version: 0.12.5
       '@typescript-eslint/parser':
-        specifier: ^8.38.0
+        specifier: ^8.56.1
         version: 8.56.1(eslint@9.39.3(jiti@2.6.1)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
       '@vitejs/plugin-vue':
         specifier: ^5.2.4
@@ -1569,8 +1569,8 @@ packages:
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
-  '@types/chrome@0.0.332':
-    resolution: {integrity: sha512-Fl4luF9q/iroXMKbL1LQyr/nCKhKwkwkZQ9qeeePFECW/8SP/Lrx2kJ26wnpTpr0iAznkENoO8g924CP4mfNxw==}
+  '@types/chrome@0.1.43':
+    resolution: {integrity: sha512-ukH/HhmR6ht+UTX3PLUWJxgJ/RQcK2Foj4lBzsF24SIWsXgqhGuXqjd8FFuwioPP7d/JUKLM4g8GZxw3F4HTcA==}
 
   '@types/cleave.js@1.4.12':
     resolution: {integrity: sha512-d+TDoy5wsWfG/lTLNV4CCziGzJovbX5RCrYzrfG2iB5F6yvrzeTtGEgoXW3/7oRj0H6gAzLxuvwmgNEx4Og4QA==}
@@ -6055,7 +6055,7 @@ snapshots:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
 
-  '@types/chrome@0.0.332':
+  '@types/chrome@0.1.43':
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
