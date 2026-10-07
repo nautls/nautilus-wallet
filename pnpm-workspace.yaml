@@ -1,5 +1,5 @@
 allowBuilds:
   "@swc/core": true
   esbuild: true
-  spawn-sync: false
+  spawn-sync: true
   vue-demi: true
