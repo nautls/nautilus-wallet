@@ -8,16 +8,28 @@
   "singleQuote": false,
   "trailingComma": "none",
   "arrowParens": "always",
-  
+
   "plugins": [
-    "@ianvs/prettier-plugin-sort-imports", 
+    "@ianvs/prettier-plugin-sort-imports",
     "prettier-plugin-tailwindcss",
     "@prettier/plugin-oxc"
   ],
 
   "tailwindPreserveWhitespace": false,
   "tailwindFunctions": ["clsx", "cva", "cn"],
-  "importOrder": ["^vue$", "^pinia$", "<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "^@/stores/(.*)$", "^@/components/(.*)$", "^@/(.*)$", "^[./]", "", "^(?!.*[.]css$)[./].*$", ".css$"],
+  "importOrder": [
+    "^vue$",
+    "^pinia$",
+    "<BUILTIN_MODULES>",
+    "<THIRD_PARTY_MODULES>",
+    "^@/stores/(.*)$",
+    "^@/components/(.*)$",
+    "^@/(.*)$",
+    "^[./]",
+    "",
+    "^(?!.*[.]css$)[./].*$",
+    ".css$"
+  ],
   "importOrderParserPlugins": ["typescript"],
   "importOrderCaseSensitive": false
 }
