@@ -47,7 +47,10 @@ const plugins = [
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) }
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      clsx: "cn" // dedupe class-variance-authority's clsx import
+    }
   },
   define: defEnv(env),
   plugins: [
@@ -79,8 +82,6 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    // top-level await is required by vite-plugin-wasm
-    target: ["chrome89", "edge89", "firefox89", "safari15"],
     chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
     outDir: r("dist")
