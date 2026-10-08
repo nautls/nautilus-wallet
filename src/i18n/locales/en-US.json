@@ -278,6 +278,11 @@
     "global": {
       "displayLanguage": "Display language",
       "displayLanguageDesc": "Select the language for the Nautilus Wallet interface.",
+      "colorMode": "Color theme",
+      "colorModeDesc": "Choose how Nautilus looks, or follow your system setting.",
+      "colorModeAuto": "System",
+      "colorModeLight": "Light",
+      "colorModeDark": "Dark",
       "conversionCurrency": "Conversion currency",
       "conversionCurrencyDesc": "Select the currency for conversion rates.",
       "noCurrenciesFound": "No currencies found.",

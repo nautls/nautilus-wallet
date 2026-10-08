@@ -277,6 +277,11 @@
     "global": {
       "displayLanguage": "显示语言",
       "displayLanguageDesc": "选择 Nautilus 钱包界面的语言。",
+      "colorMode": "颜色主题",
+      "colorModeDesc": "选择 Nautilus 的外观，或跟随系统设置。",
+      "colorModeAuto": "系统",
+      "colorModeLight": "浅色",
+      "colorModeDark": "深色",
       "conversionCurrency": "转换货币",
       "conversionCurrencyDesc": "选择兑换率的货币类型。",
       "noCurrenciesFound": "未找到货币。",

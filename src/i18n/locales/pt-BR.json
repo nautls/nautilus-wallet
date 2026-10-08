@@ -277,6 +277,11 @@
     "global": {
       "displayLanguage": "Idioma de exibição",
       "displayLanguageDesc": "Selecione o idioma para a interface da Nautilus Wallet.",
+      "colorMode": "Tema de cores",
+      "colorModeDesc": "Escolha a aparência do Nautilus ou siga a configuração do sistema.",
+      "colorModeAuto": "Sistema",
+      "colorModeLight": "Claro",
+      "colorModeDark": "Escuro",
       "conversionCurrency": "Moeda de conversão",
       "conversionCurrencyDesc": "Selecione a moeda para as taxas de conversão.",
       "noCurrenciesFound": "Nenhuma moeda encontrada.",

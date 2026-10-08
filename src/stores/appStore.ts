@@ -162,6 +162,9 @@ export const useAppStore = defineStore("app", () => {
     const walletId = await walletsDbService.put(dbObj);
     dbObj.id = walletId;
 
+    // adding a wallet implies agreeing to the KYA shown during onboarding
+    settings.value.isKyaAccepted = true;
+
     const index = privateState.wallets.findIndex((w) => w.id === walletId);
     if (index > -1) {
       privateState.wallets.splice(index, 1, dbObj as NotNullId<IDbWallet>);

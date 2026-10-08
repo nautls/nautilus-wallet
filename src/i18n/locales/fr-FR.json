@@ -277,6 +277,11 @@
     "global": {
       "displayLanguage": "Langue d'affichage",
       "displayLanguageDesc": "Sélectionnez la langue de l'interface du portefeuille Nautilus.",
+      "colorMode": "Thème de couleur",
+      "colorModeDesc": "Choisissez l'apparence de Nautilus ou suivez le réglage du système.",
+      "colorModeAuto": "Système",
+      "colorModeLight": "Clair",
+      "colorModeDark": "Sombre",
       "conversionCurrency": "Devise de conversion",
       "conversionCurrencyDesc": "Sélectionnez la devise pour les taux de conversion.",
       "noCurrenciesFound": "Aucune devise trouvée.",
