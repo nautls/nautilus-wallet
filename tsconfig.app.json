@@ -5,7 +5,6 @@
   "compilerOptions": {
     "lib": ["DOM", "ESNext"],
     "verbatimModuleSyntax": false,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

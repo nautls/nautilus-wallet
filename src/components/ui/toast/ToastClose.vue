@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { cn } from '@/common/utils'
-import { XIcon } from 'lucide-vue-next'
+import { XIcon } from '@lucide/vue'
 import { ToastClose, type ToastCloseProps } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 

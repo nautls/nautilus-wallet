@@ -23,7 +23,7 @@ import {
   InfoIcon,
   LandmarkIcon,
   SettingsIcon
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";

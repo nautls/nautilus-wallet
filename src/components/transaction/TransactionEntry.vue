@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
-import { ArrowDownIcon, MilestoneIcon } from "lucide-vue-next";
+import { ArrowDownIcon, MilestoneIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetSignIcon, AssetSignIconVariants } from "@/components/asset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

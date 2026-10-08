@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { CableIcon, TrashIcon } from "lucide-vue-next";
+import { CableIcon, TrashIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import AppItem from "@/components/AppItem.vue";

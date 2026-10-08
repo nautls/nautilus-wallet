@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, ref, watch } from "vue";
-import { CircleAlertIcon, ExternalLinkIcon, LoaderCircleIcon } from "lucide-vue-next";
+import { CircleAlertIcon, ExternalLinkIcon, LoaderCircleIcon } from "@lucide/vue";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
 

@@ -6,7 +6,7 @@ import {
   ArrowUpRightIcon,
   EqualIcon,
   FlameIcon
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { assetSignIconVariants, type AssetSignIconVariants } from ".";
 
 interface Props {
