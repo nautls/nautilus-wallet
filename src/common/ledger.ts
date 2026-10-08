@@ -1,3 +1,5 @@
+import "../polyfills/globalBuffer"; // must stay first: @ledgerhq/* uses `Buffer` at module load
+
 import type Transport from "@ledgerhq/hw-transport";
 import WebHIDTransport from "@ledgerhq/hw-transport-webhid";
 import WebUSBTransport from "@ledgerhq/hw-transport-webusb";
