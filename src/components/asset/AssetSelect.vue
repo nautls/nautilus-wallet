@@ -2,7 +2,7 @@
 import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
 import BigNumber from "bignumber.js";
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-vue-next";
+import { CheckIcon, ChevronsUpDownIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { AssetIcon } from "@/components/asset";

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { CirclePlusIcon, ExternalLinkIcon, QrCodeIcon, ShieldCheckIcon } from "lucide-vue-next";
+import { CirclePlusIcon, ExternalLinkIcon, QrCodeIcon, ShieldCheckIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";

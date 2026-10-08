@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExternalLinkIcon } from "lucide-vue-next";
+import { ExternalLinkIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
