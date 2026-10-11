@@ -10,7 +10,7 @@ import {
   SunIcon,
   SunMoonIcon,
   TriangleAlertIcon
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { Locale, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";

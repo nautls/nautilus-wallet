@@ -19,8 +19,7 @@ export function summarizeTransaction(
 ): UnconfirmedTransactionSummary;
 export function summarizeTransaction(
   transaction:
-    | ChainProviderConfirmedTransaction<string>
-    | ChainProviderUnconfirmedTransaction<string>,
+    ChainProviderConfirmedTransaction<string> | ChainProviderUnconfirmedTransaction<string>,
   ergoTrees: Set<string>
 ): ConfirmedTransactionSummary | UnconfirmedTransactionSummary {
   const ownInputs = transaction.inputs.filter((x) => ergoTrees.has(x.ergoTree));

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, ref } from "vue";
-import { CircleHelpIcon } from "lucide-vue-next";
+import { CircleHelpIcon } from "@lucide/vue";
 import { cn } from "@/common/utils";
 
 const props = defineProps<{

@@ -9,7 +9,7 @@ import {
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
-import { AlertCircleIcon, Loader2Icon } from "lucide-vue-next";
+import { AlertCircleIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { HTMLAttributes } from "vue";
-import { CreditCardIcon } from "lucide-vue-next";
+import { CreditCardIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button, ButtonVariants } from "@/components/ui/button";

@@ -3,7 +3,7 @@ import { computed, HTMLAttributes, onMounted, reactive, ref, useTemplateRef, wat
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
-import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "lucide-vue-next";
+import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";

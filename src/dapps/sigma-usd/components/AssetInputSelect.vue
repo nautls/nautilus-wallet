@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVModel } from "@vueuse/core";
 import BigNumber from "bignumber.js";
-import { ChevronsUpDownIcon, Loader2Icon } from "lucide-vue-next";
+import { ChevronsUpDownIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetInput, AssetSelect } from "@/components/asset";
 import { Button } from "@/components/ui/button";

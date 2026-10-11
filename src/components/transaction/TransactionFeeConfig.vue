@@ -6,7 +6,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { helpers } from "@vuelidate/validators";
 import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
-import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "lucide-vue-next";
+import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { HTMLAttributes, InputHTMLAttributes, ref, useTemplateRef } from "vue";
-import { EyeIcon, EyeOffIcon } from "lucide-vue-next";
+import { EyeIcon, EyeOffIcon } from "@lucide/vue";
 import { Button } from "../button";
 import { Input } from ".";
 
 const props = defineProps<{
   id?: HTMLAttributes["id"];
-  disabled?: InputHTMLAttributes["disabled"];  
+  disabled?: InputHTMLAttributes["disabled"];
 }>();
 
 const showPassword = ref(false);

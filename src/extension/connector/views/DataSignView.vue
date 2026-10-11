@@ -5,7 +5,7 @@ import { hex } from "@fleet-sdk/crypto";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
-import { AlertCircleIcon } from "lucide-vue-next";
+import { AlertCircleIcon } from "@lucide/vue";
 import type { JsonObject } from "type-fest";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";

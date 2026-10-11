@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, ref } from "vue";
 import { useVModel } from "@vueuse/core";
-import { CheckIcon } from "lucide-vue-next";
+import { CheckIcon } from "@lucide/vue";
 import {
   ComboboxAnchor,
   ComboboxContent,

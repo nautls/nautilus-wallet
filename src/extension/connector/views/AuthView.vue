@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, requiredUnless } from "@vuelidate/validators";
 import { useEventListener } from "@vueuse/core";
-import { AlertCircleIcon } from "lucide-vue-next";
+import { AlertCircleIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

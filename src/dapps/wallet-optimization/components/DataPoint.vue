@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { CheckIcon, CircleAlertIcon } from "lucide-vue-next";
+import { CheckIcon, CircleAlertIcon } from "@lucide/vue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 
