@@ -48,11 +48,11 @@ const { r$ } = useRegle(
   { selected, recipient },
   {
     recipient: {
-      required: withMessage(required, t("transaction.send.emptyAddressError")),
+      required: withMessage(required, () => t("transaction.send.emptyAddressError")),
       validErgoAddress
     },
     selected: {
-      required: withMessage(required, t("transaction.send.noSelectedAssetsError"))
+      required: withMessage(required, () => t("transaction.send.noSelectedAssetsError"))
     }
   },
   { autoDirty: false }

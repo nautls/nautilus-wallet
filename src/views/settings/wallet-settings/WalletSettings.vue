@@ -38,7 +38,7 @@ watch(walletName, (newName) => {
 
 const { r$ } = useRegle(
   { walletName },
-  { walletName: { required: withMessage(required, t("wallet.requiredWalletName")) } }
+  { walletName: { required: withMessage(required, () => t("wallet.requiredWalletName")) } }
 );
 </script>
 

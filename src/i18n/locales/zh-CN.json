@@ -379,5 +379,13 @@
       "fullTxHeader": "{host} 请求签署一笔交易。",
       "partialTxHeader": "{host} 请求部分签署一笔交易"
     }
+  },
+  "validation": {
+    "invalidAddress": "请输入有效的 Ergo 地址。",
+    "invalidRecoveryPhrase": "助记词无效。",
+    "invalidPublicKey": "公钥无效",
+    "invalidUrl": "URL 无效。",
+    "maxAmount": "金额应小于或等于 {max}",
+    "minAmount": "金额应大于或等于 {min}"
   }
 }

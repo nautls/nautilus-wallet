@@ -1,5 +1,6 @@
 import { isEmpty } from "@fleet-sdk/common";
 import { createRule, Maybe } from "@regle/core";
+import { gt } from "@/i18n";
 
 export default createRule({
   type: "url",
@@ -12,5 +13,5 @@ export default createRule({
       return false;
     }
   },
-  message: "Invalid URL."
+  message: () => gt("validation.invalidUrl")
 });

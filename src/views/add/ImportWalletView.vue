@@ -69,19 +69,21 @@ const { r$: infoRules } = useRegle(
   { walletName, password, confirmPassword },
   {
     walletName: {
-      required: withMessage(required, t("wallet.requiredWalletName"))
+      required: withMessage(required, () => t("wallet.requiredWalletName"))
     },
     password: {
       required: withMessage(
         requiredIf(() => !isReadonly.value),
-        t("wallet.spendingPasswordRequired")
+        () => t("wallet.spendingPasswordRequired")
       ),
-      minLength: withMessage(minLength(10), t("wallet.minSpendingPasswordLength", { min: 10 }))
+      minLength: withMessage(minLength(10), () =>
+        t("wallet.minSpendingPasswordLength", { min: 10 })
+      )
     },
     confirmPassword: {
       matches: withMessage(
         withParams((value, pwd) => value === pwd, [password]),
-        t("wallet.passwordsMustMatch")
+        () => t("wallet.passwordsMustMatch")
       )
     }
   },
@@ -92,7 +94,7 @@ const { r$: xpkRules } = useRegle(
   { xpk },
   {
     xpk: {
-      required: withMessage(required, t("wallet.import.requiredXPubKey")),
+      required: withMessage(required, () => t("wallet.import.requiredXPubKey")),
       validPublicKey
     }
   },
@@ -103,7 +105,7 @@ const { r$: mnemonicRules } = useRegle(
   { mnemonicPhrase },
   {
     mnemonicPhrase: {
-      required: withMessage(required, t("wallet.import.requiredRecoveryPhrase")),
+      required: withMessage(required, () => t("wallet.import.requiredRecoveryPhrase")),
       validMnemonic
     }
   },

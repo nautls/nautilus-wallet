@@ -201,7 +201,7 @@ const { r$ } = useRegle(
   { password },
   {
     password: {
-      required: withMessage(requiredUnless(isLedger), t("wallet.requiredSpendingPassword"))
+      required: withMessage(requiredUnless(isLedger), () => t("wallet.requiredSpendingPassword"))
     }
   },
   { autoDirty: false }

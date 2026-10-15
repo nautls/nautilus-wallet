@@ -1,5 +1,6 @@
 import { createRule, Maybe } from "@regle/core";
 import { validateMnemonic } from "@fleet-sdk/wallet";
+import { gt } from "@/i18n";
 
 export default createRule({
   type: "mnemonic",
@@ -11,5 +12,5 @@ export default createRule({
       return false;
     }
   },
-  message: "Invalid recovery phrase."
+  message: () => gt("validation.invalidRecoveryPhrase")
 });

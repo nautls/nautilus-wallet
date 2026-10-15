@@ -68,7 +68,7 @@ async function switchToViewMode() {
 
 const { r$ } = useRegle(
   { walletName },
-  { walletName: { required: withMessage(required, t("wallet.requiredWalletName")) } },
+  { walletName: { required: withMessage(required, () => t("wallet.requiredWalletName")) } },
   { autoDirty: false }
 );
 

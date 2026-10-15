@@ -373,5 +373,13 @@
       "fullTxHeader": "{host} meminta untuk menandatangani transaksi.",
       "partialTxHeader": "{host} meminta untuk menandatangani transaksi sebahagiannya"
     }
+  },
+  "validation": {
+    "invalidAddress": "Sila masukkan alamat Ergo yang sah.",
+    "invalidRecoveryPhrase": "Frasa pemulihan tidak sah.",
+    "invalidPublicKey": "Kunci awam tidak sah",
+    "invalidUrl": "URL tidak sah.",
+    "maxAmount": "Jumlah mestilah kurang daripada atau sama dengan {max}",
+    "minAmount": "Jumlah mestilah lebih daripada atau sama dengan {min}"
   }
 }

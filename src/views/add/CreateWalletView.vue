@@ -59,16 +59,18 @@ const { r$: infoRules } = useRegle(
   { walletName, password, confirmPassword },
   {
     walletName: {
-      required: withMessage(required, t("wallet.requiredWalletName"))
+      required: withMessage(required, () => t("wallet.requiredWalletName"))
     },
     password: {
-      required: withMessage(required, t("wallet.spendingPasswordRequired")),
-      minLength: withMessage(minLength(10), t("wallet.minSpendingPasswordLength", { min: 10 }))
+      required: withMessage(required, () => t("wallet.spendingPasswordRequired")),
+      minLength: withMessage(minLength(10), () =>
+        t("wallet.minSpendingPasswordLength", { min: 10 })
+      )
     },
     confirmPassword: {
       matches: withMessage(
         withParams((value, pwd) => value === pwd, [password]),
-        t("wallet.passwordsMustMatch")
+        () => t("wallet.passwordsMustMatch")
       )
     }
   },
@@ -79,7 +81,7 @@ const { r$: verificationRules } = useRegle(
   { mnemonicPhraseConfirm },
   {
     mnemonicPhraseConfirm: {
-      sameAs: withMessage(sameAs(mnemonicPhrase), t("wallet.create.recoveryPhraseDoNotMatch"))
+      sameAs: withMessage(sameAs(mnemonicPhrase), () => t("wallet.create.recoveryPhraseDoNotMatch"))
     }
   },
   { autoDirty: false }

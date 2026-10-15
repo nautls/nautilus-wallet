@@ -1,6 +1,7 @@
 import { isEmpty } from "@fleet-sdk/common";
 import { createRule, Maybe } from "@regle/core";
 import HdKey from "@/chains/ergo/hdKey";
+import { gt } from "@/i18n";
 
 export default createRule({
   type: "publicKey",
@@ -14,5 +15,5 @@ export default createRule({
       return false;
     }
   },
-  message: "Invalid public key"
+  message: () => gt("validation.invalidPublicKey")
 });

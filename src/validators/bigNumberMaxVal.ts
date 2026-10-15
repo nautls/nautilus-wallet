@@ -1,6 +1,7 @@
 import { createRule, Maybe } from "@regle/core";
 import BigNumber from "bignumber.js";
 import { useFormat } from "../composables/useFormat";
+import { gt } from "@/i18n";
 
 const format = useFormat();
 
@@ -10,6 +11,5 @@ export default createRule({
     if (!value) return true;
     return !value.isGreaterThan(max);
   },
-  message: ({ $params: [max] }) =>
-    `The amount should be less than or equal to ${format.number.decimal(max)}`
+  message: ({ $params: [max] }) => gt("validation.maxAmount", { max: format.number.decimal(max) })
 });

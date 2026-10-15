@@ -379,5 +379,13 @@
       "fullTxHeader": "{host} запрашивает подпись транзакции.",
       "partialTxHeader": "{host} запрашивает частичную подпись транзакции"
     }
+  },
+  "validation": {
+    "invalidAddress": "Пожалуйста, введите корректный адрес Ergo.",
+    "invalidRecoveryPhrase": "Неверная фраза восстановления.",
+    "invalidPublicKey": "Неверный открытый ключ",
+    "invalidUrl": "Неверный URL.",
+    "maxAmount": "Сумма должна быть меньше или равна {max}",
+    "minAmount": "Сумма должна быть больше или равна {min}"
   }
 }

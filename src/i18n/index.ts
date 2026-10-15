@@ -66,6 +66,13 @@ export function setupI18n() {
   return i18n;
 }
 
+/**
+ * Translates using the global i18n instance. Meant for code that runs outside of
+ * components' setup, like validation rules.
+ */
+export const gt = ((...args: unknown[]) =>
+  (_globalInstance.t as (...args: unknown[]) => string)(...args)) as Translator;
+
 export function getLocale(): Locale {
   return _globalInstance.locale.value as Locale;
 }

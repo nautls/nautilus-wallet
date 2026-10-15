@@ -373,5 +373,13 @@
       "fullTxHeader": "{host} nyuwun nandhani transaksi.",
       "partialTxHeader": "{host} nyuwun nandhani transaksi sebagean"
     }
+  },
+  "validation": {
+    "invalidAddress": "Mangga lebokna alamat Ergo sing valid.",
+    "invalidRecoveryPhrase": "Frasa pemulihan ora valid.",
+    "invalidPublicKey": "Kunci publik ora valid",
+    "invalidUrl": "URL ora valid.",
+    "maxAmount": "Jumlah kudu kurang saka utawa padha karo {max}",
+    "minAmount": "Jumlah kudu luwih saka utawa padha karo {min}"
   }
 }

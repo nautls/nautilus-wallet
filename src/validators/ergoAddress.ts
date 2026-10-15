@@ -1,6 +1,7 @@
 import { isEmpty } from "@fleet-sdk/common";
 import { createRule, Maybe } from "@regle/core";
 import { validateAddress } from "@/chains/ergo/addresses";
+import { gt } from "@/i18n";
 
 export default createRule({
   type: "ergoAddress",
@@ -8,5 +9,5 @@ export default createRule({
     if (isEmpty(value)) return true;
     return validateAddress(value);
   },
-  message: "Please enter a valid Ergo address."
+  message: () => gt("validation.invalidAddress")
 });

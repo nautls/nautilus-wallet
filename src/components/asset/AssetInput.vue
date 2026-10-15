@@ -166,7 +166,7 @@ const { r$ } = useScopedRegle(
       )
     },
     internalValue: {
-      required: withMessage(required, t("transaction.send.requiredAmountError")),
+      required: withMessage(required, () => t("transaction.send.requiredAmountError")),
       bigNumberMinValue: bigNumberMinValue(convert(props.minAmount, "auto") || bn(0)),
       bigNumberMaxValue: bigNumberMaxValue(available.value)
     }

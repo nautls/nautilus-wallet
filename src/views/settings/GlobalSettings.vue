@@ -152,29 +152,30 @@ const { r$ } = useRegle(
   { explorerUrl, graphQLServer, ipfsGateway },
   {
     explorerUrl: {
-      required: withMessage(required, t("settings.global.requiredExplorer")),
+      required: withMessage(required, () => t("settings.global.requiredExplorer")),
       validUrl
     },
     graphQLServer: {
-      required: withMessage(required, t("settings.global.requiredGql")),
+      required: withMessage(required, () => t("settings.global.requiredGql")),
       validUrl,
       network: withMessage(
         withAsync(async (url: Maybe<string>) => {
           if (!url) return true;
           return await validateServerNetwork(url);
         }),
-        t("settings.global.wrongServerNetwork")
+        () => t("settings.global.wrongServerNetwork")
       ),
       version: withMessage(
         withAsync(async (url: Maybe<string>) => {
           if (!url) return true;
           return await validateServerVersion(url);
         }),
-        t("settings.global.unsupportedServerVersion", { version: MIN_SERVER_VERSION.join(".") })
+        () =>
+          t("settings.global.unsupportedServerVersion", { version: MIN_SERVER_VERSION.join(".") })
       )
     },
     ipfsGateway: {
-      required: withMessage(required, t("settings.global.requiredIpfs")),
+      required: withMessage(required, () => t("settings.global.requiredIpfs")),
       validUrl
     }
   },
