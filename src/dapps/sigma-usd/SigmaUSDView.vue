@@ -12,8 +12,8 @@ import {
 } from "vue";
 import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { BoxSource } from "@fleet-sdk/blockchain-providers";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers } from "@vuelidate/validators";
+import { flatErrors, Maybe, useRegle } from "@regle/core";
+import { withMessage, withParams } from "@regle/rules";
 import { pausableWatch, useIntervalFn } from "@vueuse/core";
 import BigNumber from "bignumber.js";
 import {
@@ -49,6 +49,7 @@ import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
+import { staticBigNumber } from "@/validators";
 import { getBankBox, getOracleBox } from "./blockchainService";
 import { Asset, AssetInputSelect } from "./components";
 import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
@@ -143,25 +144,26 @@ const canFlipAssets = computed(() => {
   return canBuy && canSell;
 });
 
-const v$ = useVuelidate(
-  computed(() => ({
+const { r$ } = useRegle(
+  { fromAmount: staticBigNumber(fromAmount), toAmount: staticBigNumber(toAmount) },
+  {
     fromAmount: {
-      balance: helpers.withMessage(
-        () => t("dapps.sigmaUsd.insufficientBalance", { asset: fromAsset.value?.metadata?.name }),
-        (n: BigNumber) => {
-          if (!fromAsset.value || !n) return true;
-          return n.lte(fromAsset.value.balance);
-        }
+      balance: withMessage(
+        withParams(
+          (n: Maybe<BigNumber>, balance: BigNumber | undefined) => !balance || !n || n.lte(balance),
+          [() => fromAsset.value?.balance]
+        ),
+        () => t("dapps.sigmaUsd.insufficientBalance", { asset: fromAsset.value?.metadata?.name })
       ),
-      maxRedeem: helpers.withMessage(() => buildBankErrorMessage(fromAsset), maxAction(fromAsset))
+      maxRedeem: withMessage(maxAction(fromAsset), () => buildBankErrorMessage(fromAsset))
     },
     toAmount: {
-      maxMinting: helpers.withMessage(() => buildBankErrorMessage(toAsset), maxAction(toAsset))
+      maxMinting: withMessage(maxAction(toAsset), () => buildBankErrorMessage(toAsset))
     }
-  })),
-  { fromAmount, toAmount },
-  { $autoDirty: true, $scope: "sigma-usd" }
+  }
 );
+
+const errors = computed(() => flatErrors(r$.$errors));
 
 watch(
   () => [txFee.value, bank.value, toAsset.value],
@@ -337,10 +339,15 @@ function getMax(asset: Ref<Asset | undefined>, action: ActionType): BigNumber {
 }
 
 function maxAction(asset: Ref<Asset | undefined>) {
-  return (amount: BigNumber) => {
-    if (!asset.value || !amount || isErg(asset.value.tokenId)) return true; // can always use ERG
-    return amount.lte(getMax(asset, action.value));
-  };
+  return withParams(
+    (amount: Maybe<BigNumber>, max: BigNumber | undefined) => !max || !amount || amount.lte(max),
+    [
+      () =>
+        !asset.value || isErg(asset.value.tokenId) // can always use ERG
+          ? undefined
+          : getMax(asset, action.value)
+    ]
+  );
 }
 
 function buildBankErrorMessage(asset: Ref<Asset | undefined>) {
@@ -676,17 +683,17 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
         </AccordionItem>
       </Accordion>
 
-      <Alert variant="destructive" class="space-x-2" v-if="v$.$errors.length">
+      <Alert variant="destructive" class="space-x-2" v-if="errors.length">
         <AlertDescription class="text-xs">
-          <ul :class="v$.$errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
-            <li v-for="e in v$.$errors" :key="e.$uid">{{ e.$message }}</li>
+          <ul :class="errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
+            <li v-for="(message, i) in errors" :key="i">{{ message }}</li>
           </ul>
         </AlertDescription>
       </Alert>
     </div>
 
     <Button
-      :disabled="loading || !hasInputValues || v$.$invalid"
+      :disabled="loading || !hasInputValues || r$.$invalid"
       class="w-full"
       size="lg"
       @click="sendTransaction"

@@ -95,6 +95,7 @@ test.describe("send", () => {
 
     await fillSendForm(popup, RECIPIENT_ADDRESS, "1000");
     await send.click();
+    await expect(page.getByText(/The amount should be less than or equal to/)).toBeVisible();
     await expect(page.getByText("Please enter the recipient address.")).toHaveCount(0);
     await expect(page.getByText("Please enter a valid Ergo address.")).toHaveCount(0);
     await expect(reviewDrawer(page)).toHaveCount(0);

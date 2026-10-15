@@ -1,15 +1,15 @@
+import { createRule, Maybe } from "@regle/core";
 import { validateMnemonic } from "@fleet-sdk/wallet";
 
-function validator(mnemonic: string) {
-  if (mnemonic.trim() === "") return true;
-  try {
-    return validateMnemonic(mnemonic);
-  } catch {
-    return false;
-  }
-}
-
-export default {
-  $validator: validator,
-  $message: "Invalid recovery phrase."
-};
+export default createRule({
+  type: "mnemonic",
+  validator(mnemonic: Maybe<string>) {
+    if (!mnemonic || mnemonic.trim() === "") return true;
+    try {
+      return validateMnemonic(mnemonic);
+    } catch {
+      return false;
+    }
+  },
+  message: "Invalid recovery phrase."
+});
