@@ -2,7 +2,6 @@
 import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
-import { useScopedRegle } from "@regle/core";
 import { withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
@@ -21,6 +20,7 @@ import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFee
 import { bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
+import { useChildRegle } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue, staticBigNumber } from "@/validators";
@@ -90,7 +90,7 @@ const price = computed(() => {
   return decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
 });
 
-const { r$ } = useScopedRegle(
+const { r$ } = useChildRegle(
   { feeAmount: staticBigNumber(feeAmount) },
   computed(() => ({
     feeAmount: {

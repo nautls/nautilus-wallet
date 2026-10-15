@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
-import { mergeRegles, useCollectScope, useRegle } from "@regle/core";
+import { mergeRegles, useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { differenceBy } from "es-toolkit";
@@ -25,6 +25,7 @@ import {
 import { bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
@@ -59,7 +60,7 @@ const { r$ } = useRegle(
 );
 
 // collects child components validations, like asset amounts and fee settings
-const { r$: children$ } = useCollectScope();
+const { r$: children$ } = useCollectChildValidations();
 const form$ = mergeRegles({ r$, children$ });
 
 onMounted(() => {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
-import { useScopedRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "@lucide/vue";
@@ -15,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { bn } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
+import { useChildRegle } from "@/composables/useValidationScope";
 import { MaskOptions, useNumericMask } from "@/composables/useNumericMask";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { bigNumberMaxValue, bigNumberMinValue, staticBigNumber } from "@/validators";
@@ -155,7 +155,7 @@ const minRequired = computed(() =>
     : props.minAmount || props.reservedAmount || bn(0)
 );
 
-const { r$ } = useScopedRegle(
+const { r$ } = useChildRegle(
   { balance: staticBigNumber(props.asset.balance), internalValue: staticBigNumber(internalValue) },
   computed(() => ({
     balance: {
@@ -249,6 +249,7 @@ function tokenRate(tokenId: string): number {
         size="icon"
         variant="outline"
         class="bg-background ring-input absolute -top-2 -right-2 size-6 cursor-pointer rounded-full border-0 ring-1"
+        :aria-label="t('common.remove')"
         @click.prevent.stop="emit('remove')"
       >
         <TrashIcon class="m-auto size-4 p-0.5" />
