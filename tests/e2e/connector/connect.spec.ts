@@ -46,6 +46,46 @@ test.describe("dApp connection", () => {
     expect(state).toEqual({ connected: true, authorized: true, ergo: "object", sameContext: true });
   });
 
+  test("filters the wallet list by name", async ({ context, dapp }) => {
+    const { win, result } = await withConnectorWindow(context, "connect", () =>
+      invoke(dapp, () => window.ergoConnector.nautilus.connect())
+    );
+
+    const search = win.getByRole("searchbox");
+    const alice = win.getByRole("button", { name: /Alice/ });
+    const bob = win.getByRole("button", { name: /Bob/ });
+
+    // case-insensitive, ignores surrounding whitespace
+    await search.fill("  bO ");
+    await expect(bob).toBeVisible();
+    await expect(alice).toBeHidden();
+
+    await search.fill("nobody");
+    await expect(win.getByText("No wallets found.")).toBeVisible();
+    await expect(bob).toBeHidden();
+
+    await search.fill("");
+    await expect(alice).toBeVisible();
+    await expect(bob).toBeVisible();
+
+    // can't connect while the selected wallet is hidden by the search
+    const connect = win.getByRole("button", { name: "Connect", exact: true });
+    await bob.click();
+    await expect(connect).toBeEnabled();
+    await search.fill("alice");
+    await expect(bob).toBeHidden();
+    await expect(connect).toBeDisabled();
+
+    // the selection is kept and becomes connectable again once visible
+    await search.fill("bob");
+    await expect(connect).toBeEnabled();
+    await clickToClose(connect);
+    expect(await result).toEqual({ ok: true, value: true });
+
+    const change = await invoke(dapp, () => window.ergo.get_change_address());
+    expect(change).toEqual({ ok: true, value: await addressOf(WALLET_B, 0) });
+  });
+
   test("binds the connection to the selected wallet", async ({ context, dapp }) => {
     await connectDapp(context, dapp, "Bob");
 
