@@ -3,6 +3,7 @@ import { computed, HTMLAttributes, ref } from "vue";
 import { useVModel } from "@vueuse/core";
 import { CheckIcon } from "@lucide/vue";
 import {
+  type AcceptableValue,
   ComboboxAnchor,
   ComboboxContent,
   ComboboxEmpty,
@@ -22,7 +23,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<{ (e: "update:modelValue", payload: string[]): void }>();
+const emit = defineEmits<{ (e: "update:modelValue", payload: string): void }>();
 
 const word = useVModel(props, "modelValue", emit, { passive: true });
 const highlighted = ref("");
@@ -49,17 +50,27 @@ function rankedCompare(term: string): (a: string, b: string) => number {
   };
 }
 
+function onHighlight(payload?: { value: AcceptableValue }) {
+  highlighted.value = typeof payload?.value === "string" ? payload.value : "";
+}
+
+function onOpenChange(open: boolean) {
+  if (!open) highlighted.value = "";
+}
+
 function onTab() {
-  if (highlighted.value === "") return;
-  if (searchTerm.value == "") {
-    word.value = "";
+  if (slice.value.includes(highlighted.value)) {
+    word.value = highlighted.value;
     return;
   }
 
-  if (highlighted.value.includes(searchTerm.value.toLocaleLowerCase())) {
-    word.value = highlighted.value;
-  } else {
+  const term = searchTerm.value.trim().toLocaleLowerCase();
+  if (term === "") {
     word.value = "";
+  } else if (props.options.includes(term)) {
+    word.value = term;
+  } else {
+    word.value = slice.value[0] ?? "";
   }
 }
 </script>
@@ -67,7 +78,8 @@ function onTab() {
 <template>
   <ComboboxRoot
     v-model="word"
-    v-model:selected-value="highlighted"
+    @highlight="onHighlight"
+    @update:open="onOpenChange"
     reset-search-term-on-select
     reset-search-term-on-blur
     ignore-filter
