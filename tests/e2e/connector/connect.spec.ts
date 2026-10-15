@@ -68,11 +68,16 @@ test.describe("dApp connection", () => {
     await expect(alice).toBeVisible();
     await expect(bob).toBeVisible();
 
-    // the selection survives being filtered out
+    // can't connect while the selected wallet is hidden by the search
+    const connect = win.getByRole("button", { name: "Connect", exact: true });
     await bob.click();
+    await expect(connect).toBeEnabled();
     await search.fill("alice");
     await expect(bob).toBeHidden();
-    const connect = win.getByRole("button", { name: "Connect", exact: true });
+    await expect(connect).toBeDisabled();
+
+    // the selection is kept and becomes connectable again once visible
+    await search.fill("bob");
     await expect(connect).toBeEnabled();
     await clickToClose(connect);
     expect(await result).toEqual({ ok: true, value: true });

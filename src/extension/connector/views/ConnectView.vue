@@ -28,6 +28,10 @@ const filteredWallets = computed(() => {
   return wallets.value.filter((wallet) => wallet.name.toLowerCase().includes(term));
 });
 
+const canConnect = computed(
+  () => !!selected.value && filteredWallets.value.some((wallet) => wallet.id === selected.value)
+);
+
 const { t } = useI18n();
 
 const detachBeforeUnloadEvent = useEventListener(window, "beforeunload", refuse);
@@ -39,7 +43,7 @@ onMounted(async () => {
 });
 
 async function connect() {
-  if (!selected.value || !request.value) return;
+  if (!canConnect.value || !request.value) return;
 
   await saveConnection(selected.value, request.value);
   request.value.resolve(true);
@@ -102,7 +106,7 @@ function refuse() {
 
   <div class="flex flex-row gap-4">
     <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-    <Button class="w-full" :disabled="!selected" @click="connect">{{
+    <Button class="w-full" :disabled="!canConnect" @click="connect">{{
       t("connector.connect.connect")
     }}</Button>
   </div>
