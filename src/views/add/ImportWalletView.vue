@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, minLength, required, requiredIf, sameAs } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { minLength, required, requiredIf, withMessage, withParams } from "@regle/rules";
 import { FingerprintIcon, KeyRoundIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -65,46 +65,51 @@ const nextButtonTitle = computed(() => {
   }
 });
 
-const infoRules = useVuelidate(
+const { r$: infoRules } = useRegle(
+  { walletName, password, confirmPassword },
   {
     walletName: {
-      required: helpers.withMessage(t("wallet.requiredWalletName"), required)
+      required: withMessage(required, () => t("wallet.requiredWalletName"))
     },
     password: {
-      required: helpers.withMessage(
-        t("wallet.spendingPasswordRequired"),
-        requiredIf(() => !isReadonly.value)
+      required: withMessage(
+        requiredIf(() => !isReadonly.value),
+        () => t("wallet.spendingPasswordRequired")
       ),
-      minLength: helpers.withMessage(
-        t("wallet.minSpendingPasswordLength", { min: 10 }),
-        minLength(10)
+      minLength: withMessage(minLength(10), () =>
+        t("wallet.minSpendingPasswordLength", { min: 10 })
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(t("wallet.passwordsMustMatch"), sameAs(password))
+      matches: withMessage(
+        withParams((value, pwd) => value === pwd, [password]),
+        () => t("wallet.passwordsMustMatch")
+      )
     }
   },
-  { walletName, password, confirmPassword }
+  { autoDirty: false }
 );
 
-const xpkRules = useVuelidate(
+const { r$: xpkRules } = useRegle(
+  { xpk },
   {
     xpk: {
-      required: helpers.withMessage(t("wallet.import.requiredXPubKey"), required),
+      required: withMessage(required, () => t("wallet.import.requiredXPubKey")),
       validPublicKey
     }
   },
-  { xpk }
+  { autoDirty: false }
 );
 
-const mnemonicRules = useVuelidate(
+const { r$: mnemonicRules } = useRegle(
+  { mnemonicPhrase },
   {
     mnemonicPhrase: {
-      required: helpers.withMessage(t("wallet.import.requiredRecoveryPhrase"), required),
+      required: withMessage(required, () => t("wallet.import.requiredRecoveryPhrase")),
       validMnemonic
     }
   },
-  { mnemonicPhrase }
+  { autoDirty: false }
 );
 
 onMounted(() => {
@@ -115,8 +120,8 @@ watch(walletType, () => {
   password.value = "";
   confirmPassword.value = "";
 
-  infoRules.value.password.$reset();
-  infoRules.value.confirmPassword.$reset();
+  infoRules.password.$reset();
+  infoRules.confirmPassword.$reset();
 });
 
 watch(
@@ -128,7 +133,7 @@ watch(
 
 async function next() {
   if (step.value === 1) {
-    const valid = await infoRules.value.$validate();
+    const { valid } = await infoRules.$validate();
     if (!valid) return;
   }
 
@@ -138,11 +143,11 @@ async function next() {
   }
 
   if (isReadonly.value) {
-    const validXpk = await xpkRules.value.$validate();
-    if (!validXpk) return;
+    const { valid } = await xpkRules.$validate();
+    if (!valid) return;
   } else {
-    const validMnemonic = await mnemonicRules.value.$validate();
-    if (!validMnemonic) return;
+    const { valid } = await mnemonicRules.$validate();
+    if (!valid) return;
   }
 
   try {
@@ -212,7 +217,7 @@ const steps = computed<Step[]>(() => [
       ? t("wallet.import.importStep")
       : t("wallet.import.importStepDesc"),
     icon: KeyRoundIcon,
-    enabled: computed(() => !infoRules.value.$invalid)
+    enabled: computed(() => !infoRules.$invalid)
   }
 ]);
 </script>

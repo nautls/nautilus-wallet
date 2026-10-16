@@ -1,7 +1,11 @@
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { buildBabelContract } from "@fleet-sdk/babel-fees-plugin";
+import { ErgoAddress } from "@fleet-sdk/core";
+import { SGroupElement, SLong, SSigmaProp } from "@fleet-sdk/serializer";
 import { test as base, chromium, type BrowserContext, type Page } from "@playwright/test";
-import { MockChain, type GqlBox } from "../mocks/chain";
+import { EXTERNAL_ADDRESS, MockChain, type GqlBox } from "../mocks/chain";
 import { DAPP_ORIGIN, installServiceMocks, type ServiceOptions } from "../mocks/services";
 import { Popup } from "../pages/popup";
 import { addressOf, TEST_NFT, TEST_TOKEN, type TestWallet } from "./wallets";
@@ -80,6 +84,30 @@ export async function fundWallet(chain: MockChain, wallet: TestWallet) {
   });
 
   chain.fund(await addressOf(wallet, 1), { nanoErgs: 2_500_000_000n });
+}
+
+/**
+ * Adds a Babel Fee box to the chain, allowing `tokenId` to be used to pay transaction
+ * fees at the rate of `nanoErgsPerToken` per token unit.
+ */
+export function addBabelBox(chain: MockChain, tokenId: string, nanoErgsPerToken: bigint) {
+  const [ownerPk] = ErgoAddress.decode(EXTERNAL_ADDRESS).getPublicKeys();
+  const box: GqlBox = {
+    boxId: randomBytes(32).toString("hex"),
+    transactionId: randomBytes(32).toString("hex"),
+    index: 0,
+    value: "1000000000",
+    creationHeight: chain.height - 10,
+    ergoTree: buildBabelContract(tokenId),
+    assets: [],
+    additionalRegisters: {
+      R4: SSigmaProp(SGroupElement(ownerPk)).toHex(),
+      R5: SLong(nanoErgsPerToken).toHex()
+    }
+  };
+
+  chain.addBox(box);
+  return box;
 }
 
 /** Adds mainnet snapshots of the SigmaUSD bank and oracle boxes to the chain. */

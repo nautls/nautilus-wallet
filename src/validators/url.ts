@@ -1,11 +1,17 @@
 import { isEmpty } from "@fleet-sdk/common";
+import { createRule, Maybe } from "@regle/core";
+import { gt } from "@/i18n";
 
-function validator(value: string) {
-  if (isEmpty(value)) return true;
-  return Boolean(new URL(value));
-}
+export default createRule({
+  type: "url",
+  validator(value: Maybe<string>) {
+    if (isEmpty(value)) return true;
 
-export default {
-  $validator: validator,
-  $message: "Invalid URL."
-};
+    try {
+      return Boolean(new URL(value));
+    } catch {
+      return false;
+    }
+  },
+  message: () => gt("validation.invalidUrl")
+});

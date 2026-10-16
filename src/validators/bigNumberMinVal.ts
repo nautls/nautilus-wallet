@@ -1,24 +1,15 @@
-import { ValidationRuleWithParams } from "@vuelidate/core";
+import { createRule, Maybe } from "@regle/core";
 import BigNumber from "bignumber.js";
 import { useFormat } from "../composables/useFormat";
+import { gt } from "@/i18n";
 
 const format = useFormat();
 
-function validator(min: BigNumber) {
-  return (value?: BigNumber) => {
-    if (!value) {
-      return true;
-    }
-
+export default createRule({
+  type: "bigNumberMinValue",
+  validator(value: Maybe<BigNumber>, min: BigNumber) {
+    if (!value) return true;
     return !value.isLessThan(min);
-  };
-}
-
-export default function (min: BigNumber): ValidationRuleWithParams<{ min: BigNumber }> {
-  return {
-    $validator: validator(min),
-    $message: ({ $params }) =>
-      `The amount should be greater than or equal to ${format.number.decimal($params.min)}`,
-    $params: { min }
-  };
-}
+  },
+  message: ({ $params: [min] }) => gt("validation.minAmount", { min: format.number.decimal(min) })
+});

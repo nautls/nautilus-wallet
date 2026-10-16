@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { hex } from "@fleet-sdk/crypto";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { required, withMessage } from "@regle/rules";
 import { DeviceError, ErgoLedgerApp, RETURN_CODE } from "ledger-ergo-js";
 import { Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -66,13 +66,14 @@ async function switchToViewMode() {
   }
 }
 
-const v$ = useVuelidate(
-  { walletName: { required: helpers.withMessage(t("wallet.requiredWalletName"), required) } },
-  { walletName }
+const { r$ } = useRegle(
+  { walletName },
+  { walletName: { required: withMessage(required, () => t("wallet.requiredWalletName")) } },
+  { autoDirty: false }
 );
 
 async function add() {
-  const valid = await v$.value.$validate();
+  const { valid } = await r$.$validate();
   if (!valid) return;
 
   loading.value = true;
@@ -143,7 +144,7 @@ async function add() {
 <template>
   <div class="flex h-full flex-col justify-between gap-4 p-4">
     <Form class="flex flex-col justify-start gap-4 pt-4" @submit="add">
-      <FormField :validation="v$.walletName">
+      <FormField :validation="r$.walletName">
         <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
         <Input
           id="wallet-name"
@@ -151,7 +152,7 @@ async function add() {
           :disabled="loading"
           maxlength="50"
           type="text"
-          @blur="v$.walletName.$touch()"
+          @blur="r$.walletName.$touch()"
         />
       </FormField>
     </Form>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { generateMnemonic } from "@fleet-sdk/wallet";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, minLength, required, sameAs } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { minLength, required, sameAs, withMessage, withParams } from "@regle/rules";
 import { CheckIcon, FingerprintIcon, KeyRoundIcon, Loader2Icon, RotateCwIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -55,35 +55,36 @@ const nextButtonTitle = computed(() =>
       : t("common.confirm")
 );
 
-const infoRules = useVuelidate(
+const { r$: infoRules } = useRegle(
+  { walletName, password, confirmPassword },
   {
     walletName: {
-      required: helpers.withMessage(t("wallet.requiredWalletName"), required)
+      required: withMessage(required, () => t("wallet.requiredWalletName"))
     },
     password: {
-      required: helpers.withMessage(t("wallet.spendingPasswordRequired"), required),
-      minLength: helpers.withMessage(
-        t("wallet.minSpendingPasswordLength", { min: 10 }),
-        minLength(10)
+      required: withMessage(required, () => t("wallet.spendingPasswordRequired")),
+      minLength: withMessage(minLength(10), () =>
+        t("wallet.minSpendingPasswordLength", { min: 10 })
       )
     },
     confirmPassword: {
-      sameAs: helpers.withMessage(t("wallet.passwordsMustMatch"), sameAs(password))
-    }
-  },
-  { walletName, password, confirmPassword }
-);
-
-const verificationRules = useVuelidate(
-  {
-    mnemonicPhraseConfirm: {
-      sameAs: helpers.withMessage(
-        t("wallet.create.recoveryPhraseDoNotMatch"),
-        sameAs(mnemonicPhrase)
+      matches: withMessage(
+        withParams((value, pwd) => value === pwd, [password]),
+        () => t("wallet.passwordsMustMatch")
       )
     }
   },
-  { mnemonicPhraseConfirm }
+  { autoDirty: false }
+);
+
+const { r$: verificationRules } = useRegle(
+  { mnemonicPhraseConfirm },
+  {
+    mnemonicPhraseConfirm: {
+      sameAs: withMessage(sameAs(mnemonicPhrase), () => t("wallet.create.recoveryPhraseDoNotMatch"))
+    }
+  },
+  { autoDirty: false }
 );
 
 onMounted(newMnemonic);
@@ -102,7 +103,7 @@ watch(step, () => {
 
   mnemonicWordsConfirm.value = confirm;
   editableIndexes.value = editable;
-  verificationRules.value.$reset();
+  verificationRules.$reset();
 });
 
 function generateUniqueRandomNumbers(n: number, start: number, end: number): number[] {
@@ -121,10 +122,10 @@ function generateUniqueRandomNumbers(n: number, start: number, end: number): num
 
 async function next() {
   if (step.value === 1) {
-    const valid = await infoRules.value.$validate();
+    const { valid } = await infoRules.$validate();
     if (!valid) return;
   } else if (step.value === 3) {
-    const valid = await verificationRules.value.$validate();
+    const { valid } = await verificationRules.$validate();
     if (!valid) return;
   }
 
@@ -175,14 +176,14 @@ const steps: Step[] = [
     title: t("wallet.create.secretStep"),
     description: t("wallet.create.secretStepDesc"),
     icon: KeyRoundIcon,
-    enabled: computed(() => !infoRules.value.$invalid)
+    enabled: computed(() => !infoRules.$invalid)
   },
   {
     step: 3,
     title: t("wallet.create.secretConfirmStep"),
     description: t("wallet.create.secretConfirmStepDesc"),
     icon: CheckIcon,
-    enabled: computed(() => !infoRules.value.$invalid)
+    enabled: computed(() => !infoRules.$invalid)
   }
 ];
 </script>

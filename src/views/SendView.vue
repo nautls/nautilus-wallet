@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { mergeRegles, useRegle } from "@regle/core";
+import { required, withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { differenceBy } from "es-toolkit";
 import { CheckCheckIcon } from "@lucide/vue";
@@ -25,6 +25,7 @@ import {
 import { bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
@@ -44,18 +45,23 @@ const fee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: INITIAL_FEE_VAL });
 const password = ref("");
 const recipient = ref("");
 
-const v$ = useVuelidate(
+const { r$ } = useRegle(
+  { selected, recipient },
   {
     recipient: {
-      required: helpers.withMessage(t("transaction.send.emptyAddressError"), required),
+      required: withMessage(required, () => t("transaction.send.emptyAddressError")),
       validErgoAddress
     },
     selected: {
-      required: helpers.withMessage(t("transaction.send.noSelectedAssetsError"), required)
+      required: withMessage(required, () => t("transaction.send.noSelectedAssetsError"))
     }
   },
-  { selected, recipient }
+  { autoDirty: false }
 );
+
+// collects child components validations, like asset amounts and fee settings
+const { r$: children$ } = useCollectChildValidations();
+const form$ = mergeRegles({ r$, children$ });
 
 onMounted(() => {
   if (route.query.recipient && typeof route.query.recipient === "string") {
@@ -117,7 +123,7 @@ watch(
 
 watch(
   () => selected.value.length,
-  () => v$.value.selected.$touch()
+  () => r$.selected.$touch()
 );
 
 function getReserveAmountFor(tokenId: string): BigNumber | undefined {
@@ -128,15 +134,16 @@ function getReserveAmountFor(tokenId: string): BigNumber | undefined {
   }
 }
 
-function scrollToErrorElement() {
-  const errorEl = document.getElementById(v$.value.$errors[0].$uid);
+async function scrollToErrorElement() {
+  await nextTick();
+  const errorEl = document.querySelector("[data-form-error]");
   if (!errorEl) return;
 
   errorEl.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 async function sendTransaction() {
-  const valid = await v$.value.$validate();
+  const { valid } = await form$.$validate();
   if (!valid) return scrollToErrorElement();
 
   openTransactionSignDialog({
@@ -152,7 +159,7 @@ async function sendTransaction() {
       setErgAsSelected();
       recipient.value = "";
       password.value = "";
-      v$.value.$reset();
+      form$.$reset();
     }
   });
 }
@@ -228,7 +235,7 @@ function isFeeAsset(tokenId: string): boolean {
 <template>
   <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
-      <FormField :validation="v$.recipient">
+      <FormField :validation="r$.recipient">
         <Label for="recipient">{{ t("transaction.send.recipient") }}</Label>
         <Input
           id="recipient"
@@ -236,7 +243,7 @@ function isFeeAsset(tokenId: string): boolean {
           type="text"
           spellcheck="false"
           class="w-full"
-          @blur="v$.recipient.$touch()"
+          @blur="r$.recipient.$touch()"
         />
       </FormField>
 
@@ -256,7 +263,7 @@ function isFeeAsset(tokenId: string): boolean {
         </div>
       </FormField>
 
-      <FormField :validation="v$.selected">
+      <FormField :validation="r$.selected">
         <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
           <template v-if="unselected.length" #commands>
             <CommandSeparator class="my-1" />

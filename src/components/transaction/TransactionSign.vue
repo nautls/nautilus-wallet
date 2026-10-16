@@ -6,8 +6,8 @@ import {
   SignedInput,
   SignedTransaction
 } from "@fleet-sdk/common";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { requiredUnless, withMessage } from "@regle/rules";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import { AlertCircleIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -112,7 +112,7 @@ function isP2S(output: OutputInterpreter): boolean {
 async function sign() {
   if (!canSign.value || !props.transaction) return;
 
-  const valid = await v$.value.$validate();
+  const { valid } = await r$.$validate();
   if (!valid) return;
 
   try {
@@ -141,7 +141,7 @@ async function sign() {
 
     // clear password after signing
     password.value = "";
-    v$.value.$reset();
+    r$.$reset();
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
@@ -197,16 +197,14 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
   }
 }
 
-const v$ = useVuelidate(
-  computed(() => ({
+const { r$ } = useRegle(
+  { password },
+  {
     password: {
-      required: helpers.withMessage(
-        t("wallet.requiredSpendingPassword"),
-        requiredUnless(isLedger.value)
-      )
+      required: withMessage(requiredUnless(isLedger), () => t("wallet.requiredSpendingPassword"))
     }
-  })),
-  { password }
+  },
+  { autoDirty: false }
 );
 </script>
 
@@ -309,14 +307,14 @@ const v$ = useVuelidate(
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
 
     <Form v-else @submit="sign">
-      <FormField :validation="v$.password">
+      <FormField :validation="r$.password">
         <PasswordInput
           ref="pwd-input"
           v-model="password"
           :placeholder="t('wallet.spendingPassword')"
           :disabled="loading || signing || !canSign"
           class="w-full"
-          @blur="v$.password.$touch()"
+          @blur="r$.password.$touch()"
         />
       </FormField>
     </Form>

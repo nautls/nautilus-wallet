@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { Maybe, useRegle } from "@regle/core";
+import { required, withAsync, withMessage } from "@regle/rules";
 import {
   CheckIcon,
   ChevronsUpDownIcon,
@@ -95,21 +95,21 @@ onMounted(async () => {
 });
 
 watch(explorerUrl, async () => {
-  const valid = await v$.value.explorerUrl.$validate();
+  const { valid } = await r$.explorerUrl.$validate();
   if (!valid) return;
 
   app.settings.explorerUrl = explorerUrl.value;
 });
 
 watch(graphQLServer, async () => {
-  const valid = await v$.value.graphQLServer.$validate();
+  const { valid } = await r$.graphQLServer.$validate();
   if (!valid) return;
 
   app.settings.graphQLServer = graphQLServer.value;
 });
 
 watch(ipfsGateway, async () => {
-  const valid = await v$.value.ipfsGateway.$validate();
+  const { valid } = await r$.ipfsGateway.$validate();
   if (!valid) return;
 
   app.settings.ipfsGateway = ipfsGateway.value;
@@ -148,36 +148,38 @@ function computedBlacklist(list: string) {
   });
 }
 
-const v$ = useVuelidate(
+const { r$ } = useRegle(
+  { explorerUrl, graphQLServer, ipfsGateway },
   {
     explorerUrl: {
-      required: helpers.withMessage(t("settings.global.requiredExplorer"), required),
+      required: withMessage(required, () => t("settings.global.requiredExplorer")),
       validUrl
     },
     graphQLServer: {
-      required: helpers.withMessage(t("settings.global.requiredGql"), required),
+      required: withMessage(required, () => t("settings.global.requiredGql")),
       validUrl,
-      network: helpers.withMessage(
-        t("settings.global.wrongServerNetwork"),
-        helpers.withAsync(async (url: string) => {
+      network: withMessage(
+        withAsync(async (url: Maybe<string>) => {
           if (!url) return true;
           return await validateServerNetwork(url);
-        })
+        }),
+        () => t("settings.global.wrongServerNetwork")
       ),
-      version: helpers.withMessage(
-        t("settings.global.unsupportedServerVersion", { version: MIN_SERVER_VERSION.join(".") }),
-        helpers.withAsync(async (url: string) => {
+      version: withMessage(
+        withAsync(async (url: Maybe<string>) => {
           if (!url) return true;
           return await validateServerVersion(url);
-        })
+        }),
+        () =>
+          t("settings.global.unsupportedServerVersion", { version: MIN_SERVER_VERSION.join(".") })
       )
     },
     ipfsGateway: {
-      required: helpers.withMessage(t("settings.global.requiredIpfs"), required),
+      required: withMessage(required, () => t("settings.global.requiredIpfs")),
       validUrl
     }
   },
-  { explorerUrl, graphQLServer, ipfsGateway }
+  { autoDirty: false }
 );
 </script>
 
@@ -369,16 +371,16 @@ const v$ = useVuelidate(
 
     <Card class="flex flex-col gap-4 p-6">
       <div class="flex flex-col gap-2">
-        <FormField :validation="v$.graphQLServer">
+        <FormField :validation="r$.graphQLServer">
           <Label for="gql-server">{{ t("settings.global.gqlServer") }}</Label>
           <div class="relative w-full max-w-sm items-center">
             <Input
               id="gql-server"
               v-model="graphQLServer"
-              :class="{ 'pr-7': v$.graphQLServer.$pending }"
+              :class="{ 'pr-7': r$.graphQLServer.$pending }"
             />
             <span
-              v-if="v$.graphQLServer.$pending"
+              v-if="r$.graphQLServer.$pending"
               class="absolute inset-y-0 end-0 flex items-center justify-center px-2"
             >
               <Loader2Icon class="text-muted-foreground size-4 animate-spin" />
@@ -388,14 +390,14 @@ const v$ = useVuelidate(
       </div>
 
       <div class="flex flex-col gap-2">
-        <FormField :validation="v$.explorerUrl">
+        <FormField :validation="r$.explorerUrl">
           <Label for="explorer-url">{{ t("settings.global.explorerUrl") }}</Label>
           <Input id="explorer-url" v-model="explorerUrl" />
         </FormField>
       </div>
 
       <div class="flex flex-col gap-2">
-        <FormField :validation="v$.ipfsGateway">
+        <FormField :validation="r$.ipfsGateway">
           <Label for="ipfs-gateway">{{ t("settings.global.ipfsGateway") }}</Label>
           <Input id="ipfs-gateway" v-model="ipfsGateway" />
         </FormField>

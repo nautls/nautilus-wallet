@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { ErgoMessage, MessageType } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { requiredUnless, withMessage } from "@regle/rules";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "@lucide/vue";
 import type { JsonObject } from "type-fest";
@@ -46,17 +46,14 @@ const isLedger = computed(() => wallet.type === WalletType.Ledger);
 
 const detachUnloadListener = useEventListener(window, "beforeunload", refuse);
 
-const $v = useVuelidate(
+const { r$ } = useRegle(
+  { password },
   {
     password: {
-      required: helpers.withMessage(
-        t("wallet.requiredSpendingPassword"),
-        requiredUnless(isLedger.value)
-      )
+      required: withMessage(requiredUnless(isLedger), () => t("wallet.requiredSpendingPassword"))
     }
   },
-  { password },
-  { $lazy: true }
+  { autoDirty: false, lazy: true }
 );
 
 onMounted(async () => {
@@ -121,7 +118,7 @@ function setWallet(loading: boolean, walletId: number) {
 
 async function sign() {
   if (isReadonly.value || isLedger.value || !request.value) return;
-  if (!(await $v.value.$validate())) return;
+  if (!(await r$.$validate()).valid) return;
 
   try {
     const proof = await signMessage(
@@ -205,12 +202,12 @@ function refuse() {
       </Alert>
 
       <Form v-else @submit="sign">
-        <FormField :validation="$v.password">
+        <FormField :validation="r$.password">
           <PasswordInput
             v-model="password"
             :placeholder="t('wallet.spendingPassword')"
             type="password"
-            @blur="$v.password.$touch"
+            @blur="r$.password.$touch()"
           />
         </FormField>
       </Form>

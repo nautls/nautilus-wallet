@@ -1,18 +1,19 @@
 import { isEmpty } from "@fleet-sdk/common";
+import { createRule, Maybe } from "@regle/core";
 import HdKey from "@/chains/ergo/hdKey";
+import { gt } from "@/i18n";
 
-function validator(value: string) {
-  if (isEmpty(value)) return true;
+export default createRule({
+  type: "publicKey",
+  validator(value: Maybe<string>) {
+    if (isEmpty(value)) return true;
 
-  try {
-    HdKey.fromPublicKey(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export default {
-  $validator: validator,
-  $message: "Invalid public key"
-};
+    try {
+      HdKey.fromPublicKey(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  message: () => gt("validation.invalidPublicKey")
+});

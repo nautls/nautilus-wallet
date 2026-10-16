@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { required, withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -15,9 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { bn } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
+import { useChildRegle } from "@/composables/useValidationScope";
 import { MaskOptions, useNumericMask } from "@/composables/useNumericMask";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { bigNumberMaxValue, bigNumberMinValue } from "@/validators";
+import { bigNumberMaxValue, bigNumberMinValue, staticBigNumber } from "@/validators";
 
 interface Props {
   disposable?: boolean;
@@ -155,25 +155,23 @@ const minRequired = computed(() =>
     : props.minAmount || props.reservedAmount || bn(0)
 );
 
-const v$ = useVuelidate(
+const { r$ } = useChildRegle(
+  { balance: staticBigNumber(props.asset.balance), internalValue: staticBigNumber(internalValue) },
   computed(() => ({
     balance: {
-      minValue: helpers.withMessage(
-        ({ $params }) =>
-          t("transaction.send.minNamedAssetError", {
-            min: $params.min,
-            asset: baseCurrencyName.value
-          }),
-        bigNumberMinValue(convert(minRequired.value, "auto"))
+      bigNumberMinValue: withMessage(
+        bigNumberMinValue(convert(minRequired.value, "auto") ?? bn(0)),
+        ({ $params: [min] }) =>
+          t("transaction.send.minNamedAssetError", { min, asset: baseCurrencyName.value })
       )
     },
     internalValue: {
-      required: helpers.withMessage(t("transaction.send.requiredAmountError"), required),
-      minValue: bigNumberMinValue(convert(props.minAmount, "auto") || bn(0)),
-      maxValue: bigNumberMaxValue(available.value)
+      required: withMessage(required, () => t("transaction.send.requiredAmountError")),
+      bigNumberMinValue: bigNumberMinValue(convert(props.minAmount, "auto") || bn(0)),
+      bigNumberMaxValue: bigNumberMaxValue(available.value)
     }
   })),
-  { balance: props.asset.balance, internalValue }
+  { autoDirty: false }
 );
 
 watch(internalValue, (newVal) => {
@@ -230,7 +228,7 @@ function tokenRate(tokenId: string): number {
 </script>
 
 <template>
-  <FormField :validation="props.validate ? v$ : undefined">
+  <FormField :validation="props.validate ? r$ : undefined">
     <div
       :class="
         cn(
@@ -251,6 +249,7 @@ function tokenRate(tokenId: string): number {
         size="icon"
         variant="outline"
         class="bg-background ring-input absolute -top-2 -right-2 size-6 cursor-pointer rounded-full border-0 ring-1"
+        :aria-label="t('common.remove')"
         @click.prevent.stop="emit('remove')"
       >
         <TrashIcon class="m-auto size-4 p-0.5" />
@@ -267,7 +266,7 @@ function tokenRate(tokenId: string): number {
             )
           "
           placeholder="0"
-          @blur="v$.$touch()"
+          @blur="r$.$touch()"
         />
 
         <div class="w-auto min-w-max select-none">

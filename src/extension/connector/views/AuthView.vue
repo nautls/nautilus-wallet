@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, requiredUnless } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { requiredUnless, withMessage } from "@regle/rules";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -36,17 +36,14 @@ const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
 const isLedger = computed(() => wallet.type === WalletType.Ledger);
 
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
-const $v = useVuelidate(
+const { r$ } = useRegle(
+  { password },
   {
     password: {
-      required: helpers.withMessage(
-        t("wallet.requiredSpendingPassword"),
-        requiredUnless(isLedger.value)
-      )
+      required: withMessage(requiredUnless(isLedger), () => t("wallet.requiredSpendingPassword"))
     }
   },
-  { password },
-  { $lazy: true }
+  { autoDirty: false, lazy: true }
 );
 
 onMounted(async () => {
@@ -82,7 +79,7 @@ function setWallet(loading: boolean, walletId: number) {
 
 async function authenticate() {
   if (isReadonly.value || isLedger.value || !request.value) return;
-  if (!(await $v.value.$validate())) return;
+  if (!(await r$.$validate()).valid) return;
 
   try {
     const messageData = { message: request.value.data.message, origin: request.value.origin };
@@ -155,12 +152,12 @@ function refuse() {
     </Alert>
 
     <Form v-else @submit="authenticate">
-      <FormField :validation="$v.password">
+      <FormField :validation="r$.password">
         <PasswordInput
           v-model="password"
           :placeholder="t('wallet.spendingPassword')"
           type="password"
-          @blur="$v.password.$touch"
+          @blur="r$.password.$touch()"
         />
       </FormField>
     </Form>

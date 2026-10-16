@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers, required } from "@vuelidate/validators";
+import { useRegle } from "@regle/core";
+import { required, withMessage } from "@regle/rules";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -32,21 +32,20 @@ const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialo
 const walletName = ref(wallet.name);
 
 watch(walletName, (newName) => {
-  if (v$.value.walletName.$error) return;
+  if (!r$.walletName.$validateSync()) return;
   wallet.name = newName;
 });
 
-const v$ = useVuelidate(
-  { walletName: { required: helpers.withMessage(t("wallet.requiredWalletName"), required) } },
+const { r$ } = useRegle(
   { walletName },
-  { $autoDirty: true }
+  { walletName: { required: withMessage(required, () => t("wallet.requiredWalletName")) } }
 );
 </script>
 
 <template>
   <div class="space-y-4">
     <Card class="flex flex-col gap-4 p-6">
-      <FormField :validation="v$.walletName">
+      <FormField :validation="r$.walletName">
         <Label for="name-input">{{ t("wallet.walletName") }}</Label>
         <Input id="name-input" v-model="walletName" />
         <template #description>{{ t("settings.wallet.walletNameDesc") }}</template>

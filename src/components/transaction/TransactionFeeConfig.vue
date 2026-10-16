@@ -2,8 +2,7 @@
 import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
-import { useVuelidate } from "@vuelidate/core";
-import { helpers } from "@vuelidate/validators";
+import { withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
 import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "@lucide/vue";
@@ -21,9 +20,10 @@ import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFee
 import { bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
+import { useChildRegle } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
-import { bigNumberMinValue } from "@/validators";
+import { bigNumberMinValue, staticBigNumber } from "@/validators";
 
 interface FeeAsset extends AssetInfo {
   nanoErgsPerToken: BigNumber;
@@ -90,20 +90,18 @@ const price = computed(() => {
   return decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
 });
 
-const v$ = useVuelidate(
+const { r$ } = useChildRegle(
+  { feeAmount: staticBigNumber(feeAmount) },
   computed(() => ({
     feeAmount: {
-      minValue: helpers.withMessage(
-        ({ $params }) =>
-          t("transaction.send.minFeeError", {
-            min: $params.min,
-            name: props.modelValue.assetInfo?.name
-          }),
-        bigNumberMinValue(cachedMinRequired.value)
+      bigNumberMinValue: withMessage(
+        bigNumberMinValue(cachedMinRequired.value),
+        ({ $params: [min] }) =>
+          t("transaction.send.minFeeError", { min, name: props.modelValue.assetInfo?.name })
       )
     }
   })),
-  { feeAmount }
+  { autoDirty: false }
 );
 
 watch(
@@ -215,7 +213,7 @@ function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
 function recalculateMinRequired() {
   if (intSelected.value.tokenId === ERG_TOKEN_ID) {
     cachedMinRequired.value = decimalize(BN_MIN_ERG_FEE, ERG_DECIMALS);
-    if (!v$.value.$dirty) multiplier.value = 1;
+    if (!r$.$dirty) multiplier.value = 1;
   } else {
     cachedMinRequired.value = decimalize(
       getTokenUnitsFor(BN_MIN_ERG_FEE.plus(BN_MIN_BOX_VAL.times(props.includeMinAmountPerBox))),
@@ -244,7 +242,7 @@ function emitSelected() {
 </script>
 
 <template>
-  <FormField :validation="v$">
+  <FormField :validation="r$">
     <div
       :class="
         cn(

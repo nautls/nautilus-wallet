@@ -379,5 +379,13 @@
       "fullTxHeader": "{host} möchte eine Transaktion signieren.",
       "partialTxHeader": "{host} möchte eine Transaktion teilweise signieren"
     }
+  },
+  "validation": {
+    "invalidAddress": "Bitte gib eine gültige Ergo-Adresse ein.",
+    "invalidRecoveryPhrase": "Ungültige Wiederherstellungsphrase.",
+    "invalidPublicKey": "Ungültiger öffentlicher Schlüssel",
+    "invalidUrl": "Ungültige URL.",
+    "maxAmount": "Der Betrag muss kleiner oder gleich {max} sein",
+    "minAmount": "Der Betrag muss größer oder gleich {min} sein"
   }
 }

@@ -130,6 +130,12 @@ test.describe("settings", () => {
 
       await page.locator("#explorer-url").fill("not a url");
       await expect(page.getByText("Invalid URL.")).toBeVisible();
+
+      // visible errors are translated when the display language changes
+      await page.getByRole("button", { name: "System default" }).click();
+      await page.getByRole("option", { name: "Deutsch (DE)" }).click();
+      await expect(page.getByText("Ungültige URL.")).toBeVisible();
+      await expect(page.getByText("Invalid URL.")).toHaveCount(0);
     });
 
     test("toggles token blacklists and 0-conf", async ({ popup }) => {

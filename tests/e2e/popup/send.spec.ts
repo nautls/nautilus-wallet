@@ -1,6 +1,6 @@
 import { ErgoAddress } from "@fleet-sdk/core";
 import type { Page } from "@playwright/test";
-import { expect, fundWallet, test } from "../fixtures/test";
+import { addBabelBox, expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, RECIPIENT_ADDRESS, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wallets";
 import type { Popup } from "../pages/popup";
 
@@ -95,11 +95,49 @@ test.describe("send", () => {
 
     await fillSendForm(popup, RECIPIENT_ADDRESS, "1000");
     await send.click();
+    await expect(page.getByText(/The amount should be less than or equal to/)).toBeVisible();
     await expect(page.getByText("Please enter the recipient address.")).toHaveCount(0);
     await expect(page.getByText("Please enter a valid Ergo address.")).toHaveCount(0);
     await expect(reviewDrawer(page)).toHaveCount(0);
 
     expect(chain.submitted).toHaveLength(0);
+  });
+
+  test("validates every selected asset amount", async ({ popup, chain }) => {
+    const page = popup.page;
+    const send = page.getByRole("button", { name: "Send", exact: true });
+    const maxAmountError = page.getByText(/The amount should be less than or equal to/);
+
+    await fillSendForm(popup, RECIPIENT_ADDRESS, "1");
+    await page.getByRole("combobox").filter({ hasText: "Add asset" }).click();
+    await page.getByRole("option", { name: /TestToken/ }).click();
+
+    const amounts = page.getByPlaceholder("0");
+    await expect(amounts).toHaveCount(2);
+
+    // more than the 1,000 TestToken held by the wallet
+    const tokenAmount = amounts.last();
+    await tokenAmount.fill("5000");
+    // submit while the input keeps focus, so the error can only come from the form
+    // validation, not from the input's own blur validation
+    await tokenAmount.press("Enter");
+    await expect(maxAmountError).toBeVisible();
+    await expect(reviewDrawer(page)).toHaveCount(0);
+
+    // a removed asset no longer blocks sending
+    await tokenAmount.hover();
+    await page.getByRole("button", { name: "Remove" }).click();
+    await expect(amounts).toHaveCount(1);
+    await expect(maxAmountError).toHaveCount(0);
+
+    await send.click();
+    await expect(reviewDrawer(page)).toBeVisible();
+    await signInDrawer(popup, WALLET_A.password);
+    await expect(popup.toast("Transaction sent!")).toBeVisible();
+
+    const payment = chain.submitted[0].outputs.find((o) => o.ergoTree === RECIPIENT_TREE);
+    expect(payment?.value.toString()).toBe("1000000000");
+    expect(payment?.assets).toHaveLength(0);
   });
 
   test("fills the maximum available amount", async ({ popup }) => {
@@ -155,6 +193,38 @@ test.describe("send", () => {
     await toast.locator("button", { hasText: "Try again" }).click();
     await expect.poll(() => chain.submitted.length).toBe(1);
   });
+});
+
+test("an insufficient fee blocks sending", async ({ chain, popup }) => {
+  await fundWallet(chain, WALLET_A);
+  // 1,000 nanoERGs per TestToken unit: the minimum fee plus a change box costs 21 TestToken
+  addBabelBox(chain, TEST_TOKEN.tokenId, 1000n);
+  await popup.importWallet(WALLET_A);
+  await popup.navigate("send");
+
+  const page = popup.page;
+  const send = page.getByRole("button", { name: "Send", exact: true });
+  const minFeeError = page.getByText(/You need to pay a minimum fee of 21 TestToken/);
+  await fillSendForm(popup, RECIPIENT_ADDRESS, "1");
+
+  // the fee asset selector comes after the ERG amount input
+  await page.getByRole("button", { name: "ERG", exact: true }).last().click();
+  await page.getByRole("option", { name: /TestToken/ }).click();
+
+  // lower the fee multiplier below the required minimum
+  const multiplier = page.getByRole("slider");
+  await multiplier.focus();
+  await multiplier.press("Home");
+  await expect(multiplier).toHaveAttribute("aria-valuenow", "1");
+
+  await send.click();
+  await expect(minFeeError).toBeVisible();
+  await expect(reviewDrawer(page)).toHaveCount(0);
+
+  await multiplier.press("End");
+  await expect(minFeeError).toHaveCount(0);
+  await send.click();
+  await expect(reviewDrawer(page)).toBeVisible();
 });
 
 test("read-only wallets can't send", async ({ chain, popup }) => {
