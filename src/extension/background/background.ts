@@ -8,11 +8,7 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
-import {
-  AsyncRequest,
-  AsyncRequestQueue,
-  AsyncRequestType
-} from "../connector/rpc/asyncRequestQueue";
+import { AsyncRequestQueue, AsyncRequestType } from "../connector/rpc/asyncRequestQueue";
 import {
   DataWithPayload,
   error,
@@ -36,6 +32,7 @@ type AuthenticatedMessageHandler<T extends InternalRequest> = (
 
 const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
 const requests = new AsyncRequestQueue();
+let windowLock = Promise.resolve();
 
 function onMessageAuth<T extends InternalRequest>(
   request: T,
@@ -135,17 +132,17 @@ onMessageAuth(InternalRequest.SignTx, async (msg) => {
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
   if (!isInternalEndpoint(sender)) return;
 
-  let request: AsyncRequest | undefined;
-  do {
-    request = requests.pop();
-    if (!request) continue;
+  const request = requests.pop();
+  if (!request) return;
 
-    const payload = { origin: request.origin, favicon: request.favicon };
-    const data = request.data ? { payload, ...request.data } : { payload };
+  const payload = { origin: request.origin, favicon: request.favicon };
+  const data = request.data ? { payload, ...request.data } : { payload };
 
-    const result = await sendMessage(request.type, data, "popup");
-    request.resolve(result);
-  } while (request);
+  try {
+    request.resolve(await sendMessage(request.type, data, "popup"));
+  } catch (e) {
+    request.reject(e);
+  }
 });
 
 onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
@@ -153,11 +150,40 @@ onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
   graphQLService.setUrl(msg.data);
 });
 
+/**
+ * Opens a connector window for the request. Requests are queued so that only one
+ * window is shown at a time, the next window is opened once the current one is closed.
+ */
 async function openWindow<T extends AsyncRequestType>(
   request: T,
   data: DataWithPayload,
   tabId: number
+): Promise<GetReturnType<T>> {
+  const previous = windowLock;
+  let release!: () => void;
+  windowLock = new Promise((resolve) => (release = resolve));
+
+  await previous;
+  try {
+    return await showWindow(request, data, tabId, release);
+  } catch (e) {
+    release();
+    throw e;
+  }
+}
+
+async function showWindow<T extends AsyncRequestType>(
+  request: T,
+  data: DataWithPayload,
+  tabId: number,
+  onClose: () => void
 ) {
+  // the origin may have been connected by a previously queued request
+  if (request === InternalRequest.Connect && (await checkConnection(data.payload.origin))) {
+    onClose();
+    return true as GetReturnType<T>;
+  }
+
   if (!data.payload.favicon) {
     data.payload.favicon = await getFavicon(tabId);
   }
@@ -168,7 +194,24 @@ async function openWindow<T extends AsyncRequestType>(
     data
   });
 
-  await createWindow(tabId);
+  let window: Awaited<ReturnType<typeof createWindow>>;
+  try {
+    window = await createWindow(tabId);
+  } catch (e) {
+    requests.pop();
+    throw e;
+  }
+
+  const onRemoved = (windowId: number) => {
+    if (windowId !== window.id) return;
+    browser?.windows.onRemoved.removeListener(onRemoved);
+
+    // the window was closed before the request could be delivered to it
+    requests.pop()?.reject(new Error("Connector window closed."));
+    onClose();
+  };
+
+  browser?.windows.onRemoved.addListener(onRemoved);
   return promise;
 }
 
