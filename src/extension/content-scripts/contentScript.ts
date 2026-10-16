@@ -63,6 +63,17 @@ function getHost(origin: string) {
   return new URL(origin).host;
 }
 
+function pick<T, K extends keyof T>(data: T, keys: K[]): Pick<T, K> {
+  const picked = {} as Pick<T, K>;
+  if (!data || typeof data !== "object") return picked;
+
+  for (const key of keys) {
+    if (Object.hasOwn(data, key)) picked[key] = data[key];
+  }
+
+  return picked;
+}
+
 (() => {
   if (!injectScript()) return;
 
@@ -84,11 +95,19 @@ function getHost(origin: string) {
 
   // context requests
   onMessage(ExternalRequest.GetUTxOs, async ({ data }) => {
-    return await sendMessage(InternalRequest.GetUTxOs, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.GetUTxOs,
+      { ...pick(data, ["target"]), payload },
+      BACKGROUND
+    );
   });
 
   onMessage(ExternalRequest.GetBalance, async ({ data }) => {
-    return await sendMessage(InternalRequest.GetBalance, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.GetBalance,
+      { ...pick(data, ["tokenId"]), payload },
+      BACKGROUND
+    );
   });
 
   onMessage(ExternalRequest.GetAddresses, async ({ data }) => {
@@ -100,22 +119,42 @@ function getHost(origin: string) {
   });
 
   onMessage(ExternalRequest.SubmitTransaction, async ({ data }) => {
-    return await sendMessage(InternalRequest.SubmitTransaction, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.SubmitTransaction,
+      { ...pick(data, ["transaction"]), payload },
+      BACKGROUND
+    );
   });
 
   onMessage(ExternalRequest.SignData, async ({ data }) => {
-    return await sendMessage(InternalRequest.SignData, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.SignData,
+      { ...pick(data, ["address", "message"]), payload },
+      BACKGROUND
+    );
   });
 
   onMessage(ExternalRequest.Auth, async ({ data }) => {
-    return await sendMessage(InternalRequest.Auth, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.Auth,
+      { ...pick(data, ["address", "message"]), payload },
+      BACKGROUND
+    );
   });
 
   onMessage(ExternalRequest.SignTx, async ({ data }) => {
-    return await sendMessage(InternalRequest.SignTx, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.SignTx,
+      { ...pick(data, ["transaction"]), payload },
+      BACKGROUND
+    );
   });
 
   onMessage(ExternalRequest.SignTxInputs, async ({ data }) => {
-    return await sendMessage(InternalRequest.SignTxInputs, { payload, ...data }, BACKGROUND);
+    return await sendMessage(
+      InternalRequest.SignTxInputs,
+      { ...pick(data, ["transaction", "indexes"]), payload },
+      BACKGROUND
+    );
   });
 })();

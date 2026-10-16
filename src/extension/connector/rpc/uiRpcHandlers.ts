@@ -1,3 +1,4 @@
+import { BridgeMessage, Endpoint, GetReturnType } from "webext-bridge";
 import { onMessage, sendMessage } from "webext-bridge/popup";
 import { router } from "../router";
 import { AsyncRequestQueue, AsyncRequestType } from "./asyncRequestQueue";
@@ -11,11 +12,22 @@ const _ = undefined;
 export function registerRpcHooks() {
   sendMessage(InternalEvent.Loaded, _, BACKGROUND);
 
-  onMessage(InternalRequest.Connect, ({ data }) => handle(InternalRequest.Connect, data));
-  onMessage(InternalRequest.Auth, ({ data }) => handle(InternalRequest.Auth, data));
-  onMessage(InternalRequest.SignTx, ({ data }) => handle(InternalRequest.SignTx, data));
-  onMessage(InternalRequest.SignData, ({ data }) => handle(InternalRequest.SignData, data));
-  onMessage(InternalRequest.SignTxInputs, ({ data }) => handle(InternalRequest.SignTxInputs, data));
+  onMessage(InternalRequest.Connect, fromBackground(InternalRequest.Connect));
+  onMessage(InternalRequest.Auth, fromBackground(InternalRequest.Auth));
+  onMessage(InternalRequest.SignTx, fromBackground(InternalRequest.SignTx));
+  onMessage(InternalRequest.SignData, fromBackground(InternalRequest.SignData));
+  onMessage(InternalRequest.SignTxInputs, fromBackground(InternalRequest.SignTxInputs));
+}
+
+export function isFromBackground(sender: Pick<Endpoint, "context">) {
+  return sender.context === BACKGROUND;
+}
+
+function fromBackground<T extends AsyncRequestType>(type: T) {
+  return ({ data, sender }: Pick<BridgeMessage<DataWithPayload>, "data" | "sender">) => {
+    if (!isFromBackground(sender)) throw new Error("Unauthorized sender.");
+    return handle<GetReturnType<T>>(type, data);
+  };
 }
 
 export function sendBackendServerUrl(url: string) {
