@@ -30,7 +30,7 @@ test.describe("dApps", () => {
     test("consolidates UTxOs into a single box", async ({ popup, chain }) => {
       const page = popup.page;
       await page.getByRole("button", { name: "Wallet Optimizer" }).click();
-      await page.getByRole("button", { name: "Optimize" }).click();
+      await page.getByRole("button", { name: "Optimize", exact: true }).click();
 
       const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
       await expect(drawer.getByText("Sending to your address").first()).toBeVisible();
