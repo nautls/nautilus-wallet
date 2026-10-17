@@ -1,4 +1,4 @@
-import type { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import type { SignedTransaction, UnsignedTransaction } from "@fleet-sdk/common";
 import { blake2b256, hex, utf8 } from "@fleet-sdk/crypto";
 import { serializeTransaction } from "@fleet-sdk/serializer";
 import type { JsonValue } from "type-fest";
@@ -100,6 +100,7 @@ onMessageAuth(InternalRequest.GetCurrentHeight, async () => {
 
 onMessageAuth(InternalRequest.SubmitTransaction, async (msg, walletId) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
+  if (!isValidSignedTx(msg.data.transaction)) return invalidRequest("Invalid signed transaction.");
 
   try {
     const response = await graphQLService.submitTransaction(msg.data.transaction, walletId);
@@ -209,8 +210,25 @@ function hashArgs(data: DataWithPayload) {
   return hex.encode(blake2b256(utf8.decode(args)));
 }
 
-function hashTransaction(transaction: EIP12UnsignedTransaction) {
+function hashTransaction(transaction: UnsignedTransaction) {
   return hex.encode(blake2b256(serializeTransaction(transaction).toBytes()));
+}
+
+function isValidSignedTx(transaction: SignedTransaction) {
+  if (!transaction.id) return false;
+
+  try {
+    serializeTransaction(transaction);
+
+    const inputs = transaction.inputs.map((input) => ({
+      boxId: input.boxId,
+      extension: input.spendingProof?.extension ?? {}
+    }));
+
+    return hashTransaction({ ...transaction, inputs }) === transaction.id;
+  } catch {
+    return false;
+  }
 }
 
 async function enqueueWindow<T extends AsyncRequestType>(

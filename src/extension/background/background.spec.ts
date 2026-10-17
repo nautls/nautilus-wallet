@@ -388,3 +388,25 @@ describe("input signing", () => {
     expect(mocks.createWindow).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("transaction submission", () => {
+  it("should reject malformed transactions before submitting them", async () => {
+    const result = request(InternalRequest.SubmitTransaction, {
+      transaction: { inputs: "invalid" }
+    });
+
+    await expect(result).resolves.toEqual({
+      success: false,
+      error: { code: -1, info: "Invalid signed transaction." }
+    });
+  });
+
+  it("should reject transactions whose id doesn't match", async () => {
+    const transaction = { id: "aa".repeat(32), inputs: [], dataInputs: [], outputs: [] };
+
+    await expect(request(InternalRequest.SubmitTransaction, { transaction })).resolves.toEqual({
+      success: false,
+      error: { code: -1, info: "Invalid signed transaction." }
+    });
+  });
+});

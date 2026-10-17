@@ -1,4 +1,7 @@
+import { blake2b256, hex } from "@fleet-sdk/crypto";
+import { serializeTransaction } from "@fleet-sdk/serializer";
 import { expect, fundWallet, test } from "../fixtures/test";
+import type { MockChain } from "../mocks/chain";
 import { addressOf, TEST_NFT, TEST_TOKEN, WALLET_A } from "../fixtures/wallets";
 import { connectDapp, invoke } from "../pages/connector";
 
@@ -125,17 +128,35 @@ test.describe("dApp context API", () => {
     });
   });
 
-  test("submit_tx reports node rejections", async ({ dapp, chain }) => {
-    chain.submitError = "Double spending attempt";
-    const [box] = chain.boxesOf(await addressOf(WALLET_A, 0));
-    const fakeTx = {
+  test("submit_tx rejects malformed transactions", async ({ dapp, chain }) => {
+    const malformed = {
       id: "aa".repeat(32),
-      inputs: [{ boxId: box.boxId, spendingProof: { proofBytes: "", extension: {} } }],
+      inputs: [{ boxId: "not-hex" }],
       dataInputs: [],
       outputs: []
     };
 
-    expect(await invoke(dapp, (tx) => window.ergo.submit_tx(tx), fakeTx)).toEqual({
+    expect(await invoke(dapp, (tx) => window.ergo.submit_tx(tx as never), malformed)).toEqual({
+      ok: false,
+      error: { code: -1, info: "Invalid signed transaction." }
+    });
+    expect(chain.submitted).toHaveLength(0);
+  });
+
+  test("submit_tx rejects transactions whose id doesn't match", async ({ dapp, chain }) => {
+    const tx = await proofless(chain);
+
+    expect(
+      await invoke(dapp, (tx) => window.ergo.submit_tx(tx), { ...tx, id: "aa".repeat(32) })
+    ).toEqual({ ok: false, error: { code: -1, info: "Invalid signed transaction." } });
+    expect(chain.submitted).toHaveLength(0);
+  });
+
+  test("submit_tx reports node rejections", async ({ dapp, chain }) => {
+    chain.submitError = "Double spending attempt";
+    const tx = await proofless(chain);
+
+    expect(await invoke(dapp, (tx) => window.ergo.submit_tx(tx), tx)).toEqual({
       ok: false,
       error: { code: 1, info: "Double spending attempt" }
     });
@@ -159,3 +180,20 @@ test.describe("dApp context API", () => {
     expect(await evil.evaluate(() => window.ergoConnector.nautilus.isAuthorized())).toBe(false);
   });
 });
+
+/**
+ * A well-formed transaction spending a wallet box with an empty proof: its bytes to sign are
+ * the same as its full serialization, so its id is the hash of it.
+ */
+async function proofless(chain: MockChain) {
+  const [box] = chain.boxesOf(await addressOf(WALLET_A, 0));
+  const tx = {
+    id: "",
+    inputs: [{ boxId: box.boxId, spendingProof: { proofBytes: "", extension: {} } }],
+    dataInputs: [],
+    outputs: []
+  };
+
+  tx.id = hex.encode(blake2b256(serializeTransaction(tx).toBytes()));
+  return tx;
+}
