@@ -117,7 +117,6 @@ export class Prover {
     unsignedTx: EIP12UnsignedTransaction,
     inputsToSign: number[]
   ): Promise<SignedInput[]> {
-    inputsToSign = inputsToSign.sort();
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     return this.#signInputs(tx, inputs, dataInputs, inputsToSign);
   }

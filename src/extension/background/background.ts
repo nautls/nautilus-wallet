@@ -141,6 +141,29 @@ onMessageAuth(InternalRequest.SignTx, async (msg) => {
   return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, txHash);
 });
 
+onMessageAuth(InternalRequest.SignTxInputs, async (msg) => {
+  const { transaction, indexes } = msg.data;
+  if (!transaction || !Array.isArray(indexes) || indexes.length === 0) {
+    return invalidRequest("Invalid params.");
+  }
+
+  let txHash: string;
+  try {
+    txHash = hashTransaction(transaction);
+  } catch {
+    return invalidRequest("Invalid transaction.");
+  }
+
+  const isValidIndex = (i: unknown) =>
+    Number.isInteger(i) && (i as number) >= 0 && (i as number) < transaction.inputs.length;
+  if (!indexes.every(isValidIndex) || new Set(indexes).size !== indexes.length) {
+    return invalidRequest("Invalid input indexes.");
+  }
+
+  const argsHash = `${txHash}:${indexes.join(",")}`;
+  return await openWindow(InternalRequest.SignTxInputs, msg.data, msg.sender.tabId, argsHash);
+});
+
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
   if (!isInternalEndpoint(sender)) return;
 
