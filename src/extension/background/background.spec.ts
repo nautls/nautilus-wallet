@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InternalEvent, InternalRequest } from "../connector/rpc/protocol";
 
 type Handler = (msg: { data?: unknown; sender: { tabId: number } }) => Promise<unknown>;
@@ -11,7 +11,8 @@ const mocks = vi.hoisted(() => ({
   createWindow: vi.fn(),
   checkConnection: vi.fn(),
   getByOrigin: vi.fn(),
-  getByScript: vi.fn()
+  getByScript: vi.fn(),
+  getPlatformInfo: vi.fn()
 }));
 
 vi.mock("webext-bridge", () => ({ isInternalEndpoint: () => true }));
@@ -23,6 +24,7 @@ vi.mock("webext-bridge/background", () => ({
 
 vi.mock("@/common/browser", () => ({
   browser: {
+    runtime: { getPlatformInfo: mocks.getPlatformInfo },
     tabs: { get: async () => ({ favIconUrl: "favicon.png" }) },
     windows: {
       onRemoved: {
@@ -66,6 +68,7 @@ beforeEach(async () => {
   mocks.createWindow.mockReset().mockImplementation(async () => ({ id: ++windowId }));
   mocks.checkConnection.mockReset().mockResolvedValue(false);
   mocks.getByOrigin.mockReset().mockResolvedValue({ origin: ORIGIN, walletId: WALLET_ID });
+  mocks.getPlatformInfo.mockReset();
   mocks.getByScript.mockReset().mockResolvedValue({ script: ADDRESS, walletId: WALLET_ID });
 
   await import("./background");
@@ -311,6 +314,44 @@ describe("identical requests", () => {
     await load("signed");
     close(windowId);
     await expect(second).resolves.toBe("signed");
+  });
+});
+
+describe("service worker keep alive", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("should keep the worker alive only while requests are pending", async () => {
+    vi.useFakeTimers();
+
+    const first = signTx("tx1");
+    const second = signTx("tx2");
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(mocks.getPlatformInfo).toHaveBeenCalledTimes(3);
+
+    await load("signed1");
+    close(windowId);
+    await expect(first).resolves.toBe("signed1");
+
+    // the second request is still pending
+    mocks.getPlatformInfo.mockClear();
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(mocks.getPlatformInfo).toHaveBeenCalledOnce();
+
+    await load("signed2");
+    close(windowId);
+    await expect(second).resolves.toBe("signed2");
+
+    mocks.getPlatformInfo.mockClear();
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(mocks.getPlatformInfo).not.toHaveBeenCalled();
+  });
+
+  it("should not keep the worker alive for requests that don't open a window", async () => {
+    vi.useFakeTimers();
+
+    await signTx({ inputs: "invalid" });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(mocks.getPlatformInfo).not.toHaveBeenCalled();
   });
 });
 

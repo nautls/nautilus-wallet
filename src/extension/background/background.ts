@@ -34,9 +34,11 @@ type AuthenticatedMessageHandler<T extends InternalRequest> = (
 ) => GetReturnType<T> | Promise<GetReturnType<T>>;
 
 const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
+const KEEP_ALIVE_INTERVAL = 20_000;
 const requests = new AsyncRequestQueue();
 const pendingRequests = new Map<string, Promise<unknown>>();
 let windowLock = Promise.resolve();
+let keepAliveTimer: ReturnType<typeof setInterval> | undefined;
 
 function onMessageAuth<T extends InternalRequest>(
   request: T,
@@ -176,9 +178,30 @@ function openWindow<T extends AsyncRequestType>(
   const pending = pendingRequests.get(key);
   if (pending) return pending as Promise<GetReturnType<T>>;
 
-  const promise = enqueueWindow(request, data, tabId).finally(() => pendingRequests.delete(key));
+  const promise = enqueueWindow(request, data, tabId).finally(() => {
+    pendingRequests.delete(key);
+    if (pendingRequests.size === 0) stopKeepAlive();
+  });
+
   pendingRequests.set(key, promise);
+  startKeepAlive();
   return promise;
+}
+
+/**
+ * MV3 service workers are terminated after ~30 seconds without events, which would drop
+ * pending requests while the user is still interacting with the connector window. Calling
+ * an extension API periodically resets the idle timer.
+ * https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers#keep_a_service_worker_alive_until_a_long-running_operation_is_finished
+ */
+function startKeepAlive() {
+  if (keepAliveTimer) return;
+  keepAliveTimer = setInterval(() => browser?.runtime.getPlatformInfo(), KEEP_ALIVE_INTERVAL);
+}
+
+function stopKeepAlive() {
+  clearInterval(keepAliveTimer);
+  keepAliveTimer = undefined;
 }
 
 function hashArgs(data: DataWithPayload) {
