@@ -82,6 +82,9 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
+    // chromium refuses to preload with "cross-world extension resource mismatch" warnings.
+    // as extension pages load from disk, preloading gains nothing
+    modulePreload: false,
     chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
     outDir: r("dist")
