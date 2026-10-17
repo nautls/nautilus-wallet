@@ -44,10 +44,7 @@ test.describe("dApp request queueing", () => {
     expect(tracker.windows).toHaveLength(1);
   });
 
-  test("prompts again for queued connect calls when the first is refused", async ({
-    context,
-    dapp
-  }) => {
+  test("shares the refusal with identical connect calls", async ({ context, dapp }) => {
     const tracker = trackConnectorWindows(context);
     const result = invoke(dapp, () =>
       Promise.all([
@@ -56,16 +53,39 @@ test.describe("dApp request queueing", () => {
       ])
     );
 
-    const first = await tracker.nth(1, "connect");
-    await expect.poll(() => tracker.windows.length).toBe(1);
-    await clickToClose(first.getByRole("button", { name: "Cancel" }));
+    const win = await tracker.nth(1, "connect");
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
 
-    const second = await tracker.nth(2, "connect");
-    await second.getByRole("button", { name: /Alice/ }).click();
-    await clickToClose(second.getByRole("button", { name: "Connect", exact: true }));
+    expect(await result).toEqual({ ok: true, value: [false, false] });
+    expect(tracker.windows).toHaveLength(1);
+  });
 
-    expect(await result).toEqual({ ok: true, value: [false, true] });
-    expect(tracker.windows).toHaveLength(2);
+  test("shares the signature with identical signing requests", async ({ context, dapp }) => {
+    await connectDapp(context, dapp, WALLET_A.name);
+
+    const tracker = trackConnectorWindows(context);
+    const address = await addressOf(WALLET_A, 0);
+    const result = invoke(
+      dapp,
+      (address) =>
+        Promise.all([
+          window.ergo.sign_data(address, "same message"),
+          window.ergo.sign_data(address, "same message")
+        ]),
+      address
+    );
+
+    const win = await tracker.nth(1, "sign/data");
+    await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+    await clickToClose(win.getByRole("button", { name: "Sign" }));
+
+    const outcome = await result;
+    expect(outcome).toEqual({
+      ok: true,
+      value: [expect.stringMatching(/^[0-9a-f]{112}$/), expect.stringMatching(/^[0-9a-f]{112}$/)]
+    });
+    if (outcome.ok) expect(outcome.value[0]).toBe(outcome.value[1]);
+    expect(tracker.windows).toHaveLength(1);
   });
 
   test("shows non-awaited signing requests one at a time, in order", async ({ context, dapp }) => {

@@ -1,4 +1,7 @@
-import { JsonValue } from "type-fest";
+import type { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import { blake2b256, hex, utf8 } from "@fleet-sdk/crypto";
+import { serializeTransaction } from "@fleet-sdk/serializer";
+import type { JsonValue } from "type-fest";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -32,6 +35,7 @@ type AuthenticatedMessageHandler<T extends InternalRequest> = (
 
 const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
 const requests = new AsyncRequestQueue();
+const pendingRequests = new Map<string, Promise<unknown>>();
 let windowLock = Promise.resolve();
 
 function onMessageAuth<T extends InternalRequest>(
@@ -126,7 +130,15 @@ function handleDataSigningRequest(request: InternalRequest.Auth | InternalReques
 
 onMessageAuth(InternalRequest.SignTx, async (msg) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
-  return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId);
+
+  let txHash: string;
+  try {
+    txHash = hashTransaction(msg.data.transaction);
+  } catch {
+    return invalidRequest("Invalid transaction.");
+  }
+
+  return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, txHash);
 });
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
@@ -151,10 +163,34 @@ onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
 });
 
 /**
- * Opens a connector window for the request. Requests are queued so that only one
- * window is shown at a time, the next window is opened once the current one is closed.
+ * Opens a connector window for the request. Identical requests made while the first
+ * one is still pending share its result instead of opening a new window.
  */
-async function openWindow<T extends AsyncRequestType>(
+function openWindow<T extends AsyncRequestType>(
+  request: T,
+  data: DataWithPayload,
+  tabId: number,
+  argsHash = hashArgs(data)
+): Promise<GetReturnType<T>> {
+  const key = `${request}:${data.payload.origin}:${argsHash}`;
+  const pending = pendingRequests.get(key);
+  if (pending) return pending as Promise<GetReturnType<T>>;
+
+  const promise = enqueueWindow(request, data, tabId).finally(() => pendingRequests.delete(key));
+  pendingRequests.set(key, promise);
+  return promise;
+}
+
+function hashArgs(data: DataWithPayload) {
+  const args = JSON.stringify({ ...data, payload: undefined });
+  return hex.encode(blake2b256(utf8.decode(args)));
+}
+
+function hashTransaction(transaction: EIP12UnsignedTransaction) {
+  return hex.encode(blake2b256(serializeTransaction(transaction).toBytes()));
+}
+
+async function enqueueWindow<T extends AsyncRequestType>(
   request: T,
   data: DataWithPayload,
   tabId: number
@@ -178,12 +214,6 @@ async function showWindow<T extends AsyncRequestType>(
   tabId: number,
   onClose: () => void
 ) {
-  // the origin may have been connected by a previously queued request
-  if (request === InternalRequest.Connect && (await checkConnection(data.payload.origin))) {
-    onClose();
-    return true as GetReturnType<T>;
-  }
-
   if (!data.payload.favicon) {
     data.payload.favicon = await getFavicon(tabId);
   }

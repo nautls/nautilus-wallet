@@ -149,6 +149,18 @@ test.describe("dApp transaction signing", () => {
       });
     });
 
+    test("rejects malformed transactions without opening a window", async ({ context, dapp }) => {
+      let opened = false;
+      context.on("page", () => (opened = true));
+
+      const malformed = { inputs: [{ boxId: "not-hex" }], dataInputs: [], outputs: [] };
+      expect(await invoke(dapp, (tx) => window.ergo.sign_tx(tx as never), malformed)).toEqual({
+        ok: false,
+        error: { code: -1, info: "Invalid transaction." }
+      });
+      expect(opened).toBe(false);
+    });
+
     test("doesn't support signing selected inputs", async ({ context, dapp, chain }) => {
       // `sign_tx_inputs` is exposed by the injected API but not implemented:
       // the background script has no handler for it, so webext-bridge rejects the call.
