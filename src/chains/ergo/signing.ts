@@ -107,6 +107,10 @@ export async function signTransaction({
   if (callback) callback({ statusText: "Loading context..." });
 
   const isLedger = wallet.type === WalletType.Ledger;
+  if (isLedger && some(inputsToSign)) {
+    throw new Error("Signing selected inputs is not supported by Ledger devices.");
+  }
+
   const deriver = isLedger
     ? hdKeyPool.get(wallet.publicKey)
     : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));

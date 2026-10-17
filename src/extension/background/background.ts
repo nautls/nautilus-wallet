@@ -1,4 +1,4 @@
-import type { EIP12UnsignedTransaction } from "@fleet-sdk/common";
+import type { SignedTransaction, UnsignedTransaction } from "@fleet-sdk/common";
 import { blake2b256, hex, utf8 } from "@fleet-sdk/crypto";
 import { serializeTransaction } from "@fleet-sdk/serializer";
 import type { JsonValue } from "type-fest";
@@ -102,6 +102,7 @@ onMessageAuth(InternalRequest.GetCurrentHeight, async () => {
 
 onMessageAuth(InternalRequest.SubmitTransaction, async (msg, walletId) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
+  if (!isValidSignedTx(msg.data.transaction)) return invalidRequest("Invalid signed transaction.");
 
   try {
     const response = await graphQLService.submitTransaction(msg.data.transaction, walletId);
@@ -141,6 +142,29 @@ onMessageAuth(InternalRequest.SignTx, async (msg) => {
   }
 
   return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, txHash);
+});
+
+onMessageAuth(InternalRequest.SignTxInputs, async (msg) => {
+  const { transaction, indexes } = msg.data;
+  if (!transaction || !Array.isArray(indexes) || indexes.length === 0) {
+    return invalidRequest("Invalid params.");
+  }
+
+  let txHash: string;
+  try {
+    txHash = hashTransaction(transaction);
+  } catch {
+    return invalidRequest("Invalid transaction.");
+  }
+
+  const isValidIndex = (i: unknown) =>
+    Number.isInteger(i) && (i as number) >= 0 && (i as number) < transaction.inputs.length;
+  if (!indexes.every(isValidIndex) || new Set(indexes).size !== indexes.length) {
+    return invalidRequest("Invalid input indexes.");
+  }
+
+  const argsHash = `${txHash}:${indexes.join(",")}`;
+  return await openWindow(InternalRequest.SignTxInputs, msg.data, msg.sender.tabId, argsHash);
 });
 
 onMessage(InternalEvent.Loaded, async ({ sender }) => {
@@ -209,8 +233,25 @@ function hashArgs(data: DataWithPayload) {
   return hex.encode(blake2b256(utf8.decode(args)));
 }
 
-function hashTransaction(transaction: EIP12UnsignedTransaction) {
+function hashTransaction(transaction: UnsignedTransaction) {
   return hex.encode(blake2b256(serializeTransaction(transaction).toBytes()));
+}
+
+function isValidSignedTx(transaction: SignedTransaction) {
+  if (!transaction.id) return false;
+
+  try {
+    serializeTransaction(transaction);
+
+    const inputs = transaction.inputs.map((input) => ({
+      boxId: input.boxId,
+      extension: input.spendingProof?.extension ?? {}
+    }));
+
+    return hashTransaction({ ...transaction, inputs }) === transaction.id;
+  } catch {
+    return false;
+  }
 }
 
 async function enqueueWindow<T extends AsyncRequestType>(
