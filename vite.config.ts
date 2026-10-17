@@ -74,13 +74,11 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         sanitizeFileName(name) {
-          // avoid "The argument 'path' must be a string, Uint8Array, or URL without null bytes. Received [...]\x00[...]" error
-          if (name.includes("\x00")) name = name.replace("\x00", "");
+          // a custom sanitizer replaces the default one, so mirror its invalid char handling
+          // eslint-disable-next-line no-control-regex
+          name = name.replace(/[\x00-\x1F"#$%&*+,:;<=>?[\]^`{|}\x7F]/g, "_");
           // chromium: filenames starting with "_" are reserved for use by the system.
-          if (name.startsWith("_")) name = name.replace("_", "");
-          // avoid invalid filenames such as FeeSelector.vue?vue&type=script&setup=true&lang.js
-          if (name.includes(".vue?")) name = name.slice(0, name.indexOf(".vue?"));
-          return name;
+          return name.replace(/^_+/, "");
         }
       }
     },
