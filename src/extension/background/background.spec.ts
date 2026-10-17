@@ -43,11 +43,13 @@ vi.mock("@/database/connectedDAppsDbService", () => ({
 }));
 vi.mock("./ergoHandlers", () => ({ checkConnection: mocks.checkConnection }));
 
-// transactions are represented by plain strings in these tests
+// transactions are represented by plain strings, or by objects when inputs matter
 vi.mock("@fleet-sdk/serializer", () => ({
   serializeTransaction: (tx: unknown) => {
-    if (typeof tx !== "string") throw new Error("Invalid transaction");
-    return { toBytes: () => new TextEncoder().encode(tx) };
+    const isObject = Array.isArray((tx as { inputs?: unknown })?.inputs);
+    if (typeof tx !== "string" && !isObject) throw new Error("Invalid transaction");
+    const bytes = typeof tx === "string" ? tx : JSON.stringify(tx);
+    return { toBytes: () => new TextEncoder().encode(bytes) };
   }
 }));
 
@@ -321,5 +323,68 @@ describe("transaction validation", () => {
       error: { code: -1, info: "Invalid transaction." }
     });
     expect(mocks.createWindow).not.toHaveBeenCalled();
+  });
+});
+
+describe("input signing", () => {
+  const txWithInputs = (count: number) => ({ inputs: Array.from({ length: count }, () => ({})) });
+
+  function signInputs(transaction: unknown, indexes: unknown) {
+    return request(InternalRequest.SignTxInputs, { transaction, indexes });
+  }
+
+  it("should open a window and deliver the request to the popup", async () => {
+    const transaction = txWithInputs(3);
+    const result = signInputs(transaction, [2, 0]);
+    await flush();
+
+    await load("signed");
+    close(windowId);
+
+    await expect(result).resolves.toBe("signed");
+    const [type, data] = mocks.sendMessage.mock.calls[0];
+    expect(type).toBe(InternalRequest.SignTxInputs);
+    expect(data.indexes).toEqual([2, 0]);
+  });
+
+  it.each([
+    ["no transaction", undefined, [0]],
+    ["no indexes", txWithInputs(1), undefined],
+    ["empty indexes", txWithInputs(1), []]
+  ])("should reject requests with %s", async (_, transaction, indexes) => {
+    await expect(signInputs(transaction, indexes)).resolves.toEqual({
+      success: false,
+      error: { code: -1, info: "Invalid params." }
+    });
+    expect(mocks.createWindow).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["out of range", [2]],
+    ["negative", [-1]],
+    ["non-integer", [0.5]],
+    ["duplicated", [0, 0]]
+  ])("should reject %s indexes", async (_, indexes) => {
+    await expect(signInputs(txWithInputs(2), indexes)).resolves.toEqual({
+      success: false,
+      error: { code: -1, info: "Invalid input indexes." }
+    });
+    expect(mocks.createWindow).not.toHaveBeenCalled();
+  });
+
+  it("should not share results across different indexes", async () => {
+    const transaction = txWithInputs(2);
+    const first = signInputs(transaction, [0]);
+    const second = signInputs(transaction, [1]);
+    await flush();
+
+    await load("signed0");
+    close(windowId);
+    await flush();
+    await load("signed1");
+    close(windowId);
+
+    await expect(Promise.all([first, second])).resolves.toEqual(["signed0", "signed1"]);
+    expect(mocks.createWindow).toHaveBeenCalledTimes(2);
   });
 });

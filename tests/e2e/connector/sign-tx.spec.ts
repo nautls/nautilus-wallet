@@ -1,4 +1,4 @@
-import type { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
+import type { EIP12UnsignedTransaction, SignedInput, SignedTransaction } from "@fleet-sdk/common";
 import { expect, fundWallet, test } from "../fixtures/test";
 import { buildTransaction } from "../fixtures/transactions";
 import { RECIPIENT_ADDRESS, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wallets";
@@ -161,27 +161,65 @@ test.describe("dApp transaction signing", () => {
       expect(opened).toBe(false);
     });
 
-    test("doesn't support signing selected inputs", async ({ context, dapp, chain }) => {
-      // `sign_tx_inputs` is exposed by the injected API but not implemented:
-      // the background script has no handler for it, so webext-bridge rejects the call.
+    test("signs selected inputs in the requested order", async ({ context, dapp, chain }) => {
+      // spends boxes from both funded addresses, so the transaction has two inputs
       const tx = await buildTransaction(chain, WALLET_A, { nanoErgs: 11_000_000_000n });
+      expect(tx.inputs).toHaveLength(2);
+
+      const { win, result } = await withConnectorWindow(context, "sign/tx", () =>
+        invoke<SignedInput[], SignTxRequest>(
+          dapp,
+          ({ tx, indexes }) => window.ergo.sign_tx_inputs(tx, indexes!),
+          { tx, indexes: [1, 0] }
+        )
+      );
+
+      await expectRequestFrom(win, DAPP_HOST);
+      await expect(win.getByText("requests to sign a transaction.")).toBeVisible();
+
+      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await clickToClose(win.getByRole("button", { name: "Sign" }));
+
+      const outcome = await result;
+      expect(outcome.ok).toBe(true);
+      const signed = (outcome as { value: SignedInput[] }).value;
+      expect(signed.map((i) => i.boxId)).toEqual([tx.inputs[1].boxId, tx.inputs[0].boxId]);
+      expect(signed.every((i) => /^[0-9a-f]+$/.test(i.spendingProof?.proofBytes ?? ""))).toBe(true);
+      expect(chain.submitted).toHaveLength(0);
+    });
+
+    test("partially signs a transaction", async ({ context, dapp, chain }) => {
+      const tx = await buildTransaction(chain, WALLET_A, { nanoErgs: 11_000_000_000n });
+
+      const { win, result } = await withConnectorWindow(context, "sign/tx", () =>
+        invoke<SignedInput[], SignTxRequest>(
+          dapp,
+          ({ tx, indexes }) => window.ergo.sign_tx_inputs(tx, indexes!),
+          { tx, indexes: [1] }
+        )
+      );
+
+      await expect(win.getByText("requests to partially sign a transaction")).toBeVisible();
+      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await clickToClose(win.getByRole("button", { name: "Sign" }));
+
+      const signed = ((await result) as { value: SignedInput[] }).value;
+      expect(signed.map((i) => i.boxId)).toEqual([tx.inputs[1].boxId]);
+    });
+
+    test("validates input indexes without opening a window", async ({ context, dapp, chain }) => {
+      const tx = await buildTransaction(chain, WALLET_A);
 
       let opened = false;
       context.on("page", () => (opened = true));
 
       const outcome = await invoke<unknown, SignTxRequest>(
         dapp,
-        ({ tx, indexes }) => window.ergo.sign_tx_inputs(tx, indexes),
-        { tx, indexes: [0] }
+        ({ tx, indexes }) => window.ergo.sign_tx_inputs(tx, indexes!),
+        { tx, indexes: [tx.inputs.length] }
       );
 
-      expect(outcome).toEqual({
-        ok: false,
-        error: {
-          message:
-            "[webext-bridge] No handler registered in 'background' to accept messages with id 'int:sign-tx-input'"
-        }
-      });
+      expect(outcome).toEqual({ ok: false, error: { code: -1, info: "Invalid input indexes." } });
       expect(opened).toBe(false);
     });
   });
