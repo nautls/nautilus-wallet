@@ -47,7 +47,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         </DrawerDescription>
       </DrawerHeader>
 
-      <QrCode :data="props.address.script" class="mx-14" />
+      <QrCode :data="props.address.script" class="mx-14" :options="{ ecc: 'Q' }" />
 
       <DrawerFooter>
         <DrawerClose as-child>

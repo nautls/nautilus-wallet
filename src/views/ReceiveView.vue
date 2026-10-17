@@ -84,7 +84,7 @@ function openExplorer(address: string | undefined) {
           </div>
         </div>
 
-        <QrCode :data="wallet.changeAddress?.script" class="size-32" />
+        <QrCode :data="wallet.changeAddress?.script" class="size-26 shrink-0" />
       </div>
     </Card>
 
