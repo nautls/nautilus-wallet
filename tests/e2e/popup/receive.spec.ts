@@ -90,6 +90,28 @@ test.describe("receive", () => {
     });
   });
 
+  test("copies an address to the clipboard", async ({ popup }) => {
+    const page = popup.page;
+    const addr2 = await addressOf(WALLET_A, 2);
+
+    const copy = addressRows(page).first().getByRole("button", { name: "Copy" });
+    await copy.hover();
+    await expect(page.getByRole("tooltip")).toHaveText("Copy");
+
+    await copy.click();
+    // tooltip stays open with the feedback, then resets
+    await expect(page.getByRole("tooltip")).toHaveText("Copied");
+    await expect(addressRows(page).first().getByRole("button", { name: "Copied" })).toBeVisible();
+    await expect(page.getByRole("tooltip")).toHaveText("Copy", { timeout: 5_000 });
+
+    // extension pages can't be granted clipboard-read, so paste it somewhere instead
+    await page.evaluate(() =>
+      document.body.appendChild(document.createElement("textarea")).focus()
+    );
+    await page.keyboard.press("ControlOrMeta+V");
+    await expect(page.locator("body > textarea")).toHaveValue(addr2);
+  });
+
   test("shows an address QR code", async ({ popup }) => {
     const page = popup.page;
     const addr2 = await addressOf(WALLET_A, 2);
