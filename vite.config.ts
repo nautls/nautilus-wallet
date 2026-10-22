@@ -42,7 +42,11 @@ const plugins = [
   objectLogger(env),
   // `Buffer` is required by @ledgerhq/* packages. It's explicitly set as a global in `src/common/ledger.ts`
   // instead of being injected everywhere, so the polyfill is only loaded along with the Ledger code
-  nodePolyfills({ include: ["buffer"], globals: { Buffer: false } }),
+  nodePolyfills({
+    include: ["buffer"],
+    globals: { Buffer: false },
+    overrides: { buffer: "vite-plugin-node-polyfills/shims/buffer" }
+  }),
   INSPECT_BUNDLE ? visualizer({ open: true, filename: "dist/bundle-stats.html" }) : undefined
 ];
 
