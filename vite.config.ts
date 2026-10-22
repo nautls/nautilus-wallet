@@ -41,6 +41,7 @@ const plugins = [
   wasmLoader(),
   objectLogger(env),
   // `Buffer` is required by @ledgerhq/* packages. It's explicitly set as a global in `src/common/ledger.ts`
+  // instead of being injected everywhere, so the polyfill is only loaded along with the Ledger code
   nodePolyfills({
     include: ["buffer"],
     globals: { Buffer: false },
