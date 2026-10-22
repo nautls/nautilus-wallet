@@ -46,6 +46,7 @@
     "dexie": "^4.4.6",
     "ergo-lib-wasm-browser": "^0.28.0",
     "es-toolkit": "^1.52.0",
+    "highlight.js": "^11.12.0",
     "ledger-ergo-js": "^0.2.1",
     "pinia": "^4.1.0",
     "reka-ui": "^2.11.0",
@@ -53,7 +54,6 @@
     "vaul-vue": "^0.4.1",
     "vue": "^3.5.44",
     "vue-i18n": "^11.4.14",
-    "vue-json-pretty": "2.5.0",
     "vue-router": "^5.4.0",
     "webext-bridge": "^6.0.1",
     "webextension-polyfill": "^0.12.0"

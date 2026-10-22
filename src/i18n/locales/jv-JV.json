@@ -27,7 +27,9 @@
     "healthy": "Waras",
     "unhealthy": "Mboten sehat",
     "authenticate": "Otentikasi",
-    "buyErg": "Tumbas ERG"
+    "buyErg": "Tumbas ERG",
+    "showMore": "Tampilake luwih akeh",
+    "showLess": "Tampilake luwih sithik"
   },
   "datetime": {
     "now": "nembe wae",

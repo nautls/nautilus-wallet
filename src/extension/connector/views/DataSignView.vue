@@ -184,12 +184,7 @@ function refuse() {
           {{ messageData }}
         </div>
 
-        <JsonViewer
-          v-else
-          :deep="3"
-          :data="messageData"
-          class="-mx-2 h-full max-h-[225px] overflow-y-auto"
-        />
+        <JsonViewer v-else :data="messageData" class="-mx-2" />
       </CardContent>
     </Card>
 

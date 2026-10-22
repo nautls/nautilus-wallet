@@ -27,7 +27,9 @@
     "healthy": "Sihat",
     "unhealthy": "Tidak sihat",
     "authenticate": "Sahkan",
-    "buyErg": "Beli ERG"
+    "buyErg": "Beli ERG",
+    "showMore": "Tunjuk lagi",
+    "showLess": "Tunjuk kurang"
   },
   "datetime": {
     "now": "sebentar tadi",
