@@ -1,36 +1,76 @@
 <script setup lang="ts">
-import { HTMLAttributes, ref } from "vue";
+import { ButtonHTMLAttributes, computed, HTMLAttributes } from "vue";
 import { CopyCheckIcon, CopyIcon } from "@lucide/vue";
+import { useClipboard } from "@vueuse/core";
 import { PrimitiveProps } from "reka-ui";
+import { useI18n } from "vue-i18n";
 import { Button, ButtonVariants } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/common/utils";
 
 interface Props extends PrimitiveProps {
   variant?: ButtonVariants["variant"];
   size?: ButtonVariants["size"];
+  type?: ButtonHTMLAttributes["type"];
   class?: HTMLAttributes["class"];
-  content: string;
+  content?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "minimal",
-  size: "condensed"
+  size: "condensed",
+  type: "button"
 });
 
-const copied = ref(false);
+const { t } = useI18n({ useScope: "global" });
+const { copy, copied } = useClipboard({ copiedDuring: 2_000, legacy: true });
+const label = computed(() => (copied.value ? t("common.copied") : t("common.copy")));
 
-function copy() {
-  navigator.clipboard.writeText(props.content);
-
-  copied.value = true;
-  setTimeout(() => (copied.value = false), 1_000 * 2);
+function onClick(e: MouseEvent) {
+  // avoid triggering parent click handlers, like collapsibles or list items
+  e.stopPropagation();
+  if (props.content) copy(props.content);
 }
 </script>
 
 <template>
-  <Button v-bind="props" @click="copy()" :class="cn('transition-colors align-middle', { 'text-success/80 hover:text-success': copied }, props.class)">
-    <slot v-if="$slots.default" />
-    <CopyCheckIcon v-if="copied"  class="size-auto" />
-    <CopyIcon v-else class="size-auto" />
-  </Button>
+  <TooltipProvider :delay-duration="100">
+    <!-- keep the tooltip open on click so the "copied" feedback is visible -->
+    <Tooltip disable-closing-trigger>
+      <TooltipTrigger as-child>
+        <Button
+          :as="props.as"
+          :as-child="props.asChild"
+          :variant="props.variant"
+          :size="props.size"
+          :type="props.type"
+          :disabled="!props.content"
+          :aria-label="label"
+          :class="
+            cn(
+              'align-middle transition-colors',
+              { 'text-success/80 hover:text-success': copied },
+              props.class
+            )
+          "
+          @click="onClick"
+        >
+          <slot v-if="$slots.default" />
+          <Transition
+            mode="out-in"
+            enter-active-class="transition-all duration-150 ease-out"
+            leave-active-class="transition-all duration-100 ease-in"
+            enter-from-class="scale-50 opacity-0"
+            leave-to-class="scale-50 opacity-0"
+          >
+            <CopyCheckIcon v-if="copied" class="size-auto" />
+            <CopyIcon v-else class="size-auto" />
+          </Transition>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent :aria-label="label">
+        {{ label }}
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
 </template>
