@@ -11,9 +11,9 @@
   <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/stars/gjlmehlldlphhljhpnlddaodbjjcchai" alt="chrome web store rating"></a>
   <a href="https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai"><img src="https://badgen.net/chrome-web-store/users/gjlmehlldlphhljhpnlddaodbjjcchai" alt="chrome web store users"></a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/v/nautilus?icon=firefox" alt="mozilla add-on published version"></a>
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/stars/nautilus" alt="mozilla add-on rating"></a>
-  <a href="https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/"><img src="https://badgen.net/amo/users/nautilus" alt="mozilla add-on users"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/nautilus/"><img src="https://badgen.net/amo/v/nautilus?icon=firefox" alt="mozilla add-on published version"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/nautilus/"><img src="https://badgen.net/amo/stars/nautilus" alt="mozilla add-on rating"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/nautilus/"><img src="https://badgen.net/amo/users/nautilus" alt="mozilla add-on users"></a>
 </p>
 
 <blockquote align="center">
@@ -36,12 +36,12 @@ Nautilus Wallet is a community-driven wallet built for the Ergo platform with a 
 ## Download and install
 
 - [From Chrome Store](https://chrome.google.com/webstore/detail/nautilus-wallet/gjlmehlldlphhljhpnlddaodbjjcchai)
-- [From Firefox Store](https://addons.mozilla.org/pt-BR/firefox/addon/nautilus/)
+- [From Firefox Store](https://addons.mozilla.org/firefox/addon/nautilus/)
 - [From GitHub](https://github.com/nautls/nautilus-wallet/releases/latest)
 
-# dApp Integration
+## dApp integration
 
-- [Technical documentation](https://docs.nautiluswallet.com/)
+See the [technical documentation](https://docs.nautiluswallet.com/) to learn how to integrate your dApp with Nautilus through the dApp Connector API.
 
 ## Project setup [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/nautls/nautilus-wallet)
 
@@ -51,7 +51,7 @@ pnpm i
 
 ### Build and start in development mode
 
-Development mode is currently only supported in Chrome due to [a bug in Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1864284) that prevents scripts to be leaded from localhost.
+Development mode is currently only supported in Chrome due to [a bug in Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1864284) that prevents scripts from being loaded from localhost.
 
 ```bash
 # Mainnet
@@ -79,4 +79,30 @@ pnpm run build:testnet:chrome
 
 # Testnet for Firefox
 pnpm run build:testnet:firefox
+```
+
+### Run tests
+
+```bash
+# Unit tests
+pnpm run test:unit
+
+# End-to-end tests, see tests/e2e/README.md
+pnpm run test:e2e
+
+# Lint and format checks
+pnpm run test:lint
+pnpm run test:format
+```
+
+### Documentation
+
+The technical documentation lives in the `docs` folder and is built with [VitePress](https://vitepress.dev/).
+
+```bash
+# Start the docs dev server
+pnpm run dev:docs
+
+# Build the docs
+pnpm run build:docs
 ```
