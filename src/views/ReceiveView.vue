@@ -126,19 +126,7 @@ function openExplorer(address: string | undefined) {
             </Button>
 
             <div class="space-x-1.5 pb-1">
-              <TooltipProvider :delay-duration="100">
-                <Tooltip>
-                  <TooltipTrigger>
-                    <CopyButton
-                      :content="address.script"
-                      class="size-4 align-middle [&_svg]:size-4"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent class="max-w-52 hyphens-auto">
-                    {{ t("common.copy") }}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <CopyButton :content="address.script" class="size-4 align-middle [&_svg]:size-4" />
 
               <TooltipProvider :delay-duration="100">
                 <Tooltip>
