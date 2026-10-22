@@ -1,51 +1,82 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue";
-import VueJsonPretty from "vue-json-pretty";
+import { computed, ref, useTemplateRef, type HTMLAttributes } from "vue";
+import { ChevronDownIcon } from "@lucide/vue";
+import { useResizeObserver } from "@vueuse/core";
+import hljs from "highlight.js/lib/core";
+import json from "highlight.js/lib/languages/json";
+import { useI18n } from "vue-i18n";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/common/utils";
 import { CopyButton } from "../copy-button";
 
-import "vue-json-pretty/lib/styles.css";
+hljs.registerLanguage("json", json);
 
 type JsonDataType = string | number | boolean | unknown[] | Record<string, unknown> | null;
 
 interface Props {
   data?: JsonDataType;
-  deep?: number;
   class?: HTMLAttributes["class"];
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n({ useScope: "global" });
+
+const container = useTemplateRef("container");
+const content = useTemplateRef("content");
+const expanded = ref(false);
+const overflowing = ref(false);
+
+const code = computed(() => JSON.stringify(props.data ?? null, null, 2));
+const html = computed(() => hljs.highlight(code.value, { language: "json" }).value);
+
+useResizeObserver(content, () => {
+  if (!container.value || !content.value || expanded.value) return;
+  overflowing.value = content.value.offsetHeight > container.value.clientHeight;
+});
 </script>
 
 <template>
-  <div :class="cn('relative rounded-xl bg-secondary p-4 text-secondary-foreground shadow-sm', props.class)">
-    <VueJsonPretty
-      :data="props.data"
-      :deep="props.deep"
-      :highlight-selected-node="false"
-      :show-double-quotes="true"
-      :show-length="true"
-      :show-line="false"
-    />
+  <div :class="cn('json-viewer relative rounded-xl bg-secondary p-4 shadow-sm', props.class)">
+    <div ref="container" :class="cn('relative', { 'max-h-40 overflow-hidden': !expanded })">
+      <!-- eslint-disable-next-line vue/no-v-html -- highlight.js escapes all token content -->
+      <pre ref="content"><code v-html="html" /></pre>
 
-    <CopyButton class="absolute top-4 right-4 size-4" :content="JSON.stringify(props.data, null, 2)" />
+      <div
+        v-if="overflowing && !expanded"
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-secondary"
+      />
+    </div>
+
+    <Button
+      v-if="overflowing"
+      variant="minimal"
+      size="condensed"
+      class="mt-2 w-full gap-1 text-xs"
+      @click="expanded = !expanded"
+    >
+      {{ expanded ? t("common.showLess") : t("common.showMore") }}
+      <ChevronDownIcon :class="cn('size-4! transition-transform', { 'rotate-180': expanded })" />
+    </Button>
+
+    <CopyButton class="absolute top-4 right-4 size-4" :content="code" />
   </div>
 </template>
 
 <style>
 @reference "../../../assets/styles/index.css";
 
-.vjs-tree {
-  @apply font-mono text-xs text-foreground;
+.json-viewer pre {
+  @apply font-mono text-xs break-all whitespace-pre-wrap text-[#24292e] dark:text-[#e1e4e8];
 }
 
-.vjs-tree .vjs-tree-node,
-.vjs-tree .vjs-tree__node {
-  @apply -mx-4 px-4 py-0.5 text-xs;
+.json-viewer .hljs-attr,
+.json-viewer .hljs-number,
+.json-viewer .hljs-literal {
+  @apply text-[#005cc5] dark:text-[#79b8ff];
 }
 
-.vjs-tree .vjs-tree-node:hover,
-.vjs-tree .vjs-tree__node:hover {
-  @apply bg-gray-500/10 dark:bg-gray-500/20;
+.json-viewer .hljs-string {
+  @apply text-[#032f62] dark:text-[#9ecbff];
 }
 </style>

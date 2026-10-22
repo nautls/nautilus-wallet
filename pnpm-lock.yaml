@@ -96,6 +96,9 @@ importers:
       es-toolkit:
         specifier: ^1.52.0
         version: 1.52.0
+      highlight.js:
+        specifier: ^11.12.0
+        version: 11.12.0
       ledger-ergo-js:
         specifier: ^0.2.1
         version: 0.2.1
@@ -117,9 +120,6 @@ importers:
       vue-i18n:
         specifier: ^11.4.14
         version: 11.4.14(vue@3.5.44(typescript@6.0.3))
-      vue-json-pretty:
-        specifier: 2.5.0
-        version: 2.5.0(vue@3.5.44(typescript@6.0.3))
       vue-router:
         specifier: ^5.4.0
         version: 5.4.0(@vue/compiler-sfc@3.5.44)(pinia@4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.44(typescript@6.0.3)))(rolldown@1.2.14)(rollup@4.64.7)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
@@ -2893,6 +2893,10 @@ packages:
   hast-util-whitespace@3.0.0:
     resolution: {integrity: sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==}
 
+  highlight.js@11.12.0:
+    resolution: {integrity: sha512-nbfWpyRMcMrPMmDwJB+dhX/eiaPKtc2RB+0QZskqJ3WjRA/FDS0e9hZrx8EC/lbEv8gXy98FcDbNa/dspAaJMg==}
+    engines: {node: '>=12.0.0'}
+
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
 
@@ -4821,12 +4825,6 @@ packages:
     engines: {node: '>= 22'}
     peerDependencies:
       vue: ^3.0.0
-
-  vue-json-pretty@2.5.0:
-    resolution: {integrity: sha512-nZA6qXYaiMaE2J0HkKtkrLcPJoN03SDSBdZWEPiRwoOVySWOfoZCyadhBwBN6wAHTga+c/R49ExGWoKFXnu37A==}
-    engines: {node: '>= 10.0.0', npm: '>= 5.0.0'}
-    peerDependencies:
-      vue: '>=3.0.0'
 
   vue-router@5.4.0:
     resolution: {integrity: sha512-pFvcYcxinDHjZUlf7AzFBrT8r8Xqvv4uMHoJnjc+EqPawXQvHTkF8S4tfSmQLpriVHUGfkaKlI7Et0KRjTMTdw==}
@@ -7706,6 +7704,8 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.5
 
+  highlight.js@11.12.0: {}
+
   hmac-drbg@1.0.1:
     dependencies:
       hash.js: 1.1.7
@@ -9829,10 +9829,6 @@ snapshots:
       '@intlify/devtools-types': 11.4.14
       '@intlify/shared': 11.4.14
       '@vue/devtools-api': 6.6.4
-      vue: 3.5.44(typescript@6.0.3)
-
-  vue-json-pretty@2.5.0(vue@3.5.44(typescript@6.0.3)):
-    dependencies:
       vue: 3.5.44(typescript@6.0.3)
 
   vue-router@5.4.0(@vue/compiler-sfc@3.5.44)(pinia@4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.44(typescript@6.0.3)))(rolldown@1.2.14)(rollup@4.64.7)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3)):

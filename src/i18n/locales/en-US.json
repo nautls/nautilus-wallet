@@ -27,7 +27,9 @@
     "healthy": "Healthy",
     "unhealthy": "Unhealthy",
     "authenticate": "Authenticate",
-    "buyErg": "Buy ERG"
+    "buyErg": "Buy ERG",
+    "showMore": "Show more",
+    "showLess": "Show less"
   },
   "datetime": {
     "now": "just now",

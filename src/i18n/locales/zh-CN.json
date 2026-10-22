@@ -27,7 +27,9 @@
     "healthy": "健康",
     "unhealthy": "不健康",
     "authenticate": "认证",
-    "buyErg": "购买 ERG"
+    "buyErg": "购买 ERG",
+    "showMore": "显示更多",
+    "showLess": "收起"
   },
   "datetime": {
     "now": "刚刚",

@@ -281,7 +281,7 @@ const { r$ } = useRegle(
           {{ t("transaction.sign.networkFee") }}
         </TransactionEntry>
 
-        <JsonViewer v-if="app.settings.devMode" :data="props.transaction" :deep="1" />
+        <JsonViewer v-if="app.settings.devMode" :data="props.transaction" />
       </template>
     </div>
   </ScrollArea>

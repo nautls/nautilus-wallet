@@ -27,7 +27,9 @@
     "healthy": "Здоров",
     "unhealthy": "Нездоров",
     "authenticate": "Аутентифицировать",
-    "buyErg": "Купить ERG"
+    "buyErg": "Купить ERG",
+    "showMore": "Показать больше",
+    "showLess": "Показать меньше"
   },
   "datetime": {
     "now": "только что",
