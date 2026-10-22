@@ -278,6 +278,11 @@
     "global": {
       "displayLanguage": "Basa tampilan",
       "displayLanguageDesc": "Pilih basa kangge antarmuka Nautilus Wallet.",
+      "colorMode": "Warna Tema",
+      "colorModeDesc": "Pilih tampilan Nautilus, utawa tindakake setelan sistem sampeyan.",
+      "colorModeAuto": "Sistem",
+      "colorModeLight": "Padhang",
+      "colorModeDark": "Peteng",
       "conversionCurrency": "Mata uang konversi",
       "conversionCurrencyDesc": "Pilih mata uang kangge kurs konversi.",
       "noCurrenciesFound": "Mboten wonten mata uang kapanggihaken.",
@@ -300,7 +305,9 @@
       "experimental": "Eksperimental",
       "experimentalDesc": "Fitur ing ngandhap bagean punika dipun tandhani minangka eksperimental, ingkang tegesipun mboten stabil. Gunakaken kanthi ngati-ati, amargi saged ngandhut bug utawi ngalami owah-owahan signifikan. Punika minangka proyek ingkang taksih dipungarap, dados mugi mboten kaget menawi wonten kekirangan.",
       "zeroConf": "Aktifaken 0-conf",
-      "zeroConfDesc": "0-conf, cekakan saking zero-confirmations, ngidini panjenengan ngginakaken aset tanpa ngentosi konfirmasi. Punika cepet nanging gadhah resiko dipunbelanjakaken kaping pindho ngantos dikonfirmasi dening blockchain."
+      "zeroConfDesc": "0-conf, cekakan saking zero-confirmations, ngidini panjenengan ngginakaken aset tanpa ngentosi konfirmasi. Punika cepet nanging gadhah resiko dipunbelanjakaken kaping pindho ngantos dikonfirmasi dening blockchain.",
+      "ledger": "Dompet perangkat keras Ledger",
+      "ledgerTransportDesc": "Pilih cara transportasi sing bakal digunakake karo dompet perangkat keras Ledger sampeyan."
     },
     "wallet": {
       "walletNameDesc": "Setel jeneng kangge dompet panjenengan.",
