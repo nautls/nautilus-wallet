@@ -277,7 +277,12 @@
     },
     "global": {
       "displayLanguage": "Bahasa paparan",
-      "displayLanguageDesc": "Pilih bahasa untuk antara muka Nautilus Wallet.",
+      "displayLanguageDesc": "Pilih bahasa untuk antarmuka Nautilus Wallet.",
+      "colorMode": "Warna Tema",
+      "colorModeDesc": "Pilih rupa Nautilus, atau ikut tetapan sistem anda.",
+      "colorModeAuto": "Sistem",
+      "colorModeLight": "Terang",
+      "colorModeDark": "Gelap",
       "conversionCurrency": "Mata wang penukaran",
       "conversionCurrencyDesc": "Pilih mata wang untuk kadar penukaran.",
       "noCurrenciesFound": "Tiada mata wang ditemui.",
@@ -300,7 +305,9 @@
       "experimental": "Eksperimen",
       "experimentalDesc": "Ciri-ciri di bawah bahagian ini ditandakan sebagai eksperimen, yang bermaksud ia tidak stabil. Gunakannya dengan berhati-hati, kerana ia mungkin mengandungi pepijat atau menjalani perubahan ketara. Ia adalah kerja yang sedang berjalan, jadi jangkakan beberapa kesulitan.",
       "zeroConf": "Dayakan 0-conf",
-      "zeroConfDesc": "0-conf, singkatan untuk sifar-pengesahan, membolehkan anda membelanjakan aset tanpa menunggu pengesahan. Ia pantas tetapi membawa risiko digandakan sehingga disahkan oleh blockchain."
+      "zeroConfDesc": "0-conf, singkatan untuk sifar-pengesahan, membolehkan anda membelanjakan aset tanpa menunggu pengesahan. Ia pantas tetapi membawa risiko digandakan sehingga disahkan oleh blockchain.",
+      "ledger": "Dompet perkakasan Ledger",
+      "ledgerTransportDesc": "Pilih kaedah pengangkutan untuk digunakan dengan dompet perkakasan Ledger anda."
     },
     "wallet": {
       "walletNameDesc": "Tetapkan nama untuk dompet anda.",
