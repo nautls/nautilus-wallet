@@ -36,6 +36,17 @@ class WalletsDbService {
     }
   }
 
+  public async changePassword(id: number, currentPassword: string, newPassword: string) {
+    const mnemonic = await this.getMnemonic(id, currentPassword);
+    const encrypted = AES.encrypt(mnemonic, newPassword).toString();
+
+    if (AES.decrypt(encrypted, newPassword).toString(utf8Enc) !== mnemonic) {
+      throw Error("failed to re-encrypt the mnemonic phrase");
+    }
+
+    await dbContext.wallets.update(id, { mnemonic: encrypted });
+  }
+
   public async getByPk(publicKey: string): Promise<NotNullId<IDbWallet> | undefined> {
     return dbContext.wallets.where("publicKey").equals(publicKey).first() as Promise<
       NotNullId<IDbWallet>

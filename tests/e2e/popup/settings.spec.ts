@@ -1,5 +1,5 @@
 import { expect, fundWallet, test } from "../fixtures/test";
-import { WALLET_A, WALLET_B } from "../fixtures/wallets";
+import { RECIPIENT_ADDRESS, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
 
 test.describe("settings", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -191,6 +191,75 @@ test.describe("settings", () => {
 
       await drawer.getByRole("button", { name: "Close" }).last().click();
       await expect(drawer).toBeHidden();
+    });
+
+    test("changes the spending password", async ({ popup, chain }) => {
+      const page = popup.page;
+      const newPassword = "new spending password";
+
+      await popup.goto("/settings");
+      await page.getByRole("tab", { name: "Wallet" }).click();
+      await page.getByRole("button", { name: "Change" }).click();
+
+      const drawer = page.getByRole("dialog");
+      await expect(drawer).toContainText("Change spending password");
+
+      // validates the new password
+      await drawer.locator("#current-password").fill(WALLET_A.password);
+      await drawer.locator("#new-password").fill("short");
+      await drawer.locator("#confirm-new-password").fill("mismatch");
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+      await expect(
+        drawer.getByText("Spending password must be at least 10 characters long.")
+      ).toBeVisible();
+      await expect(
+        drawer.getByText("'New password' and 'Confirm new password' must match.")
+      ).toBeVisible();
+
+      // rejects a wrong current password and keeps the drawer open
+      await drawer.locator("#current-password").fill("wrong password");
+      await drawer.locator("#new-password").fill(newPassword);
+      await drawer.locator("#confirm-new-password").fill(newPassword);
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+      await expect(popup.toast("Wrong password")).toBeVisible();
+      await expect(drawer).toBeVisible();
+
+      await drawer.locator("#current-password").fill(WALLET_A.password);
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+      await expect(popup.toast("Spending password changed")).toBeVisible();
+      await expect(drawer).toBeHidden();
+
+      // fields are cleared when reopening
+      await page.getByRole("button", { name: "Change" }).click();
+      await expect(drawer.locator("#current-password")).toHaveValue("");
+      await drawer.getByRole("button", { name: "Cancel" }).last().click();
+      await expect(drawer).toBeHidden();
+
+      // the old password no longer signs transactions, the new one does
+      await popup.navigate("send");
+      await page.locator("#recipient").fill(RECIPIENT_ADDRESS);
+      await page.getByPlaceholder("0").first().fill("1");
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+
+      const review = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      await review.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await review.getByRole("button", { name: "Sign" }).click();
+      await expect(popup.toast("Wrong password").last()).toBeVisible();
+
+      await review.getByRole("textbox", { name: "Spending password" }).fill(newPassword);
+      await review.getByRole("button", { name: "Sign" }).click();
+      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      expect(chain.submitted).toHaveLength(1);
+    });
+
+    test("hides the spending password option for read-only wallets", async ({ popup }) => {
+      await popup.importReadOnlyWallet(WALLET_B.name, await xpubOf(WALLET_B));
+      await popup.goto("/settings");
+      const page = popup.page;
+      await page.getByRole("tab", { name: "Wallet" }).click();
+
+      await expect(page.getByRole("button", { name: "Export" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Change" })).toHaveCount(0);
     });
 
     test("removes the only wallet", async ({ popup }) => {
