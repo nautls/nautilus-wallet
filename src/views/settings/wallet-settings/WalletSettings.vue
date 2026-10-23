@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
 import { useI18n } from "vue-i18n";
@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { WalletType } from "@/types/internal";
+import ChangePasswordDialog from "./ChangePasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
 const wallet = useWalletStore();
@@ -28,6 +30,9 @@ const app = useAppStore();
 const { t } = useI18n();
 
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
+const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
+
+const isStandard = computed(() => wallet.type === WalletType.Standard);
 
 const walletName = ref(wallet.name);
 
@@ -71,6 +76,18 @@ const { r$ } = useRegle(
           </div></Label
         >
         <Button variant="outline" @click="openPublicKeyDialog">{{ t("common.export") }}</Button>
+      </div>
+
+      <div v-if="isStandard" class="flex items-center justify-between gap-4">
+        <Label class="flex flex-col gap-1"
+          >{{ t("wallet.spendingPassword") }}
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+            {{ t("settings.wallet.spendingPasswordDesc") }}
+          </div></Label
+        >
+        <Button variant="outline" @click="openChangePasswordDialog">{{
+          t("common.change")
+        }}</Button>
       </div>
     </Card>
 
