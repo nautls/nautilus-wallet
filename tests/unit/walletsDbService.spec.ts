@@ -6,7 +6,11 @@ import { Network, WalletType } from "@/types/internal";
 const { local, legacyWallets, storageApi } = vi.hoisted(() => {
   const local = new Map<string, unknown>();
   const legacyWallets = new Map<number, unknown>();
-  const storageApi = { getKeysSupported: true, getCalls: [] as (string | string[] | null)[] };
+  const storageApi = {
+    getKeysSupported: true,
+    getCalls: [] as (string | string[] | null)[],
+    setCalls: [] as string[][]
+  };
   return { local, legacyWallets, storageApi };
 });
 
@@ -33,6 +37,7 @@ vi.mock("webextension-polyfill", () => {
           );
         },
         async set(items: Record<string, unknown>) {
+          storageApi.setCalls.push(Object.keys(items));
           await tick();
           for (const [k, v] of Object.entries(items)) local.set(k, clone(v));
         },
@@ -92,6 +97,7 @@ describe("walletsDbService", () => {
     legacyWallets.clear();
     storageApi.getKeysSupported = true;
     storageApi.getCalls = [];
+    storageApi.setCalls = [];
   });
 
   describe.each([true, false])("getAll (getKeys supported: %s)", (getKeysSupported) => {
@@ -121,19 +127,12 @@ describe("walletsDbService", () => {
       legacyWallets.set(4, readOnly);
 
       const service = await freshService();
-      const wallets = await service.getAll();
+      await service.getAll();
 
-      expect(wallets).toEqual([
-        {
-          ...omit(standard, ["mnemonic"]),
-          crypto: {
-            version: 1,
-            ciphertext: legacyCiphertext
-          }
-        },
-        { ...readOnly, mnemonic: undefined }
-      ]);
-      expect(wallets[1]).not.toHaveProperty("crypto");
+      expect(local.get("wallet:1")).toEqual(omit(standard, ["mnemonic"]));
+      expect(local.get("walletSecret:1")).toEqual({ version: 1, ciphertext: legacyCiphertext });
+      expect(local.get("wallet:4")).toEqual(omit(readOnly, ["mnemonic"]));
+      expect(local.has("walletSecret:4")).toBe(false);
       expect(local.get("wallets:nextId")).toBe(5);
       expect(local.get("wallets:schemaVersion")).toBe(1);
       expect(await service.getMnemonic(1, password)).toBe(mnemonic);
@@ -195,6 +194,108 @@ describe("walletsDbService", () => {
       const results = await Promise.all([service.getAll(), service.getById(1), service.getAll()]);
       expect(results[0]).toHaveLength(1);
       expect(results[1]?.id).toBe(1);
+    });
+  });
+
+  it("never returns the encrypted mnemonic", async () => {
+    legacyWallets.set(1, legacyWallet(1));
+    const service = await freshService();
+
+    const reads = [...(await service.getAll()), await service.getById(1)];
+
+    expect(reads).toHaveLength(2);
+    for (const wallet of reads) {
+      expect(wallet).toEqual(omit(legacyWallet(1), ["mnemonic"]));
+      expect(wallet).not.toHaveProperty("crypto");
+    }
+    expect(await service.getMnemonic(1, password)).toBe(mnemonic);
+  });
+
+  describe("encrypted mnemonic key", () => {
+    const secret = { version: 1 as const, ciphertext: legacyCiphertext };
+    const newWallet = () => ({ ...omit(legacyWallet(1), ["mnemonic"]), id: undefined });
+
+    it("is stored apart from the wallet, in the same write", async () => {
+      const service = await freshService();
+      const id = await service.put({ ...newWallet(), crypto: secret });
+
+      expect(local.get(`wallet:${id}`)).not.toHaveProperty("crypto");
+      expect(local.get(`walletSecret:${id}`)).toEqual(secret);
+      expect(storageApi.setCalls).toContainEqual([`wallet:${id}`, `walletSecret:${id}`]);
+    });
+
+    it("isn't read nor written by metadata reads and updates", async () => {
+      const service = await freshService();
+      const id = await service.put({ ...newWallet(), crypto: secret });
+      storageApi.getCalls = [];
+      storageApi.setCalls = [];
+
+      await service.updateSettings(id, { name: "renamed", lastSynced: 2000 });
+      await service.getAll();
+      await service.getById(id);
+
+      const touched = [...storageApi.getCalls, ...storageApi.setCalls].flat();
+      expect(touched.some((k) => k?.startsWith("walletSecret:"))).toBe(false);
+      expect(local.get(`walletSecret:${id}`)).toEqual(secret);
+    });
+
+    it("is only written on password change", async () => {
+      legacyWallets.set(1, legacyWallet(1));
+      const service = await freshService();
+      await service.getAll();
+      storageApi.setCalls = [];
+
+      await service.changePassword(1, password, "new password 123");
+
+      expect(storageApi.setCalls).toEqual([["walletSecret:1"]]);
+    });
+
+    it("is removed when the wallet is deleted", async () => {
+      const service = await freshService();
+      const id = await service.put({ ...newWallet(), crypto: secret });
+
+      await service.delete(id);
+
+      expect(local.has(`walletSecret:${id}`)).toBe(false);
+    });
+
+    it("is removed when re-imported as read-only", async () => {
+      const service = await freshService();
+      const id = await service.put({ ...newWallet(), crypto: secret });
+
+      await service.put({ ...newWallet(), type: WalletType.ReadOnly });
+
+      expect(local.has(`walletSecret:${id}`)).toBe(false);
+    });
+
+    it("isn't written for a wallet deleted during a password change", async () => {
+      legacyWallets.set(1, legacyWallet(1));
+      const service = await freshService();
+      await service.getAll();
+
+      // hold the lock until the password change is waiting for it
+      let release!: () => void;
+      let acquired!: () => void;
+      const isHeld = new Promise<void>((resolve) => (acquired = resolve));
+      const lock = navigator.locks.request("nautilus:wallets", async () => {
+        acquired();
+        await new Promise<void>((resolve) => (release = resolve));
+      });
+      await isHeld;
+
+      const change = service.changePassword(1, password, "new password 123");
+      await vi.waitFor(async () => {
+        expect((await navigator.locks.query()).pending).toHaveLength(1);
+      });
+
+      // deleted from another extension context meanwhile
+      local.delete("wallet:1");
+      local.delete("walletSecret:1");
+      release();
+      await lock;
+
+      await expect(change).rejects.toThrow("wallet not found");
+      expect(local.has("walletSecret:1")).toBe(false);
     });
   });
 

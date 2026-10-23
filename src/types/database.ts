@@ -20,16 +20,23 @@ export interface IDbWallet {
   type: WalletType;
   publicKey: string;
   chainCode: string;
-  crypto?: EncryptedSecret;
   settings: WalletSettings;
   lastSynced?: number;
+}
+
+/**
+ * Wallet with its encrypted mnemonic, as accepted by `walletsDbService.put`. Both are
+ * stored under separate keys and the encrypted mnemonic never leaves the service.
+ */
+export interface IDbWalletWithSecret extends IDbWallet {
+  crypto?: EncryptedSecret;
 }
 
 /**
  * Wallet record as stored in the IndexedDB `wallets` table, before wallets were moved
  * to `browser.storage.local`. `mnemonic` is a CryptoJS `AES.encrypt` ciphertext.
  */
-export interface ILegacyDbWallet extends Omit<IDbWallet, "crypto"> {
+export interface ILegacyDbWallet extends IDbWallet {
   mnemonic?: string;
 }
 

@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import { useColorMode } from "@vueuse/core";
+import { omit } from "es-toolkit";
 import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
@@ -16,7 +17,7 @@ import { utxosDbService } from "@/database/utxosDbService";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { setLocale } from "@/i18n";
-import { IDbWallet, NotNullId } from "@/types/database";
+import { IDbWallet, IDbWalletWithSecret, NotNullId } from "@/types/database";
 import { Network, WalletType } from "@/types/internal";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
@@ -142,7 +143,7 @@ export const useAppStore = defineStore("app", () => {
         : HdKey.fromPublicKey(data.extendedPublicKey);
 
     hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
-    const dbObj: IDbWallet = {
+    const dbObj: IDbWalletWithSecret = {
       name: data.name.trim(),
       network: Network.ErgoMainnet,
       type: data.type,
@@ -160,17 +161,17 @@ export const useAppStore = defineStore("app", () => {
     };
 
     const walletId = await walletsDbService.put(dbObj);
-    dbObj.id = walletId;
+    const wallet = { ...omit(dbObj, ["crypto"]), id: walletId };
 
     // adding a wallet implies agreeing to the KYA shown during onboarding
     settings.value.isKyaAccepted = true;
 
     const index = privateState.wallets.findIndex((w) => w.id === walletId);
     if (index > -1) {
-      privateState.wallets.splice(index, 1, dbObj as NotNullId<IDbWallet>);
+      privateState.wallets.splice(index, 1, wallet);
       privateState.wallets = privateState.wallets.slice(); // trigger reactivity
     } else {
-      privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
+      privateState.wallets.push(wallet);
     }
 
     return walletId;
