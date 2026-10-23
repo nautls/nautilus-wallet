@@ -12,7 +12,8 @@ const mocks = vi.hoisted(() => ({
   checkConnection: vi.fn(),
   getByOrigin: vi.fn(),
   getByScript: vi.fn(),
-  getPlatformInfo: vi.fn()
+  getPlatformInfo: vi.fn(),
+  setAccessLevel: vi.fn(async () => {})
 }));
 
 vi.mock("webext-bridge", () => ({ isInternalEndpoint: () => true }));
@@ -25,6 +26,7 @@ vi.mock("webext-bridge/background", () => ({
 vi.mock("@/common/browser", () => ({
   browser: {
     runtime: { getPlatformInfo: mocks.getPlatformInfo },
+    storage: { local: { setAccessLevel: mocks.setAccessLevel } },
     tabs: { get: async () => ({ favIconUrl: "favicon.png" }) },
     windows: {
       onRemoved: {
@@ -71,6 +73,7 @@ beforeEach(async () => {
   mocks.checkConnection.mockReset().mockResolvedValue(false);
   mocks.getByOrigin.mockReset().mockResolvedValue({ origin: ORIGIN, walletId: WALLET_ID });
   mocks.getPlatformInfo.mockReset();
+  mocks.setAccessLevel.mockClear();
   mocks.getByScript.mockReset().mockResolvedValue({ script: ADDRESS, walletId: WALLET_ID });
 
   await import("./background");
@@ -448,6 +451,14 @@ describe("transaction submission", () => {
     await expect(request(InternalRequest.SubmitTransaction, { transaction })).resolves.toEqual({
       success: false,
       error: { code: -1, info: "Invalid signed transaction." }
+    });
+  });
+});
+
+describe("storage access", () => {
+  it("should restrict storage.local to trusted contexts on startup", () => {
+    expect(mocks.setAccessLevel).toHaveBeenCalledExactlyOnceWith({
+      accessLevel: "TRUSTED_CONTEXTS"
     });
   });
 });

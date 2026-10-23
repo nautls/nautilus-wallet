@@ -3,11 +3,11 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import { useColorMode } from "@vueuse/core";
-import AES from "crypto-js/aes";
 import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { encryptSecret } from "@/common/keystore";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
@@ -148,9 +148,9 @@ export const useAppStore = defineStore("app", () => {
       type: data.type,
       publicKey: hex.encode(key.publicKey),
       chainCode: hex.encode(key.chainCode),
-      mnemonic:
+      crypto:
         data.type === WalletType.Standard
-          ? AES.encrypt(data.mnemonic, data.password).toString()
+          ? await encryptSecret(data.mnemonic, data.password)
           : undefined,
       settings: {
         avoidAddressReuse: false,

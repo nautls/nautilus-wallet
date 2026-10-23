@@ -6,6 +6,7 @@ import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "w
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { browser } from "@/common/browser";
+import { log } from "@/common/logger";
 import { createWindow } from "@/common/uiHelpers";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
@@ -39,6 +40,13 @@ const requests = new AsyncRequestQueue();
 const pendingRequests = new Map<string, Promise<unknown>>();
 let windowLock = Promise.resolve();
 let keepAliveTimer: ReturnType<typeof setInterval> | undefined;
+
+// `storage.local` holds the encrypted wallets and, unlike IndexedDB, is readable from
+// content scripts by default. So we restrict it to extension pages and the service
+// worker on supported browsers
+(browser?.storage.local as Partial<Pick<chrome.storage.StorageArea, "setAccessLevel">>)
+  ?.setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" })
+  .catch((e) => log.error(e));
 
 function onMessageAuth<T extends InternalRequest>(
   request: T,

@@ -1,4 +1,5 @@
 import { Box } from "@fleet-sdk/common";
+import type { EncryptedSecret } from "@/common/keystore";
 import {
   AddressState,
   AddressType,
@@ -19,9 +20,17 @@ export interface IDbWallet {
   type: WalletType;
   publicKey: string;
   chainCode: string;
-  mnemonic?: string;
+  crypto?: EncryptedSecret;
   settings: WalletSettings;
   lastSynced?: number;
+}
+
+/**
+ * Wallet record as stored in the IndexedDB `wallets` table, before wallets were moved
+ * to `browser.storage.local`. `mnemonic` is a CryptoJS `AES.encrypt` ciphertext.
+ */
+export interface ILegacyDbWallet extends Omit<IDbWallet, "crypto"> {
+  mnemonic?: string;
 }
 
 export interface IDbAddress {

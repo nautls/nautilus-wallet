@@ -7,11 +7,12 @@ import {
   IDbAsset,
   IDbDAppConnection,
   IDbUtxo,
-  IDbWallet
+  ILegacyDbWallet
 } from "@/types/database";
 
 class NautilusDb extends Dexie {
-  wallets!: Table<IDbWallet, number>;
+  /** @deprecated wallets live in `browser.storage.local`, see `walletsDbService`. */
+  wallets!: Table<ILegacyDbWallet, number>;
   addresses!: Table<IDbAddress, string>;
   assets!: Table<IDbAsset, string[]>;
   connectedDApps!: Table<IDbDAppConnection, string>;
@@ -68,11 +69,11 @@ class NautilusDb extends Dexie {
       });
 
     this.version(7).upgrade((tx) => {
-      const hideUsedAddresses = "hideUsedAddresses" as keyof IDbWallet["settings"];
+      const hideUsedAddresses = "hideUsedAddresses" as keyof ILegacyDbWallet["settings"];
       return tx
         .table("wallets")
         .toCollection()
-        .modify((wallet: IDbWallet) => {
+        .modify((wallet: ILegacyDbWallet) => {
           wallet.settings.addressFilter = wallet.settings[hideUsedAddresses] ? "active" : "all";
           delete wallet.settings[hideUsedAddresses];
         });
