@@ -1,14 +1,18 @@
-import { omit } from "es-toolkit";
 import { storage } from "webextension-polyfill";
 import { decryptSecret, EncryptedSecret, encryptSecret } from "@/common/keystore";
 import { dbContext } from "@/database/dbContext";
-import { IDbWallet, IDbWalletWithSecret, NotNullId } from "@/types/database";
+import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
 
 export type WalletPatch = {
   name?: string;
   settings?: WalletSettings;
   lastSynced?: number;
+};
+
+export type PlainSecret = {
+  value: string;
+  password: string;
 };
 
 type Wallet = NotNullId<IDbWallet>;
@@ -56,14 +60,16 @@ class WalletsDbService {
     });
   }
 
-  public async put(wallet: IDbWalletWithSecret): Promise<number> {
+  public async put(wallet: IDbWallet, secret?: PlainSecret): Promise<number> {
+    const encrypted = secret && (await encryptSecret(secret.value, secret.password));
+
     return withLock(async () => {
       const dbWallet = (await readAllWallets()).find((w) => w.publicKey === wallet.publicKey);
       const id = wallet.id ?? dbWallet?.id ?? (await allocateId());
-      const record = { ...omit(wallet, ["crypto"]), id };
+      const record = { ...wallet, id };
 
-      if (wallet.crypto) {
-        await storage.local.set({ [walletKey(id)]: record, [secretKey(id)]: wallet.crypto });
+      if (encrypted) {
+        await storage.local.set({ [walletKey(id)]: record, [secretKey(id)]: encrypted });
       } else {
         await storage.local.set({ [walletKey(id)]: record });
         await storage.local.remove(secretKey(id));

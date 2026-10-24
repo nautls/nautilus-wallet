@@ -3,12 +3,10 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import { useColorMode } from "@vueuse/core";
-import { omit } from "es-toolkit";
 import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { encryptSecret } from "@/common/keystore";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
@@ -17,7 +15,7 @@ import { utxosDbService } from "@/database/utxosDbService";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { setLocale } from "@/i18n";
-import { IDbWallet, IDbWalletWithSecret, NotNullId } from "@/types/database";
+import { IDbWallet, NotNullId } from "@/types/database";
 import { Network, WalletType } from "@/types/internal";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
@@ -143,16 +141,12 @@ export const useAppStore = defineStore("app", () => {
         : HdKey.fromPublicKey(data.extendedPublicKey);
 
     hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
-    const dbObj: IDbWalletWithSecret = {
+    const dbObj: IDbWallet = {
       name: data.name.trim(),
       network: Network.ErgoMainnet,
       type: data.type,
       publicKey: hex.encode(key.publicKey),
       chainCode: hex.encode(key.chainCode),
-      crypto:
-        data.type === WalletType.Standard
-          ? await encryptSecret(data.mnemonic, data.password)
-          : undefined,
       settings: {
         avoidAddressReuse: false,
         addressFilter: "all",
@@ -160,8 +154,13 @@ export const useAppStore = defineStore("app", () => {
       }
     };
 
-    const walletId = await walletsDbService.put(dbObj);
-    const wallet = { ...omit(dbObj, ["crypto"]), id: walletId };
+    const walletId = await walletsDbService.put(
+      dbObj,
+      data.type === WalletType.Standard
+        ? { value: data.mnemonic, password: data.password }
+        : undefined
+    );
+    const wallet = { ...dbObj, id: walletId };
 
     // adding a wallet implies agreeing to the KYA shown during onboarding
     settings.value.isKyaAccepted = true;

@@ -237,21 +237,23 @@ describe("walletsDbService", () => {
   });
 
   describe("encrypted mnemonic key", () => {
-    const secret = { version: 1 as const, ciphertext: legacyCiphertext };
+    const secret = { value: mnemonic, password };
     const newWallet = () => ({ ...omit(legacyWallet(1), ["mnemonic"]), id: undefined });
 
     it("is stored apart from the wallet, in the same write", async () => {
       const service = await freshService();
-      const id = await service.put({ ...newWallet(), crypto: secret });
+      const id = await service.put(newWallet(), secret);
 
       expect(local.get(`wallet:${id}`)).not.toHaveProperty("crypto");
-      expect(local.get(`walletSecret:${id}`)).toEqual(secret);
+      expect(local.get(`walletSecret:${id}`)).toMatchObject({ version: 1 });
+      expect(await service.getSecret(id, password)).toBe(mnemonic);
       expect(storageApi.setCalls).toContainEqual([`wallet:${id}`, `walletSecret:${id}`]);
     });
 
     it("isn't read nor written by metadata reads and updates", async () => {
       const service = await freshService();
-      const id = await service.put({ ...newWallet(), crypto: secret });
+      const id = await service.put(newWallet(), secret);
+      const stored = local.get(`walletSecret:${id}`);
       storageApi.getCalls = [];
       storageApi.setCalls = [];
 
@@ -261,7 +263,7 @@ describe("walletsDbService", () => {
 
       const touched = [...storageApi.getCalls, ...storageApi.setCalls].flat();
       expect(touched.some((k) => k?.startsWith("walletSecret:"))).toBe(false);
-      expect(local.get(`walletSecret:${id}`)).toEqual(secret);
+      expect(local.get(`walletSecret:${id}`)).toEqual(stored);
     });
 
     it("is only written on password change", async () => {
@@ -277,7 +279,7 @@ describe("walletsDbService", () => {
 
     it("is removed when the wallet is deleted", async () => {
       const service = await freshService();
-      const id = await service.put({ ...newWallet(), crypto: secret });
+      const id = await service.put(newWallet(), secret);
 
       await service.delete(id);
 
@@ -286,7 +288,7 @@ describe("walletsDbService", () => {
 
     it("is removed when re-imported as read-only", async () => {
       const service = await freshService();
-      const id = await service.put({ ...newWallet(), crypto: secret });
+      const id = await service.put(newWallet(), secret);
 
       await service.put({ ...newWallet(), type: WalletType.ReadOnly });
 

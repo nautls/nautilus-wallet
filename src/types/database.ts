@@ -1,5 +1,4 @@
 import { Box } from "@fleet-sdk/common";
-import type { EncryptedSecret } from "@/common/keystore";
 import {
   AddressState,
   AddressType,
@@ -22,14 +21,6 @@ export interface IDbWallet {
   chainCode: string;
   settings: WalletSettings;
   lastSynced?: number;
-}
-
-/**
- * Wallet with its encrypted mnemonic, as accepted by `walletsDbService.put`. Both are
- * stored under separate keys and the encrypted mnemonic never leaves the service.
- */
-export interface IDbWalletWithSecret extends IDbWallet {
-  crypto?: EncryptedSecret;
 }
 
 /**
