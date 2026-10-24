@@ -86,8 +86,11 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
   };
 }
 
-async function freshService() {
+/** Loads fresh modules, migrating first, as the extension does on startup. */
+async function freshService({ migrate = true } = {}) {
   vi.resetModules();
+  if (migrate) await (await import("@/database/migrations")).runMigrations();
+
   return (await import("@/database/walletsDbService")).walletsDbService;
 }
 
@@ -189,9 +192,10 @@ describe("walletsDbService", () => {
 
     it("runs once when called concurrently", async () => {
       legacyWallets.set(1, legacyWallet(1));
-      const service = await freshService();
+      const service = await freshService({ migrate: false });
+      const { runMigrations } = await import("@/database/migrations");
 
-      await Promise.all([service.migrate(), service.getAll(), service.getById(1)]);
+      await Promise.all([runMigrations(), runMigrations(), runMigrations()]);
 
       const schemaWrites = storageApi.setCalls.filter((keys) =>
         keys.includes("wallets:schemaVersion")
@@ -202,16 +206,17 @@ describe("walletsDbService", () => {
 
     it("retries after a failed migration", async () => {
       legacyWallets.set(1, legacyWallet(1));
-      const service = await freshService();
+      const service = await freshService({ migrate: false });
+      const { runMigrations } = await import("@/database/migrations");
       const { dbContext } = await import("@/database/dbContext");
       const toArray = vi
         .spyOn(dbContext.wallets, "toArray")
         .mockRejectedValueOnce(new Error("IndexedDB unavailable"));
 
-      await expect(service.migrate()).rejects.toThrow("IndexedDB unavailable");
+      await expect(runMigrations()).rejects.toThrow("IndexedDB unavailable");
       expect(local.has("wallet:1")).toBe(false);
 
-      // the next read retries it
+      await runMigrations();
       expect((await service.getAll()).map((w) => w.id)).toEqual([1]);
       toArray.mockRestore();
     });

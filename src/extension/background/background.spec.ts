@@ -47,9 +47,7 @@ vi.mock("@/chains/ergo/services/graphQlService", () => ({ graphQLService: {} }))
 vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: { getByScript: mocks.getByScript }
 }));
-vi.mock("@/database/walletsDbService", () => ({
-  walletsDbService: { migrate: mocks.migrate }
-}));
+vi.mock("@/database/migrations", () => ({ runMigrations: mocks.migrate }));
 vi.mock("@/database/connectedDAppsDbService", () => ({
   connectedDAppsDbService: { getByOrigin: mocks.getByOrigin }
 }));

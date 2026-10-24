@@ -11,7 +11,7 @@ import { createWindow } from "@/common/uiHelpers";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
-import { walletsDbService } from "@/database/walletsDbService";
+import { runMigrations } from "@/database/migrations";
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { AsyncRequestQueue, AsyncRequestType } from "../connector/rpc/asyncRequestQueue";
 import {
@@ -50,7 +50,7 @@ let keepAliveTimer: ReturnType<typeof setInterval> | undefined;
   .catch((e) => log.error(e));
 
 browser?.runtime.onInstalled.addListener(() => {
-  walletsDbService.migrate().catch((e) => log.error(e));
+  runMigrations().catch((e) => log.error(e));
 });
 
 function onMessageAuth<T extends InternalRequest>(
