@@ -59,10 +59,6 @@ function debug(...content: unknown[]) {
   }
 }
 
-function getHost(origin: string) {
-  return new URL(origin).host;
-}
-
 function pick<T, K extends keyof T>(data: T, keys: K[]): Pick<T, K> {
   const picked = {} as Pick<T, K>;
   if (!data || typeof data !== "object") return picked;
@@ -78,7 +74,7 @@ function pick<T, K extends keyof T>(data: T, keys: K[]): Pick<T, K> {
   if (!injectScript()) return;
 
   allowWindowMessaging(buildNamespaceFor(location.origin));
-  const payload = { origin: getHost(location.origin) };
+  const payload = { origin: location.origin };
 
   // auth requests
   onMessage(ExternalRequest.Connect, async () => {

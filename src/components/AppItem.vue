@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, ref } from "vue";
 import { CircleHelpIcon } from "@lucide/vue";
+import { displayOrigin } from "@/common/origin";
 import { cn } from "@/common/utils";
 
 const props = defineProps<{
@@ -11,7 +12,7 @@ const props = defineProps<{
 
 const hasImageError = ref(false);
 
-const domain = computed(() => props.origin) || "???";
+const domain = computed(() => (props.origin ? displayOrigin(props.origin) : "???"));
 </script>
 
 <template>
