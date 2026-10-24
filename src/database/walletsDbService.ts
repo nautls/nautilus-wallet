@@ -30,10 +30,10 @@ class WalletsDbService {
     return readWallet(id);
   }
 
-  public async getMnemonic(id: number, password: string) {
+  public async getSecret(id: number, password: string) {
     const secret = await readSecret(id);
     if (!secret) {
-      throw Error("wallet doesn't have a mnemonic phrase");
+      throw Error("wallet doesn't have a secret phrase");
     }
 
     return decryptSecret(secret, password);
@@ -41,8 +41,8 @@ class WalletsDbService {
 
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
     const current = await readSecret(id);
-    const mnemonic = await this.getMnemonic(id, currentPassword);
-    const encrypted = await encryptSecret(mnemonic, newPassword);
+    const secret = await this.getSecret(id, currentPassword);
+    const encrypted = await encryptSecret(secret, newPassword);
 
     await withLock(async () => {
       if (!(await readWallet(id))) throw Error("wallet not found");

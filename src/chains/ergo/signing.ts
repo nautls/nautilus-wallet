@@ -113,7 +113,7 @@ export async function signTransaction({
 
   const deriver = isLedger
     ? hdKeyPool.get(wallet.publicKey)
-    : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
+    : await HdKey.fromMnemonic(await walletsDbService.getSecret(walletId, password));
 
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);

@@ -138,7 +138,7 @@ describe("walletsDbService", () => {
       expect(local.has("walletSecret:4")).toBe(false);
       expect(local.get("wallets:nextId")).toBe(5);
       expect(local.get("wallets:schemaVersion")).toBe(1);
-      expect(await service.getMnemonic(1, password)).toBe(mnemonic);
+      expect(await service.getSecret(1, password)).toBe(mnemonic);
     });
 
     it("leaves the IndexedDB table untouched", async () => {
@@ -233,7 +233,7 @@ describe("walletsDbService", () => {
       expect(wallet).toEqual(omit(legacyWallet(1), ["mnemonic"]));
       expect(wallet).not.toHaveProperty("crypto");
     }
-    expect(await service.getMnemonic(1, password)).toBe(mnemonic);
+    expect(await service.getSecret(1, password)).toBe(mnemonic);
   });
 
   describe("encrypted mnemonic key", () => {
@@ -362,8 +362,8 @@ describe("walletsDbService", () => {
 
     await service.changePassword(1, password, "new password 123");
 
-    expect(await service.getMnemonic(1, "new password 123")).toBe(mnemonic);
-    await expect(service.getMnemonic(1, password)).rejects.toThrow();
+    expect(await service.getSecret(1, "new password 123")).toBe(mnemonic);
+    await expect(service.getSecret(1, password)).rejects.toThrow();
     expect(legacyWallets.has(1)).toBe(false);
   });
 
@@ -381,7 +381,7 @@ describe("walletsDbService", () => {
     const wallet = await service.getById(1);
     expect(wallet?.lastSynced).toBe(2000);
     expect(wallet?.name).toBe("renamed");
-    expect(await service.getMnemonic(1, "new password 123")).toBe(mnemonic);
+    expect(await service.getSecret(1, "new password 123")).toBe(mnemonic);
   });
 
   it("doesn't recreate a deleted wallet on a concurrent update", async () => {
