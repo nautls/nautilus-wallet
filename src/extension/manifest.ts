@@ -54,7 +54,12 @@ export function buildManifest(
     content_security_policy: {
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
     },
-    permissions: ["storage", "tabs", ...(browser === "chrome" ? ["sidePanel"] : [])],
+    permissions: [
+      "storage",
+      "unlimitedStorage",
+      "tabs",
+      ...(browser === "chrome" ? ["sidePanel"] : [])
+    ],
     action: {
       default_popup: r("popup/index.html"),
       default_title: "Nautilus Wallet"
