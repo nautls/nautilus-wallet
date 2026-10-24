@@ -1,5 +1,6 @@
 import { expect, fundWallet, test } from "../fixtures/test";
 import { WALLET_A, WALLET_B } from "../fixtures/wallets";
+import { Popup } from "../pages/popup";
 
 test.describe("wallet switcher", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -103,4 +104,41 @@ test.describe("wallet switcher", () => {
 
     await expect(page.locator("svg.lucide-sun-moon")).toHaveCount(0);
   });
+});
+
+test("shows wallets added in another window", async ({ context, extensionId, popup }) => {
+  await popup.importWallet(WALLET_A);
+  const other = new Popup(await context.newPage(), extensionId);
+  await other.goto();
+  await other.expectWalletLoaded(WALLET_A.name);
+
+  await popup.importWallet(WALLET_B);
+
+  await other.walletSwitcher.click();
+  await expect(other.page.getByRole("option", { name: /Bob/ })).toBeVisible();
+});
+
+test("applies changes made in another window to the open wallet", async ({
+  context,
+  extensionId,
+  popup
+}) => {
+  await popup.importWallet(WALLET_A);
+  const other = new Popup(await context.newPage(), extensionId);
+  await other.goto();
+  await other.expectWalletLoaded(WALLET_A.name);
+
+  for (const p of [popup, other]) {
+    await p.menu("Settings");
+    await p.page.getByRole("tab", { name: "Wallet" }).click();
+  }
+
+  await popup.page.locator("#name-input").fill("Renamed");
+  await expect(other.page.locator("#name-input")).toHaveValue("Renamed");
+
+  // a setting changed in the other window doesn't bring the old name back
+  await other.page.locator("#address-reuse").click();
+  await expect(popup.page.locator("#address-reuse")).toBeChecked();
+  await expect(popup.page.locator("#name-input")).toHaveValue("Renamed");
+  await expect(other.page.locator("#name-input")).toHaveValue("Renamed");
 });

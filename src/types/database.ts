@@ -20,7 +20,6 @@ export interface IDbWallet {
   publicKey: string;
   chainCode: string;
   settings: WalletSettings;
-  lastSynced?: number;
 }
 
 /**
@@ -29,6 +28,16 @@ export interface IDbWallet {
  */
 export interface ILegacyDbWallet extends IDbWallet {
   mnemonic?: string;
+  lastSynced?: number;
+}
+
+/**
+ * When a wallet's cached addresses and assets were last synced. Kept in IndexedDB along
+ * with them, so that clearing it forces a new sync.
+ */
+export interface IDbWalletSync {
+  walletId: number;
+  lastSynced: number;
 }
 
 export interface IDbAddress {

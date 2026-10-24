@@ -7,6 +7,7 @@ import {
   IDbAsset,
   IDbDAppConnection,
   IDbUtxo,
+  IDbWalletSync,
   ILegacyDbWallet
 } from "@/types/database";
 
@@ -18,6 +19,7 @@ class NautilusDb extends Dexie {
   connectedDApps!: Table<IDbDAppConnection, string>;
   utxos!: Table<IDbUtxo, string>;
   assetInfo!: Table<IAssetInfo, string>;
+  walletSync!: Table<IDbWalletSync, number>;
 
   constructor() {
     super("nautilusDb");
@@ -78,6 +80,8 @@ class NautilusDb extends Dexie {
           delete wallet.settings[hideUsedAddresses];
         });
     });
+
+    this.version(8).stores({ walletSync: "&walletId" });
   }
 }
 

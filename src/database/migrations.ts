@@ -1,3 +1,4 @@
+import { omit } from "es-toolkit";
 import { storage } from "webextension-polyfill";
 import { EncryptedSecret, fromLegacyCiphertext } from "@/common/keystore";
 import { dbContext } from "@/database/dbContext";
@@ -45,9 +46,8 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
     const id = wallet.id!;
     if (existing[walletKey(id)]) continue;
 
-    const { mnemonic, ...rest } = wallet;
-    items[walletKey(id)] = { ...rest, id };
-    if (mnemonic) items[secretKey(id)] = fromLegacyCiphertext(mnemonic);
+    items[walletKey(id)] = { ...omit(wallet, ["mnemonic", "lastSynced"]), id };
+    if (wallet.mnemonic) items[secretKey(id)] = fromLegacyCiphertext(wallet.mnemonic);
   }
 
   const maxId = Math.max(...legacyWallets.map((w) => w.id!));

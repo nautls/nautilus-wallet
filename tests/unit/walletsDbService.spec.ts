@@ -3,20 +3,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ILegacyDbWallet } from "@/types/database";
 import { Network, WalletType } from "@/types/internal";
 
-const { local, legacyWallets, storageApi } = vi.hoisted(() => {
+type ChangeListener = (changes: Record<string, unknown>, area: string) => void;
+
+const { local, legacyWallets, syncRows, storageApi } = vi.hoisted(() => {
   const local = new Map<string, unknown>();
   const legacyWallets = new Map<number, unknown>();
+  const syncRows = new Map<number, unknown>();
   const storageApi = {
     getKeysSupported: true,
     getCalls: [] as (string | string[] | null)[],
-    setCalls: [] as string[][]
+    setCalls: [] as string[][],
+    listeners: new Set<ChangeListener>()
   };
-  return { local, legacyWallets, storageApi };
+  return { local, legacyWallets, syncRows, storageApi };
 });
 
 vi.mock("webextension-polyfill", () => {
   const clone = <T>(v: T): T => structuredClone(v);
   const tick = () => new Promise((resolve) => setTimeout(resolve, 0)); // let calls interleave
+  const notify = (keys: string[]) => {
+    const changes = Object.fromEntries(keys.map((k) => [k, { newValue: local.get(k) }]));
+    for (const listener of storageApi.listeners) listener(changes, "local");
+  };
 
   return {
     storage: {
@@ -40,11 +48,18 @@ vi.mock("webextension-polyfill", () => {
           storageApi.setCalls.push(Object.keys(items));
           await tick();
           for (const [k, v] of Object.entries(items)) local.set(k, clone(v));
+          notify(Object.keys(items));
         },
         async remove(keys: string | string[]) {
           await tick();
-          for (const k of ([] as string[]).concat(keys)) local.delete(k);
+          const list = ([] as string[]).concat(keys);
+          for (const k of list) local.delete(k);
+          notify(list);
         }
+      },
+      onChanged: {
+        addListener: (fn: ChangeListener) => storageApi.listeners.add(fn),
+        removeListener: (fn: ChangeListener) => storageApi.listeners.delete(fn)
       }
     }
   };
@@ -61,7 +76,8 @@ vi.mock("@/database/dbContext", () => {
       addresses: table(),
       assets: table(),
       connectedDApps: table(),
-      utxos: table()
+      utxos: table(),
+      walletSync: { delete: async (id: number) => void syncRows.delete(id) }
     }
   };
 });
@@ -86,6 +102,9 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
   };
 }
 
+/** A legacy wallet as stored in extension storage once migrated. */
+const migrated = (wallet: ILegacyDbWallet) => omit(wallet, ["mnemonic", "lastSynced"]);
+
 /** Loads fresh modules, migrating first, as the extension does on startup. */
 async function freshService({ migrate = true } = {}) {
   vi.resetModules();
@@ -101,6 +120,8 @@ describe("walletsDbService", () => {
     storageApi.getKeysSupported = true;
     storageApi.getCalls = [];
     storageApi.setCalls = [];
+    storageApi.listeners.clear();
+    syncRows.clear();
   });
 
   describe.each([true, false])("getAll (getKeys supported: %s)", (getKeysSupported) => {
@@ -132,9 +153,10 @@ describe("walletsDbService", () => {
       const service = await freshService();
       await service.getAll();
 
-      expect(local.get("wallet:1")).toEqual(omit(standard, ["mnemonic"]));
+      expect(local.get("wallet:1")).toEqual(migrated(standard));
+      expect(local.get("wallet:1")).not.toHaveProperty("lastSynced");
       expect(local.get("walletSecret:1")).toEqual({ version: 1, ciphertext: legacyCiphertext });
-      expect(local.get("wallet:4")).toEqual(omit(readOnly, ["mnemonic"]));
+      expect(local.get("wallet:4")).toEqual(migrated(readOnly));
       expect(local.has("walletSecret:4")).toBe(false);
       expect(local.get("wallets:nextId")).toBe(5);
       expect(local.get("wallets:schemaVersion")).toBe(1);
@@ -180,7 +202,7 @@ describe("walletsDbService", () => {
 
     it("marks as migrated once extension storage has a wallet", async () => {
       const service = await freshService();
-      await service.put({ ...omit(legacyWallet(1), ["mnemonic"]), id: undefined });
+      await service.put({ ...migrated(legacyWallet(1)), id: undefined });
       expect(local.has("wallets:schemaVersion")).toBe(false);
 
       await (await freshService()).getAll();
@@ -230,7 +252,7 @@ describe("walletsDbService", () => {
 
     expect(reads).toHaveLength(2);
     for (const wallet of reads) {
-      expect(wallet).toEqual(omit(legacyWallet(1), ["mnemonic"]));
+      expect(wallet).toEqual(migrated(legacyWallet(1)));
       expect(wallet).not.toHaveProperty("crypto");
     }
     expect(await service.getSecret(1, password)).toBe(mnemonic);
@@ -238,7 +260,7 @@ describe("walletsDbService", () => {
 
   describe("encrypted mnemonic key", () => {
     const secret = { value: mnemonic, password };
-    const newWallet = () => ({ ...omit(legacyWallet(1), ["mnemonic"]), id: undefined });
+    const newWallet = () => ({ ...migrated(legacyWallet(1)), id: undefined });
 
     it("is stored apart from the wallet, in the same write", async () => {
       const service = await freshService();
@@ -257,7 +279,7 @@ describe("walletsDbService", () => {
       storageApi.getCalls = [];
       storageApi.setCalls = [];
 
-      await service.updateSettings(id, { name: "renamed", lastSynced: 2000 });
+      await service.updateSettings(id, { name: "renamed" });
       await service.getAll();
       await service.getById(id);
 
@@ -352,8 +374,8 @@ describe("walletsDbService", () => {
     legacyWallets.set(1, legacyWallet(1));
     const service = await freshService();
 
-    await service.updateSettings(1, { name: "renamed", lastSynced: 2000 });
-    await service.put({ ...omit(legacyWallet(2), ["mnemonic"]), id: undefined });
+    await service.updateSettings(1, { name: "renamed" });
+    await service.put({ ...migrated(legacyWallet(2)), id: undefined });
 
     expect([...legacyWallets.values()]).toEqual([legacyWallet(1)]);
   });
@@ -376,12 +398,14 @@ describe("walletsDbService", () => {
 
     await Promise.all([
       service.changePassword(1, password, "new password 123"),
-      service.updateSettings(1, { lastSynced: 2000 }),
+      service.updateSettings(1, {
+        settings: { ...legacyWallet(1).settings, defaultChangeIndex: 2 }
+      }),
       service.updateSettings(1, { name: "renamed" })
     ]);
 
     const wallet = await service.getById(1);
-    expect(wallet?.lastSynced).toBe(2000);
+    expect(wallet?.settings.defaultChangeIndex).toBe(2);
     expect(wallet?.name).toBe("renamed");
     expect(await service.getSecret(1, "new password 123")).toBe(mnemonic);
   });
@@ -391,19 +415,59 @@ describe("walletsDbService", () => {
     const service = await freshService();
     await service.getAll();
 
-    await Promise.all([service.updateSettings(1, { lastSynced: 2000 }), service.delete(1)]);
+    await Promise.all([service.updateSettings(1, { name: "renamed" }), service.delete(1)]);
 
     expect(await service.getAll()).toEqual([]);
     expect(legacyWallets.has(1)).toBe(false);
   });
 
-  it("deletes from both storages", async () => {
+  it("deletes from both storages, along with its sync state", async () => {
     legacyWallets.set(1, legacyWallet(1));
+    syncRows.set(1, { walletId: 1, lastSynced: 1000 });
     const service = await freshService();
 
     await service.delete(1);
 
     expect(await service.getAll()).toEqual([]);
     expect(legacyWallets.has(1)).toBe(false);
+    expect(syncRows.has(1)).toBe(false);
+  });
+
+  describe("change listener", () => {
+    it("is called when wallets are added, updated or deleted", async () => {
+      const service = await freshService();
+      const listener = vi.fn();
+      service.onChange(listener);
+
+      const id = await service.put(migrated(legacyWallet(1)));
+      await service.updateSettings(id, { name: "renamed" });
+      await service.delete(id);
+
+      expect(listener).toHaveBeenCalledTimes(3);
+    });
+
+    it("ignores secret-only and unrelated changes", async () => {
+      legacyWallets.set(1, legacyWallet(1));
+      const service = await freshService();
+      const listener = vi.fn();
+      service.onChange(listener);
+
+      await service.changePassword(1, password, "new password 123");
+      for (const fn of storageApi.listeners) fn({ "wallet:1": {} }, "session");
+      for (const fn of storageApi.listeners) fn({ settings: {} }, "local");
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("stops when unsubscribed", async () => {
+      const service = await freshService();
+      const listener = vi.fn();
+      const unsubscribe = service.onChange(listener);
+
+      unsubscribe();
+      await service.put(migrated(legacyWallet(1)));
+
+      expect(listener).not.toHaveBeenCalled();
+    });
   });
 });

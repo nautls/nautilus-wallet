@@ -7,7 +7,6 @@ import { WalletSettings } from "@/types/internal";
 export type WalletPatch = {
   name?: string;
   settings?: WalletSettings;
-  lastSynced?: number;
 };
 
 export type PlainSecret = {
@@ -93,12 +92,22 @@ class WalletsDbService {
     return readAllWallets();
   }
 
+  public onChange(listener: () => void): () => void {
+    const handler = (changes: Record<string, unknown>, area: string) => {
+      if (area === "local" && Object.keys(changes).some(isWalletKey)) listener();
+    };
+
+    storage.onChanged.addListener(handler);
+    return () => storage.onChanged.removeListener(handler);
+  }
+
   public async delete(walletId: number): Promise<void> {
     await Promise.all([
       dbContext.addresses.where({ walletId }).delete(),
       dbContext.assets.where({ walletId }).delete(),
       dbContext.connectedDApps.where({ walletId }).delete(),
       dbContext.utxos.where({ walletId }).delete(),
+      dbContext.walletSync.delete(walletId),
       withLock(async () => {
         await storage.local.remove([walletKey(walletId), secretKey(walletId)]);
         await dbContext.wallets.delete(walletId);

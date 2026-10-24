@@ -1,7 +1,7 @@
 import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import type BigNumber from "bignumber.js";
-import { groupBy, maxBy } from "es-toolkit";
+import { groupBy, isEqual, maxBy } from "es-toolkit";
 import { useRouter } from "vue-router";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
@@ -10,6 +10,7 @@ import { patchArray } from "@/common/reactivity";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
+import { walletSyncDbService } from "@/database/walletSyncDbService";
 import { assetIconMap } from "@/mappers/assetIconMap";
 import { IDbAddress, IDbAsset } from "@/types/database";
 import {
@@ -101,19 +102,44 @@ export const useWalletStore = defineStore("wallet", () => {
     defaultChangeIndex: 0
   });
 
+  let pendingWrites = 0;
+  const storedWallet = () => appStore.wallets.find((w) => w.id === privateState.id);
+
+  /** Applies changes to the loaded wallet made by other windows, such as a rename. */
+  function applyStoredChanges() {
+    const stored = storedWallet();
+    if (!stored || privateState.loading || pendingWrites > 0) return;
+
+    if (stored.name !== name.value) name.value = stored.name;
+    if (!isEqual(stored.settings, toRaw(settings.value))) settings.value = { ...stored.settings };
+  }
+
   // #region watches
   watch(
-    [name, settings, () => privateState.lastSynced],
+    [name, settings],
     async () => {
       if (privateState.loading) return;
-      appStore.updateWallet(privateState.id, {
-        name: name.value,
-        lastSynced: privateState.lastSynced,
-        settings: toRaw(settings.value)
-      });
+
+      const stored = storedWallet();
+      if (stored?.name === name.value && isEqual(stored.settings, toRaw(settings.value))) {
+        return; // already stored, e.g. just applied from another window
+      }
+
+      pendingWrites++;
+      try {
+        await appStore.updateWallet(privateState.id, {
+          name: name.value,
+          settings: toRaw(settings.value)
+        });
+      } finally {
+        pendingWrites--;
+        applyStoredChanges(); // in case another window changed it meanwhile
+      }
     },
     { deep: true }
   );
+
+  watch(storedWallet, applyStoredChanges);
 
   watch(
     () => appStore.loading,
@@ -285,10 +311,9 @@ export const useWalletStore = defineStore("wallet", () => {
     privateState.type = wlt.type;
     privateState.publicKey = wlt.publicKey;
     privateState.chainCode = wlt.chainCode;
-    privateState.lastSynced = wlt.lastSynced ?? 0;
     privateState.hasOldUtxos = false;
     name.value = wlt.name;
-    settings.value = wlt.settings;
+    settings.value = { ...wlt.settings }; // a copy, so edits aren't applied to the stored list
 
     const dbAssets = await assetsDbService.getByWalletId(walletId);
     const tokenIds = dbAssets.map((x) => x.tokenId);
@@ -297,6 +322,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
     const dbAddresses = await addressesDbService.getByWalletId(walletId);
     privateState.addresses = dbAddresses;
+    privateState.lastSynced = await walletSyncDbService.getLastSynced(walletId);
 
     appStore.settings.lastOpenedWalletId = walletId;
 
@@ -392,17 +418,17 @@ export const useWalletStore = defineStore("wallet", () => {
     if (walletId !== privateState.id) return; // ensure we are still on the same wallet
 
     // detect changes
-    const { changedAddresses, changedAssets, removedAssets } = getChanges(
+    const changes = getChanges(
       privateState.addresses,
       addressesChunks.flat(),
       privateState.assets,
       assetsChunks.flat()
     );
+    const { changedAddresses, changedAssets, removedAssets } = changes;
 
     // persist data
-    await addressesDbService.bulkPut(changedAddresses);
-    await assetsDbService.bulkPut(changedAssets);
-    await assetsDbService.bulkDelete(removedAssets);
+    const syncedAt = Date.now();
+    await walletSyncDbService.save(walletId, changes, syncedAt);
 
     // load metadata for changed assets
     if (changedAssets.length > 0) {
@@ -413,7 +439,7 @@ export const useWalletStore = defineStore("wallet", () => {
     if (walletId !== privateState.id) return; // ensure we are still on the same wallet
     privateState.patchAddresses(changedAddresses);
     privateState.patchAssets(changedAssets, removedAssets);
-    privateState.lastSynced = Date.now();
+    privateState.lastSynced = syncedAt;
 
     checkOldUtxos();
     setSyncing(false);

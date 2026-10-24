@@ -7,6 +7,7 @@ import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { log } from "@/common/logger";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
@@ -67,8 +68,10 @@ export const useAppStore = defineStore("app", () => {
     initialValue: settings.value.colorMode
   });
 
+  walletsDbService.onChange(() => loadWallets().catch((e) => log.error(e)));
+
   onMounted(async () => {
-    privateState.wallets = await walletsDbService.getAll();
+    await loadWallets();
     setLocale(settings.value.locale !== "auto" ? settings.value.locale : navigator.language);
 
     if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
@@ -102,20 +105,24 @@ export const useAppStore = defineStore("app", () => {
   const loading = computed(() => privateState.loading);
   const wallets = computed(() => privateState.wallets);
 
-  async function updateWallet(id: number, wallet: WalletPatch) {
-    const index = privateState.wallets.findIndex((w) => w.id === id);
-    if (index === -1) return;
+  // loads run one after another, so an older read never overwrites a newer one
+  let lastLoad = Promise.resolve();
+  function loadWallets(): Promise<void> {
+    const load = lastLoad.then(async () => {
+      privateState.wallets = await walletsDbService.getAll();
+    });
+    lastLoad = load.catch(() => {}); // a failed load doesn't block the next ones
+    return load;
+  }
 
+  async function updateWallet(id: number, wallet: WalletPatch) {
     await walletsDbService.updateSettings(id, wallet);
-    privateState.wallets[index] = { ...privateState.wallets[index], ...wallet };
+    await loadWallets();
   }
 
   async function deleteWallet(id: number) {
-    const index = privateState.wallets.findIndex((w) => w.id === id);
-    if (index === -1) return;
-
     await walletsDbService.delete(id);
-    privateState.wallets.splice(index, 1);
+    await loadWallets();
   }
 
   async function putWallet(data: StandardWallet | ReadOnlyWallet): Promise<number> {
@@ -144,15 +151,7 @@ export const useAppStore = defineStore("app", () => {
         ? { value: data.mnemonic, password: data.password }
         : undefined
     );
-    const wallet = { ...dbObj, id: walletId };
-
-    const index = privateState.wallets.findIndex((w) => w.id === walletId);
-    if (index > -1) {
-      privateState.wallets.splice(index, 1, wallet);
-      privateState.wallets = privateState.wallets.slice(); // trigger reactivity
-    } else {
-      privateState.wallets.push(wallet);
-    }
+    await loadWallets();
 
     return walletId;
   }
