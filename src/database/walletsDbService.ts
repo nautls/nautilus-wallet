@@ -36,12 +36,12 @@ class WalletsDbService {
   #migration?: Promise<void>;
 
   public async getById(id: number): Promise<Wallet | undefined> {
-    await this.#migrate();
+    await this.migrate();
     return readWallet(id);
   }
 
   public async getMnemonic(id: number, password: string) {
-    await this.#migrate();
+    await this.migrate();
 
     const secret = await readSecret(id);
     if (!secret) {
@@ -52,7 +52,7 @@ class WalletsDbService {
   }
 
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
-    await this.#migrate();
+    await this.migrate();
 
     const current = await readSecret(id);
     const mnemonic = await this.getMnemonic(id, currentPassword);
@@ -71,7 +71,7 @@ class WalletsDbService {
   }
 
   public async put(wallet: IDbWalletWithSecret): Promise<number> {
-    await this.#migrate();
+    await this.migrate();
 
     return withLock(async () => {
       const dbWallet = (await readAllWallets()).find((w) => w.publicKey === wallet.publicKey);
@@ -90,7 +90,7 @@ class WalletsDbService {
   }
 
   public async updateSettings(id: number, patch: WalletPatch): Promise<number> {
-    await this.#migrate();
+    await this.migrate();
 
     return withLock(async () => {
       const wallet = await readWallet(id);
@@ -102,12 +102,12 @@ class WalletsDbService {
   }
 
   public async getAll(): Promise<Wallet[]> {
-    await this.#migrate();
+    await this.migrate();
     return readAllWallets();
   }
 
   public async delete(walletId: number): Promise<void> {
-    await this.#migrate();
+    await this.migrate();
 
     await Promise.all([
       dbContext.addresses.where({ walletId }).delete(),
@@ -121,7 +121,11 @@ class WalletsDbService {
     ]);
   }
 
-  #migrate(): Promise<void> {
+  /**
+   * Moves wallets from IndexedDB to `browser.storage.local`. Runs on extension install and
+   * update, and lazily before any read or write, in case that one is still running or failed.
+   */
+  public migrate(): Promise<void> {
     if (!this.#migration) {
       this.#migration = withLock(migrateFromIndexedDb).catch((e) => {
         this.#migration = undefined; // retry on next call

@@ -11,6 +11,7 @@ import { createWindow } from "@/common/uiHelpers";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
+import { walletsDbService } from "@/database/walletsDbService";
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { AsyncRequestQueue, AsyncRequestType } from "../connector/rpc/asyncRequestQueue";
 import {
@@ -47,6 +48,10 @@ let keepAliveTimer: ReturnType<typeof setInterval> | undefined;
 (browser?.storage.local as Partial<Pick<chrome.storage.StorageArea, "setAccessLevel">>)
   ?.setAccessLevel?.({ accessLevel: "TRUSTED_CONTEXTS" })
   .catch((e) => log.error(e));
+
+browser?.runtime.onInstalled.addListener(() => {
+  walletsDbService.migrate().catch((e) => log.error(e));
+});
 
 function onMessageAuth<T extends InternalRequest>(
   request: T,

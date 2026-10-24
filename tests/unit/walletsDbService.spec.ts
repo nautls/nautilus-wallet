@@ -191,9 +191,29 @@ describe("walletsDbService", () => {
       legacyWallets.set(1, legacyWallet(1));
       const service = await freshService();
 
-      const results = await Promise.all([service.getAll(), service.getById(1), service.getAll()]);
-      expect(results[0]).toHaveLength(1);
-      expect(results[1]?.id).toBe(1);
+      await Promise.all([service.migrate(), service.getAll(), service.getById(1)]);
+
+      const schemaWrites = storageApi.setCalls.filter((keys) =>
+        keys.includes("wallets:schemaVersion")
+      );
+      expect(schemaWrites).toHaveLength(1);
+      expect((await service.getAll()).map((w) => w.id)).toEqual([1]);
+    });
+
+    it("retries after a failed migration", async () => {
+      legacyWallets.set(1, legacyWallet(1));
+      const service = await freshService();
+      const { dbContext } = await import("@/database/dbContext");
+      const toArray = vi
+        .spyOn(dbContext.wallets, "toArray")
+        .mockRejectedValueOnce(new Error("IndexedDB unavailable"));
+
+      await expect(service.migrate()).rejects.toThrow("IndexedDB unavailable");
+      expect(local.has("wallet:1")).toBe(false);
+
+      // the next read retries it
+      expect((await service.getAll()).map((w) => w.id)).toEqual([1]);
+      toArray.mockRestore();
     });
   });
 
