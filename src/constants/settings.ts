@@ -3,7 +3,6 @@ import { MAINNET } from "./ergo";
 
 export const DEFAULT_SETTINGS = {
   lastOpenedWalletId: 0,
-  isKyaAccepted: false,
   conversionCurrency: "usd",
   devMode: !MAINNET,
   graphQLServer: DEFAULT_SERVER_URL,

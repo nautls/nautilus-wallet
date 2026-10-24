@@ -22,7 +22,6 @@ import { TransportType } from "@/common/ledger";
 
 export type Settings = {
   lastOpenedWalletId: number;
-  isKyaAccepted: boolean;
   conversionCurrency: string;
   devMode: boolean;
   graphQLServer: string;
@@ -71,21 +70,6 @@ export const useAppStore = defineStore("app", () => {
   onMounted(async () => {
     privateState.wallets = await walletsDbService.getAll();
     setLocale(settings.value.locale !== "auto" ? settings.value.locale : navigator.language);
-
-    // If KYA is not accepted and there are wallets, migrate settings from localStorage
-    if (!settings.value.isKyaAccepted && privateState.wallets.length) {
-      const oldSettings = localStorage.getItem("settings");
-      if (oldSettings) {
-        settings.value = { ...DEFAULT_SETTINGS, ...JSON.parse(oldSettings) }; // migrate settings
-        localStorage.clear(); // clear old settings
-      } else {
-        settings.value = {
-          ...DEFAULT_SETTINGS,
-          isKyaAccepted: true, // if there are wallets, KYA was accepted previously
-          lastOpenedWalletId: privateState.wallets[0].id
-        };
-      }
-    }
 
     if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
 
@@ -161,9 +145,6 @@ export const useAppStore = defineStore("app", () => {
         : undefined
     );
     const wallet = { ...dbObj, id: walletId };
-
-    // adding a wallet implies agreeing to the KYA shown during onboarding
-    settings.value.isKyaAccepted = true;
 
     const index = privateState.wallets.findIndex((w) => w.id === walletId);
     if (index > -1) {
