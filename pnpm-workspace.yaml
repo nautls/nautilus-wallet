@@ -5,6 +5,7 @@ allowBuilds:
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - markdown-it@14.3.3
+  - node-forge@1.4.1
 overrides:
   webextension-polyfill@<0.12.0: ^0.12.0 # avoid multiple versions of the same thing
   adm-zip@<0.6.1: ^0.6.1
@@ -15,6 +16,7 @@ overrides:
   vitepress>vite: ^6.4.3
   markdown-it@<14.3.3: ^14.3.3
   markdown-it@>=14.1.0 <14.3.3: ^14.3.3
+  node-forge@<=1.4.0: ^1.4.1
 patchedDependencies:
   webext-bridge@6.0.1: patches/webext-bridge@6.0.1.patch
   "@types/cleave.js@1.4.12": patches/@types__cleave.js@1.4.12.patch
