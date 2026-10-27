@@ -1,7 +1,5 @@
-import { isEmpty } from "@fleet-sdk/common";
-import AES from "crypto-js/aes";
-import utf8Enc from "crypto-js/enc-utf8";
-import { PasswordError } from "@/common/errors";
+import { storage } from "webextension-polyfill";
+import { decryptSecret, EncryptedSecret, encryptSecret } from "@/common/keystore";
 import { dbContext } from "@/database/dbContext";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
@@ -9,63 +7,98 @@ import { WalletSettings } from "@/types/internal";
 export type WalletPatch = {
   name?: string;
   settings?: WalletSettings;
-  lastSynced?: number;
 };
 
+export type PlainSecret = {
+  value: string;
+  password: string;
+};
+
+type Wallet = NotNullId<IDbWallet>;
+
+const WALLET_KEY_PREFIX = "wallet:";
+const SECRET_KEY_PREFIX = "walletSecret:";
+export const NEXT_ID_KEY = "wallets:nextId";
+const LOCK_NAME = "nautilus:wallets";
+
+export const walletKey = (id: number) => `${WALLET_KEY_PREFIX}${id}`;
+export const secretKey = (id: number) => `${SECRET_KEY_PREFIX}${id}`;
+
+export function withLock<T>(fn: () => Promise<T>): Promise<T> {
+  return navigator.locks ? navigator.locks.request(LOCK_NAME, fn) : fn();
+}
+
 class WalletsDbService {
-  public async getById(id: number): Promise<NotNullId<IDbWallet> | undefined> {
-    return dbContext.wallets.where("id").equals(id).first() as Promise<NotNullId<IDbWallet>>;
+  public async getById(id: number): Promise<Wallet | undefined> {
+    return readWallet(id);
   }
 
-  public async getMnemonic(id: number, password: string) {
-    const wallet = await this.getById(id);
-    if (!wallet) {
-      throw Error("wallet not found");
-    }
-    if (!wallet.mnemonic) {
-      throw Error("wallet doesn't have a mnemonic phrase");
+  public async getSecret(id: number, password: string) {
+    const secret = await readSecret(id);
+    if (!secret) {
+      throw Error("wallet doesn't have a secret phrase");
     }
 
-    try {
-      const mnemonic = AES.decrypt(wallet.mnemonic, password).toString(utf8Enc);
-      if (isEmpty(mnemonic)) throw new PasswordError();
-
-      return mnemonic;
-    } catch {
-      throw new PasswordError();
-    }
+    return decryptSecret(secret, password);
   }
 
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
-    const mnemonic = await this.getMnemonic(id, currentPassword);
-    const encrypted = AES.encrypt(mnemonic, newPassword).toString();
+    const current = await readSecret(id);
+    const secret = await this.getSecret(id, currentPassword);
+    const encrypted = await encryptSecret(secret, newPassword);
 
-    if (AES.decrypt(encrypted, newPassword).toString(utf8Enc) !== mnemonic) {
-      throw Error("failed to re-encrypt the mnemonic phrase");
-    }
+    await withLock(async () => {
+      if (!(await readWallet(id))) throw Error("wallet not found");
+      if ((await readSecret(id))?.ciphertext !== current?.ciphertext) {
+        throw Error("the spending password was changed meanwhile");
+      }
 
-    await dbContext.wallets.update(id, { mnemonic: encrypted });
+      await storage.local.set({ [secretKey(id)]: encrypted });
+      // drop the pre-migration copy, still encrypted with the old password
+      await dbContext.wallets.delete(id);
+    });
   }
 
-  public async getByPk(publicKey: string): Promise<NotNullId<IDbWallet> | undefined> {
-    return dbContext.wallets.where("publicKey").equals(publicKey).first() as Promise<
-      NotNullId<IDbWallet>
-    >;
-  }
+  public async put(wallet: IDbWallet, secret?: PlainSecret): Promise<number> {
+    const encrypted = secret && (await encryptSecret(secret.value, secret.password));
 
-  public async put(wallet: IDbWallet): Promise<number> {
-    const dbWallet = await this.getByPk(wallet.publicKey);
-    if (!wallet.id) wallet.id = dbWallet?.id;
+    return withLock(async () => {
+      const dbWallet = (await readAllWallets()).find((w) => w.publicKey === wallet.publicKey);
+      const id = wallet.id ?? dbWallet?.id ?? (await allocateId());
+      const record = { ...wallet, id };
 
-    return dbContext.wallets.put(wallet);
+      if (encrypted) {
+        await storage.local.set({ [walletKey(id)]: record, [secretKey(id)]: encrypted });
+      } else {
+        await storage.local.set({ [walletKey(id)]: record });
+        await storage.local.remove(secretKey(id));
+      }
+
+      return id;
+    });
   }
 
   public async updateSettings(id: number, patch: WalletPatch): Promise<number> {
-    return dbContext.wallets.update(id, patch);
+    return withLock(async () => {
+      const wallet = await readWallet(id);
+      if (!wallet) return 0;
+
+      await storage.local.set({ [walletKey(id)]: { ...wallet, ...patch } });
+      return 1;
+    });
   }
 
-  public async getAll(): Promise<NotNullId<IDbWallet>[]> {
-    return dbContext.wallets.toArray() as Promise<NotNullId<IDbWallet>[]>;
+  public async getAll(): Promise<Wallet[]> {
+    return readAllWallets();
+  }
+
+  public onChange(listener: () => void): () => void {
+    const handler = (changes: Record<string, unknown>, area: string) => {
+      if (area === "local" && Object.keys(changes).some(isWalletKey)) listener();
+    };
+
+    storage.onChanged.addListener(handler);
+    return () => storage.onChanged.removeListener(handler);
   }
 
   public async delete(walletId: number): Promise<void> {
@@ -74,9 +107,48 @@ class WalletsDbService {
       dbContext.assets.where({ walletId }).delete(),
       dbContext.connectedDApps.where({ walletId }).delete(),
       dbContext.utxos.where({ walletId }).delete(),
-      dbContext.wallets.delete(walletId)
+      dbContext.walletSync.delete(walletId),
+      withLock(async () => {
+        await storage.local.remove([walletKey(walletId), secretKey(walletId)]);
+        await dbContext.wallets.delete(walletId);
+      })
     ]);
   }
+}
+
+async function readWallet(id: number): Promise<Wallet | undefined> {
+  const key = walletKey(id);
+  const stored = await storage.local.get(key);
+  return stored[key] as Wallet | undefined;
+}
+
+async function readSecret(id: number): Promise<EncryptedSecret | undefined> {
+  const key = secretKey(id);
+  const stored = await storage.local.get(key);
+  return stored[key] as EncryptedSecret | undefined;
+}
+
+const isWalletKey = (key: string) => key.startsWith(WALLET_KEY_PREFIX);
+
+async function readAllWallets(): Promise<Wallet[]> {
+  // read only wallet keys when supported (Chrome 130+, Firefox 143+), otherwise
+  // everything, including large entries such as token blacklists and prices
+  const stored = storage.local.getKeys
+    ? await storage.local.get((await storage.local.getKeys()).filter(isWalletKey))
+    : await storage.local.get(null);
+
+  return Object.entries(stored)
+    .filter(([key]) => isWalletKey(key))
+    .map(([, wallet]) => wallet as Wallet)
+    .sort((a, b) => a.id - b.id);
+}
+
+async function allocateId(): Promise<number> {
+  const stored = await storage.local.get(NEXT_ID_KEY);
+  const id = (stored[NEXT_ID_KEY] as number | undefined) ?? 1;
+  await storage.local.set({ [NEXT_ID_KEY]: id + 1 });
+
+  return id;
 }
 
 export const walletsDbService = new WalletsDbService();

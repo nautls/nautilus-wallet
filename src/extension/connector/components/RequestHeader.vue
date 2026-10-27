@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { ComponentI18nScope, I18nT, PickupPaths } from "vue-i18n";
+import { displayOrigin } from "@/common/origin";
 import { MessageSchema } from "@/i18n";
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const domain = computed(() => props.origin || "???");
+const domain = computed(() => (props.origin ? displayOrigin(props.origin) : "???"));
 </script>
 
 <template>

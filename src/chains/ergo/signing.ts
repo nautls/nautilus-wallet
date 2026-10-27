@@ -19,6 +19,7 @@ import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
 import { getPrivateDeriver, Prover } from "./transaction/prover";
 import { useAppStore } from "@/stores/appStore";
+import { hostOf } from "@/common/origin";
 
 export interface UnsignedAuthMessage {
   message: string;
@@ -70,7 +71,7 @@ export async function signAuthMessage(
   walletId: number,
   password: string
 ): Promise<AuthSignedMessage> {
-  const signedMessage = buildAuthMessage(unsigned.message, unsigned.origin);
+  const signedMessage = buildAuthMessage(unsigned.message, hostOf(unsigned.origin));
   const proof = new Prover(await getPrivateDeriver(walletId, password))
     .from(await addressesDbService.getByWalletIdAndScripts(walletId, addresses, "strict"))
     .signMessage(utf8.decode(signedMessage));
@@ -113,7 +114,7 @@ export async function signTransaction({
 
   const deriver = isLedger
     ? hdKeyPool.get(wallet.publicKey)
-    : await HdKey.fromMnemonic(await walletsDbService.getMnemonic(walletId, password));
+    : await HdKey.fromMnemonic(await walletsDbService.getSecret(walletId, password));
 
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);

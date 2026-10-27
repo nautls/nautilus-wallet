@@ -1,5 +1,6 @@
 import { Dexie, Table } from "dexie";
 import { uniqBy } from "es-toolkit";
+import { legacyHostToOrigin } from "@/common/origin";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import {
   IAssetInfo,
@@ -7,16 +8,19 @@ import {
   IDbAsset,
   IDbDAppConnection,
   IDbUtxo,
-  IDbWallet
+  IDbWalletSync,
+  ILegacyDbWallet
 } from "@/types/database";
 
 class NautilusDb extends Dexie {
-  wallets!: Table<IDbWallet, number>;
+  /** @deprecated wallets live in `browser.storage.local`, see `walletsDbService`. */
+  wallets!: Table<ILegacyDbWallet, number>;
   addresses!: Table<IDbAddress, string>;
   assets!: Table<IDbAsset, string[]>;
   connectedDApps!: Table<IDbDAppConnection, string>;
   utxos!: Table<IDbUtxo, string>;
   assetInfo!: Table<IAssetInfo, string>;
+  walletSync!: Table<IDbWalletSync, number>;
 
   constructor() {
     super("nautilusDb");
@@ -68,14 +72,25 @@ class NautilusDb extends Dexie {
       });
 
     this.version(7).upgrade((tx) => {
-      const hideUsedAddresses = "hideUsedAddresses" as keyof IDbWallet["settings"];
+      const hideUsedAddresses = "hideUsedAddresses" as keyof ILegacyDbWallet["settings"];
       return tx
         .table("wallets")
         .toCollection()
-        .modify((wallet: IDbWallet) => {
+        .modify((wallet: ILegacyDbWallet) => {
           wallet.settings.addressFilter = wallet.settings[hideUsedAddresses] ? "active" : "all";
           delete wallet.settings[hideUsedAddresses];
         });
+    });
+
+    this.version(8).stores({ walletSync: "&walletId" });
+
+    // connections were stored by host, so `http://dapp.io` got the permissions granted to
+    // `https://dapp.io`. They're now stored by origin, the http one needing its own approval
+    this.version(9).upgrade(async (tx) => {
+      const table = tx.table<IDbDAppConnection, string>("connectedDApps");
+      const connections = await table.toArray();
+      await table.clear();
+      await table.bulkAdd(connections.map((c) => ({ ...c, origin: legacyHostToOrigin(c.origin) })));
     });
   }
 }

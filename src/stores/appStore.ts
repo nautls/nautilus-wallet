@@ -3,11 +3,11 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import { useColorMode } from "@vueuse/core";
-import AES from "crypto-js/aes";
 import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { log } from "@/common/logger";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
@@ -23,7 +23,6 @@ import { TransportType } from "@/common/ledger";
 
 export type Settings = {
   lastOpenedWalletId: number;
-  isKyaAccepted: boolean;
   conversionCurrency: string;
   devMode: boolean;
   graphQLServer: string;
@@ -69,24 +68,11 @@ export const useAppStore = defineStore("app", () => {
     initialValue: settings.value.colorMode
   });
 
-  onMounted(async () => {
-    privateState.wallets = await walletsDbService.getAll();
-    setLocale(settings.value.locale !== "auto" ? settings.value.locale : navigator.language);
+  walletsDbService.onChange(() => loadWallets().catch((e) => log.error(e)));
 
-    // If KYA is not accepted and there are wallets, migrate settings from localStorage
-    if (!settings.value.isKyaAccepted && privateState.wallets.length) {
-      const oldSettings = localStorage.getItem("settings");
-      if (oldSettings) {
-        settings.value = { ...DEFAULT_SETTINGS, ...JSON.parse(oldSettings) }; // migrate settings
-        localStorage.clear(); // clear old settings
-      } else {
-        settings.value = {
-          ...DEFAULT_SETTINGS,
-          isKyaAccepted: true, // if there are wallets, KYA was accepted previously
-          lastOpenedWalletId: privateState.wallets[0].id
-        };
-      }
-    }
+  onMounted(async () => {
+    await loadWallets();
+    setLocale(settings.value.locale !== "auto" ? settings.value.locale : navigator.language);
 
     if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
 
@@ -119,20 +105,24 @@ export const useAppStore = defineStore("app", () => {
   const loading = computed(() => privateState.loading);
   const wallets = computed(() => privateState.wallets);
 
-  async function updateWallet(id: number, wallet: WalletPatch) {
-    const index = privateState.wallets.findIndex((w) => w.id === id);
-    if (index === -1) return;
+  // loads run one after another, so an older read never overwrites a newer one
+  let lastLoad = Promise.resolve();
+  function loadWallets(): Promise<void> {
+    const load = lastLoad.then(async () => {
+      privateState.wallets = await walletsDbService.getAll();
+    });
+    lastLoad = load.catch(() => {}); // a failed load doesn't block the next ones
+    return load;
+  }
 
+  async function updateWallet(id: number, wallet: WalletPatch) {
     await walletsDbService.updateSettings(id, wallet);
-    privateState.wallets[index] = { ...privateState.wallets[index], ...wallet };
+    await loadWallets();
   }
 
   async function deleteWallet(id: number) {
-    const index = privateState.wallets.findIndex((w) => w.id === id);
-    if (index === -1) return;
-
     await walletsDbService.delete(id);
-    privateState.wallets.splice(index, 1);
+    await loadWallets();
   }
 
   async function putWallet(data: StandardWallet | ReadOnlyWallet): Promise<number> {
@@ -148,10 +138,6 @@ export const useAppStore = defineStore("app", () => {
       type: data.type,
       publicKey: hex.encode(key.publicKey),
       chainCode: hex.encode(key.chainCode),
-      mnemonic:
-        data.type === WalletType.Standard
-          ? AES.encrypt(data.mnemonic, data.password).toString()
-          : undefined,
       settings: {
         avoidAddressReuse: false,
         addressFilter: "all",
@@ -159,19 +145,13 @@ export const useAppStore = defineStore("app", () => {
       }
     };
 
-    const walletId = await walletsDbService.put(dbObj);
-    dbObj.id = walletId;
-
-    // adding a wallet implies agreeing to the KYA shown during onboarding
-    settings.value.isKyaAccepted = true;
-
-    const index = privateState.wallets.findIndex((w) => w.id === walletId);
-    if (index > -1) {
-      privateState.wallets.splice(index, 1, dbObj as NotNullId<IDbWallet>);
-      privateState.wallets = privateState.wallets.slice(); // trigger reactivity
-    } else {
-      privateState.wallets.push(dbObj as NotNullId<IDbWallet>);
-    }
+    const walletId = await walletsDbService.put(
+      dbObj,
+      data.type === WalletType.Standard
+        ? { value: data.mnemonic, password: data.password }
+        : undefined
+    );
+    await loadWallets();
 
     return walletId;
   }

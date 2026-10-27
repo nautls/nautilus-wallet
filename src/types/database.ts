@@ -19,9 +19,25 @@ export interface IDbWallet {
   type: WalletType;
   publicKey: string;
   chainCode: string;
-  mnemonic?: string;
   settings: WalletSettings;
+}
+
+/**
+ * Wallet record as stored in the IndexedDB `wallets` table, before wallets were moved
+ * to `browser.storage.local`. `mnemonic` is a CryptoJS `AES.encrypt` ciphertext.
+ */
+export interface ILegacyDbWallet extends IDbWallet {
+  mnemonic?: string;
   lastSynced?: number;
+}
+
+/**
+ * When a wallet's cached addresses and assets were last synced. Kept in IndexedDB along
+ * with them, so that clearing it forces a new sync.
+ */
+export interface IDbWalletSync {
+  walletId: number;
+  lastSynced: number;
 }
 
 export interface IDbAddress {

@@ -41,6 +41,14 @@ watch(walletName, (newName) => {
   wallet.name = newName;
 });
 
+// reflect renames made by other windows
+watch(
+  () => wallet.name,
+  (name) => {
+    if (name !== walletName.value) walletName.value = name;
+  }
+);
+
 const { r$ } = useRegle(
   { walletName },
   { walletName: { required: withMessage(required, () => t("wallet.requiredWalletName")) } }

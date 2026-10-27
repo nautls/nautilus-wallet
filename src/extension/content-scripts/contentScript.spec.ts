@@ -14,7 +14,7 @@ vi.mock("webext-bridge/content-script", () => ({
   sendMessage
 }));
 
-const ORIGIN = "attacker.io";
+const ORIGIN = "https://attacker.io";
 const SPOOFED_PAYLOAD = { origin: "victim-dapp.io", favicon: "https://attacker.io/fake.png" };
 
 beforeAll(async () => {
@@ -29,7 +29,7 @@ beforeAll(async () => {
 
   vi.stubGlobal("document", document);
   vi.stubGlobal("window", { document, addEventListener: vi.fn() });
-  vi.stubGlobal("location", { origin: `https://${ORIGIN}` });
+  vi.stubGlobal("location", { origin: ORIGIN });
   vi.stubGlobal("chrome", { runtime: { getURL: (path: string) => path } });
 
   await import("./contentScript");

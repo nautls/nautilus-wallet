@@ -1,6 +1,6 @@
 import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, WALLET_A, WALLET_B } from "../fixtures/wallets";
-import { DAPP_HOST } from "../mocks/services";
+import { DAPP_HOST, DAPP_ORIGIN } from "../mocks/services";
 import {
   clickToClose,
   connectDapp,
@@ -217,5 +217,39 @@ test.describe("dApp connection", () => {
     await expect(popup.page.getByText("You have no connected apps yet.")).toBeVisible();
 
     expect(await dapp.evaluate(() => window.ergoConnector.nautilus.isAuthorized())).toBe(false);
+  });
+
+  test("needs a separate approval for the http version of a connected dApp", async ({
+    context,
+    dapp
+  }) => {
+    await connectDapp(context, dapp, "Alice");
+
+    const httpOrigin = DAPP_ORIGIN.replace("https:", "http:");
+    await context.route(`${httpOrigin}/`, (route) =>
+      route.fulfill({ contentType: "text/html", body: "<!doctype html><html><body></body></html>" })
+    );
+    const httpPage = await context.newPage();
+    await httpPage.goto(`${httpOrigin}/`);
+    await httpPage.waitForFunction(() => window.ergoConnector?.nautilus !== undefined);
+
+    expect(await invoke(httpPage, () => window.ergoConnector.nautilus.isAuthorized())).toEqual({
+      ok: true,
+      value: false
+    });
+
+    // the prompt shows the full http origin, so it stands out from the https one
+    const { win, result } = await withConnectorWindow(context, "connect", () =>
+      invoke(httpPage, () => window.ergoConnector.nautilus.connect())
+    );
+    await expectRequestFrom(win, httpOrigin);
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
+    expect(await result).toEqual({ ok: true, value: false });
+
+    // the https connection is unaffected
+    expect(await invoke(dapp, () => window.ergoConnector.nautilus.isAuthorized())).toEqual({
+      ok: true,
+      value: true
+    });
   });
 });

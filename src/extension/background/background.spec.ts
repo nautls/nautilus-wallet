@@ -12,7 +12,10 @@ const mocks = vi.hoisted(() => ({
   checkConnection: vi.fn(),
   getByOrigin: vi.fn(),
   getByScript: vi.fn(),
-  getPlatformInfo: vi.fn()
+  getPlatformInfo: vi.fn(),
+  setAccessLevel: vi.fn(async () => {}),
+  installedListeners: new Set<() => void>(),
+  migrate: vi.fn(async () => {})
 }));
 
 vi.mock("webext-bridge", () => ({ isInternalEndpoint: () => true }));
@@ -24,7 +27,11 @@ vi.mock("webext-bridge/background", () => ({
 
 vi.mock("@/common/browser", () => ({
   browser: {
-    runtime: { getPlatformInfo: mocks.getPlatformInfo },
+    runtime: {
+      getPlatformInfo: mocks.getPlatformInfo,
+      onInstalled: { addListener: (fn: () => void) => mocks.installedListeners.add(fn) }
+    },
+    storage: { local: { setAccessLevel: mocks.setAccessLevel } },
     tabs: { get: async () => ({ favIconUrl: "favicon.png" }) },
     windows: {
       onRemoved: {
@@ -40,6 +47,7 @@ vi.mock("@/chains/ergo/services/graphQlService", () => ({ graphQLService: {} }))
 vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: { getByScript: mocks.getByScript }
 }));
+vi.mock("@/database/migrations", () => ({ runMigrations: mocks.migrate }));
 vi.mock("@/database/connectedDAppsDbService", () => ({
   connectedDAppsDbService: { getByOrigin: mocks.getByOrigin }
 }));
@@ -71,6 +79,9 @@ beforeEach(async () => {
   mocks.checkConnection.mockReset().mockResolvedValue(false);
   mocks.getByOrigin.mockReset().mockResolvedValue({ origin: ORIGIN, walletId: WALLET_ID });
   mocks.getPlatformInfo.mockReset();
+  mocks.setAccessLevel.mockClear();
+  mocks.installedListeners.clear();
+  mocks.migrate.mockReset().mockResolvedValue(undefined);
   mocks.getByScript.mockReset().mockResolvedValue({ script: ADDRESS, walletId: WALLET_ID });
 
   await import("./background");
@@ -449,5 +460,33 @@ describe("transaction submission", () => {
       success: false,
       error: { code: -1, info: "Invalid signed transaction." }
     });
+  });
+});
+
+describe("storage access", () => {
+  it("should restrict storage.local to trusted contexts on startup", () => {
+    expect(mocks.setAccessLevel).toHaveBeenCalledExactlyOnceWith({
+      accessLevel: "TRUSTED_CONTEXTS"
+    });
+  });
+});
+
+describe("wallet storage migration", () => {
+  it("should migrate wallets when the extension is installed or updated", () => {
+    expect(mocks.migrate).not.toHaveBeenCalled();
+
+    for (const listener of mocks.installedListeners) listener();
+    expect(mocks.migrate).toHaveBeenCalledOnce();
+  });
+
+  it("should log a failed migration", async () => {
+    const { log } = await import("@/common/logger");
+    const logError = vi.spyOn(log, "error").mockImplementation(() => {});
+    const error = new Error("IndexedDB unavailable");
+    mocks.migrate.mockRejectedValueOnce(error);
+
+    for (const listener of mocks.installedListeners) listener();
+    await flush();
+    expect(logError).toHaveBeenCalledExactlyOnceWith(error);
   });
 });
