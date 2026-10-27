@@ -217,11 +217,13 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         </template>
       </Form>
 
-      <DrawerFooter>
+      <DrawerFooter class="flex-row gap-4">
         <DrawerClose as-child>
-          <Button variant="outline" :disabled="loading">{{ t("common.cancel") }}</Button>
+          <Button class="flex-1" variant="outline" :disabled="loading">{{
+            t("common.cancel")
+          }}</Button>
         </DrawerClose>
-        <Button :disabled="loading" @click="next">
+        <Button class="flex-2" :disabled="loading" @click="next">
           <Loader2Icon v-if="loading" class="animate-spin" />
           {{ nextButtonTitle }}
         </Button>

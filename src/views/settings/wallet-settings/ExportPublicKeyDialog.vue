@@ -44,7 +44,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         <DrawerDescription class="hyphens-auto">{{ t("wallet.xPubKeyDesc") }}</DrawerDescription>
       </DrawerHeader>
 
-      <QrCode :data="xpk" class="m-auto size-[200px]" />
+      <QrCode :data="xpk" class="m-auto size-45" />
       <StatsCard
         class="bg-secondary text-secondary-foreground break-all"
         :display-copy-button="true"

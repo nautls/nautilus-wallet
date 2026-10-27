@@ -321,13 +321,13 @@ const { r$ } = useRegle(
 
     <div class="flex flex-row gap-4">
       <Button
-        class="w-full"
+        class="flex-1"
         variant="outline"
         :disabled="loading || signing"
         @click="emit('refused')"
         >{{ t("common.cancel") }}</Button
       >
-      <Button class="w-full" :disabled="loading || signing || !canSign" @click="sign">
+      <Button class="flex-2" :disabled="loading || signing || !canSign" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>{{ t("common.sign") }}</template>
       </Button>

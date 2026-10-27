@@ -133,12 +133,12 @@ const { r$ } = useRegle(
             <div v-once>
               {{ t("settings.wallet.walletRemoveConfirmationDesc") }}
             </div>
-            <DrawerFooter>
-              <DrawerClose>
-                <Button variant="outline" class="w-full">{{ t("common.cancel") }}</Button>
+            <DrawerFooter class="flex-row gap-4">
+              <DrawerClose as-child>
+                <Button variant="outline" class="flex-1">{{ t("common.cancel") }}</Button>
               </DrawerClose>
-              <DrawerClose>
-                <Button variant="destructive" class="w-full" @click="app.deleteWallet(wallet.id)">{{
+              <DrawerClose as-child>
+                <Button variant="destructive" class="flex-2" @click="app.deleteWallet(wallet.id)">{{
                   t("common.remove")
                 }}</Button>
               </DrawerClose>
