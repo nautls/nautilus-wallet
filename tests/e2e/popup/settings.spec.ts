@@ -252,7 +252,79 @@ test.describe("settings", () => {
       expect(chain.submitted).toHaveLength(1);
     });
 
-    test("hides the spending password option for read-only wallets", async ({ popup }) => {
+    test("backs up the recovery phrase", async ({ popup }) => {
+      const page = popup.page;
+
+      await popup.goto("/settings");
+      await page.getByRole("tab", { name: "Wallet" }).click();
+      await page.getByRole("button", { name: "Back up" }).click();
+
+      const drawer = page.getByRole("dialog");
+      await expect(drawer).toContainText("Mnemonic backup");
+
+      // requires the spending password
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      await expect(drawer.getByText("Please enter your spending password.")).toBeVisible();
+
+      // rejects a wrong password and keeps the drawer open
+      await drawer.locator("#backup-password").fill("wrong password");
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      await expect(popup.toast("Wrong password")).toBeVisible();
+      await expect(drawer.locator("#backup-password")).toBeVisible();
+
+      // submits with enter
+      await drawer.locator("#backup-password").fill(WALLET_A.password);
+      await drawer.locator("#backup-password").press("Enter");
+      await expect(drawer).toContainText("Recovery phrase");
+      expect(await popup.readMnemonic()).toEqual(WALLET_A.mnemonic.split(" "));
+
+      await drawer.getByRole("button", { name: "Copy" }).click();
+      await expect(drawer.getByRole("button", { name: "Copied" })).toBeVisible();
+
+      await drawer.getByRole("button", { name: "I've saved these words" }).click();
+      await expect(drawer).toContainText("Confirm your recovery phrase");
+      await expect(drawer.locator("form .grid input")).toHaveCount(3);
+
+      await popup.fillMnemonicGaps(WALLET_A.mnemonic.split(" "));
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+      await expect(popup.toast("Recovery phrase backed up")).toBeVisible();
+      await expect(drawer).toBeHidden();
+
+      // starts over from the password step when reopening
+      await page.getByRole("button", { name: "Back up" }).click();
+      await expect(drawer.locator("#backup-password")).toHaveValue("");
+      await expect(drawer.locator("form .grid")).toHaveCount(0);
+      await drawer.getByRole("button", { name: "Cancel" }).last().click();
+      await expect(drawer).toBeHidden();
+    });
+
+    test("rejects a wrong recovery phrase confirmation on backup", async ({ popup }) => {
+      const page = popup.page;
+      const words = WALLET_A.mnemonic.split(" ");
+
+      await popup.goto("/settings");
+      await page.getByRole("tab", { name: "Wallet" }).click();
+      await page.getByRole("button", { name: "Back up" }).click();
+
+      const drawer = page.getByRole("dialog");
+      await drawer.locator("#backup-password").fill(WALLET_A.password);
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      await drawer.getByRole("button", { name: "I've saved these words" }).click();
+
+      // fill the gaps with a word that's not in the phrase
+      const wrong = ["zoo", "zone", "youth"].find((w) => !words.includes(w))!;
+      await popup.fillMnemonicGaps(words.map(() => wrong));
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+
+      await expect(
+        drawer.getByText("The recovery phrase does not match the original one.")
+      ).toBeVisible();
+      await expect(drawer).toContainText("Confirm your recovery phrase");
+    });
+
+    test("hides the spending password and backup options for read-only wallets", async ({
+      popup
+    }) => {
       await popup.importReadOnlyWallet(WALLET_B.name, await xpubOf(WALLET_B));
       await popup.goto("/settings");
       const page = popup.page;
@@ -260,6 +332,7 @@ test.describe("settings", () => {
 
       await expect(page.getByRole("button", { name: "Export" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Change" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Back up" })).toHaveCount(0);
     });
 
     test("removes the only wallet", async ({ popup }) => {
@@ -270,7 +343,6 @@ test.describe("settings", () => {
       await page.getByRole("button", { name: "Remove" }).click();
       const drawer = page.getByRole("dialog");
       await expect(drawer).toContainText("Are you absolutely sure?");
-      // DrawerClose wraps the button in another button
       await drawer.getByRole("button", { name: "Remove" }).last().click();
 
       await expect(page).toHaveURL(/#\/add$/);
