@@ -20,6 +20,7 @@ import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { MnemonicBackupDialog } from "@/components/wallet";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { WalletType } from "@/types/internal";
 import ChangePasswordDialog from "./ChangePasswordDialog.vue";
@@ -31,6 +32,7 @@ const { t } = useI18n();
 
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
 const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
+const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const isStandard = computed(() => wallet.type === WalletType.Standard);
 
@@ -95,6 +97,18 @@ const { r$ } = useRegle(
         >
         <Button variant="outline" @click="openChangePasswordDialog">{{
           t("common.change")
+        }}</Button>
+      </div>
+
+      <div v-if="isStandard" class="flex items-center justify-between gap-4">
+        <Label class="flex flex-col gap-1"
+          >{{ t("wallet.backup.title") }}
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+            {{ t("settings.wallet.mnemonicBackupDesc") }}
+          </div></Label
+        >
+        <Button variant="outline" @click="openMnemonicBackupDialog">{{
+          t("common.backup")
         }}</Button>
       </div>
     </Card>

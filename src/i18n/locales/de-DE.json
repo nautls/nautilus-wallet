@@ -31,7 +31,8 @@
     "authenticate": "Authentifizieren",
     "buyErg": "ERG kaufen",
     "showMore": "Mehr anzeigen",
-    "showLess": "Weniger anzeigen"
+    "showLess": "Weniger anzeigen",
+    "backup": "Sichern"
   },
   "datetime": {
     "now": "gerade eben",
@@ -269,6 +270,13 @@
       "sidePanelViewMode": "Seitenleiste",
       "successDesc": "Dein Ledger-Gerät wurde erfolgreich verbunden. Du kannst jetzt Nautilus Wallet im {viewMode} des Browsers öffnen.",
       "openInViewMode": "Nautilus im {viewMode} öffnen"
+    },
+    "backup": {
+      "title": "Mnemonic-Sicherung",
+      "passwordStepDesc": "Gib dein Ausgabepasswort ein, um die Wiederherstellungsphrase dieser Wallet anzuzeigen.",
+      "showRecoveryPhrase": "Wiederherstellungsphrase anzeigen",
+      "success": "Wiederherstellungsphrase gesichert",
+      "failed": "Wiederherstellungsphrase konnte nicht abgerufen werden"
     }
   },
   "settings": {
@@ -318,6 +326,7 @@
       "avoidAddressReuseDesc": "Aktiviere diese Option, um zu verhindern, dass dieselbe Adresse für mehrere Transaktionen verwendet wird. Das schützt deine Privatsphäre.",
       "xPubKeyDesc": "Verwende diese Option, um den erweiterten öffentlichen Schlüssel deiner Wallet zu exportieren.",
       "spendingPasswordDesc": "Ändere das Passwort, mit dem Transaktionen dieser Wallet signiert werden.",
+      "mnemonicBackupDesc": "Zeige die Wiederherstellungsphrase dieser Wallet an und sichere sie.",
       "changeSpendingPassword": "Ausgabepasswort ändern",
       "changeSpendingPasswordDesc": "Gib dein aktuelles Ausgabepasswort ein und wähle ein neues.",
       "currentPassword": "Aktuelles Passwort",

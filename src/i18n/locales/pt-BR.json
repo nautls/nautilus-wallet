@@ -31,7 +31,8 @@
     "authenticate": "Autenticar",
     "buyErg": "Comprar ERG",
     "showMore": "Mostrar mais",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "backup": "Fazer backup"
   },
   "datetime": {
     "now": "agora mesmo",
@@ -269,6 +270,13 @@
       "sidePanelViewMode": "painel lateral",
       "successDesc": "Seu dispositivo Ledger foi conectado com sucesso. Agora você pode abrir a Nautilus Wallet no {viewMode} do navegador.",
       "openInViewMode": "Abrir o Nautilus no {viewMode}"
+    },
+    "backup": {
+      "title": "Backup da frase mnemônica",
+      "passwordStepDesc": "Digite sua senha de gastos para revelar a frase de recuperação desta carteira.",
+      "showRecoveryPhrase": "Mostrar frase de recuperação",
+      "success": "Backup da frase de recuperação concluído",
+      "failed": "Falha ao obter a frase de recuperação"
     }
   },
   "settings": {
@@ -318,6 +326,7 @@
       "avoidAddressReuseDesc": "Ative esta opção para evitar que o mesmo endereço seja usado em várias transações. Isso ajuda a proteger sua privacidade.",
       "xPubKeyDesc": "Use esta opção para exportar a Chave Pública Estendida da sua carteira.",
       "spendingPasswordDesc": "Altere a senha usada para assinar transações com esta carteira.",
+      "mnemonicBackupDesc": "Revele e faça backup da frase de recuperação desta carteira.",
       "changeSpendingPassword": "Alterar senha de gastos",
       "changeSpendingPasswordDesc": "Digite sua senha de gastos atual e escolha uma nova.",
       "currentPassword": "Senha atual",

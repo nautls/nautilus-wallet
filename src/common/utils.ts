@@ -18,4 +18,22 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/*
+ * Generates an array of n unique random integers between start and end (inclusive).
+ * Note: This function is not cryptographically secure and should not be used for security-sensitive applications.
+ */
+export function unsafeDistinctRand(n: number, start: number, end: number): number[] {
+  if (n > end - start + 1) {
+    throw new Error("Cannot generate more unique numbers than the range allows");
+  }
+
+  const numbers = new Set<number>();
+  while (numbers.size < n) {
+    const num = Math.floor(Math.random() * (end - start + 1)) + start;
+    numbers.add(num);
+  }
+
+  return Array.from(numbers);
+}
+
 export { cn } from "cn";

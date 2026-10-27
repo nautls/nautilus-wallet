@@ -31,7 +31,8 @@
     "authenticate": "Otentikasi",
     "buyErg": "Beli ERG",
     "showMore": "Tampilkan lebih banyak",
-    "showLess": "Tampilkan lebih sedikit"
+    "showLess": "Tampilkan lebih sedikit",
+    "backup": "Cadangkan"
   },
   "datetime": {
     "now": "baru saja",
@@ -270,6 +271,13 @@
       "sidePanelViewMode": "panel samping",
       "successDesc": "Perangkat Ledger milik Anda telah berhasil terhubung. Anda sekarang dapat membuka Dompet Nautilus di {viewMode} peramban.",
       "openInViewMode": "Buka Nautilus di {viewMode}"
+    },
+    "backup": {
+      "title": "Cadangan mnemonik",
+      "passwordStepDesc": "Masukkan kata sandi pembelanjaan Anda untuk menampilkan frasa pemulihan dompet ini.",
+      "showRecoveryPhrase": "Tampilkan frasa pemulihan",
+      "success": "Frasa pemulihan telah dicadangkan",
+      "failed": "Gagal mengambil frasa pemulihan"
     }
   },
   "settings": {
@@ -319,6 +327,7 @@
       "avoidAddressReuseDesc": "Aktifkan opsi ini untuk mencegah alamat yang sama digunakan untuk beberapa transaksi. Ini membantu melindungi privasi Anda.",
       "xPubKeyDesc": "Gunakan opsi ini untuk mengekspor Kunci Publik yang Diperluas dari dompet milik Anda.",
       "spendingPasswordDesc": "Ubah kata sandi yang digunakan untuk menandatangani transaksi dengan dompet ini.",
+      "mnemonicBackupDesc": "Tampilkan dan cadangkan frasa pemulihan dompet ini.",
       "changeSpendingPassword": "Ubah kata sandi pengeluaran",
       "changeSpendingPasswordDesc": "Masukkan kata sandi pengeluaran saat ini dan pilih yang baru.",
       "currentPassword": "Kata sandi saat ini",
