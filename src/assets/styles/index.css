@@ -33,10 +33,12 @@
     --input: 220 13% 91%;
     --ring: 224 71.4% 4.1%;
     --radius: 0.75rem;
+
+    --background-dark: 224 71.4% 4.1%;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
+    --background: var(--background-dark);
     --foreground: 210 20% 98%;
 
     --card: 224 71.4% 4.1%;
@@ -92,6 +94,13 @@
 
   body {
     @apply bg-background text-foreground h-full cursor-default overflow-hidden !font-sans leading-normal tracking-wide antialiased;
+  }
+
+  /* avoids a light flash before the app applies its color mode */
+  @media (prefers-color-scheme: dark) {
+    html:not(.light) body {
+      background-color: hsl(var(--background-dark));
+    }
   }
 
   button:not(:disabled),
