@@ -260,7 +260,7 @@ test.describe("settings", () => {
       await page.getByRole("button", { name: "Back up" }).click();
 
       const drawer = page.getByRole("dialog");
-      await expect(drawer).toContainText("Mnemonic backup");
+      await expect(drawer).toContainText("Recovery phrase backup");
 
       // requires the spending password
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();

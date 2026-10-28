@@ -222,7 +222,10 @@
       "demurrage": "Vous pourriez bientôt encourir des frais de dépréciation",
       "demurrageDesc": "Les UTxO contenant des jetons doivent avoir suffisamment d'ERG pour couvrir les frais de dépréciation, sinon vous risquez de les perdre. Consolidez vos actifs pour éviter cela.",
       "fragmentation": "Votre portefeuille semble fragmenté",
-      "fragmentationDesc": "Envisagez d'optimiser votre portefeuille pour améliorer les performances et l'efficacité."
+      "fragmentationDesc": "Envisagez d'optimiser votre portefeuille pour améliorer les performances et l'efficacité.",
+      "backup": "Votre portefeuille n'est pas sauvegardé",
+      "backupDesc": "Sauvegardez dès maintenant votre phrase de récupération. C'est le seul moyen de restaurer votre portefeuille si vous perdez l'accès à cet appareil.",
+      "backupNow": "Sauvegarder maintenant"
     },
     "index": {
       "title": "Bienvenue dans le portefeuille Nautilus",
@@ -236,7 +239,7 @@
       "importDesc": "Importer un portefeuille existant"
     },
     "create": {
-      "createRecoveryPhrase": "Créer une phrase de récupération",
+      "backUpRecoveryPhrase": "Sauvegarder la phrase de récupération",
       "iHaveSavedTheseWords": "J'ai conservé ma phrase en lieu sûr",
       "recoveryPhraseDoNotMatch": "La phrase de récupération ne correspond pas à l'originale.",
       "walletCreationError": "Échec de la création du portefeuille",
@@ -244,7 +247,8 @@
       "secretStepDesc": "Ces mots sont les clés de votre portefeuille. Assurez-vous de les sauvegarder dans un endroit sécurisé.",
       "secretConfirmStep": "Confirmez votre phrase de récupération",
       "secretConfirmStepDesc": "Complétez les parties manquantes de votre phrase de récupération.",
-      "creating": "Création de votre portefeuille..."
+      "creating": "Création de votre portefeuille...",
+      "skipBackup": "Ignorer"
     },
     "import": {
       "insertPubKey": "Insérez une clé publique",
@@ -272,11 +276,12 @@
       "openInViewMode": "Ouvrir Nautilus dans le {viewMode}"
     },
     "backup": {
-      "title": "Sauvegarde de la phrase mnémonique",
+      "title": "Sauvegarde de la phrase de récupération",
       "passwordStepDesc": "Saisissez votre mot de passe de dépense pour afficher la phrase de récupération de ce portefeuille.",
       "showRecoveryPhrase": "Afficher la phrase de récupération",
       "success": "Phrase de récupération sauvegardée",
-      "failed": "Impossible de récupérer la phrase de récupération"
+      "failed": "Impossible de récupérer la phrase de récupération",
+      "saveFailed": "Impossible d'enregistrer l'état de la sauvegarde"
     }
   },
   "settings": {

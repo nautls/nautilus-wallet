@@ -5,6 +5,8 @@ import { useRouter } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { MnemonicBackupDialog } from "@/components/wallet";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
 
 const STORAGE_RENT_URL = "https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/";
@@ -12,6 +14,8 @@ const STORAGE_RENT_URL = "https://ergoplatform.org/en/blog/2022-02-18-ergo-expla
 const wallet = useWalletStore();
 const router = useRouter();
 const { t } = useI18n();
+
+const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
 
@@ -21,6 +25,18 @@ function openUrl(url: string) {
 </script>
 
 <template>
+  <Alert v-if="wallet.needsBackup" variant="destructive-outline">
+    <AlertTitle>{{ t("wallet.alerts.backup") }}</AlertTitle>
+
+    <AlertDescription class="hyphens-auto">
+      {{ t("wallet.alerts.backupDesc") }}
+    </AlertDescription>
+
+    <Button class="mt-4 w-full" @click="openMnemonicBackupDialog">{{
+      t("wallet.alerts.backupNow")
+    }}</Button>
+  </Alert>
+
   <Alert v-if="wallet.health.hasOldUtxos" variant="destructive">
     <AlertTitle>{{ t("wallet.alerts.demurrage") }}</AlertTitle>
 

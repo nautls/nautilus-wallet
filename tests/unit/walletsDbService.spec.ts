@@ -103,7 +103,10 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
 }
 
 /** A legacy wallet as stored in extension storage once migrated. */
-const migrated = (wallet: ILegacyDbWallet) => omit(wallet, ["mnemonic", "lastSynced"]);
+const migrated = (wallet: ILegacyDbWallet) => ({
+  ...omit(wallet, ["mnemonic", "lastSynced"]),
+  needsBackup: false
+});
 
 /** Loads fresh modules, migrating first, as the extension does on startup. */
 async function freshService({ migrate = true } = {}) {
@@ -352,7 +355,7 @@ describe("walletsDbService", () => {
     legacyWallets.set(3, legacyWallet(3));
     const service = await freshService();
 
-    const wallet = { ...legacyWallet(10), id: undefined };
+    const wallet = { ...migrated(legacyWallet(10)), id: undefined };
     expect(await service.put(wallet)).toBe(4);
     expect(await service.put({ ...wallet, name: "again" })).toBe(4);
     expect((await service.getAll()).map((w) => [w.id, w.name])).toEqual([
@@ -364,7 +367,7 @@ describe("walletsDbService", () => {
   it("allocates distinct ids for concurrent puts", async () => {
     const service = await freshService();
     const ids = await Promise.all(
-      [1, 2, 3].map((i) => service.put({ ...legacyWallet(i), id: undefined }))
+      [1, 2, 3].map((i) => service.put({ ...migrated(legacyWallet(i)), id: undefined }))
     );
 
     expect(new Set(ids).size).toBe(3);

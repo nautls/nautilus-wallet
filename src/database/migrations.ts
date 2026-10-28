@@ -46,7 +46,7 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
     const id = wallet.id!;
     if (existing[walletKey(id)]) continue;
 
-    items[walletKey(id)] = { ...omit(wallet, ["mnemonic", "lastSynced"]), id };
+    items[walletKey(id)] = { ...omit(wallet, ["mnemonic", "lastSynced"]), id, needsBackup: false };
     if (wallet.mnemonic) items[secretKey(id)] = fromLegacyCiphertext(wallet.mnemonic);
   }
 

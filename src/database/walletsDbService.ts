@@ -7,6 +7,7 @@ import { WalletSettings } from "@/types/internal";
 export type WalletPatch = {
   name?: string;
   settings?: WalletSettings;
+  needsBackup?: boolean;
 };
 
 export type PlainSecret = {

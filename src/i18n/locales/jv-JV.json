@@ -223,7 +223,10 @@
       "demurrage": "Panjenengan saged enggal kena biaya demurrage",
       "demurrageDesc": "UTxO ingkang nyepeng token kedah gadhah ERG ingkang cekap kangge nutupi biaya demurrage, utawi panjenengan resiko ical. Konsolidasi aset panjenengan kangge ngindhari punika.",
       "fragmentation": "Dompet panjenengan katingal pecah-pecah",
-      "fragmentationDesc": "Coba optimalaken dompet panjenengan kangge kinerja lan efisiensi ingkang langkung sae."
+      "fragmentationDesc": "Coba optimalaken dompet panjenengan kangge kinerja lan efisiensi ingkang langkung sae.",
+      "backup": "Dompet sampeyan durung digawe serep",
+      "backupDesc": "Gawe serep frasa pemulihan sampeyan saiki. Iki siji-sijine cara kanggo mulihake dompet sampeyan yen sampeyan kelangan akses menyang piranti iki.",
+      "backupNow": "Gawe serep saiki"
     },
     "index": {
       "title": "Sugeng rawuh ing Nautilus Wallet",
@@ -237,7 +240,7 @@
       "importDesc": "Impor dompet ingkang sampun wonten"
     },
     "create": {
-      "createRecoveryPhrase": "Nggawe frasa pemulihan",
+      "backUpRecoveryPhrase": "Gawe serep frasa pemulihan",
       "iHaveSavedTheseWords": "Kula nyimpen frasa kanthi aman",
       "recoveryPhraseDoNotMatch": "Frasa pemulihan mboten sami kaliyan aslinipun.",
       "walletCreationError": "Nggawe dompet gagal",
@@ -245,7 +248,8 @@
       "secretStepDesc": "Tembung-tembung punika minangka kunci dhateng dompet panjenengan. Priksa manawi panjenengan nyimpen ing papan ingkang aman.",
       "secretConfirmStep": "Konfirmasi frasa pemulihan panjenengan",
       "secretConfirmStepDesc": "Lengkapi bagean ingkang ical saking frasa pemulihan panjenengan.",
-      "creating": "Nggawe dompet panjenengan..."
+      "creating": "Nggawe dompet panjenengan...",
+      "skipBackup": "Lewati"
     },
     "import": {
       "insertPubKey": "Lebetaken kunci publik",
@@ -273,11 +277,12 @@
       "openInViewMode": "Buka Nautilus ing {viewMode}"
     },
     "backup": {
-      "title": "Serep mnemonik",
+      "title": "Serep frasa pemulihan",
       "passwordStepDesc": "Lebokna sandi belanja panjenengan kanggo nampilake frasa pemulihan dompet iki.",
       "showRecoveryPhrase": "Tampilake frasa pemulihan",
       "success": "Frasa pemulihan wis diserep",
-      "failed": "Gagal njupuk frasa pemulihan"
+      "failed": "Gagal njupuk frasa pemulihan",
+      "saveFailed": "Gagal nyimpen status serep"
     }
   },
   "settings": {

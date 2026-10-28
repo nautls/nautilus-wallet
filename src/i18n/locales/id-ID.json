@@ -223,7 +223,10 @@
       "demurrage": "Anda mungkin akan segera dikenakan biaya demurrage",
       "demurrageDesc": "UTxO yang memegang token harus memiliki ERG yang cukup untuk menutupi biaya demurrage, atau Anda berisiko kehilangannya. Konsolidasikan aset Anda untuk menghindari hal ini.",
       "fragmentation": "Dompet Anda tampak terfragmentasi",
-      "fragmentationDesc": "Pertimbangkan untuk mengoptimalkan dompet milik Anda demi peningkatan kinerja dan efisiensi."
+      "fragmentationDesc": "Pertimbangkan untuk mengoptimalkan dompet milik Anda demi peningkatan kinerja dan efisiensi.",
+      "backup": "Dompet Anda belum dicadangkan",
+      "backupDesc": "Cadangkan frasa pemulihan Anda sekarang. Ini satu-satunya cara untuk memulihkan dompet Anda jika Anda kehilangan akses ke perangkat ini.",
+      "backupNow": "Cadangkan sekarang"
     },
     "index": {
       "title": "Selamat datang di Dompet Nautilus",
@@ -237,7 +240,7 @@
       "importDesc": "Impor dompet yang sudah ada"
     },
     "create": {
-      "createRecoveryPhrase": "Buat frasa pemulihan",
+      "backUpRecoveryPhrase": "Cadangkan frasa pemulihan",
       "iHaveSavedTheseWords": "Saya menyimpan frasa dengan aman",
       "recoveryPhraseDoNotMatch": "Frasa pemulihan tidak cocok dengan yang asli.",
       "walletCreationError": "Gagal dalam membuat dompet",
@@ -245,7 +248,8 @@
       "secretStepDesc": "Kata-kata ini adalah kunci dompet Anda. Pastikan Anda menyimpannya di lokasi yang aman.",
       "secretConfirmStep": "Konfirmasikan frasa pemulihan Anda",
       "secretConfirmStepDesc": "Lengkapi bagian yang hilang dari frasa pemulihan milik Anda.",
-      "creating": "Membuat dompet milik Anda..."
+      "creating": "Membuat dompet milik Anda...",
+      "skipBackup": "Lewati"
     },
     "import": {
       "insertPubKey": "Masukkan kunci publik",
@@ -273,11 +277,12 @@
       "openInViewMode": "Buka Nautilus di {viewMode}"
     },
     "backup": {
-      "title": "Cadangan mnemonik",
+      "title": "Cadangan frasa pemulihan",
       "passwordStepDesc": "Masukkan kata sandi pembelanjaan Anda untuk menampilkan frasa pemulihan dompet ini.",
       "showRecoveryPhrase": "Tampilkan frasa pemulihan",
       "success": "Frasa pemulihan telah dicadangkan",
-      "failed": "Gagal mengambil frasa pemulihan"
+      "failed": "Gagal mengambil frasa pemulihan",
+      "saveFailed": "Gagal menyimpan status pencadangan"
     }
   },
   "settings": {

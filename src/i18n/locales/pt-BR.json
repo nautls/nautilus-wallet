@@ -222,7 +222,10 @@
       "demurrage": "Você está prestes a ser cobrado por sobrestadia",
       "demurrageDesc": "UTxOs com tokens devem conter ERG suficiente para cobrir a taxa de sobrestadia, ou você corre o risco de perdê-los. Consolide seus ativos para evitar isso.",
       "fragmentation": "Sua carteira parece fragmentada",
-      "fragmentationDesc": "Considere otimizar sua carteira para melhorar o desempenho e a eficiência."
+      "fragmentationDesc": "Considere otimizar sua carteira para melhorar o desempenho e a eficiência.",
+      "backup": "Sua carteira não tem backup",
+      "backupDesc": "Faça o backup da sua frase de recuperação agora. É a única forma de restaurar sua carteira se você perder o acesso a este dispositivo.",
+      "backupNow": "Fazer backup agora"
     },
     "index": {
       "title": "Bem-vindo à Nautilus Wallet",
@@ -236,7 +239,7 @@
       "importDesc": "Importe uma carteira existente"
     },
     "create": {
-      "createRecoveryPhrase": "Criar frase de recuperação",
+      "backUpRecoveryPhrase": "Fazer backup da frase de recuperação",
       "iHaveSavedTheseWords": "Guardei minha frase em local seguro",
       "recoveryPhraseDoNotMatch": "A frase de recuperação não corresponde à original.",
       "walletCreationError": "Falha na criação da carteira",
@@ -244,7 +247,8 @@
       "secretStepDesc": "Essas palavras são as chaves da sua carteira. Certifique-se de salvá-las em um local seguro.",
       "secretConfirmStep": "Confirme sua frase de recuperação",
       "secretConfirmStepDesc": "Complete as partes faltantes da sua frase de recuperação.",
-      "creating": "Criando sua carteira..."
+      "creating": "Criando sua carteira...",
+      "skipBackup": "Pular"
     },
     "import": {
       "insertPubKey": "Insira uma chave pública",
@@ -272,11 +276,12 @@
       "openInViewMode": "Abrir o Nautilus no {viewMode}"
     },
     "backup": {
-      "title": "Backup da frase mnemônica",
+      "title": "Backup da frase de recuperação",
       "passwordStepDesc": "Digite sua senha de gastos para revelar a frase de recuperação desta carteira.",
       "showRecoveryPhrase": "Mostrar frase de recuperação",
       "success": "Backup da frase de recuperação concluído",
-      "failed": "Falha ao obter a frase de recuperação"
+      "failed": "Falha ao obter a frase de recuperação",
+      "saveFailed": "Falha ao salvar o status do backup"
     }
   },
   "settings": {

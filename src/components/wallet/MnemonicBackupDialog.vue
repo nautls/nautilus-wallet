@@ -4,6 +4,7 @@ import { useRegle } from "@regle/core";
 import { required, sameAs, withMessage } from "@regle/rules";
 import { Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
+import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -25,6 +26,7 @@ import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
 import { walletsDbService } from "@/database/walletsDbService";
 import Mnemonic from "./Mnemonic.vue";
 
+const app = useAppStore();
 const wallet = useWalletStore();
 const { toast } = useToast();
 const { t } = useI18n();
@@ -95,8 +97,25 @@ async function next() {
     const { valid } = await verificationRules.$validate();
     if (!valid) return;
 
+    await markAsBackedUp();
+  }
+}
+
+async function markAsBackedUp() {
+  try {
+    loading.value = true;
+    await app.updateWallet(walletId.value, { needsBackup: false });
     toast({ title: t("wallet.backup.success") });
     setOpened(false);
+  } catch (e) {
+    log.error(e);
+    toast({
+      title: t("wallet.backup.saveFailed"),
+      variant: "destructive",
+      description: extractErrorMessage(e)
+    });
+  } finally {
+    loading.value = false;
   }
 }
 

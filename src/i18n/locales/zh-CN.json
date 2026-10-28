@@ -222,7 +222,10 @@
       "demurrage": "您可能很快会产生滞纳费用",
       "demurrageDesc": "持有代币的 UTxO 必须有足够的 ERG 来支付滞纳费用，否则您有可能失去它们。合并您的资产以避免此问题。",
       "fragmentation": "您的钱包看起来很分散",
-      "fragmentationDesc": "考虑优化钱包以提高性能和效率。"
+      "fragmentationDesc": "考虑优化钱包以提高性能和效率。",
+      "backup": "您的钱包尚未备份",
+      "backupDesc": "请立即备份您的恢复短语。如果您无法访问此设备，这是恢复钱包的唯一方法。",
+      "backupNow": "立即备份"
     },
     "index": {
       "title": "欢迎使用 Nautilus 钱包",
@@ -236,7 +239,7 @@
       "importDesc": "导入现有钱包"
     },
     "create": {
-      "createRecoveryPhrase": "创建恢复短语",
+      "backUpRecoveryPhrase": "备份恢复短语",
       "iHaveSavedTheseWords": "我已妥善保存恢复短语",
       "recoveryPhraseDoNotMatch": "恢复短语与原始短语不匹配。",
       "walletCreationError": "钱包创建失败",
@@ -244,7 +247,8 @@
       "secretStepDesc": "这些单词是您的钱包密钥。请确保将它们保存在安全的地方。",
       "secretConfirmStep": "确认您的恢复短语",
       "secretConfirmStepDesc": "完成恢复短语的缺失部分。",
-      "creating": "正在创建您的钱包..."
+      "creating": "正在创建您的钱包...",
+      "skipBackup": "跳过"
     },
     "import": {
       "insertPubKey": "输入公钥",
@@ -272,11 +276,12 @@
       "openInViewMode": "在 {viewMode} 中打开 Nautilus"
     },
     "backup": {
-      "title": "助记词备份",
+      "title": "恢复短语备份",
       "passwordStepDesc": "输入您的支付密码以显示此钱包的恢复短语。",
       "showRecoveryPhrase": "显示恢复短语",
       "success": "恢复短语已备份",
-      "failed": "无法获取恢复短语"
+      "failed": "无法获取恢复短语",
+      "saveFailed": "无法保存备份状态"
     }
   },
   "settings": {

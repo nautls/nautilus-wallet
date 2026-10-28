@@ -222,7 +222,10 @@
       "demurrage": "Bald kann Demurrage anfallen",
       "demurrageDesc": "UTxOs mit Token müssen genügend ERG enthalten, um die Demurrage-Gebühr zu decken, sonst riskierst du, sie zu verlieren. Konsolidiere deine Assets, um das zu vermeiden.",
       "fragmentation": "Deine Wallet wirkt fragmentiert",
-      "fragmentationDesc": "Erwäge, deine Wallet zu optimieren, um Leistung und Effizienz zu verbessern."
+      "fragmentationDesc": "Erwäge, deine Wallet zu optimieren, um Leistung und Effizienz zu verbessern.",
+      "backup": "Deine Wallet ist nicht gesichert",
+      "backupDesc": "Sichere jetzt deine Wiederherstellungsphrase. Nur so kannst du deine Wallet wiederherstellen, wenn du den Zugriff auf dieses Gerät verlierst.",
+      "backupNow": "Jetzt sichern"
     },
     "index": {
       "title": "Willkommen bei der Nautilus-Wallet",
@@ -236,7 +239,7 @@
       "importDesc": "Eine bestehende Wallet importieren"
     },
     "create": {
-      "createRecoveryPhrase": "Wiederherstellungsphrase erstellen",
+      "backUpRecoveryPhrase": "Wiederherstellungsphrase sichern",
       "iHaveSavedTheseWords": "Ich habe die Phrase sicher aufbewahrt",
       "recoveryPhraseDoNotMatch": "Die Wiederherstellungsphrase stimmt nicht mit der ursprünglichen überein.",
       "walletCreationError": "Wallet-Erstellung fehlgeschlagen",
@@ -244,7 +247,8 @@
       "secretStepDesc": "Diese Wörter sind die Schlüssel zu deiner Wallet. Bewahre sie sicher auf.",
       "secretConfirmStep": "Wiederherstellungsphrase bestätigen",
       "secretConfirmStepDesc": "Vervollständige die fehlenden Teile deiner Wiederherstellungsphrase.",
-      "creating": "Deine Wallet wird erstellt..."
+      "creating": "Deine Wallet wird erstellt...",
+      "skipBackup": "Überspringen"
     },
     "import": {
       "insertPubKey": "Öffentlichen Schlüssel eingeben",
@@ -272,11 +276,12 @@
       "openInViewMode": "Nautilus im {viewMode} öffnen"
     },
     "backup": {
-      "title": "Mnemonic-Sicherung",
+      "title": "Sicherung der Wiederherstellungsphrase",
       "passwordStepDesc": "Gib dein Ausgabepasswort ein, um die Wiederherstellungsphrase dieser Wallet anzuzeigen.",
       "showRecoveryPhrase": "Wiederherstellungsphrase anzeigen",
       "success": "Wiederherstellungsphrase gesichert",
-      "failed": "Wiederherstellungsphrase konnte nicht abgerufen werden"
+      "failed": "Wiederherstellungsphrase konnte nicht abgerufen werden",
+      "saveFailed": "Sicherungsstatus konnte nicht gespeichert werden"
     }
   },
   "settings": {
