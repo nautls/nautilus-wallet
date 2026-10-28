@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DrawerTitleProps } from 'vaul-vue'
+import type { DrawerTitleProps } from 'reka-ui'
 import { cn } from '@/common/utils'
-import { DrawerTitle } from 'vaul-vue'
+import { DrawerTitle } from 'reka-ui'
 import { computed, type HtmlHTMLAttributes } from 'vue'
 
 const props = defineProps<DrawerTitleProps & { class?: HtmlHTMLAttributes['class'] }>()
