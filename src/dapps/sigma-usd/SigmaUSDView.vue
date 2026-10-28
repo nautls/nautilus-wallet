@@ -683,7 +683,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
         </AccordionItem>
       </Accordion>
 
-      <Alert variant="destructive" class="space-x-2" v-if="errors.length">
+      <Alert variant="destructive" v-if="errors.length">
         <AlertDescription class="text-xs">
           <ul :class="errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
             <li v-for="(message, i) in errors" :key="i">{{ message }}</li>

@@ -189,7 +189,7 @@ function refuse() {
     </Card>
 
     <div class="flex flex-col gap-4">
-      <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+      <Alert v-if="isReadonly || isLedger" variant="destructive">
         <AlertCircleIcon class="size-5" />
         <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
         <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
