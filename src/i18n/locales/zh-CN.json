@@ -31,7 +31,8 @@
     "authenticate": "认证",
     "buyErg": "购买 ERG",
     "showMore": "显示更多",
-    "showLess": "收起"
+    "showLess": "收起",
+    "backup": "备份"
   },
   "datetime": {
     "now": "刚刚",
@@ -236,7 +237,7 @@
     },
     "create": {
       "createRecoveryPhrase": "创建恢复短语",
-      "iHaveSavedTheseWords": "我已保存这些单词",
+      "iHaveSavedTheseWords": "我已妥善保存恢复短语",
       "recoveryPhraseDoNotMatch": "恢复短语与原始短语不匹配。",
       "walletCreationError": "钱包创建失败",
       "secretStep": "恢复短语",
@@ -269,6 +270,13 @@
       "sidePanelViewMode": "侧面板视图",
       "successDesc": "您的 Ledger 设备已成功连接。您现在可以在浏览器的 {viewMode} 中打开 Nautilus 钱包。",
       "openInViewMode": "在 {viewMode} 中打开 Nautilus"
+    },
+    "backup": {
+      "title": "助记词备份",
+      "passwordStepDesc": "输入您的支付密码以显示此钱包的恢复短语。",
+      "showRecoveryPhrase": "显示恢复短语",
+      "success": "恢复短语已备份",
+      "failed": "无法获取恢复短语"
     }
   },
   "settings": {
@@ -318,6 +326,7 @@
       "avoidAddressReuseDesc": "启用此选项以防止同一地址用于多笔交易。这有助于保护您的隐私。",
       "xPubKeyDesc": "使用此选项导出您的钱包扩展公钥。",
       "spendingPasswordDesc": "更改用于签署此钱包交易的密码。",
+      "mnemonicBackupDesc": "显示并备份此钱包的恢复短语。",
       "changeSpendingPassword": "更改支付密码",
       "changeSpendingPasswordDesc": "输入当前支付密码并设置新密码。",
       "currentPassword": "当前密码",

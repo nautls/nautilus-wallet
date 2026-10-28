@@ -121,13 +121,13 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
       <LedgerDevice ref="ledger-device" />
 
-      <DrawerFooter class="flex flex-row gap-4" v-once>
+      <DrawerFooter class="flex-row gap-4" v-once>
         <DrawerClose as-child>
-          <Button class="w-full" variant="outline" :disabled="loading">{{
+          <Button class="flex-1" variant="outline" :disabled="loading">{{
             t("common.close")
           }}</Button>
         </DrawerClose>
-        <Button class="w-full" type="submit" :disabled="loading" @click="verify">{{
+        <Button class="flex-2" type="submit" :disabled="loading" @click="verify">{{
           t("common.verify")
         }}</Button>
       </DrawerFooter>

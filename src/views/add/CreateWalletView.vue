@@ -18,7 +18,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
 import { log } from "@/common/logger";
-import { extractErrorMessage } from "@/common/utils";
+import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import { WalletType } from "@/types/internal";
 import { Step, Stepper, StepTitle } from "./components";
@@ -95,7 +95,7 @@ watch(step, () => {
   if (step.value !== 3) return;
 
   const confirm = [...mnemonicWords.value];
-  const editable = generateUniqueRandomNumbers(3, 0, confirm.length - 1);
+  const editable = unsafeDistinctRand(3, 0, confirm.length - 1);
   // Clear 3 random words
   for (const index of editable) {
     confirm[index] = "";
@@ -105,20 +105,6 @@ watch(step, () => {
   editableIndexes.value = editable;
   verificationRules.$reset();
 });
-
-function generateUniqueRandomNumbers(n: number, start: number, end: number): number[] {
-  if (n > end - start + 1) {
-    throw new Error("Cannot generate more unique numbers than the range allows");
-  }
-
-  const numbers = new Set<number>();
-  while (numbers.size < n) {
-    const num = Math.floor(Math.random() * (end - start + 1)) + start;
-    numbers.add(num);
-  }
-
-  return Array.from(numbers);
-}
 
 async function next() {
   if (step.value === 1) {
@@ -265,7 +251,11 @@ const steps: Step[] = [
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button :disabled="loading" class="w-full items-center" @click="next">
+      <Button
+        :disabled="loading"
+        class="h-auto min-h-9 w-full items-center text-center whitespace-normal"
+        @click="next"
+      >
         <template v-if="loading"
           ><Loader2Icon class="animate-spin" />{{ t("wallet.create.creating") }}</template
         >

@@ -31,7 +31,8 @@
     "authenticate": "Authenticate",
     "buyErg": "Buy ERG",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "backup": "Back up"
   },
   "datetime": {
     "now": "just now",
@@ -237,7 +238,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Create a recovery phrase",
-      "iHaveSavedTheseWords": "I've saved these words",
+      "iHaveSavedTheseWords": "I've stored my recovery phrase safely",
       "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
       "walletCreationError": "Wallet creation failed",
       "secretStep": "Recovery phrase",
@@ -270,6 +271,13 @@
       "sidePanelViewMode": "side panel",
       "successDesc": "Your Ledger device has been successfully connected. You can now open Nautilus Wallet in the browser's {viewMode}.",
       "openInViewMode": "Open Nautilus in the {viewMode}"
+    },
+    "backup": {
+      "title": "Mnemonic backup",
+      "passwordStepDesc": "Enter your spending password to reveal the recovery phrase of this wallet.",
+      "showRecoveryPhrase": "Show recovery phrase",
+      "success": "Recovery phrase backed up",
+      "failed": "Failed to retrieve the recovery phrase"
     }
   },
   "settings": {
@@ -319,6 +327,7 @@
       "avoidAddressReuseDesc": "Enable this option to prevent the same address from being used for multiple transactions. This helps protect your privacy.",
       "xPubKeyDesc": "Use this option to export the Extended Public Key of your wallet.",
       "spendingPasswordDesc": "Change the password used to sign transactions with this wallet.",
+      "mnemonicBackupDesc": "Reveal and back up the recovery phrase of this wallet.",
       "changeSpendingPassword": "Change spending password",
       "changeSpendingPasswordDesc": "Enter your current spending password and choose a new one.",
       "currentPassword": "Current password",

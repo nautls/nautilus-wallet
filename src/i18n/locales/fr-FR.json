@@ -31,7 +31,8 @@
     "authenticate": "Authentifier",
     "buyErg": "Acheter ERG",
     "showMore": "Afficher plus",
-    "showLess": "Afficher moins"
+    "showLess": "Afficher moins",
+    "backup": "Sauvegarder"
   },
   "datetime": {
     "now": "à l'instant",
@@ -236,7 +237,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Créer une phrase de récupération",
-      "iHaveSavedTheseWords": "J'ai sauvegardé ces mots",
+      "iHaveSavedTheseWords": "J'ai conservé ma phrase en lieu sûr",
       "recoveryPhraseDoNotMatch": "La phrase de récupération ne correspond pas à l'originale.",
       "walletCreationError": "Échec de la création du portefeuille",
       "secretStep": "Phrase de récupération",
@@ -269,6 +270,13 @@
       "sidePanelViewMode": "panneau latéral",
       "successDesc": "Votre appareil Ledger a été connecté avec succès. Vous pouvez maintenant ouvrir le portefeuille Nautilus dans le {viewMode} du navigateur.",
       "openInViewMode": "Ouvrir Nautilus dans le {viewMode}"
+    },
+    "backup": {
+      "title": "Sauvegarde de la phrase mnémonique",
+      "passwordStepDesc": "Saisissez votre mot de passe de dépense pour afficher la phrase de récupération de ce portefeuille.",
+      "showRecoveryPhrase": "Afficher la phrase de récupération",
+      "success": "Phrase de récupération sauvegardée",
+      "failed": "Impossible de récupérer la phrase de récupération"
     }
   },
   "settings": {
@@ -318,6 +326,7 @@
       "avoidAddressReuseDesc": "Activez cette option pour empêcher la réutilisation de la même adresse pour plusieurs transactions. Cela aide à protéger votre vie privée.",
       "xPubKeyDesc": "Utilisez cette option pour exporter la clé publique étendue de votre portefeuille.",
       "spendingPasswordDesc": "Modifiez le mot de passe utilisé pour signer les transactions avec ce portefeuille.",
+      "mnemonicBackupDesc": "Affichez et sauvegardez la phrase de récupération de ce portefeuille.",
       "changeSpendingPassword": "Modifier le mot de passe de dépense",
       "changeSpendingPasswordDesc": "Saisissez votre mot de passe de dépense actuel et choisissez-en un nouveau.",
       "currentPassword": "Mot de passe actuel",

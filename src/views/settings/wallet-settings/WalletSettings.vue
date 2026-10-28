@@ -20,6 +20,7 @@ import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { MnemonicBackupDialog } from "@/components/wallet";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { WalletType } from "@/types/internal";
 import ChangePasswordDialog from "./ChangePasswordDialog.vue";
@@ -31,6 +32,7 @@ const { t } = useI18n();
 
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
 const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
+const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const isStandard = computed(() => wallet.type === WalletType.Standard);
 
@@ -97,6 +99,18 @@ const { r$ } = useRegle(
           t("common.change")
         }}</Button>
       </div>
+
+      <div v-if="isStandard" class="flex items-center justify-between gap-4">
+        <Label class="flex flex-col gap-1"
+          >{{ t("wallet.backup.title") }}
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+            {{ t("settings.wallet.mnemonicBackupDesc") }}
+          </div></Label
+        >
+        <Button variant="outline" @click="openMnemonicBackupDialog">{{
+          t("common.backup")
+        }}</Button>
+      </div>
     </Card>
 
     <Card class="bg-destructive/15 flex flex-col gap-4 p-6">
@@ -119,12 +133,12 @@ const { r$ } = useRegle(
             <div v-once>
               {{ t("settings.wallet.walletRemoveConfirmationDesc") }}
             </div>
-            <DrawerFooter>
-              <DrawerClose>
-                <Button variant="outline" class="w-full">{{ t("common.cancel") }}</Button>
+            <DrawerFooter class="flex-row gap-4">
+              <DrawerClose as-child>
+                <Button variant="outline" class="flex-1">{{ t("common.cancel") }}</Button>
               </DrawerClose>
-              <DrawerClose>
-                <Button variant="destructive" class="w-full" @click="app.deleteWallet(wallet.id)">{{
+              <DrawerClose as-child>
+                <Button variant="destructive" class="flex-2" @click="app.deleteWallet(wallet.id)">{{
                   t("common.remove")
                 }}</Button>
               </DrawerClose>

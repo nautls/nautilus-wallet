@@ -31,7 +31,8 @@
     "authenticate": "Otentikasi",
     "buyErg": "Tumbas ERG",
     "showMore": "Tampilake luwih akeh",
-    "showLess": "Tampilake luwih sithik"
+    "showLess": "Tampilake luwih sithik",
+    "backup": "Serep"
   },
   "datetime": {
     "now": "nembe wae",
@@ -237,7 +238,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Nggawe frasa pemulihan",
-      "iHaveSavedTheseWords": "Kula sampun nyimpen tembung-tembung punika",
+      "iHaveSavedTheseWords": "Kula nyimpen frasa kanthi aman",
       "recoveryPhraseDoNotMatch": "Frasa pemulihan mboten sami kaliyan aslinipun.",
       "walletCreationError": "Nggawe dompet gagal",
       "secretStep": "Frasa pemulihan",
@@ -270,6 +271,13 @@
       "sidePanelViewMode": "panel sisih",
       "successDesc": "Piranti Ledger panjenengan sampun kasil kasambung. Panjenengan saged mbukak Nautilus Wallet ing {viewMode} peramban.",
       "openInViewMode": "Buka Nautilus ing {viewMode}"
+    },
+    "backup": {
+      "title": "Serep mnemonik",
+      "passwordStepDesc": "Lebokna sandi belanja panjenengan kanggo nampilake frasa pemulihan dompet iki.",
+      "showRecoveryPhrase": "Tampilake frasa pemulihan",
+      "success": "Frasa pemulihan wis diserep",
+      "failed": "Gagal njupuk frasa pemulihan"
     }
   },
   "settings": {
@@ -319,6 +327,7 @@
       "avoidAddressReuseDesc": "Aktifaken pilihan punika kangge nyegah alamat ingkang sami dipunginakaken kangge kathah transaksi. Punika mbantu nglindungi privasi panjenengan.",
       "xPubKeyDesc": "Gunakaken pilihan punika kangge ngekspor Kunci Publik ingkang Dipunwiyaraken saking dompet panjenengan.",
       "spendingPasswordDesc": "Ganti sandi sing digunakake kanggo tandha tangan transaksi nganggo dompet iki.",
+      "mnemonicBackupDesc": "Tampilake lan serep frasa pemulihan dompet iki.",
       "changeSpendingPassword": "Ganti sandi pangeluaran",
       "changeSpendingPasswordDesc": "Lebokna sandi pangeluaran saiki lan pilih sing anyar.",
       "currentPassword": "Sandi saiki",

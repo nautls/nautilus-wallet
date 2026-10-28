@@ -25,12 +25,12 @@ const forwarded = useForwardPropsEmits(props, emits)
     <DrawerOverlay />
     <DrawerContent
       v-bind="forwarded" :class="cn(
-        'fixed inset-x-0 bottom-0 z-50 mt-24 gap-6 p-6 flex h-auto flex-col rounded-t-[10px] border bg-background',
+        'fixed inset-x-0 bottom-0 z-50 mt-24 gap-6 p-6 flex h-auto flex-col rounded-t-[10px] border bg-background outline-hidden',
         props.class,
       )"
     >
       <template v-if="target('mobile')">
-        <div class="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+        <div class="mx-auto mt-4 h-2 w-25 rounded-full bg-muted" />
         <slot />
       </template>
 
