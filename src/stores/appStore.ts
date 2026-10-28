@@ -144,7 +144,8 @@ export const useAppStore = defineStore("app", () => {
         addressFilter: "all",
         defaultChangeIndex: 0
       },
-      needsBackup: data.type === WalletType.Standard && data.needsBackup === true
+      needsBackup: data.type === WalletType.Standard && data.needsBackup === true,
+      createdAt: Date.now()
     };
 
     const walletId = await walletsDbService.put(
