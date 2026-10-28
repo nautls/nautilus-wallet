@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { ExternalLinkIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MnemonicBackupDialog } from "@/components/wallet";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
+import { AddressState } from "@/types/internal";
 
 const STORAGE_RENT_URL = "https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/";
 
@@ -17,6 +19,11 @@ const { t } = useI18n();
 
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
+// only display the backup alert if the wallet is used
+const showBackupAlert = computed(
+  () => wallet.needsBackup && wallet.addresses.some((a) => a.state === AddressState.Used)
+);
+
 const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
 
 function openUrl(url: string) {
@@ -25,7 +32,7 @@ function openUrl(url: string) {
 </script>
 
 <template>
-  <Alert v-if="wallet.needsBackup" variant="destructive-outline">
+  <Alert v-if="showBackupAlert" variant="destructive-outline">
     <AlertTitle>{{ t("wallet.alerts.backup") }}</AlertTitle>
 
     <AlertDescription class="hyphens-auto">
