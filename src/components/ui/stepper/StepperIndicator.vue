@@ -1,28 +1,25 @@
 <script lang="ts" setup>
-import type { StepperIndicatorProps } from 'reka-ui'
-import { cn } from '@/common/utils'
-import { StepperIndicator, useForwardProps } from 'reka-ui'
+import type { StepperIndicatorProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
+import { cn } from "@/common/utils"
+import { StepperIndicator, useForwardProps } from "reka-ui"
 
-import { computed, type HTMLAttributes } from 'vue'
+const props = defineProps<StepperIndicatorProps & { class?: HTMLAttributes["class"] }>()
 
-const props = defineProps<StepperIndicatorProps & { class?: HTMLAttributes['class'] }>()
-
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
-
-  return delegated
-})
+const delegatedProps = reactiveOmit(props, "class")
 
 const forwarded = useForwardProps(delegatedProps)
 </script>
 
 <template>
   <StepperIndicator
+    v-slot="slotProps"
     v-bind="forwarded"
     :class="cn(
       'inline-flex items-center justify-center rounded-full text-muted-foreground/50 w-8 h-8',
       // Disabled
-      'group-data-disabled:text-muted-foreground group-data-disabled:opacity-50',
+      'group-data-[disabled]:text-muted-foreground group-data-[disabled]:opacity-50',
       // Active
       'group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground',
       // Completed
@@ -30,6 +27,6 @@ const forwarded = useForwardProps(delegatedProps)
       props.class,
     )"
   >
-    <slot />
+    <slot v-bind="slotProps" />
   </StepperIndicator>
 </template>

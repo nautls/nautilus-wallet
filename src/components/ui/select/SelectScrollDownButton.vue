@@ -1,24 +1,26 @@
 <script setup lang="ts">
-import { cn } from '@/common/utils'
-import { ChevronDownIcon } from '@lucide/vue'
-import { SelectScrollDownButton, type SelectScrollDownButtonProps, useForwardProps } from 'reka-ui'
-import { computed, type HTMLAttributes } from 'vue'
+import type { SelectScrollDownButtonProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { ChevronDown } from "@lucide/vue"
+import { reactiveOmit } from "@vueuse/core"
+import { cn } from "@/common/utils"
+import { SelectScrollDownButton, useForwardProps } from "reka-ui"
 
-const props = defineProps<SelectScrollDownButtonProps & { class?: HTMLAttributes['class'] }>()
+const props = defineProps<SelectScrollDownButtonProps & { class?: HTMLAttributes["class"] }>()
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
-
-  return delegated
-})
+const delegatedProps = reactiveOmit(props, "class")
 
 const forwardedProps = useForwardProps(delegatedProps)
 </script>
 
 <template>
-  <SelectScrollDownButton v-bind="forwardedProps" :class="cn('flex cursor-default items-center justify-center py-1', props.class)">
+  <SelectScrollDownButton
+    data-slot="select-scroll-down-button"
+    v-bind="forwardedProps"
+    :class="cn('flex cursor-default items-center justify-center py-1', props.class)"
+  >
     <slot>
-      <ChevronDownIcon />
+      <ChevronDown class="size-4" />
     </slot>
   </SelectScrollDownButton>
 </template>

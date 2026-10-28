@@ -233,7 +233,7 @@ const steps: Step[] = [
       </template>
 
       <template v-else-if="step === 2">
-        <Tabs v-model="strength" class="flex w-full items-center gap-0">
+        <Tabs v-model="strength" class="flex w-full flex-row items-center gap-0">
           <TabsList class="flex">
             <TabsTrigger class="w-full" :value="160">{{
               t("wallet.words", { count: 15 })

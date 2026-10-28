@@ -39,7 +39,7 @@ function openUrl(url: string) {
       {{ t("wallet.alerts.backupDesc") }}
     </AlertDescription>
 
-    <Button class="mt-4 w-full" @click="openMnemonicBackupDialog">{{
+    <Button class="col-start-2 mt-4 w-full" @click="openMnemonicBackupDialog">{{
       t("wallet.alerts.backupNow")
     }}</Button>
   </Alert>
@@ -47,7 +47,7 @@ function openUrl(url: string) {
   <Alert v-if="wallet.health.hasOldUtxos" variant="destructive">
     <AlertTitle>{{ t("wallet.alerts.demurrage") }}</AlertTitle>
 
-    <div class="space-y-4">
+    <div class="col-start-2 space-y-4">
       <AlertDescription class="hyphens-auto">
         {{ t("wallet.alerts.demurrageDesc") }}
       </AlertDescription>
@@ -66,6 +66,8 @@ function openUrl(url: string) {
       {{ t("wallet.alerts.fragmentationDesc") }}
     </AlertDescription>
 
-    <Button class="mt-4 w-full" @click="goToOptimizationDapp">{{ t("common.optimize") }}</Button>
+    <Button class="col-start-2 mt-4 w-full" @click="goToOptimizationDapp">{{
+      t("common.optimize")
+    }}</Button>
   </Alert>
 </template>

@@ -187,7 +187,7 @@ const { r$ } = useRegle(
   <div class="space-y-4">
     <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-2">
+        <Label class="flex flex-col items-start gap-2">
           {{ t("settings.global.displayLanguage") }}
           <div class="text-muted-foreground text-xs font-normal">
             {{ t("settings.global.displayLanguageDesc") }}
@@ -252,7 +252,7 @@ const { r$ } = useRegle(
     </Card>
 
     <Card class="flex flex-col gap-4 p-6">
-      <Label class="flex flex-col gap-2">
+      <Label class="flex flex-col items-start gap-2">
         {{ t("settings.global.colorMode") }}
         <div class="text-muted-foreground text-xs font-normal">
           {{ t("settings.global.colorModeDesc") }}
@@ -260,7 +260,7 @@ const { r$ } = useRegle(
       </Label>
 
       <Tabs v-model="app.settings.colorMode">
-        <TabsList class="flex w-full">
+        <TabsList class="flex h-auto w-full">
           <TabsTrigger
             v-for="mode in colorModes"
             :key="mode.value"
@@ -277,7 +277,7 @@ const { r$ } = useRegle(
 
     <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-2">
+        <Label class="flex flex-col items-start gap-2">
           {{ t("settings.global.conversionCurrency") }}
           <div class="text-muted-foreground text-xs font-normal">
             {{ t("settings.global.conversionCurrencyDesc") }}
@@ -331,7 +331,7 @@ const { r$ } = useRegle(
 
     <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
-        <Label for="dev-mode" class="flex flex-col gap-1">
+        <Label for="dev-mode" class="flex flex-col items-start gap-1">
           {{ t("settings.global.devMode") }}
           <div class="text-muted-foreground text-xs font-normal">
             {{ t("settings.global.devModeDesc") }}
@@ -342,7 +342,7 @@ const { r$ } = useRegle(
     </Card>
 
     <Card class="flex flex-col gap-4 p-6">
-      <Label class="flex flex-col gap-1">
+      <Label class="flex flex-col items-start gap-1">
         {{ t("settings.global.tokenBlacklists") }}
         <div class="text-muted-foreground text-xs font-normal">
           {{ t("settings.global.tokenBlacklistsDesc") }}
@@ -350,7 +350,7 @@ const { r$ } = useRegle(
       </Label>
 
       <div class="flex items-center justify-between gap-4">
-        <Label for="nsfw-blacklist" class="flex flex-col gap-1">
+        <Label for="nsfw-blacklist" class="flex flex-col items-start gap-1">
           {{ t("settings.global.nsfwTokensBlacklist") }}
           <div class="text-muted-foreground text-xs font-normal">
             {{ t("settings.global.nsfwTokensBlacklistDesc") }}
@@ -359,7 +359,7 @@ const { r$ } = useRegle(
         <Switch id="nsfw-blacklist" v-model="nsfwBlacklist" />
       </div>
       <div class="flex items-center justify-between gap-4">
-        <Label for="scam-blacklist" class="flex flex-col gap-1"
+        <Label for="scam-blacklist" class="flex flex-col items-start gap-1"
           >{{ t("settings.global.scamTokensBlacklist") }}
           <div class="text-muted-foreground text-xs font-normal">
             {{ t("settings.global.scamTokensBlacklistDesc") }}
@@ -405,9 +405,9 @@ const { r$ } = useRegle(
     </Card>
 
     <Card class="flex flex-col gap-4 p-6">
-      <Label class="flex flex-col gap-2">{{ t("settings.global.ledger") }}</Label>
+      <Label class="flex flex-col items-start gap-2">{{ t("settings.global.ledger") }}</Label>
       <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-2">
+        <Label class="flex flex-col items-start gap-2">
           <div class="text-muted-foreground text-xs font-normal">
             {{ t("settings.global.ledgerTransportDesc") }}
           </div>
@@ -455,7 +455,7 @@ const { r$ } = useRegle(
     </Card>
 
     <Card class="bg-warning/10 flex flex-col gap-4 p-6">
-      <Label class="flex flex-col gap-2">
+      <Label class="flex flex-col items-start gap-2">
         <div class="flex items-center gap-1">
           {{ t("settings.global.experimental") }}
           <TriangleAlertIcon class="text-warning size-3" />
@@ -467,7 +467,7 @@ const { r$ } = useRegle(
       </Label>
 
       <div class="flex items-center justify-between gap-4">
-        <Label for="0-conf" class="flex flex-col gap-1">
+        <Label for="0-conf" class="flex flex-col items-start gap-1">
           {{ t("settings.global.zeroConf") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.global.zeroConfDesc") }}
