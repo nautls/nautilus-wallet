@@ -38,7 +38,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
 <template>
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
-    <DrawerContent>
+    <DrawerContent :initial-focus="false">
       <DrawerHeader>
         <DrawerTitle>{{ t("wallet.xPubKey") }}</DrawerTitle>
         <DrawerDescription class="hyphens-auto">{{ t("wallet.xPubKeyDesc") }}</DrawerDescription>

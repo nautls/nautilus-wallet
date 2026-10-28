@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DrawerDescriptionProps } from 'vaul-vue'
+import type { DrawerDescriptionProps } from 'reka-ui'
 import { cn } from '@/common/utils'
-import { DrawerDescription } from 'vaul-vue'
+import { DrawerDescription } from 'reka-ui'
 import { computed, type HtmlHTMLAttributes } from 'vue'
 
 const props = defineProps<DrawerDescriptionProps & { class?: HtmlHTMLAttributes['class'] }>()
