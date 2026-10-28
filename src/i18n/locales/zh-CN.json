@@ -237,7 +237,7 @@
     },
     "create": {
       "createRecoveryPhrase": "创建恢复短语",
-      "iHaveSavedTheseWords": "我已保存这些单词",
+      "iHaveSavedTheseWords": "我已妥善保存恢复短语",
       "recoveryPhraseDoNotMatch": "恢复短语与原始短语不匹配。",
       "walletCreationError": "钱包创建失败",
       "secretStep": "恢复短语",

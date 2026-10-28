@@ -237,7 +237,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Criar frase de recuperação",
-      "iHaveSavedTheseWords": "Salvei essas palavras",
+      "iHaveSavedTheseWords": "Guardei minha frase em local seguro",
       "recoveryPhraseDoNotMatch": "A frase de recuperação não corresponde à original.",
       "walletCreationError": "Falha na criação da carteira",
       "secretStep": "Frase de recuperação",

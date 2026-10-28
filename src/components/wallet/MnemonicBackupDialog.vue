@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -217,13 +216,12 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         </template>
       </Form>
 
-      <DrawerFooter class="flex-row gap-4">
-        <DrawerClose as-child>
-          <Button class="flex-1" variant="outline" :disabled="loading">{{
-            t("common.cancel")
-          }}</Button>
-        </DrawerClose>
-        <Button class="flex-2" :disabled="loading" @click="next">
+      <DrawerFooter>
+        <Button
+          class="h-auto min-h-9 text-center whitespace-normal"
+          :disabled="loading"
+          @click="next"
+        >
           <Loader2Icon v-if="loading" class="animate-spin" />
           {{ nextButtonTitle }}
         </Button>

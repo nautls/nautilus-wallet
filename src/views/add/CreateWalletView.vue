@@ -251,7 +251,11 @@ const steps: Step[] = [
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button :disabled="loading" class="w-full items-center" @click="next">
+      <Button
+        :disabled="loading"
+        class="h-auto min-h-9 w-full items-center text-center whitespace-normal"
+        @click="next"
+      >
         <template v-if="loading"
           ><Loader2Icon class="animate-spin" />{{ t("wallet.create.creating") }}</template
         >

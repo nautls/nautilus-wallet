@@ -281,7 +281,7 @@ test.describe("settings", () => {
       await drawer.getByRole("button", { name: "Copy" }).click();
       await expect(drawer.getByRole("button", { name: "Copied" })).toBeVisible();
 
-      await drawer.getByRole("button", { name: "I've saved these words" }).click();
+      await drawer.getByRole("button", { name: "I've stored my recovery phrase safely" }).click();
       await expect(drawer).toContainText("Confirm your recovery phrase");
       await expect(drawer.locator("form .grid input")).toHaveCount(3);
 
@@ -294,7 +294,7 @@ test.describe("settings", () => {
       await page.getByRole("button", { name: "Back up" }).click();
       await expect(drawer.locator("#backup-password")).toHaveValue("");
       await expect(drawer.locator("form .grid")).toHaveCount(0);
-      await drawer.getByRole("button", { name: "Cancel" }).last().click();
+      await page.keyboard.press("Escape");
       await expect(drawer).toBeHidden();
     });
 
@@ -309,7 +309,7 @@ test.describe("settings", () => {
       const drawer = page.getByRole("dialog");
       await drawer.locator("#backup-password").fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await drawer.getByRole("button", { name: "I've saved these words" }).click();
+      await drawer.getByRole("button", { name: "I've stored my recovery phrase safely" }).click();
 
       // fill the gaps with a word that's not in the phrase
       const wrong = ["zoo", "zone", "youth"].find((w) => !words.includes(w))!;

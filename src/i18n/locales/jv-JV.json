@@ -238,7 +238,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Nggawe frasa pemulihan",
-      "iHaveSavedTheseWords": "Kula sampun nyimpen tembung-tembung punika",
+      "iHaveSavedTheseWords": "Kula nyimpen frasa kanthi aman",
       "recoveryPhraseDoNotMatch": "Frasa pemulihan mboten sami kaliyan aslinipun.",
       "walletCreationError": "Nggawe dompet gagal",
       "secretStep": "Frasa pemulihan",

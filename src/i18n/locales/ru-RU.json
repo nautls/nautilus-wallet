@@ -237,7 +237,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Создать фразу восстановления",
-      "iHaveSavedTheseWords": "Я сохранил эти слова",
+      "iHaveSavedTheseWords": "Я надёжно сохранил(а) фразу",
       "recoveryPhraseDoNotMatch": "Фраза восстановления не совпадает с исходной.",
       "walletCreationError": "Не удалось создать кошелек",
       "secretStep": "Фраза восстановления",

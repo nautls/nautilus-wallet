@@ -238,7 +238,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Create a recovery phrase",
-      "iHaveSavedTheseWords": "I've saved these words",
+      "iHaveSavedTheseWords": "I've stored my recovery phrase safely",
       "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
       "walletCreationError": "Wallet creation failed",
       "secretStep": "Recovery phrase",

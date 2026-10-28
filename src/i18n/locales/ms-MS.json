@@ -238,7 +238,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Cipta frasa pemulihan",
-      "iHaveSavedTheseWords": "Saya telah menyimpan perkataan ini",
+      "iHaveSavedTheseWords": "Saya menyimpan frasa dengan selamat",
       "recoveryPhraseDoNotMatch": "Frasa pemulihan tidak sepadan dengan yang asal.",
       "walletCreationError": "Penciptaan dompet gagal",
       "secretStep": "Frasa pemulihan",

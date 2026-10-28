@@ -237,7 +237,7 @@
     },
     "create": {
       "createRecoveryPhrase": "Wiederherstellungsphrase erstellen",
-      "iHaveSavedTheseWords": "Ich habe diese Wörter gespeichert",
+      "iHaveSavedTheseWords": "Ich habe die Phrase sicher aufbewahrt",
       "recoveryPhraseDoNotMatch": "Die Wiederherstellungsphrase stimmt nicht mit der ursprünglichen überein.",
       "walletCreationError": "Wallet-Erstellung fehlgeschlagen",
       "secretStep": "Wiederherstellungsphrase",
