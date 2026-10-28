@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MnemonicBackupDialog } from "@/components/wallet";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { HEALTHY_UTXO_COUNT } from "@/constants/ergo";
+import { RECENT_WALLET_INTERVAL } from "@/constants/intervals";
 import { AddressState } from "@/types/internal";
 
 const STORAGE_RENT_URL = "https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/";
@@ -19,9 +20,15 @@ const { t } = useI18n();
 
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
-// only display the backup alert if the wallet is used
-const showBackupAlert = computed(
-  () => wallet.needsBackup && wallet.addresses.some((a) => a.state === AddressState.Used)
+const isUsed = computed(() => wallet.addresses.some((a) => a.state === AddressState.Used));
+const isRecent = computed(() => Date.now() - wallet.createdAt < RECENT_WALLET_INTERVAL);
+
+// only display the backup alert if the wallet is used or not recently added
+const showBackupAlert = computed(() => wallet.needsBackup && (isUsed.value || !isRecent.value));
+
+// unused wallets get a neutral alert, used ones get more urgent as time passes
+const backupAlertVariant = computed(() =>
+  !isUsed.value ? "default" : isRecent.value ? "destructive-outline" : "destructive"
 );
 
 const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
@@ -32,7 +39,7 @@ function openUrl(url: string) {
 </script>
 
 <template>
-  <Alert v-if="showBackupAlert" variant="destructive-outline">
+  <Alert v-if="showBackupAlert" :variant="backupAlertVariant">
     <AlertTitle>{{ t("wallet.alerts.backup") }}</AlertTitle>
 
     <AlertDescription class="hyphens-auto">

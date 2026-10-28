@@ -87,6 +87,7 @@ const legacyCiphertext =
 const mnemonic =
   "fade payment weasel market mixed armed decade shed harbor bind deal mandate pink earth second";
 const password = "correct horse battery";
+const migratedAt = 1_700_000_000_000;
 
 function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
   return {
@@ -105,7 +106,8 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
 /** A legacy wallet as stored in extension storage once migrated. */
 const migrated = (wallet: ILegacyDbWallet) => ({
   ...omit(wallet, ["mnemonic", "lastSynced"]),
-  needsBackup: false
+  needsBackup: false,
+  createdAt: migratedAt
 });
 
 /** Loads fresh modules, migrating first, as the extension does on startup. */
@@ -118,6 +120,7 @@ async function freshService({ migrate = true } = {}) {
 
 describe("walletsDbService", () => {
   beforeEach(() => {
+    vi.spyOn(Date, "now").mockReturnValue(migratedAt);
     local.clear();
     legacyWallets.clear();
     storageApi.getKeysSupported = true;
