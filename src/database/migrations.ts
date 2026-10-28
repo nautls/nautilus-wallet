@@ -41,12 +41,18 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
   const keys = legacyWallets.map((w) => walletKey(w.id!));
   const existing = await storage.local.get([...keys, NEXT_ID_KEY]);
 
+  const migratedAt = Date.now();
   const items: Record<string, unknown> = {};
   for (const wallet of legacyWallets) {
     const id = wallet.id!;
     if (existing[walletKey(id)]) continue;
 
-    items[walletKey(id)] = { ...omit(wallet, ["mnemonic", "lastSynced"]), id };
+    items[walletKey(id)] = {
+      ...omit(wallet, ["mnemonic", "lastSynced"]),
+      id,
+      needsBackup: false,
+      createdAt: migratedAt
+    };
     if (wallet.mnemonic) items[secretKey(id)] = fromLegacyCiphertext(wallet.mnemonic);
   }
 

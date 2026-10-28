@@ -223,7 +223,10 @@
       "demurrage": "You may soon incur demurrage",
       "demurrageDesc": "UTxOs holding tokens must have sufficient ERG to cover demurrage fee, or you risk losing them. Consolidate your assets to avoid this.",
       "fragmentation": "Your wallet looks fragmented",
-      "fragmentationDesc": "Consider optimizing your wallet for improved performance and efficiency."
+      "fragmentationDesc": "Consider optimizing your wallet for improved performance and efficiency.",
+      "backup": "Your wallet isn't backed up",
+      "backupDesc": "Back up your recovery phrase now. It's the only way to restore your wallet if you lose access to this device.",
+      "backupNow": "Back up now"
     },
     "index": {
       "title": "Welcome to Nautilus Wallet",
@@ -237,7 +240,7 @@
       "importDesc": "Import an existing wallet"
     },
     "create": {
-      "createRecoveryPhrase": "Create a recovery phrase",
+      "backUpRecoveryPhrase": "Back up recovery phrase",
       "iHaveSavedTheseWords": "I've stored my recovery phrase safely",
       "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
       "walletCreationError": "Wallet creation failed",
@@ -245,7 +248,8 @@
       "secretStepDesc": "These words are the keys to your wallet. Make sure you save them in a secure location.",
       "secretConfirmStep": "Confirm your recovery phrase",
       "secretConfirmStepDesc": "Complete the missing parts of your recovery phrase.",
-      "creating": "Creating your wallet..."
+      "creating": "Creating your wallet...",
+      "skipBackup": "Skip"
     },
     "import": {
       "insertPubKey": "Insert a public key",
@@ -273,11 +277,12 @@
       "openInViewMode": "Open Nautilus in the {viewMode}"
     },
     "backup": {
-      "title": "Mnemonic backup",
+      "title": "Recovery phrase backup",
       "passwordStepDesc": "Enter your spending password to reveal the recovery phrase of this wallet.",
       "showRecoveryPhrase": "Show recovery phrase",
       "success": "Recovery phrase backed up",
-      "failed": "Failed to retrieve the recovery phrase"
+      "failed": "Failed to retrieve the recovery phrase",
+      "saveFailed": "Failed to save the backup status"
     }
   },
   "settings": {

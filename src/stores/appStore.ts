@@ -42,6 +42,7 @@ type StandardWallet = {
   type: WalletType.Standard;
   mnemonic: string;
   password: string;
+  needsBackup?: boolean;
 };
 
 type ReadOnlyWallet = {
@@ -142,7 +143,9 @@ export const useAppStore = defineStore("app", () => {
         avoidAddressReuse: false,
         addressFilter: "all",
         defaultChangeIndex: 0
-      }
+      },
+      needsBackup: data.type === WalletType.Standard && data.needsBackup === true,
+      createdAt: Date.now()
     };
 
     const walletId = await walletsDbService.put(

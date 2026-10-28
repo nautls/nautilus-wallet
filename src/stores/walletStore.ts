@@ -461,6 +461,8 @@ export const useWalletStore = defineStore("wallet", () => {
     loading: computed(() => privateState.loading),
     syncing: computed(() => privateState.syncing),
     health,
+    needsBackup: computed(() => storedWallet()?.needsBackup ?? false),
+    createdAt: computed(() => storedWallet()?.createdAt ?? 0),
     name,
     settings,
     addresses,

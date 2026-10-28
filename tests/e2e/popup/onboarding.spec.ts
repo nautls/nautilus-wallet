@@ -1,5 +1,5 @@
 import { expect, fundWallet, test } from "../fixtures/test";
-import { WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
+import { addressOf, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
 
 test.describe("onboarding", () => {
   test("redirects to the add wallet screen when there are no wallets", async ({ popup }) => {
@@ -23,7 +23,7 @@ test.describe("onboarding", () => {
       await expect(popup.page.getByText("Wallet information").first()).toBeVisible();
 
       await popup.fillWalletInfo("Fresh wallet", "a very long password");
-      await popup.page.getByRole("button", { name: "Create a recovery phrase" }).click();
+      await popup.page.getByRole("button", { name: "Back up recovery phrase" }).click();
 
       // step 2: recovery phrase, 15 words by default
       await expect(popup.page.getByText("Recovery phrase").first()).toBeVisible();
@@ -47,11 +47,61 @@ test.describe("onboarding", () => {
 
       await popup.expectWalletLoaded("Fresh wallet");
       await expect(popup.walletSwitcher).toContainText("Standard");
+      await expect(popup.page.getByText("Your wallet isn't backed up")).toHaveCount(0);
+    });
+
+    test("creates a wallet without a backup and asks to back it up once used", async ({
+      chain,
+      popup
+    }) => {
+      const page = popup.page;
+      const password = "a very long password";
+
+      await page.clock.install();
+      await popup.goto("/add/new");
+
+      // still requires the wallet information
+      await page.getByRole("button", { name: "Skip" }).click();
+      await expect(page.getByText("Wallet name is required.")).toBeVisible();
+
+      await popup.fillWalletInfo("Unsafe wallet", password);
+      await page.getByRole("button", { name: "Back up recovery phrase" }).click();
+      const words = await popup.readMnemonic();
+      await page.getByRole("button", { name: "Skip" }).click();
+
+      await popup.expectWalletLoaded("Unsafe wallet");
+      const alert = page.getByRole("alert").filter({ hasText: "Your wallet isn't backed up" });
+      await expect(alert).toHaveCount(0); // nothing to lose yet
+
+      const wallet = { name: "Unsafe wallet", mnemonic: words.join(" "), password };
+      chain.fund(await addressOf(wallet, 0), { nanoErgs: 1_000_000_000n });
+      chain.mine();
+
+      // height is polled every 10s and wallets are synced at most every 30s
+      await page.clock.fastForward("00:40");
+      await expect(alert).toBeVisible();
+
+      // keeps asking until backed up
+      await page.reload();
+      await expect(alert).toBeVisible();
+
+      await alert.getByRole("button", { name: "Back up now" }).click();
+      const drawer = page.getByRole("dialog");
+      await drawer.locator("#backup-password").fill(password);
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      await expect(drawer.locator("form .grid")).toBeVisible();
+      expect(await popup.readMnemonic()).toEqual(words);
+      await drawer.getByRole("button", { name: "I've stored my recovery phrase safely" }).click();
+      await popup.fillMnemonicGaps(words);
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+
+      await expect(popup.toast("Recovery phrase backed up")).toBeVisible();
+      await expect(alert).toHaveCount(0);
     });
 
     test("validates wallet information", async ({ popup }) => {
       await popup.goto("/add/new");
-      const next = popup.page.getByRole("button", { name: "Create a recovery phrase" });
+      const next = popup.page.getByRole("button", { name: "Back up recovery phrase" });
 
       await next.click();
       await expect(popup.page.getByText("Wallet name is required.")).toBeVisible();
@@ -76,7 +126,7 @@ test.describe("onboarding", () => {
     test("rejects a wrong recovery phrase confirmation", async ({ popup }) => {
       await popup.goto("/add/new");
       await popup.fillWalletInfo("My wallet", "long enough password");
-      await popup.page.getByRole("button", { name: "Create a recovery phrase" }).click();
+      await popup.page.getByRole("button", { name: "Back up recovery phrase" }).click();
 
       const words = await popup.readMnemonic();
       await popup.page.getByRole("button", { name: "I've stored my recovery phrase safely" }).click();

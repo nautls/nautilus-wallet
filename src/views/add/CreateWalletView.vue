@@ -49,7 +49,7 @@ onMounted(() => {
 
 const nextButtonTitle = computed(() =>
   step.value === 1
-    ? t("wallet.create.createRecoveryPhrase")
+    ? t("wallet.create.backUpRecoveryPhrase")
     : step.value === 2
       ? t("wallet.create.iHaveSavedTheseWords")
       : t("common.confirm")
@@ -120,13 +120,28 @@ async function next() {
     return;
   }
 
+  await create(false);
+}
+
+async function skipBackup() {
+  const { valid } = await infoRules.$validate();
+  if (!valid) {
+    step.value = 1; // show validation errors
+    return;
+  }
+
+  await create(true);
+}
+
+async function create(needsBackup: boolean) {
   try {
     loading.value = true;
     const walletId = await app.putWallet({
       name: walletName.value,
       mnemonic: mnemonicPhrase.value,
       password: password.value,
-      type: WalletType.Standard
+      type: WalletType.Standard,
+      needsBackup
     });
 
     await wallet.load(walletId, { syncInBackground: false });
@@ -250,7 +265,7 @@ const steps: Step[] = [
       </template>
     </Form>
 
-    <div class="flex flex-row gap-4">
+    <div class="flex flex-col gap-2">
       <Button
         :disabled="loading"
         class="h-auto min-h-9 w-full items-center text-center whitespace-normal"
@@ -260,6 +275,9 @@ const steps: Step[] = [
           ><Loader2Icon class="animate-spin" />{{ t("wallet.create.creating") }}</template
         >
         <template v-else>{{ nextButtonTitle }}</template>
+      </Button>
+      <Button v-if="!loading" variant="ghost" class="w-full" @click="skipBackup">
+        {{ t("wallet.create.skipBackup") }}
       </Button>
     </div>
   </div>
