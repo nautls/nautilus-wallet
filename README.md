@@ -48,7 +48,9 @@ Nautilus Wallet is a community-driven, open-source browser extension wallet for 
 
 See the [technical documentation](https://docs.nautiluswallet.com/) to learn how to integrate your dApp with Nautilus through the dApp Connector API.
 
-## Project setup [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/nautls/nautilus-wallet)
+## Project setup
+
+For questions about the codebase, see [DeepWiki](https://deepwiki.com/nautls/nautilus-wallet).
 
 ```
 pnpm i
