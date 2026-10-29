@@ -12,7 +12,6 @@ import { hdKeyPool } from "@/common/objectPool";
 import { addressesDbService } from "@/database/addressesDbService";
 import { walletsDbService } from "@/database/walletsDbService";
 import { IDbAddress } from "@/types/database";
-import { WalletType } from "@/types/internal";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
 import HdKey from "./hdKey";
@@ -103,7 +102,7 @@ export async function signTransaction({
     );
   }
 
-  const isLedger = wallet.type === WalletType.Ledger;
+  const isLedger = wallet.type === "ledger";
   if (isLedger && some(inputsToSign)) {
     throw new Error("Signing selected inputs is not supported by Ledger devices.");
   }

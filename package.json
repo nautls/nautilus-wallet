@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "1.3.6",
+  "version": "1.4.0-alpha.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
     "build:testnet:firefox": "TARGET=firefox NETWORK=testnet vite build",
     "build:mainnet:chrome:stage": "vite build --mode staging",
     "build:inspect": "INSPECT=true vite build",
+    "build:size": "ZIP_SIZE=true vite build",
     "build:docs": "vitepress build docs",
     "test:unit": "vitest run",
     "test:e2e": "vite build && playwright test",

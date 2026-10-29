@@ -21,7 +21,6 @@ import { error, InternalRequest, success } from "@/extension/connector/rpc/proto
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import type { AuthArgs } from "@/types/d.ts/webext-rpc";
-import { WalletType } from "@/types/internal";
 
 const app = useWalletStore();
 const wallet = useWalletStore();
@@ -32,8 +31,8 @@ const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const walletId = ref(0);
 
-const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
-const isLedger = computed(() => wallet.type === WalletType.Ledger);
+const isReadonly = computed(() => wallet.type === "readonly");
+const isLedger = computed(() => wallet.type === "ledger");
 
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 const { r$ } = useRegle(

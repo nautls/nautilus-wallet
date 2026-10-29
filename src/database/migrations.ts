@@ -1,6 +1,7 @@
 import { omit } from "es-toolkit";
 import { storage } from "webextension-polyfill";
 import { EncryptedSecret, fromLegacyCiphertext } from "@/common/keystore";
+import { MAINNET } from "@/constants/ergo";
 import { dbContext } from "@/database/dbContext";
 import {
   NEXT_ID_KEY,
@@ -10,9 +11,13 @@ import {
   withLock
 } from "@/database/walletsDbService";
 import { IDbWallet } from "@/types/database";
+import { WalletType } from "@/types/internal";
 
 const SCHEMA_VERSION = 1;
 const SCHEMA_VERSION_KEY = "wallets:schemaVersion";
+
+/** Former `WalletType` enum values, by index. */
+const LEGACY_WALLET_TYPES: WalletType[] = ["standard", "readonly", "ledger"];
 
 export function runMigrations(): Promise<void> {
   return withLock(async () => {
@@ -50,6 +55,8 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
     items[walletKey(id)] = {
       ...omit(wallet, ["mnemonic", "lastSynced"]),
       id,
+      network: MAINNET ? "mainnet" : "testnet",
+      type: LEGACY_WALLET_TYPES[wallet.type] ?? "standard",
       needsBackup: false,
       createdAt: migratedAt
     };

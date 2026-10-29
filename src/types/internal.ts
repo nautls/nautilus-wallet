@@ -7,16 +7,9 @@ export enum AddressState {
   Unused
 }
 
-export enum WalletType {
-  Standard,
-  ReadOnly,
-  Ledger
-}
+export type WalletType = "standard" | "readonly" | "ledger";
 
-export enum Network {
-  ErgoMainnet,
-  ErgoTestnet
-}
+export type Network = "mainnet" | "testnet";
 
 export enum AddressType {
   P2PK,

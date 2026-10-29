@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
 /// <reference types="vitest/config" />
 import { execSync } from "child_process";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import { constants, deflateRawSync } from "node:zlib";
 import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
@@ -22,6 +24,7 @@ const env = {
 };
 
 const INSPECT_BUNDLE = process.env.INSPECT === "true";
+const REPORT_ZIP_SIZE = process.env.ZIP_SIZE === "true";
 
 function r(...paths: string[]): string {
   return path.resolve(import.meta.dirname, ...paths);
@@ -64,7 +67,8 @@ export default defineConfig(({ mode }) => ({
       disableAutoLaunch: true,
       browser: env.TARGET,
       htmlViteConfig: { plugins }
-    })
+    }),
+    REPORT_ZIP_SIZE ? zipSizeReporter(r("dist")) : undefined
   ],
   build: {
     rollupOptions: {
@@ -105,6 +109,38 @@ function objectLogger(obj: Record<string, string>): PluginOption {
       console.log();
       for (const key in obj) console.log(li(key, obj[key]));
       console.log();
+    }
+  };
+}
+
+function zipSizeReporter(dir: string): PluginOption {
+  const mb = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+
+  return {
+    name: "zip-size-reporter",
+    apply: "build",
+    // runs after vite-plugin-web-extension, which performs all sub-builds during buildStart
+    closeBundle() {
+      const files = readdirSync(dir, { recursive: true, withFileTypes: true }).filter(
+        (f) => f.isFile() && f.name !== "bundle-stats.html"
+      );
+
+      let raw = 0;
+      let zip = 22; // end of central directory record
+      for (const file of files) {
+        const filePath = path.join(file.parentPath, file.name);
+        const nameLength = Buffer.byteLength(path.relative(dir, filePath));
+        const data = readFileSync(filePath);
+        const deflated = deflateRawSync(data, { level: constants.Z_BEST_COMPRESSION }).length;
+
+        raw += data.length;
+        // local file header (30) + central directory header (46) + file name in both + data
+        zip += 76 + nameLength * 2 + Math.min(deflated, data.length);
+      }
+
+      console.log(
+        `\n\x1b[32m✓\x1b[0m ${files.length} files, ${mb(raw)} │ zip: \x1b[36m${mb(zip)}\x1b[0m`
+      );
     }
   };
 }

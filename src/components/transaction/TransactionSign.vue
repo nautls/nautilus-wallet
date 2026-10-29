@@ -31,7 +31,6 @@ import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { cn, extractErrorMessage } from "@/common/utils";
 import { useFormat } from "@/composables";
-import { WalletType } from "@/types/internal";
 import { TransactionEntry } from ".";
 import LedgerDevice from "../LedgerDevice.vue";
 
@@ -72,8 +71,8 @@ const password = ref("");
 const hasBurnAgreement = ref(false);
 const signing = ref(false);
 
-const isLedger = computed(() => wallet.type === WalletType.Ledger);
-const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
+const isLedger = computed(() => wallet.type === "ledger");
+const isReadonly = computed(() => wallet.type === "readonly");
 const canSign = computed(
   () =>
     props.transaction &&

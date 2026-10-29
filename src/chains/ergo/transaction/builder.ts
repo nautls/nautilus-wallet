@@ -101,7 +101,7 @@ export function setSelectionAndChangeStrategy(
   builder: TransactionBuilder,
   walletType: WalletType
 ): TransactionBuilder {
-  if (walletType === WalletType.Ledger) {
+  if (walletType === "ledger") {
     return builder
       .configure((settings) => settings.isolateErgOnChange().setMaxTokensPerChangeBox(1))
       .configureSelector((selector) => selector.defineStrategy(new CherryPickSelectionStrategy()));

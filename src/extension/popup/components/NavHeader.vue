@@ -3,12 +3,11 @@ import { computed, ref } from "vue";
 import { ChartPieIcon, ClockIcon, DownloadIcon, LayoutGridIcon, SendIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
-import { WalletType } from "@/types/internal";
 
 const wallet = useWalletStore();
 const { t } = useI18n();
 
-const readonly = computed(() => wallet.type === WalletType.ReadOnly);
+const readonly = computed(() => wallet.type === "readonly");
 const navItems = [
   { to: "/", icon: ChartPieIcon, label: t("header.nav.assets"), disabled: ref(false) },
   { to: "/history", icon: ClockIcon, label: t("header.nav.history"), disabled: ref(false) },

@@ -29,7 +29,6 @@ import { browser } from "@/common/browser";
 import { createTransport } from "@/common/ledger";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
-import { WalletType } from "@/types/internal";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -104,7 +103,7 @@ async function add() {
 
     const extendedPublicKey = hex.encode(HdKey.fromPublicKey(ledgerXpk, "m/0").extendedPublicKey);
     const walletId = await app.putWallet({
-      type: WalletType.Ledger,
+      type: "ledger",
       name: walletName.value,
       extendedPublicKey
     });
