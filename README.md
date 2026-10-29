@@ -20,18 +20,23 @@
   <i>Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.</i>
 </blockquote>
 
-&nbsp;
+<p align="center">
+  <img alt="Assets view" src="docs/public/screenshots/assets.png" width="250">
+  &nbsp;
+  <img alt="Receive view" src="docs/public/screenshots/receive.png" width="250">
+  &nbsp;
+  <img alt="dApp connection request" src="docs/public/screenshots/connect.png" width="250">
+</p>
 
 ## Description
 
-Nautilus Wallet is a community-driven wallet built for the Ergo platform with a focus on privacy, security, and user experience.
+Nautilus Wallet is a community-driven, open-source browser extension wallet for the [Ergo](https://ergoplatform.org/) platform, with a focus on privacy, security and user experience.
 
-- Easy to use
-- Blazing fast
-- Sandboxed NFT Gallery
-- Ledger support
-- Multi-wallet support
-- dApp Connector
+- **Easy to use and fast**: a clean interface that stays out of your way.
+- **Multi-wallet**: manage standard, read-only and hardware wallets side by side.
+- **Ledger support**: sign transactions with your Ledger device.
+- **dApp Connector**: connect to Ergo dApps through the [EIP-12](https://github.com/ergoplatform/eips/pull/23) compatible API.
+- **Sandboxed NFT gallery**: view your collectibles without exposing the wallet to untrusted content.
 
 ## Download and install
 
@@ -87,6 +92,9 @@ pnpm run build:testnet:firefox
 # Unit tests
 pnpm run test:unit
 
+# Type checks
+pnpm run test:types
+
 # End-to-end tests, see tests/e2e/README.md
 pnpm run test:e2e
 
@@ -106,3 +114,7 @@ pnpm run dev:docs
 # Build the docs
 pnpm run build:docs
 ```
+
+## License
+
+Nautilus Wallet is released under the [MIT License](LICENCE).
