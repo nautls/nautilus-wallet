@@ -1,7 +1,7 @@
 import { omit } from "es-toolkit";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ILegacyDbWallet } from "@/types/database";
-import { Network, WalletType } from "@/types/internal";
+import { IDbWallet, ILegacyDbWallet } from "@/types/database";
+import { WalletType } from "@/types/internal";
 
 type ChangeListener = (changes: Record<string, unknown>, area: string) => void;
 
@@ -93,7 +93,7 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
   return {
     id,
     name: `wallet ${id}`,
-    network: Network.ErgoMainnet,
+    network: 0,
     type,
     publicKey: `pk${id}`,
     chainCode: `cc${id}`,
@@ -104,8 +104,9 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
 }
 
 /** A legacy wallet as stored in extension storage once migrated. */
-const migrated = (wallet: ILegacyDbWallet) => ({
+const migrated = (wallet: ILegacyDbWallet): IDbWallet => ({
   ...omit(wallet, ["mnemonic", "lastSynced"]),
+  network: "mainnet",
   needsBackup: false,
   createdAt: migratedAt
 });

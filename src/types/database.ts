@@ -28,7 +28,8 @@ export interface IDbWallet {
  * Wallet record as stored in the IndexedDB `wallets` table, before wallets were moved
  * to `browser.storage.local`. `mnemonic` is a CryptoJS `AES.encrypt` ciphertext.
  */
-export interface ILegacyDbWallet extends Omit<IDbWallet, "needsBackup" | "createdAt"> {
+export interface ILegacyDbWallet extends Omit<IDbWallet, "network" | "needsBackup" | "createdAt"> {
+  network: number;
   mnemonic?: string;
   lastSynced?: number;
 }

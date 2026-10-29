@@ -1,6 +1,7 @@
 import { omit } from "es-toolkit";
 import { storage } from "webextension-polyfill";
 import { EncryptedSecret, fromLegacyCiphertext } from "@/common/keystore";
+import { MAINNET } from "@/constants/ergo";
 import { dbContext } from "@/database/dbContext";
 import {
   NEXT_ID_KEY,
@@ -50,6 +51,7 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
     items[walletKey(id)] = {
       ...omit(wallet, ["mnemonic", "lastSynced"]),
       id,
+      network: MAINNET ? "mainnet" : "testnet",
       needsBackup: false,
       createdAt: migratedAt
     };

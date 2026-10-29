@@ -13,10 +13,7 @@ export enum WalletType {
   Ledger
 }
 
-export enum Network {
-  ErgoMainnet,
-  ErgoTestnet
-}
+export type Network = "mainnet" | "testnet";
 
 export enum AddressType {
   P2PK,
