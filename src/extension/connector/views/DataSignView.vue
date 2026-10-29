@@ -208,8 +208,8 @@ function refuse() {
       </Form>
 
       <div class="flex flex-row gap-4">
-        <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-        <Button class="w-full" :disabled="isReadonly || isLedger" @click="sign">{{
+        <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
+        <Button class="flex-2" :disabled="isReadonly || isLedger" @click="sign">{{
           t("common.sign")
         }}</Button>
       </div>

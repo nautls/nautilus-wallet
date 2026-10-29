@@ -105,8 +105,8 @@ function refuse() {
   </Card>
 
   <div class="flex flex-row gap-4">
-    <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-    <Button class="w-full" :disabled="!canConnect" @click="connect">{{
+    <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
+    <Button class="flex-2" :disabled="!canConnect" @click="connect">{{
       t("connector.connect.connect")
     }}</Button>
   </div>
