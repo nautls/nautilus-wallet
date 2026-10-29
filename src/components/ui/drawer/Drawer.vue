@@ -1,25 +1,25 @@
 <script lang="ts" setup>
-import type { DrawerOpenChangeDetails, DrawerRootEmits, DrawerRootProps } from 'reka-ui'
-import { reactiveOmit } from '@vueuse/core'
-import { DrawerRoot, useForwardProps } from 'reka-ui'
+import type { DrawerOpenChangeDetails, DrawerRootEmits, DrawerRootProps } from "reka-ui";
+import { reactiveOmit } from "@vueuse/core";
+import { DrawerRoot, useForwardProps } from "reka-ui";
 
 interface Props extends DrawerRootProps {
-  dismissible?: boolean
+  dismissible?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { dismissible: true })
-const emits = defineEmits<DrawerRootEmits>()
+const props = withDefaults(defineProps<Props>(), { dismissible: true });
+const emits = defineEmits<DrawerRootEmits>();
 
-const forwarded = useForwardProps(reactiveOmit(props, 'dismissible'))
+const forwarded = useForwardProps(reactiveOmit(props, "dismissible"));
 
 function onOpenUpdate(open: boolean, details: DrawerOpenChangeDetails) {
   // when not dismissible, only explicit DrawerClose presses are allowed to close the drawer
-  if (!open && !props.dismissible && details.reason !== 'close-press') {
-    details.cancel()
-    return
+  if (!open && !props.dismissible && details.reason !== "close-press") {
+    details.cancel();
+    return;
   }
 
-  emits('update:open', open, details)
+  emits("update:open", open, details);
 }
 </script>
 

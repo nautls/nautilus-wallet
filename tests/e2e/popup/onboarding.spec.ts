@@ -37,7 +37,9 @@ test.describe("onboarding", () => {
       await expect.poll(async () => (await popup.readMnemonic()).length).toBe(15);
       words = await popup.readMnemonic();
 
-      await popup.page.getByRole("button", { name: "I've stored my recovery phrase safely" }).click();
+      await popup.page
+        .getByRole("button", { name: "I've stored my recovery phrase safely" })
+        .click();
 
       // step 3: confirm three random words
       await expect(popup.page.getByText("Confirm your recovery phrase").first()).toBeVisible();
@@ -129,7 +131,9 @@ test.describe("onboarding", () => {
       await popup.page.getByRole("button", { name: "Back up recovery phrase" }).click();
 
       const words = await popup.readMnemonic();
-      await popup.page.getByRole("button", { name: "I've stored my recovery phrase safely" }).click();
+      await popup.page
+        .getByRole("button", { name: "I've stored my recovery phrase safely" })
+        .click();
 
       // fill the gaps with a word that's not in the phrase
       const wrong = ["zoo", "zone", "youth"].find((w) => !words.includes(w))!;

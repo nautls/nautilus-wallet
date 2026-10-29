@@ -32,7 +32,7 @@ const errors = computed<string[]>(() => {
         v-for="(message, i) in errors"
         :key="i"
         data-form-error
-        class="text-destructive text-xs flex items-center gap-1"
+        class="text-destructive flex items-center gap-1 text-xs"
       >
         {{ message }}
       </p>

@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { cn } from '@/common/utils'
-import { ToastAction, type ToastActionProps } from 'reka-ui'
-import { computed, type HTMLAttributes } from 'vue'
+import { cn } from "@/common/utils";
+import { ToastAction, type ToastActionProps } from "reka-ui";
+import { computed, type HTMLAttributes } from "vue";
 
-const props = defineProps<ToastActionProps & { class?: HTMLAttributes['class'] }>()
+const props = defineProps<ToastActionProps & { class?: HTMLAttributes["class"] }>();
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
+  const { class: _, ...delegated } = props;
 
-  return delegated
-})
+  return delegated;
+});
 </script>
 
 <template>
-  <ToastAction v-bind="delegatedProps" :class="cn('inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-hidden focus:ring-1 focus:ring-ring disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 hover:group-[.destructive]:border-destructive/30 hover:group-[.destructive]:bg-destructive hover:group-[.destructive]:text-destructive-foreground focus:group-[.destructive]:ring-destructive', props.class)">
+  <ToastAction
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'hover:bg-secondary focus:ring-ring group-[.destructive]:border-muted/40 hover:group-[.destructive]:border-destructive/30 hover:group-[.destructive]:bg-destructive hover:group-[.destructive]:text-destructive-foreground focus:group-[.destructive]:ring-destructive inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors focus:ring-1 focus:outline-hidden disabled:pointer-events-none disabled:opacity-50',
+        props.class
+      )
+    "
+  >
     <slot />
   </ToastAction>
 </template>

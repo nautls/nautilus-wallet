@@ -119,7 +119,10 @@ function openExplorer(address: string | undefined) {
               class="flex h-4 items-center gap-2"
               @click="setDefaultAddress(address)"
             >
-              <Checkbox :model-value="wallet.settings.defaultChangeIndex === address.index" />
+              <Checkbox
+                variant="rounded"
+                :model-value="wallet.settings.defaultChangeIndex === address.index"
+              />
               <span class="text-foreground font-mono whitespace-nowrap">{{
                 format.string.shorten(address.script, 8)
               }}</span>

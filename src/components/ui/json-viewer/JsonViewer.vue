@@ -11,6 +11,9 @@ import { CopyButton } from "../copy-button";
 
 hljs.registerLanguage("json", json);
 
+// collapsed view only shows ~10 lines, so avoid highlighting and laying out the full document
+const PREVIEW_LINES = 16;
+
 type JsonDataType = string | number | boolean | unknown[] | Record<string, unknown> | null;
 
 interface Props {
@@ -28,23 +31,35 @@ const expanded = ref(false);
 const overflowing = ref(false);
 
 const code = computed(() => JSON.stringify(props.data ?? null, null, 2));
-const html = computed(() => hljs.highlight(code.value, { language: "json" }).value);
+const preview = computed(() => {
+  let end = -1;
+  for (let i = 0; i < PREVIEW_LINES; i++) {
+    end = code.value.indexOf("\n", end + 1);
+    if (end === -1) return code.value;
+  }
+
+  return code.value.slice(0, end);
+});
+const truncated = computed(() => preview.value.length < code.value.length);
+const html = computed(
+  () => hljs.highlight(expanded.value ? code.value : preview.value, { language: "json" }).value
+);
 
 useResizeObserver(content, () => {
   if (!container.value || !content.value || expanded.value) return;
-  overflowing.value = content.value.offsetHeight > container.value.clientHeight;
+  overflowing.value = truncated.value || content.value.offsetHeight > container.value.clientHeight;
 });
 </script>
 
 <template>
-  <div :class="cn('json-viewer relative rounded-xl bg-secondary p-4 shadow-sm', props.class)">
+  <div :class="cn('json-viewer bg-secondary relative rounded-xl p-4 shadow-sm', props.class)">
     <div ref="container" :class="cn('relative', { 'max-h-40 overflow-hidden': !expanded })">
       <!-- eslint-disable-next-line vue/no-v-html -- highlight.js escapes all token content -->
       <pre ref="content"><code v-html="html" /></pre>
 
       <div
         v-if="overflowing && !expanded"
-        class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-secondary"
+        class="from-secondary pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t"
       />
     </div>
 

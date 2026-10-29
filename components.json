@@ -4,9 +4,9 @@
   "typescript": true,
   "iconLibrary": "lucide",
   "tailwind": {
-    "config": "tailwind.config.ts",
+    "config": "",
     "css": "src/assets/styles/index.css",
-    "baseColor": "neutral",
+    "baseColor": "gray",
     "cssVariables": true,
     "prefix": ""
   },

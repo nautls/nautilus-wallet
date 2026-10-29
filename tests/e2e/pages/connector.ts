@@ -1,8 +1,7 @@
 import { expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 
 export type Outcome<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: { code?: number; info?: string; message?: string } };
+  { ok: true; value: T } | { ok: false; error: { code?: number; info?: string; message?: string } };
 
 /**
  * Runs `fn` inside the dApp page and captures its result or thrown error as a

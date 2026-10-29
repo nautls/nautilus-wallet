@@ -298,7 +298,7 @@ const { r$ } = useRegle(
       </label>
     </div>
 
-    <Alert v-if="isReadonly" variant="destructive" class="space-x-2">
+    <Alert v-if="isReadonly" variant="destructive">
       <AlertCircleIcon class="size-5" />
       <AlertTitle>{{ t("wallet.readonlyWallet") }}</AlertTitle>
       <AlertDescription>{{ t("wallet.cantSignTx") }}</AlertDescription>

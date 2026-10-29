@@ -144,7 +144,7 @@ function refuse() {
   <div class="grow"></div>
 
   <div class="flex flex-col gap-4">
-    <Alert v-if="isReadonly || isLedger" variant="destructive" class="space-x-2">
+    <Alert v-if="isReadonly || isLedger" variant="destructive">
       <AlertCircleIcon class="size-5" />
       <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
       <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
@@ -163,8 +163,8 @@ function refuse() {
     </Form>
 
     <div class="flex flex-row gap-4">
-      <Button class="w-full" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-      <Button class="w-full" :disabled="isReadonly || isLedger" @click="authenticate">
+      <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
+      <Button class="flex-2" :disabled="isReadonly || isLedger" @click="authenticate">
         {{ t("common.authenticate") }}
       </Button>
     </div>

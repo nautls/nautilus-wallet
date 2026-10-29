@@ -1,24 +1,26 @@
 <script setup lang="ts">
-import { cn } from '@/common/utils'
-import { SearchIcon } from '@lucide/vue'
-import { ComboboxInput, type ComboboxInputProps, useForwardProps } from 'reka-ui'
-import { computed, type HTMLAttributes } from 'vue'
+import { cn } from "@/common/utils";
+import { SearchIcon } from "@lucide/vue";
+import { ComboboxInput, type ComboboxInputProps, useForwardProps } from "reka-ui";
+import { computed, type HTMLAttributes } from "vue";
 
 defineOptions({
-  inheritAttrs: false,
-})
+  inheritAttrs: false
+});
 
-const props = defineProps<ComboboxInputProps & {
-  class?: HTMLAttributes['class']
-}>()
+const props = defineProps<
+  ComboboxInputProps & {
+    class?: HTMLAttributes["class"];
+  }
+>();
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
+  const { class: _, ...delegated } = props;
 
-  return delegated
-})
+  return delegated;
+});
 
-const forwardedProps = useForwardProps(delegatedProps)
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
@@ -27,7 +29,12 @@ const forwardedProps = useForwardProps(delegatedProps)
     <ComboboxInput
       v-bind="{ ...forwardedProps, ...$attrs }"
       auto-focus
-      :class="cn('flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50', props.class)"
+      :class="
+        cn(
+          'placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+          props.class
+        )
+      "
     />
   </div>
 </template>

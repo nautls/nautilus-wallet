@@ -67,7 +67,7 @@ const { r$ } = useRegle(
       </FormField>
 
       <div class="flex items-center justify-between gap-4">
-        <Label for="address-reuse" class="flex flex-col gap-1">
+        <Label for="address-reuse" class="flex flex-col items-start gap-1">
           {{ t("settings.wallet.avoidAddressReuse") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.avoidAddressReuseDesc") }}
@@ -77,37 +77,39 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-4 p-6">
-      <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-1"
+    <Card class="grid grid-cols-[1fr_auto] gap-4 p-6">
+      <div class="col-span-2 grid grid-cols-subgrid items-center">
+        <Label class="flex flex-col items-start gap-1"
           >{{ t("wallet.xPubKey") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.xPubKeyDesc") }}
           </div></Label
         >
-        <Button variant="outline" @click="openPublicKeyDialog">{{ t("common.export") }}</Button>
+        <Button variant="outline" class="w-full" @click="openPublicKeyDialog">{{
+          t("common.export")
+        }}</Button>
       </div>
 
-      <div v-if="isStandard" class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-1"
+      <div v-if="isStandard" class="col-span-2 grid grid-cols-subgrid items-center">
+        <Label class="flex flex-col items-start gap-1"
           >{{ t("wallet.spendingPassword") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.spendingPasswordDesc") }}
           </div></Label
         >
-        <Button variant="outline" @click="openChangePasswordDialog">{{
+        <Button variant="outline" class="w-full" @click="openChangePasswordDialog">{{
           t("common.change")
         }}</Button>
       </div>
 
-      <div v-if="isStandard" class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-1"
+      <div v-if="isStandard" class="col-span-2 grid grid-cols-subgrid items-center">
+        <Label class="flex flex-col items-start gap-1"
           >{{ t("wallet.backup.title") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.mnemonicBackupDesc") }}
           </div></Label
         >
-        <Button variant="outline" @click="openMnemonicBackupDialog">{{
+        <Button variant="outline" class="w-full" @click="openMnemonicBackupDialog">{{
           t("common.backup")
         }}</Button>
       </div>
@@ -115,7 +117,7 @@ const { r$ } = useRegle(
 
     <Card class="bg-destructive/15 flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col gap-1">
+        <Label class="flex flex-col items-start gap-1">
           {{ t("settings.wallet.removeWallet") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">
             {{ t("settings.wallet.removeWalletDesc") }}
