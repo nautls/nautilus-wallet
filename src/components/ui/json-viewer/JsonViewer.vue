@@ -52,14 +52,14 @@ useResizeObserver(content, () => {
 </script>
 
 <template>
-  <div :class="cn('json-viewer relative rounded-xl bg-secondary p-4 shadow-sm', props.class)">
+  <div :class="cn('json-viewer bg-secondary relative rounded-xl p-4 shadow-sm', props.class)">
     <div ref="container" :class="cn('relative', { 'max-h-40 overflow-hidden': !expanded })">
       <!-- eslint-disable-next-line vue/no-v-html -- highlight.js escapes all token content -->
       <pre ref="content"><code v-html="html" /></pre>
 
       <div
         v-if="overflowing && !expanded"
-        class="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-secondary"
+        class="from-secondary pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t"
       />
     </div>
 

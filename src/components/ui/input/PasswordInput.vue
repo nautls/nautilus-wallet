@@ -31,7 +31,7 @@ defineExpose({ input });
       type="button"
       :disabled="props.disabled"
       tabindex="-1"
-      class="absolute cursor-default end-0 inset-y-0 flex text-muted-foreground items-center h-full justify-center pr-3 pl-1 [&_svg]:size-4"
+      class="text-muted-foreground absolute inset-y-0 end-0 flex h-full cursor-default items-center justify-center pr-3 pl-1 [&_svg]:size-4"
       @click="showPassword = !showPassword"
     >
       <EyeOffIcon v-if="showPassword" />

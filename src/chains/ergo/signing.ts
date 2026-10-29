@@ -12,12 +12,12 @@ import { hdKeyPool } from "@/common/objectPool";
 import { addressesDbService } from "@/database/addressesDbService";
 import { walletsDbService } from "@/database/walletsDbService";
 import { IDbAddress } from "@/types/database";
-import { SigningState, WalletType } from "@/types/internal";
+import { WalletType } from "@/types/internal";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
 import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
-import { getPrivateDeriver, Prover } from "./transaction/prover";
+import { getPrivateDeriver, Prover, StateCallback } from "./transaction/prover";
 import { useAppStore } from "@/stores/appStore";
 import { hostOf } from "@/common/origin";
 
@@ -34,7 +34,7 @@ export interface AuthSignedMessage {
 export interface TransactionSigningParams {
   transaction: EIP12UnsignedTransaction;
   password: string;
-  stateCallback?: SignStateReportCallback;
+  stateCallback?: StateCallback;
   inputsToSign?: number[];
 }
 
@@ -79,8 +79,6 @@ export async function signAuthMessage(
   return { signedMessage, proof: hex.encode(proof) };
 }
 
-type SignStateReportCallback = (newState: Partial<SigningState>) => void;
-
 export async function signTransaction({
   transaction,
   password,
@@ -104,8 +102,6 @@ export async function signTransaction({
       )
     );
   }
-
-  if (callback) callback({ statusText: "Loading context..." });
 
   const isLedger = wallet.type === WalletType.Ledger;
   if (isLedger && some(inputsToSign)) {

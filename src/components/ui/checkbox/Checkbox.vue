@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import type { CheckboxVariants } from "."
-import { Check } from "@lucide/vue"
-import { reactiveOmit } from "@vueuse/core"
-import { cn } from "@/common/utils"
-import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui"
-import { checkboxVariants } from "."
+import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import type { CheckboxVariants } from ".";
+import { Check } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
+import { cn } from "@/common/utils";
+import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui";
+import { checkboxVariants } from ".";
 
-const props = defineProps<CheckboxRootProps & {
-  class?: HTMLAttributes["class"]
-  variant?: CheckboxVariants["variant"]
-}>()
-const emits = defineEmits<CheckboxRootEmits>()
+const props = defineProps<
+  CheckboxRootProps & {
+    class?: HTMLAttributes["class"];
+    variant?: CheckboxVariants["variant"];
+  }
+>();
+const emits = defineEmits<CheckboxRootEmits>();
 
-const delegatedProps = reactiveOmit(props, "class", "variant")
+const delegatedProps = reactiveOmit(props, "class", "variant");
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>

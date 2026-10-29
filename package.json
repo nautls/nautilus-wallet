@@ -18,8 +18,8 @@
     "test:e2e": "vite build && playwright test",
     "test:e2e:ui": "vite build && playwright test --ui",
     "test:lint": "TIMING=1 eslint ./src",
-    "test:format": "prettier ./src --check",
-    "fix:format": "prettier ./src --write",
+    "test:format": "prettier ./src ./tests --check",
+    "fix:format": "prettier ./src ./tests --write",
     "test:types": "vue-tsc --build --force"
   },
   "dependencies": {

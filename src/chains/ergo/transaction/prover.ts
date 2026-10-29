@@ -35,7 +35,8 @@ export type LedgerDeviceModelId =
   | "nanoSP" // Ledger Nano S Plus
   | "nanoX" // Ledger Nano X
   | "stax" // Ledger Stax
-  | "europa"; // Ledger Flex ("europa" is the internal name)
+  | "europa" // Ledger Flex ("europa" is the internal name)
+  | "apex"; // Ledger Nano Gen5 ("apex" is the internal name)
 
 export interface ProverState {
   type?: ProverStateType;

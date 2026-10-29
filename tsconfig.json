@@ -12,6 +12,9 @@
     },
     {
       "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tests/e2e/tsconfig.json"
     }
   ]
 }

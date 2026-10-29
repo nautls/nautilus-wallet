@@ -1,4 +1,4 @@
-import { SignedTransaction } from "@ergo-graphql/types";
+import { SignedTransaction } from "@fleet-sdk/common";
 import { addressFromErgoTree } from "@/chains/ergo/addresses";
 import { dbContext } from "@/database/dbContext";
 import { IDbUtxo } from "@/types/database";
