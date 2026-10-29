@@ -11,6 +11,9 @@ import { CopyButton } from "../copy-button";
 
 hljs.registerLanguage("json", json);
 
+// collapsed view only shows ~10 lines, so avoid highlighting and laying out the full document
+const PREVIEW_LINES = 16;
+
 type JsonDataType = string | number | boolean | unknown[] | Record<string, unknown> | null;
 
 interface Props {
@@ -28,11 +31,23 @@ const expanded = ref(false);
 const overflowing = ref(false);
 
 const code = computed(() => JSON.stringify(props.data ?? null, null, 2));
-const html = computed(() => hljs.highlight(code.value, { language: "json" }).value);
+const preview = computed(() => {
+  let end = -1;
+  for (let i = 0; i < PREVIEW_LINES; i++) {
+    end = code.value.indexOf("\n", end + 1);
+    if (end === -1) return code.value;
+  }
+
+  return code.value.slice(0, end);
+});
+const truncated = computed(() => preview.value.length < code.value.length);
+const html = computed(
+  () => hljs.highlight(expanded.value ? code.value : preview.value, { language: "json" }).value
+);
 
 useResizeObserver(content, () => {
   if (!container.value || !content.value || expanded.value) return;
-  overflowing.value = content.value.offsetHeight > container.value.clientHeight;
+  overflowing.value = truncated.value || content.value.offsetHeight > container.value.clientHeight;
 });
 </script>
 
