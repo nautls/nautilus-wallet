@@ -25,7 +25,6 @@ import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
-import { WalletType } from "@/types/internal";
 import { validMnemonic, validPublicKey } from "@/validators";
 import { Step, Stepper, StepTitle } from "./components";
 
@@ -156,12 +155,12 @@ async function next() {
     const walletId = isReadonly.value
       ? await app.putWallet({
           name: walletName.value,
-          type: WalletType.ReadOnly,
+          type: "readonly",
           extendedPublicKey: xpk.value
         })
       : await app.putWallet({
           name: walletName.value,
-          type: WalletType.Standard,
+          type: "standard",
           mnemonic: mnemonicWords.value.join(" "),
           password: password.value
         });

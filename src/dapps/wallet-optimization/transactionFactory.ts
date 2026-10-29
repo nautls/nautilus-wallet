@@ -18,7 +18,7 @@ export async function createConsolidationTransaction(
     {
       max: {
         count: 200,
-        aggregatedDistinctTokens: walletType === WalletType.Ledger ? 20 : undefined
+        aggregatedDistinctTokens: walletType === "ledger" ? 20 : undefined
       }
     }
   );

@@ -11,9 +11,13 @@ import {
   withLock
 } from "@/database/walletsDbService";
 import { IDbWallet } from "@/types/database";
+import { WalletType } from "@/types/internal";
 
 const SCHEMA_VERSION = 1;
 const SCHEMA_VERSION_KEY = "wallets:schemaVersion";
+
+/** Former `WalletType` enum values, by index. */
+const LEGACY_WALLET_TYPES: WalletType[] = ["standard", "readonly", "ledger"];
 
 export function runMigrations(): Promise<void> {
   return withLock(async () => {
@@ -52,6 +56,7 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
       ...omit(wallet, ["mnemonic", "lastSynced"]),
       id,
       network: MAINNET ? "mainnet" : "testnet",
+      type: LEGACY_WALLET_TYPES[wallet.type] ?? "standard",
       needsBackup: false,
       createdAt: migratedAt
     };

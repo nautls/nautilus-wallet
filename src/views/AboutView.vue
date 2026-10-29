@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Link } from "@/components/ui/link";
 import { useFormat } from "@/composables/useFormat";
-import { WalletType } from "@/types/internal";
 import pkg from "../../package.json";
 
 const wallet = useWalletStore();
@@ -20,7 +19,7 @@ const gitHash = import.meta.env.GIT_COMMIT_HASH;
 const shortGitHash = gitHash.slice(0, 7);
 const commitUrl = `https://github.com/capt-nemo429/nautilus-wallet/commit/${gitHash}`;
 const donationAddress = "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By";
-const readonly = computed(() => wallet.type === WalletType.ReadOnly);
+const readonly = computed(() => wallet.type === "readonly");
 
 function goDonate() {
   router.push({ name: "send-page", query: { recipient: donationAddress } });

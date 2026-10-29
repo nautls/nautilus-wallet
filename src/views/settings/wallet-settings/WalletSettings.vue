@@ -22,7 +22,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { MnemonicBackupDialog } from "@/components/wallet";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
-import { WalletType } from "@/types/internal";
 import ChangePasswordDialog from "./ChangePasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
@@ -34,7 +33,7 @@ const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialo
 const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
-const isStandard = computed(() => wallet.type === WalletType.Standard);
+const isStandard = computed(() => wallet.type === "standard");
 
 const walletName = ref(wallet.name);
 

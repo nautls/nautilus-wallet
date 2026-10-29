@@ -89,15 +89,18 @@ const mnemonic =
 const password = "correct horse battery";
 const migratedAt = 1_700_000_000_000;
 
-function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
+/** Former `WalletType` enum values, by index. */
+const legacyTypes: WalletType[] = ["standard", "readonly", "ledger"];
+
+function legacyWallet(id: number, type: WalletType = "standard"): ILegacyDbWallet {
   return {
     id,
     name: `wallet ${id}`,
     network: 0,
-    type,
+    type: legacyTypes.indexOf(type),
     publicKey: `pk${id}`,
     chainCode: `cc${id}`,
-    mnemonic: type === WalletType.Standard ? legacyCiphertext : undefined,
+    mnemonic: type === "standard" ? legacyCiphertext : undefined,
     settings: { avoidAddressReuse: false, addressFilter: "all", defaultChangeIndex: 0 },
     lastSynced: 1000
   };
@@ -107,6 +110,7 @@ function legacyWallet(id: number, type = WalletType.Standard): ILegacyDbWallet {
 const migrated = (wallet: ILegacyDbWallet): IDbWallet => ({
   ...omit(wallet, ["mnemonic", "lastSynced"]),
   network: "mainnet",
+  type: legacyTypes[wallet.type],
   needsBackup: false,
   createdAt: migratedAt
 });
@@ -153,9 +157,11 @@ describe("walletsDbService", () => {
   describe("migration", () => {
     it("copies every field and keeps ids", async () => {
       const standard = legacyWallet(1);
-      const readOnly = legacyWallet(4, WalletType.ReadOnly);
+      const readOnly = legacyWallet(4, "readonly");
+      const ledger = legacyWallet(5, "ledger");
       legacyWallets.set(1, standard);
       legacyWallets.set(4, readOnly);
+      legacyWallets.set(5, ledger);
 
       const service = await freshService();
       await service.getAll();
@@ -165,7 +171,9 @@ describe("walletsDbService", () => {
       expect(local.get("walletSecret:1")).toEqual({ version: 1, ciphertext: legacyCiphertext });
       expect(local.get("wallet:4")).toEqual(migrated(readOnly));
       expect(local.has("walletSecret:4")).toBe(false);
-      expect(local.get("wallets:nextId")).toBe(5);
+      expect(local.get("wallet:5")).toEqual(migrated(ledger));
+      expect(local.get("wallet:5")).toHaveProperty("type", "ledger");
+      expect(local.get("wallets:nextId")).toBe(6);
       expect(local.get("wallets:schemaVersion")).toBe(1);
       expect(await service.getSecret(1, password)).toBe(mnemonic);
     });
@@ -319,7 +327,7 @@ describe("walletsDbService", () => {
       const service = await freshService();
       const id = await service.put(newWallet(), secret);
 
-      await service.put({ ...newWallet(), type: WalletType.ReadOnly });
+      await service.put({ ...newWallet(), type: "readonly" });
 
       expect(local.has(`walletSecret:${id}`)).toBe(false);
     });

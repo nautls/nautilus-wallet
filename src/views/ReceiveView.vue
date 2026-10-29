@@ -19,14 +19,14 @@ import { bn } from "@/common/bigNumber";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { AddressState, WalletType } from "@/types/internal";
+import { AddressState } from "@/types/internal";
 
 const app = useAppStore();
 const wallet = useWalletStore();
 const format = useFormat();
 const { t } = useI18n();
 
-const isLedger = computed(() => wallet.type === WalletType.Ledger);
+const isLedger = computed(() => wallet.type === "ledger");
 const addresses = computed(() => wallet.filteredAddresses.slice().reverse());
 const canAddNewAddress = computed(() => wallet.settings.addressFilter !== "active");
 

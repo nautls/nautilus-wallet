@@ -18,7 +18,6 @@ import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { setLocale } from "@/i18n";
 import { IDbWallet, NotNullId } from "@/types/database";
-import { WalletType } from "@/types/internal";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
 
@@ -40,7 +39,7 @@ export type Settings = {
 
 type StandardWallet = {
   name: string;
-  type: WalletType.Standard;
+  type: "standard";
   mnemonic: string;
   password: string;
   needsBackup?: boolean;
@@ -48,7 +47,7 @@ type StandardWallet = {
 
 type ReadOnlyWallet = {
   name: string;
-  type: WalletType.ReadOnly | WalletType.Ledger;
+  type: "readonly" | "ledger";
   extendedPublicKey: string;
 };
 
@@ -129,7 +128,7 @@ export const useAppStore = defineStore("app", () => {
 
   async function putWallet(data: StandardWallet | ReadOnlyWallet): Promise<number> {
     const key =
-      data.type === WalletType.Standard
+      data.type === "standard"
         ? await HdKey.fromMnemonic(data.mnemonic)
         : HdKey.fromPublicKey(data.extendedPublicKey);
 
@@ -145,15 +144,13 @@ export const useAppStore = defineStore("app", () => {
         addressFilter: "all",
         defaultChangeIndex: 0
       },
-      needsBackup: data.type === WalletType.Standard && data.needsBackup === true,
+      needsBackup: data.type === "standard" && data.needsBackup === true,
       createdAt: Date.now()
     };
 
     const walletId = await walletsDbService.put(
       dbObj,
-      data.type === WalletType.Standard
-        ? { value: data.mnemonic, password: data.password }
-        : undefined
+      data.type === "standard" ? { value: data.mnemonic, password: data.password } : undefined
     );
     await loadWallets();
 

@@ -26,7 +26,6 @@ import { error, InternalRequest, success } from "@/extension/connector/rpc/proto
 import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
-import { WalletType } from "@/types/internal";
 
 const app = useAppStore();
 const wallet = useWalletStore();
@@ -41,8 +40,8 @@ const messageType = ref<string>();
 const encodedMessage = ref<string>();
 let ergoMessage: ErgoMessage;
 
-const isReadonly = computed(() => wallet.type === WalletType.ReadOnly);
-const isLedger = computed(() => wallet.type === WalletType.Ledger);
+const isReadonly = computed(() => wallet.type === "readonly");
+const isLedger = computed(() => wallet.type === "ledger");
 
 const detachUnloadListener = useEventListener(window, "beforeunload", refuse);
 

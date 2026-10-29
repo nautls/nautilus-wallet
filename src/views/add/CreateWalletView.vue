@@ -20,7 +20,6 @@ import { Mnemonic } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
-import { WalletType } from "@/types/internal";
 import { Step, Stepper, StepTitle } from "./components";
 
 const app = useAppStore();
@@ -140,7 +139,7 @@ async function create(needsBackup: boolean) {
       name: walletName.value,
       mnemonic: mnemonicPhrase.value,
       password: password.value,
-      type: WalletType.Standard,
+      type: "standard",
       needsBackup
     });
 
