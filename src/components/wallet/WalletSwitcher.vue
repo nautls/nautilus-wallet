@@ -169,27 +169,24 @@ async function toggleViewMode() {
         </CommandList>
 
         <CommandSeparator />
+      </Command>
 
-        <div class="flex flex-row items-center justify-center gap-2 pt-2">
-          <Button
-            class="cursor-default"
-            variant="ghost"
-            size="icon"
-            @click="toggleValuesVisibility"
-          >
-            <EyeIcon v-if="app.settings.hideBalances" />
-            <EyeOffIcon v-else />
-          </Button>
-          <Button class="cursor-default" variant="ghost" size="icon" @click="toggleColorMode">
-            <SunIcon v-if="isDark" />
-            <MoonIcon v-else />
-          </Button>
-          <Button class="cursor-default" variant="ghost" size="icon" @click="toggleViewMode">
-            <Maximize2Icon v-if="isPopupView" />
-            <Minimize2Icon v-else />
-          </Button>
-        </div>
+      <div class="flex flex-row items-center justify-center gap-2 pt-2">
+        <Button class="cursor-default" variant="ghost" size="icon" @click="toggleValuesVisibility">
+          <EyeIcon v-if="app.settings.hideBalances" />
+          <EyeOffIcon v-else />
+        </Button>
+        <Button class="cursor-default" variant="ghost" size="icon" @click="toggleColorMode">
+          <SunIcon v-if="isDark" />
+          <MoonIcon v-else />
+        </Button>
+        <Button class="cursor-default" variant="ghost" size="icon" @click="toggleViewMode">
+          <Maximize2Icon v-if="isPopupView" />
+          <Minimize2Icon v-else />
+        </Button>
+      </div>
 
+      <Command>
         <CommandList>
           <CommandGroup>
             <CommandItem
