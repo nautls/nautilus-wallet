@@ -344,7 +344,8 @@
       "removeWallet": "Remove wallet",
       "removeWalletDesc": "Use this option to remove the current wallet from the app.",
       "walletRemoveConfirmation": "Are you absolutely sure?",
-      "walletRemoveConfirmationDesc": "Removing a wallet doesn't affect its blockchain balance, and you can restore it later. However, make sure you still have the information needed to restore it. Without it, removing the wallet can result in an irreversible loss of funds."
+      "walletRemoveConfirmationDesc": "Removing a wallet doesn't affect its blockchain balance, and you can restore it later. However, make sure you still have the information needed to restore it. Without it, removing the wallet can result in an irreversible loss of funds.",
+      "walletRemoveTypeName": "To confirm, type \"{name}\" below."
     },
     "connections": {
       "noConnectedApps": "You have no connected apps yet."
