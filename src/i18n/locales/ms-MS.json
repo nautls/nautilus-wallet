@@ -344,7 +344,8 @@
       "removeWallet": "Buang dompet",
       "removeWalletDesc": "Gunakan pilihan ini untuk membuang dompet semasa daripada apl.",
       "walletRemoveConfirmation": "Adakah anda benar-benar pasti?",
-      "walletRemoveConfirmationDesc": "Membuang dompet tidak menjejaskan baki blockchainnya, dan anda boleh memulihkannya kemudian. Walau bagaimanapun, pastikan anda masih mempunyai maklumat yang diperlukan untuk memulihkannya. Tanpa maklumat tersebut, membuang dompet boleh mengakibatkan kehilangan dana yang tidak dapat dipulihkan."
+      "walletRemoveConfirmationDesc": "Membuang dompet tidak menjejaskan baki blockchainnya, dan anda boleh memulihkannya kemudian. Walau bagaimanapun, pastikan anda masih mempunyai maklumat yang diperlukan untuk memulihkannya. Tanpa maklumat tersebut, membuang dompet boleh mengakibatkan kehilangan dana yang tidak dapat dipulihkan.",
+      "walletRemoveTypeName": "Untuk mengesahkan, taip \"{name}\" di bawah."
     },
     "connections": {
       "noConnectedApps": "Anda belum mempunyai apl yang disambungkan lagi."
