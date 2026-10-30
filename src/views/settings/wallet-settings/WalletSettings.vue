@@ -50,6 +50,13 @@ watch(
   }
 );
 
+const removeConfirmation = ref("");
+const canRemove = computed(() => removeConfirmation.value.trim() === wallet.name.trim());
+
+function resetRemoveConfirmation(open: boolean) {
+  if (open) removeConfirmation.value = "";
+}
+
 const { r$ } = useRegle(
   { walletName },
   { walletName: { required: withMessage(required, () => t("wallet.requiredWalletName")) } }
@@ -122,7 +129,7 @@ const { r$ } = useRegle(
             {{ t("settings.wallet.removeWalletDesc") }}
           </div>
         </Label>
-        <Drawer>
+        <Drawer @update:open="resetRemoveConfirmation">
           <DrawerTrigger as-child>
             <Button variant="destructive">{{ t("common.remove") }}</Button>
           </DrawerTrigger>
@@ -134,14 +141,29 @@ const { r$ } = useRegle(
             <div v-once>
               {{ t("settings.wallet.walletRemoveConfirmationDesc") }}
             </div>
+            <div class="flex flex-col gap-2">
+              <Label for="remove-confirmation-input">{{
+                t("settings.wallet.walletRemoveTypeName", { name: wallet.name })
+              }}</Label>
+              <Input
+                id="remove-confirmation-input"
+                v-model="removeConfirmation"
+                autocomplete="off"
+                spellcheck="false"
+              />
+            </div>
             <DrawerFooter class="flex-row gap-4">
               <DrawerClose as-child>
                 <Button variant="outline" class="flex-1">{{ t("common.cancel") }}</Button>
               </DrawerClose>
               <DrawerClose as-child>
-                <Button variant="destructive" class="flex-2" @click="app.deleteWallet(wallet.id)">{{
-                  t("common.remove")
-                }}</Button>
+                <Button
+                  variant="destructive"
+                  class="flex-2"
+                  :disabled="!canRemove"
+                  @click="app.deleteWallet(wallet.id)"
+                  >{{ t("common.remove") }}</Button
+                >
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>

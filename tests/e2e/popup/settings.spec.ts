@@ -343,6 +343,7 @@ test.describe("settings", () => {
       await page.getByRole("button", { name: "Remove" }).click();
       const drawer = page.getByRole("dialog");
       await expect(drawer).toContainText("Are you absolutely sure?");
+      await drawer.getByLabel(`To confirm, type "${WALLET_A.name}" below.`).fill(WALLET_A.name);
       await drawer.getByRole("button", { name: "Remove" }).last().click();
 
       await expect(page).toHaveURL(/#\/add$/);
@@ -356,11 +357,31 @@ test.describe("settings", () => {
       await page.getByRole("tab", { name: "Wallet" }).click();
 
       await page.getByRole("button", { name: "Remove" }).click();
-      await page.getByRole("dialog").getByRole("button", { name: "Remove" }).last().click();
+      const drawer = page.getByRole("dialog");
+      await drawer.getByLabel(`To confirm, type "${WALLET_B.name}" below.`).fill(WALLET_B.name);
+      await drawer.getByRole("button", { name: "Remove" }).last().click();
 
       await popup.expectWalletLoaded(WALLET_A.name);
       await popup.walletSwitcher.click();
       await expect(page.getByRole("option", { name: /Bob/ })).toHaveCount(0);
+    });
+
+    test("requires typing the wallet name to confirm removal", async ({ popup }) => {
+      await popup.goto("/settings");
+      const page = popup.page;
+      await page.getByRole("tab", { name: "Wallet" }).click();
+
+      await page.getByRole("button", { name: "Remove" }).click();
+      const drawer = page.getByRole("dialog");
+      const input = drawer.getByLabel(`To confirm, type "${WALLET_A.name}" below.`);
+      const remove = drawer.getByRole("button", { name: "Remove" }).last();
+      await expect(remove).toBeDisabled();
+
+      await input.fill(`${WALLET_A.name}x`);
+      await expect(remove).toBeDisabled();
+
+      await input.fill(WALLET_A.name);
+      await expect(remove).toBeEnabled();
     });
 
     test("can cancel wallet removal", async ({ popup }) => {
