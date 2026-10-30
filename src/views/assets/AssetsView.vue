@@ -95,7 +95,7 @@ function openAssetInfoDialog(tokenId: string) {
             <span v-if="!app.settings.hideBalances"
               >{{ formatCurrencyAmount(walletTotal, 2) }}
             </span>
-            <Skeleton v-else class="inline-block h-7 w-24 animate-none" />
+            <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
           </h2>
           <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
         </div>
