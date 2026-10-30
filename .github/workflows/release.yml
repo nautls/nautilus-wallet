@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -52,6 +54,11 @@ jobs:
           cd dist
           zip -r ../nautilus-${{ matrix.network }}-${{ matrix.target }}.zip .
           cd ..
+
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: "*.zip"
 
       - name: Upload Release Assets
         if: ${{ github.event_name != 'workflow_dispatch' }}
