@@ -343,7 +343,8 @@
       "removeWallet": "Wallet entfernen",
       "removeWalletDesc": "Verwende diese Option, um die aktuelle Wallet aus der App zu entfernen.",
       "walletRemoveConfirmation": "Bist du absolut sicher?",
-      "walletRemoveConfirmationDesc": "Das Entfernen einer Wallet beeinflusst das Guthaben in der Blockchain nicht, und du kannst sie später wiederherstellen. Stelle jedoch sicher, dass du die nötigen Informationen dafür besitzt. Andernfalls führt das Entfernen zu dauerhaftem Verlust der Assets."
+      "walletRemoveConfirmationDesc": "Das Entfernen einer Wallet beeinflusst das Guthaben in der Blockchain nicht, und du kannst sie später wiederherstellen. Stelle jedoch sicher, dass du die nötigen Informationen dafür besitzt. Andernfalls führt das Entfernen zu dauerhaftem Verlust der Assets.",
+      "walletRemoveTypeName": "Gib zur Bestätigung unten „{name}“ ein."
     },
     "connections": {
       "noConnectedApps": "Du hast noch keine verbundenen Apps."

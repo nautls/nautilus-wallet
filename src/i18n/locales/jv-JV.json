@@ -344,7 +344,8 @@
       "removeWallet": "Busak dompet",
       "removeWalletDesc": "Gunakaken pilihan punika kangge mbusek dompet sakniki saking aplikasi.",
       "walletRemoveConfirmation": "Panjenengan yakin banget?",
-      "walletRemoveConfirmationDesc": "Mbusek dompet mboten mangaribawani Duwitmu blockchain, lan panjenengan saged mulihaken mengko. Nanging, priksa manawi panjenengan taksih gadhah informasi ingkang dipunbetahaken kangge mulihaken. Tanpa punika, mbusek dompet saged njalari mundhut dana ingkang mboten saged dipunbalekaken."
+      "walletRemoveConfirmationDesc": "Mbusek dompet mboten mangaribawani Duwitmu blockchain, lan panjenengan saged mulihaken mengko. Nanging, priksa manawi panjenengan taksih gadhah informasi ingkang dipunbetahaken kangge mulihaken. Tanpa punika, mbusek dompet saged njalari mundhut dana ingkang mboten saged dipunbalekaken.",
+      "walletRemoveTypeName": "Kanggo konfirmasi, ketik \"{name}\" ing ngisor iki."
     },
     "connections": {
       "noConnectedApps": "Panjenengan dereng gadhah aplikasi ingkang kasambung."

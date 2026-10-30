@@ -343,7 +343,8 @@
       "removeWallet": "删除钱包",
       "removeWalletDesc": "使用此选项从应用中删除当前钱包。",
       "walletRemoveConfirmation": "您确定吗？",
-      "walletRemoveConfirmationDesc": "删除钱包不会影响其区块链余额，您以后可以恢复它。但是，请确保您仍然有恢复所需的信息。否则，删除钱包可能会导致不可逆的资金损失。"
+      "walletRemoveConfirmationDesc": "删除钱包不会影响其区块链余额，您以后可以恢复它。但是，请确保您仍然有恢复所需的信息。否则，删除钱包可能会导致不可逆的资金损失。",
+      "walletRemoveTypeName": "请在下方输入“{name}”以确认。"
     },
     "connections": {
       "noConnectedApps": "您尚未连接任何应用。"

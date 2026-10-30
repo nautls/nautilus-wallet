@@ -343,7 +343,8 @@
       "removeWallet": "Remover carteira",
       "removeWalletDesc": "Use esta opção para remover a carteira atual do aplicativo.",
       "walletRemoveConfirmation": "Tem certeza absoluta?",
-      "walletRemoveConfirmationDesc": "Remover uma carteira não afeta seu saldo na blockchain, e você pode restaurá-la depois. No entanto, certifique-se de ainda ter as informações necessárias para restaurá-la. Sem elas, remover a carteira pode resultar em perda irreversível de fundos."
+      "walletRemoveConfirmationDesc": "Remover uma carteira não afeta seu saldo na blockchain, e você pode restaurá-la depois. No entanto, certifique-se de ainda ter as informações necessárias para restaurá-la. Sem elas, remover a carteira pode resultar em perda irreversível de fundos.",
+      "walletRemoveTypeName": "Para confirmar, digite \"{name}\" abaixo."
     },
     "connections": {
       "noConnectedApps": "Você ainda não tem aplicativos conectados."

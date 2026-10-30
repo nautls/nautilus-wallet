@@ -343,7 +343,8 @@
       "removeWallet": "Supprimer le portefeuille",
       "removeWalletDesc": "Utilisez cette option pour supprimer le portefeuille actuel de l'application.",
       "walletRemoveConfirmation": "Êtes-vous absolument sûr ?",
-      "walletRemoveConfirmationDesc": "La suppression d'un portefeuille n'affecte pas son solde sur la blockchain, et vous pouvez le restaurer plus tard. Cependant, assurez-vous d'avoir encore les informations nécessaires pour le restaurer. Sinon, supprimer le portefeuille peut entraîner une perte irréversible de fonds."
+      "walletRemoveConfirmationDesc": "La suppression d'un portefeuille n'affecte pas son solde sur la blockchain, et vous pouvez le restaurer plus tard. Cependant, assurez-vous d'avoir encore les informations nécessaires pour le restaurer. Sinon, supprimer le portefeuille peut entraîner une perte irréversible de fonds.",
+      "walletRemoveTypeName": "Pour confirmer, saisissez « {name} » ci-dessous."
     },
     "connections": {
       "noConnectedApps": "Vous n'avez encore aucune application connectée."
