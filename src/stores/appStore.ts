@@ -135,7 +135,7 @@ export const useAppStore = defineStore("app", () => {
     hdKeyPool.alloc(hex.encode(key.publicKey), key.neutered());
     const dbObj: IDbWallet = {
       name: data.name.trim(),
-      network: MAINNET ? "mainnet" : "testnet",
+      chain: { id: "ergo", network: MAINNET ? "mainnet" : "testnet" },
       type: data.type,
       publicKey: hex.encode(key.publicKey),
       chainCode: hex.encode(key.chainCode),

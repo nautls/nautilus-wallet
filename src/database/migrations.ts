@@ -53,9 +53,9 @@ async function migrateWalletsFromIndexedDb(): Promise<boolean> {
     if (existing[walletKey(id)]) continue;
 
     items[walletKey(id)] = {
-      ...omit(wallet, ["mnemonic", "lastSynced"]),
+      ...omit(wallet, ["mnemonic", "lastSynced", "network"]),
       id,
-      network: MAINNET ? "mainnet" : "testnet",
+      chain: { id: "ergo", network: MAINNET ? "mainnet" : "testnet" },
       type: LEGACY_WALLET_TYPES[wallet.type] ?? "standard",
       needsBackup: false,
       createdAt: migratedAt

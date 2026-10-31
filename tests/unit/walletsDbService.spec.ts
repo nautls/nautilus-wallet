@@ -108,8 +108,8 @@ function legacyWallet(id: number, type: WalletType = "standard"): ILegacyDbWalle
 
 /** A legacy wallet as stored in extension storage once migrated. */
 const migrated = (wallet: ILegacyDbWallet): IDbWallet => ({
-  ...omit(wallet, ["mnemonic", "lastSynced"]),
-  network: "mainnet",
+  ...omit(wallet, ["mnemonic", "lastSynced", "network"]),
+  chain: { id: "ergo", network: "mainnet" },
   type: legacyTypes[wallet.type],
   needsBackup: false,
   createdAt: migratedAt
