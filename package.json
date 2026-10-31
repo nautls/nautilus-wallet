@@ -1,6 +1,6 @@
 {
   "name": "nautilus-wallet",
-  "version": "1.4.0-alpha.0",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "scripts": {
