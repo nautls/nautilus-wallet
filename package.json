@@ -15,6 +15,7 @@
     "build:inspect": "INSPECT=true vite build",
     "build:size": "ZIP_SIZE=true vite build",
     "build:docs": "vitepress build docs",
+    "build:store-images": "vite build && playwright test -c tests/store",
     "test:unit": "vitest run",
     "test:e2e": "vite build && playwright test",
     "test:e2e:ui": "vite build && playwright test --ui",
