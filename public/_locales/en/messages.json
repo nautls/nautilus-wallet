@@ -1,0 +1,6 @@
+{
+  "extDescription": {
+    "message": "A secure and user-friendly wallet for the Ergo Platform",
+    "description": "Extension description shown in the browser and the web store. Max 132 characters."
+  }
+}

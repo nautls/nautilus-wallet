@@ -29,3 +29,5 @@ docs/.vitepress/cache
 /test-results/
 /playwright-report/
 /blob-report/
+# Chrome Web Store listing images
+/tests/store/out/
