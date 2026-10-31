@@ -12,10 +12,12 @@ import {
 
 export type NotNullId<T extends { id?: number }> = T & { id: number };
 
+export type Chain = "ergo";
+
 export interface IDbWallet {
   id?: number;
   name: string;
-  network: Network;
+  chain: { id: Chain; network: Network };
   type: WalletType;
   publicKey: string;
   chainCode: string;
@@ -30,7 +32,7 @@ export interface IDbWallet {
  */
 export interface ILegacyDbWallet extends Omit<
   IDbWallet,
-  "network" | "type" | "needsBackup" | "createdAt"
+  "chain" | "type" | "needsBackup" | "createdAt"
 > {
   network: number;
   type: number;
