@@ -26,7 +26,7 @@ function buildDescription(mode: string, network: Network) {
   if (mode === "staging")
     return "Canary distribution of Nautilus Wallet, for testing and development purposes.";
   return network === "mainnet"
-    ? "A secure and user-friendly wallet for the Ergo Platform"
+    ? "__MSG_extDescription__" // localized in public/_locales
     : "Testnet distribution of Nautilus Wallet";
 }
 
@@ -49,6 +49,7 @@ export function buildManifest(
     name: buildTitle(mode, network),
     short_name: "Nautilus",
     description: buildDescription(mode, network),
+    default_locale: "en",
     version: buildVersion(),
     icons: buildIcons(mode, network),
     content_security_policy: {
