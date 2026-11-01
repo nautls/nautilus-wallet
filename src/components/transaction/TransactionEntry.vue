@@ -70,9 +70,12 @@ const { t } = useI18n();
           </div>
 
           <div class="flex flex-row items-center gap-2">
+            <div class="grow align-middle whitespace-nowrap">
+              {{ format.number.decimal(asset.amount) }}
+            </div>
             <AssetIcon class="size-9" :token-id="asset.tokenId" :type="asset.metadata?.type" />
             <div
-              class="flex grow flex-col justify-center"
+              class="flex flex-col justify-center"
               :class="{ 'font-semibold': isErg(asset.tokenId) }"
             >
               <div class="leading-tight">
@@ -93,9 +96,6 @@ const { t } = useI18n();
               <div class="text-xs opacity-60">
                 {{ format.asset.id(asset.tokenId) }}
               </div>
-            </div>
-            <div class="text-right align-middle whitespace-nowrap">
-              {{ format.number.decimal(asset.amount) }}
             </div>
           </div>
         </div>
