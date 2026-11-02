@@ -11,7 +11,8 @@ const SETTINGS_KEY = "settings";
  */
 export async function getSettings(): Promise<Settings> {
   const storedData = await storage.local.get(SETTINGS_KEY);
-  const settings = serializer.read(storedData[SETTINGS_KEY] as string);
+  const raw = storedData[SETTINGS_KEY] as string | undefined;
+  const settings = raw ? serializer.read(raw) : {};
 
   return { ...DEFAULT_SETTINGS, ...settings };
 }
