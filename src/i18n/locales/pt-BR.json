@@ -32,7 +32,8 @@
     "buyErg": "Comprar ERG",
     "showMore": "Mostrar mais",
     "showLess": "Mostrar menos",
-    "backup": "Fazer backup"
+    "backup": "Fazer backup",
+    "resync": "Ressincronizar"
   },
   "datetime": {
     "now": "agora mesmo",
@@ -332,6 +333,10 @@
       "xPubKeyDesc": "Use esta opção para exportar a Chave Pública Estendida da sua carteira.",
       "spendingPasswordDesc": "Altere a senha usada para assinar transações com esta carteira.",
       "mnemonicBackupDesc": "Revele e faça backup da frase de recuperação desta carteira.",
+      "resync": "Ressincronizar carteira",
+      "resyncDesc": "Apague os dados armazenados localmente desta carteira e sincronize-a novamente a partir da blockchain.",
+      "resyncDone": "Carteira ressincronizada",
+      "resyncFailed": "Falha ao ressincronizar a carteira",
       "changeSpendingPassword": "Alterar senha de gastos",
       "changeSpendingPasswordDesc": "Digite sua senha de gastos atual e escolha uma nova.",
       "currentPassword": "Senha atual",

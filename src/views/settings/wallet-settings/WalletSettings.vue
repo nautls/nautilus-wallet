@@ -2,6 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
+import { Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
@@ -20,7 +21,10 @@ import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/components/ui/toast";
 import { MnemonicBackupDialog } from "@/components/wallet";
+import { log } from "@/common/logger";
+import { extractErrorMessage } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
@@ -28,6 +32,7 @@ import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 const wallet = useWalletStore();
 const app = useAppStore();
 const { t } = useI18n();
+const { toast } = useToast();
 
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
 const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
@@ -55,6 +60,25 @@ const canRemove = computed(() => removeConfirmation.value.trim() === wallet.name
 
 function resetRemoveConfirmation(open: boolean) {
   if (open) removeConfirmation.value = "";
+}
+
+const resyncing = ref(false);
+
+async function resync() {
+  try {
+    resyncing.value = true;
+    await wallet.resync();
+    toast({ title: t("settings.wallet.resyncDone") });
+  } catch (e) {
+    log.error(e);
+    toast({
+      title: t("settings.wallet.resyncFailed"),
+      variant: "destructive",
+      description: extractErrorMessage(e)
+    });
+  } finally {
+    resyncing.value = false;
+  }
 }
 
 const { r$ } = useRegle(
@@ -118,6 +142,24 @@ const { r$ } = useRegle(
         <Button variant="outline" class="w-full" @click="openMnemonicBackupDialog">{{
           t("common.backup")
         }}</Button>
+      </div>
+
+      <div class="col-span-2 grid grid-cols-subgrid items-center">
+        <Label class="flex flex-col items-start gap-1"
+          >{{ t("settings.wallet.resync") }}
+          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+            {{ t("settings.wallet.resyncDesc") }}
+          </div></Label
+        >
+        <Button
+          variant="outline"
+          class="relative w-full"
+          :disabled="resyncing || wallet.loading"
+          @click="resync"
+        >
+          <span :class="{ invisible: resyncing }">{{ t("common.resync") }}</span>
+          <Loader2Icon v-if="resyncing" class="absolute inset-0 m-auto animate-spin" />
+        </Button>
       </div>
     </Card>
 

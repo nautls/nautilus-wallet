@@ -32,7 +32,8 @@
     "buyErg": "Acheter ERG",
     "showMore": "Afficher plus",
     "showLess": "Afficher moins",
-    "backup": "Sauvegarder"
+    "backup": "Sauvegarder",
+    "resync": "Resynchroniser"
   },
   "datetime": {
     "now": "à l'instant",
@@ -332,6 +333,10 @@
       "xPubKeyDesc": "Utilisez cette option pour exporter la clé publique étendue de votre portefeuille.",
       "spendingPasswordDesc": "Modifiez le mot de passe utilisé pour signer les transactions avec ce portefeuille.",
       "mnemonicBackupDesc": "Affichez et sauvegardez la phrase de récupération de ce portefeuille.",
+      "resync": "Resynchroniser le portefeuille",
+      "resyncDesc": "Effacez les données stockées localement de ce portefeuille et resynchronisez-le depuis la blockchain.",
+      "resyncDone": "Portefeuille resynchronisé",
+      "resyncFailed": "Échec de la resynchronisation du portefeuille",
       "changeSpendingPassword": "Modifier le mot de passe de dépense",
       "changeSpendingPasswordDesc": "Saisissez votre mot de passe de dépense actuel et choisissez-en un nouveau.",
       "currentPassword": "Mot de passe actuel",

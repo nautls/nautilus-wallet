@@ -27,6 +27,20 @@ class WalletSyncDbService {
       await walletSync.put({ walletId, lastSynced });
     });
   }
+
+  /**
+   * Wipes the wallet's chain data, which can all be rebuilt by syncing it again. dApp
+   * connections are kept, as they are user-granted permissions rather than chain data.
+   */
+  public async clear(walletId: number): Promise<void> {
+    const { addresses, assets, utxos, walletSync } = dbContext;
+    await dbContext.transaction("rw", [addresses, assets, utxos, walletSync], async () => {
+      await addresses.where({ walletId }).delete();
+      await assets.where({ walletId }).delete();
+      await utxos.where({ walletId }).delete();
+      await walletSync.delete(walletId);
+    });
+  }
 }
 
 export const walletSyncDbService = new WalletSyncDbService();

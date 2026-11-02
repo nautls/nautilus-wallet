@@ -32,7 +32,8 @@
     "buyErg": "购买 ERG",
     "showMore": "显示更多",
     "showLess": "收起",
-    "backup": "备份"
+    "backup": "备份",
+    "resync": "重新同步"
   },
   "datetime": {
     "now": "刚刚",
@@ -332,6 +333,10 @@
       "xPubKeyDesc": "使用此选项导出您的钱包扩展公钥。",
       "spendingPasswordDesc": "更改用于签署此钱包交易的密码。",
       "mnemonicBackupDesc": "显示并备份此钱包的恢复短语。",
+      "resync": "重新同步钱包",
+      "resyncDesc": "清除此钱包在本地存储的数据，并从区块链重新同步。",
+      "resyncDone": "钱包已重新同步",
+      "resyncFailed": "重新同步钱包失败",
       "changeSpendingPassword": "更改支付密码",
       "changeSpendingPasswordDesc": "输入当前支付密码并设置新密码。",
       "currentPassword": "当前密码",

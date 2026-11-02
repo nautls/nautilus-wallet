@@ -32,7 +32,8 @@
     "buyErg": "Buy ERG",
     "showMore": "Show more",
     "showLess": "Show less",
-    "backup": "Back up"
+    "backup": "Back up",
+    "resync": "Re-sync"
   },
   "datetime": {
     "now": "just now",
@@ -333,6 +334,10 @@
       "xPubKeyDesc": "Use this option to export the Extended Public Key of your wallet.",
       "spendingPasswordDesc": "Change the password used to sign transactions with this wallet.",
       "mnemonicBackupDesc": "Reveal and back up the recovery phrase of this wallet.",
+      "resync": "Re-sync wallet",
+      "resyncDesc": "Wipe the locally stored data of this wallet and sync it again from the blockchain.",
+      "resyncDone": "Wallet re-synced",
+      "resyncFailed": "Failed to re-sync the wallet",
       "changeSpendingPassword": "Change spending password",
       "changeSpendingPasswordDesc": "Enter your current spending password and choose a new one.",
       "currentPassword": "Current password",

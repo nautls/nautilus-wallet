@@ -32,7 +32,8 @@
     "buyErg": "Beli ERG",
     "showMore": "Tunjuk lagi",
     "showLess": "Tunjuk kurang",
-    "backup": "Sandarkan"
+    "backup": "Sandarkan",
+    "resync": "Segerak semula"
   },
   "datetime": {
     "now": "sebentar tadi",
@@ -333,6 +334,10 @@
       "xPubKeyDesc": "Gunakan pilihan ini untuk mengeksport Kunci Awam Lanjutan dompet anda.",
       "spendingPasswordDesc": "Tukar kata laluan yang digunakan untuk menandatangani transaksi dengan dompet ini.",
       "mnemonicBackupDesc": "Paparkan dan sandarkan frasa pemulihan dompet ini.",
+      "resync": "Segerak semula dompet",
+      "resyncDesc": "Padam data dompet ini yang disimpan secara setempat dan segerakkannya semula daripada blockchain.",
+      "resyncDone": "Dompet telah disegerak semula",
+      "resyncFailed": "Gagal menyegerak semula dompet",
       "changeSpendingPassword": "Tukar kata laluan perbelanjaan",
       "changeSpendingPasswordDesc": "Masukkan kata laluan perbelanjaan semasa dan pilih yang baharu.",
       "currentPassword": "Kata laluan semasa",

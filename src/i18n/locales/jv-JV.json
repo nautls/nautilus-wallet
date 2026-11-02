@@ -32,7 +32,8 @@
     "buyErg": "Tumbas ERG",
     "showMore": "Tampilake luwih akeh",
     "showLess": "Tampilake luwih sithik",
-    "backup": "Serep"
+    "backup": "Serep",
+    "resync": "Sinkron malih"
   },
   "datetime": {
     "now": "nembe wae",
@@ -333,6 +334,10 @@
       "xPubKeyDesc": "Gunakaken pilihan punika kangge ngekspor Kunci Publik ingkang Dipunwiyaraken saking dompet panjenengan.",
       "spendingPasswordDesc": "Ganti sandi sing digunakake kanggo tandha tangan transaksi nganggo dompet iki.",
       "mnemonicBackupDesc": "Tampilake lan serep frasa pemulihan dompet iki.",
+      "resync": "Sinkronaken malih dompet",
+      "resyncDesc": "Busak data dompet punika ingkang dipunsimpen lokal lan sinkronaken malih saking blockchain.",
+      "resyncDone": "Dompet sampun dipunsinkronaken malih",
+      "resyncFailed": "Gagal nyinkronaken malih dompet",
       "changeSpendingPassword": "Ganti sandi pangeluaran",
       "changeSpendingPasswordDesc": "Lebokna sandi pangeluaran saiki lan pilih sing anyar.",
       "currentPassword": "Sandi saiki",

@@ -32,7 +32,8 @@
     "buyErg": "ERG kaufen",
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
-    "backup": "Sichern"
+    "backup": "Sichern",
+    "resync": "Neu synchronisieren"
   },
   "datetime": {
     "now": "gerade eben",
@@ -332,6 +333,10 @@
       "xPubKeyDesc": "Verwende diese Option, um den erweiterten öffentlichen Schlüssel deiner Wallet zu exportieren.",
       "spendingPasswordDesc": "Ändere das Passwort, mit dem Transaktionen dieser Wallet signiert werden.",
       "mnemonicBackupDesc": "Zeige die Wiederherstellungsphrase dieser Wallet an und sichere sie.",
+      "resync": "Wallet neu synchronisieren",
+      "resyncDesc": "Lösche die lokal gespeicherten Daten dieser Wallet und synchronisiere sie erneut mit der Blockchain.",
+      "resyncDone": "Wallet neu synchronisiert",
+      "resyncFailed": "Neusynchronisierung der Wallet fehlgeschlagen",
       "changeSpendingPassword": "Ausgabepasswort ändern",
       "changeSpendingPasswordDesc": "Gib dein aktuelles Ausgabepasswort ein und wähle ein neues.",
       "currentPassword": "Aktuelles Passwort",

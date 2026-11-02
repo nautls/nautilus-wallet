@@ -103,6 +103,7 @@ export const useWalletStore = defineStore("wallet", () => {
   });
 
   let pendingWrites = 0;
+  let loadCount = 0; // bumped on every load, so syncs started by a previous one are discarded
   const storedWallet = () => appStore.wallets.find((w) => w.id === privateState.id);
 
   /** Applies changes to the loaded wallet made by other windows, such as a rename. */
@@ -301,10 +302,12 @@ export const useWalletStore = defineStore("wallet", () => {
   const nonArtworkBalance = computed(() => balance.value.filter((x) => !artwork(x)));
 
   // #region public actions
-  async function load(walletId: number, opt = { syncInBackground: true }) {
-    if (privateState.id === walletId) return;
+  async function load(walletId: number, opt: { syncInBackground?: boolean; force?: boolean } = {}) {
+    if (privateState.id === walletId && !opt.force) return;
     const wlt = appStore.wallets.find((w) => w.id === walletId);
     if (!wlt) throw new Error(`Wallet 'id:${walletId}' not found`);
+    const syncInBackground = opt.syncInBackground ?? true;
+    loadCount++;
     setLoading(true);
 
     try {
@@ -318,7 +321,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
       const dbAssets = await assetsDbService.getByWalletId(walletId);
       const tokenIds = dbAssets.map((x) => x.tokenId);
-      await assetsStore.loadMetadata(tokenIds, { fetchInBackground: opt.syncInBackground });
+      await assetsStore.loadMetadata(tokenIds, { fetchInBackground: syncInBackground });
       privateState.assets = dbAssets;
 
       const dbAddresses = await addressesDbService.getByWalletId(walletId);
@@ -332,13 +335,40 @@ export const useWalletStore = defineStore("wallet", () => {
         HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
       );
 
-      if (opt.syncInBackground) {
+      if (syncInBackground) {
         sync();
       } else {
         await sync();
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  /**
+   * Wipes the opened wallet's locally stored chain data and rebuilds it from scratch, the
+   * same way an imported wallet is synced.
+   */
+  async function resync() {
+    const walletId = privateState.id;
+    const lastIndex = () => maxBy(privateState.addresses, (x) => x.index)?.index ?? -1;
+    const lastKnownIndex = lastIndex();
+    loadCount++; // discard in-flight syncs, so they don't persist stale data after the wipe
+    setLoading(true); // hold off height-triggered syncs while the data is wiped
+
+    try {
+      await walletSyncDbService.clear(walletId);
+    } catch (e) {
+      setLoading(false);
+      throw e;
+    }
+
+    await load(walletId, { syncInBackground: false, force: true });
+
+    // sync only keeps one unused address past the last used one, so restore the manually
+    // derived ones, as they can be set as the default change address
+    while (privateState.id === walletId && lastIndex() < lastKnownIndex) {
+      await deriveNewAddress();
     }
   }
 
@@ -378,13 +408,15 @@ export const useWalletStore = defineStore("wallet", () => {
     setSyncing(true);
 
     const walletId = privateState.id;
+    const loadId = loadCount;
+    const isCurrent = () => walletId === privateState.id && loadId === loadCount;
     const deriver = hdKeyPool.get(privateState.publicKey);
     const addressesChunks = [] as IDbAddress[][];
     const assetsChunks = [] as IDbAsset[][];
     let offset = 0;
     let keepChecking = true;
 
-    while (keepChecking && walletId === privateState.id) {
+    while (keepChecking && isCurrent()) {
       const derived = getOrDerive(privateState.addresses, deriver, CHUNK_DERIVE_LENGTH, offset);
       const info = await graphQLService.getAddressesInfo(derived.map((x) => x.script));
 
@@ -417,7 +449,7 @@ export const useWalletStore = defineStore("wallet", () => {
       keepChecking = info.some((x) => x.used);
     }
 
-    if (walletId !== privateState.id) return; // ensure we are still on the same wallet
+    if (!isCurrent()) return; // ensure we are still on the same wallet load
 
     // detect changes
     const changes = getChanges(
@@ -438,7 +470,7 @@ export const useWalletStore = defineStore("wallet", () => {
     }
 
     // update state
-    if (walletId !== privateState.id) return; // ensure we are still on the same wallet
+    if (!isCurrent()) return; // ensure we are still on the same wallet load
     privateState.patchAddresses(changedAddresses);
     privateState.patchAssets(changedAssets, removedAssets);
     privateState.lastSynced = syncedAt;
@@ -474,6 +506,7 @@ export const useWalletStore = defineStore("wallet", () => {
     nonArtworkBalance,
     artworkBalance,
     load,
+    resync,
     deriveNewAddress
   };
 });
