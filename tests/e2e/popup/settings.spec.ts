@@ -1,5 +1,58 @@
+import type { Locator, Page, Route } from "@playwright/test";
 import { expect, fundWallet, test } from "../fixtures/test";
-import { RECIPIENT_ADDRESS, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
+import { addressOf, RECIPIENT_ADDRESS, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
+import { GRAPHQL_URLS } from "../mocks/chain";
+import { DAPP_HOST } from "../mocks/services";
+import { connectDapp } from "../pages/connector";
+
+/** Clears an IndexedDB table behind the app's back, as third party tools or eviction would. */
+function clearDbTable(page: Page, table: string) {
+  return page.evaluate(
+    (table) =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open("nautilusDb");
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const db = open.result;
+          const tx = db.transaction(table, "readwrite");
+          tx.objectStore(table).clear();
+          tx.oncomplete = () => (db.close(), resolve());
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    table
+  );
+}
+
+/** Counts the rows of an IndexedDB table that belong to `walletId`. */
+function countDbRows(page: Page, table: string, walletId: number) {
+  return page.evaluate(
+    ([table, walletId]) =>
+      new Promise<number>((resolve, reject) => {
+        const open = indexedDB.open("nautilusDb");
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const db = open.result;
+          const req = db.transaction(table).objectStore(table).index("walletId").count(walletId);
+          req.onsuccess = () => (db.close(), resolve(req.result));
+          req.onerror = () => reject(req.error);
+        };
+      }),
+    [table, walletId] as const
+  );
+}
+
+/** Address rows in the receive screen, newest first. */
+function addressRows(page: Page): Locator {
+  return page
+    .getByRole("checkbox")
+    .locator("xpath=ancestor::div[contains(@class, 'justify-between')][1]");
+}
+
+async function resyncWallet(page: Page) {
+  await page.getByRole("tab", { name: "Wallet" }).click();
+  await page.getByRole("button", { name: "Re-sync", exact: true }).click();
+}
 
 test.describe("settings", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -333,6 +386,122 @@ test.describe("settings", () => {
       await expect(page.getByRole("button", { name: "Export" })).toBeVisible();
       await expect(page.getByRole("button", { name: "Change" })).toHaveCount(0);
       await expect(page.getByRole("button", { name: "Back up" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Re-sync", exact: true })).toBeVisible();
+    });
+
+    test.describe("re-sync", () => {
+      test("rebuilds lost wallet data from the blockchain", async ({ popup }) => {
+        const page = popup.page;
+        const tokens = page.getByRole("tabpanel").locator("div.pt-1 > button");
+        await expect(tokens).toHaveCount(2);
+
+        // balances are lost and not restored by the regular sync, as the wallet was just synced
+        await clearDbTable(page, "assets");
+        await page.reload();
+        await expect(tokens).toHaveCount(1);
+        await expect(page.getByRole("heading", { name: /^\$\s?0(\.0+)?$/ })).toBeVisible();
+
+        await popup.menu("Settings");
+        await resyncWallet(page);
+        await expect(popup.toast("Wallet re-synced")).toBeVisible();
+
+        await popup.navigate("assets");
+        await expect(page.getByRole("heading", { name: /\$\s?25\.00/ })).toBeVisible();
+        await expect(tokens).toHaveCount(2);
+        await expect(tokens.nth(1)).toContainText("TestToken");
+
+        // persisted
+        await page.reload();
+        await expect(page.getByRole("heading", { name: /\$\s?25\.00/ })).toBeVisible();
+      });
+
+      test("picks up funds received meanwhile", async ({ popup, chain }) => {
+        const page = popup.page;
+        // the regular sync skips it, as the wallet was just synced
+        chain.fund(await addressOf(WALLET_A, 2), { nanoErgs: 1_000_000_000n });
+
+        await popup.goto("/settings");
+        await resyncWallet(page);
+        await expect(popup.toast("Wallet re-synced")).toBeVisible();
+
+        // 13.5 ERG at 2 USD
+        await popup.navigate("assets");
+        await expect(page.getByRole("heading", { name: /\$\s?27\.00/ })).toBeVisible();
+
+        // the next unused address is derived
+        await popup.navigate("receive");
+        await expect(addressRows(page)).toHaveCount(4);
+      });
+
+      test("keeps derived addresses and the default address", async ({ popup }) => {
+        const page = popup.page;
+        const rows = addressRows(page);
+
+        await popup.navigate("receive");
+        await expect(rows).toHaveCount(3);
+        await page.locator("button:has(svg.lucide-circle-plus)").click();
+        await expect(rows).toHaveCount(4);
+        await rows.nth(0).getByRole("button").first().click();
+        await expect(rows.nth(0).getByRole("checkbox")).toBeChecked();
+
+        await popup.menu("Settings");
+        await resyncWallet(page);
+        await expect(popup.toast("Wallet re-synced")).toBeVisible();
+
+        await popup.navigate("receive");
+        await expect(rows).toHaveCount(4);
+        await expect(rows.nth(0).getByRole("checkbox")).toBeChecked();
+        await expect(page.getByText(await addressOf(WALLET_A, 3), { exact: true })).toBeVisible();
+      });
+
+      test("keeps dApp connections", async ({ popup, context, dapp }) => {
+        const page = popup.page;
+        await connectDapp(context, dapp, WALLET_A.name);
+
+        await popup.goto("/settings");
+        await resyncWallet(page);
+        await expect(popup.toast("Wallet re-synced")).toBeVisible();
+
+        await page.getByRole("tab", { name: "Connections" }).click();
+        await expect(page.getByText(DAPP_HOST)).toBeVisible();
+      });
+
+      test("only re-syncs the opened wallet", async ({ popup }) => {
+        const page = popup.page;
+        await popup.importWallet(WALLET_B); // wallet #2
+        const bobAddresses = await countDbRows(page, "addresses", 2);
+        expect(bobAddresses).toBeGreaterThan(0);
+
+        await popup.switchWallet(WALLET_A.name);
+        await popup.goto("/settings");
+        await resyncWallet(page);
+        await expect(popup.toast("Wallet re-synced")).toBeVisible();
+
+        expect(await countDbRows(page, "addresses", 1)).toBe(3);
+        expect(await countDbRows(page, "addresses", 2)).toBe(bobAddresses);
+      });
+
+      test("reports a failure and can be retried", async ({ popup, context }) => {
+        const page = popup.page;
+        const failAddressLookups = (route: Route) =>
+          route.request().postDataJSON()?.operationName === "addresses"
+            ? route.abort()
+            : route.fallback();
+        for (const url of GRAPHQL_URLS) await context.route(url, failAddressLookups);
+
+        await popup.goto("/settings");
+        await resyncWallet(page);
+        await expect(popup.toast("Failed to re-sync the wallet")).toBeVisible({ timeout: 30_000 });
+        const button = page.getByRole("button", { name: "Re-sync", exact: true });
+        await expect(button).toBeEnabled();
+
+        for (const url of GRAPHQL_URLS) await context.unroute(url, failAddressLookups);
+        await button.click();
+        await expect(popup.toast("Wallet re-synced")).toBeVisible();
+
+        await popup.navigate("assets");
+        await expect(page.getByRole("heading", { name: /\$\s?25\.00/ })).toBeVisible();
+      });
     });
 
     test("removes the only wallet", async ({ popup }) => {
