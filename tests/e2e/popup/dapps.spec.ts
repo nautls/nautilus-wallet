@@ -31,7 +31,23 @@ test.describe("dApps", () => {
       await page.getByRole("button", { name: "Mint", exact: true }).click();
 
       const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
-      await expect(drawer.getByText("Test Token").first()).toBeVisible();
+      // incoming assets show the decoded EIP-4 data instead of the bare token ID
+      const incoming = drawer
+        .locator("[data-slot=card]")
+        .filter({ hasText: "Total assets entering your wallet" });
+      await expect(incoming.getByText("Test Token")).toBeVisible();
+      await expect(incoming.getByText("1,000.5", { exact: true })).toBeVisible();
+
+      await incoming.getByRole("button", { name: "Show new token details" }).click();
+      const info = page.getByRole("dialog").filter({ hasText: "Emission amount" });
+      await expect(info.getByText("Test Token")).toBeVisible();
+      await expect(info.getByText("A token minted by e2e tests")).toBeVisible();
+      await expect(info.getByText("This token will be minted in this transaction.")).toBeVisible();
+      await expect(info.getByText("1,000.5", { exact: true })).toBeVisible();
+      await expect(info.getByText("Decimals")).toBeVisible();
+      await info.getByRole("button", { name: "Close", exact: true }).first().click();
+      await expect(info).toBeHidden();
+
       await drawer.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
       await expect(popup.toast("Transaction sent!")).toBeVisible();

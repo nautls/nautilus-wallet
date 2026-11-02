@@ -112,6 +112,7 @@
     "info": {
       "emissionAmount": "Emission amount",
       "mintTxId": "Mint TXID",
+      "decimals": "Decimals",
       "additionalMetadata": "Additional metadata"
     }
   },
@@ -177,6 +178,7 @@
       "broadcastError": "Transaction broadcast failed",
       "newToken": "New Token",
       "newTokenDesc": "This token will be minted in this transaction.",
+      "newTokenDetails": "Show new token details",
       "burning": "Burning",
       "burningDesc": "The assets listed below will be lost. Only continue if you know exactly what are you doing.",
       "burningConfirm": "Burn tokens permanently",

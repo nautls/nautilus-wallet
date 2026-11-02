@@ -2,13 +2,20 @@
 import { HTMLAttributes } from "vue";
 import { ArrowDownIcon, MilestoneIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
-import { AssetIcon, AssetSignIcon, AssetSignIconVariants } from "@/components/asset";
+import {
+  AssetIcon,
+  AssetInfoDialog,
+  AssetSignIcon,
+  AssetSignIconVariants
+} from "@/components/asset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { OutputAsset } from "@/chains/ergo/transaction/interpreter/outputInterpreter";
 import { cn, isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { IAssetInfo } from "@/types/database";
+import { AssetType } from "@/types/internal";
 import { cardVariants, type CardVariants } from ".";
 
 interface Props {
@@ -27,6 +34,24 @@ const props = withDefaults(defineProps<Props>(), {
 
 const format = useFormat();
 const { t } = useI18n();
+const { open: openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
+
+function openMintingInfo(asset: OutputAsset) {
+  if (!asset.minting) return;
+
+  const { tokenId, emissionAmount, metadata } = asset.minting;
+  const info: IAssetInfo = {
+    id: tokenId,
+    mintingBoxId: tokenId,
+    type: AssetType.Unknown,
+    name: metadata?.name,
+    description: metadata?.description,
+    decimals: metadata?.decimals,
+    emissionAmount: emissionAmount.toString()
+  };
+
+  openAssetInfoDialog({ tokenId, preview: info, minting: true });
+}
 </script>
 
 <template>
@@ -70,28 +95,30 @@ const { t } = useI18n();
           </div>
 
           <div class="flex flex-row items-center gap-2">
-            <AssetIcon class="size-9" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+            <AssetIcon
+              class="size-9 shrink-0"
+              :token-id="asset.tokenId"
+              :type="asset.metadata?.type"
+            />
             <div
-              class="flex grow flex-col justify-center"
+              class="flex min-w-0 grow flex-col justify-center"
               :class="{ 'font-semibold': isErg(asset.tokenId) }"
             >
-              <div class="leading-tight">
+              <div class="truncate leading-tight">
                 {{ format.asset.name(asset) }}
-
-                <TooltipProvider v-if="asset.minting" :delay-duration="100">
-                  <Tooltip>
-                    <TooltipTrigger class="text-success inline align-middle">
-                      <MilestoneIcon class="size-3.5" />
-                    </TooltipTrigger>
-                    <TooltipContent class="w-48 px-3 py-2 text-center" v-once>
-                      <p class="font-semibold">{{ t("transaction.sign.newToken") }}</p>
-                      <p class="text-xs">{{ t("transaction.sign.newTokenDesc") }}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </div>
-              <div class="text-xs opacity-60">
-                {{ format.asset.id(asset.tokenId) }}
+              <div class="flex items-center gap-1.5 text-xs">
+                <span class="opacity-60">{{ format.asset.id(asset.tokenId) }}</span>
+                <button
+                  v-if="asset.minting"
+                  type="button"
+                  class="text-success bg-success/10 hover:bg-success/20 focus-visible:ring-ring inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.65rem] leading-none font-semibold whitespace-nowrap outline-none focus-visible:ring-1"
+                  :aria-label="t('transaction.sign.newTokenDetails')"
+                  @click="openMintingInfo(asset)"
+                >
+                  <MilestoneIcon class="size-3" />
+                  {{ t("transaction.sign.newToken") }}
+                </button>
               </div>
             </div>
             <div class="text-right align-middle whitespace-nowrap">
