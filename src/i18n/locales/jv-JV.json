@@ -112,6 +112,7 @@
     "info": {
       "emissionAmount": "Jumlah emisi",
       "mintTxId": "Mint TXID",
+      "decimals": "Desimal",
       "additionalMetadata": "Metadata tambahan"
     }
   },
@@ -177,6 +178,7 @@
       "broadcastError": "Transmisi transaksi gagal",
       "newToken": "Token Enggal",
       "newTokenDesc": "Token punika badhe dipun-mint ing transaksi punika.",
+      "newTokenDetails": "Tampilaken rincian token enggal",
       "burning": "Bakar",
       "burningDesc": "Aset ing ngandhap punika badhe ical. Cekapaken kemawon menawi panjenengan mangertos persis menapa ingkang panjenengan lampahi.",
       "burningConfirm": "Bakar token kanthi permanen",
@@ -389,6 +391,35 @@
       "oldestUtxo": "UTxO paling sepuh",
       "walletSize": "Ukuran dompet",
       "walletHealth": "Kesehatan dompet"
+    },
+    "nativeTokens": {
+      "title": "Token Native",
+      "mint": {
+        "tab": "Mint",
+        "description": "Damel token panjenengan piyambak ingkang jumbuh kaliyan EIP-4.",
+        "name": "Nami",
+        "tokenDescription": "Katrangan",
+        "amount": "Jumlah emisi",
+        "decimals": "Desimal",
+        "mint": "Mint",
+        "nameRequired": "Nami token kedah dipun-isi.",
+        "amountRequired": "Jumlah emisi kedah dipun-isi.",
+        "invalidAmount": "Jumlah kedah langkung ageng saking nol.",
+        "tooManyDecimals": "Jumlah mboten saged gadhah langkung saking {decimals} angka desimal.",
+        "invalidDecimals": "Desimal kedah wujud angka wetah antawis 0 lan {max}.",
+        "tooLong": "Kolom punika kepanjangen."
+      },
+      "burn": {
+        "tab": "Bakar",
+        "warning": "Ngobong badhe ngicalaken token ingkang dipun-pilih kanthi permanen. Tumindak punika mboten saged dipun-wangsulaken.",
+        "scamTokens": "Tambah sedaya token scam",
+        "scamTokensDesc": "Panjenengan mboten gadhah token scam ing daftar ireng. | Tambah token scam ing daftar ireng ingkang panjenengan gadhahi. | Tambah {count} token scam ing daftar ireng ingkang panjenengan gadhahi.",
+        "nsfwTokens": "Tambah sedaya token NSFW",
+        "nsfwTokensDesc": "Panjenengan mboten gadhah token NSFW ing daftar ireng. | Tambah token NSFW ing daftar ireng ingkang panjenengan gadhahi. | Tambah {count} token NSFW ing daftar ireng ingkang panjenengan gadhahi.",
+        "tokens": "Token ingkang badhe dipun-bakar",
+        "noSelectedTokens": "Mangga pilih paling mboten setunggal token kangge dipun-bakar.",
+        "burn": "Bakar"
+      }
     }
   },
   "connector": {
