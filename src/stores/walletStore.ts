@@ -198,14 +198,19 @@ export const useWalletStore = defineStore("wallet", () => {
     });
   });
 
-  const balance = computed((): AssetBalance[] => {
+  const balance = computed(() => summarizeBalance(new Set(assetsStore.blacklist)));
+
+  /** Same as `balance`, but includes tokens hidden by the enabled token blacklists. */
+  const unfilteredBalance = computed(() => summarizeBalance());
+
+  function summarizeBalance(hidden?: Set<string>): AssetBalance[] {
     const poolBalance = appStore.settings.zeroConf ? new Map(pool.balance) : new Map();
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
     let summary = [] as AssetBalance[];
     let patched = false;
 
     for (const tokenId in groupedAssets) {
-      if (assetsStore.blacklist.includes(tokenId)) continue;
+      if (hidden?.has(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
       const unconfirmedAmount = poolBalance.get(tokenId) ?? 0;
@@ -253,7 +258,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
     // rank assets and return
     return summary.sort(rankAssets);
-  });
+  }
 
   const health = computed(() => ({
     utxoCount: 0, // see: https://github.com/nautls/nautilus-wallet/issues/176
@@ -503,6 +508,7 @@ export const useWalletStore = defineStore("wallet", () => {
     filteredAddresses,
     changeAddress,
     balance,
+    unfilteredBalance,
     nonArtworkBalance,
     artworkBalance,
     load,
