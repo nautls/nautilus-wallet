@@ -1,5 +1,5 @@
 import { Component } from "vue";
-import { CombineIcon } from "@lucide/vue";
+import { CombineIcon, ShapesIcon } from "@lucide/vue";
 import { PickupKeys } from "vue-i18n";
 import { ComponentProps } from "@/composables/useProgrammaticDialog";
 import { MessageSchema } from "@/i18n";
@@ -11,7 +11,7 @@ type IconComponent<T extends Component> = {
 };
 
 export type DAppManifestItem<T extends Component = Component> = {
-  tileKeypath: PickupKeys<MessageSchema, "dapps">;
+  titleKeyPath: PickupKeys<MessageSchema, "dapps">;
   icon: IconComponent<T>;
   path: string;
 };
@@ -25,13 +25,18 @@ function component<T extends Component>(
 
 export const dappsManifest: DAppManifestItem[] = [
   {
-    tileKeypath: "sigmaUsd.title",
+    titleKeyPath: "sigmaUsd.title",
     icon: component(SigmaUSDLogo),
     path: "/dapps/sigmausd-protocol"
   },
   {
-    tileKeypath: "walletOptimizer.title",
+    titleKeyPath: "walletOptimizer.title",
     icon: component(CombineIcon, { strokeWidth: 1 }),
     path: "/dapps/wallet-optimization"
+  },
+  {
+    titleKeyPath: "nativeTokens.title",
+    icon: component(ShapesIcon, { strokeWidth: 1 }),
+    path: "/dapps/native-tokens"
   }
 ];

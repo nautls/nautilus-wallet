@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { BracesIcon, HandCoinsIcon, KeyRoundIcon, MilestoneIcon } from "@lucide/vue";
+import {
+  BracesIcon,
+  DecimalsArrowRightIcon,
+  HandCoinsIcon,
+  KeyRoundIcon,
+  MilestoneIcon
+} from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetImageSandbox } from "@/components/asset";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -26,6 +33,10 @@ import { AssetSubtype } from "@/types/internal";
 
 interface Props {
   tokenId: string;
+  /** Asset info to display instead of the stored one, e.g. for tokens not minted yet. */
+  preview?: IAssetInfo;
+  /** Whether the token is being minted by the transaction under review. */
+  minting?: boolean;
 }
 
 type JsonDescription = {
@@ -36,7 +47,7 @@ type JsonDescription = {
 const format = useFormat();
 const { t } = useI18n();
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { preview: undefined, minting: false });
 const emit = defineEmits(["close"]);
 
 const opened = ref(true);
@@ -127,9 +138,14 @@ function expandCamelCase(str: string): string {
     .trim();
 }
 
-watch(() => props.tokenId, getAssetInfo, { immediate: true });
+watch(() => [props.tokenId, props.preview], getAssetInfo, { immediate: true });
 
 async function getAssetInfo() {
+  if (props.preview) {
+    asset.value = Object.freeze(props.preview);
+    return;
+  }
+
   if (!props.tokenId || props.tokenId === ERG_TOKEN_ID) return;
   asset.value = Object.freeze(await assetInfoDbService.get(props.tokenId));
 }
@@ -185,6 +201,12 @@ defineExpose({ open: openDialog, close: closeDialog });
             />
           </div>
 
+          <Alert v-if="props.minting" class="border-success/40 [&>svg]:text-success">
+            <MilestoneIcon />
+            <AlertTitle>{{ t("transaction.sign.newToken") }}</AlertTitle>
+            <AlertDescription>{{ t("transaction.sign.newTokenDesc") }}</AlertDescription>
+          </Alert>
+
           <div class="grid grid-cols-2 gap-4">
             <StatsCard
               class="col-span-2"
@@ -198,9 +220,17 @@ defineExpose({ open: openDialog, close: closeDialog });
               :icon="KeyRoundIcon"
             />
             <StatsCard
+              v-if="asset?.mintingTransactionId || !props.minting"
               :title="t('asset.info.mintTxId')"
               :content="asset?.mintingTransactionId ?? ''"
               :icon="MilestoneIcon"
+            />
+            <StatsCard
+              v-else
+              :title="t('asset.info.decimals')"
+              :content="String(asset?.decimals ?? 0)"
+              :display-copy-button="false"
+              :icon="DecimalsArrowRightIcon"
             />
           </div>
 

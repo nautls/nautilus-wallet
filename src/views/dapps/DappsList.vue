@@ -21,7 +21,7 @@ const { t } = useI18n();
         @click="navigate"
       >
         <component :is="dapp.icon.component" class="m-auto" v-bind="dapp.icon.props" />
-        <span class="text-xs"> {{ t(`dapps.${dapp.tileKeypath}`) }} </span>
+        <span class="text-xs"> {{ t(`dapps.${dapp.titleKeyPath}`) }} </span>
       </Button>
     </router-link>
   </div>

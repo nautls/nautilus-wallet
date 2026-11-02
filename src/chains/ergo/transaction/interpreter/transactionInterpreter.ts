@@ -15,6 +15,7 @@ import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";
 import { addressFromErgoTree } from "../../addresses";
+import { findMintedToken, MintedToken } from "./mintedToken";
 import { OutputAsset, OutputInterpreter } from "./outputInterpreter";
 
 export class TransactionInterpreter {
@@ -30,12 +31,14 @@ export class TransactionInterpreter {
   private _ownOutputs!: ErgoBoxCandidate[];
   private _totalIncoming!: OutputAsset[];
   private _totalLeaving!: OutputAsset[];
+  private _minted?: MintedToken;
 
   constructor(tx: EIP12UnsignedTransaction, ownAddresses: string[], metadata: AssetsMetadataMap) {
     this._tx = tx;
     this._addresses = ownAddresses;
     this._metadata = metadata;
     this._feeBox = tx.outputs.find((b) => isMinerFeeContract(b.ergoTree));
+    this._minted = findMintedToken(tx.inputs, tx.outputs);
 
     const isOwnErgoTree = (tree: string) => this._addresses.includes(addressFromErgoTree(tree));
     const isSendingOutput = (output: ErgoBoxCandidate) =>
@@ -82,7 +85,13 @@ export class TransactionInterpreter {
 
   public get sending(): OutputInterpreter[] | undefined {
     return this._sendingBoxes.map((b) => {
-      return new OutputInterpreter(b, this._tx.inputs, this._metadata, this._addresses);
+      return new OutputInterpreter(
+        b,
+        this._tx.inputs,
+        this._metadata,
+        this._addresses,
+        this._minted
+      );
     });
   }
 
@@ -93,7 +102,12 @@ export class TransactionInterpreter {
 
   public get fee(): OutputInterpreter | undefined {
     if (!this._feeBox) return;
-    return new OutputInterpreter(this._feeBox, this._tx.inputs, this._metadata);
+    return new OutputInterpreter(this._feeBox, this._tx.inputs, this._metadata, [], this._minted);
+  }
+
+  /** The token minted by this transaction, if any. */
+  public get minting(): MintedToken | undefined {
+    return this._minted;
   }
 
   public get totalIncoming(): OutputAsset[] {
@@ -110,7 +124,7 @@ export class TransactionInterpreter {
     // Handle tokens
     const totalIncoming = diff.tokens
       .filter((t) => t.amount > 0n)
-      .map((t) => mapToken(t, this._metadata));
+      .map((t) => mapToken(t, this._metadata, this._minted));
     const totalLeaving = diff.tokens
       .filter((t) => t.amount < 0n)
       .map((t) => mapToken({ tokenId: t.tokenId, amount: -t.amount }, this._metadata));
@@ -247,12 +261,20 @@ export class TransactionInterpreter {
   }
 }
 
-function mapToken(token: TokenAmount<bigint>, metadataMap: AssetsMetadataMap): OutputAsset {
-  const metadata = metadataMap.get(token.tokenId);
+function mapToken(
+  token: TokenAmount<bigint>,
+  metadataMap: AssetsMetadataMap,
+  minted?: MintedToken
+): OutputAsset {
+  // a token being minted has no known metadata yet, so it's read from the minting box
+  const minting = minted?.tokenId === token.tokenId ? minted : undefined;
+  const metadata = minting ? minting.metadata : metadataMap.get(token.tokenId);
+
   return {
     tokenId: token.tokenId,
     amount: decimalize(bn(token.amount.toString()), metadata?.decimals ?? 0),
-    metadata
+    metadata,
+    minting
   };
 }
 

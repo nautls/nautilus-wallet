@@ -127,6 +127,12 @@ export const useAssetsStore = defineStore("assets", () => {
     return tokenIds;
   });
 
+  /** Token blacklists as published, regardless of which ones are enabled in the settings. */
+  const blacklists = computed((): ErgoTokenBlacklist => ({
+    nsfw: privateState.blacklist.nsfw ?? [],
+    scam: privateState.blacklist.scam ?? []
+  }));
+
   const prices = computed(() => privateState.prices.prices);
 
   async function loadMetadata(tokenIds: string[], options?: Partial<LoadMetadataOptions>) {
@@ -182,7 +188,7 @@ export const useAssetsStore = defineStore("assets", () => {
     }
   }
 
-  return { blacklist, metadata, prices, loadMetadata };
+  return { blacklist, blacklists, metadata, prices, loadMetadata };
 });
 
 function unknownMetadata(id: string): IAssetInfo {

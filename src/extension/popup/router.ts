@@ -65,6 +65,23 @@ const routes: Array<RouteRecordRaw> = [
         path: "sigmausd-protocol",
         name: "sigmausd-protocol",
         component: () => import("@/dapps/sigma-usd/SigmaUSDView.vue")
+      },
+      {
+        path: "native-tokens",
+        component: () => import("@/dapps/native-tokens/NativeTokensDApp.vue"),
+        children: [
+          { path: "", redirect: { name: "native-tokens-mint" } },
+          {
+            path: "mint",
+            name: "native-tokens-mint",
+            component: () => import("@/dapps/native-tokens/components/MintTokenForm.vue")
+          },
+          {
+            path: "burn",
+            name: "native-tokens-burn",
+            component: () => import("@/dapps/native-tokens/components/BurnTokenForm.vue")
+          }
+        ]
       }
     ]
   },

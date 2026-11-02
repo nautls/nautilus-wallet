@@ -112,6 +112,7 @@
     "info": {
       "emissionAmount": "Jumlah Emisi",
       "mintTxId": "Cetak TXID",
+      "decimals": "Desimal",
       "additionalMetadata": "Metadata tambahan"
     }
   },
@@ -177,6 +178,7 @@
       "broadcastError": "Gagal menyiarkan transaksi",
       "newToken": "Token Baru",
       "newTokenDesc": "Token ini akan dicetak dalam transaksi ini.",
+      "newTokenDetails": "Tampilkan detail token baru",
       "burning": "Membakar",
       "burningDesc": "Aset yang tercantum di bawah ini akan hilang. Lanjutkan hanya jika Anda tahu persis apa yang Anda lakukan.",
       "burningConfirm": "Bakar token secara permanen",
@@ -389,6 +391,35 @@
       "oldestUtxo": "UTxO Terlama",
       "walletSize": "Ukuran dompet",
       "walletHealth": "Kesehatan dompet"
+    },
+    "nativeTokens": {
+      "title": "Token Native",
+      "mint": {
+        "tab": "Cetak",
+        "description": "Buat token Anda sendiri yang sesuai dengan EIP-4.",
+        "name": "Nama",
+        "tokenDescription": "Deskripsi",
+        "amount": "Jumlah Emisi",
+        "decimals": "Desimal",
+        "mint": "Cetak",
+        "nameRequired": "Nama token wajib diisi.",
+        "amountRequired": "Jumlah emisi wajib diisi.",
+        "invalidAmount": "Jumlah harus lebih besar dari nol.",
+        "tooManyDecimals": "Jumlah tidak boleh memiliki lebih dari {decimals} angka desimal.",
+        "invalidDecimals": "Desimal harus berupa bilangan bulat antara 0 dan {max}.",
+        "tooLong": "Kolom ini terlalu panjang."
+      },
+      "burn": {
+        "tab": "Bakar",
+        "warning": "Membakar akan menghancurkan token yang dipilih secara permanen. Tindakan ini tidak dapat dibatalkan.",
+        "scamTokens": "Tambahkan semua token penipuan",
+        "scamTokensDesc": "Anda tidak memiliki token penipuan yang masuk daftar hitam. | Tambahkan token penipuan dalam daftar hitam yang Anda miliki. | Tambahkan {count} token penipuan dalam daftar hitam yang Anda miliki.",
+        "nsfwTokens": "Tambahkan semua token NSFW",
+        "nsfwTokensDesc": "Anda tidak memiliki token NSFW yang masuk daftar hitam. | Tambahkan token NSFW dalam daftar hitam yang Anda miliki. | Tambahkan {count} token NSFW dalam daftar hitam yang Anda miliki.",
+        "tokens": "Token yang akan dibakar",
+        "noSelectedTokens": "Pilih setidaknya satu token untuk dibakar.",
+        "burn": "Bakar"
+      }
     }
   },
   "connector": {
