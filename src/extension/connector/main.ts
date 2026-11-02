@@ -5,6 +5,6 @@ import App from "./App.vue";
 import { router } from "./router";
 import { registerRpcHooks } from "./rpc/uiRpcHandlers";
 
-await runMigrations();
+const [app] = await Promise.all([setupApp(createApp(App)), runMigrations()]);
 registerRpcHooks();
-setupApp(createApp(App)).use(router).mount("#app");
+app.use(router).mount("#app");

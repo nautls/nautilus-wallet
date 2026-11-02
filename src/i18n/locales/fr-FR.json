@@ -362,65 +362,6 @@
     "quote": "Construit en secret, en se procurant des pièces auprès de sources inconnues. Parcourt les mers au-delà de la portée des gouvernements terrestres.",
     "donation": "Soutenez le développement du portefeuille Nautilus en faisant un don à {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protocole SigmaUSD",
-      "insufficientBalance": "Solde insuffisant en {asset}.",
-      "blockedAction": "En raison des réserves bancaires actuelles, vous ne pouvez pas {action} plus de {amount} {asset}.",
-      "feeSummary": "Frais {amount}",
-      "protocolFee": "Frais de protocole ({rate})",
-      "protocolFeeDesc": "Les frais de protocole contribuent directement aux réserves bancaires.",
-      "serviceFee": "Frais de service ({rate})",
-      "serviceFeeDesc": "Le portefeuille Nautilus applique des frais fixes pour financer durablement son développement.",
-      "networkFee": "Frais de réseau",
-      "networkFeeDesc": "C'est le coût d'ajouter la transaction à la blockchain.",
-      "totalFee": "Frais totaux",
-      "bankReserves": "Réserves bancaires",
-      "oracleRate": "Taux actuel",
-      "buy": "acheter",
-      "sell": "vendre"
-    },
-    "walletOptimizer": {
-      "title": "Optimiseur de portefeuille",
-      "description": "Utilisez cet outil pour fusionner vos UTxO, améliorer les performances et éviter les frais de {demurrage}.",
-      "demurrage": "dépréciation",
-      "size": "{count} {size}",
-      "bytes": "octets",
-      "utxoCount": "Nombre d'UTxO",
-      "oldestUtxo": "Le plus ancien UTxO",
-      "walletSize": "Taille du portefeuille",
-      "walletHealth": "Santé du portefeuille"
-    },
-    "nativeTokens": {
-      "title": "Jetons natifs",
-      "mint": {
-        "tab": "Frapper",
-        "description": "Créez votre propre jeton conforme à l'EIP-4.",
-        "name": "Nom",
-        "tokenDescription": "Description",
-        "amount": "Montant de l'émission",
-        "decimals": "Décimales",
-        "mint": "Frapper",
-        "nameRequired": "Le nom du jeton est requis.",
-        "amountRequired": "Le montant de l'émission est requis.",
-        "invalidAmount": "Le montant doit être supérieur à zéro.",
-        "tooManyDecimals": "Le montant ne peut pas avoir plus de {decimals} décimales.",
-        "invalidDecimals": "Les décimales doivent être un nombre entier compris entre 0 et {max}.",
-        "tooLong": "Ce champ est trop long."
-      },
-      "burn": {
-        "tab": "Brûler",
-        "warning": "Brûler détruit définitivement les jetons sélectionnés. Cette action est irréversible.",
-        "scamTokens": "Ajouter tous les jetons frauduleux",
-        "scamTokensDesc": "Vous ne détenez aucun jeton frauduleux sur liste noire. | Ajouter le jeton frauduleux sur liste noire que vous détenez. | Ajouter les {count} jetons frauduleux sur liste noire que vous détenez.",
-        "nsfwTokens": "Ajouter tous les jetons NSFW",
-        "nsfwTokensDesc": "Vous ne détenez aucun jeton NSFW sur liste noire. | Ajouter le jeton NSFW sur liste noire que vous détenez. | Ajouter les {count} jetons NSFW sur liste noire que vous détenez.",
-        "tokens": "Jetons à brûler",
-        "noSelectedTokens": "Sélectionnez au moins un jeton à brûler.",
-        "burn": "Brûler"
-      }
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} demande à se connecter au portefeuille Nautilus.",

@@ -363,65 +363,6 @@
     "quote": "Dibina secara rahsia, mendapatkan bahagian daripada sumber yang tidak dinamakan. Mengembara di lautan di luar jangkauan kerajaan berasaskan darat.",
     "donation": "Sokong pembangunan Nautilus Wallet dengan menderma kepada {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protokol SigmaUSD",
-      "insufficientBalance": "Baki {asset} tidak mencukupi.",
-      "blockedAction": "Disebabkan rizab bank semasa, anda tidak boleh {action} lebih daripada {amount} {asset}.",
-      "feeSummary": "Bayaran {amount}",
-      "protocolFee": "Bayaran Protokol ({rate})",
-      "protocolFeeDesc": "Bayaran Protokol secara langsung menyumbang kepada rizab bank.",
-      "serviceFee": "Bayaran Perkhidmatan ({rate})",
-      "serviceFeeDesc": "Nautilus Wallet mengenakan bayaran tetap untuk membiayai pembangunannya secara mampan.",
-      "networkFee": "Bayaran Rangkaian",
-      "networkFeeDesc": "Ini adalah kos untuk menambah transaksi ke blockchain.",
-      "totalFee": "Jumlah Bayaran",
-      "bankReserves": "Rizab bank",
-      "oracleRate": "Kadar semasa",
-      "buy": "beli",
-      "sell": "jual"
-    },
-    "walletOptimizer": {
-      "title": "Pengoptimum Dompet",
-      "description": "Gunakan alat ini untuk menggabungkan UTxOs anda, meningkatkan prestasi dan mengelakkan bayaran {demurrage}.",
-      "demurrage": "demurrage",
-      "size": "{count} {size}",
-      "bytes": "bait",
-      "utxoCount": "Kiraan UTxO",
-      "oldestUtxo": "UTxO tertua",
-      "walletSize": "Saiz dompet",
-      "walletHealth": "Kesihatan dompet"
-    },
-    "nativeTokens": {
-      "title": "Token Asli",
-      "mint": {
-        "tab": "Cetak",
-        "description": "Cipta token anda sendiri yang mematuhi EIP-4.",
-        "name": "Nama",
-        "tokenDescription": "Penerangan",
-        "amount": "Jumlah emisi",
-        "decimals": "Perpuluhan",
-        "mint": "Cetak",
-        "nameRequired": "Nama token diperlukan.",
-        "amountRequired": "Jumlah emisi diperlukan.",
-        "invalidAmount": "Jumlah mestilah lebih besar daripada sifar.",
-        "tooManyDecimals": "Jumlah tidak boleh mempunyai lebih daripada {decimals} tempat perpuluhan.",
-        "invalidDecimals": "Perpuluhan mestilah nombor bulat antara 0 dan {max}.",
-        "tooLong": "Medan ini terlalu panjang."
-      },
-      "burn": {
-        "tab": "Bakar",
-        "warning": "Pembakaran memusnahkan token yang dipilih secara kekal. Tindakan ini tidak boleh dibuat asal.",
-        "scamTokens": "Tambah semua token penipuan",
-        "scamTokensDesc": "Anda tidak memegang sebarang token penipuan dalam senarai hitam. | Tambah token penipuan dalam senarai hitam yang anda pegang. | Tambah {count} token penipuan dalam senarai hitam yang anda pegang.",
-        "nsfwTokens": "Tambah semua token NSFW",
-        "nsfwTokensDesc": "Anda tidak memegang sebarang token NSFW dalam senarai hitam. | Tambah token NSFW dalam senarai hitam yang anda pegang. | Tambah {count} token NSFW dalam senarai hitam yang anda pegang.",
-        "tokens": "Token untuk dibakar",
-        "noSelectedTokens": "Pilih sekurang-kurangnya satu token untuk dibakar.",
-        "burn": "Bakar"
-      }
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} meminta untuk menyambung dengan Nautilus.",

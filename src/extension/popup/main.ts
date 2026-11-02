@@ -8,5 +8,5 @@ import { router } from "./router";
 // keeps IndexedDB from being evicted under storage pressure
 navigator.storage?.persist?.().catch((e) => log.error(e));
 
-await runMigrations();
-setupApp(createApp(App)).use(router).mount("#app");
+const [app] = await Promise.all([setupApp(createApp(App)), runMigrations()]);
+app.use(router).mount("#app");

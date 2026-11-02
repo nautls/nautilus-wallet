@@ -362,65 +362,6 @@
     "quote": "Im Verborgenen erschaffen, aus Funden, die kein Auge je suchte. Streift durch ferne Wasser, fernab der Macht irdischer Reiche.",
     "donation": "Unterstütze die Entwicklung der Nautilus-Wallet mit einer Spende an {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "SigmaUSD-Protokoll",
-      "insufficientBalance": "Unzureichender {asset}-Kontostand.",
-      "blockedAction": "Aufgrund der aktuellen Bankreserven kannst du nicht mehr als {amount} {asset} {action}.",
-      "feeSummary": "Gebühren {amount}",
-      "protocolFee": "Protokollgebühr ({rate})",
-      "protocolFeeDesc": "Die Protokollgebühr fließt direkt in die Bankreserven.",
-      "serviceFee": "Servicegebühr ({rate})",
-      "serviceFeeDesc": "Die Nautilus-Wallet erhebt eine Pauschalgebühr, um ihre Entwicklung nachhaltig zu finanzieren.",
-      "networkFee": "Netzwerkgebühr",
-      "networkFeeDesc": "Dies sind die Kosten für das Hinzufügen der Transaktion zur Blockchain.",
-      "totalFee": "Gesamtgebühr",
-      "bankReserves": "Bankreserven",
-      "oracleRate": "Aktueller Kurs",
-      "buy": "kaufen",
-      "sell": "verkaufen"
-    },
-    "walletOptimizer": {
-      "title": "Wallet-Optimierer",
-      "description": "Nutze dieses Tool, um deine UTxOs zusammenzuführen, die Leistung zu steigern und die {demurrage}-Gebühr zu vermeiden.",
-      "demurrage": "Demurrage",
-      "size": "{count} {size}",
-      "bytes": "Bytes",
-      "utxoCount": "UTxO-Anzahl",
-      "oldestUtxo": "Ältester UTxO",
-      "walletSize": "Wallet-Größe",
-      "walletHealth": "Wallet-Gesundheit"
-    },
-    "nativeTokens": {
-      "title": "Native Tokens",
-      "mint": {
-        "tab": "Erstellen",
-        "description": "Erstelle deinen eigenen EIP-4-konformen Token.",
-        "name": "Name",
-        "tokenDescription": "Beschreibung",
-        "amount": "Emissionsmenge",
-        "decimals": "Dezimalstellen",
-        "mint": "Erstellen",
-        "nameRequired": "Der Token-Name ist erforderlich.",
-        "amountRequired": "Die Emissionsmenge ist erforderlich.",
-        "invalidAmount": "Der Betrag muss größer als null sein.",
-        "tooManyDecimals": "Der Betrag darf nicht mehr als {decimals} Dezimalstellen haben.",
-        "invalidDecimals": "Die Dezimalstellen müssen eine ganze Zahl zwischen 0 und {max} sein.",
-        "tooLong": "Dieses Feld ist zu lang."
-      },
-      "burn": {
-        "tab": "Verbrennen",
-        "warning": "Beim Verbrennen werden die ausgewählten Token dauerhaft vernichtet. Dies kann nicht rückgängig gemacht werden.",
-        "scamTokens": "Alle Scam-Token hinzufügen",
-        "scamTokensDesc": "Du besitzt keine als Scam gelisteten Token. | Den als Scam gelisteten Token hinzufügen, den du besitzt. | Die {count} als Scam gelisteten Token hinzufügen, die du besitzt.",
-        "nsfwTokens": "Alle NSFW-Token hinzufügen",
-        "nsfwTokensDesc": "Du besitzt keine als NSFW gelisteten Token. | Den als NSFW gelisteten Token hinzufügen, den du besitzt. | Die {count} als NSFW gelisteten Token hinzufügen, die du besitzt.",
-        "tokens": "Zu verbrennende Token",
-        "noSelectedTokens": "Wähle mindestens einen Token zum Verbrennen aus.",
-        "burn": "Verbrennen"
-      }
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} möchte eine Verbindung mit Nautilus herstellen.",

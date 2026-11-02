@@ -1,6 +1,7 @@
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 import type { Composer, Locale } from "vue-i18n";
+import type DAppsMessages from "@/dapps/locales/en-US.json";
 import type EnglishMessages from "./locales/en-US.json";
 import { russianPluralRules } from "./plural-rules/ru";
 
@@ -39,7 +40,7 @@ export const LANGUAGE_LABELS = new Map<Locale, string>([
   ["de-DE", "Deutsch (DE)"] //            German (Germany)
 ]);
 
-export type MessageSchema = typeof EnglishMessages;
+export type MessageSchema = typeof EnglishMessages & typeof DAppsMessages;
 export type Translator = Composer["t"];
 export type DateFormatter = Composer["d"];
 
@@ -84,6 +85,9 @@ export async function setLocale(locale: string): Promise<void> {
     await loadLocale(lang);
   }
 
+  // keep dapps messages available in the new locale if they were already loaded
+  if (dappsLocaleRequested) await loadDAppsMessages(lang);
+
   _globalInstance.locale.value = lang;
   document.querySelector("html")?.setAttribute("lang", lang);
 }
@@ -107,6 +111,28 @@ export function fallback(locale: string, availableLocales: readonly string[]): L
   }
 
   return (match ?? DEFAULT_LOCALE) as Locale;
+}
+
+let dappsLocaleRequested = false;
+const loadedDAppsLocales = new Set<Locale>();
+
+/**
+ * Lazily loads dapps messages (`src/dapps/locales/<locale>.json`) for the current and
+ * fallback locales, merging them into the global messages. Meant to be awaited before
+ * dapps views render, e.g. in a route's `beforeEnter` guard.
+ */
+export async function loadDAppsLocale(): Promise<void> {
+  dappsLocaleRequested = true;
+  const locales = new Set([DEFAULT_LOCALE, getLocale()]);
+  await Promise.all([...locales].map(loadDAppsMessages));
+}
+
+async function loadDAppsMessages(locale: Locale): Promise<void> {
+  if (loadedDAppsLocales.has(locale)) return;
+
+  const messages = await import(`../dapps/locales/${locale}.json`).then((r) => r.default || r);
+  _globalInstance.mergeLocaleMessage(locale, messages);
+  loadedDAppsLocales.add(locale);
 }
 
 async function importLocale(locale: Locale) {

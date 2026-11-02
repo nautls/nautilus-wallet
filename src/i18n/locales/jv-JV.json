@@ -363,65 +363,6 @@
     "quote": "Dipunbangun kanthi rahasia, sumber bagean saking sumber ingkang mboten dipunsebutaken jenengipun. Njelajahi sagara ing ngajeng panguwaos pamarentahan ing dharatan.",
     "donation": "Dukung pangembangan Nautilus Wallet kanthi nyumbang dhateng {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protokol SigmaUSD",
-      "insufficientBalance": "Duwitmu {asset} mboten cekap.",
-      "blockedAction": "Amargi cadangan bank sakniki, panjenengan mboten saged {action} langkung saking {amount} {asset}.",
-      "feeSummary": "Biaya {amount}",
-      "protocolFee": "Biaya Protokol ({rate})",
-      "protocolFeeDesc": "Biaya Protokol langsung nyumbang dhateng cadangan bank.",
-      "serviceFee": "Biaya Layanan ({rate})",
-      "serviceFeeDesc": "Nautilus Wallet ngisi biaya datar kangge nyukupi pangembangan kanthi lestari.",
-      "networkFee": "Biaya Jaringan",
-      "networkFeeDesc": "Punika biaya kangge nambahaken transaksi dhateng blockchain.",
-      "totalFee": "Total Biaya",
-      "bankReserves": "Cadangan bank",
-      "oracleRate": "Kurs sakniki",
-      "buy": "tumbas",
-      "sell": "adol"
-    },
-    "walletOptimizer": {
-      "title": "Optimalisasi Dompet",
-      "description": "Gunakaken piranti punika kangge nggabungaken UTxO panjenengan, ningkataken kinerja lan ngindhari biaya {demurrage}.",
-      "demurrage": "demurrage",
-      "size": "{count} {size}",
-      "bytes": "bait",
-      "utxoCount": "Cacahipun UTxO",
-      "oldestUtxo": "UTxO paling sepuh",
-      "walletSize": "Ukuran dompet",
-      "walletHealth": "Kesehatan dompet"
-    },
-    "nativeTokens": {
-      "title": "Token Native",
-      "mint": {
-        "tab": "Mint",
-        "description": "Damel token panjenengan piyambak ingkang jumbuh kaliyan EIP-4.",
-        "name": "Nami",
-        "tokenDescription": "Katrangan",
-        "amount": "Jumlah emisi",
-        "decimals": "Desimal",
-        "mint": "Mint",
-        "nameRequired": "Nami token kedah dipun-isi.",
-        "amountRequired": "Jumlah emisi kedah dipun-isi.",
-        "invalidAmount": "Jumlah kedah langkung ageng saking nol.",
-        "tooManyDecimals": "Jumlah mboten saged gadhah langkung saking {decimals} angka desimal.",
-        "invalidDecimals": "Desimal kedah wujud angka wetah antawis 0 lan {max}.",
-        "tooLong": "Kolom punika kepanjangen."
-      },
-      "burn": {
-        "tab": "Bakar",
-        "warning": "Ngobong badhe ngicalaken token ingkang dipun-pilih kanthi permanen. Tumindak punika mboten saged dipun-wangsulaken.",
-        "scamTokens": "Tambah sedaya token scam",
-        "scamTokensDesc": "Panjenengan mboten gadhah token scam ing daftar ireng. | Tambah token scam ing daftar ireng ingkang panjenengan gadhahi. | Tambah {count} token scam ing daftar ireng ingkang panjenengan gadhahi.",
-        "nsfwTokens": "Tambah sedaya token NSFW",
-        "nsfwTokensDesc": "Panjenengan mboten gadhah token NSFW ing daftar ireng. | Tambah token NSFW ing daftar ireng ingkang panjenengan gadhahi. | Tambah {count} token NSFW ing daftar ireng ingkang panjenengan gadhahi.",
-        "tokens": "Token ingkang badhe dipun-bakar",
-        "noSelectedTokens": "Mangga pilih paling mboten setunggal token kangge dipun-bakar.",
-        "burn": "Bakar"
-      }
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} nyuwun kangge nyambung kaliyan Nautilus.",

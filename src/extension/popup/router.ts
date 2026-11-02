@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+import { loadDAppsLocale } from "@/i18n";
 import AssetsView from "@/views/assets/AssetsView.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -50,6 +51,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/dapps",
     component: () => import("@/views/dapps/DAppsView.vue"),
+    beforeEnter: () => loadDAppsLocale(),
     children: [
       {
         path: "",

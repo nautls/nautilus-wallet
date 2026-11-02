@@ -16,7 +16,6 @@ import { DEFAULT_SETTINGS } from "@/constants/settings";
 import { utxosDbService } from "@/database/utxosDbService";
 import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
-import { setLocale } from "@/i18n";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
@@ -73,7 +72,6 @@ export const useAppStore = defineStore("app", () => {
 
   onMounted(async () => {
     await loadWallets();
-    setLocale(settings.value.locale !== "auto" ? settings.value.locale : navigator.language);
 
     if (!settings.value.lastOpenedWalletId && privateState.wallets.length === 0) goTo("add-wallet");
 
