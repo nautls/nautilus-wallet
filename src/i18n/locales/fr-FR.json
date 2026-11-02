@@ -362,17 +362,6 @@
     "quote": "Construit en secret, en se procurant des pièces auprès de sources inconnues. Parcourt les mers au-delà de la portée des gouvernements terrestres.",
     "donation": "Soutenez le développement du portefeuille Nautilus en faisant un don à {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protocole SigmaUSD"
-    },
-    "walletOptimizer": {
-      "title": "Optimiseur de portefeuille"
-    },
-    "nativeTokens": {
-      "title": "Jetons natifs"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} demande à se connecter au portefeuille Nautilus.",

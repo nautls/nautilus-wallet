@@ -1,6 +1,35 @@
 {
   "dapps": {
+    "sigmaUsd": {
+      "title": "Протокол SigmaUSD",
+      "insufficientBalance": "Недостаточно баланса {asset}.",
+      "blockedAction": "Из-за текущих резервов банка вы не можете {action} более чем {amount} {asset}.",
+      "feeSummary": "Комиссии {amount}",
+      "protocolFee": "Комиссия протокола ({rate})",
+      "protocolFeeDesc": "Комиссия протокола напрямую пополняет резервы банка.",
+      "serviceFee": "Комиссия сервиса ({rate})",
+      "serviceFeeDesc": "Кошелек Nautilus взимает фиксированную комиссию для устойчивого финансирования своей разработки.",
+      "networkFee": "Комиссия сети",
+      "networkFeeDesc": "Это стоимость включения транзакции в блокчейн.",
+      "totalFee": "Итоговая комиссия",
+      "bankReserves": "Резервы банка",
+      "oracleRate": "Текущий курс",
+      "buy": "купить",
+      "sell": "продать"
+    },
+    "walletOptimizer": {
+      "title": "Оптимизатор кошелька",
+      "description": "Используйте этот инструмент, чтобы объединить ваши UTxO, повысив производительность и избежав комиссии демуража.",
+      "demurrage": "демураж",
+      "size": "{count} {size}",
+      "bytes": "байт",
+      "utxoCount": "Количество UTxO",
+      "oldestUtxo": "Самый старый UTxO",
+      "walletSize": "Размер кошелька",
+      "walletHealth": "Состояние кошелька"
+    },
     "nativeTokens": {
+      "title": "Нативные токены",
       "mint": {
         "tab": "Выпуск",
         "description": "Создайте собственный токен, соответствующий стандарту EIP-4.",

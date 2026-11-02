@@ -363,17 +363,6 @@
     "quote": "Dibina secara rahsia, mendapatkan bahagian daripada sumber yang tidak dinamakan. Mengembara di lautan di luar jangkauan kerajaan berasaskan darat.",
     "donation": "Sokong pembangunan Nautilus Wallet dengan menderma kepada {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protokol SigmaUSD"
-    },
-    "walletOptimizer": {
-      "title": "Pengoptimum Dompet"
-    },
-    "nativeTokens": {
-      "title": "Token Asli"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} meminta untuk menyambung dengan Nautilus.",

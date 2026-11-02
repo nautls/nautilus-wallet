@@ -1,6 +1,35 @@
 {
   "dapps": {
+    "sigmaUsd": {
+      "title": "Protocole SigmaUSD",
+      "insufficientBalance": "Solde insuffisant en {asset}.",
+      "blockedAction": "En raison des réserves bancaires actuelles, vous ne pouvez pas {action} plus de {amount} {asset}.",
+      "feeSummary": "Frais {amount}",
+      "protocolFee": "Frais de protocole ({rate})",
+      "protocolFeeDesc": "Les frais de protocole contribuent directement aux réserves bancaires.",
+      "serviceFee": "Frais de service ({rate})",
+      "serviceFeeDesc": "Le portefeuille Nautilus applique des frais fixes pour financer durablement son développement.",
+      "networkFee": "Frais de réseau",
+      "networkFeeDesc": "C'est le coût d'ajouter la transaction à la blockchain.",
+      "totalFee": "Frais totaux",
+      "bankReserves": "Réserves bancaires",
+      "oracleRate": "Taux actuel",
+      "buy": "acheter",
+      "sell": "vendre"
+    },
+    "walletOptimizer": {
+      "title": "Optimiseur de portefeuille",
+      "description": "Utilisez cet outil pour fusionner vos UTxO, améliorer les performances et éviter les frais de {demurrage}.",
+      "demurrage": "dépréciation",
+      "size": "{count} {size}",
+      "bytes": "octets",
+      "utxoCount": "Nombre d'UTxO",
+      "oldestUtxo": "Le plus ancien UTxO",
+      "walletSize": "Taille du portefeuille",
+      "walletHealth": "Santé du portefeuille"
+    },
     "nativeTokens": {
+      "title": "Jetons natifs",
       "mint": {
         "tab": "Frapper",
         "description": "Créez votre propre jeton conforme à l'EIP-4.",

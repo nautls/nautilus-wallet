@@ -1,13 +1,42 @@
 {
   "dapps": {
+    "sigmaUsd": {
+      "title": "Protocolo SigmaUSD",
+      "insufficientBalance": "Saldo insuficiente de {asset}.",
+      "blockedAction": "Devido às reservas atuais do banco, você não pode {action} mais de {amount} {asset}.",
+      "feeSummary": "Taxas {amount}",
+      "protocolFee": "Taxa do Protocolo ({rate})",
+      "protocolFeeDesc": "A Taxa do Protocolo contribui diretamente para as reservas do banco.",
+      "serviceFee": "Taxa de Serviço({rate})",
+      "serviceFeeDesc": "A Carteira Nautilus cobra uma taxa fixa para financiar seu desenvolvimento de forma sustentável.",
+      "networkFee": "Taxa de Rede",
+      "networkFeeDesc": "Este é o custo para adicionar a transação à blockchain.",
+      "totalFee": "Taxa Total",
+      "bankReserves": "Reservas",
+      "oracleRate": "Cotação atual",
+      "buy": "comprar",
+      "sell": "vender"
+    },
+    "walletOptimizer": {
+      "title": "Otimização de Carteira",
+      "description": "Use esta ferramenta para consolidar os seus UTxOs, aumentando o desempenho e evitando a taxa de {demurrage}.",
+      "demurrage": "sobrestadia",
+      "size": "{count} {size}",
+      "bytes": "bytes",
+      "utxoCount": "Quantidade de UTxOs",
+      "oldestUtxo": "UTxO mais antigo",
+      "walletSize": "Tamanho da carteira",
+      "walletHealth": "Saúde da carteira"
+    },
     "nativeTokens": {
+      "title": "Tokens Nativos",
       "mint": {
         "tab": "Emitir",
         "description": "Crie seu próprio token compatível com o EIP-4.",
         "name": "Nome",
         "tokenDescription": "Descrição",
         "amount": "Quantidade emitida",
-        "decimals": "Casas decimais",
+        "decimals": "Decimais",
         "mint": "Emitir",
         "nameRequired": "O nome do token é obrigatório.",
         "amountRequired": "A quantidade emitida é obrigatória.",

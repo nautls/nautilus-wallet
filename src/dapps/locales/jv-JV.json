@@ -1,6 +1,35 @@
 {
   "dapps": {
+    "sigmaUsd": {
+      "title": "Protokol SigmaUSD",
+      "insufficientBalance": "Duwitmu {asset} mboten cekap.",
+      "blockedAction": "Amargi cadangan bank sakniki, panjenengan mboten saged {action} langkung saking {amount} {asset}.",
+      "feeSummary": "Biaya {amount}",
+      "protocolFee": "Biaya Protokol ({rate})",
+      "protocolFeeDesc": "Biaya Protokol langsung nyumbang dhateng cadangan bank.",
+      "serviceFee": "Biaya Layanan ({rate})",
+      "serviceFeeDesc": "Nautilus Wallet ngisi biaya datar kangge nyukupi pangembangan kanthi lestari.",
+      "networkFee": "Biaya Jaringan",
+      "networkFeeDesc": "Punika biaya kangge nambahaken transaksi dhateng blockchain.",
+      "totalFee": "Total Biaya",
+      "bankReserves": "Cadangan bank",
+      "oracleRate": "Kurs sakniki",
+      "buy": "tumbas",
+      "sell": "adol"
+    },
+    "walletOptimizer": {
+      "title": "Optimalisasi Dompet",
+      "description": "Gunakaken piranti punika kangge nggabungaken UTxO panjenengan, ningkataken kinerja lan ngindhari biaya {demurrage}.",
+      "demurrage": "demurrage",
+      "size": "{count} {size}",
+      "bytes": "bait",
+      "utxoCount": "Cacahipun UTxO",
+      "oldestUtxo": "UTxO paling sepuh",
+      "walletSize": "Ukuran dompet",
+      "walletHealth": "Kesehatan dompet"
+    },
     "nativeTokens": {
+      "title": "Token Native",
       "mint": {
         "tab": "Mint",
         "description": "Damel token panjenengan piyambak ingkang jumbuh kaliyan EIP-4.",

@@ -363,17 +363,6 @@
     "quote": "Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
     "donation": "Support Nautilus Wallet development by donating to {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "SigmaUSD Protocol"
-    },
-    "walletOptimizer": {
-      "title": "Wallet Optimizer"
-    },
-    "nativeTokens": {
-      "title": "Native Tokens"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} requests to connect with Nautilus.",

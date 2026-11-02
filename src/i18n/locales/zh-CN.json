@@ -362,17 +362,6 @@
     "quote": "秘密构建，从未命名的来源采购零件。航行在超越陆地政府范围的海洋。",
     "donation": "通过捐赠至 {address} 支持 Nautilus 钱包开发。"
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "SigmaUSD 协议"
-    },
-    "walletOptimizer": {
-      "title": "钱包优化器"
-    },
-    "nativeTokens": {
-      "title": "原生代币"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} 请求与 Nautilus 连接。",

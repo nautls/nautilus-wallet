@@ -362,17 +362,6 @@
     "quote": "Im Verborgenen erschaffen, aus Funden, die kein Auge je suchte. Streift durch ferne Wasser, fernab der Macht irdischer Reiche.",
     "donation": "Unterstütze die Entwicklung der Nautilus-Wallet mit einer Spende an {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "SigmaUSD-Protokoll"
-    },
-    "walletOptimizer": {
-      "title": "Wallet-Optimierer"
-    },
-    "nativeTokens": {
-      "title": "Native Tokens"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} möchte eine Verbindung mit Nautilus herstellen.",

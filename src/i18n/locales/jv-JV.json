@@ -363,17 +363,6 @@
     "quote": "Dipunbangun kanthi rahasia, sumber bagean saking sumber ingkang mboten dipunsebutaken jenengipun. Njelajahi sagara ing ngajeng panguwaos pamarentahan ing dharatan.",
     "donation": "Dukung pangembangan Nautilus Wallet kanthi nyumbang dhateng {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protokol SigmaUSD"
-    },
-    "walletOptimizer": {
-      "title": "Optimalisasi Dompet"
-    },
-    "nativeTokens": {
-      "title": "Token Native"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} nyuwun kangge nyambung kaliyan Nautilus.",

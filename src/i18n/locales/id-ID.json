@@ -363,17 +363,6 @@
     "quote": "Dibuat secara rahasia, mengambil komponen dari sumber yang tidak disebutkan namanya. Berlayar di lautan yang jauh dari jangkauan pemerintah di daratan.",
     "donation": "Dukung pengembangan Dompet Nautilus dengan berdonasi ke {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protokol SigmaUSD"
-    },
-    "walletOptimizer": {
-      "title": "Pengoptimal Dompet"
-    },
-    "nativeTokens": {
-      "title": "Token Native"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} meminta untuk terhubung dengan Nautilus.",

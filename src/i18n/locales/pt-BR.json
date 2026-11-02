@@ -362,17 +362,6 @@
     "quote": "Construído em segredo, obtendo peças de fontes não nomeadas. Navega pelos mares além do alcance de governos terrestres.",
     "donation": "Apoie o desenvolvimento da Nautilus Wallet doando para {address}."
   },
-  "dapps": {
-    "sigmaUsd": {
-      "title": "Protocolo SigmaUSD"
-    },
-    "walletOptimizer": {
-      "title": "Otimização de Carteira"
-    },
-    "nativeTokens": {
-      "title": "Tokens Nativos"
-    }
-  },
   "connector": {
     "connect": {
       "header": "{host} solicita conexão com a Nautilus.",
