@@ -24,7 +24,9 @@ const isUsed = computed(() => wallet.addresses.some((a) => a.state === AddressSt
 const isRecent = computed(() => Date.now() - wallet.createdAt < RECENT_WALLET_INTERVAL);
 
 // only display the backup alert if the wallet is used or not recently added
-const showBackupAlert = computed(() => wallet.needsBackup && (isUsed.value || !isRecent.value));
+const showBackupAlert = computed(
+  () => !wallet.loading && wallet.needsBackup && (isUsed.value || !isRecent.value)
+);
 
 // unused wallets get a neutral alert, used ones get more urgent as time passes
 const backupAlertVariant = computed(() =>

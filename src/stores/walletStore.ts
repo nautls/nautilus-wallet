@@ -307,37 +307,39 @@ export const useWalletStore = defineStore("wallet", () => {
     if (!wlt) throw new Error(`Wallet 'id:${walletId}' not found`);
     setLoading(true);
 
-    privateState.id = wlt.id!;
-    privateState.type = wlt.type;
-    privateState.publicKey = wlt.publicKey;
-    privateState.chainCode = wlt.chainCode;
-    privateState.hasOldUtxos = false;
-    name.value = wlt.name;
-    settings.value = { ...wlt.settings }; // a copy, so edits aren't applied to the stored list
+    try {
+      privateState.id = wlt.id!;
+      privateState.type = wlt.type;
+      privateState.publicKey = wlt.publicKey;
+      privateState.chainCode = wlt.chainCode;
+      privateState.hasOldUtxos = false;
+      name.value = wlt.name;
+      settings.value = { ...wlt.settings }; // a copy, so edits aren't applied to the stored list
 
-    const dbAssets = await assetsDbService.getByWalletId(walletId);
-    const tokenIds = dbAssets.map((x) => x.tokenId);
-    await assetsStore.loadMetadata(tokenIds, { fetchInBackground: opt.syncInBackground });
-    privateState.assets = dbAssets;
+      const dbAssets = await assetsDbService.getByWalletId(walletId);
+      const tokenIds = dbAssets.map((x) => x.tokenId);
+      await assetsStore.loadMetadata(tokenIds, { fetchInBackground: opt.syncInBackground });
+      privateState.assets = dbAssets;
 
-    const dbAddresses = await addressesDbService.getByWalletId(walletId);
-    privateState.addresses = dbAddresses;
-    privateState.lastSynced = await walletSyncDbService.getLastSynced(walletId);
+      const dbAddresses = await addressesDbService.getByWalletId(walletId);
+      privateState.addresses = dbAddresses;
+      privateState.lastSynced = await walletSyncDbService.getLastSynced(walletId);
 
-    appStore.settings.lastOpenedWalletId = walletId;
+      appStore.settings.lastOpenedWalletId = walletId;
 
-    hdKeyPool.alloc(
-      privateState.publicKey,
-      HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
-    );
+      hdKeyPool.alloc(
+        privateState.publicKey,
+        HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
+      );
 
-    if (opt.syncInBackground) {
-      sync();
-    } else {
-      await sync();
+      if (opt.syncInBackground) {
+        sync();
+      } else {
+        await sync();
+      }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   async function deriveNewAddress() {
