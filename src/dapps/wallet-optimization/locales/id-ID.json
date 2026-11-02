@@ -1,0 +1,14 @@
+{
+  "dapps": {
+    "walletOptimizer": {
+      "description": "Gunakan alat ini untuk menggabungkan UTxO milik Anda, meningkatkan kinerja dan menghindari biaya {demurrage}.",
+      "demurrage": "demurrage",
+      "size": "{count} {size}",
+      "bytes": "bytes",
+      "utxoCount": "Jumlah UTxO",
+      "oldestUtxo": "UTxO Terlama",
+      "walletSize": "Ukuran dompet",
+      "walletHealth": "Kesehatan dompet"
+    }
+  }
+}

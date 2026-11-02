@@ -364,61 +364,13 @@
   },
   "dapps": {
     "sigmaUsd": {
-      "title": "Protocolo SigmaUSD",
-      "insufficientBalance": "Saldo insuficiente de {asset}.",
-      "blockedAction": "Devido às reservas atuais do banco, você não pode {action} mais de {amount} {asset}.",
-      "feeSummary": "Taxas {amount}",
-      "protocolFee": "Taxa do Protocolo ({rate})",
-      "protocolFeeDesc": "A Taxa do Protocolo contribui diretamente para as reservas do banco.",
-      "serviceFee": "Taxa de Serviço({rate})",
-      "serviceFeeDesc": "A Carteira Nautilus cobra uma taxa fixa para financiar seu desenvolvimento de forma sustentável.",
-      "networkFee": "Taxa de Rede",
-      "networkFeeDesc": "Este é o custo para adicionar a transação à blockchain.",
-      "totalFee": "Taxa Total",
-      "bankReserves": "Reservas",
-      "oracleRate": "Cotação atual",
-      "buy": "comprar",
-      "sell": "vender"
+      "title": "Protocolo SigmaUSD"
     },
     "walletOptimizer": {
-      "title": "Otimização de Carteira",
-      "description": "Use esta ferramenta para consolidar os seus UTxOs, aumentando o desempenho e evitando a taxa de {demurrage}.",
-      "demurrage": "sobrestadia",
-      "size": "{count} {size}",
-      "bytes": "bytes",
-      "utxoCount": "Quantidade de UTxOs",
-      "oldestUtxo": "UTxO mais antigo",
-      "walletSize": "Tamanho da carteira",
-      "walletHealth": "Saúde da carteira"
+      "title": "Otimização de Carteira"
     },
     "nativeTokens": {
-      "title": "Tokens Nativos",
-      "mint": {
-        "tab": "Emitir",
-        "description": "Crie seu próprio token compatível com o EIP-4.",
-        "name": "Nome",
-        "tokenDescription": "Descrição",
-        "amount": "Quantidade emitida",
-        "decimals": "Casas decimais",
-        "mint": "Emitir",
-        "nameRequired": "O nome do token é obrigatório.",
-        "amountRequired": "A quantidade emitida é obrigatória.",
-        "invalidAmount": "A quantidade deve ser maior que zero.",
-        "tooManyDecimals": "A quantidade não pode ter mais de {decimals} casas decimais.",
-        "invalidDecimals": "As casas decimais devem ser um número inteiro entre 0 e {max}.",
-        "tooLong": "Este campo é muito longo."
-      },
-      "burn": {
-        "tab": "Queimar",
-        "warning": "A queima destrói permanentemente os tokens selecionados. Esta ação não pode ser desfeita.",
-        "scamTokens": "Adicionar todos os tokens golpistas",
-        "scamTokensDesc": "Você não possui nenhum token golpista da lista negra. | Adicionar o token golpista da lista negra que você possui. | Adicionar os {count} tokens golpistas da lista negra que você possui.",
-        "nsfwTokens": "Adicionar todos os tokens NSFW",
-        "nsfwTokensDesc": "Você não possui nenhum token NSFW da lista negra. | Adicionar o token NSFW da lista negra que você possui. | Adicionar os {count} tokens NSFW da lista negra que você possui.",
-        "tokens": "Tokens a queimar",
-        "noSelectedTokens": "Selecione pelo menos um token para queimar.",
-        "burn": "Queimar"
-      }
+      "title": "Tokens Nativos"
     }
   },
   "connector": {

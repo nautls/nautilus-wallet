@@ -1,0 +1,32 @@
+{
+  "dapps": {
+    "nativeTokens": {
+      "mint": {
+        "tab": "Erstellen",
+        "description": "Erstelle deinen eigenen EIP-4-konformen Token.",
+        "name": "Name",
+        "tokenDescription": "Beschreibung",
+        "amount": "Emissionsmenge",
+        "decimals": "Dezimalstellen",
+        "mint": "Erstellen",
+        "nameRequired": "Der Token-Name ist erforderlich.",
+        "amountRequired": "Die Emissionsmenge ist erforderlich.",
+        "invalidAmount": "Der Betrag muss größer als null sein.",
+        "tooManyDecimals": "Der Betrag darf nicht mehr als {decimals} Dezimalstellen haben.",
+        "invalidDecimals": "Die Dezimalstellen müssen eine ganze Zahl zwischen 0 und {max} sein.",
+        "tooLong": "Dieses Feld ist zu lang."
+      },
+      "burn": {
+        "tab": "Verbrennen",
+        "warning": "Beim Verbrennen werden die ausgewählten Token dauerhaft vernichtet. Dies kann nicht rückgängig gemacht werden.",
+        "scamTokens": "Alle Scam-Token hinzufügen",
+        "scamTokensDesc": "Du besitzt keine als Scam gelisteten Token. | Den als Scam gelisteten Token hinzufügen, den du besitzt. | Die {count} als Scam gelisteten Token hinzufügen, die du besitzt.",
+        "nsfwTokens": "Alle NSFW-Token hinzufügen",
+        "nsfwTokensDesc": "Du besitzt keine als NSFW gelisteten Token. | Den als NSFW gelisteten Token hinzufügen, den du besitzt. | Die {count} als NSFW gelisteten Token hinzufügen, die du besitzt.",
+        "tokens": "Zu verbrennende Token",
+        "noSelectedTokens": "Wähle mindestens einen Token zum Verbrennen aus.",
+        "burn": "Verbrennen"
+      }
+    }
+  }
+}

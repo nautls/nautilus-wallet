@@ -365,61 +365,13 @@
   },
   "dapps": {
     "sigmaUsd": {
-      "title": "Protokol SigmaUSD",
-      "insufficientBalance": "Saldo {aset} tidak mencukupi.",
-      "blockedAction": "Karena cadangan bank saat ini, Anda tidak dapat {action} lebih dari {amount} {aset}.",
-      "feeSummary": "Biaya {amount}",
-      "protocolFee": "Biaya Protokol ({rate})",
-      "protocolFeeDesc": "Biaya Protokol secara langsung berkontribusi pada cadangan bank.",
-      "serviceFee": "Biaya Layanan ({rate})",
-      "serviceFeeDesc": "Dompet Nautilus mengenakan biaya tetap untuk mendanai pengembangannya secara berkelanjutan.",
-      "networkFee": "Biaya Jaringan",
-      "networkFeeDesc": "Ini adalah biaya penambahan transaksi ke blockchain.",
-      "totalFee": "Biaya Total",
-      "bankReserves": "Cadangan bank",
-      "oracleRate": "Nilai tukar saat ini",
-      "buy": "beli",
-      "sell": "jual"
+      "title": "Protokol SigmaUSD"
     },
     "walletOptimizer": {
-      "title": "Pengoptimal Dompet",
-      "description": "Gunakan alat ini untuk menggabungkan UTxO milik Anda, meningkatkan kinerja dan menghindari biaya {demurrage}.",
-      "demurrage": "demurrage",
-      "size": "{count} {size}",
-      "bytes": "bytes",
-      "utxoCount": "Jumlah UTxO",
-      "oldestUtxo": "UTxO Terlama",
-      "walletSize": "Ukuran dompet",
-      "walletHealth": "Kesehatan dompet"
+      "title": "Pengoptimal Dompet"
     },
     "nativeTokens": {
-      "title": "Token Native",
-      "mint": {
-        "tab": "Cetak",
-        "description": "Buat token Anda sendiri yang sesuai dengan EIP-4.",
-        "name": "Nama",
-        "tokenDescription": "Deskripsi",
-        "amount": "Jumlah Emisi",
-        "decimals": "Desimal",
-        "mint": "Cetak",
-        "nameRequired": "Nama token wajib diisi.",
-        "amountRequired": "Jumlah emisi wajib diisi.",
-        "invalidAmount": "Jumlah harus lebih besar dari nol.",
-        "tooManyDecimals": "Jumlah tidak boleh memiliki lebih dari {decimals} angka desimal.",
-        "invalidDecimals": "Desimal harus berupa bilangan bulat antara 0 dan {max}.",
-        "tooLong": "Kolom ini terlalu panjang."
-      },
-      "burn": {
-        "tab": "Bakar",
-        "warning": "Membakar akan menghancurkan token yang dipilih secara permanen. Tindakan ini tidak dapat dibatalkan.",
-        "scamTokens": "Tambahkan semua token penipuan",
-        "scamTokensDesc": "Anda tidak memiliki token penipuan yang masuk daftar hitam. | Tambahkan token penipuan dalam daftar hitam yang Anda miliki. | Tambahkan {count} token penipuan dalam daftar hitam yang Anda miliki.",
-        "nsfwTokens": "Tambahkan semua token NSFW",
-        "nsfwTokensDesc": "Anda tidak memiliki token NSFW yang masuk daftar hitam. | Tambahkan token NSFW dalam daftar hitam yang Anda miliki. | Tambahkan {count} token NSFW dalam daftar hitam yang Anda miliki.",
-        "tokens": "Token yang akan dibakar",
-        "noSelectedTokens": "Pilih setidaknya satu token untuk dibakar.",
-        "burn": "Bakar"
-      }
+      "title": "Token Native"
     }
   },
   "connector": {

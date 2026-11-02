@@ -364,61 +364,13 @@
   },
   "dapps": {
     "sigmaUsd": {
-      "title": "SigmaUSD 协议",
-      "insufficientBalance": "{asset} 余额不足。",
-      "blockedAction": "由于当前银行储备，您无法 {action} 超过 {amount} {asset}。",
-      "feeSummary": "费用 {amount}",
-      "protocolFee": "协议费用 ({rate})",
-      "protocolFeeDesc": "协议费用直接贡献于银行储备。",
-      "serviceFee": "服务费 ({rate})",
-      "serviceFeeDesc": "Nautilus 钱包收取固定费用以可持续资助其开发。",
-      "networkFee": "网络费用",
-      "networkFeeDesc": "这是将交易添加到区块链的成本。",
-      "totalFee": "总费用",
-      "bankReserves": "银行储备",
-      "oracleRate": "当前汇率",
-      "buy": "购买",
-      "sell": "出售"
+      "title": "SigmaUSD 协议"
     },
     "walletOptimizer": {
-      "title": "钱包优化器",
-      "description": "使用此工具合并您的 UTxO，提升性能并避免 {demurrage} 费用。",
-      "demurrage": "滞纳费用",
-      "size": "{count} {size}",
-      "bytes": "字节",
-      "utxoCount": "UTxO 数量",
-      "oldestUtxo": "最老的 UTxO",
-      "walletSize": "钱包大小",
-      "walletHealth": "钱包健康状态"
+      "title": "钱包优化器"
     },
     "nativeTokens": {
-      "title": "原生代币",
-      "mint": {
-        "tab": "铸造",
-        "description": "创建您自己的符合 EIP-4 标准的代币。",
-        "name": "名称",
-        "tokenDescription": "描述",
-        "amount": "发行量",
-        "decimals": "小数位数",
-        "mint": "铸造",
-        "nameRequired": "代币名称为必填项。",
-        "amountRequired": "发行量为必填项。",
-        "invalidAmount": "数量必须大于零。",
-        "tooManyDecimals": "数量的小数位数不能超过 {decimals} 位。",
-        "invalidDecimals": "小数位数必须是 0 到 {max} 之间的整数。",
-        "tooLong": "此字段过长。"
-      },
-      "burn": {
-        "tab": "销毁",
-        "warning": "销毁将永久删除所选代币，此操作无法撤销。",
-        "scamTokens": "添加所有诈骗代币",
-        "scamTokensDesc": "您没有持有任何列入黑名单的诈骗代币。 | 添加您持有的 1 个列入黑名单的诈骗代币。 | 添加您持有的 {count} 个列入黑名单的诈骗代币。",
-        "nsfwTokens": "添加所有 NSFW 代币",
-        "nsfwTokensDesc": "您没有持有任何列入黑名单的 NSFW 代币。 | 添加您持有的 1 个列入黑名单的 NSFW 代币。 | 添加您持有的 {count} 个列入黑名单的 NSFW 代币。",
-        "tokens": "要销毁的代币",
-        "noSelectedTokens": "请至少选择一个要销毁的代币。",
-        "burn": "销毁"
-      }
+      "title": "原生代币"
     }
   },
   "connector": {

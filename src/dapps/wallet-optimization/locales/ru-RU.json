@@ -1,0 +1,14 @@
+{
+  "dapps": {
+    "walletOptimizer": {
+      "description": "Используйте этот инструмент, чтобы объединить ваши UTxO, повысив производительность и избежав комиссии демуража.",
+      "demurrage": "демураж",
+      "size": "{count} {size}",
+      "bytes": "байт",
+      "utxoCount": "Количество UTxO",
+      "oldestUtxo": "Самый старый UTxO",
+      "walletSize": "Размер кошелька",
+      "walletHealth": "Состояние кошелька"
+    }
+  }
+}

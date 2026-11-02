@@ -1,6 +1,9 @@
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 import type { Composer, Locale } from "vue-i18n";
+import type NativeTokensMessages from "@/dapps/native-tokens/locales/en-US.json";
+import type SigmaUsdMessages from "@/dapps/sigma-usd/locales/en-US.json";
+import type WalletOptimizationMessages from "@/dapps/wallet-optimization/locales/en-US.json";
 import type EnglishMessages from "./locales/en-US.json";
 import { russianPluralRules } from "./plural-rules/ru";
 
@@ -39,7 +42,10 @@ export const LANGUAGE_LABELS = new Map<Locale, string>([
   ["de-DE", "Deutsch (DE)"] //            German (Germany)
 ]);
 
-export type MessageSchema = typeof EnglishMessages;
+export type MessageSchema = typeof EnglishMessages &
+  typeof SigmaUsdMessages &
+  typeof WalletOptimizationMessages &
+  typeof NativeTokensMessages;
 export type Translator = Composer["t"];
 export type DateFormatter = Composer["d"];
 
@@ -84,6 +90,9 @@ export async function setLocale(locale: string): Promise<void> {
     await loadLocale(lang);
   }
 
+  // make sure already loaded scopes are also available in the new locale
+  await Promise.all([...loadedScopes].map((scope) => loadScopeMessages(scope, lang)));
+
   _globalInstance.locale.value = lang;
   document.querySelector("html")?.setAttribute("lang", lang);
 }
@@ -107,6 +116,38 @@ export function fallback(locale: string, availableLocales: readonly string[]): L
   }
 
   return (match ?? DEFAULT_LOCALE) as Locale;
+}
+
+/**
+ * Lazily loaded locale scopes. Each scope lives in `src/dapps/<scope>/locales/<locale>.json`
+ * and is merged into the global messages when loaded, so keys keep their full path.
+ */
+const scopeLoaders = import.meta.glob<{ default: Record<string, unknown> }>(
+  "@/dapps/*/locales/*.json"
+);
+const loadedScopes = new Set<string>();
+const loadedScopeMessages = new Set<string>();
+
+/**
+ * Loads a scope's messages for the current and fallback locales. Meant to be awaited
+ * before the scope's view renders, e.g. in a route's `beforeEnter` guard.
+ */
+export async function loadLocaleScope(scope: string): Promise<void> {
+  loadedScopes.add(scope);
+  const locales = new Set([DEFAULT_LOCALE, getLocale()]);
+  await Promise.all([...locales].map((locale) => loadScopeMessages(scope, locale)));
+}
+
+async function loadScopeMessages(scope: string, locale: Locale): Promise<void> {
+  const id = `${scope}/${locale}`;
+  if (loadedScopeMessages.has(id)) return;
+
+  const loader = scopeLoaders[`/src/dapps/${scope}/locales/${locale}.json`];
+  if (!loader) return;
+
+  const messages = await loader();
+  _globalInstance.mergeLocaleMessage(locale, messages.default);
+  loadedScopeMessages.add(id);
 }
 
 async function importLocale(locale: Locale) {

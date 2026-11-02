@@ -1,0 +1,32 @@
+{
+  "dapps": {
+    "nativeTokens": {
+      "mint": {
+        "tab": "Mint",
+        "description": "Create your own EIP-4 compliant token.",
+        "name": "Name",
+        "tokenDescription": "Description",
+        "amount": "Emission amount",
+        "decimals": "Decimals",
+        "mint": "Mint",
+        "nameRequired": "Token name is required.",
+        "amountRequired": "Emission amount is required.",
+        "invalidAmount": "The amount should be greater than zero.",
+        "tooManyDecimals": "The amount can't have more than {decimals} decimal places.",
+        "invalidDecimals": "Decimals should be a whole number between 0 and {max}.",
+        "tooLong": "This field is too long."
+      },
+      "burn": {
+        "tab": "Burn",
+        "warning": "Burning permanently destroys the selected tokens. This action can't be undone.",
+        "scamTokens": "Add all scam tokens",
+        "scamTokensDesc": "You don't hold any blacklisted scam tokens. | Add the blacklisted scam token you hold. | Add the {count} blacklisted scam tokens you hold.",
+        "nsfwTokens": "Add all NSFW tokens",
+        "nsfwTokensDesc": "You don't hold any blacklisted NSFW tokens. | Add the blacklisted NSFW token you hold. | Add the {count} blacklisted NSFW tokens you hold.",
+        "tokens": "Tokens to burn",
+        "noSelectedTokens": "Select at least one token to burn.",
+        "burn": "Burn"
+      }
+    }
+  }
+}

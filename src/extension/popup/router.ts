@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+import { loadLocaleScope } from "@/i18n";
 import AssetsView from "@/views/assets/AssetsView.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -59,16 +60,19 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "wallet-optimization",
         name: "wallet-optimization",
-        component: () => import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue")
+        component: () => import("@/dapps/wallet-optimization/WalletOptimizationDApp.vue"),
+        beforeEnter: () => loadLocaleScope("wallet-optimization")
       },
       {
         path: "sigmausd-protocol",
         name: "sigmausd-protocol",
-        component: () => import("@/dapps/sigma-usd/SigmaUSDView.vue")
+        component: () => import("@/dapps/sigma-usd/SigmaUSDView.vue"),
+        beforeEnter: () => loadLocaleScope("sigma-usd")
       },
       {
         path: "native-tokens",
         component: () => import("@/dapps/native-tokens/NativeTokensDApp.vue"),
+        beforeEnter: () => loadLocaleScope("native-tokens"),
         children: [
           { path: "", redirect: { name: "native-tokens-mint" } },
           {

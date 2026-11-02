@@ -1,0 +1,32 @@
+{
+  "dapps": {
+    "nativeTokens": {
+      "mint": {
+        "tab": "Cetak",
+        "description": "Cipta token anda sendiri yang mematuhi EIP-4.",
+        "name": "Nama",
+        "tokenDescription": "Penerangan",
+        "amount": "Jumlah emisi",
+        "decimals": "Perpuluhan",
+        "mint": "Cetak",
+        "nameRequired": "Nama token diperlukan.",
+        "amountRequired": "Jumlah emisi diperlukan.",
+        "invalidAmount": "Jumlah mestilah lebih besar daripada sifar.",
+        "tooManyDecimals": "Jumlah tidak boleh mempunyai lebih daripada {decimals} tempat perpuluhan.",
+        "invalidDecimals": "Perpuluhan mestilah nombor bulat antara 0 dan {max}.",
+        "tooLong": "Medan ini terlalu panjang."
+      },
+      "burn": {
+        "tab": "Bakar",
+        "warning": "Pembakaran memusnahkan token yang dipilih secara kekal. Tindakan ini tidak boleh dibuat asal.",
+        "scamTokens": "Tambah semua token penipuan",
+        "scamTokensDesc": "Anda tidak memegang sebarang token penipuan dalam senarai hitam. | Tambah token penipuan dalam senarai hitam yang anda pegang. | Tambah {count} token penipuan dalam senarai hitam yang anda pegang.",
+        "nsfwTokens": "Tambah semua token NSFW",
+        "nsfwTokensDesc": "Anda tidak memegang sebarang token NSFW dalam senarai hitam. | Tambah token NSFW dalam senarai hitam yang anda pegang. | Tambah {count} token NSFW dalam senarai hitam yang anda pegang.",
+        "tokens": "Token untuk dibakar",
+        "noSelectedTokens": "Pilih sekurang-kurangnya satu token untuk dibakar.",
+        "burn": "Bakar"
+      }
+    }
+  }
+}
