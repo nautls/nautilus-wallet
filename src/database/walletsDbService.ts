@@ -1,5 +1,7 @@
+import { isEqual } from "es-toolkit";
 import { storage } from "webextension-polyfill";
-import { decryptSecret, EncryptedSecret, encryptSecret } from "@/common/keystore";
+import { decryptSecret, EncryptedSecret, encryptSecret, needsUpgrade } from "@/common/keystore";
+import { log } from "@/common/logger";
 import { dbContext } from "@/database/dbContext";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
@@ -34,23 +36,35 @@ class WalletsDbService {
     return readWallet(id);
   }
 
-  public async getSecret(id: number, password: string) {
-    const secret = await readSecret(id);
-    if (!secret) {
-      throw Error("wallet doesn't have a secret phrase");
+  /**
+   * Decrypts the wallet's secret. Records on an older scheme are re-encrypted with the
+   * current one on success; a failed upgrade is logged and never fails the call.
+   *
+   * @throws {PasswordError} if the password is wrong.
+   */
+  public async getSecret(id: number, password: string): Promise<string> {
+    const { wallet, encrypted } = await readWalletWithSecret(id);
+    const secret = await decryptSecret(encrypted, password, wallet.publicKey);
+
+    if (needsUpgrade(encrypted)) {
+      try {
+        await upgradeSecret(id, encrypted, secret, password);
+      } catch (e) {
+        log.error("failed to upgrade the wallet's secret encryption", e);
+      }
     }
 
-    return decryptSecret(secret, password);
+    return secret;
   }
 
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
-    const current = await readSecret(id);
-    const secret = await this.getSecret(id, currentPassword);
-    const encrypted = await encryptSecret(secret, newPassword);
+    const { wallet, encrypted: current } = await readWalletWithSecret(id);
+    const secret = await decryptSecret(current, currentPassword, wallet.publicKey);
+    const encrypted = await encryptSecret(secret, newPassword, wallet.publicKey);
 
     await withLock(async () => {
       if (!(await readWallet(id))) throw Error("wallet not found");
-      if ((await readSecret(id))?.ciphertext !== current?.ciphertext) {
+      if (!isEqual(await readSecret(id), current)) {
         throw Error("the spending password was changed meanwhile");
       }
 
@@ -61,7 +75,8 @@ class WalletsDbService {
   }
 
   public async put(wallet: IDbWallet, secret?: PlainSecret): Promise<number> {
-    const encrypted = secret && (await encryptSecret(secret.value, secret.password));
+    const encrypted =
+      secret && (await encryptSecret(secret.value, secret.password, wallet.publicKey));
 
     return withLock(async () => {
       const dbWallet = (await readAllWallets()).find((w) => w.publicKey === wallet.publicKey);
@@ -121,6 +136,38 @@ async function readWallet(id: number): Promise<Wallet | undefined> {
   const key = walletKey(id);
   const stored = await storage.local.get(key);
   return stored[key] as Wallet | undefined;
+}
+
+async function readWalletWithSecret(id: number) {
+  const stored = await storage.local.get([walletKey(id), secretKey(id)]);
+  const wallet = stored[walletKey(id)] as Wallet | undefined;
+  const encrypted = stored[secretKey(id)] as EncryptedSecret | undefined;
+  if (!wallet) throw Error("wallet not found");
+  if (!encrypted) throw Error("wallet doesn't have a secret phrase");
+
+  return { wallet, encrypted };
+}
+
+/**
+ * Re-encrypts `secret` with the current scheme
+ */
+async function upgradeSecret(
+  id: number,
+  current: EncryptedSecret,
+  secret: string,
+  password: string
+) {
+  const wallet = await readWallet(id);
+  if (!wallet) return;
+  const upgraded = await encryptSecret(secret, password, wallet.publicKey);
+
+  await withLock(async () => {
+    const stillWallet = await readWallet(id);
+    if (!stillWallet || stillWallet.publicKey !== wallet.publicKey) return;
+    if (!isEqual(await readSecret(id), current)) return;
+
+    await storage.local.set({ [secretKey(id)]: upgraded });
+  });
 }
 
 async function readSecret(id: number): Promise<EncryptedSecret | undefined> {
