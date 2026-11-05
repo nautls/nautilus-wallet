@@ -135,6 +135,18 @@ describe("walletsDbService", () => {
     syncRows.clear();
   });
 
+  it("refuses to write without the Web Locks API", async () => {
+    const { withLock } = await import("@/database/walletsDbService");
+    vi.stubGlobal("navigator", { ...navigator, locks: undefined });
+    try {
+      const fn = vi.fn(async () => {});
+      await expect(withLock(fn)).rejects.toThrow(/Web Locks API/);
+      expect(fn).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   describe.each([true, false])("getAll (getKeys supported: %s)", (getKeysSupported) => {
     it("returns only wallets, sorted by id", async () => {
       storageApi.getKeysSupported = getKeysSupported;

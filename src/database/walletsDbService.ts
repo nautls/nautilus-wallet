@@ -41,8 +41,14 @@ const LOCK_NAME = "nautilus:wallets";
 export const walletKey = (id: number) => `${WALLET_KEY_PREFIX}${id}`;
 export const secretKey = (id: number) => `${SECRET_KEY_PREFIX}${id}`;
 
+/**
+ * Runs `fn` holding the wallets lock, shared by every extension page and the service
+ * worker. Writing without it could lose concurrent changes, so a missing Web Locks API
+ * fails loudly instead.
+ */
 export function withLock<T>(fn: () => Promise<T>): Promise<T> {
-  return navigator.locks ? navigator.locks.request(LOCK_NAME, fn) : fn();
+  if (!navigator.locks) return Promise.reject(Error("the Web Locks API isn't available"));
+  return navigator.locks.request(LOCK_NAME, fn);
 }
 
 class WalletsDbService {
