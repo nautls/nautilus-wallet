@@ -1,6 +1,16 @@
 import { isEqual } from "es-toolkit";
 import { storage } from "webextension-polyfill";
-import { decryptSecret, EncryptedSecret, encryptSecret, needsUpgrade } from "@/common/keystore";
+import {
+  createMasterKey,
+  decryptSecret,
+  EncryptedSecret,
+  encryptSecret,
+  MasterKeyRecord,
+  needsUpgrade,
+  SecretProtection,
+  unlockMasterKey
+} from "@/common/keystore";
+import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { dbContext } from "@/database/dbContext";
 import { IDbWallet, NotNullId } from "@/types/database";
@@ -15,13 +25,17 @@ export type WalletPatch = {
 export type PlainSecret = {
   value: string;
   password: string;
+  by: PasswordKind;
 };
+
+export type PasswordKind = "master" | "password";
 
 type Wallet = NotNullId<IDbWallet>;
 
 const WALLET_KEY_PREFIX = "wallet:";
 const SECRET_KEY_PREFIX = "walletSecret:";
 export const NEXT_ID_KEY = "wallets:nextId";
+export const MASTER_KEY = "masterKey";
 const LOCK_NAME = "nautilus:wallets";
 
 export const walletKey = (id: number) => `${WALLET_KEY_PREFIX}${id}`;
@@ -43,8 +57,8 @@ class WalletsDbService {
    * @throws {PasswordError} if the password is wrong.
    */
   public async getSecret(id: number, password: string): Promise<string> {
-    const { wallet, encrypted } = await readWalletWithSecret(id);
-    const secret = await decryptSecret(encrypted, password, wallet.publicKey);
+    const { wallet, encrypted, master } = await readWalletWithSecret(id);
+    const secret = await decryptSecret(encrypted, wallet.publicKey, password, master);
 
     if (needsUpgrade(encrypted)) {
       try {
@@ -57,10 +71,41 @@ class WalletsDbService {
     return secret;
   }
 
+  public async getPasswordKind(id: number): Promise<PasswordKind | undefined> {
+    const encrypted = await readSecret(id);
+    if (!encrypted) return;
+    return encrypted.version === 2 && encrypted.wrappedKey.by === "master" ? "master" : "password";
+  }
+
+  public async hasMasterPassword(): Promise<boolean> {
+    return (await readMasterKey()) !== undefined;
+  }
+
+  /** @returns false if the password is wrong or the master password isn't set up. */
+  public async verifyMasterPassword(password: string): Promise<boolean> {
+    const master = await readMasterKey();
+    if (!master) return false;
+
+    try {
+      await unlockMasterKey(master, password);
+      return true;
+    } catch (e) {
+      if (e instanceof PasswordError) return false;
+      throw e;
+    }
+  }
+
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
     const { wallet, encrypted: current } = await readWalletWithSecret(id);
-    const secret = await decryptSecret(current, currentPassword, wallet.publicKey);
-    const encrypted = await encryptSecret(secret, newPassword, wallet.publicKey);
+    if (current.version === 2 && current.wrappedKey.by === "master") {
+      throw Error("this wallet uses the master password");
+    }
+
+    const secret = await decryptSecret(current, wallet.publicKey, currentPassword);
+    const encrypted = await encryptSecret(secret, wallet.publicKey, {
+      by: "password",
+      password: newPassword
+    });
 
     await withLock(async () => {
       if (!(await readWallet(id))) throw Error("wallet not found");
@@ -75,16 +120,26 @@ class WalletsDbService {
   }
 
   public async put(wallet: IDbWallet, secret?: PlainSecret): Promise<number> {
-    const encrypted =
-      secret && (await encryptSecret(secret.value, secret.password, wallet.publicKey));
+    const { encrypted, master } = secret
+      ? await protect(secret, wallet.publicKey)
+      : { encrypted: undefined, master: undefined };
 
     return withLock(async () => {
+      if (master && !isEqual(await readMasterKey(), master.current)) {
+        throw Error("the master password was changed meanwhile");
+      }
+
       const dbWallet = (await readAllWallets()).find((w) => w.publicKey === wallet.publicKey);
       const id = wallet.id ?? dbWallet?.id ?? (await allocateId());
       const record = { ...wallet, id };
 
       if (encrypted) {
-        await storage.local.set({ [walletKey(id)]: record, [secretKey(id)]: encrypted });
+        await storage.local.set({
+          [walletKey(id)]: record,
+          [secretKey(id)]: encrypted,
+          // a new master password is only stored along with its first wallet
+          ...(master?.created && { [MASTER_KEY]: master.created })
+        });
       } else {
         await storage.local.set({ [walletKey(id)]: record });
         await storage.local.remove(secretKey(id));
@@ -139,13 +194,39 @@ async function readWallet(id: number): Promise<Wallet | undefined> {
 }
 
 async function readWalletWithSecret(id: number) {
-  const stored = await storage.local.get([walletKey(id), secretKey(id)]);
+  const stored = await storage.local.get([walletKey(id), secretKey(id), MASTER_KEY]);
   const wallet = stored[walletKey(id)] as Wallet | undefined;
   const encrypted = stored[secretKey(id)] as EncryptedSecret | undefined;
+  const master = stored[MASTER_KEY] as MasterKeyRecord | undefined;
   if (!wallet) throw Error("wallet not found");
   if (!encrypted) throw Error("wallet doesn't have a secret phrase");
 
-  return { wallet, encrypted };
+  return { wallet, encrypted, master };
+}
+
+async function readMasterKey(): Promise<MasterKeyRecord | undefined> {
+  const stored = await storage.local.get(MASTER_KEY);
+  return stored[MASTER_KEY] as MasterKeyRecord | undefined;
+}
+
+async function protect(secret: PlainSecret, publicKey: string) {
+  if (secret.by === "password") {
+    const protection: SecretProtection = { by: "password", password: secret.password };
+    return {
+      encrypted: await encryptSecret(secret.value, publicKey, protection),
+      master: undefined
+    };
+  }
+
+  const current = await readMasterKey();
+  const { masterKey, record: created } = current
+    ? { masterKey: await unlockMasterKey(current, secret.password), record: undefined }
+    : await createMasterKey(secret.password);
+
+  return {
+    encrypted: await encryptSecret(secret.value, publicKey, { by: "master", masterKey }),
+    master: { current, created }
+  };
 }
 
 /**
@@ -159,7 +240,7 @@ async function upgradeSecret(
 ) {
   const wallet = await readWallet(id);
   if (!wallet) return;
-  const upgraded = await encryptSecret(secret, password, wallet.publicKey);
+  const upgraded = await encryptSecret(secret, wallet.publicKey, { by: "password", password });
 
   await withLock(async () => {
     const stillWallet = await readWallet(id);

@@ -274,7 +274,7 @@ describe("walletsDbService", () => {
   });
 
   describe("encrypted mnemonic key", () => {
-    const secret = { value: mnemonic, password };
+    const secret = { value: mnemonic, password, by: "password" as const };
     const newWallet = () => ({ ...migrated(legacyWallet(1)), id: undefined });
 
     it("is stored apart from the wallet, in the same write", async () => {
@@ -436,6 +436,141 @@ describe("walletsDbService", () => {
 
       await expect(change).rejects.toThrow("wallet not found");
       expect(local.has("walletSecret:1")).toBe(false);
+    });
+  });
+
+  describe("master password", () => {
+    const masterPassword = "master password 123";
+    const newWallet = (id: number) => ({ ...migrated(legacyWallet(id)), id: undefined });
+    const withMaster = (password = masterPassword) => ({
+      value: mnemonic,
+      password,
+      by: "master" as const
+    });
+
+    it("is set up by the first wallet that uses it, in the same write", async () => {
+      const service = await freshService();
+      expect(await service.hasMasterPassword()).toBe(false);
+
+      const id = await service.put(newWallet(1), withMaster());
+
+      expect(storageApi.setCalls).toContainEqual([
+        `wallet:${id}`,
+        `walletSecret:${id}`,
+        "masterKey"
+      ]);
+      expect(await service.hasMasterPassword()).toBe(true);
+      expect(await service.getPasswordKind(id)).toBe("master");
+      expect(await service.getSecret(id, masterPassword)).toBe(mnemonic);
+      await expect(service.getSecret(id, "wrong password")).rejects.toMatchObject({
+        name: "PasswordError"
+      });
+    });
+
+    it("protects later wallets with the same master key", async () => {
+      const service = await freshService();
+      const first = await service.put(newWallet(1), withMaster());
+      const record = local.get("masterKey");
+      storageApi.setCalls = [];
+
+      const second = await service.put(newWallet(2), withMaster());
+
+      expect(storageApi.setCalls).toContainEqual([`wallet:${second}`, `walletSecret:${second}`]);
+      expect(storageApi.setCalls.flat()).not.toContain("masterKey");
+      expect(local.get("masterKey")).toEqual(record);
+      expect(await service.getSecret(first, masterPassword)).toBe(mnemonic);
+      expect(await service.getSecret(second, masterPassword)).toBe(mnemonic);
+    });
+
+    it("rejects a wrong master password without writing anything", async () => {
+      const service = await freshService();
+      await service.put(newWallet(1), withMaster());
+      storageApi.setCalls = [];
+
+      await expect(service.put(newWallet(2), withMaster("wrong password"))).rejects.toMatchObject({
+        name: "PasswordError"
+      });
+      expect(storageApi.setCalls).toEqual([]);
+      expect(await service.getAll()).toHaveLength(1);
+    });
+
+    it("verifies the master password", async () => {
+      const service = await freshService();
+      expect(await service.verifyMasterPassword(masterPassword)).toBe(false);
+
+      await service.put(newWallet(1), withMaster());
+
+      expect(await service.verifyMasterPassword(masterPassword)).toBe(true);
+      expect(await service.verifyMasterPassword("wrong password")).toBe(false);
+    });
+
+    it("coexists with wallets on their own password", async () => {
+      const service = await freshService();
+      const own = await service.put(newWallet(1), { value: mnemonic, password, by: "password" });
+      const master = await service.put(newWallet(2), withMaster());
+
+      expect(await service.getPasswordKind(own)).toBe("password");
+      expect(await service.getPasswordKind(master)).toBe("master");
+      expect(await service.getSecret(own, password)).toBe(mnemonic);
+      await expect(service.getSecret(own, masterPassword)).rejects.toThrow();
+      expect(await service.getSecret(master, masterPassword)).toBe(mnemonic);
+      await expect(service.getSecret(master, password)).rejects.toThrow();
+    });
+
+    it("reports legacy wallets as on their own password", async () => {
+      legacyWallets.set(1, legacyWallet(1));
+      const service = await freshService();
+
+      expect(await service.getPasswordKind(1)).toBe("password");
+      expect(await service.getPasswordKind(99)).toBeUndefined();
+    });
+
+    it("isn't upgraded nor rewritten on unlock", async () => {
+      const service = await freshService();
+      const id = await service.put(newWallet(1), withMaster());
+      storageApi.setCalls = [];
+
+      await service.getSecret(id, masterPassword);
+
+      expect(storageApi.setCalls).toEqual([]);
+    });
+
+    it("can't be changed through a wallet's password change", async () => {
+      const service = await freshService();
+      const id = await service.put(newWallet(1), withMaster());
+
+      await expect(service.changePassword(id, masterPassword, "new password 123")).rejects.toThrow(
+        /master password/
+      );
+      expect(await service.getSecret(id, masterPassword)).toBe(mnemonic);
+    });
+
+    it("outlives the wallets that use it", async () => {
+      const service = await freshService();
+      const id = await service.put(newWallet(1), withMaster());
+
+      await service.delete(id);
+
+      expect(await service.verifyMasterPassword(masterPassword)).toBe(true);
+    });
+
+    it("is set up only once when two wallets set it up concurrently", async () => {
+      const service = await freshService();
+
+      const results = await Promise.allSettled([
+        service.put(newWallet(1), withMaster()),
+        service.put(newWallet(2), withMaster("another master password"))
+      ]);
+
+      expect(results.map((r) => r.status).sort()).toEqual(["fulfilled", "rejected"]);
+      expect(results.find((r) => r.status === "rejected")?.reason).toMatchObject({
+        message: expect.stringMatching(/changed meanwhile/)
+      });
+      // the master password is the one of the wallet that got stored
+      const passwords = [masterPassword, "another master password"];
+      const stored = passwords[results.findIndex((r) => r.status === "fulfilled")];
+      const [wallet] = await service.getAll();
+      expect(await service.getSecret(wallet.id, stored)).toBe(mnemonic);
     });
   });
 

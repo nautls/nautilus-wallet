@@ -26,6 +26,7 @@ import { MnemonicBackupDialog } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 import ChangePasswordDialog from "./ChangePasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
@@ -39,6 +40,18 @@ const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordD
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const isStandard = computed(() => wallet.type === "standard");
+
+// wallets on the master password can't change it from here (yet)
+const passwordKind = ref<PasswordKind>();
+watch(
+  () => wallet.id,
+  async (id) => {
+    passwordKind.value = undefined;
+    const kind = await walletsDbService.getPasswordKind(id);
+    if (id === wallet.id) passwordKind.value = kind;
+  },
+  { immediate: true }
+);
 
 const walletName = ref(wallet.name);
 
@@ -120,7 +133,10 @@ const { r$ } = useRegle(
         }}</Button>
       </div>
 
-      <div v-if="isStandard" class="col-span-2 grid grid-cols-subgrid items-center">
+      <div
+        v-if="isStandard && passwordKind === 'password'"
+        class="col-span-2 grid grid-cols-subgrid items-center"
+      >
         <Label class="flex flex-col items-start gap-1"
           >{{ t("wallet.spendingPassword") }}
           <div class="text-muted-foreground text-xs font-normal hyphens-auto">

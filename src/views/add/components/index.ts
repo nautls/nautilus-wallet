@@ -2,6 +2,9 @@ import { Component, Ref } from "vue";
 
 export { default as Stepper } from "./Stepper.vue";
 export { default as StepTitle } from "./StepTitle.vue";
+export { default as WalletPasswordFields } from "./WalletPasswordFields.vue";
+export { default as MasterPasswordSwitch } from "./MasterPasswordSwitch.vue";
+export * from "./walletPassword";
 
 export interface Step {
   step: number;

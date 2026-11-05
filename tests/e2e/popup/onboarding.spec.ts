@@ -62,11 +62,11 @@ test.describe("onboarding", () => {
       await page.clock.install();
       await popup.goto("/add/new");
 
-      // still requires the wallet information
-      await page.getByRole("button", { name: "Skip" }).click();
-      await expect(page.getByText("Wallet name is required.")).toBeVisible();
+      // only offered once the recovery phrase is shown
+      await expect(page.getByRole("button", { name: "Skip" })).toHaveCount(0);
 
       await popup.fillWalletInfo("Unsafe wallet", password);
+      await expect(page.getByRole("button", { name: "Skip" })).toHaveCount(0);
       await page.getByRole("button", { name: "Back up recovery phrase" }).click();
       const words = await popup.readMnemonic();
       await page.getByRole("button", { name: "Skip" }).click();
@@ -102,27 +102,47 @@ test.describe("onboarding", () => {
     });
 
     test("validates wallet information", async ({ popup }) => {
+      const page = popup.page;
       await popup.goto("/add/new");
-      const next = popup.page.getByRole("button", { name: "Back up recovery phrase" });
+      const toPassword = page.getByRole("button", { name: "Create master password" });
 
-      await next.click();
-      await expect(popup.page.getByText("Wallet name is required.")).toBeVisible();
-      await expect(popup.page.getByText("Spending password is required.")).toBeVisible();
+      await toPassword.click();
+      await expect(page.getByText("Wallet name is required.")).toBeVisible();
 
-      await popup.fillWalletInfo("My wallet", "short", "short");
+      await page.locator("#wallet-name").fill("My wallet");
+      await toPassword.click();
+      await expect(page.getByRole("heading", { name: "Master password" })).toBeVisible();
+      await expect(page.getByText("This password can't be recovered")).toBeVisible();
+
+      const next = page.getByRole("button", { name: "Back up recovery phrase" });
       await next.click();
+      await expect(page.getByText("Master password is required.")).toBeVisible();
+
+      await popup.fillNewPassword("short");
+      await next.click();
+      await expect(page.getByText("Password must be at least 10 characters long.")).toBeVisible();
+
+      await popup.fillNewPassword("long enough password", "another password");
+      await next.click();
+      await expect(page.getByText("Passwords don't match.")).toBeVisible();
+
+      // still on the password step
+      await expect(page.locator("#confirm-password")).toBeVisible();
+    });
+
+    test("asks for a wallet password when the master password is off", async ({ popup }) => {
+      const page = popup.page;
+      await popup.goto("/add/new");
+      await page.locator("#wallet-name").fill("My wallet");
+      await expect(page.locator("#password")).toHaveCount(0);
+
+      await popup.setUseMasterPassword(false);
+      await page.getByRole("button", { name: "Create wallet password" }).click();
+      await expect(page.getByRole("heading", { name: "Wallet password" })).toBeVisible();
+      await expect(page.getByText("Protects this wallet only.", { exact: false })).toBeVisible();
       await expect(
-        popup.page.getByText("Spending password must be at least 10 characters long.")
+        page.getByText("you'll need this wallet's recovery phrase", { exact: false })
       ).toBeVisible();
-
-      await popup.fillWalletInfo("My wallet", "long enough password", "another password");
-      await next.click();
-      await expect(
-        popup.page.getByText("'Spending password' and 'Confirm password' must match.")
-      ).toBeVisible();
-
-      // still on the first step
-      await expect(popup.page.locator("#wallet-name")).toBeVisible();
     });
 
     test("rejects a wrong recovery phrase confirmation", async ({ popup }) => {
@@ -203,8 +223,8 @@ test.describe("onboarding", () => {
 
       await popup.fillWalletInfo("Watcher");
       await popup.selectWalletType("Read-only");
-      await expect(popup.page.locator("#password")).toBeDisabled();
-      await expect(popup.page.locator("#confirm-password")).toBeDisabled();
+      await expect(popup.page.locator("#password")).toHaveCount(0);
+      await expect(popup.page.locator("#confirm-password")).toHaveCount(0);
 
       await popup.page.getByRole("button", { name: "Insert a public key" }).click();
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();
@@ -229,6 +249,60 @@ test.describe("onboarding", () => {
       await expect(popup.page).toHaveURL(/#\/add$/);
       await popup.page.getByRole("button", { name: "Cancel" }).click();
       await popup.expectWalletLoaded(WALLET_A.name);
+    });
+  });
+
+  test.describe("master password", () => {
+    test("sets it up with the first wallet and reuses it for later ones", async ({ popup }) => {
+      const page = popup.page;
+      await popup.importWallet(WALLET_A, { master: true });
+      await popup.expectWalletLoaded(WALLET_A.name);
+
+      // an existing master password is typed once, with no confirmation
+      await popup.goto("/add/import");
+      await page.locator("#wallet-name").fill(WALLET_B.name);
+      await expect(page.locator("#use-master-password")).toHaveAttribute("aria-checked", "true");
+      await expect(page.getByText("Master password", { exact: true })).toBeVisible();
+      await expect(page.locator("#confirm-password")).toHaveCount(0);
+
+      // a wrong master password is caught before leaving the first step
+      await page.locator("#password").fill(WALLET_B.password);
+      await page.getByRole("button", { name: "Insert a recovery phrase" }).click();
+      await expect(page.getByText("Wrong master password.")).toBeVisible();
+      await expect(page.locator("#wallet-name")).toBeVisible();
+
+      await page.locator("#password").fill(WALLET_A.password);
+      await page.getByRole("button", { name: "Insert a recovery phrase" }).click();
+      await expect(page.getByRole("heading", { name: "Wallet secret" })).toBeVisible();
+      await popup.paste(WALLET_B.mnemonic);
+      await page.getByRole("button", { name: "Import", exact: true }).click();
+      await popup.expectWalletLoaded(WALLET_B.name);
+
+      // the master password unlocks the new wallet
+      await popup.goto("/settings");
+      await page.getByRole("tab", { name: "Wallet" }).click();
+      // can't be changed per wallet yet
+      await expect(page.getByRole("button", { name: "Change" })).toHaveCount(0);
+      await page.getByRole("button", { name: "Back up" }).click();
+      const drawer = page.getByRole("dialog");
+      await drawer.locator("#backup-password").fill(WALLET_A.password);
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      expect(await popup.readMnemonic()).toEqual(WALLET_B.mnemonic.split(" "));
+    });
+
+    test("is optional for later wallets", async ({ popup }) => {
+      const page = popup.page;
+      await popup.importWallet(WALLET_A, { master: true });
+      await popup.importWallet(WALLET_B);
+      await popup.expectWalletLoaded(WALLET_B.name);
+
+      await popup.goto("/settings");
+      await page.getByRole("tab", { name: "Wallet" }).click();
+      await page.getByRole("button", { name: "Back up" }).click();
+      const drawer = page.getByRole("dialog");
+      await drawer.locator("#backup-password").fill(WALLET_B.password);
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      expect(await popup.readMnemonic()).toEqual(WALLET_B.mnemonic.split(" "));
     });
   });
 

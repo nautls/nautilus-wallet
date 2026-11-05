@@ -20,17 +20,28 @@ export type Pbkdf2Params = {
   iterations: number;
 };
 
+/** A random key, AES-256-GCM encrypted under another key. */
+export type WrappedKey = { iv: string; ciphertext: string };
+
 /**
- * AES-256-GCM
- * Envelope encryption: A random wallet key encrypts the secret, and is itself wrapped
- * by a key derived from the password (`wrappedKey.by`).
+ * Crypto scheme version v2
+ *
+ * Cipher: AES-256-GCM
+ * Key wrapping: a random wallet key encrypts the secret, and is itself wrapped
+ * either by a key derived from the wallet's own password, or by the master key
  */
 export type EncryptedSecretV2 = {
   version: 2;
-  /** The wallet key, AES-GCM under the key named by `by`. */
-  wrappedKey: { by: "password"; kdf: Pbkdf2Params; iv: string; ciphertext: string };
+  wrappedKey:
+    ({ by: "password"; kdf: Pbkdf2Params } & WrappedKey) | ({ by: "master" } & WrappedKey);
   iv: string;
   ciphertext: string;
+};
+
+export type MasterKeyRecord = {
+  version: 2;
+  kdf: Pbkdf2Params;
+  wrappedKey: WrappedKey;
 };
 
 /**
@@ -41,15 +52,51 @@ export type EncryptedSecretV2 = {
  */
 export type EncryptedSecret = EncryptedSecretV1 | EncryptedSecretV2;
 
+export type SecretProtection =
+  { by: "password"; password: string } | { by: "master"; masterKey: MasterKey };
+
+declare const masterKeyBrand: unique symbol;
+export type MasterKey = CryptoKey & { [masterKeyBrand]: true };
+
 /** OWASP's current recommendation for PBKDF2-HMAC-SHA256. */
 export const PBKDF2_ITERATIONS = 600_000;
 
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const KEY_LENGTH = 32;
+const MASTER_KEY_AAD = utf8.decode("nautilus:master-key");
 
 export function fromLegacyCiphertext(ciphertext: string): EncryptedSecretV1 {
   return { version: 1, ciphertext };
+}
+
+export async function createMasterKey(
+  password: string
+): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
+  const kdf = newKdfParams();
+  const passwordKey = await derivePasswordKey(password, kdf);
+  const raw = randomBytes(KEY_LENGTH);
+
+  try {
+    const record: MasterKeyRecord = {
+      version: 2,
+      kdf,
+      wrappedKey: await gcmEncrypt(passwordKey, raw, MASTER_KEY_AAD)
+    };
+    const masterKey = await unwrapMasterKey(record, passwordKey);
+
+    return { record, masterKey };
+  } finally {
+    raw.fill(0);
+  }
+}
+
+export async function unlockMasterKey(
+  record: MasterKeyRecord,
+  password: string
+): Promise<MasterKey> {
+  if (record.version !== 2) throw Error(`unsupported master key version: ${record.version}`);
+  return unwrapMasterKey(record, await derivePasswordKey(password, record.kdf));
 }
 
 /**
@@ -57,30 +104,35 @@ export function fromLegacyCiphertext(ciphertext: string): EncryptedSecretV1 {
  */
 export async function encryptSecret(
   secret: string,
-  password: string,
-  publicKey: string
+  publicKey: string,
+  protection: SecretProtection
 ): Promise<EncryptedSecretV2> {
   const aad = hex.decode(publicKey);
-  const kdf: Pbkdf2Params = {
-    name: "pbkdf2",
-    salt: hex.encode(randomBytes(SALT_LENGTH)),
-    iterations: PBKDF2_ITERATIONS
-  };
-  const passwordKey = await derivePasswordKey(password, kdf);
   const walletKey = randomBytes(KEY_LENGTH);
 
+  let wrappingKey: CryptoKey;
+  let by: { by: "password"; kdf: Pbkdf2Params } | { by: "master" };
+  if (protection.by === "password") {
+    const kdf = newKdfParams();
+    wrappingKey = await derivePasswordKey(protection.password, kdf);
+    by = { by: "password", kdf };
+  } else {
+    wrappingKey = protection.masterKey;
+    by = { by: "master" };
+  }
+
   try {
-    const wrapped = await gcmEncrypt(passwordKey, walletKey, aad);
+    const wrapped = await gcmEncrypt(wrappingKey, walletKey, aad);
     const sealed = await gcmEncrypt(await importAesKey(walletKey), utf8.decode(secret), aad);
     const encrypted: EncryptedSecretV2 = {
       version: 2,
-      wrappedKey: { by: "password", kdf, ...wrapped },
+      wrappedKey: { ...by, ...wrapped },
       iv: sealed.iv,
       ciphertext: sealed.ciphertext
     };
 
-    // check with the key just derived, rather than paying for the KDF again
-    if ((await decryptV2WithKey(encrypted, passwordKey, aad)) !== secret) {
+    // check with the key in hand, rather than paying for the KDF again
+    if ((await decryptV2WithKey(encrypted, wrappingKey, aad)) !== secret) {
       throw Error("failed to encrypt the secret");
     }
 
@@ -90,16 +142,22 @@ export async function encryptSecret(
   }
 }
 
+/**
+ * @param password the wallet's own password, or the master password for secrets
+ * protected by the master key, in which case `master` is required.
+ * @throws {PasswordError} if the password is wrong.
+ */
 export async function decryptSecret(
   encrypted: EncryptedSecret,
+  publicKey: string,
   password: string,
-  publicKey: string
+  master?: MasterKeyRecord
 ): Promise<string> {
   switch (encrypted.version) {
     case 1:
       return decryptV1(encrypted, password);
     case 2:
-      return decryptV2(encrypted, password, publicKey);
+      return decryptV2(encrypted, publicKey, password, master);
     default:
       throw Error(
         `unsupported encryption scheme version: ${(encrypted as EncryptedSecret).version}`
@@ -108,7 +166,11 @@ export async function decryptSecret(
 }
 
 export function needsUpgrade(encrypted: EncryptedSecret): boolean {
-  return encrypted.version === 1 || encrypted.wrappedKey.kdf.iterations < PBKDF2_ITERATIONS;
+  if (encrypted.version === 1) return true;
+  return (
+    encrypted.wrappedKey.by === "password" &&
+    encrypted.wrappedKey.kdf.iterations < PBKDF2_ITERATIONS
+  );
 }
 
 function decryptV1(encrypted: EncryptedSecretV1, password: string): string {
@@ -125,22 +187,29 @@ function decryptV1(encrypted: EncryptedSecretV1, password: string): string {
 
 async function decryptV2(
   encrypted: EncryptedSecretV2,
+  publicKey: string,
   password: string,
-  publicKey: string
+  master?: MasterKeyRecord
 ): Promise<string> {
+  const aad = hex.decode(publicKey);
+  if (encrypted.wrappedKey.by === "master") {
+    if (!master) throw Error("the master password isn't set up");
+    return decryptV2WithKey(encrypted, await unlockMasterKey(master, password), aad);
+  }
+
   const passwordKey = await derivePasswordKey(password, encrypted.wrappedKey.kdf);
-  return decryptV2WithKey(encrypted, passwordKey, hex.decode(publicKey));
+  return decryptV2WithKey(encrypted, passwordKey, aad);
 }
 
 async function decryptV2WithKey(
   encrypted: EncryptedSecretV2,
-  passwordKey: CryptoKey,
+  wrappingKey: CryptoKey,
   aad: Uint8Array
 ): Promise<string> {
   let walletKey: Uint8Array;
   try {
     walletKey = await gcmDecrypt(
-      passwordKey,
+      wrappingKey,
       encrypted.wrappedKey.iv,
       encrypted.wrappedKey.ciphertext,
       aad
@@ -163,6 +232,37 @@ async function decryptV2WithKey(
   } finally {
     walletKey.fill(0);
   }
+}
+
+async function unwrapMasterKey(
+  record: MasterKeyRecord,
+  passwordKey: CryptoKey
+): Promise<MasterKey> {
+  let raw: Uint8Array;
+  try {
+    raw = await gcmDecrypt(
+      passwordKey,
+      record.wrappedKey.iv,
+      record.wrappedKey.ciphertext,
+      MASTER_KEY_AAD
+    );
+  } catch {
+    throw new PasswordError();
+  }
+
+  try {
+    return (await importAesKey(raw)) as MasterKey;
+  } finally {
+    raw.fill(0);
+  }
+}
+
+function newKdfParams(): Pbkdf2Params {
+  return {
+    name: "pbkdf2",
+    salt: hex.encode(randomBytes(SALT_LENGTH)),
+    iterations: PBKDF2_ITERATIONS
+  };
 }
 
 async function derivePasswordKey(password: string, kdf: Pbkdf2Params): Promise<CryptoKey> {

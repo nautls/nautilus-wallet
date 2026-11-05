@@ -14,7 +14,7 @@ import { MAINNET } from "@/constants/ergo";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
 import { DEFAULT_SETTINGS } from "@/constants/settings";
 import { utxosDbService } from "@/database/utxosDbService";
-import { WalletPatch, walletsDbService } from "@/database/walletsDbService";
+import { PasswordKind, WalletPatch, walletsDbService } from "@/database/walletsDbService";
 import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { useChainStore } from "./chainStore";
@@ -41,6 +41,7 @@ type StandardWallet = {
   type: "standard";
   mnemonic: string;
   password: string;
+  passwordKind: PasswordKind;
   needsBackup?: boolean;
 };
 
@@ -148,7 +149,9 @@ export const useAppStore = defineStore("app", () => {
 
     const walletId = await walletsDbService.put(
       dbObj,
-      data.type === "standard" ? { value: data.mnemonic, password: data.password } : undefined
+      data.type === "standard"
+        ? { value: data.mnemonic, password: data.password, by: data.passwordKind }
+        : undefined
     );
     await loadWallets();
 
