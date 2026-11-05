@@ -73,19 +73,31 @@ export function fromLegacyCiphertext(ciphertext: string): EncryptedSecretV1 {
 export async function createMasterKey(
   password: string
 ): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
-  const kdf = newKdfParams();
-  const passwordKey = await derivePasswordKey(password, kdf);
   const raw = randomBytes(KEY_LENGTH);
-
   try {
-    const record: MasterKeyRecord = {
-      version: 2,
-      kdf,
-      wrappedKey: await gcmEncrypt(passwordKey, raw, MASTER_KEY_AAD)
-    };
-    const masterKey = await unwrapMasterKey(record, passwordKey);
+    return await wrapMasterKey(raw, password);
+  } finally {
+    raw.fill(0);
+  }
+}
 
-    return { record, masterKey };
+/**
+ * Wraps the same master key under `newPassword`, so secrets protected by it stay as
+ * they are.
+ */
+export async function changeMasterKeyPassword(
+  record: MasterKeyRecord,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
+  if (record.version !== 2) throw Error(`unsupported master key version: ${record.version}`);
+
+  const raw = await unwrapRawMasterKey(
+    record,
+    await derivePasswordKey(currentPassword, record.kdf)
+  );
+  try {
+    return await wrapMasterKey(raw, newPassword);
   } finally {
     raw.fill(0);
   }
@@ -234,13 +246,27 @@ async function decryptV2WithKey(
   }
 }
 
-async function unwrapMasterKey(
+async function wrapMasterKey(
+  raw: Uint8Array,
+  password: string
+): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
+  const kdf = newKdfParams();
+  const passwordKey = await derivePasswordKey(password, kdf);
+  const record: MasterKeyRecord = {
+    version: 2,
+    kdf,
+    wrappedKey: await gcmEncrypt(passwordKey, raw, MASTER_KEY_AAD)
+  };
+
+  return { record, masterKey: await unwrapMasterKey(record, passwordKey) };
+}
+
+async function unwrapRawMasterKey(
   record: MasterKeyRecord,
   passwordKey: CryptoKey
-): Promise<MasterKey> {
-  let raw: Uint8Array;
+): Promise<Uint8Array> {
   try {
-    raw = await gcmDecrypt(
+    return await gcmDecrypt(
       passwordKey,
       record.wrappedKey.iv,
       record.wrappedKey.ciphertext,
@@ -249,7 +275,13 @@ async function unwrapMasterKey(
   } catch {
     throw new PasswordError();
   }
+}
 
+async function unwrapMasterKey(
+  record: MasterKeyRecord,
+  passwordKey: CryptoKey
+): Promise<MasterKey> {
+  const raw = await unwrapRawMasterKey(record, passwordKey);
   try {
     return (await importAesKey(raw)) as MasterKey;
   } finally {

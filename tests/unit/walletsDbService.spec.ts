@@ -606,6 +606,187 @@ describe("walletsDbService", () => {
       const [wallet] = await service.getAll();
       expect(await service.getSecret(wallet.id, stored)).toBe(mnemonic);
     });
+
+    describe("management", () => {
+      const own = (pwd = password) => ({ value: mnemonic, password: pwd, by: "password" as const });
+      const newMaster = "new master password 456";
+
+      it("counts the wallets that use it", async () => {
+        const service = await freshService();
+        await service.put(newWallet(1), own());
+        await service.put(newWallet(2), withMaster());
+        await service.put(newWallet(3), withMaster());
+        await service.put({ ...newWallet(4), type: "readonly" });
+
+        expect(await service.getMasterPasswordUsage()).toEqual({ used: 2, total: 3 });
+      });
+
+      it("is set up on its own, only once", async () => {
+        const service = await freshService();
+        await service.setUpMasterPassword(masterPassword);
+
+        expect(await service.verifyMasterPassword(masterPassword)).toBe(true);
+        await expect(service.setUpMasterPassword(newMaster)).rejects.toThrow(/already set up/);
+        expect(await service.verifyMasterPassword(masterPassword)).toBe(true);
+      });
+
+      it("changes without touching the wallets that use it", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        const secret = local.get(`walletSecret:${id}`);
+        storageApi.setCalls = [];
+
+        await service.changeMasterPassword(masterPassword, newMaster);
+
+        expect(storageApi.setCalls).toEqual([["masterKey"]]);
+        expect(local.get(`walletSecret:${id}`)).toEqual(secret);
+        expect(await service.getSecret(id, newMaster)).toBe(mnemonic);
+        await expect(service.getSecret(id, masterPassword)).rejects.toMatchObject({
+          name: "PasswordError"
+        });
+      });
+
+      it("isn't changed with a wrong current password", async () => {
+        const service = await freshService();
+        await service.put(newWallet(1), withMaster());
+        storageApi.setCalls = [];
+
+        await expect(
+          service.changeMasterPassword("wrong password", newMaster)
+        ).rejects.toMatchObject({ name: "PasswordError" });
+        expect(storageApi.setCalls).toEqual([]);
+      });
+
+      it("keeps one of two concurrent changes", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+
+        const results = await Promise.allSettled([
+          service.changeMasterPassword(masterPassword, newMaster),
+          service.changeMasterPassword(masterPassword, "another master password")
+        ]);
+
+        expect(results.map((r) => r.status).sort()).toEqual(["fulfilled", "rejected"]);
+        const kept = [newMaster, "another master password"][
+          results.findIndex((r) => r.status === "fulfilled")
+        ];
+        expect(await service.getSecret(id, kept)).toBe(mnemonic);
+      });
+
+      it("is reset only while no wallet uses it", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+
+        await expect(service.resetMasterPassword()).rejects.toThrow(/used by a wallet/);
+        expect(await service.hasMasterPassword()).toBe(true);
+
+        await service.moveToOwnPassword(id, masterPassword, password);
+        await service.resetMasterPassword();
+
+        expect(await service.hasMasterPassword()).toBe(false);
+        expect(await service.getSecret(id, password)).toBe(mnemonic);
+        await service.setUpMasterPassword(newMaster);
+        expect(await service.verifyMasterPassword(newMaster)).toBe(true);
+      });
+
+      it("moves a wallet from its own password to the master password", async () => {
+        legacyWallets.set(1, legacyWallet(1));
+        const service = await freshService();
+        await service.setUpMasterPassword(masterPassword);
+
+        await service.moveToMasterPassword(1, password, masterPassword);
+
+        expect(await service.getPasswordKind(1)).toBe("master");
+        expect(await service.getSecret(1, masterPassword)).toBe(mnemonic);
+        await expect(service.getSecret(1, password)).rejects.toMatchObject({
+          name: "PasswordError"
+        });
+        // dropped, since it still opens with the old password
+        expect(legacyWallets.has(1)).toBe(false);
+      });
+
+      it("sets the master password up while moving the first wallet to it", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), own());
+        storageApi.setCalls = [];
+
+        await service.moveToMasterPassword(id, password, masterPassword);
+
+        expect(storageApi.setCalls).toEqual([[`walletSecret:${id}`, "masterKey"]]);
+        expect(await service.getSecret(id, masterPassword)).toBe(mnemonic);
+      });
+
+      it("names the wrong password when moving to the master password", async () => {
+        const service = await freshService();
+        await service.setUpMasterPassword(masterPassword);
+        const id = await service.put(newWallet(1), own());
+        storageApi.setCalls = [];
+
+        await expect(
+          service.moveToMasterPassword(id, "wrong password", masterPassword)
+        ).rejects.toMatchObject({ name: "PasswordError", kind: "password" });
+        await expect(
+          service.moveToMasterPassword(id, password, "wrong password")
+        ).rejects.toMatchObject({ name: "PasswordError", kind: "master" });
+        expect(storageApi.setCalls).toEqual([]);
+        expect(await service.getPasswordKind(id)).toBe("password");
+      });
+
+      it("moves a wallet from the master password to its own", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+
+        await expect(
+          service.moveToOwnPassword(id, "wrong password", password)
+        ).rejects.toMatchObject({
+          name: "PasswordError",
+          kind: "master"
+        });
+        expect(await service.getPasswordKind(id)).toBe("master");
+
+        await service.moveToOwnPassword(id, masterPassword, password);
+
+        expect(await service.getPasswordKind(id)).toBe("password");
+        expect(await service.getSecret(id, password)).toBe(mnemonic);
+        await expect(service.getSecret(id, masterPassword)).rejects.toThrow();
+        expect(await service.getMasterPasswordUsage()).toEqual({ used: 0, total: 1 });
+      });
+
+      it("refuses moves to where the wallet already is", async () => {
+        const service = await freshService();
+        const onMaster = await service.put(newWallet(1), withMaster());
+        const onOwn = await service.put(newWallet(2), own());
+
+        await expect(
+          service.moveToMasterPassword(onMaster, masterPassword, masterPassword)
+        ).rejects.toThrow(/already uses/);
+        await expect(service.moveToOwnPassword(onOwn, masterPassword, password)).rejects.toThrow(
+          /doesn't use/
+        );
+      });
+
+      it("doesn't move a wallet onto a master password changed meanwhile", async () => {
+        const service = await freshService();
+        await service.setUpMasterPassword(masterPassword);
+        const id = await service.put(newWallet(1), own());
+
+        const [change, move] = await Promise.allSettled([
+          service.changeMasterPassword(masterPassword, newMaster),
+          service.moveToMasterPassword(id, password, masterPassword)
+        ]);
+
+        expect(change.status).toBe("fulfilled");
+        // either way, the wallet opens with a password that's still valid
+        if (move.status === "fulfilled") {
+          expect(await service.getSecret(id, newMaster)).toBe(mnemonic);
+        } else {
+          expect(move.reason).toMatchObject({
+            message: expect.stringMatching(/changed meanwhile/)
+          });
+          expect(await service.getSecret(id, password)).toBe(mnemonic);
+        }
+      });
+    });
   });
 
   it("allocates new ids after migrated ones and dedupes by public key", async () => {

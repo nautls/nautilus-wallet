@@ -1,6 +1,7 @@
 import { isEqual } from "es-toolkit";
 import { storage } from "webextension-polyfill";
 import {
+  changeMasterKeyPassword,
   createMasterKey,
   decryptSecret,
   EncryptedSecret,
@@ -80,7 +81,89 @@ class WalletsDbService {
   public async getPasswordKind(id: number): Promise<PasswordKind | undefined> {
     const encrypted = await readSecret(id);
     if (!encrypted) return;
-    return encrypted.version === 2 && encrypted.wrappedKey.by === "master" ? "master" : "password";
+    return usesMaster(encrypted) ? "master" : "password";
+  }
+
+  /** How many wallets use the master password, out of all wallets with a secret. */
+  public async getMasterPasswordUsage(): Promise<{ used: number; total: number }> {
+    const secrets = await readAllSecrets();
+    return { used: secrets.filter(usesMaster).length, total: secrets.length };
+  }
+
+  /** Sets up the master password */
+  public async setUpMasterPassword(password: string) {
+    const { record } = await createMasterKey(password);
+
+    await withLock(async () => {
+      if (await readMasterKey()) throw Error("the master password is already set up");
+      await storage.local.set({ [MASTER_KEY]: record });
+    });
+  }
+
+  /** @throws {PasswordError} if `currentPassword` is wrong. */
+  public async changeMasterPassword(currentPassword: string, newPassword: string) {
+    const current = await readMasterKey();
+    if (!current) throw Error("the master password isn't set up");
+
+    const { record } = await changeMasterKeyPassword(current, currentPassword, newPassword);
+    await withLock(async () => {
+      if (!isEqual(await readMasterKey(), current)) {
+        throw Error("the master password was changed meanwhile");
+      }
+
+      await storage.local.set({ [MASTER_KEY]: record });
+    });
+  }
+
+  /** Deletes the master password. Refused while any wallet uses it. */
+  public async resetMasterPassword() {
+    await withLock(async () => {
+      if ((await readAllSecrets()).some(usesMaster)) {
+        throw Error("the master password is used by a wallet");
+      }
+
+      await storage.local.remove(MASTER_KEY);
+    });
+  }
+
+  /**
+   * Moves the wallet from its own password to the master password, which is set up with
+   * `masterPassword` if there's none yet.
+   *
+   * @throws {PasswordError} whose `kind` says which password is wrong.
+   */
+  public async moveToMasterPassword(id: number, walletPassword: string, masterPassword: string) {
+    const { wallet, encrypted: current } = await readWalletWithSecret(id);
+    if (usesMaster(current)) throw Error("this wallet already uses the master password");
+
+    const secret = await failingAs("password", () =>
+      decryptSecret(current, wallet.publicKey, walletPassword)
+    );
+    const { encrypted, master } = await failingAs("master", () =>
+      protect({ value: secret, password: masterPassword, by: "master" }, wallet.publicKey)
+    );
+
+    await replaceSecret(id, current, encrypted, master);
+  }
+
+  /**
+   * Moves the wallet from the master password to a password of its own.
+   *
+   * @throws {PasswordError} if `masterPassword` is wrong.
+   */
+  public async moveToOwnPassword(id: number, masterPassword: string, newPassword: string) {
+    const { wallet, encrypted: current, master } = await readWalletWithSecret(id);
+    if (!usesMaster(current)) throw Error("this wallet doesn't use the master password");
+
+    const secret = await failingAs("master", () =>
+      decryptSecret(current, wallet.publicKey, masterPassword, master)
+    );
+    const encrypted = await encryptSecret(secret, wallet.publicKey, {
+      by: "password",
+      password: newPassword
+    });
+
+    await replaceSecret(id, current, encrypted);
   }
 
   public async hasMasterPassword(): Promise<boolean> {
@@ -103,9 +186,7 @@ class WalletsDbService {
 
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
     const { wallet, encrypted: current } = await readWalletWithSecret(id);
-    if (current.version === 2 && current.wrappedKey.by === "master") {
-      throw Error("this wallet uses the master password");
-    }
+    if (usesMaster(current)) throw Error("this wallet uses the master password");
 
     const secret = await decryptSecret(current, wallet.publicKey, currentPassword);
     const encrypted = await encryptSecret(secret, wallet.publicKey, {
@@ -113,16 +194,7 @@ class WalletsDbService {
       password: newPassword
     });
 
-    await withLock(async () => {
-      if (!(await readWallet(id))) throw Error("wallet not found");
-      if (!isEqual(await readSecret(id), current)) {
-        throw Error("the spending password was changed meanwhile");
-      }
-
-      await storage.local.set({ [secretKey(id)]: encrypted });
-      // drop the pre-migration copy, still encrypted with the old password
-      await dbContext.wallets.delete(id);
-    });
+    await replaceSecret(id, current, encrypted);
   }
 
   public async put(wallet: IDbWallet, secret?: PlainSecret): Promise<number> {
@@ -143,7 +215,7 @@ class WalletsDbService {
         await storage.local.set({
           [walletKey(id)]: record,
           [secretKey(id)]: encrypted,
-          // a new master password is only stored along with its first wallet
+          // a master password set up with this wallet is stored along with it
           ...(master?.created && { [MASTER_KEY]: master.created })
         });
       } else {
@@ -257,6 +329,46 @@ async function upgradeSecret(
   });
 }
 
+/**
+ * Replaces the wallet's secret.
+ */
+async function replaceSecret(
+  id: number,
+  current: EncryptedSecret,
+  encrypted: EncryptedSecret,
+  master?: { current?: MasterKeyRecord; created?: MasterKeyRecord }
+) {
+  await withLock(async () => {
+    if (!(await readWallet(id))) throw Error("wallet not found");
+    if (!isEqual(await readSecret(id), current)) {
+      throw Error("the spending password was changed meanwhile");
+    }
+    if (master && !isEqual(await readMasterKey(), master.current)) {
+      throw Error("the master password was changed meanwhile");
+    }
+
+    await storage.local.set({
+      [secretKey(id)]: encrypted,
+      ...(master?.created && { [MASTER_KEY]: master.created })
+    });
+    // drop the pre-migration copy, still encrypted with the old password
+    await dbContext.wallets.delete(id);
+  });
+}
+
+/** Tags a {@link PasswordError} thrown by `fn` with the password it was about. */
+async function failingAs<T>(kind: PasswordKind, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    if (e instanceof PasswordError) throw new PasswordError(e.message, kind);
+    throw e;
+  }
+}
+
+const usesMaster = (encrypted: EncryptedSecret) =>
+  encrypted.version === 2 && encrypted.wrappedKey.by === "master";
+
 async function readSecret(id: number): Promise<EncryptedSecret | undefined> {
   const key = secretKey(id);
   const stored = await storage.local.get(key);
@@ -264,6 +376,17 @@ async function readSecret(id: number): Promise<EncryptedSecret | undefined> {
 }
 
 const isWalletKey = (key: string) => key.startsWith(WALLET_KEY_PREFIX);
+const isSecretKey = (key: string) => key.startsWith(SECRET_KEY_PREFIX);
+
+async function readAllSecrets(): Promise<EncryptedSecret[]> {
+  const stored = storage.local.getKeys
+    ? await storage.local.get((await storage.local.getKeys()).filter(isSecretKey))
+    : await storage.local.get(null);
+
+  return Object.entries(stored)
+    .filter(([key]) => isSecretKey(key))
+    .map(([, secret]) => secret as EncryptedSecret);
+}
 
 async function readAllWallets(): Promise<Wallet[]> {
   // read only wallet keys when supported (Chrome 130+, Firefox 143+), otherwise

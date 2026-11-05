@@ -21,13 +21,14 @@ import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { MnemonicBackupDialog } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
-import ChangePasswordDialog from "./ChangePasswordDialog.vue";
+import PasswordDialog from "../PasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
 const wallet = useWalletStore();
@@ -36,22 +37,28 @@ const { t } = useI18n();
 const { toast } = useToast();
 
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
-const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
+const { open: openPasswordDialog } = useProgrammaticDialog(PasswordDialog, {
+  action: "change",
+  onDone: loadPasswordKind
+});
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const isStandard = computed(() => wallet.type === "standard");
 
-// wallets on the master password can't change it from here (yet)
 const passwordKind = ref<PasswordKind>();
-watch(
-  () => wallet.id,
-  async (id) => {
-    passwordKind.value = undefined;
-    const kind = await walletsDbService.getPasswordKind(id);
-    if (id === wallet.id) passwordKind.value = kind;
-  },
-  { immediate: true }
-);
+watch(() => wallet.id, loadPasswordKind, { immediate: true });
+
+async function loadPasswordKind() {
+  const id = wallet.id;
+  passwordKind.value = undefined;
+  const kind = await walletsDbService.getPasswordKind(id);
+  if (id === wallet.id) passwordKind.value = kind;
+}
+
+function switchPassword(kind: unknown) {
+  if (kind === passwordKind.value) return;
+  openPasswordDialog({ action: kind === "master" ? "toMaster" : "toOwn" });
+}
 
 const walletName = ref(wallet.name);
 
@@ -120,6 +127,36 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
+    <Card v-if="isStandard && passwordKind" class="flex flex-col gap-4 p-6">
+      <Label class="flex flex-col items-start gap-1"
+        >{{ t("wallet.spendingPassword") }}
+        <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+          {{ t("settings.wallet.spendingPasswordDesc") }}
+        </div></Label
+      >
+      <Tabs
+        :model-value="passwordKind"
+        activation-mode="manual"
+        @update:model-value="switchPassword"
+      >
+        <TabsList class="flex h-auto w-full">
+          <TabsTrigger value="master" class="min-w-0 flex-1 basis-0 py-1.5">{{
+            t("settings.password.master")
+          }}</TabsTrigger>
+          <TabsTrigger value="password" class="min-w-0 flex-1 basis-0 py-1.5">{{
+            t("settings.password.own")
+          }}</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <Button
+        v-if="passwordKind === 'password'"
+        variant="outline"
+        class="w-full"
+        @click="openPasswordDialog({ action: 'change' })"
+        >{{ t("settings.password.changePassword") }}</Button
+      >
+    </Card>
+
     <Card class="grid grid-cols-[1fr_auto] gap-4 p-6">
       <div class="col-span-2 grid grid-cols-subgrid items-center">
         <Label class="flex flex-col items-start gap-1"
@@ -130,21 +167,6 @@ const { r$ } = useRegle(
         >
         <Button variant="outline" class="w-full" @click="openPublicKeyDialog">{{
           t("common.export")
-        }}</Button>
-      </div>
-
-      <div
-        v-if="isStandard && passwordKind === 'password'"
-        class="col-span-2 grid grid-cols-subgrid items-center"
-      >
-        <Label class="flex flex-col items-start gap-1"
-          >{{ t("wallet.spendingPassword") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.spendingPasswordDesc") }}
-          </div></Label
-        >
-        <Button variant="outline" class="w-full" @click="openChangePasswordDialog">{{
-          t("common.change")
         }}</Button>
       </div>
 

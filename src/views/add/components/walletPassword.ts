@@ -12,10 +12,9 @@ import {
 import { useRegle } from "@regle/core";
 import { applyIf, minLength, required, withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
+import { MIN_PASSWORD_LENGTH } from "@/composables/useNewPassword";
 import { strongPassword, usePasswordStrength } from "@/composables/usePasswordStrength";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
-
-const MIN_PASSWORD_LENGTH = 10;
 
 export type WalletPassword = ReturnType<typeof createWalletPassword>;
 const key: InjectionKey<WalletPassword> = Symbol("walletPassword");

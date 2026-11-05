@@ -1,0 +1,48 @@
+<script setup lang="ts">
+import { TriangleAlertIcon } from "@lucide/vue";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FormField } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import PasswordStrength from "@/components/PasswordStrength.vue";
+import type { NewPassword } from "@/composables/useNewPassword";
+
+const props = defineProps<{
+  form: NewPassword;
+  id: string;
+  label: string;
+  confirmLabel: string;
+  warning?: string;
+  disabled?: boolean;
+}>();
+
+const fields = props.form;
+</script>
+
+<template>
+  <FormField :validation="fields.rules.password">
+    <Label :disabled="disabled" :for="id">{{ label }}</Label>
+    <PasswordInput
+      :id="id"
+      v-model="fields.password"
+      :disabled="disabled"
+      @blur="fields.rules.password.$touch()"
+    />
+    <PasswordStrength :score="fields.password ? fields.strength : undefined" />
+  </FormField>
+
+  <FormField :validation="fields.rules.confirmPassword">
+    <Label :disabled="disabled" :for="`confirm-${id}`">{{ confirmLabel }}</Label>
+    <PasswordInput
+      :id="`confirm-${id}`"
+      v-model="fields.confirmPassword"
+      :disabled="disabled"
+      @blur="fields.rules.confirmPassword.$touch()"
+    />
+  </FormField>
+
+  <Alert v-if="warning" class="py-2 text-xs">
+    <TriangleAlertIcon />
+    <AlertDescription class="text-xs">{{ warning }}</AlertDescription>
+  </Alert>
+</template>

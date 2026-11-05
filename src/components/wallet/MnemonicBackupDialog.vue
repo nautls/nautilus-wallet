@@ -186,8 +186,12 @@ function handleOpenUpdates(open: boolean) {
 }
 
 function setOpened(open: boolean) {
-  if (open) walletId.value = wallet.id;
-  else reset();
+  if (open) {
+    walletId.value = wallet.id;
+    prompt.reload();
+  } else {
+    reset();
+  }
 
   opened.value = open;
 }

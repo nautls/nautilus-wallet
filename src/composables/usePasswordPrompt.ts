@@ -13,17 +13,17 @@ export function usePasswordPrompt(
   const { t } = useI18n();
   const kind = ref<PasswordKind>();
 
-  watch(
-    () => toValue(walletId),
-    async (id) => {
-      kind.value = undefined;
-      if (!id) return;
+  /** Reads which password the wallet uses again, such as after a move. */
+  async function reload() {
+    const id = toValue(walletId);
+    kind.value = undefined;
+    if (!id) return;
 
-      const loaded = await walletsDbService.getPasswordKind(id);
-      if (toValue(walletId) === id) kind.value = loaded;
-    },
-    { immediate: true }
-  );
+    const loaded = await walletsDbService.getPasswordKind(id);
+    if (toValue(walletId) === id) kind.value = loaded;
+  }
+
+  watch(() => toValue(walletId), reload, { immediate: true });
 
   /** Picks the text for the password `kind` asks for, or a generic one while loading. */
   function pick(texts: { master: () => string; password: () => string; unknown: () => string }) {
@@ -34,6 +34,7 @@ export function usePasswordPrompt(
 
   return reactive({
     kind,
+    reload,
     label: pick({
       master: () => t("wallet.masterPassword"),
       password: () => t("wallet.namedWalletPassword", { name: name() }),

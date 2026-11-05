@@ -237,9 +237,6 @@
     "walletName": "Wallet name",
     "confirmPassword": "Confirm password",
     "requiredWalletName": "Wallet name is required.",
-    "spendingPasswordRequired": "Spending password is required.",
-    "minSpendingPasswordLength": "Spending password must be at least {min} characters long.",
-    "passwordsMustMatch": "'Spending password' and 'Confirm password' must match.",
     "infoStep": "Wallet information",
     "infoStepDesc": "This information will be used to identify and protect your wallet.",
     "cantSignData": "This wallet can't sign data.",
@@ -316,7 +313,8 @@
       "success": "Recovery phrase backed up",
       "failed": "Failed to retrieve the recovery phrase",
       "saveFailed": "Failed to save the backup status"
-    }
+    },
+    "newPasswordRequired": "Password is required."
   },
   "settings": {
     "systemDefault": "System default",
@@ -364,7 +362,7 @@
       "avoidAddressReuse": "Avoid address reuse",
       "avoidAddressReuseDesc": "Enable this option to prevent the same address from being used for multiple transactions. This helps protect your privacy.",
       "xPubKeyDesc": "Use this option to export the Extended Public Key of your wallet.",
-      "spendingPasswordDesc": "Change the password used to sign transactions with this wallet.",
+      "spendingPasswordDesc": "The password that unlocks this wallet.",
       "mnemonicBackupDesc": "Reveal and back up the recovery phrase of this wallet.",
       "resync": "Re-sync wallet",
       "resyncDesc": "Wipe the locally stored data of this wallet and sync it again from the blockchain.",
@@ -374,10 +372,7 @@
       "changeSpendingPasswordDesc": "Enter your current spending password and choose a new one.",
       "currentPassword": "Current password",
       "newPassword": "New password",
-      "confirmNewPassword": "Confirm new password",
-      "newPasswordsMustMatch": "'New password' and 'Confirm new password' must match.",
       "spendingPasswordChanged": "Spending password changed",
-      "spendingPasswordChangeFailed": "Failed to change the spending password",
       "removeWallet": "Remove wallet",
       "removeWalletDesc": "Use this option to remove the current wallet from the app.",
       "walletRemoveConfirmation": "Are you absolutely sure?",
@@ -386,6 +381,36 @@
     },
     "connections": {
       "noConnectedApps": "You have no connected apps yet."
+    },
+    "password": {
+      "master": "Master",
+      "own": "Own",
+      "changePassword": "Change password",
+      "setUp": "Set up",
+      "reset": "Reset",
+      "masterNotSetUp": "One password for all your wallets.",
+      "masterUnused": "Not used by any wallet.",
+      "masterUsage": "Used by {used} of {total} wallet. | Used by {used} of {total} wallets.",
+      "setUpMaster": "Set up master password",
+      "setUpMasterDesc": "Wallets can then switch to it in their settings.",
+      "masterSetUp": "Master password set up",
+      "changeMaster": "Change master password",
+      "changeMasterDesc": "Every wallet that uses it will open with the new one.",
+      "currentMasterPassword": "Current master password",
+      "newMasterPassword": "New master password",
+      "masterChanged": "Master password changed",
+      "useMaster": "Use master password",
+      "useMasterDesc": "Enter both passwords to move \"{name}\" to the master password.",
+      "useNewMasterDesc": "Create a master password and move \"{name}\" to it.",
+      "usesMaster": "\"{name}\" now uses the master password",
+      "useOwn": "Use own password",
+      "useOwnDesc": "Enter the master password and choose a new password for \"{name}\".",
+      "usesOwn": "\"{name}\" now uses its own password",
+      "changeFailed": "Failed to change the password",
+      "resetMaster": "Reset master password?",
+      "resetMasterDesc": "No wallet uses it, so nothing is lost. You can set up a new one afterwards.",
+      "masterReset": "Master password reset",
+      "masterResetFailed": "Failed to reset the master password"
     }
   },
   "about": {

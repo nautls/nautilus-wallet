@@ -300,8 +300,11 @@ test.describe("onboarding", () => {
       // the master password unlocks the new wallet
       await popup.goto("/settings");
       await page.getByRole("tab", { name: "Wallet" }).click();
-      // can't be changed per wallet yet
-      await expect(page.getByRole("button", { name: "Change" })).toHaveCount(0);
+      await expect(page.getByRole("tab", { name: "Master", exact: true })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+      await expect(page.getByRole("button", { name: "Change password" })).toHaveCount(0);
       await page.getByRole("button", { name: "Back up" }).click();
       const drawer = page.getByRole("dialog");
       await expect(drawer.getByText("Master password", { exact: true })).toBeVisible();
