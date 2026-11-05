@@ -121,8 +121,27 @@ test.describe("onboarding", () => {
       await popup.fillNewPassword("short");
       await next.click();
       await expect(page.getByText("Password must be at least 10 characters long.")).toBeVisible();
+      await expect(page.getByText("too easy to guess")).toHaveCount(0);
+
+      await popup.fillNewPassword("qwertyuiop");
+      await expect(page.locator("[data-password-strength]")).toHaveAttribute(
+        "aria-valuetext",
+        "Weak"
+      );
+      await next.click();
+      await expect(page.getByText("This password is too easy to guess.")).toBeVisible();
+
+      await popup.fillNewPassword("Summer2024!");
+      await expect(page.locator("[data-password-strength]")).toHaveAttribute(
+        "aria-valuetext",
+        "Fair"
+      );
 
       await popup.fillNewPassword("long enough password", "another password");
+      await expect(page.locator("[data-password-strength]")).toHaveAttribute(
+        "aria-valuetext",
+        "Strong"
+      );
       await next.click();
       await expect(page.getByText("Passwords don't match.")).toBeVisible();
 

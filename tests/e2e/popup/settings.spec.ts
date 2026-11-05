@@ -269,6 +269,15 @@ test.describe("settings", () => {
         drawer.getByText("'New password' and 'Confirm new password' must match.")
       ).toBeVisible();
 
+      await drawer.locator("#new-password").fill("password1234");
+      await drawer.locator("#confirm-new-password").fill("password1234");
+      await expect(drawer.locator("[data-password-strength]")).toHaveAttribute(
+        "aria-valuetext",
+        "Weak"
+      );
+      await drawer.getByRole("button", { name: "Confirm" }).click();
+      await expect(drawer.getByText("This password is too easy to guess.")).toBeVisible();
+
       // rejects a wrong current password and keeps the drawer open
       await drawer.locator("#current-password").fill("wrong password");
       await drawer.locator("#new-password").fill(newPassword);

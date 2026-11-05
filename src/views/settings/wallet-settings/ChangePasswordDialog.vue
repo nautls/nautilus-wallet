@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { nextTick, ref, useTemplateRef } from "vue";
+import { computed, nextTick, ref, useTemplateRef } from "vue";
 import { useRegle } from "@regle/core";
-import { minLength, required, withMessage, withParams } from "@regle/rules";
+import { applyIf, minLength, required, withMessage, withParams } from "@regle/rules";
 import { Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
@@ -18,10 +18,12 @@ import {
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PasswordStrength from "@/components/PasswordStrength.vue";
 import { useToast } from "@/components/ui/toast";
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
+import { strongPassword, usePasswordStrength } from "@/composables/usePasswordStrength";
 import { walletsDbService } from "@/database/walletsDbService";
 
 const wallet = useWalletStore();
@@ -39,6 +41,9 @@ const currentPassword = ref("");
 const newPassword = ref("");
 const confirmPassword = ref("");
 
+const strength = usePasswordStrength(newPassword, () => [wallet.name]);
+const longEnough = computed(() => newPassword.value.length >= 10);
+
 const { r$ } = useRegle(
   { currentPassword, newPassword, confirmPassword },
   {
@@ -49,6 +54,11 @@ const { r$ } = useRegle(
       required: withMessage(required, () => t("wallet.spendingPasswordRequired")),
       minLength: withMessage(minLength(10), () =>
         t("wallet.minSpendingPasswordLength", { min: 10 })
+      ),
+      // only once it's long enough, so a short password gets a single error
+      strong: applyIf(
+        longEnough,
+        strongPassword(strength.score, () => t("wallet.passwordTooGuessable"))
       )
     },
     confirmPassword: {
@@ -62,6 +72,8 @@ const { r$ } = useRegle(
 );
 
 async function changePassword() {
+  // a quick click can come before the debounced score, or before the scorer loads
+  await strength.evaluate();
   const { valid } = await r$.$validate();
   if (!valid) return;
 
@@ -147,6 +159,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
             :disabled="loading"
             @blur="r$.newPassword.$touch()"
           />
+          <PasswordStrength :score="newPassword ? strength.score.value : undefined" />
         </FormField>
         <FormField :validation="r$.confirmPassword">
           <Label for="confirm-new-password">{{ t("settings.wallet.confirmNewPassword") }}</Label>

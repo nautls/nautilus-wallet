@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import PasswordStrength from "@/components/PasswordStrength.vue";
 import { injectWalletPassword } from "./walletPassword";
 
 const props = defineProps<{ disabled?: boolean }>();
@@ -31,6 +32,7 @@ const isMaster = computed(() => form.mode !== "separate");
         type="password"
         @blur="form.rules.password.$touch()"
       />
+      <PasswordStrength :score="form.password ? form.strength : undefined" />
     </FormField>
 
     <FormField :validation="form.rules.confirmPassword">

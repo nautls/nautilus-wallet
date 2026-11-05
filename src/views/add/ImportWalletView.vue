@@ -44,7 +44,7 @@ const { toast } = useToast();
 const { t } = useI18n();
 
 const walletName = ref("");
-const passwordForm = provideWalletPassword();
+const passwordForm = provideWalletPassword({ userInputs: () => [walletName.value] });
 const mnemonicWords = ref<string[]>([]);
 const loading = ref(false);
 const step = ref(1);

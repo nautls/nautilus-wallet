@@ -45,7 +45,7 @@ type StepKey = "info" | "password" | "phrase" | "confirm";
 
 const step = ref(1);
 const walletName = ref("");
-const passwordForm = provideWalletPassword();
+const passwordForm = provideWalletPassword({ userInputs: () => [walletName.value] });
 const loading = ref(false);
 
 const mnemonicPhrase = ref("");

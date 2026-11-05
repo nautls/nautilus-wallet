@@ -1,7 +1,18 @@
-import { computed, inject, InjectionKey, onMounted, provide, reactive, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  InjectionKey,
+  MaybeRefOrGetter,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  watch
+} from "vue";
 import { useRegle } from "@regle/core";
 import { applyIf, minLength, required, withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
+import { strongPassword, usePasswordStrength } from "@/composables/usePasswordStrength";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
 const MIN_PASSWORD_LENGTH = 10;
@@ -13,8 +24,10 @@ const key: InjectionKey<WalletPassword> = Symbol("walletPassword");
  * Password state shared by the create/import steps, so the master password switch and
  * the password fields can live on different steps.
  */
-export function provideWalletPassword(): WalletPassword {
-  const state = createWalletPassword();
+export function provideWalletPassword(
+  options: { userInputs?: MaybeRefOrGetter<string[]> } = {}
+): WalletPassword {
+  const state = createWalletPassword(options.userInputs);
   provide(key, state);
   return state;
 }
@@ -25,7 +38,7 @@ export function injectWalletPassword(): WalletPassword {
   return state;
 }
 
-function createWalletPassword() {
+function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   const { t } = useI18n();
 
   const hasMaster = ref<boolean>();
@@ -50,6 +63,8 @@ function createWalletPassword() {
   });
   /** A new password needs its own step, with a confirmation. */
   const isNewPassword = computed(() => mode.value !== "unlock");
+  const strength = usePasswordStrength(password, userInputs);
+  const longEnough = computed(() => password.value.length >= MIN_PASSWORD_LENGTH);
 
   watch(mode, reset);
   watch(password, () => (wrongPassword.value = false));
@@ -68,6 +83,11 @@ function createWalletPassword() {
           withMessage(minLength(MIN_PASSWORD_LENGTH), () =>
             t("wallet.minPasswordLength", { min: MIN_PASSWORD_LENGTH })
           )
+        ),
+        // only once it's long enough, so a short password gets a single error
+        strong: applyIf(
+          () => isNewPassword.value && longEnough.value,
+          strongPassword(strength.score, () => t("wallet.passwordTooGuessable"))
         ),
         correct: withMessage(
           withParams((_, wrong) => !wrong, [wrongPassword]),
@@ -89,6 +109,8 @@ function createWalletPassword() {
    * a typo shows up here rather than once the wallet is about to be saved.
    */
   async function validate(): Promise<{ password: string; passwordKind: PasswordKind } | undefined> {
+    // a quick click can come before the debounced score, or before the scorer loads
+    if (isNewPassword.value) await strength.evaluate();
     const { valid } = await rules.$validate();
     if (!valid) return;
 
@@ -122,6 +144,7 @@ function createWalletPassword() {
     confirmPassword,
     mode,
     isNewPassword,
+    strength: strength.score,
     rules,
     validate,
     loaded: computed(() => hasMaster.value !== undefined),
