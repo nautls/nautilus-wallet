@@ -130,6 +130,36 @@ describe("keystore", () => {
 
       expect(needsUpgrade(weaker)).toBe(true);
     });
+
+    describe("password normalization", () => {
+      const composed = "café ñandú 12"; // precomposed é, ñ, ú
+      const decomposed = composed.normalize("NFD"); // e, n, u + combining marks
+
+      it("derives the same key from either form of the same password", async () => {
+        expect(decomposed).not.toBe(composed);
+        const encrypted = await encryptSecret(mnemonic, publicKey, {
+          by: "password",
+          password: composed
+        });
+
+        expect(await decryptSecret(encrypted, publicKey, composed)).toBe(mnemonic);
+        expect(await decryptSecret(encrypted, publicKey, decomposed)).toBe(mnemonic);
+      });
+
+      it("treats fullwidth characters from IMEs as their ASCII forms", async () => {
+        const encrypted = await encryptSecret(mnemonic, publicKey, {
+          by: "password",
+          password: "ｐａｓｓｗｏｒｄ １２３"
+        });
+
+        expect(await decryptSecret(encrypted, publicKey, "password 123")).toBe(mnemonic);
+      });
+
+      it("applies to the master password", async () => {
+        const { record } = await createMasterKey(composed);
+        await expect(unlockMasterKey(record, decomposed)).resolves.toBeDefined();
+      });
+    });
   });
 
   describe("master key", () => {

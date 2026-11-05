@@ -347,6 +347,28 @@ describe("walletsDbService", () => {
       expect(storageApi.setCalls).toEqual([]);
     });
 
+    it("keeps unlocking a v1 wallet whose password isn't in NFKC, before and after the upgrade", async () => {
+      const decomposed = "café ñandú 12".normalize("NFD"); // e, n, u + combining marks
+      const composed = decomposed.normalize("NFKC");
+      const { default: AES } = await import("crypto-js/aes");
+      legacyWallets.set(1, {
+        ...legacyWallet(1),
+        mnemonic: AES.encrypt(mnemonic, decomposed).toString()
+      });
+      const service = await freshService();
+
+      // v1 uses the password exactly as typed, as it always has
+      await expect(service.getSecret(1, composed)).rejects.toMatchObject({ name: "PasswordError" });
+      expect(local.get("walletSecret:1")).toMatchObject({ version: 1 });
+
+      expect(await service.getSecret(1, decomposed)).toBe(mnemonic);
+      expect(local.get("walletSecret:1")).toMatchObject({ version: 2 });
+
+      // the upgraded v2 record still opens with what the user typed, in either form
+      expect(await service.getSecret(1, decomposed)).toBe(mnemonic);
+      expect(await service.getSecret(1, composed)).toBe(mnemonic);
+    });
+
     it("still returns the secret when the upgrade fails", async () => {
       legacyWallets.set(1, legacyWallet(1));
       const service = await freshService();

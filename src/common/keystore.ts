@@ -268,13 +268,12 @@ function newKdfParams(): Pbkdf2Params {
 async function derivePasswordKey(password: string, kdf: Pbkdf2Params): Promise<CryptoKey> {
   if (kdf.name !== "pbkdf2") throw Error(`unsupported key derivation: ${kdf.name}`);
 
-  const material = await crypto.subtle.importKey(
-    "raw",
-    bytes(utf8.decode(password)),
-    "PBKDF2",
-    false,
-    ["deriveKey"]
-  );
+  // the same password typed as different code points must derive the same key: a
+  // precomposed "é" or "e" plus a combining accent, fullwidth "１" from an IME or "1"
+  const normalizedBytes = bytes(utf8.decode(password.normalize("NFKC")));
+  const material = await crypto.subtle.importKey("raw", normalizedBytes, "PBKDF2", false, [
+    "deriveKey"
+  ]);
 
   return crypto.subtle.deriveKey(
     {
