@@ -172,9 +172,9 @@ export class Popup {
     }
   }
 
-  /** Spending password input of the transaction signing form. */
+  /** Password input of the transaction signing form, labelled after the password it wants. */
   get passwordInput(): Locator {
-    return this.page.getByRole("textbox", { name: "Spending password" });
+    return this.page.getByRole("textbox", { name: / password$/ });
   }
 
   toast(title: string | RegExp): Locator {

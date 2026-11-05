@@ -200,7 +200,6 @@
     "emptyProof": "Prover mboten ngasilaken data ingkang ditandhani.",
     "requiredSpendingPassword": "Mangga lebetaken sandi pangeluaran panjenengan.",
     "wrongPassword": "Sandi salah",
-    "wrongPasswordDesc": "Mangga lebetaken sandi pangeluaran ingkang leres.",
     "xPubKey": "Kunci publik dipunwiyaraken",
     "xPubKeyDesc": "Kunci publik ingkang dipunwiyaraken ngidini ningali riwayat transaksi lan ngasilaken alamat enggal, nanging mboten saged ngginakaken utawi mindhah dana.",
     "xPrivKey": "Kunci pribadi dipunwiyaraken",

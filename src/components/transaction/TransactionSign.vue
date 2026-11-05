@@ -30,6 +30,7 @@ import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transac
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { cn, extractErrorMessage } from "@/common/utils";
+import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { useFormat } from "@/composables";
 import { TransactionEntry } from ".";
 import LedgerDevice from "../LedgerDevice.vue";
@@ -58,6 +59,10 @@ const emit = defineEmits<Emits>();
 
 const app = useAppStore();
 const wallet = useWalletStore();
+const prompt = usePasswordPrompt(
+  () => wallet.id,
+  () => wallet.name
+);
 const assets = useAssetsStore();
 const format = useFormat();
 
@@ -144,9 +149,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("wallet.wrongPassword"),
+        title: prompt.wrong,
         variant: "destructive",
-        description: t("wallet.wrongPasswordDesc")
+        description: prompt.wrongHint
       });
       nextTick(() => pwdInput.value?.input?.$el.focus());
 
@@ -200,7 +205,7 @@ const { r$ } = useRegle(
   { password },
   {
     password: {
-      required: withMessage(requiredUnless(isLedger), () => t("wallet.requiredSpendingPassword"))
+      required: withMessage(requiredUnless(isLedger), () => prompt.required)
     }
   },
   { autoDirty: false }
@@ -310,7 +315,7 @@ const { r$ } = useRegle(
         <PasswordInput
           ref="pwd-input"
           v-model="password"
-          :placeholder="t('wallet.spendingPassword')"
+          :placeholder="prompt.label"
           :disabled="loading || signing || !canSign"
           class="w-full"
           @blur="r$.password.$touch()"

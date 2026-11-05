@@ -43,7 +43,7 @@ test.describe("dApp transaction signing", () => {
       await expect(win.getByText("Network fee")).toBeVisible();
       await expect(win.getByText("Alice")).toBeVisible();
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await clickToClose(win.getByRole("button", { name: "Sign" }));
 
       const outcome = await result;
@@ -67,7 +67,7 @@ test.describe("dApp transaction signing", () => {
       const { win, result } = await requestSignature(context, dapp, tx);
 
       await expect(win.getByText("TestToken").first()).toBeVisible();
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await win.getByRole("button", { name: "Sign" }).click();
 
       const signed = ((await result) as { value: SignedTransaction }).value;
@@ -83,14 +83,14 @@ test.describe("dApp transaction signing", () => {
 
       const sign = win.getByRole("button", { name: "Sign" });
       await sign.click();
-      await expect(win.getByText("Please enter your spending password.")).toBeVisible();
+      await expect(win.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill("wrong password");
+      await win.getByRole("textbox", { name: / password$/ }).fill("wrong password");
       await sign.click();
-      await expect(toast(win, "Wrong password")).toBeVisible();
+      await expect(toast(win, `Wrong "${WALLET_A.name}" password`)).toBeVisible();
       expect(win.isClosed()).toBe(false);
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await clickToClose(sign);
       expect((await result).ok).toBe(true);
     });
@@ -129,7 +129,7 @@ test.describe("dApp transaction signing", () => {
 
       await expect(win.getByText("Burning", { exact: true })).toBeVisible();
 
-      const password = win.getByRole("textbox", { name: "Spending password" });
+      const password = win.getByRole("textbox", { name: / password$/ });
       const sign = win.getByRole("button", { name: "Sign" });
       await expect(password).toBeDisabled();
       await expect(sign).toBeDisabled();
@@ -177,7 +177,7 @@ test.describe("dApp transaction signing", () => {
       await expectRequestFrom(win, DAPP_HOST);
       await expect(win.getByText("requests to sign a transaction.")).toBeVisible();
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await clickToClose(win.getByRole("button", { name: "Sign" }));
 
       const outcome = await result;
@@ -200,7 +200,7 @@ test.describe("dApp transaction signing", () => {
       );
 
       await expect(win.getByText("requests to partially sign a transaction")).toBeVisible();
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await clickToClose(win.getByRole("button", { name: "Sign" }));
 
       const signed = ((await result) as { value: SignedInput[] }).value;

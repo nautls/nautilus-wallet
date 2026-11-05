@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/toast";
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
+import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { walletsDbService } from "@/database/walletsDbService";
 import Mnemonic from "./Mnemonic.vue";
 
@@ -39,6 +40,7 @@ const opened = ref(true);
 const loading = ref(false);
 const step = ref(1);
 const walletId = ref(wallet.id);
+const prompt = usePasswordPrompt(walletId, () => wallet.name);
 const password = ref("");
 const mnemonicWords = ref<string[]>([]);
 const mnemonicWordsConfirm = ref<string[]>([]);
@@ -73,7 +75,7 @@ const nextButtonTitle = computed(() =>
 
 const { r$: passwordRules } = useRegle(
   { password },
-  { password: { required: withMessage(required, () => t("wallet.requiredSpendingPassword")) } },
+  { password: { required: withMessage(required, () => prompt.required) } },
   { autoDirty: false }
 );
 
@@ -133,9 +135,9 @@ async function unlock() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("wallet.wrongPassword"),
+        title: prompt.wrong,
         variant: "destructive",
-        description: t("wallet.wrongPasswordDesc")
+        description: prompt.wrongHint
       });
       nextTick(() => pwdInput.value?.input?.$el.focus());
 
@@ -204,7 +206,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
       <Form class="flex flex-col gap-4" @submit="next">
         <template v-if="step === 1">
           <FormField :validation="passwordRules.password">
-            <Label for="backup-password">{{ t("wallet.spendingPassword") }}</Label>
+            <Label for="backup-password">{{ prompt.label }}</Label>
             <PasswordInput
               id="backup-password"
               ref="pwd-input"

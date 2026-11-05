@@ -199,7 +199,6 @@
     "emptyProof": "Le prouveur n'a renvoyé aucune donnée signée.",
     "requiredSpendingPassword": "Veuillez entrer votre mot de passe de dépense.",
     "wrongPassword": "Mot de passe incorrect",
-    "wrongPasswordDesc": "Veuillez entrer le mot de passe de dépense correct.",
     "xPubKey": "Clé publique étendue",
     "xPubKeyDesc": "Les clés publiques étendues permettent de consulter l'historique des transactions et de générer de nouvelles adresses, mais elles ne peuvent pas dépenser ou déplacer des fonds.",
     "xPrivKey": "Clé privée étendue",

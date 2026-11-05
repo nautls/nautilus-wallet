@@ -200,7 +200,6 @@
     "emptyProof": "Pembuktian tidak mengembalikan data yang ditandatangani.",
     "requiredSpendingPassword": "Silakan masukkan kata sandi pengeluaran milik Anda.",
     "wrongPassword": "Kata sandi salah",
-    "wrongPasswordDesc": "Silakan masukkan kata sandi pengeluaran yang benar.",
     "xPubKey": "Kunci publik yang diperluas",
     "xPubKeyDesc": "Kunci publik yang diperluas memungkinkan melihat riwayat transaksi dan membuat alamat baru, tetapi tidak dapat membelanjakan atau memindahkan dana dengan cara apa pun.",
     "xPrivKey": "Kunci pribadi yang diperluas",

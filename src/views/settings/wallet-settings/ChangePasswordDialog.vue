@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/toast";
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
+import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { strongPassword, usePasswordStrength } from "@/composables/usePasswordStrength";
 import { walletsDbService } from "@/database/walletsDbService";
 
@@ -41,6 +42,7 @@ const currentPassword = ref("");
 const newPassword = ref("");
 const confirmPassword = ref("");
 
+const prompt = usePasswordPrompt(walletId, () => wallet.name);
 const strength = usePasswordStrength(newPassword, () => [wallet.name]);
 const longEnough = computed(() => newPassword.value.length >= 10);
 
@@ -86,9 +88,9 @@ async function changePassword() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("wallet.wrongPassword"),
+        title: prompt.wrong,
         variant: "destructive",
-        description: t("wallet.wrongPasswordDesc")
+        description: prompt.wrongHint
       });
       nextTick(() => currentPwdInput.value?.input?.$el.focus());
 

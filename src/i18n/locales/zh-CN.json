@@ -199,7 +199,6 @@
     "emptyProof": "证明者未返回签署数据。",
     "requiredSpendingPassword": "请输入支付密码。",
     "wrongPassword": "密码错误",
-    "wrongPasswordDesc": "请输入正确的支付密码。",
     "xPubKey": "扩展公钥",
     "xPubKeyDesc": "扩展公钥允许查看交易历史和生成新地址，但无法支出或移动资金。",
     "xPrivKey": "扩展私钥",

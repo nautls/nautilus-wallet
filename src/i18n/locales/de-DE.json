@@ -199,7 +199,6 @@
     "emptyProof": "Prover hat keine signierten Daten zurückgegeben.",
     "requiredSpendingPassword": "Bitte gib dein Ausgabepasswort ein.",
     "wrongPassword": "Falsches Passwort",
-    "wrongPasswordDesc": "Bitte gib das korrekte Ausgabepasswort ein.",
     "xPubKey": "Erweiterter öffentlicher Schlüssel",
     "xPubKeyDesc": "Erweiterte öffentliche Schlüssel ermöglichen das Anzeigen der Transaktionshistorie und das Erzeugen neuer Adressen, können jedoch keine Assets ausgeben.",
     "xPrivKey": "Erweiterter privater Schlüssel",

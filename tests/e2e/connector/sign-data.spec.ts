@@ -46,7 +46,7 @@ test.describe("dApp data signing", () => {
       await expect(win.getByText("Text message")).toBeVisible();
       await expect(win.getByText("hello nautilus")).toBeVisible();
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await clickToClose(win.getByRole("button", { name: "Sign" }));
 
       const outcome = await result;
@@ -63,7 +63,7 @@ test.describe("dApp data signing", () => {
       await expect(win.getByText("JSON object")).toBeVisible();
       await expect(win.getByText("proposal")).toBeVisible();
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await win.getByRole("button", { name: "Sign" }).click();
 
       expect(await result).toEqual({ ok: true, value: expect.stringMatching(/^[0-9a-f]{112}$/) });
@@ -75,9 +75,9 @@ test.describe("dApp data signing", () => {
         message: "hello"
       });
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill("wrong password");
+      await win.getByRole("textbox", { name: / password$/ }).fill("wrong password");
       await win.getByRole("button", { name: "Sign" }).click();
-      await expect(toast(win, "Wrong password")).toBeVisible();
+      await expect(toast(win, `Wrong "${WALLET_A.name}" password`)).toBeVisible();
 
       await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
@@ -125,7 +125,7 @@ test.describe("dApp data signing", () => {
 
     await expect(win.getByText("This wallet can't sign data.")).toBeVisible();
     await expect(win.getByRole("button", { name: "Sign" })).toBeDisabled();
-    await expect(win.getByRole("textbox", { name: "Spending password" })).toHaveCount(0);
+    await expect(win.getByRole("textbox", { name: / password$/ })).toHaveCount(0);
 
     await clickToClose(win.getByRole("button", { name: "Cancel" }));
     expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });

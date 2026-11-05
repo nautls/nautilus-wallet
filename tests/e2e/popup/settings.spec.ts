@@ -283,7 +283,7 @@ test.describe("settings", () => {
       await drawer.locator("#new-password").fill(newPassword);
       await drawer.locator("#confirm-new-password").fill(newPassword);
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(popup.toast("Wrong password")).toBeVisible();
+      await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
       await expect(drawer).toBeVisible();
 
       await drawer.locator("#current-password").fill(WALLET_A.password);
@@ -304,11 +304,11 @@ test.describe("settings", () => {
       await page.getByRole("button", { name: "Send", exact: true }).click();
 
       const review = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
-      await review.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await review.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await review.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Wrong password").last()).toBeVisible();
+      await expect(popup.toast(`Wrong "${WALLET_A.name}" password`).last()).toBeVisible();
 
-      await review.getByRole("textbox", { name: "Spending password" }).fill(newPassword);
+      await review.getByRole("textbox", { name: / password$/ }).fill(newPassword);
       await review.getByRole("button", { name: "Sign" }).click();
       await expect(popup.toast("Transaction sent!")).toBeVisible();
       expect(chain.submitted).toHaveLength(1);
@@ -324,14 +324,20 @@ test.describe("settings", () => {
       const drawer = page.getByRole("dialog");
       await expect(drawer).toContainText("Recovery phrase backup");
 
-      // requires the spending password
+      // requires the wallet's password, by name
+      await expect(drawer.getByText(`"${WALLET_A.name}" password`, { exact: true })).toBeVisible();
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(drawer.getByText("Please enter your spending password.")).toBeVisible();
+      await expect(drawer.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
 
       // rejects a wrong password and keeps the drawer open
       await drawer.locator("#backup-password").fill("wrong password");
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(popup.toast("Wrong password")).toBeVisible();
+      await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(
+        popup
+          .toast(`Wrong "${WALLET_A.name}" password`)
+          .getByText("Check for typos and Caps Lock, then try again.")
+      ).toBeVisible();
       await expect(drawer.locator("#backup-password")).toBeVisible();
 
       // submits with enter

@@ -199,7 +199,6 @@
     "emptyProof": "O provedor não retornou dados assinados.",
     "requiredSpendingPassword": "Por favor, insira a senha de gastos.",
     "wrongPassword": "Senha incorreta",
-    "wrongPasswordDesc": "Por favor, insira a senha de gastos correta.",
     "xPubKey": "Chave pública estendida",
     "xPubKeyDesc": "As chaves públicas estendidas permitem visualizar o histórico de transações e gerar novos endereços, mas não podem gastar ou mover fundos de nenhuma maneira.",
     "xPrivKey": "Chave privada estendida",

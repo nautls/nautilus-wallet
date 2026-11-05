@@ -76,7 +76,7 @@ test.describe("dApp request queueing", () => {
     );
 
     const win = await tracker.nth(1, "sign/data");
-    await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+    await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
     await clickToClose(win.getByRole("button", { name: "Sign" }));
 
     const outcome = await result;
@@ -109,7 +109,7 @@ test.describe("dApp request queueing", () => {
     // the second request waits for the first window to be closed
     await expect.poll(() => tracker.windows.length).toBe(1);
 
-    await first.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+    await first.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
     await clickToClose(first.getByRole("button", { name: "Sign" }));
 
     const second = await tracker.nth(2, "sign/data");

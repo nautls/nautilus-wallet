@@ -304,6 +304,12 @@ test.describe("onboarding", () => {
       await expect(page.getByRole("button", { name: "Change" })).toHaveCount(0);
       await page.getByRole("button", { name: "Back up" }).click();
       const drawer = page.getByRole("dialog");
+      await expect(drawer.getByText("Master password", { exact: true })).toBeVisible();
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      await expect(drawer.getByText("Please enter your master password.")).toBeVisible();
+      await drawer.locator("#backup-password").fill(WALLET_B.password);
+      await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
+      await expect(popup.toast("Wrong master password")).toBeVisible();
       await drawer.locator("#backup-password").fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
       expect(await popup.readMnemonic()).toEqual(WALLET_B.mnemonic.split(" "));
@@ -319,6 +325,7 @@ test.describe("onboarding", () => {
       await page.getByRole("tab", { name: "Wallet" }).click();
       await page.getByRole("button", { name: "Back up" }).click();
       const drawer = page.getByRole("dialog");
+      await expect(drawer.getByText(`"${WALLET_B.name}" password`, { exact: true })).toBeVisible();
       await drawer.locator("#backup-password").fill(WALLET_B.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
       expect(await popup.readMnemonic()).toEqual(WALLET_B.mnemonic.split(" "));

@@ -200,7 +200,6 @@
     "emptyProof": "Prover tidak mengembalikan data yang ditandatangani.",
     "requiredSpendingPassword": "Sila masukkan kata laluan perbelanjaan anda.",
     "wrongPassword": "Kata laluan salah",
-    "wrongPasswordDesc": "Sila masukkan kata laluan perbelanjaan yang betul.",
     "xPubKey": "Kunci awam lanjutan",
     "xPubKeyDesc": "Kunci awam lanjutan membenarkan melihat sejarah transaksi dan menjana alamat baharu, tetapi tidak boleh membelanjakan atau memindahkan dana dalam apa jua cara.",
     "xPrivKey": "Kunci peribadi lanjutan",
