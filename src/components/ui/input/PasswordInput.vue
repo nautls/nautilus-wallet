@@ -4,6 +4,8 @@ import { EyeIcon, EyeOffIcon } from "@lucide/vue";
 import { Button } from "../button";
 import { Input } from ".";
 
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps<{
   id?: HTMLAttributes["id"];
   disabled?: InputHTMLAttributes["disabled"];

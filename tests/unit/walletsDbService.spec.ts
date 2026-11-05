@@ -369,6 +369,17 @@ describe("walletsDbService", () => {
       expect(await service.getSecret(1, composed)).toBe(mnemonic);
     });
 
+    it("is verified without being upgraded", async () => {
+      legacyWallets.set(1, legacyWallet(1));
+      const service = await freshService();
+      storageApi.setCalls = [];
+
+      expect(await service.verifyWalletPassword(1, password)).toBe(true);
+      expect(await service.verifyWalletPassword(1, "wrong password")).toBe(false);
+      expect(storageApi.setCalls).toEqual([]);
+      expect(local.get("walletSecret:1")).toMatchObject({ version: 1 });
+    });
+
     it("still returns the secret when the upgrade fails", async () => {
       legacyWallets.set(1, legacyWallet(1));
       const service = await freshService();
@@ -628,6 +639,45 @@ describe("walletsDbService", () => {
         expect(await service.verifyMasterPassword(masterPassword)).toBe(true);
         await expect(service.setUpMasterPassword(newMaster)).rejects.toThrow(/already set up/);
         expect(await service.verifyMasterPassword(masterPassword)).toBe(true);
+      });
+
+      it("is set up with the chosen wallets moved to it, in one write", async () => {
+        const service = await freshService();
+        const a = await service.put(newWallet(1), own());
+        const b = await service.put(newWallet(2), own("another password"));
+        const left = await service.put(newWallet(3), own());
+        storageApi.setCalls = [];
+
+        await service.setUpMasterPassword(masterPassword, [
+          { id: a, password },
+          { id: b, password: "another password" }
+        ]);
+
+        expect(storageApi.setCalls).toEqual([
+          ["masterKey", `walletSecret:${a}`, `walletSecret:${b}`]
+        ]);
+        expect(await service.getSecret(a, masterPassword)).toBe(mnemonic);
+        expect(await service.getSecret(b, masterPassword)).toBe(mnemonic);
+        expect(await service.getPasswordKind(left)).toBe("password");
+        expect(await service.getMasterPasswordUsage()).toEqual({ used: 2, total: 3 });
+      });
+
+      it("names every wrong wallet password and writes nothing", async () => {
+        const service = await freshService();
+        const a = await service.put(newWallet(1), own());
+        const b = await service.put(newWallet(2), own());
+        const c = await service.put(newWallet(3), own());
+        storageApi.setCalls = [];
+
+        await expect(
+          service.setUpMasterPassword(masterPassword, [
+            { id: a, password },
+            { id: b, password: "wrong password" },
+            { id: c, password: "wrong password" }
+          ])
+        ).rejects.toMatchObject({ name: "PasswordError", kind: "password", walletIds: [b, c] });
+        expect(storageApi.setCalls).toEqual([]);
+        expect(await service.hasMasterPassword()).toBe(false);
       });
 
       it("changes without touching the wallets that use it", async () => {

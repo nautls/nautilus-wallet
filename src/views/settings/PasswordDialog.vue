@@ -28,10 +28,10 @@ import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
 /**
  * - `change`: changes the wallet's own password;
- * - `setUpMaster`, `changeMaster`: the master password itself;
+ * - `changeMaster`: changes the master password;
  * - `toMaster`, `toOwn`: moves the wallet to the master password or to its own.
  */
-export type PasswordAction = "change" | "setUpMaster" | "changeMaster" | "toMaster" | "toOwn";
+export type PasswordAction = "change" | "changeMaster" | "toMaster" | "toOwn";
 
 const props = defineProps<{ action: PasswordAction }>();
 const emit = defineEmits<{ close: []; done: [] }>();
@@ -84,12 +84,6 @@ const texts = computed(() => {
         current: t("settings.wallet.currentPassword"),
         done: t("settings.wallet.spendingPasswordChanged")
       };
-    case "setUpMaster":
-      return {
-        title: t("settings.password.setUpMaster"),
-        description: t("settings.password.setUpMasterDesc"),
-        done: t("settings.password.masterSetUp")
-      };
     case "changeMaster":
       return {
         title: t("settings.password.changeMaster"),
@@ -119,7 +113,7 @@ const texts = computed(() => {
 });
 
 const newLabel = computed(() => {
-  if (props.action === "setUpMaster" || props.action === "toMaster") {
+  if (props.action === "toMaster") {
     return t("wallet.masterPassword");
   }
   return props.action === "changeMaster"
@@ -193,8 +187,6 @@ function run(created: string): Promise<void> {
   switch (props.action) {
     case "change":
       return walletsDbService.changePassword(id, currentPassword.value, created);
-    case "setUpMaster":
-      return walletsDbService.setUpMasterPassword(created);
     case "changeMaster":
       return walletsDbService.changeMasterPassword(currentPassword.value, created);
     case "toMaster":

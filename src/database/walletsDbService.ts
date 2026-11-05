@@ -32,6 +32,7 @@ export type PlainSecret = {
 export type PasswordKind = "master" | "password";
 
 type Wallet = NotNullId<IDbWallet>;
+type Move = { id: number; current: EncryptedSecret; encrypted: EncryptedSecret };
 
 const WALLET_KEY_PREFIX = "wallet:";
 const SECRET_KEY_PREFIX = "walletSecret:";
@@ -90,13 +91,65 @@ class WalletsDbService {
     return { used: secrets.filter(usesMaster).length, total: secrets.length };
   }
 
-  /** Sets up the master password */
-  public async setUpMasterPassword(password: string) {
-    const { record } = await createMasterKey(password);
+  /**
+   * Sets up the master password and moves `wallets` to it, in a single write.
+   *
+   * @param wallets wallets on their own password, with that password.
+   * @throws {PasswordError} with the `walletIds` whose password is wrong; nothing is written.
+   */
+  public async setUpMasterPassword(
+    password: string,
+    wallets: { id: number; password: string }[] = []
+  ) {
+    const { record, masterKey } = await createMasterKey(password);
+
+    const results = await Promise.allSettled(
+      wallets.map(async ({ id, password }): Promise<Move> => {
+        const { wallet, encrypted: current } = await readWalletWithSecret(id);
+        if (usesMaster(current)) throw Error("this wallet already uses the master password");
+
+        const secret = await decryptSecret(current, wallet.publicKey, password);
+        const encrypted = await encryptSecret(secret, wallet.publicKey, {
+          by: "master",
+          masterKey
+        });
+        return { id, current, encrypted };
+      })
+    );
+
+    const wrong = wallets.filter((_, i) => {
+      const result = results[i];
+      return result.status === "rejected" && result.reason instanceof PasswordError;
+    });
+    if (wrong.length) {
+      throw new PasswordError(
+        undefined,
+        "password",
+        wrong.map((w) => w.id)
+      );
+    }
+
+    const moves: Move[] = [];
+    for (const result of results) {
+      if (result.status === "rejected") throw result.reason;
+      moves.push(result.value);
+    }
 
     await withLock(async () => {
       if (await readMasterKey()) throw Error("the master password is already set up");
-      await storage.local.set({ [MASTER_KEY]: record });
+      for (const { id, current } of moves) {
+        if (!(await readWallet(id))) throw Error("wallet not found");
+        if (!isEqual(await readSecret(id), current)) {
+          throw Error("the spending password was changed meanwhile");
+        }
+      }
+
+      await storage.local.set({
+        [MASTER_KEY]: record,
+        ...Object.fromEntries(moves.map((m) => [secretKey(m.id), m.encrypted]))
+      });
+      // drop the pre-migration copies, still encrypted with the old passwords
+      await Promise.all(moves.map((m) => dbContext.wallets.delete(m.id)));
     });
   }
 
@@ -168,6 +221,19 @@ class WalletsDbService {
 
   public async hasMasterPassword(): Promise<boolean> {
     return (await readMasterKey()) !== undefined;
+  }
+
+  /** Unlike {@link getSecret}, never upgrades the record. */
+  public async verifyWalletPassword(id: number, password: string): Promise<boolean> {
+    const { wallet, encrypted, master } = await readWalletWithSecret(id);
+
+    try {
+      await decryptSecret(encrypted, wallet.publicKey, password, master);
+      return true;
+    } catch (e) {
+      if (e instanceof PasswordError) return false;
+      throw e;
+    }
   }
 
   /** @returns false if the password is wrong or the master password isn't set up. */

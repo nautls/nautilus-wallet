@@ -477,7 +477,35 @@ test.describe("settings", () => {
         expect(await popup.readMnemonic()).toEqual(WALLET_A.mnemonic.split(" "));
       });
 
-      test("is set up, changed and reset from global settings", async ({ popup }) => {
+      /** Sets up the master password from Global settings, moving the wallet to it. */
+      async function setUpFromSettings(page: Page) {
+        await page
+          .locator("[data-master-password-settings]")
+          .getByRole("button", { name: "Set up" })
+          .click();
+        await page.locator("#new-password").fill(masterPassword);
+        await page.locator("#confirm-new-password").fill(masterPassword);
+        await page.getByRole("button", { name: "Choose wallets" }).click();
+        await page
+          .getByRole("textbox", { name: `"${WALLET_A.name}" password` })
+          .fill(WALLET_A.password);
+        await page.getByRole("button", { name: "Set up master password" }).click();
+      }
+
+      /** Moves the wallet back to its own password, so no wallet uses the master password. */
+      async function moveBackToOwn(page: Page, master: string) {
+        const drawer = page.getByRole("dialog");
+        await page.getByRole("tab", { name: "Wallet" }).click();
+        await page.getByRole("tab", { name: "Own", exact: true }).click();
+        await drawer.locator("#current-password").fill(master);
+        await drawer.locator("#new-password").fill(ownPassword);
+        await drawer.locator("#confirm-new-password").fill(ownPassword);
+        await drawer.getByRole("button", { name: "Confirm" }).click();
+        await expect(drawer).toBeHidden();
+        await page.getByRole("tab", { name: "Global" }).click();
+      }
+
+      test("is set up and changed from global settings", async ({ popup }) => {
         const page = popup.page;
         const drawer = page.getByRole("dialog");
         const card = page.locator("[data-master-password-settings]");
@@ -485,17 +513,26 @@ test.describe("settings", () => {
         await popup.goto("/settings");
         await expect(card).toContainText("One password for all your wallets.");
         await card.getByRole("button", { name: "Set up" }).click();
-        await expect(drawer).toContainText("Set up master password");
-        await drawer.locator("#new-password").fill("short");
-        await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(
-          drawer.getByText("Password must be at least 10 characters long.")
-        ).toBeVisible();
-        await drawer.locator("#new-password").fill(masterPassword);
-        await drawer.locator("#confirm-new-password").fill(masterPassword);
-        await drawer.getByRole("button", { name: "Confirm" }).click();
+        await page.locator("#new-password").fill("short");
+        await page.getByRole("button", { name: "Choose wallets" }).click();
+        await expect(page.getByText("Password must be at least 10 characters long.")).toBeVisible();
+        await page.locator("#new-password").fill(masterPassword);
+        await page.locator("#confirm-new-password").fill(masterPassword);
+        await page.getByRole("button", { name: "Choose wallets" }).click();
+
+        // needs at least one wallet
+        const setUp = page.getByRole("button", { name: "Set up master password" });
+        const checkbox = page.getByRole("button", { name: WALLET_A.name }).getByRole("checkbox");
+        await checkbox.click();
+        await expect(setUp).toBeDisabled();
+        await checkbox.click();
+        await page
+          .getByRole("textbox", { name: `"${WALLET_A.name}" password` })
+          .fill(WALLET_A.password);
+        await setUp.click();
         await expect(popup.toast("Master password set up")).toBeVisible();
-        await expect(card).toContainText("Not used by any wallet.");
+        await expect(card).toContainText("Used by 1 of 1 wallet.");
+        await expect(card.getByRole("button", { name: "Reset" })).toHaveCount(0);
 
         const newMaster = "new master password 456";
         await card.getByRole("button", { name: "Change", exact: true }).click();
@@ -508,18 +545,9 @@ test.describe("settings", () => {
         await drawer.getByRole("button", { name: "Confirm" }).click();
         await expect(popup.toast("Master password changed")).toBeVisible();
 
-        // the new master password is the one a wallet moves to
-        await page.getByRole("tab", { name: "Wallet" }).click();
-        await page.getByRole("tab", { name: "Master", exact: true }).click();
-        await drawer.locator("#current-password").fill(WALLET_A.password);
-        await drawer.locator("#master-password").fill(newMaster);
-        await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast(`"${WALLET_A.name}" now uses the master password`)).toBeVisible();
-
-        // in use, so it can't be reset
-        await page.getByRole("tab", { name: "Global" }).click();
-        await expect(card).toContainText("Used by 1 of 1 wallet.");
-        await expect(card.getByRole("button", { name: "Reset" })).toHaveCount(0);
+        // the wallet now opens with the new master password
+        await moveBackToOwn(page, newMaster);
+        await expect(card).toContainText("Not used by any wallet.");
       });
 
       test("is reset once no wallet uses it", async ({ popup }) => {
@@ -528,10 +556,9 @@ test.describe("settings", () => {
         const card = page.locator("[data-master-password-settings]");
 
         await popup.goto("/settings");
-        await card.getByRole("button", { name: "Set up" }).click();
-        await drawer.locator("#new-password").fill(masterPassword);
-        await drawer.locator("#confirm-new-password").fill(masterPassword);
-        await drawer.getByRole("button", { name: "Confirm" }).click();
+        await setUpFromSettings(page);
+        await expect(card).toContainText("Used by 1 of 1 wallet.");
+        await moveBackToOwn(page, masterPassword);
         await expect(card).toContainText("Not used by any wallet.");
 
         await card.getByRole("button", { name: "Reset" }).click();
@@ -540,9 +567,8 @@ test.describe("settings", () => {
         await expect(popup.toast("Master password reset")).toBeVisible();
 
         // goes on to set up a new one
-        await expect(drawer).toContainText("Set up master password");
-        await drawer.getByRole("button", { name: "Cancel" }).last().click();
-        await expect(drawer).toBeHidden();
+        await expect(page.getByRole("button", { name: "Choose wallets" })).toBeVisible();
+        await page.goBack();
         await expect(card).toContainText("One password for all your wallets.");
         await expect(card.getByRole("button", { name: "Set up" })).toBeVisible();
       });

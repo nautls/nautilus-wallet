@@ -34,6 +34,7 @@ export type Settings = {
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
   ledger: { transport: TransportType };
+  masterPasswordAlertDismissed: boolean;
 };
 
 type StandardWallet = {

@@ -392,7 +392,6 @@
       "masterUnused": "Not used by any wallet.",
       "masterUsage": "Used by {used} of {total} wallet. | Used by {used} of {total} wallets.",
       "setUpMaster": "Set up master password",
-      "setUpMasterDesc": "Wallets can then switch to it in their settings.",
       "masterSetUp": "Master password set up",
       "changeMaster": "Change master password",
       "changeMasterDesc": "Every wallet that uses it will open with the new one.",
@@ -448,5 +447,15 @@
     "invalidUrl": "Invalid URL.",
     "maxAmount": "The amount should be less than or equal to {max}",
     "minAmount": "The amount should be greater than or equal to {min}"
+  },
+  "masterSetup": {
+    "alert": "One password for all your wallets",
+    "alertDesc": "Set up a master password and stop typing a different one for each wallet.",
+    "dontAskAgain": "Don't ask again",
+    "walletsStep": "Wallets",
+    "walletsStepDesc": "Choose the wallets that will use the master password and enter each one's current password. The others keep their own.",
+    "chooseWallets": "Choose wallets",
+    "wrongPassword": "Wrong password.",
+    "passwordCorrect": "Correct password"
   }
 }

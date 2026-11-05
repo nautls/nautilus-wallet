@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -22,13 +23,14 @@ import { walletsDbService } from "@/database/walletsDbService";
 import PasswordDialog from "./PasswordDialog.vue";
 
 const { t } = useI18n();
+const router = useRouter();
 const { toast } = useToast();
 
 const hasMaster = ref<boolean>();
 const usage = ref({ used: 0, total: 0 });
 
 const { open: openPasswordDialog } = useProgrammaticDialog(PasswordDialog, {
-  action: "setUpMaster",
+  action: "changeMaster",
   onDone: load
 });
 
@@ -53,7 +55,7 @@ async function reset() {
   try {
     await walletsDbService.resetMasterPassword();
     toast({ title: t("settings.password.masterReset") });
-    openPasswordDialog({ action: "setUpMaster" });
+    router.push({ name: "master-password-setup" });
   } catch (e) {
     log.error(e);
     toast({
@@ -84,9 +86,13 @@ async function reset() {
           @click="openPasswordDialog({ action: 'changeMaster' })"
           >{{ t("common.change") }}</Button
         >
-        <Button v-else variant="outline" @click="openPasswordDialog({ action: 'setUpMaster' })">{{
-          t("settings.password.setUp")
-        }}</Button>
+        <Button
+          v-else
+          variant="outline"
+          :disabled="usage.total === 0"
+          @click="router.push({ name: 'master-password-setup' })"
+          >{{ t("settings.password.setUp") }}</Button
+        >
       </template>
     </div>
 
