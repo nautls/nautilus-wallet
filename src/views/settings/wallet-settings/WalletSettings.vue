@@ -27,7 +27,7 @@ import { MnemonicBackupDialog } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
-import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
+import { usePasswordKind } from "@/composables/usePasswordPrompt";
 import PasswordDialog from "../PasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
@@ -36,24 +36,16 @@ const app = useAppStore();
 const { t } = useI18n();
 const { toast } = useToast();
 
+const { kind: passwordKind, reload: reloadPasswordKind } = usePasswordKind(() => wallet.id);
+
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
 const { open: openPasswordDialog } = useProgrammaticDialog(PasswordDialog, {
   action: "change",
-  onDone: loadPasswordKind
+  onDone: reloadPasswordKind
 });
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const isStandard = computed(() => wallet.type === "standard");
-
-const passwordKind = ref<PasswordKind>();
-watch(() => wallet.id, loadPasswordKind, { immediate: true });
-
-async function loadPasswordKind() {
-  const id = wallet.id;
-  passwordKind.value = undefined;
-  const kind = await walletsDbService.getPasswordKind(id);
-  if (id === wallet.id) passwordKind.value = kind;
-}
 
 function switchPassword(kind: unknown) {
   if (kind === passwordKind.value) return;

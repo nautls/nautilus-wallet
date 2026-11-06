@@ -8,7 +8,6 @@ import {
   encryptSecret,
   MasterKeyRecord,
   needsUpgrade,
-  SecretProtection,
   unlockMasterKey
 } from "@/common/keystore";
 import { PasswordError } from "@/common/errors";
@@ -33,6 +32,7 @@ export type PasswordKind = "master" | "password";
 
 type Wallet = NotNullId<IDbWallet>;
 type Move = { id: number; current: EncryptedSecret; encrypted: EncryptedSecret };
+type MasterChange = { current?: MasterKeyRecord; created?: MasterKeyRecord };
 
 const WALLET_KEY_PREFIX = "wallet:";
 const SECRET_KEY_PREFIX = "walletSecret:";
@@ -117,39 +117,19 @@ class WalletsDbService {
       })
     );
 
-    const wrong = wallets.filter((_, i) => {
-      const result = results[i];
-      return result.status === "rejected" && result.reason instanceof PasswordError;
-    });
-    if (wrong.length) {
-      throw new PasswordError(
-        undefined,
-        "password",
-        wrong.map((w) => w.id)
-      );
-    }
+    const wrongIds = results.flatMap((result, i) =>
+      result.status === "rejected" && result.reason instanceof PasswordError ? [wallets[i].id] : []
+    );
+    if (wrongIds.length) throw new PasswordError(undefined, "password", wrongIds);
 
-    const moves: Move[] = [];
-    for (const result of results) {
+    const moves = results.map((result) => {
       if (result.status === "rejected") throw result.reason;
-      moves.push(result.value);
-    }
+      return result.value;
+    });
 
     await withLock(async () => {
       if (await readMasterKey()) throw Error("the master password is already set up");
-      for (const { id, current } of moves) {
-        if (!(await readWallet(id))) throw Error("wallet not found");
-        if (!isEqual(await readSecret(id), current)) {
-          throw Error("the spending password was changed meanwhile");
-        }
-      }
-
-      await storage.local.set({
-        [MASTER_KEY]: record,
-        ...Object.fromEntries(moves.map((m) => [secretKey(m.id), m.encrypted]))
-      });
-      // drop the pre-migration copies, still encrypted with the old passwords
-      await Promise.all(moves.map((m) => dbContext.wallets.delete(m.id)));
+      await writeSecrets(moves, { created: record });
     });
   }
 
@@ -196,7 +176,7 @@ class WalletsDbService {
       protect({ value: secret, password: masterPassword, by: "master" }, wallet.publicKey)
     );
 
-    await replaceSecret(id, current, encrypted, master);
+    await replaceSecret({ id, current, encrypted }, master);
   }
 
   /**
@@ -216,7 +196,7 @@ class WalletsDbService {
       password: newPassword
     });
 
-    await replaceSecret(id, current, encrypted);
+    await replaceSecret({ id, current, encrypted });
   }
 
   public async hasMasterPassword(): Promise<boolean> {
@@ -226,28 +206,13 @@ class WalletsDbService {
   /** Unlike {@link getSecret}, never upgrades the record. */
   public async verifyWalletPassword(id: number, password: string): Promise<boolean> {
     const { wallet, encrypted, master } = await readWalletWithSecret(id);
-
-    try {
-      await decryptSecret(encrypted, wallet.publicKey, password, master);
-      return true;
-    } catch (e) {
-      if (e instanceof PasswordError) return false;
-      throw e;
-    }
+    return succeeds(decryptSecret(encrypted, wallet.publicKey, password, master));
   }
 
   /** @returns false if the password is wrong or the master password isn't set up. */
   public async verifyMasterPassword(password: string): Promise<boolean> {
     const master = await readMasterKey();
-    if (!master) return false;
-
-    try {
-      await unlockMasterKey(master, password);
-      return true;
-    } catch (e) {
-      if (e instanceof PasswordError) return false;
-      throw e;
-    }
+    return !!master && succeeds(unlockMasterKey(master, password));
   }
 
   public async changePassword(id: number, currentPassword: string, newPassword: string) {
@@ -260,7 +225,7 @@ class WalletsDbService {
       password: newPassword
     });
 
-    await replaceSecret(id, current, encrypted);
+    await replaceSecret({ id, current, encrypted });
   }
 
   public async put(wallet: IDbWallet, secret?: PlainSecret): Promise<number> {
@@ -269,9 +234,7 @@ class WalletsDbService {
       : { encrypted: undefined, master: undefined };
 
     return withLock(async () => {
-      if (master && !isEqual(await readMasterKey(), master.current)) {
-        throw Error("the master password was changed meanwhile");
-      }
+      if (master) await assertMasterUnchanged(master);
 
       const dbWallet = (await readAllWallets()).find((w) => w.publicKey === wallet.publicKey);
       const id = wallet.id ?? dbWallet?.id ?? (await allocateId());
@@ -353,13 +316,13 @@ async function readMasterKey(): Promise<MasterKeyRecord | undefined> {
   return stored[MASTER_KEY] as MasterKeyRecord | undefined;
 }
 
-async function protect(secret: PlainSecret, publicKey: string) {
+async function protect(
+  secret: PlainSecret,
+  publicKey: string
+): Promise<{ encrypted: EncryptedSecret; master?: MasterChange }> {
   if (secret.by === "password") {
-    const protection: SecretProtection = { by: "password", password: secret.password };
-    return {
-      encrypted: await encryptSecret(secret.value, publicKey, protection),
-      master: undefined
-    };
+    const protection = { by: "password", password: secret.password } as const;
+    return { encrypted: await encryptSecret(secret.value, publicKey, protection) };
   }
 
   const current = await readMasterKey();
@@ -395,31 +358,41 @@ async function upgradeSecret(
   });
 }
 
-/**
- * Replaces the wallet's secret.
- */
-async function replaceSecret(
-  id: number,
-  current: EncryptedSecret,
-  encrypted: EncryptedSecret,
-  master?: { current?: MasterKeyRecord; created?: MasterKeyRecord }
-) {
-  await withLock(async () => {
+function replaceSecret(move: Move, master?: MasterChange) {
+  return withLock(() => writeSecrets([move], master));
+}
+
+async function writeSecrets(moves: Move[], master?: MasterChange) {
+  for (const { id, current } of moves) {
     if (!(await readWallet(id))) throw Error("wallet not found");
     if (!isEqual(await readSecret(id), current)) {
       throw Error("the spending password was changed meanwhile");
     }
-    if (master && !isEqual(await readMasterKey(), master.current)) {
-      throw Error("the master password was changed meanwhile");
-    }
+  }
+  if (master) await assertMasterUnchanged(master);
 
-    await storage.local.set({
-      [secretKey(id)]: encrypted,
-      ...(master?.created && { [MASTER_KEY]: master.created })
-    });
-    // drop the pre-migration copy, still encrypted with the old password
-    await dbContext.wallets.delete(id);
+  await storage.local.set({
+    ...Object.fromEntries(moves.map((m) => [secretKey(m.id), m.encrypted])),
+    ...(master?.created && { [MASTER_KEY]: master.created })
   });
+  // drop the pre-migration copies, still encrypted with the old passwords
+  await Promise.all(moves.map((m) => dbContext.wallets.delete(m.id)));
+}
+
+async function assertMasterUnchanged(master: MasterChange) {
+  if (!isEqual(await readMasterKey(), master.current)) {
+    throw Error("the master password was changed meanwhile");
+  }
+}
+
+async function succeeds(operation: Promise<unknown>): Promise<boolean> {
+  try {
+    await operation;
+    return true;
+  } catch (e) {
+    if (e instanceof PasswordError) return false;
+    throw e;
+  }
 }
 
 /** Tags a {@link PasswordError} thrown by `fn` with the password it was about. */
@@ -445,26 +418,24 @@ const isWalletKey = (key: string) => key.startsWith(WALLET_KEY_PREFIX);
 const isSecretKey = (key: string) => key.startsWith(SECRET_KEY_PREFIX);
 
 async function readAllSecrets(): Promise<EncryptedSecret[]> {
-  const stored = storage.local.getKeys
-    ? await storage.local.get((await storage.local.getKeys()).filter(isSecretKey))
-    : await storage.local.get(null);
-
-  return Object.entries(stored)
-    .filter(([key]) => isSecretKey(key))
-    .map(([, secret]) => secret as EncryptedSecret);
+  return (await readAllMatching(isSecretKey)) as EncryptedSecret[];
 }
 
 async function readAllWallets(): Promise<Wallet[]> {
-  // read only wallet keys when supported (Chrome 130+, Firefox 143+), otherwise
+  const wallets = (await readAllMatching(isWalletKey)) as Wallet[];
+  return wallets.sort((a, b) => a.id - b.id);
+}
+
+async function readAllMatching(isKey: (key: string) => boolean): Promise<unknown[]> {
+  // read only the matching keys when supported (Chrome 130+, Firefox 143+), otherwise
   // everything, including large entries such as token blacklists and prices
   const stored = storage.local.getKeys
-    ? await storage.local.get((await storage.local.getKeys()).filter(isWalletKey))
+    ? await storage.local.get((await storage.local.getKeys()).filter(isKey))
     : await storage.local.get(null);
 
   return Object.entries(stored)
-    .filter(([key]) => isWalletKey(key))
-    .map(([, wallet]) => wallet as Wallet)
-    .sort((a, b) => a.id - b.id);
+    .filter(([key]) => isKey(key))
+    .map(([, value]) => value);
 }
 
 async function allocateId(): Promise<number> {

@@ -10,10 +10,10 @@ import {
   watch
 } from "vue";
 import { useRegle } from "@regle/core";
-import { applyIf, minLength, required, withMessage, withParams } from "@regle/rules";
+import { required, withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
-import { MIN_PASSWORD_LENGTH } from "@/composables/useNewPassword";
-import { strongPassword, usePasswordStrength } from "@/composables/usePasswordStrength";
+import { useNewPasswordRules } from "@/composables/useNewPassword";
+import { usePasswordStrength } from "@/composables/usePasswordStrength";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
 export type WalletPassword = ReturnType<typeof createWalletPassword>;
@@ -63,7 +63,7 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   /** A new password needs its own step, with a confirmation. */
   const isNewPassword = computed(() => mode.value !== "unlock");
   const strength = usePasswordStrength(password, userInputs);
-  const longEnough = computed(() => password.value.length >= MIN_PASSWORD_LENGTH);
+  const newRules = useNewPasswordRules(password, strength.score, isNewPassword);
 
   watch(mode, reset);
   watch(password, () => (wrongPassword.value = false));
@@ -77,28 +77,13 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
             ? t("wallet.walletPasswordRequired")
             : t("wallet.masterPasswordRequired")
         ),
-        minLength: applyIf(
-          isNewPassword,
-          withMessage(minLength(MIN_PASSWORD_LENGTH), () =>
-            t("wallet.minPasswordLength", { min: MIN_PASSWORD_LENGTH })
-          )
-        ),
-        // only once it's long enough, so a short password gets a single error
-        strong: applyIf(
-          () => isNewPassword.value && longEnough.value,
-          strongPassword(strength.score, () => t("wallet.passwordTooGuessable"))
-        ),
+        ...newRules.password,
         correct: withMessage(
           withParams((_, wrong) => !wrong, [wrongPassword]),
           () => t("wallet.wrongMasterPassword")
         )
       },
-      confirmPassword: {
-        matches: withMessage(
-          withParams((value, pwd, isNew) => !isNew || value === pwd, [password, isNewPassword]),
-          () => t("wallet.passwordsDontMatch")
-        )
-      }
+      confirmPassword: newRules.confirmPassword
     },
     { autoDirty: false }
   );
@@ -130,6 +115,10 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
     return { password: password.value, passwordKind: useMaster.value ? "master" : "password" };
   }
 
+  async function validateUnlock(): Promise<boolean> {
+    return isNewPassword.value || !!(await validate());
+  }
+
   function reset() {
     password.value = "";
     confirmPassword.value = "";
@@ -146,6 +135,15 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
     strength: strength.score,
     rules,
     validate,
+    validateUnlock,
+    stepTexts: computed(() =>
+      useMaster.value
+        ? { title: t("wallet.masterPassword"), description: t("wallet.masterPasswordStepDesc") }
+        : { title: t("wallet.walletPassword"), description: t("wallet.walletPasswordStepDesc") }
+    ),
+    createLabel: computed(() =>
+      useMaster.value ? t("wallet.createMasterPassword") : t("wallet.createWalletPassword")
+    ),
     loaded: computed(() => hasMaster.value !== undefined),
     verifying,
     invalid: computed(() => rules.$invalid)

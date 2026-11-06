@@ -23,9 +23,7 @@ import { log } from "@/common/logger";
 import { cn, extractErrorMessage } from "@/common/utils";
 import { MIN_PASSWORD_LENGTH, useNewPassword } from "@/composables/useNewPassword";
 import { walletsDbService } from "@/database/walletsDbService";
-import { Step, Stepper, StepTitle } from "@/views/add/components";
-
-type StepKey = "password" | "wallets";
+import { numberSteps, Stepper, StepTitle } from "@/views/add/components";
 
 const app = useAppStore();
 const router = useRouter();
@@ -63,30 +61,24 @@ watch(
   { immediate: true }
 );
 
-const steps = computed<(Step & { key: StepKey })[]>(() => {
-  const all: (Step & { key: StepKey })[] = [
+const steps = computed(() =>
+  numberSteps([
     {
       key: "password",
-      step: 0,
       title: t("wallet.masterPassword"),
       description: t("wallet.masterPasswordStepDesc"),
       icon: LockKeyholeIcon,
       enabled: ref(true)
     },
-    {
+    candidates.value.length > 0 && {
       key: "wallets",
-      step: 0,
       title: t("masterSetup.walletsStep"),
       description: t("masterSetup.walletsStepDesc"),
       icon: WalletIcon,
       enabled: passwordDone
     }
-  ];
-
-  return all
-    .filter((s) => s.key !== "wallets" || candidates.value.length > 0)
-    .map((s, i) => ({ ...s, step: i + 1 }));
-});
+  ])
+);
 
 const current = computed(() => steps.value[step.value - 1].key);
 const isLast = computed(() => step.value === steps.value.length);

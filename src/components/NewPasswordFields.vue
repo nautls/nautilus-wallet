@@ -1,14 +1,27 @@
 <script setup lang="ts">
 import { TriangleAlertIcon } from "@lucide/vue";
+import type { Score } from "@zxcvbn-ts/core";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PasswordStrength from "@/components/PasswordStrength.vue";
-import type { NewPassword } from "@/composables/useNewPassword";
+
+interface FieldValidation {
+  $error: boolean;
+  $errors: unknown;
+  $touch(): void;
+}
+
+interface NewPasswordForm {
+  password: string;
+  confirmPassword: string;
+  strength?: Score;
+  rules: { password: FieldValidation; confirmPassword: FieldValidation };
+}
 
 const props = defineProps<{
-  form: NewPassword;
+  form: NewPasswordForm;
   id: string;
   label: string;
   confirmLabel: string;

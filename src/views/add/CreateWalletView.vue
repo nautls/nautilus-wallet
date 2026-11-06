@@ -28,8 +28,8 @@ import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
 import {
   MasterPasswordSwitch,
+  numberSteps,
   provideWalletPassword,
-  Step,
   Stepper,
   StepTitle,
   WalletPasswordFields
@@ -40,8 +40,6 @@ const wallet = useWalletStore();
 const router = useRouter();
 const { toast } = useToast();
 const { t } = useI18n();
-
-type StepKey = "info" | "password" | "phrase" | "confirm";
 
 const step = ref(1);
 const walletName = ref("");
@@ -73,26 +71,25 @@ const { r$: infoRules } = useRegle(
 const nameValid = computed(() => !infoRules.$invalid);
 const allValid = computed(() => nameValid.value && passwordForm.loaded && !passwordForm.invalid);
 
-const steps = computed<(Step & { key: StepKey })[]>(() => {
-  const all: (Step & { key: StepKey })[] = [
+type StepKey = "info" | "password" | "phrase" | "confirm";
+
+const steps = computed(() =>
+  numberSteps<StepKey>([
     {
       key: "info",
-      step: 0,
       title: t("wallet.infoStep"),
       description: t("wallet.infoStepDesc"),
       icon: FingerprintIcon,
       enabled: ref(true)
     },
-    {
+    passwordForm.isNewPassword && {
       key: "password",
-      step: 0,
-      ...passwordStepInfo(),
+      ...passwordForm.stepTexts,
       icon: LockKeyholeIcon,
       enabled: nameValid
     },
     {
       key: "phrase",
-      step: 0,
       title: t("wallet.create.secretStep"),
       description: t("wallet.create.secretStepDesc"),
       icon: KeyRoundIcon,
@@ -100,33 +97,20 @@ const steps = computed<(Step & { key: StepKey })[]>(() => {
     },
     {
       key: "confirm",
-      step: 0,
       title: t("wallet.create.secretConfirmStep"),
       description: t("wallet.create.secretConfirmStepDesc"),
       icon: CheckIcon,
       enabled: allValid
     }
-  ];
-
-  return all
-    .filter((s) => s.key !== "password" || passwordForm.isNewPassword)
-    .map((s, i) => ({ ...s, step: i + 1 }));
-});
+  ])
+);
 
 const current = computed(() => steps.value[step.value - 1].key);
-
-function passwordStepInfo() {
-  return passwordForm.useMaster
-    ? { title: t("wallet.masterPassword"), description: t("wallet.masterPasswordStepDesc") }
-    : { title: t("wallet.walletPassword"), description: t("wallet.walletPasswordStepDesc") };
-}
 
 const nextButtonTitle = computed(() => {
   switch (steps.value[step.value]?.key) {
     case "password":
-      return passwordForm.useMaster
-        ? t("wallet.createMasterPassword")
-        : t("wallet.createWalletPassword");
+      return passwordForm.createLabel;
     case "phrase":
       return t("wallet.create.backUpRecoveryPhrase");
     case "confirm":
@@ -180,11 +164,11 @@ async function validateStep(key: StepKey): Promise<boolean> {
   switch (key) {
     case "info": {
       // an existing master password is typed here, and checked before moving on
-      const [{ valid }, credentials] = await Promise.all([
+      const [{ valid }, unlocked] = await Promise.all([
         infoRules.$validate(),
-        passwordForm.isNewPassword || passwordForm.validate()
+        passwordForm.validateUnlock()
       ]);
-      return valid && !!credentials;
+      return valid && unlocked;
     }
     case "password":
       return !!(await passwordForm.validate());

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from "vue";
 import { useRegle } from "@regle/core";
-import { requiredIf, withMessage } from "@regle/rules";
+import { required, requiredIf, withMessage } from "@regle/rules";
 import { Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
@@ -24,6 +24,7 @@ import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useNewPassword } from "@/composables/useNewPassword";
+import { usePasswordTexts } from "@/composables/usePasswordPrompt";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
 /**
@@ -51,21 +52,13 @@ const walletName = ref(wallet.name);
 const currentPassword = ref("");
 const masterPassword = ref("");
 const newPassword = useNewPassword(() => [walletName.value]);
+const passwordTexts = usePasswordTexts(walletName);
 
 loadMaster();
 
-const current = computed<PasswordKind | undefined>(() => {
-  switch (props.action) {
-    case "change":
-    case "toMaster":
-      return "password";
-    case "changeMaster":
-    case "toOwn":
-      return "master";
-    default:
-      return undefined;
-  }
-});
+const current = computed<PasswordKind>(() =>
+  props.action === "change" || props.action === "toMaster" ? "password" : "master"
+);
 
 const asksMaster = computed(() => props.action === "toMaster" && hasMaster.value === true);
 
@@ -121,22 +114,14 @@ const newLabel = computed(() => {
     : t("settings.wallet.newPassword");
 });
 
-const requiredMessage = (kind: PasswordKind) =>
-  kind === "master"
-    ? t("wallet.enterMasterPassword")
-    : t("wallet.enterWalletPassword", { name: walletName.value });
-
 const { r$ } = useRegle(
   { currentPassword, masterPassword },
   {
     currentPassword: {
-      required: withMessage(
-        requiredIf(() => current.value !== undefined),
-        () => requiredMessage(current.value ?? "password")
-      )
+      required: withMessage(required, () => passwordTexts.required(current.value))
     },
     masterPassword: {
-      required: withMessage(requiredIf(asksMaster), () => requiredMessage("master"))
+      required: withMessage(requiredIf(asksMaster), () => passwordTexts.required("master"))
     }
   },
   { autoDirty: false }
@@ -156,14 +141,11 @@ async function submit() {
     setOpened(false);
   } catch (e) {
     if (e instanceof PasswordError) {
-      const kind = e.kind ?? current.value ?? "password";
+      const kind = e.kind ?? current.value;
       toast({
-        title:
-          kind === "master"
-            ? t("wallet.wrongMasterPasswordTitle")
-            : t("wallet.wrongWalletPasswordTitle", { name: walletName.value }),
+        title: passwordTexts.wrong(kind),
         variant: "destructive",
-        description: t("wallet.wrongPasswordHint")
+        description: passwordTexts.wrongHint()
       });
 
       const input = kind === current.value ? currentInput : masterInput;
@@ -243,7 +225,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
       </DrawerHeader>
 
       <Form class="flex flex-col gap-4" @submit="submit">
-        <FormField v-if="current" :validation="r$.currentPassword">
+        <FormField :validation="r$.currentPassword">
           <Label for="current-password">{{ texts.current }}</Label>
           <PasswordInput
             id="current-password"

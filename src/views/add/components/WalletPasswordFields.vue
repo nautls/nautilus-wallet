@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { TriangleAlertIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FormField } from "@/components/ui/form";
-import { PasswordInput } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import PasswordStrength from "@/components/PasswordStrength.vue";
+import NewPasswordFields from "@/components/NewPasswordFields.vue";
 import { injectWalletPassword } from "./walletPassword";
 
 const props = defineProps<{ disabled?: boolean }>();
@@ -21,40 +16,17 @@ const isMaster = computed(() => form.mode !== "separate");
 <!-- The password step: a new master password, or the wallet's own password. -->
 <template>
   <div class="flex flex-col gap-4">
-    <FormField :validation="form.rules.password">
-      <Label :disabled="isDisabled" for="password">{{
-        isMaster ? t("wallet.masterPassword") : t("wallet.walletPassword")
-      }}</Label>
-      <PasswordInput
-        id="password"
-        v-model="form.password"
-        :disabled="isDisabled"
-        type="password"
-        @blur="form.rules.password.$touch()"
-      />
-      <PasswordStrength :score="form.password ? form.strength : undefined" />
-    </FormField>
-
-    <FormField :validation="form.rules.confirmPassword">
-      <Label :disabled="isDisabled" for="confirm-password">{{ t("wallet.confirmPassword") }}</Label>
-      <PasswordInput
-        id="confirm-password"
-        v-model="form.confirmPassword"
-        :disabled="isDisabled"
-        type="password"
-        @blur="form.rules.confirmPassword.$touch()"
-      />
-    </FormField>
-
-    <Alert class="py-2 text-xs">
-      <TriangleAlertIcon />
-      <AlertDescription class="text-xs">
-        {{
-          isMaster
-            ? t("wallet.masterPasswordNotRecoverable")
-            : t("wallet.walletPasswordNotRecoverable")
-        }}
-      </AlertDescription>
-    </Alert>
+    <NewPasswordFields
+      id="password"
+      :form="form"
+      :label="isMaster ? t('wallet.masterPassword') : t('wallet.walletPassword')"
+      :confirm-label="t('wallet.confirmPassword')"
+      :warning="
+        isMaster
+          ? t('wallet.masterPasswordNotRecoverable')
+          : t('wallet.walletPasswordNotRecoverable')
+      "
+      :disabled="isDisabled"
+    />
   </div>
 </template>

@@ -28,8 +28,8 @@ import { extractErrorMessage } from "@/common/utils";
 import { validMnemonic, validPublicKey } from "@/validators";
 import {
   MasterPasswordSwitch,
+  numberSteps,
   provideWalletPassword,
-  Step,
   Stepper,
   StepTitle,
   WalletPasswordFields
@@ -63,9 +63,7 @@ const isReadonly = computed(() => walletType.value === "readonly");
 const nextButtonTitle = computed(() => {
   switch (steps.value[step.value]?.key) {
     case "password":
-      return passwordForm.useMaster
-        ? t("wallet.createMasterPassword")
-        : t("wallet.createWalletPassword");
+      return passwordForm.createLabel;
     case "secret":
       return isReadonly.value
         ? t("wallet.import.insertPubKey")
@@ -135,11 +133,11 @@ watch(
 async function next() {
   if (current.value === "info") {
     // an existing master password is typed here, and checked before moving on
-    const [{ valid }, credentials] = await Promise.all([
+    const [{ valid }, unlocked] = await Promise.all([
       infoRules.$validate(),
-      isReadonly.value || passwordForm.isNewPassword || passwordForm.validate()
+      isReadonly.value || passwordForm.validateUnlock()
     ]);
-    if (!valid || !credentials) return;
+    if (!valid || !unlocked) return;
   } else if (current.value === "password") {
     if (!(await passwordForm.validate())) return;
   }
@@ -216,30 +214,24 @@ function onPaste(event: ClipboardEvent) {
   event.stopPropagation();
 }
 
-type StepKey = "info" | "password" | "secret";
-
-const steps = computed<(Step & { key: StepKey })[]>(() => {
-  const all: (Step & { key: StepKey })[] = [
+const steps = computed(() =>
+  numberSteps([
     {
       key: "info",
-      step: 0,
       title: t("wallet.infoStep"),
       description: t("wallet.infoStepDesc"),
       icon: FingerprintIcon,
       enabled: ref(true)
     },
-    {
-      key: "password",
-      step: 0,
-      ...(passwordForm.useMaster
-        ? { title: t("wallet.masterPassword"), description: t("wallet.masterPasswordStepDesc") }
-        : { title: t("wallet.walletPassword"), description: t("wallet.walletPasswordStepDesc") }),
-      icon: LockKeyholeIcon,
-      enabled: nameValid
-    },
+    !isReadonly.value &&
+      passwordForm.isNewPassword && {
+        key: "password",
+        ...passwordForm.stepTexts,
+        icon: LockKeyholeIcon,
+        enabled: nameValid
+      },
     {
       key: "secret",
-      step: 0,
       title: isReadonly.value ? "Wallet key" : "Wallet secret",
       description: isReadonly.value
         ? t("wallet.import.importStep")
@@ -247,12 +239,8 @@ const steps = computed<(Step & { key: StepKey })[]>(() => {
       icon: KeyRoundIcon,
       enabled: allValid
     }
-  ];
-
-  return all
-    .filter((s) => s.key !== "password" || (!isReadonly.value && passwordForm.isNewPassword))
-    .map((s, i) => ({ ...s, step: i + 1 }));
-});
+  ])
+);
 
 const current = computed(() => steps.value[step.value - 1].key);
 </script>

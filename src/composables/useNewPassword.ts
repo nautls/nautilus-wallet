@@ -1,12 +1,11 @@
-import { computed, MaybeRefOrGetter, reactive, ref } from "vue";
+import { computed, MaybeRefOrGetter, reactive, Ref, ref, toValue } from "vue";
 import { useRegle } from "@regle/core";
 import { applyIf, minLength, required, withMessage, withParams } from "@regle/rules";
+import type { Score } from "@zxcvbn-ts/core";
 import { useI18n } from "vue-i18n";
 import { strongPassword, usePasswordStrength } from "./usePasswordStrength";
 
 export const MIN_PASSWORD_LENGTH = 10;
-
-export type NewPassword = ReturnType<typeof useNewPassword>;
 
 /**
  * A new password and its confirmation, with the length, strength and match rules.
@@ -19,28 +18,16 @@ export function useNewPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   const password = ref("");
   const confirmPassword = ref("");
   const strength = usePasswordStrength(password, userInputs);
-  const longEnough = computed(() => password.value.length >= MIN_PASSWORD_LENGTH);
+  const rules = useNewPasswordRules(password, strength.score);
 
-  const { r$: rules } = useRegle(
+  const { r$ } = useRegle(
     { password, confirmPassword },
     {
       password: {
         required: withMessage(required, () => t("wallet.newPasswordRequired")),
-        minLength: withMessage(minLength(MIN_PASSWORD_LENGTH), () =>
-          t("wallet.minPasswordLength", { min: MIN_PASSWORD_LENGTH })
-        ),
-        // only once it's long enough, so a short password gets a single error
-        strong: applyIf(
-          longEnough,
-          strongPassword(strength.score, () => t("wallet.passwordTooGuessable"))
-        )
+        ...rules.password
       },
-      confirmPassword: {
-        matches: withMessage(
-          withParams((value, pwd) => value === pwd, [password]),
-          () => t("wallet.passwordsDontMatch")
-        )
-      }
+      confirmPassword: rules.confirmPassword
     },
     { autoDirty: false }
   );
@@ -49,22 +36,54 @@ export function useNewPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   async function validate(): Promise<string | undefined> {
     // a quick submit can come before the debounced score, or before the scorer loads
     await strength.evaluate();
-    const { valid } = await rules.$validate();
+    const { valid } = await r$.$validate();
     return valid ? password.value : undefined;
   }
 
   function reset() {
     password.value = "";
     confirmPassword.value = "";
-    rules.$reset();
+    r$.$reset();
   }
 
   return reactive({
     password,
     confirmPassword,
     strength: strength.score,
-    rules,
+    rules: r$,
     validate,
     reset
   });
+}
+
+export function useNewPasswordRules(
+  password: Ref<string>,
+  score: Ref<Score | undefined>,
+  isNew: MaybeRefOrGetter<boolean> = true
+) {
+  const { t } = useI18n();
+  const active = computed(() => toValue(isNew));
+  const longEnough = computed(() => password.value.length >= MIN_PASSWORD_LENGTH);
+
+  return {
+    password: {
+      minLength: applyIf(
+        active,
+        withMessage(minLength(MIN_PASSWORD_LENGTH), () =>
+          t("wallet.minPasswordLength", { min: MIN_PASSWORD_LENGTH })
+        )
+      ),
+      // only once it's long enough, so a short password gets a single error
+      strong: applyIf(
+        () => active.value && longEnough.value,
+        strongPassword(score, () => t("wallet.passwordTooGuessable"))
+      )
+    },
+    confirmPassword: {
+      matches: withMessage(
+        withParams((value, pwd, isNew) => !isNew || value === pwd, [password, active]),
+        () => t("wallet.passwordsDontMatch")
+      )
+    }
+  };
 }

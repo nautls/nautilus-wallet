@@ -13,3 +13,11 @@ export interface Step {
   icon: Component;
   enabled: Ref<boolean>;
 }
+
+export type KeyedStep<K extends string> = Step & { key: K };
+
+export function numberSteps<K extends string>(
+  steps: (Omit<KeyedStep<K>, "step"> | false)[]
+): KeyedStep<K>[] {
+  return steps.filter((s) => s !== false).map((s, i) => ({ ...s, step: i + 1 }));
+}

@@ -2,15 +2,7 @@ import { computed, MaybeRefOrGetter, reactive, ref, toValue, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
-/**
- * Texts for a prompt that asks for a wallet's password, naming the one it wants: the
- * master password, or the wallet's own (`"Savings" password`).
- */
-export function usePasswordPrompt(
-  walletId: MaybeRefOrGetter<number | undefined>,
-  walletName: MaybeRefOrGetter<string>
-) {
-  const { t } = useI18n();
+export function usePasswordKind(walletId: MaybeRefOrGetter<number | undefined>) {
   const kind = ref<PasswordKind>();
 
   /** Reads which password the wallet uses again, such as after a move. */
@@ -25,32 +17,56 @@ export function usePasswordPrompt(
 
   watch(() => toValue(walletId), reload, { immediate: true });
 
-  /** Picks the text for the password `kind` asks for, or a generic one while loading. */
-  function pick(texts: { master: () => string; password: () => string; unknown: () => string }) {
-    return computed(() => (kind.value ? texts[kind.value]() : texts.unknown()));
-  }
+  return { kind, reload };
+}
 
+/**
+ * Texts naming the password a prompt asks for: the master password, or the wallet's
+ * own (`"Savings" password`). A generic text stands in while `kind` is unknown.
+ */
+export function usePasswordTexts(walletName: MaybeRefOrGetter<string>) {
+  const { t } = useI18n();
   const name = () => toValue(walletName);
 
-  return reactive({
-    kind,
-    reload,
-    label: pick({
+  return {
+    label: byKind({
       master: () => t("wallet.masterPassword"),
       password: () => t("wallet.namedWalletPassword", { name: name() }),
       unknown: () => t("wallet.password")
     }),
-    required: pick({
+    required: byKind({
       master: () => t("wallet.enterMasterPassword"),
       password: () => t("wallet.enterWalletPassword", { name: name() }),
       unknown: () => t("wallet.requiredSpendingPassword")
     }),
-    /** Title for the wrong password toast; {@link wrongHint} is its description. */
-    wrong: pick({
+    /** Title for the wrong password toast; `wrongHint` is its description. */
+    wrong: byKind({
       master: () => t("wallet.wrongMasterPasswordTitle"),
       password: () => t("wallet.wrongWalletPasswordTitle", { name: name() }),
       unknown: () => t("wallet.wrongPassword")
     }),
-    wrongHint: computed(() => t("wallet.wrongPasswordHint"))
+    wrongHint: () => t("wallet.wrongPasswordHint")
+  };
+}
+
+function byKind(texts: Record<PasswordKind | "unknown", () => string>) {
+  return (kind?: PasswordKind) => texts[kind ?? "unknown"]();
+}
+
+/** Texts for a prompt that asks for the password the wallet uses. */
+export function usePasswordPrompt(
+  walletId: MaybeRefOrGetter<number | undefined>,
+  walletName: MaybeRefOrGetter<string>
+) {
+  const { kind, reload } = usePasswordKind(walletId);
+  const texts = usePasswordTexts(walletName);
+
+  return reactive({
+    kind,
+    reload,
+    label: computed(() => texts.label(kind.value)),
+    required: computed(() => texts.required(kind.value)),
+    wrong: computed(() => texts.wrong(kind.value)),
+    wrongHint: computed(texts.wrongHint)
   });
 }

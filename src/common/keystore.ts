@@ -58,6 +58,8 @@ export type SecretProtection =
 declare const masterKeyBrand: unique symbol;
 export type MasterKey = CryptoKey & { [masterKeyBrand]: true };
 
+type UnlockedMasterKey = { record: MasterKeyRecord; masterKey: MasterKey };
+
 /** OWASP's current recommendation for PBKDF2-HMAC-SHA256. */
 export const PBKDF2_ITERATIONS = 600_000;
 
@@ -70,15 +72,8 @@ export function fromLegacyCiphertext(ciphertext: string): EncryptedSecretV1 {
   return { version: 1, ciphertext };
 }
 
-export async function createMasterKey(
-  password: string
-): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
-  const raw = randomBytes(KEY_LENGTH);
-  try {
-    return await wrapMasterKey(raw, password);
-  } finally {
-    raw.fill(0);
-  }
+export function createMasterKey(password: string): Promise<UnlockedMasterKey> {
+  return zeroizeAfter(randomBytes(KEY_LENGTH), (key) => wrapMasterKey(key, password));
 }
 
 /**
@@ -89,26 +84,17 @@ export async function changeMasterKeyPassword(
   record: MasterKeyRecord,
   currentPassword: string,
   newPassword: string
-): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
-  if (record.version !== 2) throw Error(`unsupported master key version: ${record.version}`);
-
-  const raw = await unwrapRawMasterKey(
-    record,
-    await derivePasswordKey(currentPassword, record.kdf)
-  );
-  try {
-    return await wrapMasterKey(raw, newPassword);
-  } finally {
-    raw.fill(0);
-  }
+): Promise<UnlockedMasterKey> {
+  const passwordKey = await deriveMasterPasswordKey(record, currentPassword);
+  const raw = await unwrapRawMasterKey(record, passwordKey);
+  return zeroizeAfter(raw, (key) => wrapMasterKey(key, newPassword));
 }
 
 export async function unlockMasterKey(
   record: MasterKeyRecord,
   password: string
 ): Promise<MasterKey> {
-  if (record.version !== 2) throw Error(`unsupported master key version: ${record.version}`);
-  return unwrapMasterKey(record, await derivePasswordKey(password, record.kdf));
+  return unwrapMasterKey(record, await deriveMasterPasswordKey(record, password));
 }
 
 /**
@@ -120,18 +106,8 @@ export async function encryptSecret(
   protection: SecretProtection
 ): Promise<EncryptedSecretV2> {
   const aad = hex.decode(publicKey);
+  const { wrappingKey, by } = await wrapKey(protection);
   const walletKey = randomBytes(KEY_LENGTH);
-
-  let wrappingKey: CryptoKey;
-  let by: { by: "password"; kdf: Pbkdf2Params } | { by: "master" };
-  if (protection.by === "password") {
-    const kdf = newKdfParams();
-    wrappingKey = await derivePasswordKey(protection.password, kdf);
-    by = { by: "password", kdf };
-  } else {
-    wrappingKey = protection.masterKey;
-    by = { by: "master" };
-  }
 
   try {
     const wrapped = await gcmEncrypt(wrappingKey, walletKey, aad);
@@ -246,10 +222,22 @@ async function decryptV2WithKey(
   }
 }
 
-async function wrapMasterKey(
-  raw: Uint8Array,
-  password: string
-): Promise<{ record: MasterKeyRecord; masterKey: MasterKey }> {
+async function wrapKey(protection: SecretProtection): Promise<{
+  wrappingKey: CryptoKey;
+  by: { by: "password"; kdf: Pbkdf2Params } | { by: "master" };
+}> {
+  if (protection.by === "master") {
+    return { wrappingKey: protection.masterKey, by: { by: "master" } };
+  }
+
+  const kdf = newKdfParams();
+  return {
+    wrappingKey: await derivePasswordKey(protection.password, kdf),
+    by: { by: "password", kdf }
+  };
+}
+
+async function wrapMasterKey(raw: Uint8Array, password: string): Promise<UnlockedMasterKey> {
   const kdf = newKdfParams();
   const passwordKey = await derivePasswordKey(password, kdf);
   const record: MasterKeyRecord = {
@@ -282,8 +270,20 @@ async function unwrapMasterKey(
   passwordKey: CryptoKey
 ): Promise<MasterKey> {
   const raw = await unwrapRawMasterKey(record, passwordKey);
+  return zeroizeAfter(raw, async (key) => (await importAesKey(key)) as MasterKey);
+}
+
+async function deriveMasterPasswordKey(
+  record: MasterKeyRecord,
+  password: string
+): Promise<CryptoKey> {
+  if (record.version !== 2) throw Error(`unsupported master key version: ${record.version}`);
+  return derivePasswordKey(password, record.kdf);
+}
+
+async function zeroizeAfter<T>(raw: Uint8Array, fn: (raw: Uint8Array) => Promise<T>): Promise<T> {
   try {
-    return (await importAesKey(raw)) as MasterKey;
+    return await fn(raw);
   } finally {
     raw.fill(0);
   }

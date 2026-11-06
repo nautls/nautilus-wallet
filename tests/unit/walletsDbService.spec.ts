@@ -654,7 +654,7 @@ describe("walletsDbService", () => {
         ]);
 
         expect(storageApi.setCalls).toEqual([
-          ["masterKey", `walletSecret:${a}`, `walletSecret:${b}`]
+          [`walletSecret:${a}`, `walletSecret:${b}`, "masterKey"]
         ]);
         expect(await service.getSecret(a, masterPassword)).toBe(mnemonic);
         expect(await service.getSecret(b, masterPassword)).toBe(mnemonic);
