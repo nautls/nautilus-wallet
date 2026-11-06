@@ -196,6 +196,7 @@ test.describe("onboarding", () => {
 
       await popup.fillWalletInfo(WALLET_A.name, WALLET_A.password);
       await popup.page.getByRole("button", { name: "Insert a recovery phrase" }).click();
+      await expect(popup.page.getByRole("heading", { name: "Wallet secret" })).toBeVisible();
       await popup.paste(WALLET_A.mnemonic);
 
       // pasting fills every word
@@ -228,6 +229,7 @@ test.describe("onboarding", () => {
       await popup.goto("/add/import");
       await popup.fillWalletInfo(WALLET_A.name, WALLET_A.password);
       await popup.page.getByRole("button", { name: "Insert a recovery phrase" }).click();
+      await expect(popup.page.getByRole("heading", { name: "Wallet secret" })).toBeVisible();
 
       await popup.paste("this is definitely not a recovery phrase at all ok");
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();

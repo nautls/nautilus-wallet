@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { TriangleAlertIcon } from "@lucide/vue";
 import type { Score } from "@zxcvbn-ts/core";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -6,6 +7,7 @@ import { FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PasswordStrength from "@/components/PasswordStrength.vue";
+import { loadScorer } from "@/composables/usePasswordStrength";
 
 interface FieldValidation {
   $error: boolean;
@@ -30,6 +32,8 @@ const props = defineProps<{
 }>();
 
 const fields = props.form;
+
+onMounted(loadScorer);
 </script>
 
 <template>

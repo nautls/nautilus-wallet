@@ -147,7 +147,7 @@ export class Popup {
 
   /** Reads the words rendered by the non-editable mnemonic grid. */
   async readMnemonic(): Promise<string[]> {
-    const cells = this.page.locator("form .grid > div");
+    const cells = this.page.locator("form .grid.grid-cols-3 > div");
     await expect(cells.first()).toBeVisible();
     return cells.evaluateAll((els) =>
       els.map((el) => el.querySelectorAll("span")[1]?.textContent?.trim() ?? "")
@@ -156,7 +156,7 @@ export class Popup {
 
   /** Fills editable cells of a mnemonic grid using its word combobox inputs. */
   async fillMnemonicGaps(words: string[]) {
-    const cells = this.page.locator("form .grid > div");
+    const cells = this.page.locator("form .grid.grid-cols-3 > div");
     const count = await cells.count();
     for (let i = 0; i < count; i++) {
       const input = cells.nth(i).locator("input");

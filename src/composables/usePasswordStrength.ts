@@ -1,4 +1,4 @@
-import { MaybeRefOrGetter, ref, Ref, toValue } from "vue";
+import { MaybeRefOrGetter, ref, Ref, shallowRef, toValue } from "vue";
 import { withMessage, withParams } from "@regle/rules";
 import { watchDebounced } from "@vueuse/core";
 import type { Score, ZxcvbnFactory } from "@zxcvbn-ts/core";
@@ -10,8 +10,10 @@ export const MIN_PASSWORD_SCORE = 2;
 const APP_WORDS = ["nautilus", "ergo", "wallet"];
 
 let scorer: Promise<ZxcvbnFactory> | undefined;
+const factory = shallowRef<ZxcvbnFactory>();
 
-function loadScorer(): Promise<ZxcvbnFactory> {
+/** Loads the scorer, once per page. Called where a new password is typed. */
+export async function loadScorer(): Promise<ZxcvbnFactory> {
   scorer ??= (async () => {
     const [{ ZxcvbnFactory }, common] = await Promise.all([
       import("@zxcvbn-ts/core"),
@@ -24,12 +26,13 @@ function loadScorer(): Promise<ZxcvbnFactory> {
     });
   })();
 
-  return scorer;
+  return (factory.value = await scorer);
 }
 
 /**
  * Estimates how guessable `password` is, as a zxcvbn score from 0 to 4. `score` is
- * undefined while the password is empty or the scorer is still loading.
+ * undefined while the password is empty or the scorer isn't loaded, which only
+ * {@link loadScorer} or `evaluate` do.
  *
  * @param userInputs words that make a password easy to guess for this user, such as
  * the wallet name.
@@ -39,28 +42,26 @@ export function usePasswordStrength(
   userInputs: MaybeRefOrGetter<string[]> = []
 ) {
   const score = ref<Score>();
-  let factory: ZxcvbnFactory | undefined;
 
   function update() {
-    if (!factory || !password.value) {
+    if (!factory.value || !password.value) {
       score.value = undefined;
       return;
     }
 
     const inputs = [...APP_WORDS, ...toValue(userInputs).filter(Boolean)];
     // score what the key is derived from
-    score.value = factory.check(password.value.normalize("NFKC"), inputs).score;
+    score.value = factory.value.check(password.value.normalize("NFKC"), inputs).score;
   }
 
   /** Waits for the scorer and returns the current password's score. */
   async function evaluate(): Promise<Score | undefined> {
-    factory ??= await loadScorer();
+    await loadScorer();
     update();
     return score.value;
   }
 
-  evaluate();
-  watchDebounced([password, () => toValue(userInputs)], update, { debounce: 150 });
+  watchDebounced([password, () => toValue(userInputs), factory], update, { debounce: 150 });
 
   return { score, evaluate };
 }
