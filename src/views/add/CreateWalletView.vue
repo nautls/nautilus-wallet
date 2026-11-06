@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
+import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
@@ -188,12 +189,10 @@ async function create(needsBackup: boolean) {
     loading.value = true;
     const [{ valid }, credentials] = await Promise.all([
       infoRules.$validate(),
-      passwordForm.validate()
+      passwordForm.validate({ verify: false })
     ]);
     if (!valid || !credentials) {
-      // back to the step showing the errors
-      const key = !valid || !passwordForm.isNewPassword ? "info" : "password";
-      step.value = steps.value.findIndex((s) => s.key === key) + 1;
+      goToErrors(!valid || !passwordForm.isNewPassword ? "info" : "password");
       return;
     }
 
@@ -208,6 +207,12 @@ async function create(needsBackup: boolean) {
     await wallet.load(walletId, { syncInBackground: false });
     router.push({ name: "assets" });
   } catch (e) {
+    if (e instanceof PasswordError) {
+      await passwordForm.rejectPassword();
+      goToErrors("info");
+      return;
+    }
+
     toast({
       title: t("wallet.create.walletCreationError"),
       variant: "destructive",
@@ -219,6 +224,10 @@ async function create(needsBackup: boolean) {
   } finally {
     loading.value = false;
   }
+}
+
+function goToErrors(key: StepKey) {
+  step.value = steps.value.findIndex((s) => s.key === key) + 1;
 }
 
 function newMnemonic() {

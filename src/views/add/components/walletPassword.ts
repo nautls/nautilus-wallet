@@ -91,28 +91,38 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   /**
    * Validates the fields and, for an existing master password, checks it's correct, so
    * a typo shows up here rather than once the wallet is about to be saved.
+   *
+   * @param options.verify false to skip that check, when saving the wallet checks it anyway.
    */
-  async function validate(): Promise<{ password: string; passwordKind: PasswordKind } | undefined> {
+  async function validate({ verify = true } = {}): Promise<
+    { password: string; passwordKind: PasswordKind } | undefined
+  > {
     // a quick click can come before the debounced score, or before the scorer loads
     if (isNewPassword.value) await strength.evaluate();
     const { valid } = await rules.$validate();
     if (!valid) return;
 
-    if (mode.value === "unlock") {
+    if (verify && mode.value === "unlock") {
+      let correct: boolean;
       try {
         verifying.value = true;
-        wrongPassword.value = !(await walletsDbService.verifyMasterPassword(password.value));
+        correct = await walletsDbService.verifyMasterPassword(password.value);
       } finally {
         verifying.value = false;
       }
 
-      if (wrongPassword.value) {
-        await rules.password.$validate();
+      if (!correct) {
+        await rejectPassword();
         return;
       }
     }
 
     return { password: password.value, passwordKind: useMaster.value ? "master" : "password" };
+  }
+
+  async function rejectPassword() {
+    wrongPassword.value = true;
+    await rules.password.$validate();
   }
 
   async function validateUnlock(): Promise<boolean> {
@@ -136,6 +146,7 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
     rules,
     validate,
     validateUnlock,
+    rejectPassword,
     stepTexts: computed(() =>
       useMaster.value
         ? { title: t("wallet.masterPassword"), description: t("wallet.masterPasswordStepDesc") }

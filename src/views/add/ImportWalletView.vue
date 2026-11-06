@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
+import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { validMnemonic, validPublicKey } from "@/validators";
@@ -91,7 +92,7 @@ const allValid = computed(
 async function validateCredentials() {
   const [{ valid }, credentials] = await Promise.all([
     infoRules.$validate(),
-    isReadonly.value ? null : passwordForm.validate()
+    isReadonly.value ? null : passwordForm.validate({ verify: false })
   ]);
 
   return valid ? credentials : undefined;
@@ -159,9 +160,7 @@ async function next() {
     loading.value = true;
     const credentials = await validateCredentials();
     if (credentials === undefined) {
-      // back to the step showing the errors
-      const key = infoRules.$invalid || !passwordForm.isNewPassword ? "info" : "password";
-      step.value = steps.value.findIndex((s) => s.key === key) + 1;
+      goToErrors(infoRules.$invalid || !passwordForm.isNewPassword ? "info" : "password");
       return;
     }
 
@@ -181,6 +180,12 @@ async function next() {
     await wallet.load(walletId, { syncInBackground: false });
     router.push({ name: "assets" });
   } catch (e) {
+    if (e instanceof PasswordError) {
+      await passwordForm.rejectPassword();
+      goToErrors("info");
+      return;
+    }
+
     toast({
       title: t("wallet.import.walletImportError"),
       variant: "destructive",
@@ -192,6 +197,11 @@ async function next() {
   } finally {
     loading.value = false;
   }
+}
+
+/** Goes back to the step showing the errors. */
+function goToErrors(key: "info" | "password") {
+  step.value = steps.value.findIndex((s) => s.key === key) + 1;
 }
 
 function onPaste(event: ClipboardEvent) {
