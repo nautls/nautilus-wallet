@@ -196,6 +196,37 @@
   },
   "wallet": {
     "spendingPassword": "Ausgabepasswort",
+    "masterPassword": "Master-Passwort",
+    "masterPasswordStepDesc": "Schützt jede Wallet, die es verwendet. Du gibst es ein, um Transaktionen zu signieren.",
+    "walletPasswordStepDesc": "Schützt nur diese Wallet. Du gibst es ein, um Transaktionen mit ihr zu signieren.",
+    "createMasterPassword": "Master-Passwort erstellen",
+    "createWalletPassword": "Wallet-Passwort erstellen",
+    "masterPasswordRequired": "Master-Passwort ist erforderlich.",
+    "wrongMasterPassword": "Falsches Master-Passwort.",
+    "walletPassword": "Wallet-Passwort",
+    "walletPasswordRequired": "Wallet-Passwort ist erforderlich.",
+    "useMasterPassword": "Master-Passwort verwenden",
+    "useMasterPasswordDesc": "Deaktiviere diese Option, um dieser Wallet ein eigenes Passwort zu geben.",
+    "masterPasswordNotRecoverable": "Dieses Passwort kann nicht wiederhergestellt werden. Wenn du es vergisst, brauchst du die Wiederherstellungsphrase jeder Wallet, die es verwendet.",
+    "walletPasswordNotRecoverable": "Dieses Passwort kann nicht wiederhergestellt werden. Wenn du es vergisst, brauchst du die Wiederherstellungsphrase dieser Wallet.",
+    "masterPasswordUnlockDesc": "Gib dein Master-Passwort ein, um diese Wallet hinzuzufügen.",
+    "minPasswordLength": "Das Passwort muss mindestens {min} Zeichen lang sein.",
+    "passwordsDontMatch": "Die Passwörter stimmen nicht überein.",
+    "password": "Passwort",
+    "namedWalletPassword": "Passwort von „{name}“",
+    "enterMasterPassword": "Bitte gib dein Master-Passwort ein.",
+    "enterWalletPassword": "Bitte gib das Passwort von „{name}“ ein.",
+    "wrongMasterPasswordTitle": "Falsches Master-Passwort",
+    "wrongWalletPasswordTitle": "Falsches Passwort von „{name}“",
+    "wrongPasswordHint": "Prüfe auf Tippfehler und die Feststelltaste und versuche es erneut.",
+    "passwordTooGuessable": "Dieses Passwort ist zu leicht zu erraten. Vermeide gängige Passwörter und Muster wie password123 oder 123456.",
+    "passwordStrength": {
+      "title": "Passwortstärke",
+      "weak": "Schwach",
+      "fair": "Mittel",
+      "good": "Gut",
+      "strong": "Stark"
+    },
     "emptyProof": "Prover hat keine signierten Daten zurückgegeben.",
     "requiredSpendingPassword": "Bitte gib dein Ausgabepasswort ein.",
     "wrongPassword": "Falsches Passwort",
@@ -276,12 +307,13 @@
     },
     "backup": {
       "title": "Sicherung der Wiederherstellungsphrase",
-      "passwordStepDesc": "Gib dein Ausgabepasswort ein, um die Wiederherstellungsphrase dieser Wallet anzuzeigen.",
+      "passwordStepDesc": "Gib dein Passwort ein, um die Wiederherstellungsphrase dieser Wallet anzuzeigen.",
       "showRecoveryPhrase": "Wiederherstellungsphrase anzeigen",
       "success": "Wiederherstellungsphrase gesichert",
       "failed": "Wiederherstellungsphrase konnte nicht abgerufen werden",
       "saveFailed": "Sicherungsstatus konnte nicht gespeichert werden"
-    }
+    },
+    "newPasswordRequired": "Passwort ist erforderlich."
   },
   "settings": {
     "systemDefault": "Systemstandard",
@@ -329,7 +361,7 @@
       "avoidAddressReuse": "Adresswiederverwendung verhindern",
       "avoidAddressReuseDesc": "Aktiviere diese Option, um zu verhindern, dass dieselbe Adresse für mehrere Transaktionen verwendet wird. Das schützt deine Privatsphäre.",
       "xPubKeyDesc": "Verwende diese Option, um den erweiterten öffentlichen Schlüssel deiner Wallet zu exportieren.",
-      "spendingPasswordDesc": "Ändere das Passwort, mit dem Transaktionen dieser Wallet signiert werden.",
+      "spendingPasswordDesc": "Das Passwort, das diese Wallet entsperrt.",
       "mnemonicBackupDesc": "Zeige die Wiederherstellungsphrase dieser Wallet an und sichere sie.",
       "resync": "Wallet neu synchronisieren",
       "resyncDesc": "Lösche die lokal gespeicherten Daten dieser Wallet und synchronisiere sie erneut mit der Blockchain.",
@@ -348,6 +380,36 @@
     },
     "connections": {
       "noConnectedApps": "Du hast noch keine verbundenen Apps."
+    },
+    "password": {
+      "master": "Master",
+      "own": "Eigenes",
+      "changePassword": "Passwort ändern",
+      "setUp": "Einrichten",
+      "reset": "Zurücksetzen",
+      "masterNotSetUp": "Ein Passwort für alle deine Wallets.",
+      "masterUnused": "Von keiner Wallet verwendet.",
+      "masterUsage": "Von {used} von {total} Wallet verwendet. | Von {used} von {total} Wallets verwendet.",
+      "setUpMaster": "Master-Passwort einrichten",
+      "masterSetUp": "Master-Passwort eingerichtet",
+      "masterChangedMeanwhile": "Das Master-Passwort wurde zwischenzeitlich geändert",
+      "changeMaster": "Master-Passwort ändern",
+      "changeMasterDesc": "Jede Wallet, die es verwendet, wird mit dem neuen geöffnet.",
+      "currentMasterPassword": "Aktuelles Master-Passwort",
+      "newMasterPassword": "Neues Master-Passwort",
+      "masterChanged": "Master-Passwort geändert",
+      "useMaster": "Master-Passwort verwenden",
+      "useMasterDesc": "Gib beide Passwörter ein, um „{name}“ auf das Master-Passwort umzustellen.",
+      "useNewMasterDesc": "Erstelle ein Master-Passwort und stelle „{name}“ darauf um.",
+      "usesMaster": "„{name}“ verwendet jetzt das Master-Passwort",
+      "useOwn": "Eigenes Passwort verwenden",
+      "useOwnDesc": "Gib das Master-Passwort ein und wähle ein neues Passwort für „{name}“.",
+      "usesOwn": "„{name}“ verwendet jetzt ein eigenes Passwort",
+      "changeFailed": "Passwort konnte nicht geändert werden",
+      "resetMaster": "Master-Passwort zurücksetzen?",
+      "resetMasterDesc": "Keine Wallet verwendet es, also geht nichts verloren. Du kannst danach ein neues einrichten.",
+      "masterReset": "Master-Passwort zurückgesetzt",
+      "masterResetFailed": "Master-Passwort konnte nicht zurückgesetzt werden"
     }
   },
   "about": {
@@ -385,5 +447,15 @@
     "invalidUrl": "Ungültige URL.",
     "maxAmount": "Der Betrag muss kleiner oder gleich {max} sein",
     "minAmount": "Der Betrag muss größer oder gleich {min} sein"
+  },
+  "masterSetup": {
+    "alert": "Ein Passwort für alle deine Wallets",
+    "alertDesc": "Richte ein Master-Passwort ein und gib nicht mehr für jede Wallet ein anderes ein.",
+    "dontAskAgain": "Nicht mehr fragen",
+    "walletsStep": "Wallets",
+    "walletsStepDesc": "Wähle die Wallets, die das Master-Passwort verwenden sollen, und gib jeweils ihr aktuelles Passwort ein. Die anderen behalten ihr eigenes.",
+    "chooseWallets": "Wallets auswählen",
+    "wrongPassword": "Falsches Passwort.",
+    "passwordCorrect": "Passwort korrekt"
   }
 }

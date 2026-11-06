@@ -196,6 +196,37 @@
   },
   "wallet": {
     "spendingPassword": "支付密码",
+    "masterPassword": "主密码",
+    "masterPasswordStepDesc": "保护所有使用它的钱包。签署交易时需要输入。",
+    "walletPasswordStepDesc": "仅保护此钱包。使用此钱包签署交易时需要输入。",
+    "createMasterPassword": "创建主密码",
+    "createWalletPassword": "创建钱包密码",
+    "masterPasswordRequired": "主密码为必填项。",
+    "wrongMasterPassword": "主密码错误。",
+    "walletPassword": "钱包密码",
+    "walletPasswordRequired": "钱包密码为必填项。",
+    "useMasterPassword": "使用主密码",
+    "useMasterPasswordDesc": "关闭后可为此钱包设置单独的密码。",
+    "masterPasswordNotRecoverable": "此密码无法找回。如果忘记，您将需要每个使用它的钱包的恢复短语。",
+    "walletPasswordNotRecoverable": "此密码无法找回。如果忘记，您将需要此钱包的恢复短语。",
+    "masterPasswordUnlockDesc": "输入您的主密码以添加此钱包。",
+    "minPasswordLength": "密码长度至少为 {min} 个字符。",
+    "passwordsDontMatch": "两次输入的密码不一致。",
+    "password": "密码",
+    "namedWalletPassword": "“{name}”的密码",
+    "enterMasterPassword": "请输入您的主密码。",
+    "enterWalletPassword": "请输入“{name}”的密码。",
+    "wrongMasterPasswordTitle": "主密码错误",
+    "wrongWalletPasswordTitle": "“{name}”的密码错误",
+    "wrongPasswordHint": "请检查是否有拼写错误或是否开启了大写锁定，然后重试。",
+    "passwordTooGuessable": "此密码太容易被猜到。请避免使用常见密码和类似 password123 或 123456 的模式。",
+    "passwordStrength": {
+      "title": "密码强度",
+      "weak": "弱",
+      "fair": "一般",
+      "good": "良好",
+      "strong": "强"
+    },
     "emptyProof": "证明者未返回签署数据。",
     "requiredSpendingPassword": "请输入支付密码。",
     "wrongPassword": "密码错误",
@@ -276,12 +307,13 @@
     },
     "backup": {
       "title": "恢复短语备份",
-      "passwordStepDesc": "输入您的支付密码以显示此钱包的恢复短语。",
+      "passwordStepDesc": "输入您的密码以显示此钱包的恢复短语。",
       "showRecoveryPhrase": "显示恢复短语",
       "success": "恢复短语已备份",
       "failed": "无法获取恢复短语",
       "saveFailed": "无法保存备份状态"
-    }
+    },
+    "newPasswordRequired": "密码为必填项。"
   },
   "settings": {
     "systemDefault": "系统默认",
@@ -329,7 +361,7 @@
       "avoidAddressReuse": "避免地址重用",
       "avoidAddressReuseDesc": "启用此选项以防止同一地址用于多笔交易。这有助于保护您的隐私。",
       "xPubKeyDesc": "使用此选项导出您的钱包扩展公钥。",
-      "spendingPasswordDesc": "更改用于签署此钱包交易的密码。",
+      "spendingPasswordDesc": "用于解锁此钱包的密码。",
       "mnemonicBackupDesc": "显示并备份此钱包的恢复短语。",
       "resync": "重新同步钱包",
       "resyncDesc": "清除此钱包在本地存储的数据，并从区块链重新同步。",
@@ -348,6 +380,36 @@
     },
     "connections": {
       "noConnectedApps": "您尚未连接任何应用。"
+    },
+    "password": {
+      "master": "主密码",
+      "own": "独立密码",
+      "changePassword": "更改密码",
+      "setUp": "设置",
+      "reset": "重置",
+      "masterNotSetUp": "一个密码管理您的所有钱包。",
+      "masterUnused": "没有钱包使用。",
+      "masterUsage": "{total} 个钱包中有 {used} 个使用。 | {total} 个钱包中有 {used} 个使用。",
+      "setUpMaster": "设置主密码",
+      "masterSetUp": "主密码已设置",
+      "masterChangedMeanwhile": "主密码在此期间已被更改",
+      "changeMaster": "更改主密码",
+      "changeMasterDesc": "所有使用它的钱包都将使用新密码打开。",
+      "currentMasterPassword": "当前主密码",
+      "newMasterPassword": "新主密码",
+      "masterChanged": "主密码已更改",
+      "useMaster": "使用主密码",
+      "useMasterDesc": "输入两个密码，将“{name}”切换为使用主密码。",
+      "useNewMasterDesc": "创建主密码并将“{name}”切换为使用它。",
+      "usesMaster": "“{name}”现在使用主密码",
+      "useOwn": "使用独立密码",
+      "useOwnDesc": "输入主密码并为“{name}”设置新密码。",
+      "usesOwn": "“{name}”现在使用独立密码",
+      "changeFailed": "更改密码失败",
+      "resetMaster": "重置主密码？",
+      "resetMasterDesc": "没有钱包使用它，因此不会丢失任何内容。之后您可以设置新的主密码。",
+      "masterReset": "主密码已重置",
+      "masterResetFailed": "重置主密码失败"
     }
   },
   "about": {
@@ -385,5 +447,15 @@
     "invalidUrl": "URL 无效。",
     "maxAmount": "金额应小于或等于 {max}",
     "minAmount": "金额应大于或等于 {min}"
+  },
+  "masterSetup": {
+    "alert": "一个密码管理您的所有钱包",
+    "alertDesc": "设置主密码，无需再为每个钱包输入不同的密码。",
+    "dontAskAgain": "不再询问",
+    "walletsStep": "钱包",
+    "walletsStepDesc": "选择将使用主密码的钱包，并输入每个钱包的当前密码。其余钱包保留各自的密码。",
+    "chooseWallets": "选择钱包",
+    "wrongPassword": "密码错误。",
+    "passwordCorrect": "密码正确"
   }
 }
