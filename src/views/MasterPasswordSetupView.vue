@@ -42,7 +42,7 @@ const chosenWallets = computed(() => candidates.value.filter((w) => chosen.value
 const passwords = reactive<Record<number, string>>({});
 const checks = reactive<Record<number, "checking" | "valid" | "invalid">>({});
 const checkTimers = new Map<number, ReturnType<typeof setTimeout>>();
-const CHECK_DELAY = 300;
+const CHECK_DELAY = 400;
 
 const submitted = ref(false);
 
