@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import {
   CircleCheckIcon,
   CircleXIcon,
@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/toast";
 import { WalletItem } from "@/components/wallet";
 import { PasswordError } from "@/common/errors";
@@ -143,11 +144,22 @@ async function next() {
 
   if (current.value === "wallets") {
     submitted.value = true;
-    if (chosenWallets.value.some((w) => !passwords[w.id])) return;
+    if (chosenWallets.value.some((w) => !passwords[w.id])) return focusFirstError();
   }
 
   if (isLast.value) await setUp();
   else step.value++;
+}
+
+async function focusFirstError() {
+  await nextTick();
+  const wallet = chosenWallets.value.find((w) => fieldValidation(w.id, w.name).$error);
+  if (!wallet) return;
+
+  const input = document.getElementById(`wallet-password-${wallet.id}`);
+  input?.focus({ preventScroll: true });
+  // the whole row, so its error message shows too
+  input?.closest("[data-wallet-row]")?.scrollIntoView({ block: "nearest" });
 }
 
 async function setUp() {
@@ -164,7 +176,9 @@ async function setUp() {
   } catch (e) {
     if (e instanceof PasswordError && e.walletIds) {
       for (const id of e.walletIds) checks[id] = "invalid";
-      return;
+      // disabled inputs can't take focus
+      loading.value = false;
+      return focusFirstError();
     }
 
     log.error(e);
@@ -180,11 +194,11 @@ async function setUp() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
+  <div class="flex min-h-0 grow flex-col gap-4 p-4">
     <Stepper v-model="step" :steps="steps" />
     <StepTitle :step="steps[step - 1]" />
 
-    <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
+    <Form class="flex min-h-0 grow flex-col justify-start gap-4" @submit="next">
       <NewPasswordFields
         v-if="current === 'password'"
         id="new-password"
@@ -195,58 +209,61 @@ async function setUp() {
         :disabled="loading"
       />
 
-      <Card v-if="current === 'wallets'" class="py-1">
-        <div class="mx-2">
-          <div
-            v-for="w in candidates"
-            :key="w.id"
-            :class="cn('my-1 rounded-md', chosen.includes(w.id) && 'bg-accent')"
-          >
-            <Button
-              :disabled="loading"
-              type="button"
-              tabindex="-1"
-              variant="ghost"
-              class="size-auto w-full gap-3 py-2 hover:bg-transparent"
-              @click="toggle(w.id)"
+      <Card v-if="current === 'wallets'" class="min-h-0 grow py-1">
+        <ScrollArea type="scroll" class="h-full">
+          <div class="mx-2">
+            <div
+              v-for="w in candidates"
+              :key="w.id"
+              data-wallet-row
+              :class="cn('my-1 rounded-md', chosen.includes(w.id) && 'bg-accent')"
             >
-              <Checkbox :model-value="chosen.includes(w.id)" />
-              <WalletItem :wallet="w" />
-              <template v-if="chosen.includes(w.id)">
-                <Loader2Icon
-                  v-if="checks[w.id] === 'checking'"
-                  class="text-muted-foreground ml-auto animate-spin"
-                />
-                <CircleCheckIcon
-                  v-else-if="checks[w.id] === 'valid'"
-                  class="text-success ml-auto"
-                  :aria-label="t('masterSetup.passwordCorrect')"
-                />
-                <CircleXIcon
-                  v-else-if="checks[w.id] === 'invalid'"
-                  class="text-destructive ml-auto"
-                  :aria-label="t('masterSetup.wrongPassword')"
-                />
-              </template>
-            </Button>
-
-            <FormField
-              v-if="chosen.includes(w.id)"
-              class="px-3 pb-3"
-              :validation="fieldValidation(w.id, w.name)"
-            >
-              <PasswordInput
-                :id="`wallet-password-${w.id}`"
-                :model-value="passwords[w.id] ?? ''"
-                :placeholder="t('wallet.namedWalletPassword', { name: w.name })"
+              <Button
                 :disabled="loading"
-                class="bg-background"
-                @update:model-value="setPassword(w.id, String($event))"
-                @blur="checkShort(w.id)"
-              />
-            </FormField>
+                type="button"
+                tabindex="-1"
+                variant="ghost"
+                class="size-auto w-full gap-3 py-2 hover:bg-transparent"
+                @click="toggle(w.id)"
+              >
+                <Checkbox :model-value="chosen.includes(w.id)" />
+                <WalletItem :wallet="w" />
+                <template v-if="chosen.includes(w.id)">
+                  <Loader2Icon
+                    v-if="checks[w.id] === 'checking'"
+                    class="text-muted-foreground ml-auto animate-spin"
+                  />
+                  <CircleCheckIcon
+                    v-else-if="checks[w.id] === 'valid'"
+                    class="text-success ml-auto"
+                    :aria-label="t('masterSetup.passwordCorrect')"
+                  />
+                  <CircleXIcon
+                    v-else-if="checks[w.id] === 'invalid'"
+                    class="text-destructive ml-auto"
+                    :aria-label="t('masterSetup.wrongPassword')"
+                  />
+                </template>
+              </Button>
+
+              <FormField
+                v-if="chosen.includes(w.id)"
+                class="px-3 pb-3"
+                :validation="fieldValidation(w.id, w.name)"
+              >
+                <PasswordInput
+                  :id="`wallet-password-${w.id}`"
+                  :model-value="passwords[w.id] ?? ''"
+                  :placeholder="t('wallet.namedWalletPassword', { name: w.name })"
+                  :disabled="loading"
+                  class="bg-background"
+                  @update:model-value="setPassword(w.id, String($event))"
+                  @blur="checkShort(w.id)"
+                />
+              </FormField>
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </Card>
     </Form>
 
