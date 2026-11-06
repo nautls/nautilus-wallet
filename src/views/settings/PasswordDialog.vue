@@ -20,7 +20,7 @@ import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
-import { PasswordError } from "@/common/errors";
+import { MasterPasswordChangedError, PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useNewPassword } from "@/composables/useNewPassword";
@@ -140,6 +140,18 @@ async function submit() {
     emit("done");
     setOpened(false);
   } catch (e) {
+    if (e instanceof MasterPasswordChangedError) {
+      // show the fields the master password's current state calls for
+      await loadMaster();
+      toast({
+        title: t("settings.password.masterChangedMeanwhile"),
+        variant: "destructive",
+        description: props.action === "toMaster" ? texts.value.description : undefined
+      });
+      if (asksMaster.value) nextTick(() => masterInput.value?.input?.$el.focus());
+      return;
+    }
+
     if (e instanceof PasswordError) {
       const kind = e.kind ?? current.value;
       toast({
@@ -175,7 +187,9 @@ function run(created: string): Promise<void> {
       return walletsDbService.moveToMasterPassword(
         id,
         currentPassword.value,
-        asksMaster.value ? masterPassword.value : created
+        asksMaster.value
+          ? { password: masterPassword.value, create: false }
+          : { password: created, create: true }
       );
     case "toOwn":
       return walletsDbService.moveToOwnPassword(id, currentPassword.value, created);

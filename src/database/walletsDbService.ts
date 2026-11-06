@@ -10,7 +10,7 @@ import {
   needsUpgrade,
   unlockMasterKey
 } from "@/common/keystore";
-import { PasswordError } from "@/common/errors";
+import { MasterPasswordChangedError, PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { dbContext } from "@/database/dbContext";
 import { IDbWallet, NotNullId } from "@/types/database";
@@ -140,10 +140,7 @@ class WalletsDbService {
 
     const { record } = await changeMasterKeyPassword(current, currentPassword, newPassword);
     await withLock(async () => {
-      if (!isEqual(await readMasterKey(), current)) {
-        throw Error("the master password was changed meanwhile");
-      }
-
+      if (!isEqual(await readMasterKey(), current)) throw new MasterPasswordChangedError();
       await storage.local.set({ [MASTER_KEY]: record });
     });
   }
@@ -160,23 +157,32 @@ class WalletsDbService {
   }
 
   /**
-   * Moves the wallet from its own password to the master password, which is set up with
-   * `masterPassword` if there's none yet.
+   * Moves the wallet from its own password to the master password.
    *
+   * @param master.create true to set the master password up with `master.password`,
+   * false to unlock the existing one with it.
    * @throws {PasswordError} whose `kind` says which password is wrong.
+   * @throws {MasterPasswordChangedError} if the master password doesn't exist, or
+   * already does, contrary to `master.create`.
    */
-  public async moveToMasterPassword(id: number, walletPassword: string, masterPassword: string) {
-    const { wallet, encrypted: current } = await readWalletWithSecret(id);
+  public async moveToMasterPassword(
+    id: number,
+    walletPassword: string,
+    master: { password: string; create: boolean }
+  ) {
+    const { wallet, encrypted: current, master: record } = await readWalletWithSecret(id);
     if (usesMaster(current)) throw Error("this wallet already uses the master password");
+    if (!record !== master.create) throw new MasterPasswordChangedError();
 
     const secret = await failingAs("password", () =>
       decryptSecret(current, wallet.publicKey, walletPassword)
     );
-    const { encrypted, master } = await failingAs("master", () =>
-      protect({ value: secret, password: masterPassword, by: "master" }, wallet.publicKey)
+    const { encrypted, master: change } = await failingAs("master", () =>
+      protect({ value: secret, password: master.password, by: "master" }, wallet.publicKey)
     );
+    if (!change?.created !== !master.create) throw new MasterPasswordChangedError();
 
-    await replaceSecret({ id, current, encrypted }, master);
+    await replaceSecret({ id, current, encrypted }, change);
   }
 
   /**
@@ -380,9 +386,7 @@ async function writeSecrets(moves: Move[], master?: MasterChange) {
 }
 
 async function assertMasterUnchanged(master: MasterChange) {
-  if (!isEqual(await readMasterKey(), master.current)) {
-    throw Error("the master password was changed meanwhile");
-  }
+  if (!isEqual(await readMasterKey(), master.current)) throw new MasterPasswordChangedError();
 }
 
 async function succeeds(operation: Promise<unknown>): Promise<boolean> {

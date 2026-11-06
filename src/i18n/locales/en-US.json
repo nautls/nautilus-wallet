@@ -393,6 +393,7 @@
       "masterUsage": "Used by {used} of {total} wallet. | Used by {used} of {total} wallets.",
       "setUpMaster": "Set up master password",
       "masterSetUp": "Master password set up",
+      "masterChangedMeanwhile": "The master password changed meanwhile",
       "changeMaster": "Change master password",
       "changeMasterDesc": "Every wallet that uses it will open with the new one.",
       "currentMasterPassword": "Current master password",

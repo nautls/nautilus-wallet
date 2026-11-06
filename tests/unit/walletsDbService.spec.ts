@@ -492,6 +492,8 @@ describe("walletsDbService", () => {
       password,
       by: "master" as const
     });
+    const unlocking = (password = masterPassword) => ({ password, create: false });
+    const creating = (password = masterPassword) => ({ password, create: true });
 
     it("is set up by the first wallet that uses it, in the same write", async () => {
       const service = await freshService();
@@ -744,7 +746,7 @@ describe("walletsDbService", () => {
         const service = await freshService();
         await service.setUpMasterPassword(masterPassword);
 
-        await service.moveToMasterPassword(1, password, masterPassword);
+        await service.moveToMasterPassword(1, password, unlocking());
 
         expect(await service.getPasswordKind(1)).toBe("master");
         expect(await service.getSecret(1, masterPassword)).toBe(mnemonic);
@@ -760,7 +762,7 @@ describe("walletsDbService", () => {
         const id = await service.put(newWallet(1), own());
         storageApi.setCalls = [];
 
-        await service.moveToMasterPassword(id, password, masterPassword);
+        await service.moveToMasterPassword(id, password, creating());
 
         expect(storageApi.setCalls).toEqual([[`walletSecret:${id}`, "masterKey"]]);
         expect(await service.getSecret(id, masterPassword)).toBe(mnemonic);
@@ -773,10 +775,10 @@ describe("walletsDbService", () => {
         storageApi.setCalls = [];
 
         await expect(
-          service.moveToMasterPassword(id, "wrong password", masterPassword)
+          service.moveToMasterPassword(id, "wrong password", unlocking())
         ).rejects.toMatchObject({ name: "PasswordError", kind: "password" });
         await expect(
-          service.moveToMasterPassword(id, password, "wrong password")
+          service.moveToMasterPassword(id, password, unlocking("wrong password"))
         ).rejects.toMatchObject({ name: "PasswordError", kind: "master" });
         expect(storageApi.setCalls).toEqual([]);
         expect(await service.getPasswordKind(id)).toBe("password");
@@ -808,7 +810,7 @@ describe("walletsDbService", () => {
         const onOwn = await service.put(newWallet(2), own());
 
         await expect(
-          service.moveToMasterPassword(onMaster, masterPassword, masterPassword)
+          service.moveToMasterPassword(onMaster, masterPassword, unlocking())
         ).rejects.toThrow(/already uses/);
         await expect(service.moveToOwnPassword(onOwn, masterPassword, password)).rejects.toThrow(
           /doesn't use/
@@ -822,7 +824,7 @@ describe("walletsDbService", () => {
 
         const [change, move] = await Promise.allSettled([
           service.changeMasterPassword(masterPassword, newMaster),
-          service.moveToMasterPassword(id, password, masterPassword)
+          service.moveToMasterPassword(id, password, unlocking())
         ]);
 
         expect(change.status).toBe("fulfilled");
@@ -835,6 +837,33 @@ describe("walletsDbService", () => {
           });
           expect(await service.getSecret(id, password)).toBe(mnemonic);
         }
+      });
+
+      it("doesn't set up a master password where it expected an existing one", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), own());
+        storageApi.setCalls = [];
+
+        await expect(service.moveToMasterPassword(id, password, unlocking())).rejects.toMatchObject(
+          {
+            name: "MasterPasswordChangedError"
+          }
+        );
+        expect(storageApi.setCalls).toEqual([]);
+        expect(await service.hasMasterPassword()).toBe(false);
+      });
+
+      it("doesn't take a new master password for one set up meanwhile", async () => {
+        const service = await freshService();
+        await service.setUpMasterPassword(masterPassword);
+        const id = await service.put(newWallet(1), own());
+        storageApi.setCalls = [];
+
+        await expect(
+          service.moveToMasterPassword(id, password, creating(masterPassword))
+        ).rejects.toMatchObject({ name: "MasterPasswordChangedError" });
+        expect(storageApi.setCalls).toEqual([]);
+        expect(await service.getPasswordKind(id)).toBe("password");
       });
     });
   });

@@ -5,6 +5,14 @@ export class TxSignError extends Error {
   }
 }
 
+/** The master password was set up, changed or reset by another page in the meantime. */
+export class MasterPasswordChangedError extends Error {
+  constructor(errorMessage = "the master password was changed meanwhile") {
+    super(errorMessage);
+    this.name = this.constructor.name;
+  }
+}
+
 export class PasswordError extends Error {
   /**
    * @param kind which password was wrong, for flows that ask for two: the master
