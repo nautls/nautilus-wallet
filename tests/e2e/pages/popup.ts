@@ -66,11 +66,43 @@ export class Popup {
     await expect(this.walletSwitcher).toContainText(name);
   }
 
-  /** Fills the first step (wallet information) of the create/import flows. */
-  async fillWalletInfo(name: string, password?: string, confirm = password) {
+  /**
+   * Fills the wallet information and password of the create/import flows. The wallet
+   * gets its own password unless `master` is set. A new password has its own step, which
+   * this moves to; an existing master password is typed on the first step instead.
+   */
+  async fillWalletInfo(
+    name: string,
+    password?: string,
+    confirm = password,
+    { master = false } = {}
+  ) {
     await this.page.locator("#wallet-name").fill(name);
-    if (password !== undefined) await this.page.locator("#password").fill(password);
-    if (confirm !== undefined) await this.page.locator("#confirm-password").fill(confirm);
+    if (password === undefined) return;
+
+    await this.setUseMasterPassword(master);
+    const toPasswordStep = this.page.getByRole("button", {
+      name: /^Create (master|wallet) password$/
+    });
+    if (await toPasswordStep.count()) {
+      await toPasswordStep.click();
+      await this.fillNewPassword(password, confirm);
+    } else {
+      // an existing master password is typed on the first step
+      await this.page.locator("#password").fill(password);
+    }
+  }
+
+  /** Fills the password step of the create/import flows. */
+  async fillNewPassword(password: string, confirm = password) {
+    await this.page.locator("#password").fill(password);
+    await this.page.locator("#confirm-password").fill(confirm);
+  }
+
+  async setUseMasterPassword(on: boolean) {
+    const toggle = this.page.locator("#use-master-password");
+    await expect(toggle).toBeEnabled();
+    if ((await toggle.getAttribute("aria-checked")) !== String(on)) await toggle.click();
   }
 
   /** Dispatches a clipboard paste event over the current form. */
@@ -87,10 +119,12 @@ export class Popup {
       }, text);
   }
 
-  async importWallet(wallet: TestWallet) {
+  async importWallet(wallet: TestWallet, { master = false } = {}) {
     await this.goto("/add/import");
-    await this.fillWalletInfo(wallet.name, wallet.password);
+    await this.fillWalletInfo(wallet.name, wallet.password, wallet.password, { master });
     await this.page.getByRole("button", { name: "Insert a recovery phrase" }).click();
+    // an existing master password is checked before moving on
+    await expect(this.page.getByRole("heading", { name: "Wallet secret" })).toBeVisible();
     await this.paste(wallet.mnemonic);
     await this.page.getByRole("button", { name: "Import", exact: true }).click();
     await this.expectWalletLoaded(wallet.name);
@@ -113,7 +147,7 @@ export class Popup {
 
   /** Reads the words rendered by the non-editable mnemonic grid. */
   async readMnemonic(): Promise<string[]> {
-    const cells = this.page.locator("form .grid > div");
+    const cells = this.page.locator("form .grid.grid-cols-3 > div");
     await expect(cells.first()).toBeVisible();
     return cells.evaluateAll((els) =>
       els.map((el) => el.querySelectorAll("span")[1]?.textContent?.trim() ?? "")
@@ -122,7 +156,7 @@ export class Popup {
 
   /** Fills editable cells of a mnemonic grid using its word combobox inputs. */
   async fillMnemonicGaps(words: string[]) {
-    const cells = this.page.locator("form .grid > div");
+    const cells = this.page.locator("form .grid.grid-cols-3 > div");
     const count = await cells.count();
     for (let i = 0; i < count; i++) {
       const input = cells.nth(i).locator("input");
@@ -138,9 +172,9 @@ export class Popup {
     }
   }
 
-  /** Spending password input of the transaction signing form. */
+  /** Password input of the transaction signing form, labelled after the password it wants. */
   get passwordInput(): Locator {
-    return this.page.getByRole("textbox", { name: "Spending password" });
+    return this.page.getByRole("textbox", { name: / password$/ });
   }
 
   toast(title: string | RegExp): Locator {

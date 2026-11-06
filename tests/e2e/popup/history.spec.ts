@@ -36,7 +36,7 @@ test.describe("transaction history", () => {
     await page.locator("#recipient").fill(RECIPIENT_ADDRESS);
     await page.getByPlaceholder("0").first().fill("1");
     await page.getByRole("button", { name: "Send", exact: true }).click();
-    await page.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+    await page.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
     await page.getByRole("button", { name: "Sign" }).click();
     await expect(popup.toast("Transaction sent!")).toBeVisible();
     const [sent] = chain.submitted;
@@ -51,7 +51,7 @@ test.describe("transaction history", () => {
     await page.getByRole("button", { name: "Cancel" }).click();
     const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
     await expect(drawer.getByText("Sending to your address").first()).toBeVisible();
-    await drawer.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+    await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
     await drawer.getByRole("button", { name: "Sign" }).click();
     await expect(popup.toast("Transaction sent!")).toBeVisible();
 

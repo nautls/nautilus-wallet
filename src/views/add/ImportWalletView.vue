@@ -2,15 +2,15 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { english } from "@fleet-sdk/wallet/wordlists";
 import { useRegle } from "@regle/core";
-import { minLength, required, requiredIf, withMessage, withParams } from "@regle/rules";
-import { FingerprintIcon, KeyRoundIcon, Loader2Icon } from "@lucide/vue";
+import { required, withMessage } from "@regle/rules";
+import { FingerprintIcon, KeyRoundIcon, Loader2Icon, LockKeyholeIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
-import { Input, PasswordInput } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -23,10 +23,18 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
+import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { validMnemonic, validPublicKey } from "@/validators";
-import { Step, Stepper, StepTitle } from "./components";
+import {
+  MasterPasswordSwitch,
+  numberSteps,
+  provideWalletPassword,
+  Stepper,
+  StepTitle,
+  WalletPasswordFields
+} from "./components";
 
 const SUPPORTED_MNEMONIC_LENGTHS = new Set([12, 15, 18, 21, 24]);
 
@@ -37,8 +45,7 @@ const { toast } = useToast();
 const { t } = useI18n();
 
 const walletName = ref("");
-const password = ref("");
-const confirmPassword = ref("");
+const passwordForm = provideWalletPassword({ userInputs: () => [walletName.value] });
 const mnemonicWords = ref<string[]>([]);
 const loading = ref(false);
 const step = ref(1);
@@ -55,39 +62,41 @@ const xpk = ref("");
 const mnemonicPhrase = computed(() => mnemonicWords.value.join(" "));
 const isReadonly = computed(() => walletType.value === "readonly");
 const nextButtonTitle = computed(() => {
-  if (step.value === 1) {
-    return isReadonly.value
-      ? t("wallet.import.insertPubKey")
-      : t("wallet.import.insertRecoveryPhrase");
-  } else {
-    return t("common.import");
+  switch (steps.value[step.value]?.key) {
+    case "password":
+      return passwordForm.createLabel;
+    case "secret":
+      return isReadonly.value
+        ? t("wallet.import.insertPubKey")
+        : t("wallet.import.insertRecoveryPhrase");
+    default:
+      return t("common.import");
   }
 });
 
 const { r$: infoRules } = useRegle(
-  { walletName, password, confirmPassword },
+  { walletName },
   {
     walletName: {
       required: withMessage(required, () => t("wallet.requiredWalletName"))
-    },
-    password: {
-      required: withMessage(
-        requiredIf(() => !isReadonly.value),
-        () => t("wallet.spendingPasswordRequired")
-      ),
-      minLength: withMessage(minLength(10), () =>
-        t("wallet.minSpendingPasswordLength", { min: 10 })
-      )
-    },
-    confirmPassword: {
-      matches: withMessage(
-        withParams((value, pwd) => value === pwd, [password]),
-        () => t("wallet.passwordsMustMatch")
-      )
     }
   },
   { autoDirty: false }
 );
+
+const nameValid = computed(() => !infoRules.$invalid);
+const allValid = computed(
+  () => nameValid.value && (isReadonly.value || (passwordForm.loaded && !passwordForm.invalid))
+);
+
+async function validateCredentials() {
+  const [{ valid }, credentials] = await Promise.all([
+    infoRules.$validate(),
+    isReadonly.value ? null : passwordForm.validate({ verify: false })
+  ]);
+
+  return valid ? credentials : undefined;
+}
 
 const { r$: xpkRules } = useRegle(
   { xpk },
@@ -115,14 +124,6 @@ onMounted(() => {
   app.viewTitle = t("wallet.index.import");
 });
 
-watch(walletType, () => {
-  password.value = "";
-  confirmPassword.value = "";
-
-  infoRules.password.$reset();
-  infoRules.confirmPassword.$reset();
-});
-
 watch(
   wordsCount,
   (length) =>
@@ -131,9 +132,15 @@ watch(
 );
 
 async function next() {
-  if (step.value === 1) {
-    const { valid } = await infoRules.$validate();
-    if (!valid) return;
+  if (current.value === "info") {
+    // an existing master password is typed here, and checked before moving on
+    const [{ valid }, unlocked] = await Promise.all([
+      infoRules.$validate(),
+      isReadonly.value || passwordForm.validateUnlock()
+    ]);
+    if (!valid || !unlocked) return;
+  } else if (current.value === "password") {
+    if (!(await passwordForm.validate())) return;
   }
 
   if (step.value < steps.value.length) {
@@ -151,8 +158,13 @@ async function next() {
 
   try {
     loading.value = true;
+    const credentials = await validateCredentials();
+    if (credentials === undefined) {
+      goToErrors(infoRules.$invalid || !passwordForm.isNewPassword ? "info" : "password");
+      return;
+    }
 
-    const walletId = isReadonly.value
+    const walletId = !credentials
       ? await app.putWallet({
           name: walletName.value,
           type: "readonly",
@@ -162,12 +174,18 @@ async function next() {
           name: walletName.value,
           type: "standard",
           mnemonic: mnemonicWords.value.join(" "),
-          password: password.value
+          ...credentials
         });
 
     await wallet.load(walletId, { syncInBackground: false });
     router.push({ name: "assets" });
   } catch (e) {
+    if (e instanceof PasswordError) {
+      await passwordForm.rejectPassword();
+      goToErrors("info");
+      return;
+    }
+
     toast({
       title: t("wallet.import.walletImportError"),
       variant: "destructive",
@@ -181,8 +199,13 @@ async function next() {
   }
 }
 
+/** Goes back to the step showing the errors. */
+function goToErrors(key: "info" | "password") {
+  step.value = steps.value.findIndex((s) => s.key === key) + 1;
+}
+
 function onPaste(event: ClipboardEvent) {
-  if (step.value !== 2 || isReadonly.value) return;
+  if (current.value !== "secret" || isReadonly.value) return;
 
   const clipboardWords = event.clipboardData?.getData("text")?.split(" ");
   // check if length is supported
@@ -201,24 +224,35 @@ function onPaste(event: ClipboardEvent) {
   event.stopPropagation();
 }
 
-const steps = computed<Step[]>(() => [
-  {
-    step: 1,
-    title: t("wallet.infoStep"),
-    description: t("wallet.infoStepDesc"),
-    icon: FingerprintIcon,
-    enabled: ref(true)
-  },
-  {
-    step: 2,
-    title: isReadonly.value ? "Wallet key" : "Wallet secret",
-    description: isReadonly.value
-      ? t("wallet.import.importStep")
-      : t("wallet.import.importStepDesc"),
-    icon: KeyRoundIcon,
-    enabled: computed(() => !infoRules.$invalid)
-  }
-]);
+const steps = computed(() =>
+  numberSteps([
+    {
+      key: "info",
+      title: t("wallet.infoStep"),
+      description: t("wallet.infoStepDesc"),
+      icon: FingerprintIcon,
+      enabled: ref(true)
+    },
+    !isReadonly.value &&
+      passwordForm.isNewPassword && {
+        key: "password",
+        ...passwordForm.stepTexts,
+        icon: LockKeyholeIcon,
+        enabled: nameValid
+      },
+    {
+      key: "secret",
+      title: isReadonly.value ? "Wallet key" : "Wallet secret",
+      description: isReadonly.value
+        ? t("wallet.import.importStep")
+        : t("wallet.import.importStepDesc"),
+      icon: KeyRoundIcon,
+      enabled: allValid
+    }
+  ])
+);
+
+const current = computed(() => steps.value[step.value - 1].key);
 </script>
 
 <template>
@@ -227,7 +261,7 @@ const steps = computed<Step[]>(() => [
     <StepTitle :step="steps[step - 1]" />
 
     <Form class="flex h-full grow flex-col justify-start gap-4" @paste="onPaste" @submit="next">
-      <template v-if="step === 1">
+      <template v-if="current === 'info'">
         <FormField :validation="infoRules.walletName">
           <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
           <Input
@@ -255,31 +289,12 @@ const steps = computed<Step[]>(() => [
           </Select>
         </FormField>
 
-        <FormField :validation="infoRules.password">
-          <Label :disabled="isReadonly" for="password">{{ t("wallet.spendingPassword") }}</Label>
-          <PasswordInput
-            id="password"
-            v-model="password"
-            :disabled="loading || isReadonly"
-            type="password"
-            @blur="infoRules.password.$touch()"
-          />
-        </FormField>
-        <FormField :validation="infoRules.confirmPassword">
-          <Label :disabled="isReadonly" for="confirm-password">{{
-            t("wallet.confirmPassword")
-          }}</Label>
-          <PasswordInput
-            id="confirm-password"
-            v-model="confirmPassword"
-            :disabled="loading || isReadonly"
-            type="password"
-            @blur="infoRules.confirmPassword.$touch()"
-          />
-        </FormField>
+        <MasterPasswordSwitch v-if="!isReadonly" :disabled="loading" />
       </template>
 
-      <template v-else-if="step === 2">
+      <WalletPasswordFields v-if="current === 'password'" :disabled="loading" />
+
+      <template v-if="current === 'secret'">
         <template v-if="isReadonly">
           <FormField :validation="xpkRules.xpk">
             <Label for="xpk">{{ t("wallet.xPubKey") }}</Label>

@@ -34,6 +34,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { fullPage: true }
   },
   {
+    path: "/master-password/setup",
+    name: "master-password-setup",
+    component: () => import("@/views/MasterPasswordSetupView.vue"),
+    meta: { fullPage: true }
+  },
+  {
     path: "/history",
     name: "tx-history",
     component: () => import("@/views/TransactionHistoryView.vue")

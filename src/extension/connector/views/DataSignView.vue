@@ -19,6 +19,7 @@ import { JsonViewer } from "@/components/ui/json-viewer";
 import { useToast } from "@/components/ui/toast";
 import { signMessage } from "@/chains/ergo/signing";
 import { PasswordError } from "@/common/errors";
+import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
@@ -29,6 +30,10 @@ import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 
 const app = useAppStore();
 const wallet = useWalletStore();
+const prompt = usePasswordPrompt(
+  () => wallet.id,
+  () => wallet.name
+);
 const { toast } = useToast();
 const { t } = useI18n();
 
@@ -49,7 +54,7 @@ const { r$ } = useRegle(
   { password },
   {
     password: {
-      required: withMessage(requiredUnless(isLedger), () => t("wallet.requiredSpendingPassword"))
+      required: withMessage(requiredUnless(isLedger), () => prompt.required)
     }
   },
   { autoDirty: false, lazy: true }
@@ -135,9 +140,9 @@ async function sign() {
   } catch (e) {
     if (e instanceof PasswordError) {
       toast({
-        title: t("wallet.wrongPassword"),
+        title: prompt.wrong,
         variant: "destructive",
-        description: t("wallet.wrongPasswordDesc")
+        description: prompt.wrongHint
       });
     } else {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
@@ -199,7 +204,7 @@ function refuse() {
         <FormField :validation="r$.password">
           <PasswordInput
             v-model="password"
-            :placeholder="t('wallet.spendingPassword')"
+            :placeholder="prompt.label"
             type="password"
             @blur="r$.password.$touch()"
           />
