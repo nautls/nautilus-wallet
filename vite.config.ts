@@ -99,7 +99,8 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     // end-to-end tests are run by Playwright
-    exclude: ["**/node_modules/**", "tests/e2e/**", "tests/store/**"]
+    exclude: ["**/node_modules/**", "tests/e2e/**", "tests/store/**"],
+    setupFiles: ["tests/unit/setup.ts"]
   }
 }));
 
