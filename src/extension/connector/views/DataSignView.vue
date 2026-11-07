@@ -3,7 +3,6 @@ import { computed, onMounted, ref, watch } from "vue";
 import { ErgoMessage, MessageType } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
 import { useRegle } from "@regle/core";
-import { requiredUnless, withMessage } from "@regle/rules";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "@lucide/vue";
 import type { JsonObject } from "type-fest";
@@ -44,17 +43,12 @@ let ergoMessage: ErgoMessage;
 
 const isReadonly = computed(() => wallet.type === "readonly");
 const isLedger = computed(() => wallet.type === "ledger");
-const skipsPassword = computed(() => isLedger.value || prompt.unlocked);
 
 const detachUnloadListener = useEventListener(window, "beforeunload", refuse);
 
 const { r$ } = useRegle(
   { password },
-  {
-    password: {
-      required: withMessage(requiredUnless(skipsPassword), () => prompt.required)
-    }
-  },
+  { password: { required: prompt.requiredRule(() => isLedger.value) } },
   { autoDirty: false, lazy: true }
 );
 

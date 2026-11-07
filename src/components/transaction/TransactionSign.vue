@@ -7,7 +7,6 @@ import {
   SignedTransaction
 } from "@fleet-sdk/common";
 import { useRegle } from "@regle/core";
-import { requiredUnless, withMessage } from "@regle/rules";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import { AlertCircleIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -76,7 +75,6 @@ const hasBurnAgreement = ref(false);
 const signing = ref(false);
 
 const isLedger = computed(() => wallet.type === "ledger");
-const skipsPassword = computed(() => isLedger.value || prompt.unlocked);
 const isReadonly = computed(() => wallet.type === "readonly");
 const canSign = computed(
   () =>
@@ -197,11 +195,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
 
 const { r$ } = useRegle(
   { password },
-  {
-    password: {
-      required: withMessage(requiredUnless(skipsPassword), () => prompt.required)
-    }
-  },
+  { password: { required: prompt.requiredRule(() => isLedger.value) } },
   { autoDirty: false }
 );
 </script>
