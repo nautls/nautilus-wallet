@@ -97,7 +97,13 @@
       "noWalletsFound": "Aucun portefeuille trouvé.",
       "newWallet": "Nouveau portefeuille",
       "settings": "Paramètres",
-      "about": "À propos"
+      "about": "À propos",
+      "showBalances": "Afficher les soldes",
+      "hideBalances": "Masquer les soldes",
+      "lightMode": "Passer au mode clair",
+      "darkMode": "Passer au mode sombre",
+      "openSidePanel": "Ouvrir dans le panneau latéral",
+      "openPopup": "Ouvrir dans la fenêtre contextuelle"
     }
   },
   "asset": {
@@ -210,6 +216,12 @@
     "masterPasswordNotRecoverable": "Ce mot de passe ne peut pas être récupéré. Si vous l'oubliez, vous aurez besoin de la phrase de récupération de chaque portefeuille qui l'utilise.",
     "walletPasswordNotRecoverable": "Ce mot de passe ne peut pas être récupéré. Si vous l'oubliez, vous aurez besoin de la phrase de récupération de ce portefeuille.",
     "masterPasswordUnlockDesc": "Saisissez votre mot de passe principal pour ajouter ce portefeuille.",
+    "sessionLocked": "Session terminée",
+    "lock": "Verrouiller",
+    "unlock": "Déverrouiller",
+    "unlockTitle": "Déverrouiller Nautilus",
+    "unlockDesc": "Saisissez votre mot de passe principal pour déverrouiller vos portefeuilles.",
+    "unlockFailed": "Échec du déverrouillage de la session",
     "minPasswordLength": "Le mot de passe doit contenir au moins {min} caractères.",
     "passwordsDontMatch": "Les mots de passe ne correspondent pas.",
     "password": "Mot de passe",
@@ -409,7 +421,9 @@
       "resetMaster": "Réinitialiser le mot de passe principal ?",
       "resetMasterDesc": "Aucun portefeuille ne l'utilise, donc rien n'est perdu. Vous pourrez en configurer un nouveau ensuite.",
       "masterReset": "Mot de passe principal réinitialisé",
-      "masterResetFailed": "Échec de la réinitialisation du mot de passe principal"
+      "masterResetFailed": "Échec de la réinitialisation du mot de passe principal",
+      "unlockSession": "Rester déverrouillé",
+      "unlockSessionDesc": "Saisissez le mot de passe principal une fois, puis signez sans lui jusqu'à la fermeture du navigateur. Il reste demandé pour afficher une phrase de récupération ou changer un mot de passe."
     }
   },
   "about": {
