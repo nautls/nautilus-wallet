@@ -28,15 +28,15 @@ import type { SignDataArgs } from "@/types/d.ts/webext-rpc";
 
 const app = useAppStore();
 const wallet = useWalletStore();
-const prompt = usePasswordPrompt(
-  () => wallet.id,
-  () => wallet.name
-);
 const { t } = useI18n();
 
 const request = ref<AsyncRequest<SignDataArgs>>();
 const password = ref("");
 const walletId = ref(0);
+const prompt = usePasswordPrompt(
+  () => walletId.value,
+  () => wallet.name
+);
 const messageData = ref<string | JsonObject>();
 const messageType = ref<string>();
 const encodedMessage = ref<string>();
