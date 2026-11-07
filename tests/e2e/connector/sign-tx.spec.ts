@@ -9,20 +9,11 @@ import {
   connectDapp,
   expectRequestFrom,
   invoke,
+  requestSignature,
   withConnectorWindow
 } from "../pages/connector";
 
 type SignTxRequest = { tx: EIP12UnsignedTransaction; indexes?: number[] };
-
-function requestSignature(
-  context: Parameters<typeof withConnectorWindow>[0],
-  dapp: Parameters<typeof invoke>[0],
-  tx: EIP12UnsignedTransaction
-) {
-  return withConnectorWindow(context, "sign/tx", () =>
-    invoke<SignedTransaction, SignTxRequest>(dapp, ({ tx }) => window.ergo.sign_tx(tx), { tx })
-  );
-}
 
 test.describe("dApp transaction signing", () => {
   test.describe("standard wallet", () => {

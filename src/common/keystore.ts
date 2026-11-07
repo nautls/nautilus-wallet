@@ -60,6 +60,13 @@ export type MasterKey = CryptoKey & { [masterKeyBrand]: true };
 
 type UnlockedMasterKey = { record: MasterKeyRecord; masterKey: MasterKey };
 
+/**
+ * The master key split in two: `key` is the master key XOR a random `mask`, so either
+ * half alone reveals nothing about it. `check` is an empty message sealed with the key,
+ * so the joined halves are known to be the master key before they protect anything.
+ */
+export type MasterKeyHalves = { mask: string; key: string; check: WrappedKey };
+
 /** OWASP's current recommendation for PBKDF2-HMAC-SHA256. */
 export const PBKDF2_ITERATIONS = 600_000;
 
@@ -67,6 +74,7 @@ const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const KEY_LENGTH = 32;
 const MASTER_KEY_AAD = utf8.decode("nautilus:master-key");
+const HALVES_CHECK_AAD = utf8.decode("nautilus:master-key-halves");
 
 export function fromLegacyCiphertext(ciphertext: string): EncryptedSecretV1 {
   return { version: 1, ciphertext };
@@ -95,6 +103,54 @@ export async function unlockMasterKey(
   password: string
 ): Promise<MasterKey> {
   return unwrapMasterKey(record, await deriveMasterPasswordKey(record, password));
+}
+
+/** Unlocks the master key and splits it into fresh halves, for an unlock session. */
+export async function unlockSplitMasterKey(
+  record: MasterKeyRecord,
+  password: string
+): Promise<{ masterKey: MasterKey; halves: MasterKeyHalves }> {
+  const passwordKey = await deriveMasterPasswordKey(record, password);
+  return zeroizeAfter(await unwrapRawMasterKey(record, passwordKey), async (raw) => {
+    const mask = randomBytes(KEY_LENGTH);
+    const masked = xor(raw, mask);
+    const encoded = { mask: hex.encode(mask), key: hex.encode(masked) };
+    mask.fill(0);
+    masked.fill(0);
+
+    const masterKey = (await importAesKey(raw)) as MasterKey;
+    const check = await gcmEncrypt(masterKey, new Uint8Array(), HALVES_CHECK_AAD);
+    return { masterKey, halves: { ...encoded, check } };
+  });
+}
+
+/**
+ * Reconstructs the master key from its halves, and checks if they match.
+ *
+ * @throws if the halves don't join into the key they were split from.
+ */
+export async function joinMasterKeyHalves(halves: MasterKeyHalves): Promise<MasterKey> {
+  const mask = hex.decode(halves.mask);
+  const masked = hex.decode(halves.key);
+  let masterKey: MasterKey;
+
+  try {
+    if (mask.length !== KEY_LENGTH || masked.length !== KEY_LENGTH) {
+      throw Error("invalid master key halves");
+    }
+
+    masterKey = await importMasterKey(xor(mask, masked));
+  } finally {
+    mask.fill(0);
+    masked.fill(0);
+  }
+
+  const { iv, ciphertext } = halves.check;
+  await gcmDecrypt(masterKey, iv, ciphertext, HALVES_CHECK_AAD).catch(() => {
+    throw Error("the master key halves don't match");
+  });
+
+  return masterKey;
 }
 
 /**
@@ -151,6 +207,23 @@ export async function decryptSecret(
         `unsupported encryption scheme version: ${(encrypted as EncryptedSecret).version}`
       );
   }
+}
+
+/**
+ * Decrypts a secret protected by the master key, with the key itself.
+ *
+ * @throws {PasswordError} if `masterKey` isn't the key that protects it.
+ */
+export async function decryptSecretWithMasterKey(
+  secret: EncryptedSecret,
+  publicKey: string,
+  masterKey: MasterKey
+): Promise<string> {
+  if (secret.version !== 2 || secret.wrappedKey.by !== "master") {
+    throw Error("the secret isn't protected by the master key");
+  }
+
+  return decryptV2WithKey(secret, masterKey, hex.decode(publicKey));
 }
 
 export function needsUpgrade(encrypted: EncryptedSecret): boolean {
@@ -269,7 +342,10 @@ async function unwrapMasterKey(
   record: MasterKeyRecord,
   passwordKey: CryptoKey
 ): Promise<MasterKey> {
-  const raw = await unwrapRawMasterKey(record, passwordKey);
+  return importMasterKey(await unwrapRawMasterKey(record, passwordKey));
+}
+
+function importMasterKey(raw: Uint8Array): Promise<MasterKey> {
   return zeroizeAfter(raw, async (key) => (await importAesKey(key)) as MasterKey);
 }
 
@@ -349,6 +425,10 @@ async function gcmDecrypt(
   );
 
   return new Uint8Array(plaintext);
+}
+
+function xor(a: Uint8Array, b: Uint8Array): Uint8Array<ArrayBuffer> {
+  return Uint8Array.from(a, (byte, i) => byte ^ b[i]);
 }
 
 function randomBytes(length: number): Uint8Array<ArrayBuffer> {

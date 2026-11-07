@@ -23,7 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
-import { PasswordError } from "@/common/errors";
+import { PasswordError, SessionLockedError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { validMnemonic, validPublicKey } from "@/validators";
@@ -182,6 +182,10 @@ async function next() {
   } catch (e) {
     if (e instanceof PasswordError) {
       await passwordForm.rejectPassword();
+      goToErrors("info");
+      return;
+    } else if (e instanceof SessionLockedError) {
+      await passwordForm.rejectSession();
       goToErrors("info");
       return;
     }

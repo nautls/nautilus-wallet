@@ -13,6 +13,13 @@ export class MasterPasswordChangedError extends Error {
   }
 }
 
+export class SessionLockedError extends Error {
+  constructor(errorMessage = "the unlock session has ended") {
+    super(errorMessage);
+    this.name = this.constructor.name;
+  }
+}
+
 export class PasswordError extends Error {
   /**
    * @param kind which password was wrong, for flows that ask for two: the master

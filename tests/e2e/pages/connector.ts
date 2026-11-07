@@ -1,3 +1,4 @@
+import type { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 import { expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 
 export type Outcome<T> =
@@ -79,4 +80,19 @@ export async function connectDapp(context: BrowserContext, dapp: Page, walletNam
   await clickToClose(win.getByRole("button", { name: "Connect", exact: true }));
 
   expect(await result).toEqual({ ok: true, value: true });
+}
+
+/** Asks the dApp to sign `tx`, which opens the transaction signing window. */
+export function requestSignature(
+  context: BrowserContext,
+  dapp: Page,
+  tx: EIP12UnsignedTransaction
+) {
+  return withConnectorWindow(context, "sign/tx", () =>
+    invoke<SignedTransaction, { tx: EIP12UnsignedTransaction }>(
+      dapp,
+      ({ tx }) => window.ergo.sign_tx(tx),
+      { tx }
+    )
+  );
 }
