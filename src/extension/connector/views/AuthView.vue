@@ -5,6 +5,7 @@ import { requiredUnless, withMessage } from "@regle/rules";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
+import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -21,17 +22,17 @@ import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import type { AuthArgs } from "@/types/d.ts/webext-rpc";
 
-const app = useWalletStore();
+const app = useAppStore();
 const wallet = useWalletStore();
-const prompt = usePasswordPrompt(
-  () => wallet.id,
-  () => wallet.name
-);
 const { t } = useI18n();
 
 const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const walletId = ref(0);
+const prompt = usePasswordPrompt(
+  () => walletId.value,
+  () => wallet.name
+);
 
 const isReadonly = computed(() => wallet.type === "readonly");
 const isLedger = computed(() => wallet.type === "ledger");
