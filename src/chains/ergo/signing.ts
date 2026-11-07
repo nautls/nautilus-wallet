@@ -10,11 +10,9 @@ import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
 import { useWalletStore } from "@/stores/walletStore";
 import { hdKeyPool } from "@/common/objectPool";
 import { addressesDbService } from "@/database/addressesDbService";
-import { walletsDbService } from "@/database/walletsDbService";
 import { IDbAddress } from "@/types/database";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
-import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
 import { getPrivateDeriver, Prover, StateCallback } from "./transaction/prover";
 import { useAppStore } from "@/stores/appStore";
@@ -32,7 +30,8 @@ export interface AuthSignedMessage {
 
 export interface TransactionSigningParams {
   transaction: EIP12UnsignedTransaction;
-  password: string;
+  /** Leave out to use the unlock session. */
+  password?: string;
   stateCallback?: StateCallback;
   inputsToSign?: number[];
 }
@@ -55,7 +54,7 @@ export async function signMessage(
   message: ErgoMessage,
   addresses: string[],
   walletId: number,
-  password: string
+  password?: string
 ): Promise<string> {
   return hex.encode(
     new Prover(await getPrivateDeriver(walletId, password))
@@ -68,7 +67,7 @@ export async function signAuthMessage(
   unsigned: UnsignedAuthMessage,
   addresses: string[],
   walletId: number,
-  password: string
+  password?: string
 ): Promise<AuthSignedMessage> {
   const signedMessage = buildAuthMessage(unsigned.message, hostOf(unsigned.origin));
   const proof = new Prover(await getPrivateDeriver(walletId, password))
@@ -109,7 +108,7 @@ export async function signTransaction({
 
   const deriver = isLedger
     ? hdKeyPool.get(wallet.publicKey)
-    : await HdKey.fromMnemonic(await walletsDbService.getSecret(walletId, password));
+    : await getPrivateDeriver(walletId, password);
 
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);

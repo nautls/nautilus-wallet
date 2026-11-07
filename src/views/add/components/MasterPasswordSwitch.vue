@@ -28,7 +28,7 @@ const isDisabled = computed(() => props.disabled || form.verifying || !form.load
       <Switch id="use-master-password" v-model="form.useMaster" :disabled="isDisabled" />
     </div>
 
-    <FormField v-if="form.mode === 'unlock'" :validation="form.rules.password">
+    <FormField v-if="form.mode === 'unlock' && !form.usesSession" :validation="form.rules.password">
       <Label :disabled="isDisabled" for="password">{{ t("wallet.masterPassword") }}</Label>
       <PasswordInput
         id="password"

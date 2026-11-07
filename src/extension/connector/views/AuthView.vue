@@ -11,9 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
-import { useToast } from "@/components/ui/toast";
 import { signAuthMessage } from "@/chains/ergo/signing";
-import { PasswordError } from "@/common/errors";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
@@ -29,7 +27,6 @@ const prompt = usePasswordPrompt(
   () => wallet.id,
   () => wallet.name
 );
-const { toast } = useToast();
 const { t } = useI18n();
 
 const request = ref<AsyncRequest<AuthArgs>>();
@@ -38,13 +35,14 @@ const walletId = ref(0);
 
 const isReadonly = computed(() => wallet.type === "readonly");
 const isLedger = computed(() => wallet.type === "ledger");
+const skipsPassword = computed(() => isLedger.value || prompt.unlocked);
 
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 const { r$ } = useRegle(
   { password },
   {
     password: {
-      required: withMessage(requiredUnless(isLedger), () => prompt.required)
+      required: withMessage(requiredUnless(skipsPassword), () => prompt.required)
     }
   },
   { autoDirty: false, lazy: true }
@@ -91,7 +89,7 @@ async function authenticate() {
       messageData,
       [request.value.data.address],
       walletId.value,
-      password.value
+      prompt.passwordOrSession(password.value)
     );
 
     if (!request.value) return proverError(t("wallet.emptyProof"));
@@ -100,13 +98,7 @@ async function authenticate() {
     detachBeforeUnloadListener();
     window.close();
   } catch (e) {
-    if (e instanceof PasswordError) {
-      toast({
-        title: prompt.wrong,
-        variant: "destructive",
-        description: prompt.wrongHint
-      });
-    } else {
+    if (!(await prompt.handleError(e))) {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
     }
   }
@@ -155,7 +147,7 @@ function refuse() {
       <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
     </Alert>
 
-    <Form v-else @submit="authenticate">
+    <Form v-else-if="!prompt.unlocked" @submit="authenticate">
       <FormField :validation="r$.password">
         <PasswordInput
           v-model="password"

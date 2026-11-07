@@ -100,9 +100,15 @@ export class Popup {
   }
 
   async setUseMasterPassword(on: boolean) {
-    const toggle = this.page.locator("#use-master-password");
+    await this.setSwitch("#use-master-password", on);
+  }
+
+  /** Turns the switch matching `selector` on or off, if it isn't already. */
+  async setSwitch(selector: string, on: boolean) {
+    const toggle = this.page.locator(selector);
     await expect(toggle).toBeEnabled();
     if ((await toggle.getAttribute("aria-checked")) !== String(on)) await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-checked", String(on));
   }
 
   /** Dispatches a clipboard paste event over the current form. */

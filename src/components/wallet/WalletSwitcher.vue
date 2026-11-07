@@ -30,8 +30,11 @@ import {
   CommandSeparator
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { WalletItem } from "@/components/wallet";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { UnlockSessionButton, UnlockSessionDialog, WalletItem } from "@/components/wallet";
 import { browser, isPopup } from "@/common/browser";
+import ActionButton from "./ActionButton.vue";
+import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 import { IDbWallet } from "@/types/database";
 
@@ -45,6 +48,7 @@ const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
 const isPopupView = isPopup();
 
 const isOpen = ref(false);
+const { open: openUnlockDialog } = useProgrammaticDialog(UnlockSessionDialog);
 const searchTerm = ref("");
 const loadingId = ref<number | false>();
 
@@ -79,6 +83,20 @@ function setLoading(id: number | false) {
 
 function closePopover() {
   isOpen.value = false;
+}
+
+let openingDialog = false;
+
+function unlock() {
+  openingDialog = true;
+  closePopover();
+  openUnlockDialog();
+}
+
+// focus would go back to the trigger after the dialog took it, blurring its input
+function onCloseAutoFocus(event: Event) {
+  if (openingDialog) event.preventDefault();
+  openingDialog = false;
 }
 
 function clearHighlight(event: PointerEvent) {
@@ -143,10 +161,10 @@ async function toggleViewMode() {
         <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-[210px] p-0">
+    <PopoverContent class="w-52.5 p-0" @close-auto-focus="onCloseAutoFocus">
       <Command
         v-model:search-term="searchTerm"
-        class="max-h-[500px]"
+        class="max-h-125"
         reset-search-term-on-blur
         :filter-function="
           (wallets: IDbWallet[]) =>
@@ -176,28 +194,39 @@ async function toggleViewMode() {
 
         <CommandSeparator />
 
-        <div
-          class="flex flex-row items-center justify-center gap-2 pt-2"
-          @pointerenter="clearHighlight"
-        >
-          <Button
-            class="cursor-default"
-            variant="ghost"
-            size="icon"
-            @click="toggleValuesVisibility"
+        <TooltipProvider :delay-duration="100">
+          <div
+            class="flex flex-row items-center justify-center gap-2 pt-2 *:cursor-default"
+            @pointerenter="clearHighlight"
           >
-            <EyeIcon v-if="app.settings.hideBalances" />
-            <EyeOffIcon v-else />
-          </Button>
-          <Button class="cursor-default" variant="ghost" size="icon" @click="toggleColorMode">
-            <SunIcon v-if="isDark" />
-            <MoonIcon v-else />
-          </Button>
-          <Button class="cursor-default" variant="ghost" size="icon" @click="toggleViewMode">
-            <Maximize2Icon v-if="isPopupView" />
-            <Minimize2Icon v-else />
-          </Button>
-        </div>
+            <ActionButton
+              :label="
+                app.settings.hideBalances
+                  ? t('header.menu.showBalances')
+                  : t('header.menu.hideBalances')
+              "
+              @click="toggleValuesVisibility"
+            >
+              <EyeIcon v-if="app.settings.hideBalances" />
+              <EyeOffIcon v-else />
+            </ActionButton>
+            <ActionButton
+              :label="isDark ? t('header.menu.lightMode') : t('header.menu.darkMode')"
+              @click="toggleColorMode"
+            >
+              <SunIcon v-if="isDark" />
+              <MoonIcon v-else />
+            </ActionButton>
+            <ActionButton
+              :label="isPopupView ? t('header.menu.openSidePanel') : t('header.menu.openPopup')"
+              @click="toggleViewMode"
+            >
+              <Maximize2Icon v-if="isPopupView" />
+              <Minimize2Icon v-else />
+            </ActionButton>
+            <UnlockSessionButton @unlock="unlock" />
+          </div>
+        </TooltipProvider>
 
         <CommandList>
           <CommandGroup>

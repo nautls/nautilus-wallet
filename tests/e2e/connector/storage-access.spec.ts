@@ -61,6 +61,16 @@ test.describe("extension storage access", () => {
     expect(result).toEqual({ ok: false, error: expect.stringMatching(/not allowed/i) });
   });
 
+  test("content scripts can't read storage.session", async ({ dapp, extensionId }) => {
+    const result = await evalInContentScript(
+      dapp,
+      extensionId,
+      "chrome.storage.session.get(null).then((items) => Object.keys(items))"
+    );
+
+    expect(result).toEqual({ ok: false, error: expect.stringMatching(/not allowed/i) });
+  });
+
   test("extension pages can still read storage.local", async ({ context, extensionId }) => {
     const [worker] = context.serviceWorkers();
     expect(worker.url()).toContain(extensionId);

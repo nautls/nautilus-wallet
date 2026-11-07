@@ -10,9 +10,12 @@ import {
   watch
 } from "vue";
 import { useRegle } from "@regle/core";
-import { required, withMessage, withParams } from "@regle/rules";
+import { requiredUnless, withMessage } from "@regle/rules";
 import { useI18n } from "vue-i18n";
 import { useNewPasswordRules } from "@/composables/useNewPassword";
+import { useToast } from "@/components/ui/toast";
+import { useWrongMasterPasswordRule } from "@/composables/usePasswordPrompt";
+import { useUnlockSession } from "@/composables/useUnlockSession";
 import { usePasswordStrength } from "@/composables/usePasswordStrength";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
@@ -44,7 +47,6 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   const useMaster = ref(true);
   const password = ref("");
   const confirmPassword = ref("");
-  const wrongPassword = ref(false);
   const verifying = ref(false);
 
   onMounted(async () => {
@@ -62,26 +64,27 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   });
   /** A new password needs its own step, with a confirmation. */
   const isNewPassword = computed(() => mode.value !== "unlock");
+  const session = useUnlockSession();
+  /** The unlock session stands in for the existing master password. */
+  const usesSession = computed(() => mode.value === "unlock" && session.active.value);
   const strength = usePasswordStrength(password, userInputs);
   const newRules = useNewPasswordRules(password, strength.score, isNewPassword);
 
   watch(mode, reset);
-  watch(password, () => (wrongPassword.value = false));
+  const wrongPassword = useWrongMasterPasswordRule(password);
+  const { toast } = useToast();
 
   const { r$: rules } = useRegle(
     { password, confirmPassword },
     {
       password: {
-        required: withMessage(required, () =>
+        required: withMessage(requiredUnless(usesSession), () =>
           mode.value === "separate"
             ? t("wallet.walletPasswordRequired")
             : t("wallet.masterPasswordRequired")
         ),
         ...newRules.password,
-        correct: withMessage(
-          withParams((_, wrong) => !wrong, [wrongPassword]),
-          () => t("wallet.wrongMasterPassword")
-        )
+        correct: wrongPassword.correct
       },
       confirmPassword: newRules.confirmPassword
     },
@@ -95,8 +98,10 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
    * @param options.verify false to skip that check, when saving the wallet checks it anyway.
    */
   async function validate({ verify = true } = {}): Promise<
-    { password: string; passwordKind: PasswordKind } | undefined
+    { password?: string; passwordKind: PasswordKind } | undefined
   > {
+    if (usesSession.value) return { passwordKind: "master" };
+
     // a quick click can come before the debounced score, or before the scorer loads
     if (isNewPassword.value) await strength.evaluate();
     const { valid } = await rules.$validate();
@@ -121,8 +126,14 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
   }
 
   async function rejectPassword() {
-    wrongPassword.value = true;
+    wrongPassword.markWrong();
     await rules.password.$validate();
+  }
+
+  /** For a save refused because the session ended since the master password was skipped. */
+  async function rejectSession() {
+    await session.reload();
+    toast({ title: t("wallet.sessionLocked"), description: t("wallet.masterPasswordUnlockDesc") });
   }
 
   async function validateUnlock(): Promise<boolean> {
@@ -142,11 +153,13 @@ function createWalletPassword(userInputs?: MaybeRefOrGetter<string[]>) {
     confirmPassword,
     mode,
     isNewPassword,
+    usesSession,
     strength: strength.score,
     rules,
     validate,
     validateUnlock,
     rejectPassword,
+    rejectSession,
     stepTexts: computed(() =>
       useMaster.value
         ? { title: t("wallet.masterPassword"), description: t("wallet.masterPasswordStepDesc") }
