@@ -423,7 +423,12 @@
       "masterReset": "Senha mestra redefinida",
       "masterResetFailed": "Falha ao redefinir a senha mestra",
       "unlockSession": "Manter desbloqueado",
-      "unlockSessionDesc": "Digite a senha mestra uma vez e assine sem ela até o navegador ser fechado. Ela ainda é pedida para mostrar uma frase de recuperação ou alterar uma senha."
+      "unlockSessionDesc": "Assine sem digitar a senha mestra de novo. Cada assinatura reinicia o tempo.",
+      "timeoutOff": "Desativado",
+      "timeoutMinutes": "{count} minuto | {count} minutos",
+      "timeoutHours": "{count} hora | {count} horas",
+      "timeoutSystemLock": "Até o sistema ser bloqueado",
+      "timeoutBrowserRestart": "Até o navegador reiniciar"
     }
   },
   "about": {

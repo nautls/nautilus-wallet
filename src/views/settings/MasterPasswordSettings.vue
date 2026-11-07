@@ -15,7 +15,6 @@ import {
   DrawerTrigger
 } from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
@@ -29,7 +28,6 @@ const { toast } = useToast();
 
 const hasMaster = ref<boolean>();
 const usage = ref({ used: 0, total: 0 });
-const sessionEnabled = ref(false);
 
 const { open: openPasswordDialog } = useProgrammaticDialog(PasswordDialog, {
   action: "changeMaster",
@@ -39,22 +37,10 @@ const { open: openPasswordDialog } = useProgrammaticDialog(PasswordDialog, {
 onMounted(load);
 
 async function load() {
-  [hasMaster.value, usage.value, sessionEnabled.value] = await Promise.all([
+  [hasMaster.value, usage.value] = await Promise.all([
     walletsDbService.hasMasterPassword(),
-    walletsDbService.getMasterPasswordUsage(),
-    walletsDbService.isUnlockSessionEnabled()
+    walletsDbService.getMasterPasswordUsage()
   ]);
-}
-
-async function setSessionEnabled(enabled: boolean) {
-  sessionEnabled.value = enabled;
-  try {
-    await walletsDbService.setUnlockSessionEnabled(enabled);
-  } catch (e) {
-    log.error(e);
-    sessionEnabled.value = !enabled;
-    toast({ title: extractErrorMessage(e), variant: "destructive" });
-  }
 }
 
 const canReset = computed(() => hasMaster.value === true && usage.value.used === 0);
@@ -108,23 +94,6 @@ async function reset() {
           >{{ t("settings.password.setUp") }}</Button
         >
       </template>
-    </div>
-
-    <div
-      v-if="hasMaster && usage.used > 0 && walletsDbService.isUnlockSessionSupported()"
-      class="flex items-center justify-between gap-4"
-    >
-      <Label for="unlock-session" class="flex flex-col items-start gap-1">
-        {{ t("settings.password.unlockSession") }}
-        <span class="text-muted-foreground text-xs font-normal">
-          {{ t("settings.password.unlockSessionDesc") }}
-        </span>
-      </Label>
-      <Switch
-        id="unlock-session"
-        :model-value="sessionEnabled"
-        @update:model-value="setSessionEnabled"
-      />
     </div>
 
     <div v-if="canReset" class="flex gap-2">

@@ -12,7 +12,8 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { runMigrations } from "@/database/migrations";
-import { clearStaleMask } from "@/database/unlockSession";
+import { clearStaleMask, EXPIRY_ALARM } from "@/database/unlockSession";
+import { walletsDbService } from "@/database/walletsDbService";
 import { APIErrorCode, TxSendErrorCode } from "@/types/connector";
 import { AsyncRequestQueue, AsyncRequestType } from "../connector/rpc/asyncRequestQueue";
 import {
@@ -59,6 +60,16 @@ browser?.runtime.onInstalled.addListener(() => {
 // session's mask is left alone in `storage.local` by then
 browser?.runtime.onStartup.addListener(() => {
   clearStaleMask().catch((e) => log.error(e));
+});
+
+browser?.alarms?.onAlarm.addListener((alarm) => {
+  if (alarm.name !== EXPIRY_ALARM) return;
+  walletsDbService.expireSession().catch((e) => log.error(e));
+});
+
+browser?.idle?.onStateChanged.addListener((state) => {
+  if (state !== "locked") return;
+  walletsDbService.onSystemLock().catch((e) => log.error(e));
 });
 
 function onMessageAuth<T extends InternalRequest>(

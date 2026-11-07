@@ -51,7 +51,11 @@ vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: { getByScript: mocks.getByScript }
 }));
 vi.mock("@/database/migrations", () => ({ runMigrations: mocks.migrate }));
-vi.mock("@/database/unlockSession", () => ({ clearStaleMask: mocks.clearStaleMask }));
+vi.mock("@/database/unlockSession", () => ({
+  clearStaleMask: mocks.clearStaleMask,
+  EXPIRY_ALARM: "unlockSession:expiry"
+}));
+vi.mock("@/database/walletsDbService", () => ({ walletsDbService: {} }));
 vi.mock("@/database/connectedDAppsDbService", () => ({
   connectedDAppsDbService: { getByOrigin: mocks.getByOrigin }
 }));

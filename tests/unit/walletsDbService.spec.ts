@@ -5,7 +5,8 @@ import { WalletType } from "@/types/internal";
 
 type ChangeListener = (changes: Record<string, unknown>, area: string) => void;
 
-const { local, session, legacyWallets, syncRows, storageApi } = vi.hoisted(() => {
+const { local, session, legacyWallets, syncRows, storageApi, alarmsSet } = vi.hoisted(() => {
+  const alarmsSet = new Map<string, number>();
   const local = new Map<string, unknown>();
   const session = new Map<string, unknown>();
   const legacyWallets = new Map<number, unknown>();
@@ -16,7 +17,7 @@ const { local, session, legacyWallets, syncRows, storageApi } = vi.hoisted(() =>
     setCalls: [] as string[][],
     listeners: new Set<ChangeListener>()
   };
-  return { local, session, legacyWallets, syncRows, storageApi };
+  return { local, session, legacyWallets, syncRows, storageApi, alarmsSet };
 });
 
 vi.mock("webextension-polyfill", () => {
@@ -28,6 +29,11 @@ vi.mock("webextension-polyfill", () => {
   };
 
   return {
+    idle: undefined,
+    alarms: {
+      create: (name: string, info: { when: number }) => void alarmsSet.set(name, info.when),
+      clear: async (name: string) => alarmsSet.delete(name)
+    },
     storage: {
       local: {
         get getKeys() {
@@ -149,6 +155,7 @@ describe("walletsDbService", () => {
     vi.spyOn(Date, "now").mockReturnValue(migratedAt);
     local.clear();
     session.clear();
+    alarmsSet.clear();
     legacyWallets.clear();
     storageApi.getKeysSupported = true;
     storageApi.getCalls = [];
@@ -915,7 +922,7 @@ describe("walletsDbService", () => {
       async function unlocked() {
         const service = await freshService();
         const id = await service.put(newWallet(1), withMaster());
-        await service.setUnlockSessionEnabled(true);
+        await service.setUnlockTimeout("browserRestart");
         await service.getSigningSecret(id, masterPassword);
         return { service, id };
       }
@@ -932,7 +939,7 @@ describe("walletsDbService", () => {
       it("isn't started while turned off", async () => {
         const service = await freshService();
         const id = await service.put(newWallet(1), withMaster());
-        await service.setUnlockSessionEnabled(false);
+        await service.setUnlockTimeout("off");
 
         expect(await service.getSigningSecret(id, masterPassword)).toBe(mnemonic);
         expect(await service.isUnlocked()).toBe(false);
@@ -963,7 +970,7 @@ describe("walletsDbService", () => {
       it("isn't cleared by a read between the writes of its start", async () => {
         const service = await freshService();
         const id = await service.put(newWallet(1), withMaster());
-        await service.setUnlockSessionEnabled(true);
+        await service.setUnlockTimeout("browserRestart");
         const { storage } = await import("webextension-polyfill");
         const set = storage.session.set.bind(storage.session);
         const reads: Promise<boolean>[] = [];
@@ -1009,7 +1016,7 @@ describe("walletsDbService", () => {
         await service.moveToMasterPassword(own, password, unlocking());
         expect(await service.canUnlock()).toBe(true);
 
-        await service.setUnlockSessionEnabled(false);
+        await service.setUnlockTimeout("off");
         expect(await service.canUnlock()).toBe(false);
         await expect(service.unlock(masterPassword)).rejects.toThrow(/turned off/);
       });
@@ -1026,7 +1033,7 @@ describe("walletsDbService", () => {
       it("isn't started by a wrong master password", async () => {
         const service = await freshService();
         const id = await service.put(newWallet(1), withMaster());
-        await service.setUnlockSessionEnabled(true);
+        await service.setUnlockTimeout("browserRestart");
 
         await expect(service.getSigningSecret(id, "wrong password")).rejects.toMatchObject({
           name: "PasswordError"
@@ -1060,7 +1067,7 @@ describe("walletsDbService", () => {
       it("ends when turned off", async () => {
         const { service, id } = await unlocked();
 
-        await service.setUnlockSessionEnabled(false);
+        await service.setUnlockTimeout("off");
         expect(local.has(MASK) || session.has(MASKED)).toBe(false);
         await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
       });
@@ -1083,6 +1090,89 @@ describe("walletsDbService", () => {
         expect(local.has(MASK) || session.has(MASKED)).toBe(false);
         local.set("masterKey", record);
         await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+      });
+
+      describe("timeout", () => {
+        const HOUR = 60 * 60 * 1000;
+        const at = (elapsed: number) => vi.spyOn(Date, "now").mockReturnValue(migratedAt + elapsed);
+
+        it("lasts until the browser restarts by default", async () => {
+          const { service, id } = await unlocked();
+          expect(await service.getUnlockTimeout()).toBe("browserRestart");
+
+          at(100 * HOUR);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+        });
+
+        it("ends once idle for longer than the timeout", async () => {
+          const { service, id } = await unlocked();
+          await service.setUnlockTimeout("1h");
+
+          at(HOUR);
+          expect(await service.isUnlocked()).toBe(false);
+          expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("counts minute timeouts", async () => {
+          const { service, id } = await unlocked();
+          await service.setUnlockTimeout("15m");
+
+          at(14 * 60 * 1000);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+          at(29 * 60 * 1000);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("is extended by every use", async () => {
+          const { service, id } = await unlocked();
+          await service.setUnlockTimeout("1h");
+
+          expect(alarmsSet.get("unlockSession:expiry")).toBe(migratedAt + HOUR);
+          at(0.75 * HOUR);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+          expect(alarmsSet.get("unlockSession:expiry")).toBe(migratedAt + 1.75 * HOUR);
+          at(1.5 * HOUR);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+          at(2.5 * HOUR);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("ends right away when set below the time already idle", async () => {
+          const { service, id } = await unlocked();
+
+          at(2 * HOUR);
+          await service.setUnlockTimeout("4h");
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+
+          at(3 * HOUR);
+          await service.setUnlockTimeout("1h");
+          expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("is cleared when expired", async () => {
+          const { service } = await unlocked();
+          await service.setUnlockTimeout("4h");
+
+          at(3 * HOUR);
+          await service.expireSession();
+          expect(await service.isUnlocked()).toBe(true);
+
+          at(4 * HOUR);
+          await service.expireSession();
+          expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+          expect(alarmsSet.size).toBe(0);
+        });
+
+        it("refuses the system lock where it can't be detected", async () => {
+          const { service, id } = await unlocked();
+
+          await expect(service.setUnlockTimeout("systemLock")).rejects.toThrow(/system lock/);
+          expect(await service.getUnlockTimeout()).toBe("browserRestart");
+          await service.onSystemLock();
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+        });
       });
 
       it("ends when its halves don't belong together", async () => {

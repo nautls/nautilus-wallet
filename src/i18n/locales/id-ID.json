@@ -424,7 +424,12 @@
       "masterReset": "Kata sandi utama diatur ulang",
       "masterResetFailed": "Gagal mengatur ulang kata sandi utama",
       "unlockSession": "Tetap terbuka",
-      "unlockSessionDesc": "Ketik kata sandi utama sekali, lalu tanda tangani tanpanya sampai browser ditutup. Menampilkan frasa pemulihan atau mengubah kata sandi tetap memintanya."
+      "unlockSessionDesc": "Tanda tangani tanpa mengetik ulang kata sandi utama. Setiap tanda tangan memulai ulang penghitung waktu.",
+      "timeoutOff": "Nonaktif",
+      "timeoutMinutes": "{count} menit",
+      "timeoutHours": "{count} jam",
+      "timeoutSystemLock": "Sampai sistem dikunci",
+      "timeoutBrowserRestart": "Sampai browser dimulai ulang"
     }
   },
   "about": {

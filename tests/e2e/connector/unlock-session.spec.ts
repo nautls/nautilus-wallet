@@ -8,8 +8,7 @@ import type { Popup } from "../pages/popup";
 const masterPassword = WALLET_A.password;
 
 async function setStayUnlocked(popup: Popup, on: boolean) {
-  await popup.goto("/settings");
-  await popup.setSwitch("#unlock-session", on);
+  await popup.setUnlockTimeout(on ? "Until the browser restarts" : "Off");
 }
 
 async function signWithPassword(win: Page, password: string) {
@@ -93,6 +92,65 @@ test.describe("unlock session", () => {
     await expect(afterChange.win.getByRole("textbox", { name: "Master password" })).toBeVisible();
     await signWithPassword(afterChange.win, newMaster);
     expect((await afterChange.result).ok).toBe(true);
+  });
+
+  test("offers the timeouts and keeps the chosen one", async ({ popup }) => {
+    const page = popup.page;
+    const select = page.locator("#unlock-session");
+    await popup.goto("/settings");
+    await expect(select).toHaveText("Until the browser restarts");
+
+    await select.click();
+    await expect(page.getByRole("option")).toHaveText([
+      "Off",
+      "5 minutes",
+      "15 minutes",
+      "30 minutes",
+      "1 hour",
+      "4 hours",
+      "Until the system locks",
+      "Until the browser restarts"
+    ]);
+    await page.getByRole("option", { name: "15 minutes" }).click();
+    await expect(select).toHaveText("15 minutes");
+
+    await page.reload();
+    await popup.goto("/settings");
+    await expect(select).toHaveText("15 minutes");
+  });
+
+  test("locks once idle for longer than the timeout, counted from the last signature", async ({
+    context,
+    dapp,
+    chain,
+    popup
+  }) => {
+    const minutes = (n: number) => n * 60 * 1000;
+    let now = Date.now();
+    await context.clock.install({ time: now });
+    const advance = (ms: number) => context.clock.setSystemTime((now += ms));
+    const passwordField = (win: Page) => win.getByRole("textbox", { name: "Master password" });
+
+    await popup.setUnlockTimeout("5 minutes");
+
+    const unlock = await requestSignature(context, dapp, await buildTransaction(chain, WALLET_A));
+    await signWithPassword(unlock.win, masterPassword);
+    expect((await unlock.result).ok).toBe(true);
+
+    for (const step of [4, 4]) {
+      await advance(minutes(step));
+      const req = await requestSignature(context, dapp, await buildTransaction(chain, WALLET_A));
+      await expect(req.win.getByRole("button", { name: "Sign" })).toBeVisible();
+      await expect(passwordField(req.win)).toHaveCount(0);
+      await clickToClose(req.win.getByRole("button", { name: "Sign" }));
+      expect((await req.result).ok).toBe(true);
+    }
+
+    await advance(minutes(6));
+    const expired = await requestSignature(context, dapp, await buildTransaction(chain, WALLET_A));
+    await expect(passwordField(expired.win)).toBeVisible();
+    await signWithPassword(expired.win, masterPassword);
+    expect((await expired.result).ok).toBe(true);
   });
 
   test("is locked and unlocked from the wallet switcher", async ({

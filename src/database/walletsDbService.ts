@@ -20,13 +20,18 @@ import { log } from "@/common/logger";
 import { dbContext } from "@/database/dbContext";
 import {
   clearUnlockSession,
+  endUnlockSessionOnSystemLock,
+  expireUnlockSession,
+  getUnlockTimeout,
   isUnlockSessionChange,
   isUnlockSessionEnabled,
   isUnlockSettingChange,
   isUnlockSessionSupported,
   readUnlockSession,
-  setUnlockSessionEnabled,
-  startUnlockSession
+  setUnlockTimeout,
+  startUnlockSession,
+  touchUnlockSession,
+  UnlockTimeout
 } from "@/database/unlockSession";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
@@ -167,9 +172,21 @@ class WalletsDbService {
     return isUnlockSessionEnabled();
   }
 
-  /** Turning it off ends the current session. */
-  public setUnlockSessionEnabled(enabled: boolean): Promise<void> {
-    return withLock(() => setUnlockSessionEnabled(enabled));
+  public getUnlockTimeout(): Promise<UnlockTimeout> {
+    return getUnlockTimeout();
+  }
+
+  /** Turning it off ends the session, and so does a timeout shorter than its idle time. */
+  public setUnlockTimeout(timeout: UnlockTimeout): Promise<void> {
+    return withLock(() => setUnlockTimeout(timeout));
+  }
+
+  public expireSession(): Promise<void> {
+    return withLock(() => expireUnlockSession());
+  }
+
+  public onSystemLock(): Promise<void> {
+    return withLock(() => endUnlockSessionOnSystemLock());
   }
 
   /** Calls `listener` when the session may have started or ended, in any page. */
@@ -483,13 +500,17 @@ async function sessionMasterKey(record: MasterKeyRecord): Promise<MasterKey> {
   const halves = await readSession(record);
   if (!halves) throw new SessionLockedError();
 
+  let masterKey: MasterKey;
   try {
-    return await joinMasterKeyHalves(halves);
+    masterKey = await joinMasterKeyHalves(halves);
   } catch (e) {
     log.error(e);
     await clearUnlockSession();
     throw new SessionLockedError();
   }
+
+  await touchUnlockSession().catch((e) => log.error("failed to extend the session", e));
+  return masterKey;
 }
 
 /**

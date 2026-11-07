@@ -423,7 +423,12 @@
       "masterReset": "Master-Passwort zurückgesetzt",
       "masterResetFailed": "Master-Passwort konnte nicht zurückgesetzt werden",
       "unlockSession": "Entsperrt bleiben",
-      "unlockSessionDesc": "Gib das Master-Passwort einmal ein und signiere danach ohne es, bis der Browser geschlossen wird. Zum Anzeigen einer Wiederherstellungsphrase oder Ändern eines Passworts wird es weiterhin abgefragt."
+      "unlockSessionDesc": "Signiere ohne erneute Eingabe des Master-Passworts. Jede Signatur startet den Timer neu.",
+      "timeoutOff": "Aus",
+      "timeoutMinutes": "{count} Minute | {count} Minuten",
+      "timeoutHours": "{count} Stunde | {count} Stunden",
+      "timeoutSystemLock": "Bis das System gesperrt wird",
+      "timeoutBrowserRestart": "Bis der Browser neu startet"
     }
   },
   "about": {

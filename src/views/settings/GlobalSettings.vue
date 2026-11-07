@@ -41,6 +41,7 @@ import { cn } from "@/common/utils";
 import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/i18n";
 import { validUrl } from "@/validators";
 import MasterPasswordSettings from "./MasterPasswordSettings.vue";
+import UnlockSessionSettings from "./UnlockSessionSettings.vue";
 
 const app = useAppStore();
 const { t } = useI18n();
@@ -277,6 +278,7 @@ const { r$ } = useRegle(
     </Card>
 
     <MasterPasswordSettings />
+    <UnlockSessionSettings />
 
     <Card class="flex flex-col gap-4 p-6">
       <div class="flex items-center justify-between gap-4">

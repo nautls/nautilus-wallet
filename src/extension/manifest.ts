@@ -59,7 +59,8 @@ export function buildManifest(
       "storage",
       "unlimitedStorage",
       "tabs",
-      ...(browser === "chrome" ? ["sidePanel"] : [])
+      "alarms",
+      ...(browser === "chrome" ? ["sidePanel", "idle"] : [])
     ],
     action: {
       default_popup: r("popup/index.html"),
