@@ -826,6 +826,24 @@ describe("walletsDbService", () => {
         expect(await service.getMasterPasswordUsage()).toEqual({ used: 0, total: 1 });
       });
 
+      it("notifies password kind changes of the watched wallet only", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        const other = await service.put(newWallet(2), withMaster());
+        const listener = vi.fn();
+        const unsubscribe = service.onPasswordKindChange(id, listener);
+
+        await service.moveToOwnPassword(other, masterPassword, password);
+        expect(listener).not.toHaveBeenCalled();
+
+        await service.moveToOwnPassword(id, masterPassword, password);
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        await service.moveToMasterPassword(id, password, unlocking());
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+
       it("refuses moves to where the wallet already is", async () => {
         const service = await freshService();
         const onMaster = await service.put(newWallet(1), withMaster());
