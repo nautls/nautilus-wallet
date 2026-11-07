@@ -97,7 +97,13 @@
       "noWalletsFound": "Tidak ada dompet ditemukan.",
       "newWallet": "Dompet baru",
       "settings": "Pengaturan",
-      "about": "Tentang"
+      "about": "Tentang",
+      "showBalances": "Tampilkan saldo",
+      "hideBalances": "Sembunyikan saldo",
+      "lightMode": "Beralih ke mode terang",
+      "darkMode": "Beralih ke mode gelap",
+      "openSidePanel": "Buka di panel samping",
+      "openPopup": "Buka di popup"
     }
   },
   "asset": {
@@ -211,6 +217,12 @@
     "masterPasswordNotRecoverable": "Kata sandi ini tidak dapat dipulihkan. Jika Anda lupa, Anda memerlukan frasa pemulihan setiap dompet yang menggunakannya.",
     "walletPasswordNotRecoverable": "Kata sandi ini tidak dapat dipulihkan. Jika Anda lupa, Anda memerlukan frasa pemulihan dompet ini.",
     "masterPasswordUnlockDesc": "Masukkan kata sandi utama Anda untuk menambahkan dompet ini.",
+    "sessionLocked": "Sesi berakhir",
+    "lock": "Kunci",
+    "unlock": "Buka kunci",
+    "unlockTitle": "Buka kunci Nautilus",
+    "unlockDesc": "Masukkan kata sandi utama Anda untuk membuka kunci dompet Anda.",
+    "unlockFailed": "Gagal membuka kunci sesi",
     "minPasswordLength": "Kata sandi harus terdiri dari minimal {min} karakter.",
     "passwordsDontMatch": "Kata sandi tidak cocok.",
     "password": "Kata sandi",
@@ -410,7 +422,9 @@
       "resetMaster": "Atur ulang kata sandi utama?",
       "resetMasterDesc": "Tidak ada dompet yang menggunakannya, jadi tidak ada yang hilang. Anda dapat mengatur yang baru setelahnya.",
       "masterReset": "Kata sandi utama diatur ulang",
-      "masterResetFailed": "Gagal mengatur ulang kata sandi utama"
+      "masterResetFailed": "Gagal mengatur ulang kata sandi utama",
+      "unlockSession": "Tetap terbuka",
+      "unlockSessionDesc": "Ketik kata sandi utama sekali, lalu tanda tangani tanpanya sampai browser ditutup. Menampilkan frasa pemulihan atau mengubah kata sandi tetap memintanya."
     }
   },
   "about": {
