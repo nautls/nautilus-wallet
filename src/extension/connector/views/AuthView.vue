@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRegle } from "@regle/core";
-import { requiredUnless, withMessage } from "@regle/rules";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -36,16 +35,11 @@ const prompt = usePasswordPrompt(
 
 const isReadonly = computed(() => wallet.type === "readonly");
 const isLedger = computed(() => wallet.type === "ledger");
-const skipsPassword = computed(() => isLedger.value || prompt.unlocked);
 
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 const { r$ } = useRegle(
   { password },
-  {
-    password: {
-      required: withMessage(requiredUnless(skipsPassword), () => prompt.required)
-    }
-  },
+  { password: { required: prompt.requiredRule(() => isLedger.value) } },
   { autoDirty: false, lazy: true }
 );
 

@@ -1,5 +1,5 @@
 import { computed, MaybeRefOrGetter, reactive, Ref, ref, toValue, watch } from "vue";
-import { withMessage, withParams } from "@regle/rules";
+import { requiredUnless, withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@/components/ui/toast";
 import { PasswordError, SessionLockedError } from "@/common/errors";
@@ -100,6 +100,12 @@ export function usePasswordPrompt(
   const unlocked = computed(() => kind.value === "master" && session.active.value);
   const reload = () => Promise.all([reloadKind(), session.reload()]);
 
+  /** Requires the password, unless the unlock session covers it or `skips` is true. */
+  function requiredRule(skips: () => boolean = () => false) {
+    const skipped = computed(() => unlocked.value || skips());
+    return withMessage(requiredUnless(skipped), () => texts.required(kind.value));
+  }
+
   /** What to sign with: the typed password, or nothing for the unlock session to stand in. */
   function passwordOrSession(password: string): string | undefined {
     return unlocked.value ? undefined : password;
@@ -134,6 +140,7 @@ export function usePasswordPrompt(
     reload,
     unlocked,
     passwordOrSession,
+    requiredRule,
     handleError,
     label: computed(() => texts.label(kind.value)),
     required: computed(() => texts.required(kind.value)),
