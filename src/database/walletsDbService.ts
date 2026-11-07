@@ -192,6 +192,11 @@ class WalletsDbService {
     );
   }
 
+  /** Calls `listener` when {@link getPasswordKind} may have changed for `id`, in any page. */
+  public onPasswordKindChange(id: number, listener: () => void): () => void {
+    return subscribe((changes, area) => area === "local" && secretKey(id) in changes, listener);
+  }
+
   public async getPasswordKind(id: number): Promise<PasswordKind | undefined> {
     const encrypted = await readSecret(id);
     if (!encrypted) return;

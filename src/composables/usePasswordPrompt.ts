@@ -3,23 +3,33 @@ import { withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@/components/ui/toast";
 import { PasswordError, SessionLockedError } from "@/common/errors";
+import { log } from "@/common/logger";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 import { useUnlockSession } from "./useUnlockSession";
 
 export function usePasswordKind(walletId: MaybeRefOrGetter<number | undefined>) {
   const kind = ref<PasswordKind>();
+  let latest = 0;
 
   /** Reads which password the wallet uses again, such as after a move. */
   async function reload() {
+    const call = ++latest;
     const id = toValue(walletId);
-    kind.value = undefined;
-    if (!id) return;
-
-    const loaded = await walletsDbService.getPasswordKind(id);
-    if (toValue(walletId) === id) kind.value = loaded;
+    const loaded = id ? await walletsDbService.getPasswordKind(id) : undefined;
+    if (call === latest) kind.value = loaded;
   }
 
-  watch(() => toValue(walletId), reload, { immediate: true });
+  const logged = () => void reload().catch((e) => log.error(e));
+
+  watch(
+    () => toValue(walletId),
+    (id, _, onCleanup) => {
+      kind.value = undefined;
+      logged();
+      if (id) onCleanup(walletsDbService.onPasswordKindChange(id, logged));
+    },
+    { immediate: true }
+  );
 
   return { kind, reload };
 }
