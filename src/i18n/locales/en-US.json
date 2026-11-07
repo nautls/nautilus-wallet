@@ -97,7 +97,13 @@
       "noWalletsFound": "No wallets found.",
       "newWallet": "New wallet",
       "settings": "Settings",
-      "about": "About"
+      "about": "About",
+      "showBalances": "Show balances",
+      "hideBalances": "Hide balances",
+      "lightMode": "Switch to light mode",
+      "darkMode": "Switch to dark mode",
+      "openSidePanel": "Open in side panel",
+      "openPopup": "Open in popup"
     }
   },
   "asset": {
@@ -211,6 +217,12 @@
     "masterPasswordNotRecoverable": "This password can't be recovered. If you forget it, you'll need the recovery phrase of every wallet that uses it.",
     "walletPasswordNotRecoverable": "This password can't be recovered. If you forget it, you'll need this wallet's recovery phrase.",
     "masterPasswordUnlockDesc": "Enter your master password to add this wallet.",
+    "sessionLocked": "Session ended",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "unlockTitle": "Unlock Nautilus",
+    "unlockDesc": "Enter your master password to unlock your wallets.",
+    "unlockFailed": "Failed to unlock session",
     "minPasswordLength": "Password must be at least {min} characters long.",
     "passwordsDontMatch": "Passwords don't match.",
     "password": "Password",
@@ -410,7 +422,9 @@
       "resetMaster": "Reset master password?",
       "resetMasterDesc": "No wallet uses it, so nothing is lost. You can set up a new one afterwards.",
       "masterReset": "Master password reset",
-      "masterResetFailed": "Failed to reset the master password"
+      "masterResetFailed": "Failed to reset the master password",
+      "unlockSession": "Stay unlocked",
+      "unlockSessionDesc": "Type the master password once, then sign without it until the browser closes. Showing a recovery phrase or changing a password still asks for it."
     }
   },
   "about": {

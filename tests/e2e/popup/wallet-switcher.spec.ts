@@ -58,6 +58,22 @@ test.describe("wallet switcher", () => {
     await expect(popup.page).toHaveURL(/#\/add$/);
   });
 
+  test("names its action buttons by what they do", async ({ popup }) => {
+    const page = popup.page;
+    await popup.walletSwitcher.click();
+
+    const eye = page.getByRole("button", { name: "Hide balances" });
+    await eye.hover();
+    await expect(page.getByRole("tooltip", { name: "Hide balances" })).toBeVisible();
+    await eye.click();
+    await expect(page.getByRole("button", { name: "Show balances" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Switch to dark mode" }).click();
+    await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
+    // opened as a tab rather than the browser's popup
+    await expect(page.getByRole("button", { name: "Open in popup" })).toBeVisible();
+  });
+
   test("toggles from auto to the opposite of a light system", async ({ popup }) => {
     const page = popup.page;
     await popup.walletSwitcher.click();

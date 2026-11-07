@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Mnemonic } from "@/components/wallet";
-import { PasswordError } from "@/common/errors";
+import { PasswordError, SessionLockedError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
 import { DEFAULT_WALLET_STRENGTH } from "@/constants/ergo";
@@ -209,6 +209,10 @@ async function create(needsBackup: boolean) {
   } catch (e) {
     if (e instanceof PasswordError) {
       await passwordForm.rejectPassword();
+      goToErrors("info");
+      return;
+    } else if (e instanceof SessionLockedError) {
+      await passwordForm.rejectSession();
       goToErrors("info");
       return;
     }
