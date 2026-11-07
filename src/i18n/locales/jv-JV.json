@@ -424,7 +424,12 @@
       "masterReset": "Sandi utama wis diatur maneh",
       "masterResetFailed": "Gagal ngatur maneh sandi utama",
       "unlockSession": "Tetep kabukak",
-      "unlockSessionDesc": "Ketik sandi utama sepisan, banjur tandha tangani tanpa sandi nganti browser ditutup. Nuduhake frasa pemulihan utawa ngganti sandi tetep njaluk sandi."
+      "unlockSessionDesc": "Tandha tangani tanpa ngetik maneh sandi utama. Saben tandha tangan miwiti maneh wektune.",
+      "timeoutOff": "Mati",
+      "timeoutMinutes": "{count} menit",
+      "timeoutHours": "{count} jam",
+      "timeoutSystemLock": "Nganti sistem dikunci",
+      "timeoutBrowserRestart": "Nganti browser diwiwiti maneh"
     }
   },
   "about": {

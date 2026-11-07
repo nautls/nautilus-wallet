@@ -147,8 +147,20 @@ export class Popup {
   }
 
   async selectWalletType(type: "Standard" | "Read-only") {
-    await this.page.locator("#wallet-type").click();
-    await this.page.getByRole("option", { name: type }).click();
+    await this.selectOption("#wallet-type", type);
+  }
+
+  async setUnlockTimeout(label: string) {
+    await this.goto("/settings");
+    await this.selectOption("#unlock-session", label);
+  }
+
+  /** Picks the option labelled `name` in the select matching `selector`. */
+  async selectOption(selector: string, name: string) {
+    const trigger = this.page.locator(selector);
+    await trigger.click();
+    await this.page.getByRole("option", { name, exact: true }).click();
+    await expect(trigger).toHaveText(name);
   }
 
   /** Reads the words rendered by the non-editable mnemonic grid. */

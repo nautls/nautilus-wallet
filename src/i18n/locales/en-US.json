@@ -424,7 +424,12 @@
       "masterReset": "Master password reset",
       "masterResetFailed": "Failed to reset the master password",
       "unlockSession": "Stay unlocked",
-      "unlockSessionDesc": "Type the master password once, then sign without it until the browser closes. Showing a recovery phrase or changing a password still asks for it."
+      "unlockSessionDesc": "Sign without retyping the master password. Every signature restarts the timer.",
+      "timeoutOff": "Off",
+      "timeoutMinutes": "{count} minute | {count} minutes",
+      "timeoutHours": "{count} hour | {count} hours",
+      "timeoutSystemLock": "Until the system locks",
+      "timeoutBrowserRestart": "Until the browser restarts"
     }
   },
   "about": {

@@ -281,9 +281,7 @@ describe("keystore", () => {
       const flip = (h: string) => (h[0] === "0" ? "1" : "0") + h.slice(1);
 
       await expect(joinMasterKeyHalves({ ...halves, mask: flip(halves.mask) })).rejects.toThrow();
-      await expect(
-        joinMasterKeyHalves({ ...halves, key: flip(halves.key) })
-      ).rejects.toThrow();
+      await expect(joinMasterKeyHalves({ ...halves, key: flip(halves.key) })).rejects.toThrow();
       await expect(joinMasterKeyHalves({ ...halves, mask: "00" })).rejects.toThrow();
     });
 

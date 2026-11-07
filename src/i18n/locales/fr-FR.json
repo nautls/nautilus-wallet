@@ -423,7 +423,12 @@
       "masterReset": "Mot de passe principal réinitialisé",
       "masterResetFailed": "Échec de la réinitialisation du mot de passe principal",
       "unlockSession": "Rester déverrouillé",
-      "unlockSessionDesc": "Saisissez le mot de passe principal une fois, puis signez sans lui jusqu'à la fermeture du navigateur. Il reste demandé pour afficher une phrase de récupération ou changer un mot de passe."
+      "unlockSessionDesc": "Signez sans ressaisir le mot de passe principal. Chaque signature relance le délai.",
+      "timeoutOff": "Désactivé",
+      "timeoutMinutes": "{count} minute | {count} minutes",
+      "timeoutHours": "{count} heure | {count} heures",
+      "timeoutSystemLock": "Jusqu'au verrouillage du système",
+      "timeoutBrowserRestart": "Jusqu'au redémarrage du navigateur"
     }
   },
   "about": {
