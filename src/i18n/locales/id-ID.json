@@ -169,7 +169,7 @@
       "assets": "Aset",
       "addAllAssets": "Tambahkan semua aset",
       "addAllAssetsDesc": "Tambahkan semua aset ke daftar pengiriman.",
-      "minNamedAssetError": "Anda memerlukan setidaknya {min} {aset} untuk mengirim transaksi ini.",
+      "minNamedAssetError": "Anda memerlukan setidaknya {min} {asset} untuk mengirim transaksi ini.",
       "requiredAmountError": "Silakan masukkan jumlah.",
       "minFeeError": "Anda perlu membayar biaya minimum {min} {name} untuk mengirim transaksi ini.",
       "emptyAddressError": "Silakan masukkan alamat penerima.",
