@@ -45,7 +45,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       await expect(win.getByRole("heading", { name: "Selected address" })).toBeVisible();
       await expect(win.getByText(address)).toBeVisible();
 
-      await win.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await clickToClose(win.getByRole("button", { name: "Authenticate" }));
 
       const outcome = await result;
@@ -67,7 +67,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       });
 
       await win.getByRole("button", { name: "Authenticate" }).click();
-      await expect(win.getByText("Please enter your spending password.")).toBeVisible();
+      await expect(win.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
 
       await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });

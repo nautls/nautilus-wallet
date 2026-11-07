@@ -17,7 +17,7 @@ async function fillSendForm(popup: Popup, recipient: string, ergAmount?: string)
 
 async function signInDrawer(popup: Popup, password: string) {
   const drawer = reviewDrawer(popup.page);
-  await drawer.getByRole("textbox", { name: "Spending password" }).fill(password);
+  await drawer.getByRole("textbox", { name: / password$/ }).fill(password);
   await drawer.getByRole("button", { name: "Sign" }).click();
 }
 
@@ -155,7 +155,7 @@ test.describe("send", () => {
     await page.getByRole("button", { name: "Send", exact: true }).click();
 
     await signInDrawer(popup, "wrong password");
-    await expect(popup.toast("Wrong password")).toBeVisible();
+    await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
     await expect(reviewDrawer(page)).toBeVisible();
 
     await signInDrawer(popup, WALLET_A.password);

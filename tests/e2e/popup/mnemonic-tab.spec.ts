@@ -3,7 +3,7 @@ import { expect, test } from "../fixtures/test";
 test.describe("mnemonic word input", () => {
   test.beforeEach(async ({ popup }) => {
     await popup.goto("/add/import");
-    await popup.fillWalletInfo("Tab", "1234567890");
+    await popup.fillWalletInfo("Tab", "correct horse battery");
     await popup.page.getByRole("button", { name: "Insert a recovery phrase" }).click();
   });
 

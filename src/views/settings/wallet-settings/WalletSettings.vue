@@ -21,12 +21,14 @@ import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { MnemonicBackupDialog } from "@/components/wallet";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
-import ChangePasswordDialog from "./ChangePasswordDialog.vue";
+import { usePasswordKind } from "@/composables/usePasswordPrompt";
+import PasswordDialog from "../PasswordDialog.vue";
 import ExportPublicKeyDialog from "./ExportPublicKeyDialog.vue";
 
 const wallet = useWalletStore();
@@ -34,11 +36,21 @@ const app = useAppStore();
 const { t } = useI18n();
 const { toast } = useToast();
 
+const { kind: passwordKind, reload: reloadPasswordKind } = usePasswordKind(() => wallet.id);
+
 const { open: openPublicKeyDialog } = useProgrammaticDialog(ExportPublicKeyDialog);
-const { open: openChangePasswordDialog } = useProgrammaticDialog(ChangePasswordDialog);
+const { open: openPasswordDialog } = useProgrammaticDialog(PasswordDialog, {
+  action: "change",
+  onDone: reloadPasswordKind
+});
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
 const isStandard = computed(() => wallet.type === "standard");
+
+function switchPassword(kind: unknown) {
+  if (kind === passwordKind.value) return;
+  openPasswordDialog({ action: kind === "master" ? "toMaster" : "toOwn" });
+}
 
 const walletName = ref(wallet.name);
 
@@ -107,6 +119,36 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
+    <Card v-if="isStandard && passwordKind" class="flex flex-col gap-4 p-6">
+      <Label class="flex flex-col items-start gap-1"
+        >{{ t("wallet.spendingPassword") }}
+        <div class="text-muted-foreground text-xs font-normal hyphens-auto">
+          {{ t("settings.wallet.spendingPasswordDesc") }}
+        </div></Label
+      >
+      <Tabs
+        :model-value="passwordKind"
+        activation-mode="manual"
+        @update:model-value="switchPassword"
+      >
+        <TabsList class="flex h-auto w-full">
+          <TabsTrigger value="master" class="min-w-0 flex-1 basis-0 py-1.5">{{
+            t("settings.password.master")
+          }}</TabsTrigger>
+          <TabsTrigger value="password" class="min-w-0 flex-1 basis-0 py-1.5">{{
+            t("settings.password.own")
+          }}</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <Button
+        v-if="passwordKind === 'password'"
+        variant="outline"
+        class="w-full"
+        @click="openPasswordDialog({ action: 'change' })"
+        >{{ t("settings.password.changePassword") }}</Button
+      >
+    </Card>
+
     <Card class="grid grid-cols-[1fr_auto] gap-4 p-6">
       <div class="col-span-2 grid grid-cols-subgrid items-center">
         <Label class="flex flex-col items-start gap-1"
@@ -117,18 +159,6 @@ const { r$ } = useRegle(
         >
         <Button variant="outline" class="w-full" @click="openPublicKeyDialog">{{
           t("common.export")
-        }}</Button>
-      </div>
-
-      <div v-if="isStandard" class="col-span-2 grid grid-cols-subgrid items-center">
-        <Label class="flex flex-col items-start gap-1"
-          >{{ t("wallet.spendingPassword") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.spendingPasswordDesc") }}
-          </div></Label
-        >
-        <Button variant="outline" class="w-full" @click="openChangePasswordDialog">{{
-          t("common.change")
         }}</Button>
       </div>
 

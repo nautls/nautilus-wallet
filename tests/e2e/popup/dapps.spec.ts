@@ -48,7 +48,7 @@ test.describe("dApps", () => {
       await info.getByRole("button", { name: "Close", exact: true }).first().click();
       await expect(info).toBeHidden();
 
-      await drawer.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
       await expect(popup.toast("Transaction sent!")).toBeVisible();
 
@@ -131,7 +131,7 @@ test.describe("dApps", () => {
       await page.getByRole("button", { name: "Burn", exact: true }).click();
 
       const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
-      const password = drawer.getByRole("textbox", { name: "Spending password" });
+      const password = drawer.getByRole("textbox", { name: / password$/ });
       await expect(drawer.getByText("Burning")).toBeVisible();
       // signing is blocked until the user agrees to burn the tokens
       await expect(password).toBeDisabled();
@@ -209,7 +209,7 @@ test.describe("dApps", () => {
         await page.getByRole("button", { name: "Burn", exact: true }).click();
         const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
         await drawer.getByLabel("Burn tokens permanently").click();
-        await drawer.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+        await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
         await drawer.getByRole("button", { name: "Sign" }).click();
         await expect(popup.toast("Transaction sent!")).toBeVisible();
 
@@ -240,7 +240,7 @@ test.describe("dApps", () => {
 
       const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
       await expect(drawer.getByText("Sending to your address").first()).toBeVisible();
-      await drawer.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
       await expect(popup.toast("Transaction sent!")).toBeVisible();
 
@@ -290,7 +290,7 @@ test.describe("dApps", () => {
 
       const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
       await expect(drawer.getByText("Sending to contract").first()).toBeVisible();
-      await drawer.getByRole("textbox", { name: "Spending password" }).fill(WALLET_A.password);
+      await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
       await expect(popup.toast("Transaction sent!")).toBeVisible();
 
