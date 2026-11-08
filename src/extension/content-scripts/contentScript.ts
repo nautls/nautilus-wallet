@@ -70,7 +70,24 @@ function pick<T, K extends keyof T>(data: T, keys: K[]): Pick<T, K> {
   return picked;
 }
 
+/**
+ * webext-bridge binds the page's messaging port to the first offer it sees, from any
+ * window, so a parent or opener page could take the channel and speak as this origin.
+ * Drops offers that don't come from this frame before the bridge's own listener runs.
+ */
+function dropForeignPortOffers() {
+  window.addEventListener(
+    "message",
+    (event) => {
+      if (event.source === window || event.data?.cmd !== "webext-port-offer") return;
+      event.stopImmediatePropagation();
+    },
+    { capture: true }
+  );
+}
+
 (() => {
+  dropForeignPortOffers();
   if (!injectScript()) return;
 
   allowWindowMessaging(buildNamespaceFor(location.origin));
