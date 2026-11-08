@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { signAuthMessage } from "@/chains/ergo/signing";
+import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
@@ -32,6 +33,7 @@ const prompt = usePasswordPrompt(
   () => walletId.value,
   () => wallet.name
 );
+const activated = useActivationDelay(request);
 
 const isReadonly = computed(() => wallet.type === "readonly");
 const isLedger = computed(() => wallet.type === "ledger");
@@ -155,7 +157,7 @@ function refuse() {
 
     <div class="flex flex-row gap-4">
       <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-      <Button class="flex-2" :disabled="isReadonly || isLedger" @click="authenticate">
+      <Button class="flex-2" :disabled="isReadonly || isLedger || !activated" @click="authenticate">
         {{ t("common.authenticate") }}
       </Button>
     </div>
