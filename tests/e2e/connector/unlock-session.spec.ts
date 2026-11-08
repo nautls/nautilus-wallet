@@ -38,6 +38,38 @@ test.describe("unlock session", () => {
     expect((await second.result).ok).toBe(true);
   });
 
+  test("takes no click on Sign until the window has been in front for a second", async ({
+    context,
+    dapp,
+    chain
+  }) => {
+    const first = await requestSignature(context, dapp, await buildTransaction(chain, WALLET_A));
+    await signWithPassword(first.win, masterPassword);
+    expect((await first.result).ok).toBe(true);
+
+    const { win, result } = await requestSignature(
+      context,
+      dapp,
+      await buildTransaction(chain, WALLET_A)
+    );
+    const sign = win.getByRole("button", { name: "Sign" });
+    await expect(sign).toBeEnabled();
+
+    await win.evaluate(() => window.dispatchEvent(new Event("blur")));
+    await expect(sign).toBeDisabled();
+
+    const disabledOnFocus = await sign.evaluate(async (button: HTMLButtonElement) => {
+      window.dispatchEvent(new Event("focus"));
+      await new Promise((resolve) => setTimeout(resolve));
+      return button.disabled;
+    });
+    expect(disabledOnFocus).toBe(true);
+
+    await expect(sign).toBeEnabled();
+    await clickToClose(sign);
+    expect((await result).ok).toBe(true);
+  });
+
   test("keeps asking while turned off", async ({ context, dapp, chain, popup }) => {
     await setStayUnlocked(popup, false);
     const first = await requestSignature(context, dapp, await buildTransaction(chain, WALLET_A));

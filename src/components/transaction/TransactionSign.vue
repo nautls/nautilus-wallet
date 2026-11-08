@@ -28,6 +28,7 @@ import { signTransaction } from "@/chains/ergo/signing";
 import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transaction/interpreter";
 import { log } from "@/common/logger";
 import { cn, extractErrorMessage } from "@/common/utils";
+import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { useFormat } from "@/composables";
 import { TransactionEntry } from ".";
@@ -61,6 +62,7 @@ const prompt = usePasswordPrompt(
   () => wallet.id,
   () => wallet.name
 );
+const activated = useActivationDelay(() => props.transaction);
 const assets = useAssetsStore();
 const format = useFormat();
 
@@ -319,7 +321,7 @@ const { r$ } = useRegle(
         @click="emit('refused')"
         >{{ t("common.cancel") }}</Button
       >
-      <Button class="flex-2" :disabled="loading || signing || !canSign" @click="sign">
+      <Button class="flex-2" :disabled="loading || signing || !canSign || !activated" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>{{ t("common.sign") }}</template>
       </Button>

@@ -16,6 +16,7 @@ import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { JsonViewer } from "@/components/ui/json-viewer";
 import { signMessage } from "@/chains/ergo/signing";
+import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
@@ -36,6 +37,7 @@ const prompt = usePasswordPrompt(
   () => walletId.value,
   () => wallet.name
 );
+const activated = useActivationDelay(request);
 const messageData = ref<string | JsonObject>();
 const messageType = ref<string>();
 const encodedMessage = ref<string>();
@@ -199,7 +201,7 @@ function refuse() {
 
       <div class="flex flex-row gap-4">
         <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-        <Button class="flex-2" :disabled="isReadonly || isLedger" @click="sign">{{
+        <Button class="flex-2" :disabled="isReadonly || isLedger || !activated" @click="sign">{{
           t("common.sign")
         }}</Button>
       </div>
