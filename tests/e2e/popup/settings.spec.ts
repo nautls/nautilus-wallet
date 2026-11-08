@@ -246,6 +246,29 @@ test.describe("settings", () => {
       await expect(drawer).toBeHidden();
     });
 
+    test("opens password drawers without required errors", async ({ popup }) => {
+      const page = popup.page;
+      const drawer = page.getByRole("dialog");
+
+      await popup.goto("/settings");
+      await page.getByRole("tab", { name: "Wallet" }).click();
+
+      // the tab opens its drawer on mousedown; the others reopen after a focused close
+      for (const opener of [
+        page.getByRole("tab", { name: "Master", exact: true }),
+        page.getByRole("button", { name: "Change password" }),
+        page.getByRole("button", { name: "Change password" }),
+        page.getByRole("button", { name: "Back up" }),
+        page.getByRole("button", { name: "Back up" })
+      ]) {
+        await opener.click();
+        await expect(drawer.locator("input").first()).toBeFocused();
+        await expect(drawer.locator("[data-form-error]")).toHaveCount(0);
+        await page.keyboard.press("Escape");
+        await expect(drawer).toBeHidden();
+      }
+    });
+
     test("changes the spending password", async ({ popup, chain }) => {
       const page = popup.page;
       const newPassword = "new spending password";
