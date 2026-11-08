@@ -1055,6 +1055,10 @@ describe("walletsDbService", () => {
 
         await expect(service.getSecret(id, "")).rejects.toMatchObject({ name: "PasswordError" });
         expect(await service.verifyMasterPassword("")).toBe(false);
+        await expect(service.moveToOwnPassword(id, "", password)).rejects.toMatchObject({
+          name: "PasswordError",
+          kind: "master"
+        });
       });
 
       it("adds wallets on the master password without it", async () => {
@@ -1062,6 +1066,26 @@ describe("walletsDbService", () => {
         const second = await service.put(newWallet(2), { value: mnemonic, by: "master" });
 
         expect(await service.getSecret(second, masterPassword)).toBe(mnemonic);
+      });
+
+      it("moves a wallet onto the master password with it, or while unlocked", async () => {
+        const { service } = await unlocked();
+        const own = await service.put(newWallet(2), { value: mnemonic, password, by: "password" });
+
+        await service.lock();
+        await expect(
+          service.moveToMasterPassword(own, password, { create: false })
+        ).rejects.toMatchObject(locked);
+        expect(await service.getPasswordKind(own)).toBe("password");
+
+        await service.unlock(masterPassword);
+        await expect(
+          service.moveToMasterPassword(own, "wrong password", { create: false })
+        ).rejects.toMatchObject({ name: "PasswordError", kind: "password" });
+        await service.moveToMasterPassword(own, password, { create: false });
+
+        expect(await service.getPasswordKind(own)).toBe("master");
+        expect(await service.getSecret(own, masterPassword)).toBe(mnemonic);
       });
 
       it("ends when turned off", async () => {

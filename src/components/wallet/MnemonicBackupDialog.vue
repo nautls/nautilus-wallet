@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef } from "vue";
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, sameAs, withMessage } from "@regle/rules";
 import { Loader2Icon } from "@lucide/vue";
@@ -181,19 +181,17 @@ function reset() {
   verificationRules.$reset();
 }
 
-function handleOpenUpdates(open: boolean) {
-  if (open) return;
+// clears on reopen too: the focused field blurs as the closed drawer unmounts, touching it again
+watch(opened, reset);
 
-  reset();
-  emit("close");
+function handleOpenUpdates(open: boolean) {
+  if (!open) emit("close");
 }
 
 function setOpened(open: boolean) {
   if (open) {
     walletId.value = wallet.id;
     reloadPasswordKind();
-  } else {
-    reset();
   }
 
   opened.value = open;

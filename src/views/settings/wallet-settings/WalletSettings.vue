@@ -49,7 +49,9 @@ const isStandard = computed(() => wallet.type === "standard");
 
 function switchPassword(kind: unknown) {
   if (kind === passwordKind.value) return;
-  openPasswordDialog({ action: kind === "master" ? "toMaster" : "toOwn" });
+  // tabs switch on mousedown, whose default action then focuses the tab: opened right
+  // away, the drawer's focused field would blur and show its required error
+  setTimeout(() => openPasswordDialog({ action: kind === "master" ? "toMaster" : "toOwn" }));
 }
 
 const walletName = ref(wallet.name);

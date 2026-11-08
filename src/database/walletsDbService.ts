@@ -298,15 +298,16 @@ class WalletsDbService {
    * Moves the wallet from its own password to the master password.
    *
    * @param master.create true to set the master password up with `master.password`,
-   * false to unlock the existing one with it.
+   * false to unlock the existing one with it, or with the unlock session when left out.
    * @throws {PasswordError} whose `kind` says which password is wrong.
+   * @throws {SessionLockedError} if `master.password` is left out and no session is active.
    * @throws {MasterPasswordChangedError} if the master password doesn't exist, or
    * already does, contrary to `master.create`.
    */
   public async moveToMasterPassword(
     id: number,
     walletPassword: string,
-    master: { password: string; create: boolean }
+    master: { password: string; create: true } | { password?: string; create: false }
   ) {
     const { wallet, encrypted: current, master: record } = await readWalletWithSecret(id);
     if (usesMaster(current)) throw Error("this wallet already uses the master password");

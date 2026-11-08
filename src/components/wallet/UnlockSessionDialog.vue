@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, useTemplateRef } from "vue";
+import { nextTick, ref, useTemplateRef, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
 import { Loader2Icon } from "@lucide/vue";
@@ -77,15 +77,14 @@ function reset() {
   r$.$reset();
 }
 
-function handleOpenUpdates(open: boolean) {
-  if (open) return;
+// clears on reopen too: the focused field blurs as the closed drawer unmounts, touching it again
+watch(opened, reset);
 
-  reset();
-  emit("close");
+function handleOpenUpdates(open: boolean) {
+  if (!open) emit("close");
 }
 
 function setOpened(open: boolean) {
-  if (!open) reset();
   opened.value = open;
 }
 
