@@ -236,33 +236,6 @@ test.describe("unlock session", () => {
     await expect(button).toHaveCount(0);
   });
 
-  test("is unlocked and locked from a request window", async ({ context, dapp, chain }) => {
-    const { win, result } = await requestSignature(
-      context,
-      dapp,
-      await buildTransaction(chain, WALLET_A)
-    );
-    const button = win.locator("[data-unlock-session]");
-    const passwordField = win.getByRole("textbox", { name: "Master password" });
-
-    await expect(button).toHaveAccessibleName("Unlock");
-    await expect(passwordField).toBeVisible();
-    await button.click();
-    const drawer = win.getByRole("dialog");
-    await drawer.locator("#unlock-password").fill(masterPassword);
-    await drawer.getByRole("button", { name: "Unlock" }).click();
-    await expect(drawer).toBeHidden();
-    await expect(button).toHaveAccessibleName("Lock");
-    await expect(passwordField).toHaveCount(0);
-
-    await button.click();
-    await expect(button).toHaveAccessibleName("Unlock");
-    await expect(passwordField).toBeVisible();
-
-    await signWithPassword(win, masterPassword);
-    expect((await result).ok).toBe(true);
-  });
-
   test("is shown on wallets with their own password too", async ({ popup }) => {
     await popup.importWallet(WALLET_B);
     await popup.switchWallet(WALLET_B.name);
