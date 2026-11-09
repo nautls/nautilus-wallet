@@ -97,7 +97,13 @@
       "noWalletsFound": "Tidak ada dompet ditemukan.",
       "newWallet": "Dompet baru",
       "settings": "Pengaturan",
-      "about": "Tentang"
+      "about": "Tentang",
+      "showBalances": "Tampilkan saldo",
+      "hideBalances": "Sembunyikan saldo",
+      "lightMode": "Beralih ke mode terang",
+      "darkMode": "Beralih ke mode gelap",
+      "openSidePanel": "Buka di panel samping",
+      "openPopup": "Buka di popup"
     }
   },
   "asset": {
@@ -163,7 +169,7 @@
       "assets": "Aset",
       "addAllAssets": "Tambahkan semua aset",
       "addAllAssetsDesc": "Tambahkan semua aset ke daftar pengiriman.",
-      "minNamedAssetError": "Anda memerlukan setidaknya {min} {aset} untuk mengirim transaksi ini.",
+      "minNamedAssetError": "Anda memerlukan setidaknya {min} {asset} untuk mengirim transaksi ini.",
       "requiredAmountError": "Silakan masukkan jumlah.",
       "minFeeError": "Anda perlu membayar biaya minimum {min} {name} untuk mengirim transaksi ini.",
       "emptyAddressError": "Silakan masukkan alamat penerima.",
@@ -211,6 +217,12 @@
     "masterPasswordNotRecoverable": "Kata sandi ini tidak dapat dipulihkan. Jika Anda lupa, Anda memerlukan frasa pemulihan setiap dompet yang menggunakannya.",
     "walletPasswordNotRecoverable": "Kata sandi ini tidak dapat dipulihkan. Jika Anda lupa, Anda memerlukan frasa pemulihan dompet ini.",
     "masterPasswordUnlockDesc": "Masukkan kata sandi utama Anda untuk menambahkan dompet ini.",
+    "sessionLocked": "Sesi berakhir",
+    "lock": "Kunci",
+    "unlock": "Buka kunci",
+    "unlockTitle": "Buka kunci Nautilus",
+    "unlockDesc": "Masukkan kata sandi utama Anda untuk membuka kunci dompet Anda.",
+    "unlockFailed": "Gagal membuka kunci sesi",
     "minPasswordLength": "Kata sandi harus terdiri dari minimal {min} karakter.",
     "passwordsDontMatch": "Kata sandi tidak cocok.",
     "password": "Kata sandi",
@@ -410,7 +422,14 @@
       "resetMaster": "Atur ulang kata sandi utama?",
       "resetMasterDesc": "Tidak ada dompet yang menggunakannya, jadi tidak ada yang hilang. Anda dapat mengatur yang baru setelahnya.",
       "masterReset": "Kata sandi utama diatur ulang",
-      "masterResetFailed": "Gagal mengatur ulang kata sandi utama"
+      "masterResetFailed": "Gagal mengatur ulang kata sandi utama",
+      "unlockSession": "Tetap terbuka",
+      "unlockSessionDesc": "Biarkan dompet dengan kata sandi utama tetap terbuka untuk menandatangani. Sesi berwaktu dimulai ulang setiap kali menandatangani.",
+      "timeoutOff": "Nonaktif",
+      "timeoutMinutes": "{count} menit",
+      "timeoutHours": "{count} jam",
+      "timeoutSystemLock": "Sampai sistem dikunci",
+      "timeoutBrowserRestart": "Sampai browser dimulai ulang"
     }
   },
   "about": {

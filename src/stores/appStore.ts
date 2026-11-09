@@ -41,7 +41,8 @@ type StandardWallet = {
   name: string;
   type: "standard";
   mnemonic: string;
-  password: string;
+  /** Leave out for the master password to use the unlock session. */
+  password?: string;
   passwordKind: PasswordKind;
   needsBackup?: boolean;
 };

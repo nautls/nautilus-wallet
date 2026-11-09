@@ -100,9 +100,15 @@ export class Popup {
   }
 
   async setUseMasterPassword(on: boolean) {
-    const toggle = this.page.locator("#use-master-password");
+    await this.setSwitch("#use-master-password", on);
+  }
+
+  /** Turns the switch matching `selector` on or off, if it isn't already. */
+  async setSwitch(selector: string, on: boolean) {
+    const toggle = this.page.locator(selector);
     await expect(toggle).toBeEnabled();
     if ((await toggle.getAttribute("aria-checked")) !== String(on)) await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-checked", String(on));
   }
 
   /** Dispatches a clipboard paste event over the current form. */
@@ -141,8 +147,20 @@ export class Popup {
   }
 
   async selectWalletType(type: "Standard" | "Read-only") {
-    await this.page.locator("#wallet-type").click();
-    await this.page.getByRole("option", { name: type }).click();
+    await this.selectOption("#wallet-type", type);
+  }
+
+  async setUnlockTimeout(label: string) {
+    await this.goto("/settings");
+    await this.selectOption("#unlock-session", label);
+  }
+
+  /** Picks the option labelled `name` in the select matching `selector`. */
+  async selectOption(selector: string, name: string) {
+    const trigger = this.page.locator(selector);
+    await trigger.click();
+    await this.page.getByRole("option", { name, exact: true }).click();
+    await expect(trigger).toHaveText(name);
   }
 
   /** Reads the words rendered by the non-editable mnemonic grid. */

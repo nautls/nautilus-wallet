@@ -97,7 +97,13 @@
       "noWalletsFound": "Nenhuma carteira encontrada.",
       "newWallet": "Nova carteira",
       "settings": "Configurações",
-      "about": "Sobre"
+      "about": "Sobre",
+      "showBalances": "Mostrar saldos",
+      "hideBalances": "Ocultar saldos",
+      "lightMode": "Mudar para o modo claro",
+      "darkMode": "Mudar para o modo escuro",
+      "openSidePanel": "Abrir no painel lateral",
+      "openPopup": "Abrir no pop-up"
     }
   },
   "asset": {
@@ -210,6 +216,12 @@
     "masterPasswordNotRecoverable": "Esta senha não pode ser recuperada. Se você esquecê-la, precisará da frase de recuperação de cada carteira que a usa.",
     "walletPasswordNotRecoverable": "Esta senha não pode ser recuperada. Se você esquecê-la, precisará da frase de recuperação desta carteira.",
     "masterPasswordUnlockDesc": "Digite sua senha mestra para adicionar esta carteira.",
+    "sessionLocked": "Sessão encerrada",
+    "lock": "Bloquear",
+    "unlock": "Desbloquear",
+    "unlockTitle": "Desbloquear o Nautilus",
+    "unlockDesc": "Digite sua senha mestra para desbloquear suas carteiras.",
+    "unlockFailed": "Falha ao desbloquear a sessão",
     "minPasswordLength": "A senha deve ter pelo menos {min} caracteres.",
     "passwordsDontMatch": "As senhas não coincidem.",
     "password": "Senha",
@@ -409,7 +421,14 @@
       "resetMaster": "Redefinir a senha mestra?",
       "resetMasterDesc": "Nenhuma carteira a usa, então nada será perdido. Você pode configurar uma nova depois.",
       "masterReset": "Senha mestra redefinida",
-      "masterResetFailed": "Falha ao redefinir a senha mestra"
+      "masterResetFailed": "Falha ao redefinir a senha mestra",
+      "unlockSession": "Manter desbloqueado",
+      "unlockSessionDesc": "Mantém as carteiras com a senha mestra desbloqueadas para assinar. Sessões com tempo limite reiniciam a cada assinatura.",
+      "timeoutOff": "Desativado",
+      "timeoutMinutes": "{count} minuto | {count} minutos",
+      "timeoutHours": "{count} hora | {count} horas",
+      "timeoutSystemLock": "Até o sistema ser bloqueado",
+      "timeoutBrowserRestart": "Até o navegador reiniciar"
     }
   },
   "about": {

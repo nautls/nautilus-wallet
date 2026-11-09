@@ -295,6 +295,7 @@ function mapLedgerOutputs(tx: UnsignedTransaction) {
   return outputs;
 }
 
-export async function getPrivateDeriver(walletId: number, password: string): Promise<HdKey> {
-  return await HdKey.fromMnemonic(await walletsDbService.getSecret(walletId, password));
+/** @param password leave out to use the unlock session. */
+export async function getPrivateDeriver(walletId: number, password?: string): Promise<HdKey> {
+  return await HdKey.fromMnemonic(await walletsDbService.getSigningSecret(walletId, password));
 }

@@ -97,7 +97,13 @@
       "noWalletsFound": "No wallets found.",
       "newWallet": "New wallet",
       "settings": "Settings",
-      "about": "About"
+      "about": "About",
+      "showBalances": "Show balances",
+      "hideBalances": "Hide balances",
+      "lightMode": "Switch to light mode",
+      "darkMode": "Switch to dark mode",
+      "openSidePanel": "Open in side panel",
+      "openPopup": "Open in popup"
     }
   },
   "asset": {
@@ -133,7 +139,6 @@
       "default": "Default address"
     },
     "receive": {
-      "": "Avoid sending more than {count} tokens in a single transaction to this wallet. Limited device memory could cause your funds to become inaccessible.",
       "verifyOnLedger": "Verify on the Ledger device",
       "newAddressError": "Address generation failed",
       "newAddressErrorFallbackMessage": "Unable to generate a new address."
@@ -211,6 +216,12 @@
     "masterPasswordNotRecoverable": "This password can't be recovered. If you forget it, you'll need the recovery phrase of every wallet that uses it.",
     "walletPasswordNotRecoverable": "This password can't be recovered. If you forget it, you'll need this wallet's recovery phrase.",
     "masterPasswordUnlockDesc": "Enter your master password to add this wallet.",
+    "sessionLocked": "Session ended",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "unlockTitle": "Unlock Nautilus",
+    "unlockDesc": "Enter your master password to unlock your wallets.",
+    "unlockFailed": "Failed to unlock session",
     "minPasswordLength": "Password must be at least {min} characters long.",
     "passwordsDontMatch": "Passwords don't match.",
     "password": "Password",
@@ -410,7 +421,14 @@
       "resetMaster": "Reset master password?",
       "resetMasterDesc": "No wallet uses it, so nothing is lost. You can set up a new one afterwards.",
       "masterReset": "Master password reset",
-      "masterResetFailed": "Failed to reset the master password"
+      "masterResetFailed": "Failed to reset the master password",
+      "unlockSession": "Stay unlocked",
+      "unlockSessionDesc": "Keep master password wallets unlocked for signing. Timed sessions restart with each signature.",
+      "timeoutOff": "Off",
+      "timeoutMinutes": "{count} minute | {count} minutes",
+      "timeoutHours": "{count} hour | {count} hours",
+      "timeoutSystemLock": "Until the system locks",
+      "timeoutBrowserRestart": "Until the browser restarts"
     }
   },
   "about": {

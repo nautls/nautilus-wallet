@@ -97,7 +97,13 @@
       "noWalletsFound": "Mboten wonten dompet kapanggihaken.",
       "newWallet": "Dompet enggal",
       "settings": "Setelan",
-      "about": "Babagan"
+      "about": "Babagan",
+      "showBalances": "Tampilake saldo",
+      "hideBalances": "Delikake saldo",
+      "lightMode": "Ganti menyang mode padhang",
+      "darkMode": "Ganti menyang mode peteng",
+      "openSidePanel": "Bukak ing panel pinggir",
+      "openPopup": "Bukak ing popup"
     }
   },
   "asset": {
@@ -211,6 +217,12 @@
     "masterPasswordNotRecoverable": "Sandi iki ora bisa dipulihake. Yen panjenengan lali, panjenengan butuh frasa pemulihan saben dompet sing nganggo.",
     "walletPasswordNotRecoverable": "Sandi iki ora bisa dipulihake. Yen panjenengan lali, panjenengan butuh frasa pemulihan dompet iki.",
     "masterPasswordUnlockDesc": "Lebokna sandi utama panjenengan kanggo nambah dompet iki.",
+    "sessionLocked": "Sesi wis rampung",
+    "lock": "Kunci",
+    "unlock": "Bukak kunci",
+    "unlockTitle": "Bukak kunci Nautilus",
+    "unlockDesc": "Lebokna sandi utama panjenengan kanggo mbukak kunci dompet panjenengan.",
+    "unlockFailed": "Gagal mbukak kunci sesi",
     "minPasswordLength": "Sandi kudu paling ora {min} karakter.",
     "passwordsDontMatch": "Sandi ora cocog.",
     "password": "Sandi",
@@ -410,7 +422,14 @@
       "resetMaster": "Atur maneh sandi utama?",
       "resetMasterDesc": "Ora ana dompet sing nganggo, dadi ora ana sing ilang. Panjenengan bisa ngatur sing anyar sawise iku.",
       "masterReset": "Sandi utama wis diatur maneh",
-      "masterResetFailed": "Gagal ngatur maneh sandi utama"
+      "masterResetFailed": "Gagal ngatur maneh sandi utama",
+      "unlockSession": "Tetep kabukak",
+      "unlockSessionDesc": "Dompet sing nganggo sandi utama tetep kebuka kanggo tandha tangan. Sesi sing ana wektune diwiwiti maneh saben tandha tangan.",
+      "timeoutOff": "Mati",
+      "timeoutMinutes": "{count} menit",
+      "timeoutHours": "{count} jam",
+      "timeoutSystemLock": "Nganti sistem dikunci",
+      "timeoutBrowserRestart": "Nganti browser diwiwiti maneh"
     }
   },
   "about": {

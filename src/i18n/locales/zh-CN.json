@@ -97,7 +97,13 @@
       "noWalletsFound": "未找到钱包。",
       "newWallet": "新建钱包",
       "settings": "设置",
-      "about": "关于"
+      "about": "关于",
+      "showBalances": "显示余额",
+      "hideBalances": "隐藏余额",
+      "lightMode": "切换到浅色模式",
+      "darkMode": "切换到深色模式",
+      "openSidePanel": "在侧边栏中打开",
+      "openPopup": "在弹出窗口中打开"
     }
   },
   "asset": {
@@ -210,6 +216,12 @@
     "masterPasswordNotRecoverable": "此密码无法找回。如果忘记，您将需要每个使用它的钱包的恢复短语。",
     "walletPasswordNotRecoverable": "此密码无法找回。如果忘记，您将需要此钱包的恢复短语。",
     "masterPasswordUnlockDesc": "输入您的主密码以添加此钱包。",
+    "sessionLocked": "会话已结束",
+    "lock": "锁定",
+    "unlock": "解锁",
+    "unlockTitle": "解锁 Nautilus",
+    "unlockDesc": "输入您的主密码以解锁您的钱包。",
+    "unlockFailed": "会话解锁失败",
     "minPasswordLength": "密码长度至少为 {min} 个字符。",
     "passwordsDontMatch": "两次输入的密码不一致。",
     "password": "密码",
@@ -409,7 +421,14 @@
       "resetMaster": "重置主密码？",
       "resetMasterDesc": "没有钱包使用它，因此不会丢失任何内容。之后您可以设置新的主密码。",
       "masterReset": "主密码已重置",
-      "masterResetFailed": "重置主密码失败"
+      "masterResetFailed": "重置主密码失败",
+      "unlockSession": "保持解锁",
+      "unlockSessionDesc": "让使用主密码的钱包保持解锁以便签名。限时会话在每次签名后重新计时。",
+      "timeoutOff": "关闭",
+      "timeoutMinutes": "{count} 分钟",
+      "timeoutHours": "{count} 小时",
+      "timeoutSystemLock": "直到系统锁定",
+      "timeoutBrowserRestart": "直到浏览器重启"
     }
   },
   "about": {

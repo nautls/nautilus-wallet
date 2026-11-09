@@ -3,14 +3,17 @@ import { describe, expect, it } from "vitest";
 import { PasswordError } from "@/common/errors";
 import {
   decryptSecret,
+  decryptSecretWithMasterKey,
   EncryptedSecretV2,
   encryptSecret,
   fromLegacyCiphertext,
+  joinMasterKeyHalves,
   needsUpgrade,
   createMasterKey,
   MasterKeyRecord,
   PBKDF2_ITERATIONS,
-  unlockMasterKey
+  unlockMasterKey,
+  unlockSplitMasterKey
 } from "@/common/keystore";
 
 describe("keystore", () => {
@@ -239,5 +242,57 @@ describe("keystore", () => {
   it("rejects unknown scheme versions", async () => {
     const encrypted = { version: 99 } as unknown as Parameters<typeof decryptSecret>[0];
     await expect(decryptSecret(encrypted, publicKey, password)).rejects.toThrow(/unsupported/);
+  });
+
+  describe("master key halves", () => {
+    const masterPassword = "master password 123";
+
+    async function split() {
+      const { record, masterKey } = await createMasterKey(masterPassword);
+      const encrypted = await encryptSecret(mnemonic, publicKey, { by: "master", masterKey });
+      const { halves } = await unlockSplitMasterKey(record, masterPassword);
+      return { record, encrypted, halves };
+    }
+
+    it("join back into the master key", async () => {
+      const { encrypted, halves } = await split();
+      const masterKey = await joinMasterKeyHalves(halves);
+
+      expect(masterKey.extractable).toBe(false);
+      expect(await decryptSecretWithMasterKey(encrypted, publicKey, masterKey)).toBe(mnemonic);
+    });
+
+    it("use a fresh mask on every split", async () => {
+      const { record } = await split();
+      const first = await unlockSplitMasterKey(record, masterPassword);
+      const second = await unlockSplitMasterKey(record, masterPassword);
+
+      expect(first.halves.mask).not.toBe(second.halves.mask);
+      expect(first.halves.key).not.toBe(second.halves.key);
+    });
+
+    it("aren't split with a wrong password", async () => {
+      const { record } = await split();
+      await expect(unlockSplitMasterKey(record, "wrong password")).rejects.toThrow(PasswordError);
+    });
+
+    it("refuse to join when either half is damaged", async () => {
+      const { halves } = await split();
+      const flip = (h: string) => (h[0] === "0" ? "1" : "0") + h.slice(1);
+
+      await expect(joinMasterKeyHalves({ ...halves, mask: flip(halves.mask) })).rejects.toThrow();
+      await expect(joinMasterKeyHalves({ ...halves, key: flip(halves.key) })).rejects.toThrow();
+      await expect(joinMasterKeyHalves({ ...halves, mask: "00" })).rejects.toThrow();
+    });
+
+    it("don't decrypt a secret on its own password", async () => {
+      const { halves } = await split();
+      const masterKey = await joinMasterKeyHalves(halves);
+      const encrypted = await encryptWithPassword();
+
+      await expect(decryptSecretWithMasterKey(encrypted, publicKey, masterKey)).rejects.toThrow(
+        /isn't protected by the master key/
+      );
+    });
   });
 });

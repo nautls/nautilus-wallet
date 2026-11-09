@@ -5,8 +5,10 @@ import { WalletType } from "@/types/internal";
 
 type ChangeListener = (changes: Record<string, unknown>, area: string) => void;
 
-const { local, legacyWallets, syncRows, storageApi } = vi.hoisted(() => {
+const { local, session, legacyWallets, syncRows, storageApi, alarmsSet } = vi.hoisted(() => {
+  const alarmsSet = new Map<string, number>();
   const local = new Map<string, unknown>();
+  const session = new Map<string, unknown>();
   const legacyWallets = new Map<number, unknown>();
   const syncRows = new Map<number, unknown>();
   const storageApi = {
@@ -15,18 +17,23 @@ const { local, legacyWallets, syncRows, storageApi } = vi.hoisted(() => {
     setCalls: [] as string[][],
     listeners: new Set<ChangeListener>()
   };
-  return { local, legacyWallets, syncRows, storageApi };
+  return { local, session, legacyWallets, syncRows, storageApi, alarmsSet };
 });
 
 vi.mock("webextension-polyfill", () => {
   const clone = <T>(v: T): T => structuredClone(v);
   const tick = () => new Promise((resolve) => setTimeout(resolve, 0)); // let calls interleave
-  const notify = (keys: string[]) => {
-    const changes = Object.fromEntries(keys.map((k) => [k, { newValue: local.get(k) }]));
-    for (const listener of storageApi.listeners) listener(changes, "local");
+  const notify = (keys: string[], area = "local", map = local) => {
+    const changes = Object.fromEntries(keys.map((k) => [k, { newValue: map.get(k) }]));
+    for (const listener of storageApi.listeners) listener(changes, area);
   };
 
   return {
+    idle: undefined,
+    alarms: {
+      create: (name: string, info: { when: number }) => void alarmsSet.set(name, info.when),
+      clear: async (name: string) => alarmsSet.delete(name)
+    },
     storage: {
       local: {
         get getKeys() {
@@ -55,6 +62,26 @@ vi.mock("webextension-polyfill", () => {
           const list = ([] as string[]).concat(keys);
           for (const k of list) local.delete(k);
           notify(list);
+        }
+      },
+      session: {
+        async get(keys: string | string[]) {
+          await tick();
+          const list = ([] as string[]).concat(keys);
+          return Object.fromEntries(
+            list.filter((k) => session.has(k)).map((k) => [k, clone(session.get(k))])
+          );
+        },
+        async set(items: Record<string, unknown>) {
+          await tick();
+          for (const [k, v] of Object.entries(items)) session.set(k, clone(v));
+          notify(Object.keys(items), "session", session);
+        },
+        async remove(keys: string | string[]) {
+          await tick();
+          const list = ([] as string[]).concat(keys);
+          for (const k of list) session.delete(k);
+          notify(list, "session", session);
         }
       },
       onChanged: {
@@ -127,6 +154,8 @@ describe("walletsDbService", () => {
   beforeEach(() => {
     vi.spyOn(Date, "now").mockReturnValue(migratedAt);
     local.clear();
+    session.clear();
+    alarmsSet.clear();
     legacyWallets.clear();
     storageApi.getKeysSupported = true;
     storageApi.getCalls = [];
@@ -804,6 +833,24 @@ describe("walletsDbService", () => {
         expect(await service.getMasterPasswordUsage()).toEqual({ used: 0, total: 1 });
       });
 
+      it("notifies password kind changes of the watched wallet only", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        const other = await service.put(newWallet(2), withMaster());
+        const listener = vi.fn();
+        const unsubscribe = service.onPasswordKindChange(id, listener);
+
+        await service.moveToOwnPassword(other, masterPassword, password);
+        expect(listener).not.toHaveBeenCalled();
+
+        await service.moveToOwnPassword(id, masterPassword, password);
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        await service.moveToMasterPassword(id, password, unlocking());
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+
       it("refuses moves to where the wallet already is", async () => {
         const service = await freshService();
         const onMaster = await service.put(newWallet(1), withMaster());
@@ -864,6 +911,331 @@ describe("walletsDbService", () => {
         ).rejects.toMatchObject({ name: "MasterPasswordChangedError" });
         expect(storageApi.setCalls).toEqual([]);
         expect(await service.getPasswordKind(id)).toBe("password");
+      });
+    });
+
+    describe("unlock session", () => {
+      const MASK = "unlockSession:mask";
+      const MASKED = "unlockSession:masked";
+      const locked = { name: "SessionLockedError" };
+
+      async function unlocked() {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        await service.setUnlockTimeout("browserRestart");
+        await service.getSigningSecret(id, masterPassword);
+        return { service, id };
+      }
+
+      it("is on by default", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+
+        expect(await service.isUnlockSessionEnabled()).toBe(true);
+        await service.getSigningSecret(id, masterPassword);
+        expect(await service.getSigningSecret(id)).toBe(mnemonic);
+      });
+
+      it("isn't started while turned off", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        await service.setUnlockTimeout("off");
+
+        expect(await service.getSigningSecret(id, masterPassword)).toBe(mnemonic);
+        expect(await service.isUnlocked()).toBe(false);
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+        await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+      });
+
+      it("signs without the master password once it was typed", async () => {
+        const { service, id } = await unlocked();
+
+        expect(await service.isUnlocked()).toBe(true);
+        expect(await service.getSigningSecret(id)).toBe(mnemonic);
+      });
+
+      it("keeps the key split between disk and memory", async () => {
+        await unlocked();
+        const mask = local.get(MASK) as { id: string; mask: string };
+        const masked = session.get(MASKED) as { id: string; key: string };
+
+        expect(mask.id).toBe(masked.id);
+        expect(mask.mask).toMatch(/^[0-9a-f]{64}$/);
+        expect(masked.key).toMatch(/^[0-9a-f]{64}$/);
+        expect(mask.mask).not.toBe(masked.key);
+        expect(JSON.stringify([...local.values()])).not.toContain(masked.key);
+        expect(JSON.stringify([...session.values()])).not.toContain(mask.mask);
+      });
+
+      it("isn't cleared by a read between the writes of its start", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        await service.setUnlockTimeout("browserRestart");
+        const { storage } = await import("webextension-polyfill");
+        const set = storage.session.set.bind(storage.session);
+        const reads: Promise<boolean>[] = [];
+        vi.spyOn(storage.session, "set").mockImplementation(async (items) => {
+          // the mask is written, its other half not yet
+          reads.push(service.isUnlocked());
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          return set(items);
+        });
+
+        await service.getSigningSecret(id, masterPassword);
+        await Promise.all(reads);
+
+        expect(reads).toHaveLength(1);
+        expect(await service.getSigningSecret(id)).toBe(mnemonic);
+      });
+
+      it("is started and ended without signing", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+
+        await expect(service.unlock("wrong password")).rejects.toMatchObject({
+          name: "PasswordError"
+        });
+        expect(await service.isUnlocked()).toBe(false);
+
+        await service.unlock(masterPassword);
+        expect(await service.getSigningSecret(id)).toBe(mnemonic);
+
+        await service.lock();
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+        await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+      });
+
+      it("can be started once on and used by a wallet", async () => {
+        const service = await freshService();
+        expect(await service.canUnlock()).toBe(false);
+
+        const own = await service.put(newWallet(1), { value: mnemonic, password, by: "password" });
+        await service.setUpMasterPassword(masterPassword);
+        expect(await service.canUnlock()).toBe(false);
+
+        await service.moveToMasterPassword(own, password, unlocking());
+        expect(await service.canUnlock()).toBe(true);
+
+        await service.setUnlockTimeout("off");
+        expect(await service.canUnlock()).toBe(false);
+        await expect(service.unlock(masterPassword)).rejects.toThrow(/turned off/);
+      });
+
+      it("uses a fresh mask on every unlock", async () => {
+        const { service, id } = await unlocked();
+        const first = local.get(MASK);
+
+        await service.getSigningSecret(id, masterPassword);
+        expect(local.get(MASK)).not.toEqual(first);
+        expect(await service.getSigningSecret(id)).toBe(mnemonic);
+      });
+
+      it("isn't started by a wrong master password", async () => {
+        const service = await freshService();
+        const id = await service.put(newWallet(1), withMaster());
+        await service.setUnlockTimeout("browserRestart");
+
+        await expect(service.getSigningSecret(id, "wrong password")).rejects.toMatchObject({
+          name: "PasswordError"
+        });
+        expect(await service.isUnlocked()).toBe(false);
+      });
+
+      it("doesn't cover wallets on their own password", async () => {
+        const { service } = await unlocked();
+        const own = await service.put(newWallet(2), { value: mnemonic, password, by: "password" });
+
+        await expect(service.getSigningSecret(own)).rejects.toMatchObject(locked);
+        expect(await service.getSigningSecret(own, password)).toBe(mnemonic);
+        expect(await service.isUnlocked()).toBe(true);
+      });
+
+      it("still asks for the password outside signing", async () => {
+        const { service, id } = await unlocked();
+
+        await expect(service.getSecret(id, "")).rejects.toMatchObject({ name: "PasswordError" });
+        expect(await service.verifyMasterPassword("")).toBe(false);
+        await expect(service.moveToOwnPassword(id, "", password)).rejects.toMatchObject({
+          name: "PasswordError",
+          kind: "master"
+        });
+      });
+
+      it("adds wallets on the master password without it", async () => {
+        const { service } = await unlocked();
+        const second = await service.put(newWallet(2), { value: mnemonic, by: "master" });
+
+        expect(await service.getSecret(second, masterPassword)).toBe(mnemonic);
+      });
+
+      it("moves a wallet onto the master password with it, or while unlocked", async () => {
+        const { service } = await unlocked();
+        const own = await service.put(newWallet(2), { value: mnemonic, password, by: "password" });
+
+        await service.lock();
+        await expect(
+          service.moveToMasterPassword(own, password, { create: false })
+        ).rejects.toMatchObject(locked);
+        expect(await service.getPasswordKind(own)).toBe("password");
+
+        await service.unlock(masterPassword);
+        await expect(
+          service.moveToMasterPassword(own, "wrong password", { create: false })
+        ).rejects.toMatchObject({ name: "PasswordError", kind: "password" });
+        await service.moveToMasterPassword(own, password, { create: false });
+
+        expect(await service.getPasswordKind(own)).toBe("master");
+        expect(await service.getSecret(own, masterPassword)).toBe(mnemonic);
+      });
+
+      it("ends when turned off", async () => {
+        const { service, id } = await unlocked();
+
+        await service.setUnlockTimeout("off");
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+        await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+      });
+
+      it("ends when the master password changes", async () => {
+        const { service, id } = await unlocked();
+
+        await service.changeMasterPassword(masterPassword, "new master password");
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+        expect(await service.isUnlocked()).toBe(false);
+        await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+      });
+
+      it("ends for a master key re-wrapped behind its back", async () => {
+        const { service, id } = await unlocked();
+        const record = local.get("masterKey") as { wrappedKey: { iv: string } };
+        local.set("masterKey", { ...record, wrappedKey: { ...record.wrappedKey, iv: "00" } });
+
+        expect(await service.isUnlocked()).toBe(false);
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+        local.set("masterKey", record);
+        await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+      });
+
+      describe("timeout", () => {
+        const HOUR = 60 * 60 * 1000;
+        const at = (elapsed: number) => vi.spyOn(Date, "now").mockReturnValue(migratedAt + elapsed);
+
+        it("lasts until the browser restarts by default", async () => {
+          const { service, id } = await unlocked();
+          expect(await service.getUnlockTimeout()).toBe("browserRestart");
+
+          at(100 * HOUR);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+        });
+
+        it("ends once idle for longer than the timeout", async () => {
+          const { service, id } = await unlocked();
+          await service.setUnlockTimeout("1h");
+
+          at(HOUR);
+          expect(await service.isUnlocked()).toBe(false);
+          expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("counts minute timeouts", async () => {
+          const { service, id } = await unlocked();
+          await service.setUnlockTimeout("15m");
+
+          at(14 * 60 * 1000);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+          at(29 * 60 * 1000);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("is extended by every use", async () => {
+          const { service, id } = await unlocked();
+          await service.setUnlockTimeout("1h");
+
+          expect(alarmsSet.get("unlockSession:expiry")).toBe(migratedAt + HOUR);
+          at(0.75 * HOUR);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+          expect(alarmsSet.get("unlockSession:expiry")).toBe(migratedAt + 1.75 * HOUR);
+          at(1.5 * HOUR);
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+          at(2.5 * HOUR);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("ends right away when set below the time already idle", async () => {
+          const { service, id } = await unlocked();
+
+          at(2 * HOUR);
+          await service.setUnlockTimeout("4h");
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+
+          at(3 * HOUR);
+          await service.setUnlockTimeout("1h");
+          expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+          await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        });
+
+        it("is cleared when expired", async () => {
+          const { service } = await unlocked();
+          await service.setUnlockTimeout("4h");
+
+          at(3 * HOUR);
+          await service.expireSession();
+          expect(await service.isUnlocked()).toBe(true);
+
+          at(4 * HOUR);
+          await service.expireSession();
+          expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+          expect(alarmsSet.size).toBe(0);
+        });
+
+        it("refuses the system lock where it can't be detected", async () => {
+          const { service, id } = await unlocked();
+
+          await expect(service.setUnlockTimeout("systemLock")).rejects.toThrow(/system lock/);
+          expect(await service.getUnlockTimeout()).toBe("browserRestart");
+          await service.onSystemLock();
+          expect(await service.getSigningSecret(id)).toBe(mnemonic);
+        });
+      });
+
+      it("ends when its halves don't belong together", async () => {
+        const { service } = await unlocked();
+        const masked = session.get(MASKED) as { id: string };
+        session.set(MASKED, { ...masked, id: "other" });
+
+        expect(await service.isUnlocked()).toBe(false);
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+      });
+
+      it("ends, rather than reporting a wrong password, when its key is damaged", async () => {
+        const { service, id } = await unlocked();
+        const masked = session.get(MASKED) as { key: string };
+        session.set(MASKED, { ...masked, key: "ff".repeat(32) });
+
+        await expect(service.getSigningSecret(id)).rejects.toMatchObject(locked);
+        await expect(
+          service.put(newWallet(2), { value: mnemonic, by: "master" })
+        ).rejects.toMatchObject(locked);
+        expect(local.has(MASK) || session.has(MASKED)).toBe(false);
+        expect(local.has("walletSecret:2")).toBe(false);
+      });
+
+      it("ends when the browser restarts, leaving no mask behind", async () => {
+        await unlocked();
+        session.clear();
+        const { clearStaleMask } = await import("@/database/unlockSession");
+
+        await clearStaleMask();
+        expect(local.has(MASK)).toBe(false);
+      });
+
+      it("keeps a live mask on a service worker restart", async () => {
+        await unlocked();
+        const { clearStaleMask } = await import("@/database/unlockSession");
+
+        await clearStaleMask();
+        expect(local.has(MASK)).toBe(true);
       });
     });
   });

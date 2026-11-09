@@ -15,6 +15,10 @@ export function hasBrowserContext() {
   return typeof chrome === "object" && !!chrome.runtime?.id;
 }
 
+export function isSystemLockSupported() {
+  return !!browser?.idle?.onStateChanged;
+}
+
 export function isPopup() {
   if (!browser?.extension) return false;
   return browser?.extension.getViews({ type: "popup" })[0] === self;

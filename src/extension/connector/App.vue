@@ -20,8 +20,10 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
       class="bg-header -mx-4 -mt-4 flex flex-row items-center gap-4 px-6 py-4"
       :class="$route.meta.fullPage ? 'justify-center' : 'justify-between'"
     >
-      <WalletItem v-if="!$route.meta.fullPage && currentWalletItem" :wallet="currentWalletItem" />
-      <NautilusLogo />
+      <div v-if="!$route.meta.fullPage" class="flex min-w-0 items-center">
+        <WalletItem v-if="currentWalletItem" :wallet="currentWalletItem" class="w-auto min-w-0" />
+      </div>
+      <NautilusLogo class="shrink-0" />
     </div>
 
     <router-view />

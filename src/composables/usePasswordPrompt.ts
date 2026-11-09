@@ -1,23 +1,52 @@
-import { computed, MaybeRefOrGetter, reactive, ref, toValue, watch } from "vue";
+import { computed, MaybeRefOrGetter, reactive, Ref, ref, toValue, watch } from "vue";
+import { requiredUnless, withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
+import { useToast } from "@/components/ui/toast";
+import { PasswordError, SessionLockedError } from "@/common/errors";
+import { log } from "@/common/logger";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
+import { useUnlockSession } from "./useUnlockSession";
 
 export function usePasswordKind(walletId: MaybeRefOrGetter<number | undefined>) {
   const kind = ref<PasswordKind>();
+  let latest = 0;
 
   /** Reads which password the wallet uses again, such as after a move. */
   async function reload() {
+    const call = ++latest;
     const id = toValue(walletId);
-    kind.value = undefined;
-    if (!id) return;
-
-    const loaded = await walletsDbService.getPasswordKind(id);
-    if (toValue(walletId) === id) kind.value = loaded;
+    const loaded = id ? await walletsDbService.getPasswordKind(id) : undefined;
+    if (call === latest) kind.value = loaded;
   }
 
-  watch(() => toValue(walletId), reload, { immediate: true });
+  const logged = () => void reload().catch((e) => log.error(e));
+
+  watch(
+    () => toValue(walletId),
+    (id, _, onCleanup) => {
+      kind.value = undefined;
+      logged();
+      if (id) onCleanup(walletsDbService.onPasswordKindChange(id, logged));
+    },
+    { immediate: true }
+  );
 
   return { kind, reload };
+}
+
+/** A rule that fails once `password` is found to be the wrong master password, until edited. */
+export function useWrongMasterPasswordRule(password: Ref<string>) {
+  const { t } = useI18n();
+  const wrong = ref(false);
+  watch(password, () => (wrong.value = false));
+
+  return {
+    correct: withMessage(
+      withParams((_, isWrong) => !isWrong, [wrong]),
+      () => t("wallet.wrongMasterPassword")
+    ),
+    markWrong: () => (wrong.value = true)
+  };
 }
 
 /**
@@ -53,17 +82,66 @@ function byKind(texts: Record<PasswordKind | "unknown", () => string>) {
   return (kind?: PasswordKind) => texts[kind ?? "unknown"]();
 }
 
-/** Texts for a prompt that asks for the password the wallet uses. */
+/**
+ * A signing prompt for the password the wallet uses: its texts, whether the unlock
+ * session covers it (`unlocked`, so no password is asked), what to sign with, and what
+ * to tell the user when signing fails.
+ */
 export function usePasswordPrompt(
   walletId: MaybeRefOrGetter<number | undefined>,
   walletName: MaybeRefOrGetter<string>
 ) {
-  const { kind, reload } = usePasswordKind(walletId);
+  const { kind, reload: reloadKind } = usePasswordKind(walletId);
+  const session = useUnlockSession();
   const texts = usePasswordTexts(walletName);
+  const { toast } = useToast();
+  const { t } = useI18n();
+
+  const unlocked = computed(() => kind.value === "master" && session.active.value);
+  const reload = () => Promise.all([reloadKind(), session.reload()]);
+
+  /** Requires the password, unless the unlock session covers it or `skips` is true. */
+  function requiredRule(skips: () => boolean = () => false) {
+    const skipped = computed(() => unlocked.value || skips());
+    return withMessage(requiredUnless(skipped), () => texts.required(kind.value));
+  }
+
+  /** What to sign with: the typed password, or nothing for the unlock session to stand in. */
+  function passwordOrSession(password: string): string | undefined {
+    return unlocked.value ? undefined : password;
+  }
+
+  /**
+   * Tells the user about a wrong password or an ended session.
+   *
+   * @returns false for any other error, left to the caller.
+   */
+  async function handleError(e: unknown): Promise<boolean> {
+    if (e instanceof SessionLockedError) {
+      toast({ title: t("wallet.sessionLocked"), description: texts.required(kind.value) });
+      await reload();
+      return true;
+    }
+
+    if (e instanceof PasswordError) {
+      toast({
+        title: texts.wrong(kind.value),
+        variant: "destructive",
+        description: texts.wrongHint()
+      });
+      return true;
+    }
+
+    return false;
+  }
 
   return reactive({
     kind,
     reload,
+    unlocked,
+    passwordOrSession,
+    requiredRule,
+    handleError,
     label: computed(() => texts.label(kind.value)),
     required: computed(() => texts.required(kind.value)),
     wrong: computed(() => texts.wrong(kind.value)),

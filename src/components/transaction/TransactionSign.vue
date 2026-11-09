@@ -7,7 +7,6 @@ import {
   SignedTransaction
 } from "@fleet-sdk/common";
 import { useRegle } from "@regle/core";
-import { requiredUnless, withMessage } from "@regle/rules";
 import { DeviceError, RETURN_CODE } from "ledger-ergo-js";
 import { AlertCircleIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -27,9 +26,9 @@ import { ToastAction, useToast } from "@/components/ui/toast";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { signTransaction } from "@/chains/ergo/signing";
 import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transaction/interpreter";
-import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { cn, extractErrorMessage } from "@/common/utils";
+import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { useFormat } from "@/composables";
 import { TransactionEntry } from ".";
@@ -63,6 +62,7 @@ const prompt = usePasswordPrompt(
   () => wallet.id,
   () => wallet.name
 );
+const activated = useActivationDelay(() => props.transaction);
 const assets = useAssetsStore();
 const format = useFormat();
 
@@ -129,7 +129,7 @@ async function sign() {
 
     const signed = await signTransaction({
       transaction: props.transaction,
-      password: password.value,
+      password: prompt.passwordOrSession(password.value),
       inputsToSign: props.inputsToSign,
       stateCallback: ledgerDevice.value?.setState
     });
@@ -147,14 +147,8 @@ async function sign() {
     password.value = "";
     r$.$reset();
   } catch (e) {
-    if (e instanceof PasswordError) {
-      toast({
-        title: prompt.wrong,
-        variant: "destructive",
-        description: prompt.wrongHint
-      });
+    if (await prompt.handleError(e)) {
       nextTick(() => pwdInput.value?.input?.$el.focus());
-
       return;
     } else if (e instanceof DeviceError) {
       if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
@@ -203,11 +197,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
 
 const { r$ } = useRegle(
   { password },
-  {
-    password: {
-      required: withMessage(requiredUnless(isLedger), () => prompt.required)
-    }
-  },
+  { password: { required: prompt.requiredRule(() => isLedger.value) } },
   { autoDirty: false }
 );
 </script>
@@ -310,7 +300,7 @@ const { r$ } = useRegle(
 
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
 
-    <Form v-else @submit="sign">
+    <Form v-else-if="!prompt.unlocked" @submit="sign">
       <FormField :validation="r$.password">
         <PasswordInput
           ref="pwd-input"
@@ -331,7 +321,7 @@ const { r$ } = useRegle(
         @click="emit('refused')"
         >{{ t("common.cancel") }}</Button
       >
-      <Button class="flex-2" :disabled="loading || signing || !canSign" @click="sign">
+      <Button class="flex-2" :disabled="loading || signing || !canSign || !activated" @click="sign">
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>{{ t("common.sign") }}</template>
       </Button>

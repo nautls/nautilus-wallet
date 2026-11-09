@@ -15,7 +15,9 @@ const mocks = vi.hoisted(() => ({
   getPlatformInfo: vi.fn(),
   setAccessLevel: vi.fn(async () => {}),
   installedListeners: new Set<() => void>(),
-  migrate: vi.fn(async () => {})
+  startupListeners: new Set<() => void>(),
+  migrate: vi.fn(async () => {}),
+  clearStaleMask: vi.fn(async () => {})
 }));
 
 vi.mock("webext-bridge", () => ({ isInternalEndpoint: () => true }));
@@ -29,7 +31,8 @@ vi.mock("@/common/browser", () => ({
   browser: {
     runtime: {
       getPlatformInfo: mocks.getPlatformInfo,
-      onInstalled: { addListener: (fn: () => void) => mocks.installedListeners.add(fn) }
+      onInstalled: { addListener: (fn: () => void) => mocks.installedListeners.add(fn) },
+      onStartup: { addListener: (fn: () => void) => mocks.startupListeners.add(fn) }
     },
     storage: { local: { setAccessLevel: mocks.setAccessLevel } },
     tabs: { get: async () => ({ favIconUrl: "favicon.png" }) },
@@ -48,6 +51,11 @@ vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: { getByScript: mocks.getByScript }
 }));
 vi.mock("@/database/migrations", () => ({ runMigrations: mocks.migrate }));
+vi.mock("@/database/unlockSession", () => ({
+  clearStaleMask: mocks.clearStaleMask,
+  EXPIRY_ALARM: "unlockSession:expiry"
+}));
+vi.mock("@/database/walletsDbService", () => ({ walletsDbService: {} }));
 vi.mock("@/database/connectedDAppsDbService", () => ({
   connectedDAppsDbService: { getByOrigin: mocks.getByOrigin }
 }));
@@ -81,7 +89,9 @@ beforeEach(async () => {
   mocks.getPlatformInfo.mockReset();
   mocks.setAccessLevel.mockClear();
   mocks.installedListeners.clear();
+  mocks.startupListeners.clear();
   mocks.migrate.mockReset().mockResolvedValue(undefined);
+  mocks.clearStaleMask.mockReset().mockResolvedValue(undefined);
   mocks.getByScript.mockReset().mockResolvedValue({ script: ADDRESS, walletId: WALLET_ID });
 
   await import("./background");
@@ -468,6 +478,18 @@ describe("storage access", () => {
     expect(mocks.setAccessLevel).toHaveBeenCalledExactlyOnceWith({
       accessLevel: "TRUSTED_CONTEXTS"
     });
+  });
+});
+
+describe("unlock session", () => {
+  it("should clear a stale mask on browser start and on install or update", () => {
+    expect(mocks.clearStaleMask).not.toHaveBeenCalled();
+
+    for (const listener of mocks.startupListeners) listener();
+    expect(mocks.clearStaleMask).toHaveBeenCalledOnce();
+
+    for (const listener of mocks.installedListeners) listener();
+    expect(mocks.clearStaleMask).toHaveBeenCalledTimes(2);
   });
 });
 

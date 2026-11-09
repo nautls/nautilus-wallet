@@ -97,7 +97,13 @@
       "noWalletsFound": "Keine Wallets gefunden.",
       "newWallet": "Neue Wallet",
       "settings": "Einstellungen",
-      "about": "Info"
+      "about": "Info",
+      "showBalances": "Guthaben anzeigen",
+      "hideBalances": "Guthaben ausblenden",
+      "lightMode": "Zum hellen Modus wechseln",
+      "darkMode": "Zum dunklen Modus wechseln",
+      "openSidePanel": "In Seitenleiste öffnen",
+      "openPopup": "Im Popup öffnen"
     }
   },
   "asset": {
@@ -210,6 +216,12 @@
     "masterPasswordNotRecoverable": "Dieses Passwort kann nicht wiederhergestellt werden. Wenn du es vergisst, brauchst du die Wiederherstellungsphrase jeder Wallet, die es verwendet.",
     "walletPasswordNotRecoverable": "Dieses Passwort kann nicht wiederhergestellt werden. Wenn du es vergisst, brauchst du die Wiederherstellungsphrase dieser Wallet.",
     "masterPasswordUnlockDesc": "Gib dein Master-Passwort ein, um diese Wallet hinzuzufügen.",
+    "sessionLocked": "Sitzung beendet",
+    "lock": "Sperren",
+    "unlock": "Entsperren",
+    "unlockTitle": "Nautilus entsperren",
+    "unlockDesc": "Gib dein Master-Passwort ein, um deine Wallets zu entsperren.",
+    "unlockFailed": "Sitzung konnte nicht entsperrt werden",
     "minPasswordLength": "Das Passwort muss mindestens {min} Zeichen lang sein.",
     "passwordsDontMatch": "Die Passwörter stimmen nicht überein.",
     "password": "Passwort",
@@ -409,7 +421,14 @@
       "resetMaster": "Master-Passwort zurücksetzen?",
       "resetMasterDesc": "Keine Wallet verwendet es, also geht nichts verloren. Du kannst danach ein neues einrichten.",
       "masterReset": "Master-Passwort zurückgesetzt",
-      "masterResetFailed": "Master-Passwort konnte nicht zurückgesetzt werden"
+      "masterResetFailed": "Master-Passwort konnte nicht zurückgesetzt werden",
+      "unlockSession": "Entsperrt bleiben",
+      "unlockSessionDesc": "Hält Wallets mit dem Master-Passwort zum Signieren entsperrt. Zeitlich begrenzte Sitzungen starten mit jeder Signatur neu.",
+      "timeoutOff": "Aus",
+      "timeoutMinutes": "{count} Minute | {count} Minuten",
+      "timeoutHours": "{count} Stunde | {count} Stunden",
+      "timeoutSystemLock": "Bis das System gesperrt wird",
+      "timeoutBrowserRestart": "Bis der Browser neu startet"
     }
   },
   "about": {

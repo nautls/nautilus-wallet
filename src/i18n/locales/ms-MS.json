@@ -97,7 +97,13 @@
       "noWalletsFound": "Tiada dompet ditemui.",
       "newWallet": "Dompet baharu",
       "settings": "Tetapan",
-      "about": "Tentang"
+      "about": "Tentang",
+      "showBalances": "Tunjukkan baki",
+      "hideBalances": "Sembunyikan baki",
+      "lightMode": "Tukar ke mod terang",
+      "darkMode": "Tukar ke mod gelap",
+      "openSidePanel": "Buka dalam panel sisi",
+      "openPopup": "Buka dalam pop timbul"
     }
   },
   "asset": {
@@ -211,6 +217,12 @@
     "masterPasswordNotRecoverable": "Kata laluan ini tidak boleh dipulihkan. Jika anda terlupa, anda memerlukan frasa pemulihan setiap dompet yang menggunakannya.",
     "walletPasswordNotRecoverable": "Kata laluan ini tidak boleh dipulihkan. Jika anda terlupa, anda memerlukan frasa pemulihan dompet ini.",
     "masterPasswordUnlockDesc": "Masukkan kata laluan induk anda untuk menambah dompet ini.",
+    "sessionLocked": "Sesi tamat",
+    "lock": "Kunci",
+    "unlock": "Buka kunci",
+    "unlockTitle": "Buka kunci Nautilus",
+    "unlockDesc": "Masukkan kata laluan induk anda untuk membuka kunci dompet anda.",
+    "unlockFailed": "Gagal membuka kunci sesi",
     "minPasswordLength": "Kata laluan mestilah sekurang-kurangnya {min} aksara.",
     "passwordsDontMatch": "Kata laluan tidak sepadan.",
     "password": "Kata laluan",
@@ -410,7 +422,14 @@
       "resetMaster": "Set semula kata laluan induk?",
       "resetMasterDesc": "Tiada dompet yang menggunakannya, jadi tiada apa yang hilang. Anda boleh menetapkan yang baharu selepas itu.",
       "masterReset": "Kata laluan induk telah diset semula",
-      "masterResetFailed": "Gagal menetapkan semula kata laluan induk"
+      "masterResetFailed": "Gagal menetapkan semula kata laluan induk",
+      "unlockSession": "Kekal dibuka",
+      "unlockSessionDesc": "Kekalkan dompet kata laluan induk tidak berkunci untuk menandatangan. Sesi bermasa bermula semula dengan setiap tandatangan.",
+      "timeoutOff": "Mati",
+      "timeoutMinutes": "{count} minit",
+      "timeoutHours": "{count} jam",
+      "timeoutSystemLock": "Sehingga sistem dikunci",
+      "timeoutBrowserRestart": "Sehingga pelayar dimulakan semula"
     }
   },
   "about": {

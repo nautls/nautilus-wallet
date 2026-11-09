@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef } from "vue";
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, requiredIf, withMessage } from "@regle/rules";
 import { Loader2Icon } from "@lucide/vue";
@@ -20,11 +20,12 @@ import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
-import { MasterPasswordChangedError, PasswordError } from "@/common/errors";
+import { MasterPasswordChangedError, PasswordError, SessionLockedError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useNewPassword } from "@/composables/useNewPassword";
 import { usePasswordTexts } from "@/composables/usePasswordPrompt";
+import { useUnlockSession } from "@/composables/useUnlockSession";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
 /**
@@ -53,6 +54,7 @@ const currentPassword = ref("");
 const masterPassword = ref("");
 const newPassword = useNewPassword(() => [walletName.value]);
 const passwordTexts = usePasswordTexts(walletName);
+const session = useUnlockSession();
 
 loadMaster();
 
@@ -60,10 +62,15 @@ const current = computed<PasswordKind>(() =>
   props.action === "change" || props.action === "toMaster" ? "password" : "master"
 );
 
-const asksMaster = computed(() => props.action === "toMaster" && hasMaster.value === true);
+const movesToExistingMaster = computed(
+  () => props.action === "toMaster" && hasMaster.value === true
+);
+
+// the wallet's own password already gives away its secret, so the session can wrap it
+const asksMaster = computed(() => movesToExistingMaster.value && !session.active.value);
 
 const creates = computed<PasswordKind | undefined>(() => {
-  if (asksMaster.value) return;
+  if (movesToExistingMaster.value) return;
   return props.action === "change" || props.action === "toOwn" ? "password" : "master";
 });
 
@@ -152,6 +159,13 @@ async function submit() {
       return;
     }
 
+    if (e instanceof SessionLockedError) {
+      await session.reload();
+      toast({ title: t("wallet.sessionLocked"), description: passwordTexts.required("master") });
+      nextTick(() => masterInput.value?.input?.$el.focus());
+      return;
+    }
+
     if (e instanceof PasswordError) {
       const kind = e.kind ?? current.value;
       toast({
@@ -187,9 +201,9 @@ function run(created: string): Promise<void> {
       return walletsDbService.moveToMasterPassword(
         id,
         currentPassword.value,
-        asksMaster.value
-          ? { password: masterPassword.value, create: false }
-          : { password: created, create: true }
+        creates.value
+          ? { password: created, create: true }
+          : { password: asksMaster.value ? masterPassword.value : undefined, create: false }
       );
     case "toOwn":
       return walletsDbService.moveToOwnPassword(id, currentPassword.value, created);
@@ -208,11 +222,11 @@ function reset() {
   r$.$reset();
 }
 
-function handleOpenUpdates(open: boolean) {
-  if (open) return;
+// clears on reopen too: the focused field blurs as the closed drawer unmounts, touching it again
+watch(opened, reset);
 
-  reset();
-  emit("close");
+function handleOpenUpdates(open: boolean) {
+  if (!open) emit("close");
 }
 
 function setOpened(open: boolean) {
@@ -220,8 +234,6 @@ function setOpened(open: boolean) {
     walletId.value = wallet.id;
     walletName.value = wallet.name;
     loadMaster();
-  } else {
-    reset();
   }
 
   opened.value = open;

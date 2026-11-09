@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRegle } from "@regle/core";
-import { requiredUnless, withMessage } from "@regle/rules";
 import { useEventListener } from "@vueuse/core";
 import { AlertCircleIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
+import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
-import { useToast } from "@/components/ui/toast";
 import { signAuthMessage } from "@/chains/ergo/signing";
-import { PasswordError } from "@/common/errors";
+import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
@@ -23,18 +22,18 @@ import { queue } from "@/extension/connector/rpc/uiRpcHandlers";
 import { APIErrorCode, SignErrorCode } from "@/types/connector";
 import type { AuthArgs } from "@/types/d.ts/webext-rpc";
 
-const app = useWalletStore();
+const app = useAppStore();
 const wallet = useWalletStore();
-const prompt = usePasswordPrompt(
-  () => wallet.id,
-  () => wallet.name
-);
-const { toast } = useToast();
 const { t } = useI18n();
 
 const request = ref<AsyncRequest<AuthArgs>>();
 const password = ref("");
 const walletId = ref(0);
+const prompt = usePasswordPrompt(
+  () => walletId.value,
+  () => wallet.name
+);
+const activated = useActivationDelay(request);
 
 const isReadonly = computed(() => wallet.type === "readonly");
 const isLedger = computed(() => wallet.type === "ledger");
@@ -42,11 +41,7 @@ const isLedger = computed(() => wallet.type === "ledger");
 const detachBeforeUnloadListener = useEventListener(window, "beforeunload", refuse);
 const { r$ } = useRegle(
   { password },
-  {
-    password: {
-      required: withMessage(requiredUnless(isLedger), () => prompt.required)
-    }
-  },
+  { password: { required: prompt.requiredRule(() => isLedger.value) } },
   { autoDirty: false, lazy: true }
 );
 
@@ -91,7 +86,7 @@ async function authenticate() {
       messageData,
       [request.value.data.address],
       walletId.value,
-      password.value
+      prompt.passwordOrSession(password.value)
     );
 
     if (!request.value) return proverError(t("wallet.emptyProof"));
@@ -100,13 +95,7 @@ async function authenticate() {
     detachBeforeUnloadListener();
     window.close();
   } catch (e) {
-    if (e instanceof PasswordError) {
-      toast({
-        title: prompt.wrong,
-        variant: "destructive",
-        description: prompt.wrongHint
-      });
-    } else {
+    if (!(await prompt.handleError(e))) {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
     }
   }
@@ -155,7 +144,7 @@ function refuse() {
       <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
     </Alert>
 
-    <Form v-else @submit="authenticate">
+    <Form v-else-if="!prompt.unlocked" @submit="authenticate">
       <FormField :validation="r$.password">
         <PasswordInput
           v-model="password"
@@ -168,7 +157,7 @@ function refuse() {
 
     <div class="flex flex-row gap-4">
       <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-      <Button class="flex-2" :disabled="isReadonly || isLedger" @click="authenticate">
+      <Button class="flex-2" :disabled="isReadonly || isLedger || !activated" @click="authenticate">
         {{ t("common.authenticate") }}
       </Button>
     </div>

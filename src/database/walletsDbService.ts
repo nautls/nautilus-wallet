@@ -4,15 +4,35 @@ import {
   changeMasterKeyPassword,
   createMasterKey,
   decryptSecret,
+  decryptSecretWithMasterKey,
   EncryptedSecret,
   encryptSecret,
+  joinMasterKeyHalves,
+  MasterKey,
+  MasterKeyHalves,
   MasterKeyRecord,
   needsUpgrade,
-  unlockMasterKey
+  unlockMasterKey,
+  unlockSplitMasterKey
 } from "@/common/keystore";
-import { MasterPasswordChangedError, PasswordError } from "@/common/errors";
+import { MasterPasswordChangedError, PasswordError, SessionLockedError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { dbContext } from "@/database/dbContext";
+import {
+  clearUnlockSession,
+  endUnlockSessionOnSystemLock,
+  expireUnlockSession,
+  getUnlockTimeout,
+  isUnlockSessionChange,
+  isUnlockSessionEnabled,
+  isUnlockSettingChange,
+  isUnlockSessionSupported,
+  readUnlockSession,
+  setUnlockTimeout,
+  startUnlockSession,
+  touchUnlockSession,
+  UnlockTimeout
+} from "@/database/unlockSession";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { WalletSettings } from "@/types/internal";
 
@@ -24,7 +44,8 @@ export type WalletPatch = {
 
 export type PlainSecret = {
   value: string;
-  password: string;
+  /** Leave out for the master password to use the unlock session. */
+  password?: string;
   by: PasswordKind;
 };
 
@@ -79,6 +100,120 @@ class WalletsDbService {
     return secret;
   }
 
+  /**
+   * Like {@link getSecret}, for signing: a wallet on the master password can use the
+   * unlock session, and typing the master password starts one when it's enabled.
+   *
+   * @param password leave out to use the unlock session.
+   * @throws {SessionLockedError} if `password` is left out and no session is active.
+   */
+  public async getSigningSecret(id: number, password?: string): Promise<string> {
+    const { wallet, encrypted, master } = await readWalletWithSecret(id);
+    if (!master || !usesMaster(encrypted)) {
+      if (password === undefined) throw new SessionLockedError();
+      return this.getSecret(id, password);
+    }
+
+    if (password === undefined) {
+      const masterKey = await sessionMasterKey(master);
+      try {
+        return await decryptSecretWithMasterKey(encrypted, wallet.publicKey, masterKey);
+      } catch (e) {
+        if (!(e instanceof PasswordError)) throw e;
+        await clearUnlockSession();
+        throw new SessionLockedError();
+      }
+    }
+
+    if (!(await isUnlockSessionEnabled())) return this.getSecret(id, password);
+
+    const { masterKey, halves } = await unlockSplitMasterKey(master, password);
+    const secret = await decryptSecretWithMasterKey(encrypted, wallet.publicKey, masterKey);
+    await startSession(master, halves).catch((e) => log.error("failed to start the session", e));
+
+    return secret;
+  }
+
+  /** Whether wallets on the master password can sign without typing it. */
+  public async isUnlocked(): Promise<boolean> {
+    const master = await readMasterKey();
+    return !!master && (await readSession(master)) !== undefined;
+  }
+
+  /**
+   * Starts a session with the master password, without signing anything.
+   *
+   * @throws {PasswordError} if the password is wrong.
+   */
+  public async unlock(password: string) {
+    const master = await readMasterKey();
+    if (!master) throw Error("the master password isn't set up");
+    if (!(await isUnlockSessionEnabled())) throw Error("the unlock session is turned off");
+
+    const { halves } = await unlockSplitMasterKey(master, password);
+    await startSession(master, halves);
+  }
+
+  public lock(): Promise<void> {
+    return withLock(clearUnlockSession);
+  }
+
+  /** Whether a session can be started: it's turned on and a wallet uses the master password. */
+  public async canUnlock(): Promise<boolean> {
+    if (!(await isUnlockSessionEnabled()) || !(await readMasterKey())) return false;
+    return (await readAllSecrets()).some(usesMaster);
+  }
+
+  public isUnlockSessionSupported(): boolean {
+    return isUnlockSessionSupported();
+  }
+
+  public isUnlockSessionEnabled(): Promise<boolean> {
+    return isUnlockSessionEnabled();
+  }
+
+  public getUnlockTimeout(): Promise<UnlockTimeout> {
+    return getUnlockTimeout();
+  }
+
+  /** Turning it off ends the session, and so does a timeout shorter than its idle time. */
+  public setUnlockTimeout(timeout: UnlockTimeout): Promise<void> {
+    return withLock(() => setUnlockTimeout(timeout));
+  }
+
+  public expireSession(): Promise<void> {
+    return withLock(() => expireUnlockSession());
+  }
+
+  public onSystemLock(): Promise<void> {
+    return withLock(() => endUnlockSessionOnSystemLock());
+  }
+
+  /** Calls `listener` when the session may have started or ended, in any page. */
+  public onUnlockSessionChange(listener: () => void): () => void {
+    return subscribe(
+      (changes, area) =>
+        isUnlockSessionChange(changes, area) || (area === "local" && MASTER_KEY in changes),
+      listener
+    );
+  }
+
+  /** Calls `listener` when {@link canUnlock} may have changed, in any page. */
+  public onUnlockAvailabilityChange(listener: () => void): () => void {
+    const masterChange = (key: string) => key === MASTER_KEY || isSecretKey(key);
+    return subscribe(
+      (changes, area) =>
+        isUnlockSettingChange(changes, area) ||
+        (area === "local" && Object.keys(changes).some(masterChange)),
+      listener
+    );
+  }
+
+  /** Calls `listener` when {@link getPasswordKind} may have changed for `id`, in any page. */
+  public onPasswordKindChange(id: number, listener: () => void): () => void {
+    return subscribe((changes, area) => area === "local" && secretKey(id) in changes, listener);
+  }
+
   public async getPasswordKind(id: number): Promise<PasswordKind | undefined> {
     const encrypted = await readSecret(id);
     if (!encrypted) return;
@@ -130,6 +265,7 @@ class WalletsDbService {
     await withLock(async () => {
       if (await readMasterKey()) throw Error("the master password is already set up");
       await writeSecrets(moves, { created: record });
+      await clearUnlockSession();
     });
   }
 
@@ -142,6 +278,7 @@ class WalletsDbService {
     await withLock(async () => {
       if (!isEqual(await readMasterKey(), current)) throw new MasterPasswordChangedError();
       await storage.local.set({ [MASTER_KEY]: record });
+      await clearUnlockSession();
     });
   }
 
@@ -153,6 +290,7 @@ class WalletsDbService {
       }
 
       await storage.local.remove(MASTER_KEY);
+      await clearUnlockSession();
     });
   }
 
@@ -160,15 +298,16 @@ class WalletsDbService {
    * Moves the wallet from its own password to the master password.
    *
    * @param master.create true to set the master password up with `master.password`,
-   * false to unlock the existing one with it.
+   * false to unlock the existing one with it, or with the unlock session when left out.
    * @throws {PasswordError} whose `kind` says which password is wrong.
+   * @throws {SessionLockedError} if `master.password` is left out and no session is active.
    * @throws {MasterPasswordChangedError} if the master password doesn't exist, or
    * already does, contrary to `master.create`.
    */
   public async moveToMasterPassword(
     id: number,
     walletPassword: string,
-    master: { password: string; create: boolean }
+    master: { password: string; create: true } | { password?: string; create: false }
   ) {
     const { wallet, encrypted: current, master: record } = await readWalletWithSecret(id);
     if (usesMaster(current)) throw Error("this wallet already uses the master password");
@@ -277,12 +416,10 @@ class WalletsDbService {
   }
 
   public onChange(listener: () => void): () => void {
-    const handler = (changes: Record<string, unknown>, area: string) => {
-      if (area === "local" && Object.keys(changes).some(isWalletKey)) listener();
-    };
-
-    storage.onChanged.addListener(handler);
-    return () => storage.onChanged.removeListener(handler);
+    return subscribe(
+      (changes, area) => area === "local" && Object.keys(changes).some(isWalletKey),
+      listener
+    );
   }
 
   public async delete(walletId: number): Promise<void> {
@@ -326,20 +463,80 @@ async function protect(
   secret: PlainSecret,
   publicKey: string
 ): Promise<{ encrypted: EncryptedSecret; master?: MasterChange }> {
+  const { password } = secret;
   if (secret.by === "password") {
-    const protection = { by: "password", password: secret.password } as const;
+    if (password === undefined) throw Error("the wallet's password is missing");
+    const protection = { by: "password", password } as const;
     return { encrypted: await encryptSecret(secret.value, publicKey, protection) };
   }
 
   const current = await readMasterKey();
-  const { masterKey, record: created } = current
-    ? { masterKey: await unlockMasterKey(current, secret.password), record: undefined }
-    : await createMasterKey(secret.password);
+  const { masterKey, record: created } = await openMasterKey(current, password);
 
   return {
     encrypted: await encryptSecret(secret.value, publicKey, { by: "master", masterKey }),
     master: { current, created }
   };
+}
+
+/** Unlocks `current`, with the session when `password` is left out, or creates it. */
+async function openMasterKey(
+  current: MasterKeyRecord | undefined,
+  password?: string
+): Promise<{ masterKey: MasterKey; record?: MasterKeyRecord }> {
+  if (current) {
+    const masterKey =
+      password === undefined
+        ? await sessionMasterKey(current)
+        : await unlockMasterKey(current, password);
+    return { masterKey };
+  }
+
+  if (password === undefined) throw new SessionLockedError();
+  return createMasterKey(password);
+}
+
+/** @throws {SessionLockedError} if no session is active. */
+async function sessionMasterKey(record: MasterKeyRecord): Promise<MasterKey> {
+  const halves = await readSession(record);
+  if (!halves) throw new SessionLockedError();
+
+  let masterKey: MasterKey;
+  try {
+    masterKey = await joinMasterKeyHalves(halves);
+  } catch (e) {
+    log.error(e);
+    await clearUnlockSession();
+    throw new SessionLockedError();
+  }
+
+  await touchUnlockSession().catch((e) => log.error("failed to extend the session", e));
+  return masterKey;
+}
+
+/**
+ * Clears halves found invalid only once they still are while holding the lock, since a
+ * session start holds it across its two writes.
+ */
+async function readSession(record: MasterKeyRecord): Promise<MasterKeyHalves | undefined> {
+  const halves = await readUnlockSession(record);
+  if (halves === "none") return;
+  if (halves !== "invalid") return halves;
+
+  return withLock(async () => {
+    const again = await readUnlockSession(record);
+    if (again === "invalid") await clearUnlockSession();
+    return typeof again === "string" ? undefined : again;
+  });
+}
+
+/** Starts a session with fresh halves, unless the master password changed meanwhile. */
+function startSession(record: MasterKeyRecord, halves: MasterKeyHalves) {
+  return withLock(async () => {
+    if (!isEqual(await readMasterKey(), record)) return;
+    if (!(await isUnlockSessionEnabled())) return;
+    await startUnlockSession(record, halves);
+  });
 }
 
 /**
@@ -416,6 +613,18 @@ async function readSecret(id: number): Promise<EncryptedSecret | undefined> {
   const key = secretKey(id);
   const stored = await storage.local.get(key);
   return stored[key] as EncryptedSecret | undefined;
+}
+
+type StorageChangeFilter = (changes: Record<string, unknown>, area: string) => boolean;
+
+/** @returns a function that unsubscribes. */
+function subscribe(filter: StorageChangeFilter, listener: () => void): () => void {
+  const handler = (changes: Record<string, unknown>, area: string) => {
+    if (filter(changes, area)) listener();
+  };
+
+  storage.onChanged.addListener(handler);
+  return () => storage.onChanged.removeListener(handler);
 }
 
 const isWalletKey = (key: string) => key.startsWith(WALLET_KEY_PREFIX);
