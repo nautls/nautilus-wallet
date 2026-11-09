@@ -423,7 +423,7 @@
       "masterReset": "Senha mestra redefinida",
       "masterResetFailed": "Falha ao redefinir a senha mestra",
       "unlockSession": "Manter desbloqueado",
-      "unlockSessionDesc": "Assine sem digitar a senha mestra de novo. Cada assinatura reinicia o tempo.",
+      "unlockSessionDesc": "Mantém as carteiras com a senha mestra desbloqueadas para assinar. Sessões com tempo limite reiniciam a cada assinatura.",
       "timeoutOff": "Desativado",
       "timeoutMinutes": "{count} minuto | {count} minutos",
       "timeoutHours": "{count} hora | {count} horas",

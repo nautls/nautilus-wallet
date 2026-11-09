@@ -424,7 +424,7 @@
       "masterReset": "Kata laluan induk telah diset semula",
       "masterResetFailed": "Gagal menetapkan semula kata laluan induk",
       "unlockSession": "Kekal dibuka",
-      "unlockSessionDesc": "Tandatangan tanpa menaip semula kata laluan induk. Setiap tandatangan memulakan semula pemasa.",
+      "unlockSessionDesc": "Kekalkan dompet kata laluan induk tidak berkunci untuk menandatangan. Sesi bermasa bermula semula dengan setiap tandatangan.",
       "timeoutOff": "Mati",
       "timeoutMinutes": "{count} minit",
       "timeoutHours": "{count} jam",

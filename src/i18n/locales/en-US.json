@@ -423,7 +423,7 @@
       "masterReset": "Master password reset",
       "masterResetFailed": "Failed to reset the master password",
       "unlockSession": "Stay unlocked",
-      "unlockSessionDesc": "Sign without retyping the master password. Every signature restarts the timer.",
+      "unlockSessionDesc": "Keep master password wallets unlocked for signing. Timed sessions restart with each signature.",
       "timeoutOff": "Off",
       "timeoutMinutes": "{count} minute | {count} minutes",
       "timeoutHours": "{count} hour | {count} hours",

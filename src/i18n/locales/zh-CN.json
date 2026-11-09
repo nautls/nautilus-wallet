@@ -423,7 +423,7 @@
       "masterReset": "主密码已重置",
       "masterResetFailed": "重置主密码失败",
       "unlockSession": "保持解锁",
-      "unlockSessionDesc": "签名无需再次输入主密码。每次签名都会重新计时。",
+      "unlockSessionDesc": "让使用主密码的钱包保持解锁以便签名。限时会话在每次签名后重新计时。",
       "timeoutOff": "关闭",
       "timeoutMinutes": "{count} 分钟",
       "timeoutHours": "{count} 小时",

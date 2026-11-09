@@ -423,7 +423,7 @@
       "masterReset": "Master-Passwort zurückgesetzt",
       "masterResetFailed": "Master-Passwort konnte nicht zurückgesetzt werden",
       "unlockSession": "Entsperrt bleiben",
-      "unlockSessionDesc": "Signiere ohne erneute Eingabe des Master-Passworts. Jede Signatur startet den Timer neu.",
+      "unlockSessionDesc": "Hält Wallets mit dem Master-Passwort zum Signieren entsperrt. Zeitlich begrenzte Sitzungen starten mit jeder Signatur neu.",
       "timeoutOff": "Aus",
       "timeoutMinutes": "{count} Minute | {count} Minuten",
       "timeoutHours": "{count} Stunde | {count} Stunden",

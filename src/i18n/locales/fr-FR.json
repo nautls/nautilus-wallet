@@ -423,7 +423,7 @@
       "masterReset": "Mot de passe principal réinitialisé",
       "masterResetFailed": "Échec de la réinitialisation du mot de passe principal",
       "unlockSession": "Rester déverrouillé",
-      "unlockSessionDesc": "Signez sans ressaisir le mot de passe principal. Chaque signature relance le délai.",
+      "unlockSessionDesc": "Garde les portefeuilles avec le mot de passe principal déverrouillés pour signer. Les sessions limitées dans le temps redémarrent à chaque signature.",
       "timeoutOff": "Désactivé",
       "timeoutMinutes": "{count} minute | {count} minutes",
       "timeoutHours": "{count} heure | {count} heures",

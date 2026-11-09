@@ -424,7 +424,7 @@
       "masterReset": "Sandi utama wis diatur maneh",
       "masterResetFailed": "Gagal ngatur maneh sandi utama",
       "unlockSession": "Tetep kabukak",
-      "unlockSessionDesc": "Tandha tangani tanpa ngetik maneh sandi utama. Saben tandha tangan miwiti maneh wektune.",
+      "unlockSessionDesc": "Dompet sing nganggo sandi utama tetep kebuka kanggo tandha tangan. Sesi sing ana wektune diwiwiti maneh saben tandha tangan.",
       "timeoutOff": "Mati",
       "timeoutMinutes": "{count} menit",
       "timeoutHours": "{count} jam",

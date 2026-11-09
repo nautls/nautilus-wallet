@@ -424,7 +424,7 @@
       "masterReset": "Kata sandi utama diatur ulang",
       "masterResetFailed": "Gagal mengatur ulang kata sandi utama",
       "unlockSession": "Tetap terbuka",
-      "unlockSessionDesc": "Tanda tangani tanpa mengetik ulang kata sandi utama. Setiap tanda tangan memulai ulang penghitung waktu.",
+      "unlockSessionDesc": "Biarkan dompet dengan kata sandi utama tetap terbuka untuk menandatangani. Sesi berwaktu dimulai ulang setiap kali menandatangani.",
       "timeoutOff": "Nonaktif",
       "timeoutMinutes": "{count} menit",
       "timeoutHours": "{count} jam",
