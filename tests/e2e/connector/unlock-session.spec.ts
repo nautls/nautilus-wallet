@@ -209,6 +209,7 @@ test.describe("unlock session", () => {
     await expect(required).toHaveCount(0);
     await drawer.getByRole("button", { name: "Unlock" }).click();
     await expect(drawer.getByText("Wrong master password.")).toBeVisible();
+    await expect(drawer.locator("#unlock-password")).toBeFocused();
     await drawer.locator("#unlock-password").fill(masterPassword);
     await drawer.getByRole("button", { name: "Unlock" }).click();
     await expect(drawer).toBeHidden();

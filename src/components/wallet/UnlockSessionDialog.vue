@@ -57,7 +57,10 @@ async function unlock() {
     if (e instanceof PasswordError) {
       wrongPassword.markWrong();
       await r$.password.$validate();
-      nextTick(() => pwdInput.value?.input?.$el.focus());
+      // a disabled input can't take focus, so re-enable it and wait for the render first
+      loading.value = false;
+      await nextTick();
+      pwdInput.value?.input?.$el.focus();
       return;
     }
 
