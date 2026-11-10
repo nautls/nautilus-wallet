@@ -75,7 +75,7 @@ export const gt = ((...args: unknown[]) =>
   (_globalInstance.t as (...args: unknown[]) => string)(...args)) as Translator;
 
 export function getLocale(): Locale {
-  return _globalInstance.locale.value as Locale;
+  return (_globalInstance?.locale.value ?? DEFAULT_LOCALE) as Locale;
 }
 
 export async function setLocale(locale: string): Promise<void> {

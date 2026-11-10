@@ -98,7 +98,10 @@ const { r$ } = useChildRegle(
       bigNumberMinValue: withMessage(
         bigNumberMinValue(cachedMinRequired.value),
         ({ $params: [min] }) =>
-          t("transaction.send.minFeeError", { min, name: props.modelValue.assetInfo?.name })
+          t("transaction.send.minFeeError", {
+            min: format.number.decimal(min),
+            name: props.modelValue.assetInfo?.name
+          })
       )
     }
   })),
@@ -258,9 +261,9 @@ function emitSelected() {
           <span class="font-semibold" v-once>{{ t("common.fee") }}</span>
 
           <template v-if="expanded">
-            <span class="truncate px-1 tabular-nums">{{ feeAmount.toString() }}</span>
+            <span class="truncate px-1 tabular-nums">{{ format.number.decimal(feeAmount) }}</span>
             <span v-if="ergPrice" class="text-muted-foreground truncate text-xs tabular-nums">
-              {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
+              {{ format.number.decimal(price) }} {{ format.string.uppercase(conversionCurrency) }}
             </span>
           </template>
 
@@ -272,20 +275,21 @@ function emitSelected() {
                 class="data-[state=open]:bg-accent h-7 min-w-0 gap-1.5 px-2 font-normal tabular-nums"
               >
                 <span class="sr-only">{{ t("transaction.send.adjustFee") }}</span>
-                <span class="truncate">{{ feeAmount.toString() }}</span>
+                <span class="truncate">{{ format.number.decimal(feeAmount) }}</span>
                 <SlidersHorizontalIcon class="text-muted-foreground size-3.5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent side="top" align="start" class="w-64 space-y-4 p-4">
               <div class="flex items-baseline justify-between gap-2 text-sm">
                 <span class="truncate tabular-nums">
-                  {{ feeAmount.toString() }} {{ format.asset.name(intSelected) }}
+                  {{ format.number.decimal(feeAmount) }} {{ format.asset.name(intSelected) }}
                 </span>
                 <span
                   v-if="ergPrice"
                   class="text-muted-foreground shrink-0 text-xs whitespace-nowrap tabular-nums"
                 >
-                  {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
+                  {{ format.number.decimal(price) }}
+                  {{ format.string.uppercase(conversionCurrency) }}
                 </span>
               </div>
               <Slider

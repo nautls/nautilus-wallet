@@ -20,7 +20,6 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
-import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import WalletAlerts from "./components/WalletAlerts.vue";
 
 const app = useAppStore();
@@ -48,14 +47,9 @@ const walletTotal = computed(() =>
     .times(ergPrice.value)
 );
 
-const balance = computed(() => {
-  const value = format.number.decimal(walletTotal.value, 2);
-  const [, whole = value, fraction = ""] = /^(.*?)(\.\d+)?$/.exec(value) ?? [];
-  const code = app.settings.conversionCurrency;
-  const symbol = currencySymbolMap.get(code);
-
-  return { whole, fraction, symbol, code: symbol ? undefined : code.toUpperCase() };
-});
+const balance = computed(() =>
+  format.number.currencyParts(walletTotal.value, app.settings.conversionCurrency, 2)
+);
 
 watch(
   () => wallet.id,
@@ -107,13 +101,13 @@ function openAssetInfoDialog(tokenId: string) {
             data-wallet-balance
             class="text-4xl leading-tight font-medium tracking-tight whitespace-nowrap tabular-nums"
           >
-            <span v-if="balance.symbol" class="text-muted-foreground mr-1 text-2xl font-medium">{{
-              balance.symbol
+            <span v-if="balance.prefix" class="text-muted-foreground text-2xl">{{
+              balance.prefix
             }}</span
-            >{{ balance.whole
-            }}<span class="text-muted-foreground text-2xl">{{ balance.fraction }}</span>
-            <span v-if="balance.code" class="text-muted-foreground ml-1.5 text-xl font-medium">{{
-              balance.code
+            >{{ balance.integer
+            }}<span class="text-muted-foreground text-2xl">{{ balance.fraction }}</span
+            ><span v-if="balance.suffix" class="text-muted-foreground text-2xl">{{
+              balance.suffix
             }}</span>
           </h2>
           <Skeleton v-else class="mt-1.5 h-9.5 w-40 animate-none" />

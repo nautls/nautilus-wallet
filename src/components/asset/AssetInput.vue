@@ -162,7 +162,10 @@ const { r$ } = useChildRegle(
       bigNumberMinValue: withMessage(
         bigNumberMinValue(convert(minRequired.value, "auto") ?? bn(0)),
         ({ $params: [min] }) =>
-          t("transaction.send.minNamedAssetError", { min, asset: baseCurrencyName.value })
+          t("transaction.send.minNamedAssetError", {
+            min: format.number.decimal(min),
+            asset: baseCurrencyName.value
+          })
       )
     },
     internalValue: {
