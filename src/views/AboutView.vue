@@ -31,8 +31,8 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="flex min-h-0 grow flex-col gap-5 overflow-y-auto px-4 pt-6 pb-4">
-    <NautilusLogoGlow class="m-auto" />
+  <div class="flex grow flex-col gap-5 p-4">
+    <NautilusLogoGlow class="mx-auto shrink-0" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
         <span>{{ t("about.nautilusWallet") }}</span>
@@ -50,7 +50,7 @@ function goDonate() {
 
     <div class="grow"></div>
 
-    <div class="flex flex-col items-center gap-3">
+    <div class="flex flex-col items-center gap-0">
       <p class="text-muted-foreground px-4 text-center text-sm text-balance">
         {{ t("about.donation") }}
       </p>
@@ -70,9 +70,8 @@ function goDonate() {
             <TooltipTrigger as-child>
               <Button
                 id="donate"
-                variant="secondary"
+                variant="ghost"
                 size="sm"
-                class="gap-1.5 pr-2 pl-3 font-mono text-xs font-normal [&_svg]:size-3.5"
                 :aria-label="`${t('common.send')} ${donationAddress}`"
                 @click="goDonate()"
               >
