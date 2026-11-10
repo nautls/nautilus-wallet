@@ -8,6 +8,7 @@ import {
   ref,
   shallowRef,
   triggerRef,
+  useTemplateRef,
   watch
 } from "vue";
 import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
@@ -22,7 +23,7 @@ import {
   DollarSignIcon,
   InfoIcon,
   LandmarkIcon,
-  SettingsIcon
+  SlidersHorizontalIcon
 } from "@lucide/vue";
 import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
@@ -78,7 +79,7 @@ const fromAmount = ref<BigNumber | undefined>();
 const toAsset = ref<Asset | undefined>();
 const toAmount = ref<BigNumber | undefined>();
 const txFee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: RECOMMENDED_FEE });
-const flipButtonHover = ref(false);
+const adjustFeeTrigger = useTemplateRef("adjust-fee-trigger");
 const bankUpdateInterval = useIntervalFn(() => loadBankFrom("mempool"), 5_000 /* 5 seconds */);
 
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
@@ -541,20 +542,16 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
         />
 
         <Button
+          id="sigmausd-flip-assets"
           :disabled="loading || !canFlipAssets"
           tabindex="-1"
           size="icon"
           variant="outline"
-          class="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
+          class="group bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent absolute top-1/2 left-1/2 z-10 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
           @click="flipAssets"
-          @mouseover="flipButtonHover = true"
-          @mouseout="flipButtonHover = false"
         >
-          <ArrowDownUpIcon
-            v-if="canFlipAssets && flipButtonHover && !loading"
-            class="in-disabled:opacity-50"
-          />
-          <ArrowDownIcon v-else class="in-disabled:opacity-50" />
+          <ArrowDownIcon class="group-hover:hidden in-disabled:opacity-50" />
+          <ArrowDownUpIcon class="hidden group-hover:block" />
         </Button>
       </div>
 
@@ -566,8 +563,10 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
           collapsible
         >
           <AccordionItem value="opened" class="border-none">
-            <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
-              <div class="text-muted-foreground flex w-full items-center justify-between px-2">
+            <AccordionTrigger
+              class="text-muted-foreground items-center gap-1.5 p-0 pr-2 text-xs hover:no-underline [&>svg]:translate-y-0"
+            >
+              <div class="text-muted-foreground flex w-full items-center justify-between pl-2">
                 <div>
                   {{
                     format.number.namedCurrency(1, format.asset.name(fromAsset)) +
@@ -594,91 +593,98 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                 </I18nT>
               </div>
             </AccordionTrigger>
-            <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs tabular-nums">
-              <div class="flex items-center justify-between">
-                <div class="font-medium">
-                  <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
-                    <template #rate>
-                      <span class="text-muted-foreground" v-once>{{
-                        format.number.percent(0.02)
-                      }}</span>
-                    </template>
-                  </I18nT>
-
-                  <TooltipProvider :delay-duration="100">
+            <AccordionContent class="space-y-0.5 px-2 pt-2 pb-0 text-xs tabular-nums">
+              <TooltipProvider :delay-duration="100">
+                <div class="flex h-5 items-center justify-between">
+                  <div class="flex items-center gap-1 font-medium">
+                    {{ t("dapps.sigmaUsd.protocolFee") }}
+                    <span class="text-muted-foreground font-normal" v-once>{{
+                      format.number.percent(0.02)
+                    }}</span>
                     <Tooltip>
-                      <TooltipTrigger class="cursor-default pl-1">
-                        <InfoIcon class="inline size-3.5" />
+                      <TooltipTrigger
+                        class="text-muted-foreground hover:text-foreground cursor-default"
+                      >
+                        <InfoIcon class="size-3.5" />
                       </TooltipTrigger>
-                      <TooltipContent class="max-w-52 hyphens-auto">
+                      <TooltipContent :collision-padding="16" class="max-w-60 text-pretty">
                         {{ t("dapps.sigmaUsd.protocolFeeDesc") }}
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
+                  </div>
+                  <div>{{ format.number.namedCurrency(protocolFee, "ERG") }}</div>
                 </div>
-                <div>{{ format.number.namedCurrency(protocolFee, "ERG") }}</div>
-              </div>
-              <div class="flex items-center justify-between">
-                <div class="font-medium">
-                  <I18nT keypath="dapps.sigmaUsd.serviceFee" scope="global">
-                    <template #rate>
-                      <span class="text-muted-foreground" v-once>{{
-                        format.number.percent(0.0022)
-                      }}</span>
-                    </template>
-                  </I18nT>
-
-                  <TooltipProvider :delay-duration="100">
+                <div class="flex h-5 items-center justify-between">
+                  <div class="flex items-center gap-1 font-medium">
+                    {{ t("dapps.sigmaUsd.serviceFee") }}
+                    <span class="text-muted-foreground font-normal" v-once>{{
+                      format.number.percent(0.0022)
+                    }}</span>
                     <Tooltip>
-                      <TooltipTrigger class="cursor-default pl-1">
-                        <InfoIcon class="inline size-3.5" />
+                      <TooltipTrigger
+                        class="text-muted-foreground hover:text-foreground cursor-default"
+                      >
+                        <InfoIcon class="size-3.5" />
                       </TooltipTrigger>
-                      <TooltipContent class="max-w-52 hyphens-auto">
+                      <TooltipContent :collision-padding="16" class="max-w-60 text-pretty">
                         {{ t("dapps.sigmaUsd.serviceFeeDesc") }}
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
+                  </div>
+                  <div>{{ format.number.namedCurrency(uiFee, "ERG") }}</div>
                 </div>
-                <div>{{ format.number.namedCurrency(uiFee, "ERG") }}</div>
-              </div>
-              <div class="flex items-center justify-between">
-                <div class="font-medium">
-                  {{ t("dapps.sigmaUsd.networkFee") }}
-                  <TooltipProvider :delay-duration="100">
+                <div class="flex h-5 items-center justify-between">
+                  <div class="flex items-center gap-1 font-medium">
+                    {{ t("dapps.sigmaUsd.networkFee") }}
                     <Tooltip>
-                      <TooltipTrigger class="cursor-default">
-                        <InfoIcon class="inline size-3.5" />
+                      <TooltipTrigger
+                        class="text-muted-foreground hover:text-foreground cursor-default"
+                      >
+                        <InfoIcon class="size-3.5" />
                       </TooltipTrigger>
-                      <TooltipContent class="max-w-52 hyphens-auto">
+                      <TooltipContent :collision-padding="16" class="max-w-65 text-pretty">
                         {{ t("dapps.sigmaUsd.networkFeeDesc") }}
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
-                  <Popover>
-                    <PopoverTrigger as-child>
-                      <Button
-                        variant="minimal"
-                        :disabled="loading"
-                        class="ml-1 size-3.5 align-middle"
-                        size="condensed"
+                    <Popover>
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <PopoverTrigger
+                            ref="adjust-fee-trigger"
+                            data-sigmausd-adjust-fee
+                            :disabled="loading"
+                            :aria-label="t('transaction.send.adjustFee')"
+                            class="text-muted-foreground hover:text-foreground aria-expanded:text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
+                          >
+                            <SlidersHorizontalIcon class="size-3.5" />
+                          </PopoverTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent :collision-padding="16">
+                          {{ t("transaction.send.adjustFee") }}
+                        </TooltipContent>
+                      </Tooltip>
+                      <!-- nested in the tooltip, the trigger anchors the tooltip instead of the popover -->
+                      <PopoverContent
+                        side="top"
+                        align="start"
+                        :reference="adjustFeeTrigger?.$el"
+                        :collision-padding="16"
+                        class="p-0"
                       >
-                        <SettingsIcon />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent class="p-0">
-                      <TransactionFeeConfig
-                        v-model="txFee"
-                        erg-only
-                        expanded
-                        :max-multiplier="1000"
-                        class="p-4"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                        <TransactionFeeConfig
+                          v-model="txFee"
+                          erg-only
+                          expanded
+                          :max-multiplier="1000"
+                          class="p-4"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>{{ format.number.namedCurrency(networkFee, "ERG") }}</div>
                 </div>
-                <div>{{ format.number.namedCurrency(networkFee, "ERG") }}</div>
-              </div>
-              <div class="flex items-center justify-between font-semibold">
+              </TooltipProvider>
+              <div class="flex h-5 items-center justify-between font-semibold">
                 <div>{{ t("dapps.sigmaUsd.totalFee") }}</div>
                 <div>{{ format.number.namedCurrency(totalFee, "ERG") }}</div>
               </div>

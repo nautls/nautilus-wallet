@@ -42,7 +42,7 @@ const navItems = computed(() => [
       >
         <component
           :is="item.icon"
-          class="size-[22px]"
+          class="size-5.5"
           :class="isActive ? 'stroke-2' : 'stroke-[1.5px]'"
           aria-hidden="true"
         />
