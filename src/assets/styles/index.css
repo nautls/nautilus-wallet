@@ -35,27 +35,21 @@
   --muted-foreground: oklch(0.51 0.03 236);
   --accent: oklch(0.955 0.008 232);
   --accent-foreground: var(--ink);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0.002 247.839);
+  --destructive: oklch(0.57 0.21 25);
+  --destructive-foreground: oklch(0.985 0.005 225);
   --border: oklch(0.92 0.01 232);
   --input: oklch(0.92 0.01 232);
   --ring: var(--brass);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
 
   --warning: oklch(0.72 0.17 50);
   --warning-foreground: oklch(0.25 0.06 45);
-  --success: oklch(0.656 0.187 146.54);
-  --success-foreground: oklch(0.984 0.003 247.858);
+  --success: oklch(0.54 0.12 165);
+  --success-foreground: oklch(0.985 0.005 225);
 
   --code-key: oklch(0.5 0.14 245);
   --code-string: oklch(0.47 0.09 185);
 
   --header: color-mix(in oklab, var(--foreground) 4%, transparent);
-  --chart-primary-color: var(--foreground);
 
   --background-dark: oklch(0.165 0.032 236);
 }
@@ -75,21 +69,16 @@
   --muted-foreground: oklch(0.72 0.025 230);
   --accent: oklch(0.27 0.038 234);
   --accent-foreground: oklch(0.96 0.008 225);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0.002 247.839);
+  --destructive: oklch(0.69 0.17 22);
+  --destructive-foreground: oklch(0.985 0.005 225);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.82 0.16 74);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
 
   --warning: oklch(0.75 0.16 52);
   --warning-foreground: oklch(0.25 0.06 45);
-  --success: oklch(0.653 0.209 142.708);
-  --success-foreground: oklch(0.968 0.007 247.897);
+  --success: oklch(0.74 0.13 165);
+  --success-foreground: var(--ink);
 
   --code-key: oklch(0.78 0.11 235);
   --code-string: oklch(0.8 0.1 180);
@@ -122,11 +111,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
@@ -166,13 +150,26 @@
 .slide-up-move,
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: all 0.5s ease;
+  transition:
+    opacity 250ms ease-out,
+    transform 250ms ease-out;
 }
 
 .slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
-  transform: translateY(15px);
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-up-move {
+    transition: none;
+  }
+
+  .slide-up-enter-from,
+  .slide-up-leave-to {
+    transform: none;
+  }
 }
 
 .slide-up-leave-active {
