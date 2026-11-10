@@ -4,7 +4,11 @@ import { mergeRegles, Maybe, useRegle } from "@regle/core";
 import { required, withMessage, withParams } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { useI18n } from "vue-i18n";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionFooter,
+  TransactionSignDialog
+} from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -229,10 +233,10 @@ function reset() {
     </Form>
   </ScrollArea>
 
-  <div class="space-y-4 p-4">
+  <TransactionFooter>
     <TransactionFeeConfig v-model="fee" />
     <Button type="submit" size="lg" class="w-full" @click="mint">{{
       t("dapps.nativeTokens.mint.mint")
     }}</Button>
-  </div>
+  </TransactionFooter>
 </template>

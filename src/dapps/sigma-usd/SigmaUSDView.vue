@@ -29,7 +29,11 @@ import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionFooter,
+  TransactionSignDialog
+} from "@/components/transaction";
 import {
   Accordion,
   AccordionContent,
@@ -481,223 +485,228 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
 }
 </script>
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
-    <div class="flex gap-4">
-      <StatsCard
-        class="w-full"
-        :title="t('dapps.sigmaUsd.bankReserves')"
-        :icon="LandmarkIcon"
-        content-class="items-end gap-1 justify-between"
-      >
-        <template v-if="loading">
-          <Skeleton class="h-5 w-13" />
-          <Skeleton class="h-3.5 w-12" />
-        </template>
-        <template v-else>
-          <p class="text-xl leading-none font-semibold">
-            {{ format.number.percent(bankInfo.reserveRatio / 100) }}
-          </p>
-          <p class="text-muted-foreground text-xs leading-tight">
-            {{ format.number.currency(bankInfo.baseReserves, "erg") }}
-          </p>
-        </template>
-      </StatsCard>
-      <StatsCard
-        class="w-full min-w-max"
-        :title="t('dapps.sigmaUsd.oracleRate')"
-        :icon="DollarSignIcon"
-        content-class="items-end gap-1 justify-between"
-      >
-        <template v-if="loading">
-          <Skeleton class="h-5 w-14" />
-          <Skeleton class="h-3.5 w-9" />
-        </template>
-        <template v-else>
-          <p class="text-xl leading-none font-semibold">
-            {{ format.number.currency(bankInfo.stableRate, app.settings.conversionCurrency) }}
-          </p>
-          <p class="text-muted-foreground text-xs leading-tight" v-once>
-            {{ format.number.namedCurrency(1, "ERG") }}
-          </p>
-        </template>
-      </StatsCard>
-    </div>
+  <div class="flex h-full min-h-0 flex-col">
+    <div class="flex min-h-0 grow flex-col gap-4 overflow-y-auto p-4">
+      <div class="flex gap-4">
+        <StatsCard
+          class="w-full"
+          :title="t('dapps.sigmaUsd.bankReserves')"
+          :icon="LandmarkIcon"
+          content-class="items-end gap-1 justify-between"
+        >
+          <template v-if="loading">
+            <Skeleton class="h-5 w-13" />
+            <Skeleton class="h-3.5 w-12" />
+          </template>
+          <template v-else>
+            <p class="text-xl leading-none font-semibold">
+              {{ format.number.percent(bankInfo.reserveRatio / 100) }}
+            </p>
+            <p class="text-muted-foreground text-xs leading-tight">
+              {{ format.number.currency(bankInfo.baseReserves, "erg") }}
+            </p>
+          </template>
+        </StatsCard>
+        <StatsCard
+          class="w-full min-w-max"
+          :title="t('dapps.sigmaUsd.oracleRate')"
+          :icon="DollarSignIcon"
+          content-class="items-end gap-1 justify-between"
+        >
+          <template v-if="loading">
+            <Skeleton class="h-5 w-14" />
+            <Skeleton class="h-3.5 w-9" />
+          </template>
+          <template v-else>
+            <p class="text-xl leading-none font-semibold">
+              {{ format.number.currency(bankInfo.stableRate, app.settings.conversionCurrency) }}
+            </p>
+            <p class="text-muted-foreground text-xs leading-tight" v-once>
+              {{ format.number.namedCurrency(1, "ERG") }}
+            </p>
+          </template>
+        </StatsCard>
+      </div>
 
-    <div class="relative flex flex-col gap-2">
-      <AssetInputSelect
-        v-model:amount="fromAmount"
-        v-model:selected-asset="fromAsset"
-        :reserved-amount="fromAsset && isErg(fromAsset.tokenId) ? reservedErgAmount : undefined"
-        :disabled="loading"
-        :assets="fromAssets"
-      />
-      <AssetInputSelect
-        v-model:amount="toAmount"
-        v-model:selected-asset="toAsset"
-        :disabled="loading"
-        :assets="toAssets"
-      />
-
-      <Button
-        :disabled="loading || !canFlipAssets"
-        tabindex="-1"
-        size="icon"
-        variant="outline"
-        class="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
-        @click="flipAssets"
-        @mouseover="flipButtonHover = true"
-        @mouseout="flipButtonHover = false"
-      >
-        <ArrowDownUpIcon
-          v-if="canFlipAssets && flipButtonHover && !loading"
-          class="in-disabled:opacity-50"
+      <div class="relative flex flex-col gap-2">
+        <AssetInputSelect
+          v-model:amount="fromAmount"
+          v-model:selected-asset="fromAsset"
+          :reserved-amount="fromAsset && isErg(fromAsset.tokenId) ? reservedErgAmount : undefined"
+          :disabled="loading"
+          :assets="fromAssets"
         />
-        <ArrowDownIcon v-else class="in-disabled:opacity-50" />
-      </Button>
+        <AssetInputSelect
+          v-model:amount="toAmount"
+          v-model:selected-asset="toAsset"
+          :disabled="loading"
+          :assets="toAssets"
+        />
+
+        <Button
+          :disabled="loading || !canFlipAssets"
+          tabindex="-1"
+          size="icon"
+          variant="outline"
+          class="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
+          @click="flipAssets"
+          @mouseover="flipButtonHover = true"
+          @mouseout="flipButtonHover = false"
+        >
+          <ArrowDownUpIcon
+            v-if="canFlipAssets && flipButtonHover && !loading"
+            class="in-disabled:opacity-50"
+          />
+          <ArrowDownIcon v-else class="in-disabled:opacity-50" />
+        </Button>
+      </div>
+
+      <div class="-mt-2 -mb-2 grow space-y-4">
+        <Accordion
+          v-if="bankInfo && tcr?.isPositive()"
+          v-model="isFeeBreakdownOpen"
+          type="single"
+          collapsible
+        >
+          <AccordionItem value="opened" class="border-none">
+            <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
+              <div class="text-muted-foreground flex w-full items-center justify-between px-2">
+                <div>
+                  {{
+                    format.number.namedCurrency(1, format.asset.name(fromAsset)) +
+                    " = " +
+                    format.number.namedCurrency(
+                      tcr,
+                      format.asset.name(toAsset),
+                      Math.min(toAsset?.metadata?.decimals ?? 0, 4)
+                    )
+                  }}
+                </div>
+                <I18nT
+                  v-if="!isFeeBreakdownOpen"
+                  keypath="dapps.sigmaUsd.feeSummary"
+                  tag="div"
+                  class="font-semibold"
+                  scope="global"
+                >
+                  <template #amount>
+                    <span class="font-normal">{{
+                      format.number.namedCurrency(totalFee, "ERG", 4)
+                    }}</span>
+                  </template>
+                </I18nT>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
+              <div class="flex items-center justify-between">
+                <div class="font-medium">
+                  <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
+                    <template #rate>
+                      <span class="text-muted-foreground" v-once>{{
+                        format.number.percent(0.02)
+                      }}</span>
+                    </template>
+                  </I18nT>
+
+                  <TooltipProvider :delay-duration="100">
+                    <Tooltip>
+                      <TooltipTrigger class="cursor-default pl-1">
+                        <InfoIcon class="inline size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent class="max-w-52 hyphens-auto">
+                        {{ t("dapps.sigmaUsd.protocolFeeDesc") }}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div>{{ format.number.namedCurrency(protocolFee, "ERG") }}</div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="font-medium">
+                  <I18nT keypath="dapps.sigmaUsd.serviceFee" scope="global">
+                    <template #rate>
+                      <span class="text-muted-foreground" v-once>{{
+                        format.number.percent(0.0022)
+                      }}</span>
+                    </template>
+                  </I18nT>
+
+                  <TooltipProvider :delay-duration="100">
+                    <Tooltip>
+                      <TooltipTrigger class="cursor-default pl-1">
+                        <InfoIcon class="inline size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent class="max-w-52 hyphens-auto">
+                        {{ t("dapps.sigmaUsd.serviceFeeDesc") }}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div>{{ format.number.namedCurrency(uiFee, "ERG") }}</div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="font-medium">
+                  {{ t("dapps.sigmaUsd.networkFee") }}
+                  <TooltipProvider :delay-duration="100">
+                    <Tooltip>
+                      <TooltipTrigger class="cursor-default">
+                        <InfoIcon class="inline size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent class="max-w-52 hyphens-auto">
+                        {{ t("dapps.sigmaUsd.networkFeeDesc") }}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Popover>
+                    <PopoverTrigger as-child>
+                      <Button
+                        variant="minimal"
+                        :disabled="loading"
+                        class="ml-1 size-3.5 align-middle"
+                        size="condensed"
+                      >
+                        <SettingsIcon />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent class="p-0">
+                      <TransactionFeeConfig
+                        v-model="txFee"
+                        erg-only
+                        expanded
+                        :max-multiplier="1000"
+                        class="p-4"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>{{ format.number.namedCurrency(networkFee, "ERG") }}</div>
+              </div>
+              <div class="flex items-center justify-between font-semibold">
+                <div>{{ t("dapps.sigmaUsd.totalFee") }}</div>
+                <div>{{ format.number.namedCurrency(totalFee, "ERG") }}</div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <Alert variant="destructive" v-if="errors.length">
+          <AlertDescription class="text-xs">
+            <ul :class="errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
+              <li v-for="(message, i) in errors" :key="i">{{ message }}</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      </div>
     </div>
 
-    <div class="-mt-2 -mb-2 grow space-y-4">
-      <Accordion
-        v-if="bankInfo && tcr?.isPositive()"
-        v-model="isFeeBreakdownOpen"
-        type="single"
-        collapsible
+    <TransactionFooter>
+      <Button
+        :disabled="loading || !hasInputValues || r$.$invalid"
+        class="w-full"
+        size="lg"
+        @click="sendTransaction"
+        >{{ t("common.swap") }}</Button
       >
-        <AccordionItem value="opened" class="border-none">
-          <AccordionTrigger class="text-muted-foreground p-0 pr-2 text-xs hover:no-underline">
-            <div class="text-muted-foreground flex w-full items-center justify-between px-2">
-              <div>
-                {{
-                  format.number.namedCurrency(1, format.asset.name(fromAsset)) +
-                  " = " +
-                  format.number.namedCurrency(
-                    tcr,
-                    format.asset.name(toAsset),
-                    Math.min(toAsset?.metadata?.decimals ?? 0, 4)
-                  )
-                }}
-              </div>
-              <I18nT
-                v-if="!isFeeBreakdownOpen"
-                keypath="dapps.sigmaUsd.feeSummary"
-                tag="div"
-                class="font-semibold"
-                scope="global"
-              >
-                <template #amount>
-                  <span class="font-normal">{{
-                    format.number.namedCurrency(totalFee, "ERG", 4)
-                  }}</span>
-                </template>
-              </I18nT>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
-            <div class="flex items-center justify-between">
-              <div class="font-medium">
-                <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
-                  <template #rate>
-                    <span class="text-muted-foreground" v-once>{{
-                      format.number.percent(0.02)
-                    }}</span>
-                  </template>
-                </I18nT>
-
-                <TooltipProvider :delay-duration="100">
-                  <Tooltip>
-                    <TooltipTrigger class="cursor-default pl-1">
-                      <InfoIcon class="inline size-3.5" />
-                    </TooltipTrigger>
-                    <TooltipContent class="max-w-52 hyphens-auto">
-                      {{ t("dapps.sigmaUsd.protocolFeeDesc") }}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div>{{ format.number.namedCurrency(protocolFee, "ERG") }}</div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="font-medium">
-                <I18nT keypath="dapps.sigmaUsd.serviceFee" scope="global">
-                  <template #rate>
-                    <span class="text-muted-foreground" v-once>{{
-                      format.number.percent(0.0022)
-                    }}</span>
-                  </template>
-                </I18nT>
-
-                <TooltipProvider :delay-duration="100">
-                  <Tooltip>
-                    <TooltipTrigger class="cursor-default pl-1">
-                      <InfoIcon class="inline size-3.5" />
-                    </TooltipTrigger>
-                    <TooltipContent class="max-w-52 hyphens-auto">
-                      {{ t("dapps.sigmaUsd.serviceFeeDesc") }}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div>{{ format.number.namedCurrency(uiFee, "ERG") }}</div>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="font-medium">
-                {{ t("dapps.sigmaUsd.networkFee") }}
-                <TooltipProvider :delay-duration="100">
-                  <Tooltip>
-                    <TooltipTrigger class="cursor-default">
-                      <InfoIcon class="inline size-3.5" />
-                    </TooltipTrigger>
-                    <TooltipContent class="max-w-52 hyphens-auto">
-                      {{ t("dapps.sigmaUsd.networkFeeDesc") }}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <Popover>
-                  <PopoverTrigger as-child>
-                    <Button
-                      variant="minimal"
-                      :disabled="loading"
-                      class="ml-1 size-3.5 align-middle"
-                      size="condensed"
-                    >
-                      <SettingsIcon />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent class="p-0">
-                    <TransactionFeeConfig
-                      v-model="txFee"
-                      erg-only
-                      :max-multiplier="1000"
-                      class="border-0 shadow-none"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>{{ format.number.namedCurrency(networkFee, "ERG") }}</div>
-            </div>
-            <div class="flex items-center justify-between font-semibold">
-              <div>{{ t("dapps.sigmaUsd.totalFee") }}</div>
-              <div>{{ format.number.namedCurrency(totalFee, "ERG") }}</div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
-      <Alert variant="destructive" v-if="errors.length">
-        <AlertDescription class="text-xs">
-          <ul :class="errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
-            <li v-for="(message, i) in errors" :key="i">{{ message }}</li>
-          </ul>
-        </AlertDescription>
-      </Alert>
-    </div>
-
-    <Button
-      :disabled="loading || !hasInputValues || r$.$invalid"
-      class="w-full"
-      size="lg"
-      @click="sendTransaction"
-      >{{ t("common.swap") }}</Button
-    >
+    </TransactionFooter>
   </div>
 </template>

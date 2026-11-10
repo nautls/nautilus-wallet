@@ -171,6 +171,7 @@
       "minNamedAssetError": "You need at least {min} {asset} to send this transaction.",
       "requiredAmountError": "Please enter an amount.",
       "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction.",
+      "adjustFee": "Adjust fee",
       "emptyAddressError": "Please enter the recipient address.",
       "noSelectedAssetsError": "Please select at least one asset to send this transaction."
     },

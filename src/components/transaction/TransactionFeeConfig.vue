@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, HTMLAttributes, onMounted, ref, shallowRef, useId, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
-import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "@lucide/vue";
+import { ChevronsUpDownIcon, Loader2Icon, SlidersHorizontalIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -37,6 +37,7 @@ interface Props {
   maxMultiplier?: number;
   class?: HTMLAttributes["class"];
   ergOnly?: boolean;
+  expanded?: boolean;
 }
 
 const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
@@ -61,6 +62,10 @@ const intSelected = shallowRef<FeeAsset>({ tokenId: ERG_TOKEN_ID, nanoErgsPerTok
 const internalMultiplier = shallowRef([1]);
 const cachedMinRequired = shallowRef(bn(0));
 const loading = ref(false);
+const sliderOpen = ref(false);
+const sliderId = useId();
+
+const showSlider = computed(() => props.expanded || sliderOpen.value);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0);
 const minTokenFee = computed(() => getTokenUnitsFor(BN_MIN_ERG_FEE));
@@ -126,6 +131,11 @@ watch(
 );
 
 watch(() => feeAmount.value, emitSelected);
+
+// a raised fee must stay visible, including when it's raised to cover a token's minimum
+watch(multiplier, (m) => {
+  if (m > 1) sliderOpen.value = true;
+});
 watch(() => props.includeMinAmountPerBox, recalculateMinRequired);
 
 watch(
@@ -246,57 +256,68 @@ function emitSelected() {
     <div
       :class="
         cn(
-          'border-input relative flex w-full flex-col gap-1 rounded-md border bg-transparent px-4 py-3 text-sm shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+          'flex w-full flex-col text-sm',
           disabled && 'pointer-events-none opacity-50',
           props.class
         )
       "
     >
-      <div class="flex grow gap-2">
-        <div class="flex grow flex-row items-start gap-2">
-          <div class="flex h-full flex-row items-center gap-1">
-            <div class="font-bold" v-once>{{ t("common.fee") }}</div>
-            <div>{{ feeAmount.toString() }}</div>
+      <div class="flex items-center gap-2">
+        <div class="flex min-w-0 grow items-center gap-1">
+          <span class="font-semibold" v-once>{{ t("common.fee") }}</span>
 
-            <TooltipProvider :delay-duration="100">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <InfoIcon class="text-muted-foreground size-3" />
-                </TooltipTrigger>
-                <TooltipContent class="text-center">
-                  <div v-if="ergPrice">
-                    {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <TooltipProvider :delay-duration="100">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <span v-if="expanded" class="truncate px-1 tabular-nums">
+                  {{ feeAmount.toString() }}
+                </span>
+                <Button
+                  v-else
+                  variant="ghost"
+                  size="sm"
+                  class="h-7 min-w-0 gap-1.5 px-2 font-normal tabular-nums"
+                  :class="{ 'bg-accent text-accent-foreground': sliderOpen }"
+                  :aria-expanded="sliderOpen"
+                  :aria-controls="sliderId"
+                  @click="sliderOpen = !sliderOpen"
+                >
+                  <span class="sr-only">{{ t("transaction.send.adjustFee") }}</span>
+                  <span class="truncate">{{ feeAmount.toString() }}</span>
+                  <SlidersHorizontalIcon class="text-muted-foreground size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent v-if="ergPrice" class="text-center">
+                {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <div>
-          <AssetSelect v-model="intSelected" :assets="assets" selectable>
-            <PopoverTrigger :disabled="loading || ergOnly">
-              <Button
-                :disabled="loading || ergOnly"
-                variant="secondary"
-                class="disabled:opacity-100"
-              >
-                <AssetIcon
-                  class="size-4"
-                  :token-id="intSelected.tokenId"
-                  :type="intSelected.metadata?.type"
-                />
-                {{ format.asset.name(intSelected) }}
 
-                <template v-if="!ergOnly">
-                  <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-                  <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
-                </template>
-              </Button>
-            </PopoverTrigger>
-          </AssetSelect>
+        <div
+          v-if="ergOnly"
+          class="text-muted-foreground flex h-8 items-center gap-1.5 px-1 font-medium"
+        >
+          <AssetIcon class="size-4" :token-id="intSelected.tokenId" />
+          {{ format.asset.name(intSelected) }}
         </div>
+        <AssetSelect v-else v-model="intSelected" :assets="assets" selectable>
+          <PopoverTrigger :disabled="loading">
+            <Button :disabled="loading" variant="secondary" size="sm" class="disabled:opacity-100">
+              <AssetIcon
+                class="size-4"
+                :token-id="intSelected.tokenId"
+                :type="intSelected.metadata?.type"
+              />
+              {{ format.asset.name(intSelected) }}
+              <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
+              <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+        </AssetSelect>
       </div>
-      <div class="pt-3 pb-2">
+
+      <div v-if="showSlider" :id="sliderId" class="px-1 pt-4 pb-2">
         <Slider v-model="internalMultiplier" :max="props.maxMultiplier" :step="1" :min="1" />
       </div>
     </div>

@@ -9,7 +9,11 @@ import { useI18n } from "vue-i18n";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionFooter,
+  TransactionSignDialog
+} from "@/components/transaction";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -191,10 +195,10 @@ function reset() {
     </Form>
   </ScrollArea>
 
-  <div class="space-y-4 p-4">
+  <TransactionFooter>
     <TransactionFeeConfig v-model="fee" />
     <Button type="submit" variant="destructive" size="lg" class="w-full" @click="burn">{{
       t("dapps.nativeTokens.burn.burn")
     }}</Button>
-  </div>
+  </TransactionFooter>
 </template>
