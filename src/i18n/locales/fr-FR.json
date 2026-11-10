@@ -433,7 +433,7 @@
   "about": {
     "nautilusWallet": "Portefeuille Nautilus",
     "quote": "Construit en secret, en se procurant des pièces auprès de sources inconnues. Parcourt les mers au-delà de la portée des gouvernements terrestres.",
-    "donation": "Soutenez le développement du portefeuille Nautilus en faisant un don à {address}."
+    "donation": "Soutenez le développement du portefeuille Nautilus en faisant un don."
   },
   "connector": {
     "connect": {

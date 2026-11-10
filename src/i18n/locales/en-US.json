@@ -434,7 +434,7 @@
   "about": {
     "nautilusWallet": "Nautilus Wallet",
     "quote": "Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
-    "donation": "Support Nautilus Wallet development by donating to {address}."
+    "donation": "Support Nautilus Wallet development with a donation."
   },
   "connector": {
     "notSecure": "Not secure",

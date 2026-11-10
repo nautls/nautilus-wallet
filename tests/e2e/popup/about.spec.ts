@@ -28,7 +28,7 @@ test.describe("about", () => {
     await popup.importWallet(WALLET_A);
     await popup.menu("About");
 
-    await popup.page.getByRole("button", { name: /^9iPgSVU/ }).click();
+    await popup.page.locator("#donate").click();
 
     await expect(popup.page).toHaveURL(/#\/send\?recipient=/);
     await expect(popup.page.locator("#recipient")).toHaveValue(DONATION_ADDRESS);
@@ -38,7 +38,9 @@ test.describe("about", () => {
     await popup.importReadOnlyWallet("Watcher", await xpubOf(WALLET_A));
     await popup.menu("About");
 
-    await expect(popup.page.getByText(/9iPgSVU/)).toBeVisible();
-    await expect(popup.page.getByRole("button", { name: /^9iPgSVU/ })).toHaveCount(0);
+    const address = popup.page.locator("[data-donation-address]");
+    await expect(address).toContainText("9iPgSVU");
+    await expect(address.getByRole("button", { name: "Copy" })).toBeVisible();
+    await expect(popup.page.locator("#donate")).toHaveCount(0);
   });
 });

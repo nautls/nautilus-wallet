@@ -433,7 +433,7 @@
   "about": {
     "nautilusWallet": "Nautilus Wallet",
     "quote": "Construído em segredo, obtendo peças de fontes não nomeadas. Navega pelos mares além do alcance de governos terrestres.",
-    "donation": "Apoie o desenvolvimento da Nautilus Wallet doando para {address}."
+    "donation": "Apoie o desenvolvimento da Nautilus Wallet com uma doação."
   },
   "connector": {
     "connect": {

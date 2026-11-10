@@ -433,7 +433,7 @@
   "about": {
     "nautilusWallet": "Nautilus 钱包",
     "quote": "秘密构建，从未命名的来源采购零件。航行在超越陆地政府范围的海洋。",
-    "donation": "通过捐赠至 {address} 支持 Nautilus 钱包开发。"
+    "donation": "通过捐赠支持 Nautilus 钱包开发。"
   },
   "connector": {
     "connect": {
