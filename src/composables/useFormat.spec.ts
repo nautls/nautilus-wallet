@@ -70,27 +70,14 @@ describe("currency formatting", () => {
     );
   });
 
-  it("splits the amount into styleable parts", () => {
-    expect(inLocale("en-US", () => number.currencyParts(amount, "usd", 2))).toEqual({
-      prefix: "$",
-      integer: "3,588",
-      fraction: ".54",
-      suffix: ""
-    });
-    expect(inLocale("de-DE", () => number.currencyParts(amount, "usd", 2))).toEqual({
-      prefix: "",
-      integer: "3.588",
-      fraction: ",54",
-      suffix: `${NBSP}$`
-    });
+  it("places the symbol where the locale puts it", () => {
+    expect(inLocale("en-US", () => number.currency(amount, "usd", 2))).toBe("$3,588.54");
+    expect(inLocale("de-DE", () => number.currency(amount, "usd", 2))).toBe(`3.588,54${NBSP}$`);
   });
 
-  it("doesn't split compact amounts at their decimal separator", () => {
-    expect(inLocale("de-DE", () => number.currencyParts(bn(1_250_000), "eur", 2))).toEqual({
-      prefix: "",
-      integer: `1,25${NBSP}Mio.`,
-      fraction: "",
-      suffix: `${NBSP}€`
-    });
+  it("keeps the symbol around compact amounts", () => {
+    expect(inLocale("de-DE", () => number.currency(bn(1_250_000), "eur", 2))).toBe(
+      `1,25${NBSP}Mio.${NBSP}€`
+    );
   });
 });

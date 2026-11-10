@@ -101,14 +101,6 @@ function currencyAffixes(currencyCode: string): { prefix: string; suffix: string
   return { prefix: text(parts.slice(0, first)), suffix: text(parts.slice(last + 1)) };
 }
 
-export interface CurrencyParts {
-  prefix: string;
-  integer: string;
-  /** The decimal separator and the digits after it, empty for compact amounts. */
-  fraction: string;
-  suffix: string;
-}
-
 const STRING_FORMATTERS = {
   uppercase(val?: string): string {
     if (!val || typeof val !== "string") return "";
@@ -174,26 +166,11 @@ const NUMBER_FORMATTERS = {
     const val = typeof value === "number" ? value : value?.toNumber();
     return numberFormat({ style: "percent", maximumFractionDigits: 2 }).format(val ?? 0);
   },
-  currencyParts(value: BigNumber, currencyCode: string, decimals?: number): CurrencyParts {
+  currency(value: BigNumber, currencyCode: string, decimals?: number): string {
     const formatted = this.decimal(value, decimals);
     const sign = /^[-\u2212]/.test(formatted) ? formatted[0] : "";
-    const digits = formatted.slice(sign.length);
     const { prefix, suffix } = currencyAffixes(currencyCode);
-
-    const separatorIndex = value.abs().gte(COMPACT_THRESHOLD)
-      ? -1
-      : digits.lastIndexOf(separators().decimal);
-
-    return {
-      prefix: sign + prefix,
-      integer: separatorIndex < 0 ? digits : digits.slice(0, separatorIndex),
-      fraction: separatorIndex < 0 ? "" : digits.slice(separatorIndex),
-      suffix
-    };
-  },
-  currency(value: BigNumber, currencyCode: string, decimals?: number): string {
-    const { prefix, integer, fraction, suffix } = this.currencyParts(value, currencyCode, decimals);
-    return `${prefix}${integer}${fraction}${suffix}`;
+    return `${sign}${prefix}${formatted.slice(sign.length)}${suffix}`;
   },
   namedCurrency(
     value: BigNumber | number | undefined,

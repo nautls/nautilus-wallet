@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { ImportIcon, WalletIcon } from "@lucide/vue";
 import { I18nT, useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
-import NautilusLogo from "@/components/NautilusLogo.vue";
+import NautilusLogoGlow from "@/components/NautilusLogoGlow.vue";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import LedgerLogo from "@/assets/images/hw-devices/ledger-logo.svg";
@@ -78,14 +78,7 @@ const routes = [
   <div class="flex h-full flex-col gap-4 p-4">
     <div class="flex flex-row items-center gap-4 pt-2">
       <div class="flex w-full flex-col text-center">
-        <div class="relative m-auto mb-4 size-24">
-          <div
-            class="from-brass to-sea absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-50% to-50% blur-lg"
-          ></div>
-          <NautilusLogo
-            class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          />
-        </div>
+        <NautilusLogoGlow class="m-auto mb-4" />
         <div class="text-xl leading-tight font-semibold tracking-tight" v-once>
           {{ t("wallet.index.title") }}
         </div>

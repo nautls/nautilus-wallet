@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { I18nT, useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
+import NautilusLogoGlow from "@/components/NautilusLogoGlow.vue";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Link } from "@/components/ui/link";
@@ -28,7 +29,7 @@ function goDonate() {
 
 <template>
   <div class="flex h-full flex-col gap-6 p-4">
-    <img src="/icons/app/logo.svg?url" class="m-auto size-20" />
+    <NautilusLogoGlow class="m-auto" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
         <span>{{ t("about.nautilusWallet") }}</span>

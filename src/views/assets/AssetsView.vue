@@ -47,10 +47,6 @@ const walletTotal = computed(() =>
     .times(ergPrice.value)
 );
 
-const balance = computed(() =>
-  format.number.currencyParts(walletTotal.value, app.settings.conversionCurrency, 2)
-);
-
 watch(
   () => wallet.id,
   () => {
@@ -93,27 +89,18 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
-      <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 px-3 pt-2 pb-4">
-        <div class="min-w-0">
-          <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
-          <h2
-            v-if="!app.settings.hideBalances"
-            data-wallet-balance
-            class="text-4xl leading-tight font-medium tracking-tight whitespace-nowrap tabular-nums"
-          >
-            <span v-if="balance.prefix" class="text-muted-foreground text-xl font-normal">{{
-              balance.prefix
-            }}</span
-            >{{ balance.integer
-            }}<span class="text-muted-foreground text-2xl">{{ balance.fraction }}</span
-            ><span v-if="balance.suffix" class="text-muted-foreground text-xl font-normal">{{
-              balance.suffix
-            }}</span>
+      <div class="flex cursor-default items-center justify-around bg-transparent py-4">
+        <div>
+          <h2 class="text-2xl">
+            <span v-if="!app.settings.hideBalances"
+              >{{ formatCurrencyAmount(walletTotal, 2) }}
+            </span>
+            <Skeleton v-else class="inline-block h-6 w-24 animate-none font-light tracking-wider" />
           </h2>
-          <Skeleton v-else class="mt-1.5 h-9.5 w-40 animate-none" />
+          <p class="text-muted-foreground text-xs">{{ t("asset.totalBalance") }}</p>
         </div>
 
-        <BuyErgButton variant="secondary" size="sm" class="mb-1.5 shrink-0" />
+        <BuyErgButton />
       </div>
 
       <WalletAlerts />
