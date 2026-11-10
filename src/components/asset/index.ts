@@ -5,8 +5,8 @@ export const assetSignIconVariants = cva(
   {
     variants: {
       variant: {
-        positive: "text-green-600 dark:text-green-400",
-        negative: "text-red-600 dark:text-red-400",
+        positive: "text-success",
+        negative: "text-destructive",
         equal: "text-muted-foreground",
         swap: "",
         burn: "border-none bg-transparent"

@@ -80,7 +80,7 @@ const routes = [
       <div class="flex w-full flex-col text-center">
         <div class="relative m-auto mb-4 size-24">
           <div
-            class="absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-yellow-500 from-50% to-sky-500 to-50% blur-lg"
+            class="from-brass to-sea absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-linear-to-br from-50% to-50% blur-lg"
           ></div>
           <NautilusLogo
             class="absolute top-1/2 left-1/2 size-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -130,7 +130,7 @@ const routes = [
         <template #termsOfUse>
           <Link
             external
-            class="text-nowrap text-blue-500/80"
+            class="text-foreground text-nowrap underline"
             :href="`https://github.com/nautls/nautilus-wallet/blob/${commitHash}/docs/legal/kya.md`"
             >{{ t("common.termsOfUse") }}</Link
           >

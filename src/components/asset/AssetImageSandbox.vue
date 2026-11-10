@@ -62,7 +62,7 @@ function resolveIpfs(url?: string): string {
       />
     </div>
     <div v-else-if="!sandboxUrl" :class="props.class" class="flex">
-      <CircleAlertIcon class="m-auto text-orange-400" :size="48" />
+      <CircleAlertIcon class="text-warning m-auto" :size="48" />
     </div>
 
     <iframe

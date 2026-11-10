@@ -82,16 +82,16 @@ useResizeObserver(content, () => {
 @reference "../../../assets/styles/index.css";
 
 .json-viewer pre {
-  @apply font-mono text-xs break-all whitespace-pre-wrap text-[#24292e] dark:text-[#e1e4e8];
+  @apply text-foreground font-mono text-xs break-all whitespace-pre-wrap;
 }
 
 .json-viewer .hljs-attr,
 .json-viewer .hljs-number,
 .json-viewer .hljs-literal {
-  @apply text-[#005cc5] dark:text-[#79b8ff];
+  @apply text-code-key;
 }
 
 .json-viewer .hljs-string {
-  @apply text-[#032f62] dark:text-[#9ecbff];
+  @apply text-code-string;
 }
 </style>

@@ -194,7 +194,7 @@ defineExpose({ setState, openErgoApp });
 
         <div
           :class="screenPosition"
-          class="absolute flex h-[51px] w-[111px] flex-col items-center justify-around gap-1 bg-blue-50/0 p-0.5 text-xs leading-none text-slate-100 transition-all"
+          class="text-scrim-foreground absolute flex h-[51px] w-[111px] flex-col items-center justify-around gap-1 p-0.5 text-xs leading-none transition-all"
         >
           <CheckCheckIcon v-if="state.type === 'ready'" class="size-auto opacity-80" />
           <Loader2Icon
@@ -203,9 +203,9 @@ defineExpose({ setState, openErgoApp });
           />
           <CheckIcon
             v-else-if="state.type === 'success'"
-            class="size-auto text-green-400 opacity-80"
+            class="text-success size-auto opacity-80"
           />
-          <XIcon v-else-if="state.type === 'error'" class="size-auto text-red-400 opacity-80" />
+          <XIcon v-else-if="state.type === 'error'" class="text-destructive size-auto opacity-80" />
           <LockIcon v-else-if="state.type === 'locked'" class="size-auto opacity-80" />
 
           <p v-if="state.label" class="text-[0.70rem] font-semibold opacity-90">
