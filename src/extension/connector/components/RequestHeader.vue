@@ -16,12 +16,22 @@ const domain = computed(() => (props.origin ? displayOrigin(props.origin) : "???
 </script>
 
 <template>
-  <div class="py-2 text-center">
-    <img v-if="favicon" :src="favicon" class="mr-1 inline size-6" />
-    <I18nT :keypath="props.i18nKeypath" :scope="props.i18nScope ?? 'global'">
-      <template #host>
-        <span class="font-semibold">{{ domain }}</span>
-      </template>
-    </I18nT>
-  </div>
+  <!-- every locale starts these messages with {host}, so it can take a line of its own -->
+  <I18nT
+    :keypath="props.i18nKeypath"
+    :scope="props.i18nScope ?? 'global'"
+    tag="div"
+    class="text-muted-foreground py-2 text-center text-sm"
+    data-request-header
+  >
+    <template #host>
+      <span
+        data-request-origin
+        class="text-foreground mb-1 flex items-center justify-center gap-2 text-base font-semibold break-all"
+      >
+        <img v-if="favicon" :src="favicon" class="size-6 shrink-0 rounded-sm" alt="" />
+        {{ domain }}
+      </span>
+    </template>
+  </I18nT>
 </template>
