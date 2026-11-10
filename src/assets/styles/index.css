@@ -147,7 +147,7 @@
   }
 
   body {
-    @apply bg-background text-foreground h-full cursor-default overflow-hidden !font-sans leading-normal tracking-wide antialiased;
+    @apply bg-background text-foreground h-full cursor-default overflow-hidden !font-sans leading-normal antialiased;
   }
 
   /* avoids a light flash before the app applies its color mode */

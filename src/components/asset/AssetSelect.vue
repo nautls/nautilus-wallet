@@ -148,7 +148,7 @@ function filter(items: (T | string)[]) {
                   <Skeleton class="h-4 w-12 animate-none" />
                 </div>
                 <template v-else>
-                  <div>
+                  <div class="tabular-nums">
                     {{ format.number.decimal(asset.balance) }}
                   </div>
                 </template>

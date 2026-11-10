@@ -191,7 +191,7 @@ function openExplorer(address: string | undefined) {
             </div>
           </div>
 
-          <div class="text-right text-xs">
+          <div class="text-right text-xs tabular-nums">
             <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
             <template v-else>
               <span>{{ getFormattedErgBalance(address) }}</span>

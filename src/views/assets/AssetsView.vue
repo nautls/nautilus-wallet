@@ -171,7 +171,7 @@ function openAssetInfoDialog(tokenId: string) {
                   </p>
                 </div>
 
-                <div class="flex flex-col items-end gap-0.5 whitespace-nowrap">
+                <div class="flex flex-col items-end gap-0.5 whitespace-nowrap tabular-nums">
                   <template v-if="app.settings.hideBalances">
                     <Skeleton class="h-5 w-24 animate-none" />
                     <Skeleton class="h-3 w-3/4 animate-none" />

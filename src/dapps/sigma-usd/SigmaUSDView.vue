@@ -597,7 +597,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
                 </I18nT>
               </div>
             </AccordionTrigger>
-            <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs">
+            <AccordionContent class="space-y-1 px-2 pt-2 pb-0 text-xs tabular-nums">
               <div class="flex items-center justify-between">
                 <div class="font-medium">
                   <I18nT keypath="dapps.sigmaUsd.protocolFee" scope="global">
