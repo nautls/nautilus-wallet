@@ -438,6 +438,7 @@
     "donation": "Support Nautilus Wallet development by donating to {address}."
   },
   "connector": {
+    "notSecure": "Not secure",
     "connect": {
       "header": "{host} requests to connect with Nautilus.",
       "connect": "Connect"

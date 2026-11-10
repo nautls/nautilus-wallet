@@ -79,7 +79,7 @@ function walletTypeToString(type: WalletType): string {
   <div :class="cn('flex h-auto w-full flex-row items-center gap-2 rounded text-left', props.class)">
     <canvas
       :id="canvasId"
-      class="ring-foreground/10 inline-block h-full w-auto rounded-sm ring-1 ring-offset-1"
+      class="ring-foreground/10 ml-px inline-block h-full w-auto rounded-sm ring-1 ring-offset-1"
     ></canvas>
 
     <div class="flex w-full flex-col justify-between whitespace-nowrap">

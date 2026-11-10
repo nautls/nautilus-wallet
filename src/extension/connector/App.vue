@@ -14,7 +14,7 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
 
 <template>
   <div
-    class="bg-background flex h-screen min-w-[360px] flex-col overflow-hidden text-sm md:mx-auto md:w-4/12 md:shadow-lg"
+    class="bg-background flex h-screen min-w-90 flex-col overflow-hidden text-sm md:mx-auto md:w-4/12 md:shadow-lg"
   >
     <div
       class="bg-header flex shrink-0 flex-row items-center gap-4 px-4 py-3"
@@ -23,7 +23,7 @@ const currentWalletItem = computed(() => app.wallets.find((w) => w.id === wallet
       <div v-if="!$route.meta.fullPage" class="flex min-w-0 items-center">
         <WalletItem v-if="currentWalletItem" :wallet="currentWalletItem" class="w-auto min-w-0" />
       </div>
-      <NautilusLogo class="mx-4 shrink-0" />
+      <NautilusLogo class="shrink-0" />
     </div>
 
     <router-view />

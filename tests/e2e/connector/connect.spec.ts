@@ -46,6 +46,33 @@ test.describe("dApp connection", () => {
     expect(state).toEqual({ connected: true, authorized: true, ergo: "object", sameContext: true });
   });
 
+  test("flags requests from plain http origins", async ({ context, dapp }) => {
+    const { win: secureWin, result: secureResult } = await withConnectorWindow(
+      context,
+      "connect",
+      () => invoke(dapp, () => window.ergoConnector.nautilus.connect())
+    );
+    await expectRequestFrom(secureWin, DAPP_HOST);
+    await expect(secureWin.getByText("Not secure")).toHaveCount(0);
+    await clickToClose(secureWin.getByRole("button", { name: "Cancel" }));
+    expect(await secureResult).toEqual({ ok: true, value: false });
+
+    await context.route("http://insecure.test/**", (route) =>
+      route.fulfill({ contentType: "text/html", body: "<html><body>dApp</body></html>" })
+    );
+    const insecure = await context.newPage();
+    await insecure.goto("http://insecure.test/");
+    await insecure.waitForFunction(() => !!window.ergoConnector);
+
+    const { win, result } = await withConnectorWindow(context, "connect", () =>
+      invoke(insecure, () => window.ergoConnector.nautilus.connect())
+    );
+    await expectRequestFrom(win, "http://insecure.test");
+    await expect(win.getByText("Not secure")).toBeVisible();
+    await clickToClose(win.getByRole("button", { name: "Cancel" }));
+    expect(await result).toEqual({ ok: true, value: false });
+  });
+
   test("filters the wallet list by name", async ({ context, dapp }) => {
     const { win, result } = await withConnectorWindow(context, "connect", () =>
       invoke(dapp, () => window.ergoConnector.nautilus.connect())
