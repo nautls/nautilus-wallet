@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, HTMLAttributes, onMounted, ref, shallowRef, useId, watch } from "vue";
+import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue";
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { withMessage } from "@regle/rules";
@@ -13,9 +13,8 @@ import { useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetSelect } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
-import { PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
@@ -62,10 +61,6 @@ const intSelected = shallowRef<FeeAsset>({ tokenId: ERG_TOKEN_ID, nanoErgsPerTok
 const internalMultiplier = shallowRef([1]);
 const cachedMinRequired = shallowRef(bn(0));
 const loading = ref(false);
-const sliderOpen = ref(false);
-const sliderId = useId();
-
-const showSlider = computed(() => props.expanded || sliderOpen.value);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0);
 const minTokenFee = computed(() => getTokenUnitsFor(BN_MIN_ERG_FEE));
@@ -88,11 +83,12 @@ const feeAmount = computed(() => {
 });
 
 const price = computed(() => {
-  if (intSelected.value.tokenId === ERG_TOKEN_ID) {
-    return decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value);
-  }
+  const value =
+    intSelected.value.tokenId === ERG_TOKEN_ID
+      ? decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value)
+      : decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
 
-  return decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
+  return value.decimalPlaces(5, BigNumber.ROUND_DOWN);
 });
 
 const { r$ } = useChildRegle(
@@ -131,11 +127,6 @@ watch(
 );
 
 watch(() => feeAmount.value, emitSelected);
-
-// a raised fee must stay visible, including when it's raised to cover a token's minimum
-watch(multiplier, (m) => {
-  if (m > 1) sliderOpen.value = true;
-});
 watch(() => props.includeMinAmountPerBox, recalculateMinRequired);
 
 watch(
@@ -266,32 +257,46 @@ function emitSelected() {
         <div class="flex min-w-0 grow items-center gap-1">
           <span class="font-semibold" v-once>{{ t("common.fee") }}</span>
 
-          <TooltipProvider :delay-duration="100">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <span v-if="expanded" class="truncate px-1 tabular-nums">
-                  {{ feeAmount.toString() }}
+          <template v-if="expanded">
+            <span class="truncate px-1 tabular-nums">{{ feeAmount.toString() }}</span>
+            <span v-if="ergPrice" class="text-muted-foreground truncate text-xs tabular-nums">
+              {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
+            </span>
+          </template>
+
+          <Popover v-else>
+            <PopoverTrigger as-child>
+              <Button
+                variant="ghost"
+                size="sm"
+                class="data-[state=open]:bg-accent h-7 min-w-0 gap-1.5 px-2 font-normal tabular-nums"
+              >
+                <span class="sr-only">{{ t("transaction.send.adjustFee") }}</span>
+                <span class="truncate">{{ feeAmount.toString() }}</span>
+                <SlidersHorizontalIcon class="text-muted-foreground size-3.5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" class="w-64 space-y-4 p-4">
+              <div class="flex items-baseline justify-between gap-2 text-sm">
+                <span class="truncate tabular-nums">
+                  {{ feeAmount.toString() }} {{ format.asset.name(intSelected) }}
                 </span>
-                <Button
-                  v-else
-                  variant="ghost"
-                  size="sm"
-                  class="h-7 min-w-0 gap-1.5 px-2 font-normal tabular-nums"
-                  :class="{ 'bg-accent text-accent-foreground': sliderOpen }"
-                  :aria-expanded="sliderOpen"
-                  :aria-controls="sliderId"
-                  @click="sliderOpen = !sliderOpen"
+                <span
+                  v-if="ergPrice"
+                  class="text-muted-foreground shrink-0 text-xs whitespace-nowrap tabular-nums"
                 >
-                  <span class="sr-only">{{ t("transaction.send.adjustFee") }}</span>
-                  <span class="truncate">{{ feeAmount.toString() }}</span>
-                  <SlidersHorizontalIcon class="text-muted-foreground size-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent v-if="ergPrice" class="text-center">
-                {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                  {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
+                </span>
+              </div>
+              <Slider
+                v-model="internalMultiplier"
+                :max="props.maxMultiplier"
+                :step="1"
+                :min="1"
+                class="pb-1"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div
@@ -317,7 +322,7 @@ function emitSelected() {
         </AssetSelect>
       </div>
 
-      <div v-if="showSlider" :id="sliderId" class="px-1 pt-4 pb-2">
+      <div v-if="expanded" class="px-1 pt-4 pb-2">
         <Slider v-model="internalMultiplier" :max="props.maxMultiplier" :step="1" :min="1" />
       </div>
     </div>
