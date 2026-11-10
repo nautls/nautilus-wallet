@@ -20,6 +20,7 @@ import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
+import { currencySymbolMap } from "@/mappers/currencySymbolMap";
 import WalletAlerts from "./components/WalletAlerts.vue";
 
 const app = useAppStore();
@@ -46,6 +47,15 @@ const walletTotal = computed(() =>
     .reduce((acc, a) => acc.plus(a.balance.times(rate(a.tokenId))), bn(0))
     .times(ergPrice.value)
 );
+
+const balance = computed(() => {
+  const value = format.number.decimal(walletTotal.value, 2);
+  const [, whole = value, fraction = ""] = /^(.*?)(\.\d+)?$/.exec(value) ?? [];
+  const code = app.settings.conversionCurrency;
+  const symbol = currencySymbolMap.get(code);
+
+  return { whole, fraction, symbol, code: symbol ? undefined : code.toUpperCase() };
+});
 
 watch(
   () => wallet.id,
@@ -89,18 +99,27 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
-      <div class="flex cursor-default items-center justify-around bg-transparent py-4">
-        <div>
-          <h2 class="text-2xl">
-            <span v-if="!app.settings.hideBalances"
-              >{{ formatCurrencyAmount(walletTotal, 2) }}
-            </span>
-            <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
+      <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 px-3 pt-2 pb-4">
+        <div class="min-w-0">
+          <p class="text-muted-foreground text-sm">{{ t("asset.totalBalance") }}</p>
+          <h2
+            v-if="!app.settings.hideBalances"
+            data-wallet-balance
+            class="text-4xl leading-tight font-medium tracking-tight whitespace-nowrap tabular-nums"
+          >
+            <span v-if="balance.symbol" class="text-muted-foreground mr-1 text-2xl font-medium">{{
+              balance.symbol
+            }}</span
+            >{{ balance.whole
+            }}<span class="text-muted-foreground text-2xl">{{ balance.fraction }}</span>
+            <span v-if="balance.code" class="text-muted-foreground ml-1.5 text-xl font-medium">{{
+              balance.code
+            }}</span>
           </h2>
-          <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
+          <Skeleton v-else class="mt-1.5 h-9.5 w-40 animate-none" />
         </div>
 
-        <BuyErgButton />
+        <BuyErgButton variant="secondary" size="sm" class="mb-1.5 shrink-0" />
       </div>
 
       <WalletAlerts />
