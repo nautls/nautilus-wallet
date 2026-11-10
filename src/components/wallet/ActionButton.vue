@@ -15,6 +15,6 @@ defineProps<{ label: string }>();
         <slot />
       </Button>
     </TooltipTrigger>
-    <TooltipContent side="bottom">{{ label }}</TooltipContent>
+    <TooltipContent side="top">{{ label }}</TooltipContent>
   </Tooltip>
 </template>

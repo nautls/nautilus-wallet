@@ -11,8 +11,8 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import NewPasswordFields from "@/components/NewPasswordFields.vue";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
@@ -194,29 +194,29 @@ async function setUp() {
 </script>
 
 <template>
-  <div class="flex min-h-0 grow flex-col gap-4 p-4">
-    <Stepper v-model="step" :steps="steps" />
-    <StepTitle :step="steps[step - 1]" />
+  <div class="flex min-h-0 grow flex-col">
+    <Stepper v-model="step" :steps="steps" class="shrink-0 p-4" />
+    <ScrollArea type="scroll" class="min-h-0 grow">
+      <div class="flex flex-col gap-4 px-4 pb-4">
+        <StepTitle :step="steps[step - 1]" />
 
-    <Form class="flex min-h-0 grow flex-col justify-start gap-4" @submit="next">
-      <NewPasswordFields
-        v-if="current === 'password'"
-        id="new-password"
-        :form="master"
-        :label="t('wallet.masterPassword')"
-        :confirm-label="t('wallet.confirmPassword')"
-        :warning="t('wallet.masterPasswordNotRecoverable')"
-        :disabled="loading"
-      />
+        <Form class="flex flex-col gap-4" @submit="next">
+          <NewPasswordFields
+            v-if="current === 'password'"
+            id="new-password"
+            :form="master"
+            :label="t('wallet.masterPassword')"
+            :confirm-label="t('wallet.confirmPassword')"
+            :warning="t('wallet.masterPasswordNotRecoverable')"
+            :disabled="loading"
+          />
 
-      <Card v-if="current === 'wallets'" class="min-h-0 grow py-1">
-        <ScrollArea type="scroll" class="h-full">
-          <div class="mx-2">
+          <div v-if="current === 'wallets'" class="flex flex-col gap-1">
             <div
               v-for="w in candidates"
               :key="w.id"
               data-wallet-row
-              :class="cn('my-1 rounded-md', chosen.includes(w.id) && 'bg-accent')"
+              :class="cn('rounded-md', chosen.includes(w.id) && 'bg-accent')"
             >
               <Button
                 :disabled="loading"
@@ -263,17 +263,20 @@ async function setUp() {
               </FormField>
             </div>
           </div>
-        </ScrollArea>
-      </Card>
-    </Form>
+        </Form>
+      </div>
+    </ScrollArea>
 
-    <Button
-      :disabled="loading || (current === 'wallets' && chosen.length === 0)"
-      class="w-full"
-      @click="next"
-    >
-      <Loader2Icon v-if="loading" class="animate-spin" />
-      {{ nextButtonTitle }}
-    </Button>
+    <ActionFooter>
+      <Button
+        :disabled="loading || (current === 'wallets' && chosen.length === 0)"
+        size="lg"
+        class="w-full"
+        @click="next"
+      >
+        <Loader2Icon v-if="loading" class="animate-spin" />
+        {{ nextButtonTitle }}
+      </Button>
+    </ActionFooter>
   </div>
 </template>

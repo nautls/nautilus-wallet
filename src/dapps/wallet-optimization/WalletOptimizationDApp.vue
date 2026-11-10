@@ -6,11 +6,8 @@ import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
-import {
-  TransactionFeeConfig,
-  TransactionFooter,
-  TransactionSignDialog
-} from "@/components/transaction";
+import ActionFooter from "@/components/ActionFooter.vue";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
@@ -169,11 +166,11 @@ function formatBytes(bytes: number, decimals = 1) {
       </I18nT>
     </div>
 
-    <TransactionFooter>
+    <ActionFooter>
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
       <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction">{{
         t("common.optimize")
       }}</Button>
-    </TransactionFooter>
+    </ActionFooter>
   </div>
 </template>

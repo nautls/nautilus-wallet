@@ -6,6 +6,7 @@ import { AlertCircleIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,48 +119,54 @@ function refuse() {
 </script>
 
 <template>
-  <RequestHeader
-    i18n-keypath="connector.auth.header"
-    :favicon="request?.favicon"
-    :origin="request?.origin"
-  />
+  <div class="flex min-h-0 grow flex-col">
+    <RequestHeader
+      i18n-keypath="connector.auth.header"
+      :favicon="request?.favicon"
+      :origin="request?.origin"
+    />
 
-  <div class="grow"></div>
+    <div class="flex min-h-0 grow flex-col justify-center overflow-y-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{{ t("connector.auth.selectedAddress") }}</CardTitle>
+        </CardHeader>
 
-  <Card>
-    <CardHeader>
-      <CardTitle>{{ t("connector.auth.selectedAddress") }}</CardTitle>
-    </CardHeader>
-
-    <CardContent class="break-all">{{ request?.data.address }}</CardContent>
-  </Card>
-
-  <div class="grow"></div>
-
-  <div class="flex flex-col gap-4">
-    <Alert v-if="isReadonly || isLedger" variant="destructive">
-      <AlertCircleIcon class="size-5" />
-      <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
-      <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
-      <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
-    </Alert>
-
-    <Form v-else-if="!prompt.unlocked" @submit="authenticate">
-      <FormField :validation="r$.password">
-        <PasswordInput
-          v-model="password"
-          :placeholder="prompt.label"
-          type="password"
-          @blur="r$.password.$touch()"
-        />
-      </FormField>
-    </Form>
-
-    <div class="flex flex-row gap-4">
-      <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-      <Button class="flex-2" :disabled="isReadonly || isLedger || !activated" @click="authenticate">
-        {{ t("common.authenticate") }}
-      </Button>
+        <CardContent class="break-all">{{ request?.data.address }}</CardContent>
+      </Card>
     </div>
+
+    <ActionFooter>
+      <Alert v-if="isReadonly || isLedger" variant="destructive">
+        <AlertCircleIcon class="size-5" />
+        <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
+        <AlertTitle v-else-if="isLedger">{{ t("wallet.ledgerWallet") }}</AlertTitle>
+        <AlertDescription>{{ t("wallet.cantSignData") }}</AlertDescription>
+      </Alert>
+
+      <Form v-else-if="!prompt.unlocked" @submit="authenticate">
+        <FormField :validation="r$.password">
+          <PasswordInput
+            v-model="password"
+            :placeholder="prompt.label"
+            type="password"
+            @blur="r$.password.$touch()"
+          />
+        </FormField>
+      </Form>
+
+      <div class="flex flex-row gap-3">
+        <Button class="flex-1" variant="outline" size="lg" @click="cancel">{{
+          t("common.cancel")
+        }}</Button>
+        <Button
+          class="flex-2"
+          size="lg"
+          :disabled="isReadonly || isLedger || !activated"
+          @click="authenticate"
+          >{{ t("common.authenticate") }}</Button
+        >
+      </div>
+    </ActionFooter>
   </div>
 </template>

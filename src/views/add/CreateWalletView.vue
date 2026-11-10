@@ -15,7 +15,9 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -240,66 +242,71 @@ function newMnemonic() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
-    <Stepper v-model="step" :steps="steps" />
-    <StepTitle :step="steps[step - 1]" />
+  <div class="flex min-h-0 grow flex-col">
+    <Stepper v-model="step" :steps="steps" class="shrink-0 p-4" />
+    <ScrollArea type="scroll" class="min-h-0 grow">
+      <div class="flex flex-col gap-4 px-4 pb-4">
+        <StepTitle :step="steps[step - 1]" />
 
-    <Form class="flex h-full grow flex-col justify-start gap-4" @submit="next">
-      <template v-if="current === 'info'">
-        <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
-          <Input
-            id="wallet-name"
-            v-model="walletName"
-            :disabled="loading"
-            maxlength="50"
-            type="text"
-            @blur="infoRules.walletName.$touch()"
-          />
-        </FormField>
+        <Form class="flex flex-col gap-4" @submit="next">
+          <template v-if="current === 'info'">
+            <FormField :validation="infoRules.walletName">
+              <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
+              <Input
+                id="wallet-name"
+                v-model="walletName"
+                :disabled="loading"
+                maxlength="50"
+                type="text"
+                @blur="infoRules.walletName.$touch()"
+              />
+            </FormField>
 
-        <MasterPasswordSwitch :disabled="loading" />
-      </template>
+            <MasterPasswordSwitch :disabled="loading" />
+          </template>
 
-      <WalletPasswordFields v-if="current === 'password'" :disabled="loading" />
+          <WalletPasswordFields v-if="current === 'password'" :disabled="loading" />
 
-      <template v-if="current === 'phrase'">
-        <Tabs v-model="strength" class="flex w-full flex-row items-center gap-0">
-          <TabsList class="flex">
-            <TabsTrigger class="w-full" :value="160">{{
-              t("wallet.words", { count: 15 })
-            }}</TabsTrigger>
-            <TabsTrigger class="w-full" :value="256">{{
-              t("wallet.words", { count: 24 })
-            }}</TabsTrigger>
-          </TabsList>
-          <div class="grow"></div>
-          <Button type="button" variant="ghost" size="icon" @click="newMnemonic">
-            <RotateCwIcon />
-          </Button>
-          <CopyButton
-            type="button"
-            variant="ghost"
-            size="icon"
-            :content="mnemonicPhrase"
-            class="top-4 right-4"
-          />
-        </Tabs>
+          <template v-if="current === 'phrase'">
+            <Tabs v-model="strength" class="flex w-full flex-row items-center gap-0">
+              <TabsList class="flex">
+                <TabsTrigger class="w-full" :value="160">{{
+                  t("wallet.words", { count: 15 })
+                }}</TabsTrigger>
+                <TabsTrigger class="w-full" :value="256">{{
+                  t("wallet.words", { count: 24 })
+                }}</TabsTrigger>
+              </TabsList>
+              <div class="grow"></div>
+              <Button type="button" variant="ghost" size="icon" @click="newMnemonic">
+                <RotateCwIcon />
+              </Button>
+              <CopyButton
+                type="button"
+                variant="ghost"
+                size="icon"
+                :content="mnemonicPhrase"
+                class="top-4 right-4"
+              />
+            </Tabs>
 
-        <Mnemonic :words="mnemonicWords" />
-      </template>
+            <Mnemonic :words="mnemonicWords" />
+          </template>
 
-      <template v-if="current === 'confirm'">
-        <FormField :validation="verificationRules.mnemonicPhraseConfirm">
-          <Mnemonic v-model:words="mnemonicWordsConfirm" :editable="editableIndexes" />
-        </FormField>
-      </template>
-    </Form>
+          <template v-if="current === 'confirm'">
+            <FormField :validation="verificationRules.mnemonicPhraseConfirm">
+              <Mnemonic v-model:words="mnemonicWordsConfirm" :editable="editableIndexes" />
+            </FormField>
+          </template>
+        </Form>
+      </div>
+    </ScrollArea>
 
-    <div class="flex flex-col gap-2">
+    <ActionFooter>
       <Button
         :disabled="loading"
-        class="h-auto min-h-9 w-full items-center text-center whitespace-normal"
+        size="lg"
+        class="h-auto min-h-10 w-full items-center text-center whitespace-normal"
         @click="next"
       >
         <template v-if="loading"
@@ -310,11 +317,12 @@ function newMnemonic() {
       <Button
         v-if="!loading && (current === 'phrase' || current === 'confirm')"
         variant="ghost"
-        class="w-full"
+        size="sm"
+        class="text-muted-foreground -my-1 w-full"
         @click="skipBackup"
       >
         {{ t("wallet.create.skipBackup") }}
       </Button>
-    </div>
+    </ActionFooter>
   </div>
 </template>

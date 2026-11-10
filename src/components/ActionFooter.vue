@@ -7,8 +7,8 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
 
 <template>
   <div
-    data-slot="transaction-footer"
-    :class="cn('bg-background shrink-0 space-y-3 border-t p-4', props.class)"
+    data-slot="action-footer"
+    :class="cn('bg-background flex shrink-0 flex-col gap-3 border-t p-4', props.class)"
   >
     <slot />
   </div>

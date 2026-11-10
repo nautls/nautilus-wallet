@@ -10,11 +10,8 @@ import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
-import {
-  TransactionFeeConfig,
-  TransactionFooter,
-  TransactionSignDialog
-} from "@/components/transaction";
+import ActionFooter from "@/components/ActionFooter.vue";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
@@ -238,7 +235,7 @@ function isFeeAsset(tokenId: string): boolean {
 
 <template>
   <ScrollArea type="scroll" class="grow">
-    <Form class="space-y-4 p-4 pb-2" @submit="sendTransaction">
+    <Form class="space-y-4 p-4" @submit="sendTransaction">
       <FormField :validation="r$.recipient">
         <Label for="recipient">{{ t("transaction.send.recipient") }}</Label>
         <Input
@@ -286,10 +283,10 @@ function isFeeAsset(tokenId: string): boolean {
     </Form>
   </ScrollArea>
 
-  <TransactionFooter>
+  <ActionFooter>
     <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
     <Button type="submit" size="lg" class="w-full" @click="sendTransaction">{{
       t("common.send")
     }}</Button>
-  </TransactionFooter>
+  </ActionFooter>
 </template>

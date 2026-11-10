@@ -29,11 +29,8 @@ import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
-import {
-  TransactionFeeConfig,
-  TransactionFooter,
-  TransactionSignDialog
-} from "@/components/transaction";
+import ActionFooter from "@/components/ActionFooter.vue";
+import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import {
   Accordion,
   AccordionContent,
@@ -699,7 +696,7 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
       </div>
     </div>
 
-    <TransactionFooter>
+    <ActionFooter>
       <Button
         :disabled="loading || !hasInputValues || r$.$invalid"
         class="w-full"
@@ -707,6 +704,6 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
         @click="sendTransaction"
         >{{ t("common.swap") }}</Button
       >
-    </TransactionFooter>
+    </ActionFooter>
   </div>
 </template>

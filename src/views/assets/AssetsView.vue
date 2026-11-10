@@ -101,12 +101,12 @@ function openAssetInfoDialog(tokenId: string) {
             data-wallet-balance
             class="text-4xl leading-tight font-medium tracking-tight whitespace-nowrap tabular-nums"
           >
-            <span v-if="balance.prefix" class="text-muted-foreground text-xl">{{
+            <span v-if="balance.prefix" class="text-muted-foreground text-xl font-normal">{{
               balance.prefix
             }}</span
             >{{ balance.integer
             }}<span class="text-muted-foreground text-2xl">{{ balance.fraction }}</span
-            ><span v-if="balance.suffix" class="text-muted-foreground text-xl">{{
+            ><span v-if="balance.suffix" class="text-muted-foreground text-xl font-normal">{{
               balance.suffix
             }}</span>
           </h2>

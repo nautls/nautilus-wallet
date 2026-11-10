@@ -112,21 +112,22 @@ function closeWindow() {
 </script>
 
 <template>
-  <RequestHeader
-    :i18n-keypath="
-      isPartialSign ? 'connector.signTx.partialTxHeader' : 'connector.signTx.fullTxHeader'
-    "
-    :origin="request?.origin"
-    :favicon="request?.favicon"
-  />
+  <div class="flex min-h-0 grow flex-col">
+    <RequestHeader
+      :i18n-keypath="
+        isPartialSign ? 'connector.signTx.partialTxHeader' : 'connector.signTx.fullTxHeader'
+      "
+      :origin="request?.origin"
+      :favicon="request?.favicon"
+    />
 
-  <TransactionSign
-    class="-mx-4 px-4"
-    :transaction="request?.data.transaction"
-    :inputs-to-sign="inputsToSign"
-    :broadcast="false"
-    @refused="onRefused"
-    @fail="onFail"
-    @success="onSuccess"
-  />
+    <TransactionSign
+      :transaction="request?.data.transaction"
+      :inputs-to-sign="inputsToSign"
+      :broadcast="false"
+      @refused="onRefused"
+      @fail="onFail"
+      @success="onSuccess"
+    />
+  </div>
 </template>

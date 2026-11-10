@@ -21,7 +21,7 @@ const domain = computed(() => (props.origin ? displayOrigin(props.origin) : "???
     :keypath="props.i18nKeypath"
     :scope="props.i18nScope ?? 'global'"
     tag="div"
-    class="text-muted-foreground py-2 text-center text-sm"
+    class="text-muted-foreground shrink-0 px-4 pt-6 pb-2 text-center text-sm"
     data-request-header
   >
     <template #host>

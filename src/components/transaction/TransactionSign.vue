@@ -31,6 +31,7 @@ import { cn, extractErrorMessage } from "@/common/utils";
 import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { useFormat } from "@/composables";
+import ActionFooter from "../ActionFooter.vue";
 import { TransactionEntry } from ".";
 import LedgerDevice from "../LedgerDevice.vue";
 
@@ -203,8 +204,8 @@ const { r$ } = useRegle(
 </script>
 
 <template>
-  <ScrollArea type="hover" :class="cn('-mx-6 h-[100vh] border-y px-6', props.class)" hide-outline>
-    <div class="flex flex-col gap-4 py-4 text-sm">
+  <ScrollArea type="hover" :class="cn('h-[100vh]', props.class)" hide-outline>
+    <div class="flex flex-col gap-4 p-4 text-sm">
       <template v-if="loading">
         <TransactionEntry v-for="i in 4" :key="i" loading :assets="[]" />
       </template>
@@ -280,7 +281,7 @@ const { r$ } = useRegle(
     </div>
   </ScrollArea>
 
-  <div class="flex flex-col gap-4">
+  <ActionFooter>
     <div v-if="parsedTx?.burning" class="flex items-center gap-2">
       <Checkbox id="burn" v-model="hasBurnAgreement" />
       <label
@@ -298,7 +299,7 @@ const { r$ } = useRegle(
       <AlertDescription>{{ t("wallet.cantSignTx") }}</AlertDescription>
     </Alert>
 
-    <LedgerDevice v-else-if="isLedger" ref="ledger-device" class="pb-2" />
+    <LedgerDevice v-else-if="isLedger" ref="ledger-device" />
 
     <Form v-else-if="!prompt.unlocked" @submit="sign">
       <FormField :validation="r$.password">
@@ -313,18 +314,24 @@ const { r$ } = useRegle(
       </FormField>
     </Form>
 
-    <div class="flex flex-row gap-4">
+    <div class="flex flex-row gap-3">
       <Button
         class="flex-1"
         variant="outline"
+        size="lg"
         :disabled="loading || signing"
         @click="emit('refused')"
         >{{ t("common.cancel") }}</Button
       >
-      <Button class="flex-2" :disabled="loading || signing || !canSign || !activated" @click="sign">
+      <Button
+        class="flex-2"
+        size="lg"
+        :disabled="loading || signing || !canSign || !activated"
+        @click="sign"
+      >
         <Loader2Icon v-if="signing" class="animate-spin" />
         <template v-else>{{ t("common.sign") }}</template>
       </Button>
     </div>
-  </div>
+  </ActionFooter>
 </template>

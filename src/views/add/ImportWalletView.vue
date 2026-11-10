@@ -8,7 +8,9 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -260,89 +262,93 @@ const current = computed(() => steps.value[step.value - 1].key);
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
-    <Stepper v-model="step" :steps="steps" />
-    <StepTitle :step="steps[step - 1]" />
+  <div class="flex min-h-0 grow flex-col">
+    <Stepper v-model="step" :steps="steps" class="shrink-0 p-4" />
+    <ScrollArea type="scroll" class="min-h-0 grow">
+      <div class="flex flex-col gap-4 px-4 pb-4">
+        <StepTitle :step="steps[step - 1]" />
 
-    <Form class="flex h-full grow flex-col justify-start gap-4" @paste="onPaste" @submit="next">
-      <template v-if="current === 'info'">
-        <FormField :validation="infoRules.walletName">
-          <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
-          <Input
-            id="wallet-name"
-            v-model="walletName"
-            :disabled="loading"
-            maxlength="50"
-            type="text"
-            @blur="infoRules.walletName.$touch()"
-          />
-        </FormField>
+        <Form class="flex flex-col gap-4" @paste="onPaste" @submit="next">
+          <template v-if="current === 'info'">
+            <FormField :validation="infoRules.walletName">
+              <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
+              <Input
+                id="wallet-name"
+                v-model="walletName"
+                :disabled="loading"
+                maxlength="50"
+                type="text"
+                @blur="infoRules.walletName.$touch()"
+              />
+            </FormField>
 
-        <FormField>
-          <Label for="wallet-type">{{ t("wallet.import.walletType") }}</Label>
-          <Select v-model="walletType">
-            <SelectTrigger id="wallet-type">
-              <SelectValue :placeholder="t('wallet.import.selectWalletType')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="standard">{{ t("wallet.type.standard") }}</SelectItem>
-                <SelectItem value="readonly">{{ t("wallet.type.readonly") }}</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </FormField>
+            <FormField>
+              <Label for="wallet-type">{{ t("wallet.import.walletType") }}</Label>
+              <Select v-model="walletType">
+                <SelectTrigger id="wallet-type">
+                  <SelectValue :placeholder="t('wallet.import.selectWalletType')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="standard">{{ t("wallet.type.standard") }}</SelectItem>
+                    <SelectItem value="readonly">{{ t("wallet.type.readonly") }}</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </FormField>
 
-        <MasterPasswordSwitch v-if="!isReadonly" :disabled="loading" />
-      </template>
+            <MasterPasswordSwitch v-if="!isReadonly" :disabled="loading" />
+          </template>
 
-      <WalletPasswordFields v-if="current === 'password'" :disabled="loading" />
+          <WalletPasswordFields v-if="current === 'password'" :disabled="loading" />
 
-      <template v-if="current === 'secret'">
-        <template v-if="isReadonly">
-          <FormField :validation="xpkRules.xpk">
-            <Label for="xpk">{{ t("wallet.xPubKey") }}</Label>
-            <Textarea id="xpk" v-model="xpk" class="h-40" @blur="xpkRules.xpk.$touch()" />
-          </FormField>
-        </template>
+          <template v-if="current === 'secret'">
+            <template v-if="isReadonly">
+              <FormField :validation="xpkRules.xpk">
+                <Label for="xpk">{{ t("wallet.xPubKey") }}</Label>
+                <Textarea id="xpk" v-model="xpk" class="h-40" @blur="xpkRules.xpk.$touch()" />
+              </FormField>
+            </template>
 
-        <template v-else>
-          <FormField>
-            <Select v-model="wordsCountStr">
-              <SelectTrigger>
-                <SelectValue
-                  class="font-medium"
-                  :placeholder="t('wallet.import.selectSecretType')"
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem
-                    v-for="l in SUPPORTED_MNEMONIC_LENGTHS"
-                    :key="l"
-                    :value="l.toString()"
-                    >{{ t("wallet.import.words", { count: l }) }}</SelectItem
-                  >
-                  <!-- <SelectItem value="sk">Private Key</SelectItem> -->
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </FormField>
+            <template v-else>
+              <FormField>
+                <Select v-model="wordsCountStr">
+                  <SelectTrigger>
+                    <SelectValue
+                      class="font-medium"
+                      :placeholder="t('wallet.import.selectSecretType')"
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem
+                        v-for="l in SUPPORTED_MNEMONIC_LENGTHS"
+                        :key="l"
+                        :value="l.toString()"
+                        >{{ t("wallet.import.words", { count: l }) }}</SelectItem
+                      >
+                      <!-- <SelectItem value="sk">Private Key</SelectItem> -->
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormField>
 
-          <FormField :validation="mnemonicRules.mnemonicPhrase">
-            <Mnemonic :words="mnemonicWords" editable />
-          </FormField>
-        </template>
-      </template>
-    </Form>
+              <FormField :validation="mnemonicRules.mnemonicPhrase">
+                <Mnemonic :words="mnemonicWords" editable />
+              </FormField>
+            </template>
+          </template>
+        </Form>
+      </div>
+    </ScrollArea>
 
-    <div class="flex flex-row gap-4">
-      <Button :disabled="loading" class="w-full items-center" @click="next">
+    <ActionFooter>
+      <Button :disabled="loading" size="lg" class="w-full items-center" @click="next">
         <template v-if="loading"
           ><Loader2Icon class="animate-spin" />{{ t("wallet.import.importing") }}</template
         >
         <template v-else>{{ nextButtonTitle }}</template>
       </Button>
-    </div>
+    </ActionFooter>
   </div>
 </template>
