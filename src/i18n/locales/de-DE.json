@@ -276,7 +276,6 @@
       "create": "Neue Wallet erstellen",
       "createDesc": "Erstelle eine neue Ergo-Wallet",
       "connect": "Ledger-Wallet verbinden",
-      "connectDesc": "Verbinde deine Hardware-Wallet",
       "import": "Wallet importieren",
       "importDesc": "Eine bestehende Wallet importieren"
     },

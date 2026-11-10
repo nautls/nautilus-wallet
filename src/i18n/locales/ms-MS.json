@@ -277,7 +277,6 @@
       "create": "Cipta dompet baharu",
       "createDesc": "Cipta dompet Ergo baharu",
       "connect": "Sambungkan dompet Ledger",
-      "connectDesc": "Sambungkan dompet perkakasan anda",
       "import": "Import dompet",
       "importDesc": "Import dompet sedia ada"
     },

@@ -276,7 +276,6 @@
       "create": "Créer un nouveau portefeuille",
       "createDesc": "Créer un nouveau portefeuille Ergo",
       "connect": "Connecter un portefeuille Ledger",
-      "connectDesc": "Connectez votre portefeuille matériel",
       "import": "Importer un portefeuille",
       "importDesc": "Importer un portefeuille existant"
     },

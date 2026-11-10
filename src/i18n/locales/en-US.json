@@ -272,12 +272,11 @@
     },
     "index": {
       "title": "Welcome to Nautilus Wallet",
-      "subtitle": "Choose an option to get started",
+      "subtitle": "Create a new wallet or bring one you already have.",
       "kyaAgreement": "By proceeding, you agree to Nautilus' {termsOfUse}",
       "create": "Create a new wallet",
-      "createDesc": "Create a new Ergo wallet",
+      "createDesc": "Start fresh with a new wallet",
       "connect": "Connect a Ledger wallet",
-      "connectDesc": "Connect your hardware wallet",
       "import": "Import a wallet",
       "importDesc": "Import an existing wallet"
     },

@@ -20,15 +20,24 @@ const props = withDefaults(
 
 <template>
   <a
-    :class="cn('cursor-pointer underline-offset-4 hover:underline', props.class)"
+    :class="
+      cn(
+        'focus-visible:ring-ring/50 cursor-pointer rounded-xs underline decoration-current/40 underline-offset-[3px] transition-[text-decoration-color] outline-none hover:decoration-current focus-visible:ring-3',
+        props.class
+      )
+    "
     :href="props.href"
     :target="external ? '_blank' : undefined"
     :rel="external ? 'noopener noreferrer' : undefined"
   >
     <slot />
-    <ExternalLinkIcon
-      v-if="external && displayExternalIcon"
-      :class="cn('inline size-3 pb-[2px] align-middle', props.externalIconClass)"
-    />
+    <!-- the word joiner keeps the icon from wrapping onto a line of its own -->
+    <template v-if="external && displayExternalIcon"
+      >&#8288;<ExternalLinkIcon
+        aria-hidden="true"
+        :class="
+          cn('ml-[0.2em] inline size-[0.85em] shrink-0 align-[-0.1em]', props.externalIconClass)
+        "
+    /></template>
   </a>
 </template>

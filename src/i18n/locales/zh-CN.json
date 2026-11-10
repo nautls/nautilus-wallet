@@ -276,7 +276,6 @@
       "create": "创建新钱包",
       "createDesc": "创建新的 Ergo 钱包",
       "connect": "连接 Ledger 钱包",
-      "connectDesc": "连接您的硬件钱包",
       "import": "导入钱包",
       "importDesc": "导入现有钱包"
     },
