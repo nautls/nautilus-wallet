@@ -8,7 +8,7 @@ type Browser = "chrome" | "firefox";
 const r = (path: string) => `${EXT_ENTRY_ROOT}/${path}`;
 
 function buildIcons(mode: string, network: Network) {
-  const prefix = mode === "staging" || network === "testnet" ? "t" : "m";
+  const prefix = mode === "staging" ? "a" : network === "testnet" ? "t" : "m";
 
   return {
     48: `icons/app/${prefix}-48.png`,
@@ -64,7 +64,7 @@ export function buildManifest(
     ],
     action: {
       default_popup: r("popup/index.html"),
-      default_title: "Nautilus Wallet"
+      default_title: buildTitle(mode, network)
     },
     web_accessible_resources: [
       {
@@ -98,7 +98,7 @@ export function buildManifest(
           sidebar_action: {
             default_panel: r("popup/index.html"),
             default_icon: buildIcons(mode, network),
-            default_title: "Nautilus Wallet",
+            default_title: buildTitle(mode, network),
             open_at_install: false
           }
         })

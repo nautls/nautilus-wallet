@@ -17,6 +17,7 @@ const format = useFormat();
 const router = useRouter();
 const { t } = useI18n();
 
+const staging = import.meta.env.MODE === "staging";
 const version = `v${pkg.version}-`;
 const gitHash = import.meta.env.GIT_COMMIT_HASH;
 const shortGitHash = gitHash.slice(0, 7);
@@ -35,7 +36,8 @@ function goDonate() {
     <NautilusLogoGlow class="mx-auto shrink-0" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
-        <span>{{ t("about.nautilusWallet") }}</span>
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+        <span>{{ staging ? "Nautilus Abyss" : t("about.nautilusWallet") }}</span>
       </h1>
 
       <div v-once class="text-muted-foreground text-center">
