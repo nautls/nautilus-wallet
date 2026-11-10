@@ -2,7 +2,7 @@
 import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
 import BigNumber from "bignumber.js";
-import { CheckIcon, ChevronsUpDownIcon } from "@lucide/vue";
+import { CheckIcon, PlusIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { AssetIcon } from "@/components/asset";
@@ -102,12 +102,12 @@ function filter(items: (T | string)[]) {
       <PopoverTrigger v-else as-child>
         <Button
           :aria-expanded="isOpen"
-          variant="secondary"
+          variant="ghost"
           role="combobox"
-          class="w-full items-center gap-0"
+          class="text-muted-foreground hover:text-foreground w-full border border-dashed"
         >
-          <span class="grow">{{ t("asset.add") }}</span>
-          <ChevronsUpDownIcon class="float-end -ml-4 size-4 shrink-0 opacity-50" />
+          <PlusIcon />
+          {{ t("asset.add") }}
         </Button>
       </PopoverTrigger>
     </div>
