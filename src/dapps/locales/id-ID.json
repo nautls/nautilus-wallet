@@ -3,16 +3,16 @@
     "sigmaUsd": {
       "title": "Protokol SigmaUSD",
       "summary": "Beli dan jual SigUSD dan SigRSV.",
-      "insufficientBalance": "Saldo {asset} tidak mencukupi.",
-      "blockedAction": "Karena cadangan bank saat ini, Anda tidak dapat {action} lebih dari {amount} {asset}.",
+      "insufficientBalance": "Jumlah harus kurang dari atau sama dengan {amount} {asset}",
+      "blockedAction": "Cadangan bank hanya mengizinkan hingga {amount} {asset}",
       "feeSummary": "Biaya {amount}",
-      "protocolFee": "Biaya Protokol",
-      "protocolFeeDesc": "Biaya Protokol secara langsung berkontribusi pada cadangan bank.",
-      "serviceFee": "Biaya Layanan",
+      "protocolFee": "Biaya protokol",
+      "protocolFeeDesc": "Biaya protokol secara langsung berkontribusi pada cadangan bank.",
+      "serviceFee": "Biaya layanan",
       "serviceFeeDesc": "Dompet Nautilus mengenakan biaya tetap untuk mendanai pengembangannya secara berkelanjutan.",
-      "networkFee": "Biaya Jaringan",
+      "networkFee": "Biaya jaringan",
       "networkFeeDesc": "Ini adalah biaya penambahan transaksi ke blockchain.",
-      "totalFee": "Biaya Total",
+      "totalFee": "Biaya total",
       "bankReserves": "Cadangan bank",
       "oracleRate": "Nilai tukar saat ini",
       "buy": "beli",
@@ -41,11 +41,13 @@
         "amount": "Jumlah Emisi",
         "decimals": "Desimal",
         "mint": "Cetak",
-        "nameRequired": "Nama token wajib diisi.",
-        "amountRequired": "Jumlah emisi wajib diisi.",
-        "invalidAmount": "Jumlah harus lebih besar dari nol.",
-        "tooManyDecimals": "Jumlah tidak boleh memiliki lebih dari {decimals} angka desimal.",
-        "invalidDecimals": "Desimal harus berupa bilangan bulat antara 0 dan {max}."
+        "nameRequired": "Masukkan nama token",
+        "amountRequired": "Masukkan jumlah emisi",
+        "invalidAmount": "Jumlah harus lebih besar dari 0",
+        "tooManyDecimals": "Jumlah tidak boleh memiliki lebih dari {decimals} angka desimal",
+        "invalidDecimals": "Desimal harus berupa bilangan bulat dari 0 hingga {max}",
+        "nameTooLong": "Nama terlalu panjang",
+        "descriptionTooLong": "Deskripsi terlalu panjang"
       },
       "burn": {
         "tab": "Bakar",
@@ -55,7 +57,7 @@
         "nsfwTokens": "Tambahkan semua token NSFW",
         "nsfwTokensDesc": "Anda tidak memiliki token NSFW yang masuk daftar hitam. | Tambahkan token NSFW dalam daftar hitam yang Anda miliki. | Tambahkan {count} token NSFW dalam daftar hitam yang Anda miliki.",
         "tokens": "Token yang akan dibakar",
-        "noSelectedTokens": "Pilih setidaknya satu token untuk dibakar.",
+        "noSelectedTokens": "Pilih setidaknya satu token untuk dibakar",
         "burn": "Bakar"
       }
     }

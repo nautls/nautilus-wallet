@@ -3,16 +3,16 @@
     "sigmaUsd": {
       "title": "Protokol SigmaUSD",
       "summary": "Beli dan jual SigUSD dan SigRSV.",
-      "insufficientBalance": "Baki {asset} tidak mencukupi.",
-      "blockedAction": "Disebabkan rizab bank semasa, anda tidak boleh {action} lebih daripada {amount} {asset}.",
+      "insufficientBalance": "Jumlah mestilah kurang daripada atau sama dengan {amount} {asset}",
+      "blockedAction": "Rizab bank hanya membenarkan sehingga {amount} {asset}",
       "feeSummary": "Bayaran {amount}",
-      "protocolFee": "Bayaran Protokol",
-      "protocolFeeDesc": "Bayaran Protokol secara langsung menyumbang kepada rizab bank.",
-      "serviceFee": "Bayaran Perkhidmatan",
+      "protocolFee": "Bayaran protokol",
+      "protocolFeeDesc": "Bayaran protokol secara langsung menyumbang kepada rizab bank.",
+      "serviceFee": "Bayaran perkhidmatan",
       "serviceFeeDesc": "Nautilus Wallet mengenakan bayaran tetap untuk membiayai pembangunannya secara mampan.",
-      "networkFee": "Bayaran Rangkaian",
+      "networkFee": "Bayaran rangkaian",
       "networkFeeDesc": "Ini adalah kos untuk menambah transaksi ke blockchain.",
-      "totalFee": "Jumlah Bayaran",
+      "totalFee": "Jumlah bayaran",
       "bankReserves": "Rizab bank",
       "oracleRate": "Kadar semasa",
       "buy": "beli",
@@ -41,11 +41,13 @@
         "amount": "Jumlah emisi",
         "decimals": "Perpuluhan",
         "mint": "Cetak",
-        "nameRequired": "Nama token diperlukan.",
-        "amountRequired": "Jumlah emisi diperlukan.",
-        "invalidAmount": "Jumlah mestilah lebih besar daripada sifar.",
-        "tooManyDecimals": "Jumlah tidak boleh mempunyai lebih daripada {decimals} tempat perpuluhan.",
-        "invalidDecimals": "Perpuluhan mestilah nombor bulat antara 0 dan {max}."
+        "nameRequired": "Masukkan nama token",
+        "amountRequired": "Masukkan jumlah emisi",
+        "invalidAmount": "Jumlah mestilah lebih besar daripada 0",
+        "tooManyDecimals": "Jumlah tidak boleh mempunyai lebih daripada {decimals} tempat perpuluhan",
+        "invalidDecimals": "Perpuluhan mestilah nombor bulat dari 0 hingga {max}",
+        "nameTooLong": "Nama terlalu panjang",
+        "descriptionTooLong": "Penerangan terlalu panjang"
       },
       "burn": {
         "tab": "Bakar",
@@ -55,7 +57,7 @@
         "nsfwTokens": "Tambah semua token NSFW",
         "nsfwTokensDesc": "Anda tidak memegang sebarang token NSFW dalam senarai hitam. | Tambah token NSFW dalam senarai hitam yang anda pegang. | Tambah {count} token NSFW dalam senarai hitam yang anda pegang.",
         "tokens": "Token untuk dibakar",
-        "noSelectedTokens": "Pilih sekurang-kurangnya satu token untuk dibakar.",
+        "noSelectedTokens": "Pilih sekurang-kurangnya satu token untuk dibakar",
         "burn": "Bakar"
       }
     }

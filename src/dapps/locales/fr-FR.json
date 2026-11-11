@@ -3,8 +3,8 @@
     "sigmaUsd": {
       "title": "Protocole SigmaUSD",
       "summary": "Achetez et vendez des SigUSD et des SigRSV.",
-      "insufficientBalance": "Solde insuffisant en {asset}.",
-      "blockedAction": "En raison des réserves bancaires actuelles, vous ne pouvez pas {action} plus de {amount} {asset}.",
+      "insufficientBalance": "Le montant doit être inférieur ou égal à {amount} {asset}",
+      "blockedAction": "Les réserves de la banque permettent jusqu'à {amount} {asset}",
       "feeSummary": "Frais {amount}",
       "protocolFee": "Frais de protocole",
       "protocolFeeDesc": "Les frais de protocole contribuent directement aux réserves bancaires.",
@@ -41,11 +41,13 @@
         "amount": "Montant de l'émission",
         "decimals": "Décimales",
         "mint": "Frapper",
-        "nameRequired": "Le nom du jeton est requis.",
-        "amountRequired": "Le montant de l'émission est requis.",
-        "invalidAmount": "Le montant doit être supérieur à zéro.",
-        "tooManyDecimals": "Le montant ne peut pas avoir plus de {decimals} décimales.",
-        "invalidDecimals": "Les décimales doivent être un nombre entier compris entre 0 et {max}."
+        "nameRequired": "Saisissez un nom de jeton",
+        "amountRequired": "Saisissez le montant de l'émission",
+        "invalidAmount": "Le montant doit être supérieur à 0",
+        "tooManyDecimals": "Le montant ne peut pas avoir plus de {decimals} décimales",
+        "invalidDecimals": "Les décimales doivent être un nombre entier de 0 à {max}",
+        "nameTooLong": "Le nom est trop long",
+        "descriptionTooLong": "La description est trop longue"
       },
       "burn": {
         "tab": "Brûler",
@@ -55,7 +57,7 @@
         "nsfwTokens": "Ajouter tous les jetons NSFW",
         "nsfwTokensDesc": "Vous ne détenez aucun jeton NSFW sur liste noire. | Ajouter le jeton NSFW sur liste noire que vous détenez. | Ajouter les {count} jetons NSFW sur liste noire que vous détenez.",
         "tokens": "Jetons à brûler",
-        "noSelectedTokens": "Sélectionnez au moins un jeton à brûler.",
+        "noSelectedTokens": "Sélectionnez au moins un jeton à brûler",
         "burn": "Brûler"
       }
     }
