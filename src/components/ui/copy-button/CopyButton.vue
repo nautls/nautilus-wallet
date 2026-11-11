@@ -46,13 +46,7 @@ function onClick(e: MouseEvent) {
           :type="props.type"
           :disabled="!props.content"
           :aria-label="label"
-          :class="
-            cn(
-              'align-middle transition-colors',
-              { 'text-success/80 hover:text-success': copied },
-              props.class
-            )
-          "
+          :class="cn('align-middle transition-colors', props.class)"
           @click="onClick"
         >
           <slot v-if="$slots.default" />

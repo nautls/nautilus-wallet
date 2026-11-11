@@ -116,8 +116,8 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
 
 <template>
   <Drawer v-model:open="opened" @update:open="handleOpenUpdates">
-    <DrawerContent class="max-h-[90vh]">
-      <DrawerHeader v-once>
+    <DrawerContent class="max-h-[90vh] gap-0 p-0">
+      <DrawerHeader v-once class="px-4 pt-6">
         <DrawerTitle>{{ t("transaction.sign.reviewTx") }}</DrawerTitle>
         <DrawerDescription>{{ t("transaction.sign.reviewTxDesc") }}</DrawerDescription>
       </DrawerHeader>

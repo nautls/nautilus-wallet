@@ -67,7 +67,7 @@ export async function clickToClose(target: Locator) {
 
 /** Asserts that the request header shows the requesting dApp host. */
 export async function expectRequestFrom(win: Page, host: string) {
-  await expect(win.locator(".font-semibold", { hasText: host }).first()).toBeVisible();
+  await expect(win.locator("[data-request-origin]")).toHaveText(host);
 }
 
 /** Connects the dApp to the wallet named `walletName` through the connector window. */

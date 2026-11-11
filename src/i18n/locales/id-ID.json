@@ -277,7 +277,6 @@
       "create": "Buat dompet baru",
       "createDesc": "Buat dompet Ergo baru",
       "connect": "Hubungkan dompet Ledger",
-      "connectDesc": "Hubungkan dompet perangkat keras Anda",
       "import": "Impor dompet",
       "importDesc": "Impor dompet yang sudah ada"
     },
@@ -435,7 +434,7 @@
   "about": {
     "nautilusWallet": "Dompet Nautilus",
     "quote": "Dibuat secara rahasia, mengambil komponen dari sumber yang tidak disebutkan namanya. Berlayar di lautan yang jauh dari jangkauan pemerintah di daratan.",
-    "donation": "Dukung pengembangan Dompet Nautilus dengan berdonasi ke {address}."
+    "donation": "Dukung pengembangan Dompet Nautilus dengan berdonasi."
   },
   "connector": {
     "connect": {

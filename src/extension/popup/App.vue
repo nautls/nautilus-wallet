@@ -13,8 +13,8 @@ const app = useAppStore();
 
 <template>
   <div
-    class="bg-background flex h-screen min-h-[600px] min-w-[360px] flex-col overflow-hidden md:mx-auto md:w-4/12 md:shadow-lg"
-    :class="{ 'max-w-[360px]': isPopup() }"
+    class="bg-background flex h-screen min-h-150 min-w-90 flex-col overflow-hidden md:mx-auto md:w-4/12 md:shadow-lg"
+    :class="{ 'max-w-90': isPopup() }"
   >
     <template v-if="$route.meta.fullPage">
       <div v-if="app.viewTitle" class="flex w-full flex-row items-center p-4 pb-0">
@@ -30,7 +30,7 @@ const app = useAppStore();
       </div>
     </template>
     <div v-else class="flex-initial">
-      <div class="bg-header flex flex-row items-center justify-between gap-6 px-4 py-3 pb-0">
+      <div class="bg-header flex flex-row items-center justify-between gap-6 px-4 py-3 pb-1">
         <WalletSwitcher />
         <NautilusLogo class="mx-4" />
       </div>

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { I18nT, useI18n } from "vue-i18n";
+import { SendIcon } from "@lucide/vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
+import NautilusLogoGlow from "@/components/NautilusLogoGlow.vue";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Link } from "@/components/ui/link";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useFormat } from "@/composables/useFormat";
 import pkg from "../../package.json";
 
@@ -14,11 +17,13 @@ const format = useFormat();
 const router = useRouter();
 const { t } = useI18n();
 
+const staging = import.meta.env.MODE === "staging";
 const version = `v${pkg.version}-`;
 const gitHash = import.meta.env.GIT_COMMIT_HASH;
 const shortGitHash = gitHash.slice(0, 7);
 const commitUrl = `https://github.com/capt-nemo429/nautilus-wallet/commit/${gitHash}`;
 const donationAddress = "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By";
+const shortDonationAddress = format.string.shorten(donationAddress, 15);
 const readonly = computed(() => wallet.type === "readonly");
 
 function goDonate() {
@@ -27,11 +32,12 @@ function goDonate() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-4">
-    <img src="/icons/app/logo.svg?url" class="m-auto size-20" />
+  <div class="flex grow flex-col gap-5 p-4">
+    <NautilusLogoGlow class="mx-auto shrink-0" />
     <div class="text-center">
       <h1 v-once class="m-auto text-2xl">
-        <span>{{ t("about.nautilusWallet") }}</span>
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+        <span>{{ staging ? "Nautilus Abyss" : t("about.nautilusWallet") }}</span>
       </h1>
 
       <div v-once class="text-muted-foreground text-center">
@@ -46,17 +52,40 @@ function goDonate() {
 
     <div class="grow"></div>
 
-    <I18nT keypath="about.donation" tag="div" class="text-center text-sm" scope="global">
-      <template #address>
-        <span v-if="readonly">
-          {{ format.string.shorten(donationAddress, 15) }}
-          <CopyButton :content="donationAddress" class="size-3" />
-        </span>
-        <Button v-else variant="link" class="m-0 p-0" size="condensed" @click="goDonate()">{{
-          format.string.shorten(donationAddress, 15)
-        }}</Button>
-      </template>
-    </I18nT>
+    <div class="flex flex-col items-center gap-0">
+      <p class="text-muted-foreground px-4 text-center text-sm text-balance">
+        {{ t("about.donation") }}
+      </p>
+
+      <div data-donation-address>
+        <CopyButton
+          v-if="readonly"
+          :content="donationAddress"
+          variant="secondary"
+          size="sm"
+          class="gap-1.5 pr-2 pl-3 font-mono text-xs font-normal [&_svg]:size-3.5"
+        >
+          {{ shortDonationAddress }}
+        </CopyButton>
+        <TooltipProvider v-else :delay-duration="100">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                id="donate"
+                variant="ghost"
+                size="sm"
+                :aria-label="`${t('common.send')} ${donationAddress}`"
+                @click="goDonate()"
+              >
+                {{ shortDonationAddress }}
+                <SendIcon />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ t("common.send") }}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
 
     <div class="flex flex-row items-center justify-center gap-8">
       <Link

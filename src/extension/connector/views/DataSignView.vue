@@ -9,12 +9,14 @@ import type { JsonObject } from "type-fest";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { JsonViewer } from "@/components/ui/json-viewer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { signMessage } from "@/chains/ergo/signing";
 import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
@@ -155,32 +157,33 @@ function refuse() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col justify-between gap-4">
+  <div class="flex min-h-0 grow flex-col">
     <RequestHeader
       i18n-keypath="connector.signData.header"
       :favicon="request?.favicon"
       :origin="request?.origin"
     />
 
-    <Card>
-      <CardHeader>
-        <CardTitle>{{ messageType }}</CardTitle>
-        <CardDescription class="text-xs break-all">{{ encodedMessage }}</CardDescription>
-      </CardHeader>
+    <ScrollArea type="hover" class="min-h-0 grow" hide-outline>
+      <div class="p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>{{ messageType }}</CardTitle>
+            <CardDescription class="text-xs break-all">{{ encodedMessage }}</CardDescription>
+          </CardHeader>
 
-      <CardContent class="flex flex-col">
-        <div
-          v-if="typeof messageData === 'string'"
-          class="-mx-2 max-h-[225px] overflow-y-auto px-2 font-mono text-xs break-all"
-        >
-          {{ messageData }}
-        </div>
+          <CardContent class="flex flex-col">
+            <div v-if="typeof messageData === 'string'" class="font-mono text-xs break-all">
+              {{ messageData }}
+            </div>
 
-        <JsonViewer v-else :data="messageData" class="-mx-2" />
-      </CardContent>
-    </Card>
+            <JsonViewer v-else :data="messageData" class="-mx-2" />
+          </CardContent>
+        </Card>
+      </div>
+    </ScrollArea>
 
-    <div class="flex flex-col gap-4">
+    <ActionFooter>
       <Alert v-if="isReadonly || isLedger" variant="destructive">
         <AlertCircleIcon class="size-5" />
         <AlertTitle v-if="isReadonly">{{ t("wallet.readonlyWallet") }}</AlertTitle>
@@ -199,12 +202,18 @@ function refuse() {
         </FormField>
       </Form>
 
-      <div class="flex flex-row gap-4">
-        <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-        <Button class="flex-2" :disabled="isReadonly || isLedger || !activated" @click="sign">{{
-          t("common.sign")
+      <div class="flex flex-row gap-3">
+        <Button class="flex-1" variant="outline" size="lg" @click="cancel">{{
+          t("common.cancel")
         }}</Button>
+        <Button
+          class="flex-2"
+          size="lg"
+          :disabled="isReadonly || isLedger || !activated"
+          @click="sign"
+          >{{ t("common.sign") }}</Button
+        >
       </div>
-    </div>
+    </ActionFooter>
   </div>
 </template>

@@ -18,7 +18,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,29 +143,35 @@ async function add() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col justify-between gap-4 p-4">
-    <Form class="flex flex-col justify-start gap-4 pt-4" @submit="add">
-      <FormField :validation="r$.walletName">
-        <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
-        <Input
-          id="wallet-name"
-          v-model="walletName"
-          :disabled="loading"
-          maxlength="50"
-          type="text"
-          @blur="r$.walletName.$touch()"
-        />
-      </FormField>
-    </Form>
+  <div class="flex min-h-0 grow flex-col">
+    <ScrollArea type="scroll" class="min-h-0 grow">
+      <div class="flex flex-col gap-8 p-4 pt-8">
+        <Form class="flex flex-col gap-4" @submit="add">
+          <FormField :validation="r$.walletName">
+            <Label for="wallet-name">{{ t("wallet.walletName") }}</Label>
+            <Input
+              id="wallet-name"
+              v-model="walletName"
+              :disabled="loading"
+              maxlength="50"
+              type="text"
+              @blur="r$.walletName.$touch()"
+            />
+          </FormField>
+        </Form>
 
-    <LedgerDevice ref="ledger-device" />
+        <LedgerDevice ref="ledger-device" />
+      </div>
+    </ScrollArea>
 
-    <Button :disabled="loading" type="button" class="w-full" @click="add">
-      <template v-if="loading"
-        ><Loader2Icon class="animate-spin" />{{ t("device.connecting") }}</template
-      >
-      <template v-else>{{ t("device.connect") }}</template>
-    </Button>
+    <ActionFooter>
+      <Button :disabled="loading" type="button" size="lg" class="w-full" @click="add">
+        <template v-if="loading"
+          ><Loader2Icon class="animate-spin" />{{ t("device.connecting") }}</template
+        >
+        <template v-else>{{ t("device.connect") }}</template>
+      </Button>
+    </ActionFooter>
   </div>
 
   <AlertDialog :open="connected">

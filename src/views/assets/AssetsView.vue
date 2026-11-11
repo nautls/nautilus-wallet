@@ -95,9 +95,9 @@ function openAssetInfoDialog(tokenId: string) {
             <span v-if="!app.settings.hideBalances"
               >{{ formatCurrencyAmount(walletTotal, 2) }}
             </span>
-            <Skeleton v-else class="inline-block h-6 w-24 animate-none" />
+            <Skeleton v-else class="inline-block h-6 w-24 animate-none font-light tracking-wider" />
           </h2>
-          <p class="text-muted-foreground text-xs font-light">{{ t("asset.totalBalance") }}</p>
+          <p class="text-muted-foreground text-xs">{{ t("asset.totalBalance") }}</p>
         </div>
 
         <BuyErgButton />
@@ -158,7 +158,7 @@ function openAssetInfoDialog(tokenId: string) {
                   </p>
                 </div>
 
-                <div class="flex flex-col items-end gap-0.5 whitespace-nowrap">
+                <div class="flex flex-col items-end gap-0.5 whitespace-nowrap tabular-nums">
                   <template v-if="app.settings.hideBalances">
                     <Skeleton class="h-5 w-24 animate-none" />
                     <Skeleton class="h-3 w-3/4 animate-none" />
@@ -208,20 +208,20 @@ function openAssetInfoDialog(tokenId: string) {
                 />
 
                 <div
-                  class="absolute bottom-1 left-1 max-w-32 truncate rounded-md bg-slate-900/70 px-2.5 py-0.5 font-normal text-neutral-100"
+                  class="bg-scrim/70 text-scrim-foreground absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5 py-0.5 font-normal"
                 >
                   {{ nft.metadata?.name ?? nft.tokenId }}
                 </div>
                 <div
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"
-                  class="absolute top-1 right-1 flex h-6 min-w-6 rounded-full bg-slate-900/70 px-2 py-0.5 font-normal text-neutral-100"
+                  class="bg-scrim/70 text-scrim-foreground absolute top-1 right-1 flex h-6 min-w-6 rounded-full px-2 py-0.5 font-normal"
                 >
                   <span class="m-auto">{{ format.number.decimal(nft.balance) }}</span>
                 </div>
 
                 <!-- clickable overlay -->
                 <Button
-                  class="absolute top-0 left-0 h-40 w-full bg-transparent opacity-30 hover:bg-neutral-900"
+                  class="hover:bg-scrim absolute top-0 left-0 h-40 w-full bg-transparent opacity-30"
                   variant="ghost"
                   @click="openAssetInfoDialog(nft.tokenId)"
                 ></Button>

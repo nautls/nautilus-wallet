@@ -6,6 +6,7 @@ import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
@@ -120,54 +121,56 @@ function formatBytes(bytes: number, decimals = 1) {
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-4 p-4">
-    <div class="grid grid-cols-2 gap-4">
-      <DataPoint
-        :title="t('dapps.walletOptimizer.utxoCount')"
-        :loading="loading"
-        :healthy="utxoHealth.count"
-        :content="boxes.length.toString()"
-      />
-      <DataPoint
-        :title="t('dapps.walletOptimizer.oldestUtxo')"
-        :loading="loading"
-        :healthy="utxoHealth.age"
-        :content="oldestBox"
-      />
-      <DataPoint
-        :title="t('dapps.walletOptimizer.walletSize')"
-        :loading="loading"
-        :healthy="utxoHealth.size"
-        :content="formatBytes(walletSize)"
-      />
-      <DataPoint
-        :title="t('dapps.walletOptimizer.walletHealth')"
-        :loading="loading"
-        :healthy="utxoHealth.overall"
-        :content="healthStatus"
-      />
+  <div class="flex h-full min-h-0 flex-col">
+    <div class="flex min-h-0 grow flex-col gap-4 overflow-y-auto p-4">
+      <div class="grid grid-cols-2 gap-4">
+        <DataPoint
+          :title="t('dapps.walletOptimizer.utxoCount')"
+          :loading="loading"
+          :healthy="utxoHealth.count"
+          :content="boxes.length.toString()"
+        />
+        <DataPoint
+          :title="t('dapps.walletOptimizer.oldestUtxo')"
+          :loading="loading"
+          :healthy="utxoHealth.age"
+          :content="oldestBox"
+        />
+        <DataPoint
+          :title="t('dapps.walletOptimizer.walletSize')"
+          :loading="loading"
+          :healthy="utxoHealth.size"
+          :content="formatBytes(walletSize)"
+        />
+        <DataPoint
+          :title="t('dapps.walletOptimizer.walletHealth')"
+          :loading="loading"
+          :healthy="utxoHealth.overall"
+          :content="healthStatus"
+        />
+      </div>
+
+      <I18nT
+        keypath="dapps.walletOptimizer.description"
+        tag="div"
+        class="text-muted-foreground grow text-xs hyphens-auto"
+        scope="global"
+      >
+        <template #demurrage>
+          <Link
+            external
+            href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
+            >{{ t("dapps.walletOptimizer.demurrage") }}</Link
+          >
+        </template>
+      </I18nT>
     </div>
 
-    <I18nT
-      keypath="dapps.walletOptimizer.description"
-      tag="div"
-      class="text-muted-foreground grow text-xs hyphens-auto"
-      scope="global"
-    >
-      <template #demurrage>
-        <Link
-          external
-          href="https://ergoplatform.org/en/blog/2022-02-18-ergo-explainer-storage-rent/"
-          >{{ t("dapps.walletOptimizer.demurrage") }}</Link
-        >
-      </template>
-    </I18nT>
-
-    <div class="space-y-4">
+    <ActionFooter>
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
       <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction">{{
         t("common.optimize")
       }}</Button>
-    </div>
+    </ActionFooter>
   </div>
 </template>

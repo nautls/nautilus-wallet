@@ -88,6 +88,14 @@ pnpm run build:testnet:chrome
 pnpm run build:testnet:firefox
 ```
 
+```bash
+# Abyss (canary, mainnet) for Chrome
+pnpm run build:abyss:chrome
+
+# Abyss (canary, mainnet) for Firefox
+pnpm run build:abyss:firefox
+```
+
 ### Run tests
 
 ```bash

@@ -6,75 +6,82 @@
 @custom-variant dark (&:is(.dark *));
 @custom-variant xs (@media (max-width: 639px));
 
+/*
+ * Brass is the diving helmet's amber and is reserved for primary actions, checked controls,
+ * focus and the active nav item. Neutrals are tinted toward deep water (hue ~232).
+ */
 :root {
   --radius: 0.75rem;
 
+  --brass: oklch(0.8 0.165 72);
+  --sea: oklch(0.68 0.13 232);
+  --ink: oklch(0.2 0.04 238);
+
+  /* overlays on images and modals stay dark in both themes */
+  --scrim: oklch(0.12 0.03 236);
+  --scrim-foreground: oklch(0.96 0.008 225);
+
   --background: oklch(1 0 0);
-  --foreground: oklch(0.13 0.028 261.692);
+  --foreground: var(--ink);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.028 261.692);
+  --card-foreground: var(--ink);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.21 0.034 264.665);
-  --primary-foreground: oklch(0.985 0.002 247.839);
-  --secondary: oklch(0.967 0.003 264.542);
-  --secondary-foreground: oklch(0.21 0.034 264.665);
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: oklch(0.21 0.034 264.665);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0.002 247.839);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.707 0.022 261.325);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --popover-foreground: var(--ink);
+  --primary: var(--brass);
+  --primary-foreground: var(--ink);
+  --secondary: oklch(0.965 0.006 232);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.965 0.006 232);
+  --muted-foreground: oklch(0.51 0.03 236);
+  --accent: oklch(0.955 0.008 232);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.57 0.21 25);
+  --destructive-foreground: oklch(0.985 0.005 225);
+  --border: oklch(0.92 0.01 232);
+  --input: oklch(0.92 0.01 232);
+  --ring: var(--brass);
 
-  --warning: oklch(0.803 0.142 79.391);
-  --warning-foreground: oklch(0.264 0.055 79.06);
-  --success: oklch(0.656 0.187 146.54);
-  --success-foreground: oklch(0.984 0.003 247.858);
+  --warning: oklch(0.72 0.17 50);
+  --warning-foreground: oklch(0.25 0.06 45);
+  --success: oklch(0.54 0.12 165);
+  --success-foreground: oklch(0.985 0.005 225);
 
-  --header: color-mix(in oklab, var(--foreground) 5%, transparent);
-  --chart-primary-color: var(--foreground);
+  --code-key: oklch(0.5 0.14 245);
+  --code-string: oklch(0.47 0.09 185);
 
-  --background-dark: oklch(0.13 0.028 261.692);
+  --header: color-mix(in oklab, var(--foreground) 4%, transparent);
+
+  --background-dark: oklch(0.165 0.032 236);
 }
 
 .dark {
   --background: var(--background-dark);
-  --foreground: oklch(0.985 0.002 247.839);
-  --card: oklch(0.21 0.034 264.665);
-  --card-foreground: oklch(0.985 0.002 247.839);
-  --popover: oklch(0.21 0.034 264.665);
-  --popover-foreground: oklch(0.985 0.002 247.839);
-  --primary: oklch(0.928 0.006 264.531);
-  --primary-foreground: oklch(0.21 0.034 264.665);
-  --secondary: oklch(0.278 0.033 256.848);
-  --secondary-foreground: oklch(0.985 0.002 247.839);
-  --muted: oklch(0.278 0.033 256.848);
-  --muted-foreground: oklch(0.707 0.022 261.325);
-  --accent: oklch(0.278 0.033 256.848);
-  --accent-foreground: oklch(0.985 0.002 247.839);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0.002 247.839);
+  --foreground: oklch(0.96 0.008 225);
+  --card: oklch(0.205 0.036 236);
+  --card-foreground: oklch(0.96 0.008 225);
+  --popover: oklch(0.205 0.036 236);
+  --popover-foreground: oklch(0.96 0.008 225);
+  --primary: oklch(0.82 0.16 74);
+  --primary-foreground: var(--ink);
+  --secondary: oklch(0.26 0.036 234);
+  --secondary-foreground: oklch(0.96 0.008 225);
+  --muted: oklch(0.26 0.036 234);
+  --muted-foreground: oklch(0.72 0.025 230);
+  --accent: oklch(0.27 0.038 234);
+  --accent-foreground: oklch(0.96 0.008 225);
+  --destructive: oklch(0.69 0.17 22);
+  --destructive-foreground: var(--ink);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --ring: oklch(0.82 0.16 74);
 
-  --warning: oklch(0.762 0.15 61.611);
-  --warning-foreground: oklch(0.246 0.056 62.819);
-  --success: oklch(0.653 0.209 142.708);
-  --success-foreground: oklch(0.968 0.007 247.897);
+  --warning: oklch(0.75 0.16 52);
+  --warning-foreground: oklch(0.25 0.06 45);
+  --success: oklch(0.74 0.13 165);
+  --success-foreground: var(--ink);
+
+  --code-key: oklch(0.78 0.11 235);
+  --code-string: oklch(0.8 0.1 180);
 }
 
 @theme inline {
@@ -104,17 +111,18 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-header: var(--header);
+  --color-brass: var(--brass);
+  --color-sea: var(--sea);
+  --color-scrim: var(--scrim);
+  --color-scrim-foreground: var(--scrim-foreground);
+  --color-code-key: var(--code-key);
+  --color-code-string: var(--code-string);
 }
 
 @layer base {
@@ -123,7 +131,7 @@
   }
 
   body {
-    @apply bg-background text-foreground h-full cursor-default overflow-hidden !font-sans leading-normal tracking-wide antialiased;
+    @apply bg-background text-foreground h-full cursor-default overflow-hidden !font-sans leading-normal antialiased;
   }
 
   /* avoids a light flash before the app applies its color mode */
@@ -142,13 +150,26 @@
 .slide-up-move,
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: all 0.5s ease;
+  transition:
+    opacity 250ms ease-out,
+    transform 250ms ease-out;
 }
 
 .slide-up-enter-from,
 .slide-up-leave-to {
   opacity: 0;
-  transform: translateY(15px);
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-up-move {
+    transition: none;
+  }
+
+  .slide-up-enter-from,
+  .slide-up-leave-to {
+    transform: none;
+  }
 }
 
 .slide-up-leave-active {

@@ -155,7 +155,7 @@ async function toggleViewMode() {
         variant="ghost"
         role="combobox"
         :aria-expanded="isOpen"
-        class="h-full w-[210px] justify-between bg-transparent"
+        class="h-full w-52.5 justify-between bg-transparent"
       >
         <WalletItem v-if="current" :wallet="current" />
         <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />

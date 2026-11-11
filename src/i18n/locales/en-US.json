@@ -171,6 +171,7 @@
       "minNamedAssetError": "You need at least {min} {asset} to send this transaction.",
       "requiredAmountError": "Please enter an amount.",
       "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction.",
+      "adjustFee": "Adjust fee",
       "emptyAddressError": "Please enter the recipient address.",
       "noSelectedAssetsError": "Please select at least one asset to send this transaction."
     },
@@ -271,12 +272,11 @@
     },
     "index": {
       "title": "Welcome to Nautilus Wallet",
-      "subtitle": "Choose an option to get started",
+      "subtitle": "Create a new wallet or bring one you already have.",
       "kyaAgreement": "By proceeding, you agree to Nautilus' {termsOfUse}",
       "create": "Create a new wallet",
-      "createDesc": "Create a new Ergo wallet",
+      "createDesc": "Start fresh with a new wallet",
       "connect": "Connect a Ledger wallet",
-      "connectDesc": "Connect your hardware wallet",
       "import": "Import a wallet",
       "importDesc": "Import an existing wallet"
     },
@@ -434,9 +434,10 @@
   "about": {
     "nautilusWallet": "Nautilus Wallet",
     "quote": "Built in secrecy, sourcing parts from unnamed sources. Roams the seas beyond the reach of land-based governments.",
-    "donation": "Support Nautilus Wallet development by donating to {address}."
+    "donation": "Support Nautilus Wallet development with a donation."
   },
   "connector": {
+    "notSecure": "Not secure",
     "connect": {
       "header": "{host} requests to connect with Nautilus.",
       "connect": "Connect"

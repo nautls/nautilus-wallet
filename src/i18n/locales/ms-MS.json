@@ -277,7 +277,6 @@
       "create": "Cipta dompet baharu",
       "createDesc": "Cipta dompet Ergo baharu",
       "connect": "Sambungkan dompet Ledger",
-      "connectDesc": "Sambungkan dompet perkakasan anda",
       "import": "Import dompet",
       "importDesc": "Import dompet sedia ada"
     },
@@ -435,7 +434,7 @@
   "about": {
     "nautilusWallet": "Nautilus Wallet",
     "quote": "Dibina secara rahsia, mendapatkan bahagian daripada sumber yang tidak dinamakan. Mengembara di lautan di luar jangkauan kerajaan berasaskan darat.",
-    "donation": "Sokong pembangunan Nautilus Wallet dengan menderma kepada {address}."
+    "donation": "Sokong pembangunan Nautilus Wallet dengan menderma."
   },
   "connector": {
     "connect": {

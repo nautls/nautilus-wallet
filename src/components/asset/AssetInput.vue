@@ -162,7 +162,10 @@ const { r$ } = useChildRegle(
       bigNumberMinValue: withMessage(
         bigNumberMinValue(convert(minRequired.value, "auto") ?? bn(0)),
         ({ $params: [min] }) =>
-          t("transaction.send.minNamedAssetError", { min, asset: baseCurrencyName.value })
+          t("transaction.send.minNamedAssetError", {
+            min: format.number.decimal(min),
+            asset: baseCurrencyName.value
+          })
       )
     },
     internalValue: {
@@ -232,7 +235,9 @@ function tokenRate(tokenId: string): number {
     <div
       :class="
         cn(
-          'border-input placeholder:text-muted-foreground focus-within:ring-ring relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors focus-within:ring-1 focus-within:outline-hidden',
+          'border-input dark:bg-input/30 relative flex w-full cursor-text flex-col gap-1 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none',
+          'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-3',
+          'has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive',
           props.disabled && 'border-input/50 cursor-not-allowed focus-within:ring-0',
           props.class
         )
@@ -259,9 +264,10 @@ function tokenRate(tokenId: string): number {
         <input
           ref="value-input"
           :disabled="props.disabled"
+          :aria-invalid="props.validate && r$.$error ? true : undefined"
           :class="
             cn(
-              'placeholder:text-muted-foreground w-full min-w-24 bg-transparent font-medium outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+              'placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground w-full min-w-24 bg-transparent font-medium outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
               props.inputClass
             )
           "

@@ -78,9 +78,13 @@ function openExplorer(address: string | undefined) {
               )
             }}
           </CardTitle>
-          <div class="break-all">
-            {{ wallet.changeAddress?.script }}
-            <CopyButton class="size-3" :content="wallet.changeAddress?.script" />
+          <div data-default-address>
+            <CopyButton
+              :content="wallet.changeAddress?.script"
+              class="text-foreground hover:bg-accent hover:text-foreground -mx-1.5 -my-1 inline w-auto rounded-md px-1.5 py-1 text-left text-sm font-normal break-all whitespace-normal [&_svg]:mb-0.5 [&_svg]:ml-1.5 [&_svg]:inline [&_svg]:size-3.5"
+            >
+              {{ wallet.changeAddress?.script }}
+            </CopyButton>
           </div>
         </div>
 
@@ -187,7 +191,7 @@ function openExplorer(address: string | undefined) {
             </div>
           </div>
 
-          <div class="text-right text-xs">
+          <div class="text-right text-xs tabular-nums">
             <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
             <template v-else>
               <span>{{ getFormattedErgBalance(address) }}</span>

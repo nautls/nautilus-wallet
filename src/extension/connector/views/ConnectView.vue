@@ -3,8 +3,8 @@ import { computed, onMounted, ref } from "vue";
 import { SearchIcon } from "@lucide/vue";
 import { useEventListener } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
+import ActionFooter from "@/components/ActionFooter.vue";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
@@ -70,22 +70,24 @@ function refuse() {
 </script>
 
 <template>
-  <RequestHeader
-    :origin="request?.origin"
-    :favicon="request?.favicon"
-    i18n-keypath="connector.connect.header"
-  />
-
-  <div class="relative">
-    <SearchIcon
-      class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+  <div class="flex min-h-0 grow flex-col">
+    <RequestHeader
+      :origin="request?.origin"
+      :favicon="request?.favicon"
+      i18n-keypath="connector.connect.header"
     />
-    <Input v-model="search" class="pl-9" :placeholder="t('common.search')" type="search" />
-  </div>
 
-  <Card class="grow py-1">
-    <ScrollArea class="h-full">
-      <div class="mx-2 h-10">
+    <ScrollArea type="scroll" class="min-h-0 grow">
+      <div class="bg-background sticky top-0 z-10 px-4 pt-4 pb-2">
+        <div class="relative">
+          <SearchIcon
+            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+          />
+          <Input v-model="search" class="pl-9" :placeholder="t('common.search')" type="search" />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1 px-4 pb-4">
         <p v-if="!filteredWallets.length" class="text-muted-foreground py-6 text-center text-sm">
           {{ t("header.menu.noWalletsFound") }}
         </p>
@@ -94,7 +96,7 @@ function refuse() {
           :key="wallet.id"
           :class="selected === wallet.id && 'bg-accent'"
           variant="ghost"
-          class="my-1 size-auto w-full gap-3 py-2"
+          class="size-auto w-full gap-3 py-2"
           @click="selected = wallet.id"
         >
           <Checkbox :model-value="wallet.id === selected" variant="rounded" />
@@ -102,12 +104,16 @@ function refuse() {
         </Button>
       </div>
     </ScrollArea>
-  </Card>
 
-  <div class="flex flex-row gap-4">
-    <Button class="flex-1" variant="outline" @click="cancel">{{ t("common.cancel") }}</Button>
-    <Button class="flex-2" :disabled="!canConnect" @click="connect">{{
-      t("connector.connect.connect")
-    }}</Button>
+    <ActionFooter>
+      <div class="flex flex-row gap-3">
+        <Button class="flex-1" variant="outline" size="lg" @click="cancel">{{
+          t("common.cancel")
+        }}</Button>
+        <Button class="flex-2" size="lg" :disabled="!canConnect" @click="connect">{{
+          t("connector.connect.connect")
+        }}</Button>
+      </div>
+    </ActionFooter>
   </div>
 </template>

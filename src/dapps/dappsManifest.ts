@@ -12,6 +12,7 @@ type IconComponent<T extends Component> = {
 
 export type DAppManifestItem<T extends Component = Component> = {
   titleKeyPath: PickupKeys<MessageSchema, "dapps">;
+  summaryKeyPath: PickupKeys<MessageSchema, "dapps">;
   icon: IconComponent<T>;
   path: string;
 };
@@ -26,17 +27,20 @@ function component<T extends Component>(
 export const dappsManifest: DAppManifestItem[] = [
   {
     titleKeyPath: "sigmaUsd.title",
+    summaryKeyPath: "sigmaUsd.summary",
     icon: component(SigmaUSDLogo),
     path: "/dapps/sigmausd-protocol"
   },
   {
     titleKeyPath: "walletOptimizer.title",
-    icon: component(CombineIcon, { strokeWidth: 1 }),
+    summaryKeyPath: "walletOptimizer.summary",
+    icon: component(CombineIcon, { strokeWidth: 1.5 }),
     path: "/dapps/wallet-optimization"
   },
   {
     titleKeyPath: "nativeTokens.title",
-    icon: component(ShapesIcon, { strokeWidth: 1 }),
+    summaryKeyPath: "nativeTokens.summary",
+    icon: component(ShapesIcon, { strokeWidth: 1.5 }),
     path: "/dapps/native-tokens"
   }
 ];

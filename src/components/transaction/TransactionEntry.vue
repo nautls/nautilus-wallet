@@ -121,7 +121,7 @@ function openMintingInfo(asset: OutputAsset) {
                 </button>
               </div>
             </div>
-            <div class="text-right align-middle whitespace-nowrap">
+            <div class="text-right align-middle whitespace-nowrap tabular-nums">
               {{ format.number.decimal(asset.amount) }}
             </div>
           </div>

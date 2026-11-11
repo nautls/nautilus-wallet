@@ -211,17 +211,24 @@ test("an insufficient fee blocks sending", async ({ chain, popup }) => {
   await page.getByRole("button", { name: "ERG", exact: true }).last().click();
   await page.getByRole("option", { name: /TestToken/ }).click();
 
-  // lower the fee multiplier below the required minimum
+  const adjustFee = page.getByRole("button", { name: /^Adjust fee/ });
   const multiplier = page.getByRole("slider");
-  await multiplier.focus();
+
+  // lower the fee multiplier below the required minimum
+  await adjustFee.click();
+  await expect(multiplier).toBeFocused();
   await multiplier.press("Home");
   await expect(multiplier).toHaveAttribute("aria-valuenow", "1");
+  await multiplier.press("Escape");
+  await expect(multiplier).toHaveCount(0);
 
   await send.click();
   await expect(minFeeError).toBeVisible();
   await expect(reviewDrawer(page)).toHaveCount(0);
 
+  await adjustFee.click();
   await multiplier.press("End");
+  await multiplier.press("Escape");
   await expect(minFeeError).toHaveCount(0);
   await send.click();
   await expect(reviewDrawer(page)).toBeVisible();

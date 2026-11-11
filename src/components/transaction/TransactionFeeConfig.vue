@@ -5,7 +5,7 @@ import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
-import { ChevronsUpDownIcon, InfoIcon, Loader2Icon } from "@lucide/vue";
+import { ChevronsUpDownIcon, Loader2Icon, SlidersHorizontalIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -13,9 +13,8 @@ import { useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetSelect } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
-import { PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
@@ -37,6 +36,7 @@ interface Props {
   maxMultiplier?: number;
   class?: HTMLAttributes["class"];
   ergOnly?: boolean;
+  expanded?: boolean;
 }
 
 const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
@@ -83,11 +83,12 @@ const feeAmount = computed(() => {
 });
 
 const price = computed(() => {
-  if (intSelected.value.tokenId === ERG_TOKEN_ID) {
-    return decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value);
-  }
+  const value =
+    intSelected.value.tokenId === ERG_TOKEN_ID
+      ? decimalize(nanoErgsFee.value, ERG_DECIMALS).times(ergPrice.value)
+      : decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
 
-  return decimalize(intSelected.value.nanoErgsPerToken.times(tokenUnitsFee.value), ERG_DECIMALS);
+  return value.decimalPlaces(5, BigNumber.ROUND_DOWN);
 });
 
 const { r$ } = useChildRegle(
@@ -97,7 +98,10 @@ const { r$ } = useChildRegle(
       bigNumberMinValue: withMessage(
         bigNumberMinValue(cachedMinRequired.value),
         ({ $params: [min] }) =>
-          t("transaction.send.minFeeError", { min, name: props.modelValue.assetInfo?.name })
+          t("transaction.send.minFeeError", {
+            min: format.number.decimal(min),
+            name: props.modelValue.assetInfo?.name
+          })
       )
     }
   })),
@@ -246,57 +250,83 @@ function emitSelected() {
     <div
       :class="
         cn(
-          'border-input relative flex w-full flex-col gap-1 rounded-md border bg-transparent px-4 py-3 text-sm shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+          'flex w-full flex-col text-sm',
           disabled && 'pointer-events-none opacity-50',
           props.class
         )
       "
     >
-      <div class="flex grow gap-2">
-        <div class="flex grow flex-row items-start gap-2">
-          <div class="flex h-full flex-row items-center gap-1">
-            <div class="font-bold" v-once>{{ t("common.fee") }}</div>
-            <div>{{ feeAmount.toString() }}</div>
+      <div class="flex items-center gap-2">
+        <div class="flex min-w-0 grow items-center gap-1">
+          <span class="font-semibold" v-once>{{ t("common.fee") }}</span>
 
-            <TooltipProvider :delay-duration="100">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <InfoIcon class="text-muted-foreground size-3" />
-                </TooltipTrigger>
-                <TooltipContent class="text-center">
-                  <div v-if="ergPrice">
-                    {{ price.toString() }} {{ format.string.uppercase(conversionCurrency) }}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-        <div>
-          <AssetSelect v-model="intSelected" :assets="assets" selectable>
-            <PopoverTrigger :disabled="loading || ergOnly">
+          <template v-if="expanded">
+            <span class="truncate px-1 tabular-nums">{{ format.number.decimal(feeAmount) }}</span>
+            <span v-if="ergPrice" class="text-muted-foreground truncate text-xs tabular-nums">
+              {{ format.number.decimal(price) }} {{ format.string.uppercase(conversionCurrency) }}
+            </span>
+          </template>
+
+          <Popover v-else>
+            <PopoverTrigger as-child>
               <Button
-                :disabled="loading || ergOnly"
-                variant="secondary"
-                class="disabled:opacity-100"
+                variant="ghost"
+                size="sm"
+                class="data-[state=open]:bg-accent h-7 min-w-0 gap-1.5 px-2 font-normal tabular-nums"
               >
-                <AssetIcon
-                  class="size-4"
-                  :token-id="intSelected.tokenId"
-                  :type="intSelected.metadata?.type"
-                />
-                {{ format.asset.name(intSelected) }}
-
-                <template v-if="!ergOnly">
-                  <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-                  <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
-                </template>
+                <span class="sr-only">{{ t("transaction.send.adjustFee") }}</span>
+                <span class="truncate">{{ format.number.decimal(feeAmount) }}</span>
+                <SlidersHorizontalIcon class="text-muted-foreground size-3.5" />
               </Button>
             </PopoverTrigger>
-          </AssetSelect>
+            <PopoverContent side="top" align="start" class="w-64 space-y-4 p-4">
+              <div class="flex items-baseline justify-between gap-2 text-sm">
+                <span class="truncate tabular-nums">
+                  {{ format.number.decimal(feeAmount) }} {{ format.asset.name(intSelected) }}
+                </span>
+                <span
+                  v-if="ergPrice"
+                  class="text-muted-foreground shrink-0 text-xs whitespace-nowrap tabular-nums"
+                >
+                  {{ format.number.decimal(price) }}
+                  {{ format.string.uppercase(conversionCurrency) }}
+                </span>
+              </div>
+              <Slider
+                v-model="internalMultiplier"
+                :max="props.maxMultiplier"
+                :step="1"
+                :min="1"
+                class="pb-1"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
+
+        <div
+          v-if="ergOnly"
+          class="text-muted-foreground flex h-8 items-center gap-1.5 px-1 font-medium"
+        >
+          <AssetIcon class="size-4" :token-id="intSelected.tokenId" />
+          {{ format.asset.name(intSelected) }}
+        </div>
+        <AssetSelect v-else v-model="intSelected" :assets="assets" selectable>
+          <PopoverTrigger :disabled="loading">
+            <Button :disabled="loading" variant="secondary" size="sm" class="disabled:opacity-100">
+              <AssetIcon
+                class="size-4"
+                :token-id="intSelected.tokenId"
+                :type="intSelected.metadata?.type"
+              />
+              {{ format.asset.name(intSelected) }}
+              <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
+              <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+        </AssetSelect>
       </div>
-      <div class="pt-3 pb-2">
+
+      <div v-if="expanded" class="px-1 pt-4 pb-2">
         <Slider v-model="internalMultiplier" :max="props.maxMultiplier" :step="1" :min="1" />
       </div>
     </div>

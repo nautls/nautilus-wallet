@@ -26,6 +26,16 @@ export function displayOrigin(origin: string): string {
 }
 
 /**
+ * Whether a dApp origin is served over https or from a loopback host, which browsers
+ * also treat as secure. Anything else can be read or altered on the way.
+ */
+export function isSecureOrigin(origin: string): boolean {
+  const url = tryParse(origin);
+  if (!url) return false;
+  return url.protocol === "https:" || LOOPBACK_HOSTNAMES.has(url.hostname);
+}
+
+/**
  * Maps a dApp connection stored by host, before connections were stored by origin, to
  * its origin. Loopback hosts were almost certainly local http dev servers.
  */
