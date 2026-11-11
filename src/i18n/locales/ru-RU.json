@@ -165,12 +165,16 @@
     },
     "send": {
       "recipient": "Получатель",
+      "recipientN": "Получатель {n}",
+      "addRecipient": "Добавить получателя",
+      "removeRecipient": "Удалить получателя",
       "assets": "Активы",
       "addAllAssets": "Добавить все активы",
       "addAllAssetsDesc": "Добавить все активы в список отправки.",
       "minNamedAssetError": "Необходимо иметь не менее {min} {asset} для отправки этой транзакции.",
       "requiredAmountError": "Пожалуйста, введите сумму.",
       "minFeeError": "Минимальная комиссия для отправки транзакции составляет {min} {name}.",
+      "adjustFee": "Изменить комиссию",
       "emptyAddressError": "Пожалуйста, введите адрес получателя.",
       "noSelectedAssetsError": "Пожалуйста, выберите как минимум один актив для отправки."
     },
@@ -271,13 +275,13 @@
     },
     "index": {
       "title": "Добро пожаловать в кошелек Nautilus",
-      "subtitle": "Выберите вариант",
+      "subtitle": "Создайте новый кошелек или используйте уже существующий.",
       "kyaAgreement": "Продолжая, вы соглашаетесь с {termsOfUse} Nautilus",
       "create": "Создать новый кошелек",
-      "createDesc": "Ergo-кошелек",
+      "createDesc": "Начните с нового кошелька",
       "connect": "Подключить кошелек Ledger",
       "import": "Импортировать кошелек",
-      "importDesc": "Существующий кошелек"
+      "importDesc": "Импортировать существующий кошелек"
     },
     "create": {
       "backUpRecoveryPhrase": "Сохранить фразу восстановления",
@@ -436,6 +440,7 @@
     "donation": "Поддержите разработку кошелька Nautilus пожертвованием."
   },
   "connector": {
+    "notSecure": "Небезопасно",
     "connect": {
       "header": "{host} запрашивает подключение к Nautilus.",
       "connect": "Подключить"

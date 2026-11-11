@@ -2,6 +2,7 @@
   "dapps": {
     "sigmaUsd": {
       "title": "Protocole SigmaUSD",
+      "summary": "Achetez et vendez des SigUSD et des SigRSV.",
       "insufficientBalance": "Solde insuffisant en {asset}.",
       "blockedAction": "En raison des réserves bancaires actuelles, vous ne pouvez pas {action} plus de {amount} {asset}.",
       "feeSummary": "Frais {amount}",
@@ -19,6 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Optimiseur de portefeuille",
+      "summary": "Fusionnez vos UTxO pour accélérer votre portefeuille et éviter la dépréciation.",
       "description": "Utilisez cet outil pour fusionner vos UTxO, améliorer les performances et éviter les frais de {demurrage}.",
       "demurrage": "dépréciation",
       "size": "{count} {size}",
@@ -30,6 +32,7 @@
     },
     "nativeTokens": {
       "title": "Jetons natifs",
+      "summary": "Créez de nouveaux jetons ou brûlez ceux que vous détenez.",
       "mint": {
         "tab": "Frapper",
         "description": "Créez votre propre jeton conforme à l'EIP-4.",

@@ -139,7 +139,6 @@
       "default": "Alamat bawaan"
     },
     "receive": {
-      "": "Hindari mengirim lebih dari {count} token dalam satu transaksi ke dalam dompet ini. Keterbatasan memori perangkat dapat menyebabkan dana Anda tidak dapat diakses.",
       "verifyOnLedger": "Verifikasi pada perangkat Ledger",
       "newAddressError": "Gagal dalam membuat alamat",
       "newAddressErrorFallbackMessage": "Tidak dapat membuat alamat baru."
@@ -166,12 +165,16 @@
     },
     "send": {
       "recipient": "Penerima",
+      "recipientN": "Penerima {n}",
+      "addRecipient": "Tambah penerima",
+      "removeRecipient": "Hapus penerima",
       "assets": "Aset",
       "addAllAssets": "Tambahkan semua aset",
       "addAllAssetsDesc": "Tambahkan semua aset ke daftar pengiriman.",
       "minNamedAssetError": "Anda memerlukan setidaknya {min} {asset} untuk mengirim transaksi ini.",
       "requiredAmountError": "Silakan masukkan jumlah.",
       "minFeeError": "Anda perlu membayar biaya minimum {min} {name} untuk mengirim transaksi ini.",
+      "adjustFee": "Sesuaikan biaya",
       "emptyAddressError": "Silakan masukkan alamat penerima.",
       "noSelectedAssetsError": "Silakan pilih setidaknya satu aset untuk mengirim transaksi ini."
     },
@@ -272,10 +275,10 @@
     },
     "index": {
       "title": "Selamat datang di Dompet Nautilus",
-      "subtitle": "Pilih opsi untuk memulai",
+      "subtitle": "Buat dompet baru atau gunakan dompet yang sudah Anda miliki.",
       "kyaAgreement": "Dengan melanjutkan, Anda menyetujui {termsOfUse} Nautilus",
       "create": "Buat dompet baru",
-      "createDesc": "Buat dompet Ergo baru",
+      "createDesc": "Mulai dari awal dengan dompet baru",
       "connect": "Hubungkan dompet Ledger",
       "import": "Impor dompet",
       "importDesc": "Impor dompet yang sudah ada"
@@ -437,6 +440,7 @@
     "donation": "Dukung pengembangan Dompet Nautilus dengan berdonasi."
   },
   "connector": {
+    "notSecure": "Tidak aman",
     "connect": {
       "header": "{host} meminta untuk terhubung dengan Nautilus.",
       "connect": "Hubungkan"

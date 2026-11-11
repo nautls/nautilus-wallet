@@ -165,12 +165,16 @@
     },
     "send": {
       "recipient": "Destinataire",
+      "recipientN": "Destinataire {n}",
+      "addRecipient": "Ajouter un destinataire",
+      "removeRecipient": "Supprimer le destinataire",
       "assets": "Actifs",
       "addAllAssets": "Ajouter tous les actifs",
       "addAllAssetsDesc": "Ajouter tous les actifs à la liste des envois.",
       "minNamedAssetError": "Vous avez besoin d'au moins {min} {asset} pour envoyer cette transaction.",
       "requiredAmountError": "Veuillez entrer un montant.",
       "minFeeError": "Vous devez payer des frais minimums de {min} {name} pour envoyer cette transaction.",
+      "adjustFee": "Ajuster les frais",
       "emptyAddressError": "Veuillez entrer l'adresse du destinataire.",
       "noSelectedAssetsError": "Veuillez sélectionner au moins un actif pour envoyer cette transaction."
     },
@@ -271,10 +275,10 @@
     },
     "index": {
       "title": "Bienvenue dans le portefeuille Nautilus",
-      "subtitle": "Choisissez une option pour commencer",
+      "subtitle": "Créez un nouveau portefeuille ou utilisez-en un que vous possédez déjà.",
       "kyaAgreement": "En continuant, vous acceptez les {termsOfUse} de Nautilus",
       "create": "Créer un nouveau portefeuille",
-      "createDesc": "Créer un nouveau portefeuille Ergo",
+      "createDesc": "Repartez de zéro avec un nouveau portefeuille",
       "connect": "Connecter un portefeuille Ledger",
       "import": "Importer un portefeuille",
       "importDesc": "Importer un portefeuille existant"
@@ -436,6 +440,7 @@
     "donation": "Soutenez le développement du portefeuille Nautilus en faisant un don."
   },
   "connector": {
+    "notSecure": "Non sécurisé",
     "connect": {
       "header": "{host} demande à se connecter au portefeuille Nautilus.",
       "connect": "Connecter"

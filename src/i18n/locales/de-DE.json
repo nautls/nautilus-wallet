@@ -165,12 +165,16 @@
     },
     "send": {
       "recipient": "Empfänger",
+      "recipientN": "Empfänger {n}",
+      "addRecipient": "Empfänger hinzufügen",
+      "removeRecipient": "Empfänger entfernen",
       "assets": "Assets",
       "addAllAssets": "Alle Assets hinzufügen",
       "addAllAssetsDesc": "Alle Assets zur Sendliste hinzufügen.",
       "minNamedAssetError": "Du benötigst mindestens {min} {asset}, um diese Transaktion zu senden.",
       "requiredAmountError": "Bitte gib einen Betrag ein.",
       "minFeeError": "Die Mindestgebühr für diese Transaktion beträgt {min} {name}.",
+      "adjustFee": "Gebühr anpassen",
       "emptyAddressError": "Bitte gib die Empfängeradresse ein.",
       "noSelectedAssetsError": "Bitte wähle mindestens ein Asset zum Senden aus."
     },
@@ -271,10 +275,10 @@
     },
     "index": {
       "title": "Willkommen bei der Nautilus-Wallet",
-      "subtitle": "Wähle eine Option, um zu beginnen",
+      "subtitle": "Erstelle eine neue Wallet oder nutze eine, die du bereits hast.",
       "kyaAgreement": "Indem du fortfährst, stimmst du den {termsOfUse} von Nautilus zu",
       "create": "Neue Wallet erstellen",
-      "createDesc": "Erstelle eine neue Ergo-Wallet",
+      "createDesc": "Starte neu mit einer neuen Wallet",
       "connect": "Ledger-Wallet verbinden",
       "import": "Wallet importieren",
       "importDesc": "Eine bestehende Wallet importieren"
@@ -436,6 +440,7 @@
     "donation": "Unterstütze die Entwicklung der Nautilus-Wallet mit einer Spende."
   },
   "connector": {
+    "notSecure": "Nicht sicher",
     "connect": {
       "header": "{host} möchte eine Verbindung mit Nautilus herstellen.",
       "connect": "Verbinden"

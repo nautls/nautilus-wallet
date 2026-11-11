@@ -2,6 +2,7 @@
   "dapps": {
     "sigmaUsd": {
       "title": "Protocolo SigmaUSD",
+      "summary": "Compre e venda SigUSD e SigRSV.",
       "insufficientBalance": "Saldo insuficiente de {asset}.",
       "blockedAction": "Devido às reservas atuais do banco, você não pode {action} mais de {amount} {asset}.",
       "feeSummary": "Taxas {amount}",
@@ -19,6 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Otimização de Carteira",
+      "summary": "Consolide UTxOs para acelerar sua carteira e evitar a sobrestadia.",
       "description": "Use esta ferramenta para consolidar os seus UTxOs, aumentando o desempenho e evitando a taxa de {demurrage}.",
       "demurrage": "sobrestadia",
       "size": "{count} {size}",
@@ -30,6 +32,7 @@
     },
     "nativeTokens": {
       "title": "Tokens Nativos",
+      "summary": "Crie novos tokens ou queime os que você possui.",
       "mint": {
         "tab": "Emitir",
         "description": "Crie seu próprio token compatível com o EIP-4.",
