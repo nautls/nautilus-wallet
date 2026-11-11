@@ -165,12 +165,16 @@
     },
     "send": {
       "recipient": "接收者",
+      "recipientN": "接收者 {n}",
+      "addRecipient": "添加接收者",
+      "removeRecipient": "移除接收者",
       "assets": "资产",
       "addAllAssets": "添加所有资产",
       "addAllAssetsDesc": "将所有资产添加到发送列表。",
       "minNamedAssetError": "您至少需要 {min} {asset} 才能发送此交易。",
       "requiredAmountError": "请输入金额。",
       "minFeeError": "您需要支付至少 {min} {name} 的费用才能发送此交易。",
+      "adjustFee": "调整手续费",
       "emptyAddressError": "请输入接收者地址。",
       "noSelectedAssetsError": "请至少选择一个资产以发送此交易。"
     },
@@ -271,10 +275,10 @@
     },
     "index": {
       "title": "欢迎使用 Nautilus 钱包",
-      "subtitle": "选择一个选项开始",
+      "subtitle": "创建新钱包，或使用您已有的钱包。",
       "kyaAgreement": "继续操作即表示您同意 Nautilus 的 {termsOfUse}",
       "create": "创建新钱包",
-      "createDesc": "创建新的 Ergo 钱包",
+      "createDesc": "从新钱包开始",
       "connect": "连接 Ledger 钱包",
       "import": "导入钱包",
       "importDesc": "导入现有钱包"
@@ -436,6 +440,7 @@
     "donation": "通过捐赠支持 Nautilus 钱包开发。"
   },
   "connector": {
+    "notSecure": "不安全",
     "connect": {
       "header": "{host} 请求与 Nautilus 连接。",
       "connect": "连接"

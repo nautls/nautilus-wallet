@@ -139,7 +139,6 @@
       "default": "Alamat lalai"
     },
     "receive": {
-      "": "Elakkan daripada menghantar lebih daripada {count} token dalam satu transaksi ke dompet ini. Memori peranti yang terhad boleh menyebabkan dana anda tidak dapat diakses.",
       "verifyOnLedger": "Sahkan pada peranti Ledger",
       "newAddressError": "Penjanaan alamat gagal",
       "newAddressErrorFallbackMessage": "Tidak dapat menjana alamat baharu."
@@ -166,12 +165,16 @@
     },
     "send": {
       "recipient": "Penerima",
+      "recipientN": "Penerima {n}",
+      "addRecipient": "Tambah penerima",
+      "removeRecipient": "Buang penerima",
       "assets": "Aset",
       "addAllAssets": "Tambah semua aset",
       "addAllAssetsDesc": "Tambah semua aset ke senarai penghantaran.",
       "minNamedAssetError": "Anda memerlukan sekurang-kurangnya {min} {asset} untuk menghantar transaksi ini.",
       "requiredAmountError": "Sila masukkan jumlah.",
       "minFeeError": "Anda perlu membayar bayaran minimum sebanyak {min} {name} untuk menghantar transaksi ini.",
+      "adjustFee": "Laraskan yuran",
       "emptyAddressError": "Sila masukkan alamat penerima.",
       "noSelectedAssetsError": "Sila pilih sekurang-kurangnya satu aset untuk menghantar transaksi ini."
     },
@@ -272,10 +275,10 @@
     },
     "index": {
       "title": "Selamat datang ke Nautilus Wallet",
-      "subtitle": "Pilih pilihan untuk bermula",
+      "subtitle": "Cipta dompet baharu atau gunakan dompet yang sedia anda miliki.",
       "kyaAgreement": "Dengan meneruskan, anda bersetuju dengan {termsOfUse} Nautilus",
       "create": "Cipta dompet baharu",
-      "createDesc": "Cipta dompet Ergo baharu",
+      "createDesc": "Mula semula dengan dompet baharu",
       "connect": "Sambungkan dompet Ledger",
       "import": "Import dompet",
       "importDesc": "Import dompet sedia ada"
@@ -437,6 +440,7 @@
     "donation": "Sokong pembangunan Nautilus Wallet dengan menderma."
   },
   "connector": {
+    "notSecure": "Tidak selamat",
     "connect": {
       "header": "{host} meminta untuk menyambung dengan Nautilus.",
       "connect": "Sambung"

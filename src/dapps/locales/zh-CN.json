@@ -2,6 +2,7 @@
   "dapps": {
     "sigmaUsd": {
       "title": "SigmaUSD 协议",
+      "summary": "买卖 SigUSD 和 SigRSV。",
       "insufficientBalance": "{asset} 余额不足。",
       "blockedAction": "由于当前银行储备，您无法 {action} 超过 {amount} {asset}。",
       "feeSummary": "费用 {amount}",
@@ -19,6 +20,7 @@
     },
     "walletOptimizer": {
       "title": "钱包优化器",
+      "summary": "合并 UTxO 以提升钱包速度并避免滞纳费用。",
       "description": "使用此工具合并您的 UTxO，提升性能并避免 {demurrage} 费用。",
       "demurrage": "滞纳费用",
       "size": "{count} {size}",
@@ -30,6 +32,7 @@
     },
     "nativeTokens": {
       "title": "原生代币",
+      "summary": "创建新代币或销毁您持有的代币。",
       "mint": {
         "tab": "铸造",
         "description": "创建您自己的符合 EIP-4 标准的代币。",

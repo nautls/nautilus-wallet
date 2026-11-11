@@ -2,6 +2,7 @@
   "dapps": {
     "sigmaUsd": {
       "title": "Protokol SigmaUSD",
+      "summary": "Tumbas lan sade SigUSD lan SigRSV.",
       "insufficientBalance": "Duwitmu {asset} mboten cekap.",
       "blockedAction": "Amargi cadangan bank sakniki, panjenengan mboten saged {action} langkung saking {amount} {asset}.",
       "feeSummary": "Biaya {amount}",
@@ -19,6 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Optimalisasi Dompet",
+      "summary": "Gabungaken UTxO supados dompet panjenengan langkung cepet lan ngindhari demurrage.",
       "description": "Gunakaken piranti punika kangge nggabungaken UTxO panjenengan, ningkataken kinerja lan ngindhari biaya {demurrage}.",
       "demurrage": "demurrage",
       "size": "{count} {size}",
@@ -30,6 +32,7 @@
     },
     "nativeTokens": {
       "title": "Token Native",
+      "summary": "Damel token enggal utawi bakar token ingkang panjenengan gadhahi.",
       "mint": {
         "tab": "Mint",
         "description": "Damel token panjenengan piyambak ingkang jumbuh kaliyan EIP-4.",
