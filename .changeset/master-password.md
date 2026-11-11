@@ -1,5 +1,5 @@
 ---
-"nautilus-wallet": minor
+"nautilus-wallet": major
 ---
 
 Add master password support.
