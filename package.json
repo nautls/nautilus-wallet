@@ -23,7 +23,10 @@
     "test:lint": "TIMING=1 eslint ./src",
     "test:format": "prettier ./src ./tests --check",
     "fix:format": "prettier ./src ./tests --write",
-    "test:types": "vue-tsc --build --force"
+    "test:types": "vue-tsc --build --force",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:tag": "changeset git-tag"
   },
   "dependencies": {
     "@download/blockies": "^1.0.3",
@@ -65,6 +68,7 @@
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@ergo-graphql/types": "^0.5.1",
     "@eslint/js": "^10.0.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
