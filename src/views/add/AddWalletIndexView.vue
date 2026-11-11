@@ -126,7 +126,7 @@ const paths = [
       <I18nT
         keypath="wallet.index.kyaAgreement"
         tag="p"
-        class="text-muted-foreground text-center text-xs text-balance"
+        class="text-muted-foreground px-6 text-center text-xs text-balance"
         scope="global"
       >
         <template #termsOfUse>
