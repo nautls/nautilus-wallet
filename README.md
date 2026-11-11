@@ -113,6 +113,21 @@ pnpm run test:lint
 pnpm run test:format
 ```
 
+### Versioning and releases
+
+Versions and the changelog are managed with [Changesets](https://changesets.dev/).
+
+```bash
+# Add a changeset describing your change
+pnpm run changeset
+
+# Bump the version and update CHANGELOG.md from pending changesets
+pnpm run changeset:version
+
+# Tag the current version
+pnpm run changeset:tag
+```
+
 ### Documentation
 
 The technical documentation lives in the `docs` folder and is built with [VitePress](https://vitepress.dev/).
