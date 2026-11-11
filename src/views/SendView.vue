@@ -393,8 +393,9 @@ function isFeeAsset(tokenId: string): boolean {
       <Button
         id="add-recipient"
         type="button"
-        variant="outline"
-        class="w-full"
+        variant="dashed"
+        size="lg"
+        class="w-full rounded-lg"
         @click="addRecipient"
       >
         <UserPlusIcon />

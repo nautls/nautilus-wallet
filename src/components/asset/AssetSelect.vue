@@ -100,12 +100,7 @@ function filter(items: (T | string)[]) {
     <div ref="popover">
       <slot v-if="$slots.default" />
       <PopoverTrigger v-else as-child>
-        <Button
-          :aria-expanded="isOpen"
-          variant="ghost"
-          role="combobox"
-          class="text-muted-foreground hover:text-foreground w-full border border-dashed"
-        >
+        <Button :aria-expanded="isOpen" variant="dashed" role="combobox" class="w-full">
           <PlusIcon />
           {{ t("asset.add") }}
         </Button>
