@@ -82,6 +82,7 @@ export class MockChain {
   height = HEADERS[0].height;
   network = "mainnet";
   version = "0.5.1";
+  minValuePerByte = 360;
 
   /** When set, `submitTransaction` and `checkTransaction` fail with this message. */
   submitError?: string;
@@ -194,6 +195,8 @@ export class MockChain {
         return { info: { version: this.version }, state: { network: this.network } };
       case "currentHeight":
         return { blockHeaders: [{ height: this.height }] };
+      case "chainParams":
+        return { state: { params: { minValuePerByte: this.minValuePerByte } } };
       case "blockHeaders":
         return { blockHeaders: HEADERS.slice(0, (vars.take as number) ?? 10) };
       case "addresses":

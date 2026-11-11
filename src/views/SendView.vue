@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { mergeRegles, useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
 import BigNumber from "bignumber.js";
-import { differenceBy } from "es-toolkit";
-import { CheckCheckIcon } from "@lucide/vue";
+import { CheckCheckIcon, UserPlusIcon, XIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
@@ -20,8 +19,9 @@ import { Label } from "@/components/ui/label";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import {
   createP2PTransaction,
+  estimateRecipientBoxValue,
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
-  TxAssetAmount
+  TxRecipient
 } from "@/chains/ergo/transaction/builder";
 import { bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
@@ -30,6 +30,9 @@ import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { validErgoAddress } from "@/validators";
+
+type Recipient = TxRecipient & { id: number };
+type AssetSelectInstance = { close(): void; clearSearch(): void };
 
 const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
 const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
@@ -40,21 +43,24 @@ const route = useRoute();
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
-const assetSelector = useTemplateRef("asset-selector");
-const selected = ref<TxAssetAmount[]>([]);
+const assetSelectors = new Map<number, AssetSelectInstance>();
+const recipients = ref<Recipient[]>([]);
 const fee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: INITIAL_FEE_VAL });
-const password = ref("");
-const recipient = ref("");
+let nextRecipientId = 0;
 
 const { r$ } = useRegle(
-  { selected, recipient },
+  { recipients },
   {
-    recipient: {
-      required: withMessage(required, () => t("transaction.send.emptyAddressError")),
-      validErgoAddress
-    },
-    selected: {
-      required: withMessage(required, () => t("transaction.send.noSelectedAssetsError"))
+    recipients: {
+      $each: {
+        address: {
+          required: withMessage(required, () => t("transaction.send.emptyAddressError")),
+          validErgoAddress
+        },
+        assets: {
+          required: withMessage(required, () => t("transaction.send.noSelectedAssetsError"))
+        }
+      }
     }
   },
   { autoDirty: false }
@@ -65,27 +71,32 @@ const { r$: children$ } = useCollectChildValidations();
 const form$ = mergeRegles({ r$, children$ });
 
 onMounted(() => {
-  if (route.query.recipient && typeof route.query.recipient === "string") {
-    recipient.value = route.query.recipient;
+  const address = typeof route.query.recipient === "string" ? route.query.recipient : "";
+  recipients.value.push(createRecipient(address));
+});
+
+const selectedTotals = computed(() => {
+  const totals = new Map<string, BigNumber>();
+  for (const recipient of recipients.value) {
+    for (const item of recipient.assets) {
+      const total = totals.get(item.asset.tokenId) ?? bn(0);
+      totals.set(item.asset.tokenId, item.amount ? total.plus(item.amount) : total);
+    }
   }
 
-  setErgAsSelected();
+  return totals;
 });
 
-const unselected = computed(() => {
-  return differenceBy(
-    wallet.balance,
-    selected.value.map((a) => a.asset),
-    (a) => a.tokenId
-  );
-});
+const unselected = computed(() =>
+  wallet.balance.filter((asset) => !selectedTotals.value.has(asset.tokenId))
+);
 
 const shouldReserveChange = computed(() => {
   if (unselected.value.length) return true;
 
-  for (const item of selected.value) {
-    if (isErg(item.asset.tokenId)) continue;
-    if (needsChangeFor(item)) return true;
+  for (const asset of wallet.balance) {
+    if (isErg(asset.tokenId)) continue;
+    if (needsChangeFor(asset)) return true;
   }
 
   return false;
@@ -93,9 +104,11 @@ const shouldReserveChange = computed(() => {
 
 const reservedFeeAssetAmount = computed((): BigNumber => {
   const feeValue = fee.value.value;
-  const feeAsset = selected.value.find((a) => a.asset.tokenId === fee.value.tokenId);
+  const feeAsset = wallet.balance.find((a) => a.tokenId === fee.value.tokenId);
 
-  if (!feeAsset || feeAsset.asset.balance.isZero()) return bn(0);
+  if (!feeAsset || !selectedTotals.value.has(feeAsset.tokenId) || feeAsset.balance.isZero()) {
+    return bn(0);
+  }
   if (!changeValue.value) return feeValue;
   if (isErg(fee.value.tokenId)) return feeValue.plus(changeValue.value);
   return feeValue;
@@ -115,24 +128,87 @@ const changeValue = computed(() =>
   shouldReserveChange.value ? MIN_BOX_VAL.times(changeBoxesCount.value) : undefined
 );
 
+/**
+ * With a Babel fee, the swap pays for the boxes of recipients without ERG, so the fee must
+ * cover their minimum value.
+ */
+const feeFundedBoxesValue = computed(() => {
+  if (isFeeInErg.value) return bn(0);
+
+  return recipients.value
+    .filter((r) => !r.assets.some((a) => isErg(a.asset.tokenId) && a.amount?.gt(0)))
+    .reduce((total, r) => total.plus(estimateRecipientBoxValue(r)), bn(0));
+});
+
 watch(
   () => fee.value.tokenId,
   (newVal: string) => {
-    if (isErg(newVal)) setErgAsSelected();
+    if (isErg(newVal)) recipients.value.forEach(setErgAsSelected);
   }
 );
 
 watch(
-  () => selected.value.length,
-  () => r$.selected.$touch()
+  () => recipients.value.map((r) => r.assets.length),
+  (lengths, oldLengths) => {
+    if (lengths.length !== oldLengths.length) return;
+
+    lengths.forEach((length, i) => {
+      if (length !== oldLengths[i]) r$.recipients.$each[i]?.assets.$touch();
+    });
+  }
 );
 
-function getReserveAmountFor(tokenId: string): BigNumber | undefined {
+function createRecipient(address = ""): Recipient {
+  const recipient: Recipient = { id: nextRecipientId++, address, assets: [] };
+  setErgAsSelected(recipient);
+
+  return recipient;
+}
+
+async function addRecipient() {
+  const recipient = createRecipient();
+  recipients.value.push(recipient);
+
+  await nextTick();
+  document.getElementById(`recipient-${recipients.value.length - 1}`)?.focus();
+}
+
+function removeRecipient(id: number) {
+  const index = recipients.value.findIndex((r) => r.id === id);
+  if (index === -1) return;
+
+  recipients.value.splice(index, 1);
+  assetSelectors.delete(id);
+}
+
+function availableFor(recipient: Recipient): AssetBalance[] {
+  const selectedIds = new Set(recipient.assets.map((a) => a.asset.tokenId));
+  return wallet.balance.filter((asset) => !selectedIds.has(asset.tokenId));
+}
+
+function getReserveAmountFor(recipient: Recipient, tokenId: string): BigNumber | undefined {
+  let reserved: BigNumber | undefined;
   if (isFeeAsset(tokenId)) {
-    return reservedFeeAssetAmount.value;
+    reserved = reservedFeeAssetAmount.value;
   } else if (isErg(tokenId) && shouldReserveChange.value) {
-    return changeValue.value;
+    reserved = changeValue.value;
   }
+
+  const allocatedElsewhere = getAllocatedAmount(tokenId, recipient.id);
+  if (allocatedElsewhere.isZero()) return reserved;
+  return reserved ? reserved.plus(allocatedElsewhere) : allocatedElsewhere;
+}
+
+function getAllocatedAmount(tokenId: string, exceptRecipientId: number): BigNumber {
+  let total = bn(0);
+  for (const recipient of recipients.value) {
+    if (recipient.id === exceptRecipientId) continue;
+
+    const item = recipient.assets.find((a) => a.asset.tokenId === tokenId);
+    if (item?.amount) total = total.plus(item.amount);
+  }
+
+  return total;
 }
 
 async function scrollToErrorElement() {
@@ -150,66 +226,65 @@ async function sendTransaction() {
   openTransactionSignDialog({
     transactionBuilder: async () =>
       createP2PTransaction({
-        recipientAddress: recipient.value,
-        assets: selected.value,
+        recipients: recipients.value.map(({ address, assets }) => ({ address, assets })),
         fee: fee.value,
         walletType: wallet.type
       }),
     onSuccess: () => {
-      selected.value = [];
-      setErgAsSelected();
-      recipient.value = "";
-      password.value = "";
+      assetSelectors.clear();
+      recipients.value = [createRecipient()];
       form$.$reset();
     }
   });
 }
 
-function needsChangeFor(item: TxAssetAmount): boolean {
-  if (!item.amount) return true;
-  return isFeeAsset(item.asset.tokenId)
-    ? !item.amount.eq(item.asset.balance.minus(fee.value.value))
-    : !item.amount.eq(item.asset.balance);
+function needsChangeFor(asset: AssetBalance): boolean {
+  const total = selectedTotals.value.get(asset.tokenId) ?? bn(0);
+  return isFeeAsset(asset.tokenId)
+    ? !total.eq(asset.balance.minus(fee.value.value))
+    : !total.eq(asset.balance);
 }
 
-function setErgAsSelected(): void {
-  if (!isFeeInErg.value && !isEmpty(selected.value)) return;
+function setErgAsSelected(recipient: Recipient): void {
+  if (!isFeeInErg.value && !isEmpty(recipient.assets)) return;
 
-  const isErgSelected = selected.value.find((a) => isErg(a.asset.tokenId));
+  const isErgSelected = recipient.assets.find((a) => isErg(a.asset.tokenId));
   if (isErgSelected) return;
 
   const erg = wallet.balance.find((a) => isErg(a.tokenId));
   if (erg) {
-    selected.value.unshift({ asset: erg, amount: undefined });
+    recipient.assets.unshift({ asset: erg, amount: undefined });
   }
 }
 
-function add(asset: AssetBalance) {
-  removeDisposableSelections();
-  selected.value.push({ asset });
+function add(recipient: Recipient, asset: AssetBalance) {
+  removeDisposableSelections(recipient);
+  recipient.assets.push({ asset });
 
-  if (isErg(fee.value.tokenId)) setMinBoxValue();
+  if (isFeeInErg.value) setMinBoxValue(recipient);
 }
 
-function addAll() {
-  unselected.value.forEach((asset) => selected.value.push({ asset }));
-  setMinBoxValue();
-  assetSelector.value?.close();
-  assetSelector.value?.clearSearch();
+function addAll(recipient: Recipient) {
+  availableFor(recipient).forEach((asset) => recipient.assets.push({ asset }));
+  setMinBoxValue(recipient);
+
+  const selector = assetSelectors.get(recipient.id);
+  selector?.close();
+  selector?.clearSearch();
 }
 
-function removeAsset(tokenId: string) {
-  const index = selected.value.findIndex((a) => a.asset.tokenId === tokenId);
+function removeAsset(recipient: Recipient, tokenId: string) {
+  const index = recipient.assets.findIndex((a) => a.asset.tokenId === tokenId);
   if (index === -1) return;
 
-  selected.value.splice(index, 1);
-  setMinBoxValue();
+  recipient.assets.splice(index, 1);
+  setMinBoxValue(recipient);
 }
 
-function setMinBoxValue() {
-  if (selected.value.length === 1) return;
+function setMinBoxValue(recipient: Recipient) {
+  if (recipient.assets.length === 1) return;
 
-  const erg = selected.value.find((a) => isFeeAsset(a.asset.tokenId));
+  const erg = recipient.assets.find((a) => isErg(a.asset.tokenId));
   if (!erg) return;
 
   if (!erg.amount || erg.amount.lt(MIN_BOX_VAL)) {
@@ -217,15 +292,20 @@ function setMinBoxValue() {
   }
 }
 
-function removeDisposableSelections() {
-  if (isErg(fee.value.tokenId)) return;
+function removeDisposableSelections(recipient: Recipient) {
+  if (isFeeInErg.value) return;
 
-  const first = selected.value[0];
+  const first = recipient.assets[0];
   if (!first) return;
 
   if (!first.amount || first.amount.isZero()) {
-    removeAsset(first.asset.tokenId);
+    removeAsset(recipient, first.asset.tokenId);
   }
+}
+
+function setAssetSelector(id: number, el: unknown) {
+  if (el) assetSelectors.set(id, el as AssetSelectInstance);
+  else assetSelectors.delete(id);
 }
 
 function isFeeAsset(tokenId: string): boolean {
@@ -236,55 +316,96 @@ function isFeeAsset(tokenId: string): boolean {
 <template>
   <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-4" @submit="sendTransaction">
-      <FormField :validation="r$.recipient">
-        <Label for="recipient">{{ t("transaction.send.recipient") }}</Label>
-        <Input
-          id="recipient"
-          v-model="recipient"
-          type="text"
-          spellcheck="false"
-          class="w-full"
-          @blur="r$.recipient.$touch()"
-        />
-      </FormField>
-
-      <FormField>
-        <Label>{{ t("transaction.send.assets") }}</Label>
-        <div class="grid gap-4">
-          <AssetInput
-            v-for="item in selected"
-            :key="item.asset.tokenId"
-            v-model="item.amount"
-            :asset="item.asset"
-            :reserved-amount="getReserveAmountFor(item.asset.tokenId)"
-            :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
-            :disposable="!isErg(item.asset.tokenId) || !(isErg(item.asset.tokenId) && isFeeInErg)"
-            @remove="removeAsset(item.asset.tokenId)"
+      <div
+        v-for="(recipient, index) in recipients"
+        :key="recipient.id"
+        :data-recipient="index"
+        class="space-y-4 rounded-lg border p-3"
+      >
+        <FormField :validation="r$.recipients.$each[index]?.address">
+          <div class="flex h-5 items-center justify-between">
+            <Label :for="`recipient-${index}`">{{
+              recipients.length > 1
+                ? t("transaction.send.recipientN", { n: index + 1 })
+                : t("transaction.send.recipient")
+            }}</Label>
+            <Button
+              v-if="recipients.length > 1"
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              class="text-muted-foreground hover:text-foreground -mr-1"
+              :data-remove-recipient="index"
+              :aria-label="t('transaction.send.removeRecipient')"
+              @click="removeRecipient(recipient.id)"
+            >
+              <XIcon />
+            </Button>
+          </div>
+          <Input
+            :id="`recipient-${index}`"
+            v-model="recipient.address"
+            type="text"
+            spellcheck="false"
+            class="w-full"
+            @blur="r$.recipients.$each[index]?.address.$touch()"
           />
-        </div>
-      </FormField>
+        </FormField>
 
-      <FormField :validation="r$.selected">
-        <AssetSelect ref="asset-selector" :assets="unselected" @select="add">
-          <template v-if="unselected.length" #commands>
-            <CommandSeparator class="my-1" />
-            <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll">
-              <CheckCheckIcon class="size-6 shrink-0" />
-              <div class="flex flex-col items-start justify-center text-xs font-bold">
-                {{ t("transaction.send.addAllAssets") }}
-                <div class="text-muted-foreground font-normal">
-                  {{ t("transaction.send.addAllAssetsDesc") }}
+        <FormField>
+          <Label>{{ t("transaction.send.assets") }}</Label>
+          <div class="grid gap-4">
+            <AssetInput
+              v-for="item in recipient.assets"
+              :key="item.asset.tokenId"
+              v-model="item.amount"
+              :asset="item.asset"
+              :reserved-amount="getReserveAmountFor(recipient, item.asset.tokenId)"
+              :min-amount="isErg(item.asset.tokenId) ? MIN_BOX_VAL : undefined"
+              :disposable="!isErg(item.asset.tokenId) || !isFeeInErg"
+              @remove="removeAsset(recipient, item.asset.tokenId)"
+            />
+          </div>
+        </FormField>
+
+        <FormField :validation="r$.recipients.$each[index]?.assets">
+          <AssetSelect
+            :ref="(el) => setAssetSelector(recipient.id, el)"
+            :assets="availableFor(recipient)"
+            @select="(asset) => add(recipient, asset)"
+          >
+            <template v-if="availableFor(recipient).length" #commands>
+              <CommandSeparator class="my-1" />
+              <CommandItem value="Add all" class="gap-2 py-2" @select.prevent="addAll(recipient)">
+                <CheckCheckIcon class="size-6 shrink-0" />
+                <div class="flex flex-col items-start justify-center text-xs font-bold">
+                  {{ t("transaction.send.addAllAssets") }}
+                  <div class="text-muted-foreground font-normal">
+                    {{ t("transaction.send.addAllAssetsDesc") }}
+                  </div>
                 </div>
-              </div>
-            </CommandItem>
-          </template>
-        </AssetSelect>
-      </FormField>
+              </CommandItem>
+            </template>
+          </AssetSelect>
+        </FormField>
+      </div>
+
+      <Button
+        id="add-recipient"
+        type="button"
+        variant="dashed"
+        size="lg"
+        class="w-full rounded-lg"
+        @click="addRecipient"
+      >
+        <UserPlusIcon />
+        {{ t("transaction.send.addRecipient") }}
+      </Button>
     </Form>
   </ScrollArea>
 
   <ActionFooter>
-    <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="changeBoxesCount" />
+    <TransactionFeeConfig v-model="fee" :boxes-value="feeFundedBoxesValue" />
     <Button type="submit" size="lg" class="w-full" @click="sendTransaction">{{
       t("common.send")
     }}</Button>

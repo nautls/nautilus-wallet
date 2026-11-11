@@ -2,7 +2,7 @@ import { SIGMA_USD_PARAMETERS } from "@fleet-sdk/ageusd-plugin";
 import { utf8 } from "@fleet-sdk/crypto";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { SByte, SColl } from "@fleet-sdk/serializer";
-import { addSigmaUsdBoxes, expect, fundWallet, test } from "../fixtures/test";
+import { addBabelBox, addSigmaUsdBoxes, expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, TEST_NFT, TEST_TOKEN, WALLET_A } from "../fixtures/wallets";
 
 test.describe("dApps", () => {
@@ -59,6 +59,7 @@ test.describe("dApps", () => {
 
       expect(minting).toBeDefined();
       expect(minting!.ergoTree).toBe(ownTree);
+      expect(minting!.value.toString()).toBe("1000000");
       expect(minting!.assets.find((a) => a.tokenId === tokenId)?.amount.toString()).toBe("100050");
       expect(minting!.additionalRegisters.R4).toBe(SColl(SByte, utf8.decode("Test Token")).toHex());
       expect(minting!.additionalRegisters.R5).toBe(
@@ -324,4 +325,43 @@ test.describe("dApps", () => {
       expect(chain.submitted).toHaveLength(0);
     });
   });
+});
+
+test("a token fee pays for the minting box", async ({ chain, popup }) => {
+  chain.addToken(TEST_TOKEN);
+  // only the ERG locked in the token box, which the change box takes back
+  chain.fund(await addressOf(WALLET_A, 0), {
+    nanoErgs: 1_000_000n,
+    tokens: [{ tokenId: TEST_TOKEN.tokenId, amount: "100000" }]
+  });
+  // 1,000 nanoERGs per TestToken unit
+  addBabelBox(chain, TEST_TOKEN.tokenId, 1000n);
+  await popup.importWallet(WALLET_A);
+  await popup.navigate("dapps");
+
+  const page = popup.page;
+  await page.getByRole("button", { name: "Native Tokens" }).click();
+  await page.getByLabel("Name").fill("Test Token");
+  await page.getByLabel("Emission amount").fill("1");
+
+  // the fee asset selector is in the footer, after the page's own ERG button
+  await page.getByRole("button", { name: "ERG", exact: true }).last().click();
+  await page.getByRole("option", { name: /TestToken/ }).click();
+  // the miner fee plus the minting box: 1,100,000 + 1,000,000 nanoERGs
+  await expect(page.getByRole("button", { name: /^Adjust fee/ })).toHaveText(/21$/);
+
+  await page.getByRole("button", { name: "Mint", exact: true }).click();
+  const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+  await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
+  await drawer.getByRole("button", { name: "Sign" }).click();
+  await expect(popup.toast("Transaction sent!")).toBeVisible();
+
+  const [tx] = chain.submitted;
+  const tokenId = tx.inputs[0].boxId;
+  const minting = tx.outputs.find((o) => o.assets.some((a) => a.tokenId === tokenId));
+  expect(minting?.value.toString()).toBe("1000000");
+
+  const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
+  const change = tx.outputs.find((o) => o !== minting && o.ergoTree === ownTree);
+  expect(change?.value.toString()).toBe("1000000");
 });

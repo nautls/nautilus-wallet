@@ -208,7 +208,9 @@ for (const scheme of ["dark", "light"] as const) {
       await shot(page, `${scheme}-receive`);
 
       await popup.navigate("send");
-      await page.locator("#recipient").fill("9hoMQn9KqARhFHkgn3ua1rzDfrXDFife5iBFFa3pzYwgKVhvXBT");
+      await page
+        .locator("#recipient-0")
+        .fill("9hoMQn9KqARhFHkgn3ua1rzDfrXDFife5iBFFa3pzYwgKVhvXBT");
       await page.getByRole("combobox").filter({ hasText: "Add asset" }).click();
       await page.getByRole("option", { name: /SigUSD/ }).click();
       await expect(page.getByRole("option")).toHaveCount(0);
@@ -216,7 +218,7 @@ for (const scheme of ["dark", "light"] as const) {
       await expect(amounts).toHaveCount(2);
       await amounts.first().fill("25");
       await amounts.last().fill("150");
-      await page.locator("#recipient").blur();
+      await page.locator("#recipient-0").blur();
       await shot(page, `${scheme}-send`);
 
       await popup.navigate("dapps");
