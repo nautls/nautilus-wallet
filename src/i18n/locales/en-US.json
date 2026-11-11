@@ -165,6 +165,9 @@
     },
     "send": {
       "recipient": "Recipient",
+      "recipientN": "Recipient {n}",
+      "addRecipient": "Add recipient",
+      "removeRecipient": "Remove recipient",
       "assets": "Assets",
       "addAllAssets": "Add all assets",
       "addAllAssetsDesc": "Add all assets to the sending list.",

@@ -225,7 +225,8 @@ function recalculateMinRequired() {
     );
 
     if (cachedMinRequired.value.isGreaterThan(feeAmount.value)) {
-      const m = cachedMinRequired.value.dividedBy(feeAmount.value).integerValue(BigNumber.ROUND_UP);
+      const baseFee = decimalize(minTokenFee.value, intSelected.value.metadata?.decimals || 0);
+      const m = cachedMinRequired.value.dividedBy(baseFee).integerValue(BigNumber.ROUND_UP);
       multiplier.value = m.isGreaterThan(10) ? 10 : m.toNumber();
     }
   }

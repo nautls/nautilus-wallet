@@ -23,6 +23,11 @@ export type TxAssetAmount = {
   amount?: BigNumber;
 };
 
+export type TxRecipient = {
+  address: string;
+  assets: TxAssetAmount[];
+};
+
 export async function createRBFCancellationTransaction(
   unconfirmedTx: UnconfirmedTransactionSummary
 ): Promise<EIP12UnsignedTransaction> {
@@ -60,38 +65,40 @@ async function getContext() {
 }
 
 export async function createP2PTransaction({
-  recipientAddress,
-  assets,
+  recipients,
   fee,
+  feeFundedBoxes,
   walletType
 }: {
-  recipientAddress: string;
-  assets: TxAssetAmount[];
+  recipients: TxRecipient[];
   fee: FeeSettings;
+  feeFundedBoxes: number;
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
   const { inputs, currentHeight } = await getContext();
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
-  const sendingNanoErgs = getSendingNanoErgs(assets);
+
+  const outputs = recipients.map(({ address, assets }) => {
+    const nanoErgs = getSendingNanoErgs(assets);
+    return new OutputBuilder(
+      nanoErgs.eq(0) && isBabelFee ? BigInt(MIN_BOX_VALUE) : nanoErgs.toString(),
+      address
+    ).addTokens(
+      assets
+        .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
+        .map((token) => ({
+          tokenId: token.asset.tokenId,
+          amount: undecimalize(token.amount || bn(0), token.asset.metadata?.decimals).toString()
+        }))
+    );
+  });
 
   const unsigned = new TransactionBuilder(currentHeight)
     .from(inputs)
-    .to(
-      new OutputBuilder(
-        sendingNanoErgs.eq(0) && isBabelFee ? BigInt(MIN_BOX_VALUE) : sendingNanoErgs.toString(),
-        recipientAddress
-      ).addTokens(
-        assets
-          .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
-          .map((token) => ({
-            tokenId: token.asset.tokenId,
-            amount: undecimalize(token.amount || bn(0), token.asset.metadata?.decimals).toString()
-          }))
-      )
-    )
+    .to(outputs)
     .sendChangeTo(safeGetChangeAddress());
 
-  await setFee(unsigned, fee);
+  await setFee(unsigned, fee, { fundedBoxes: feeFundedBoxes });
   setSelectionAndChangeStrategy(unsigned, walletType);
 
   return unsigned.build().toEIP12Object();
@@ -112,9 +119,15 @@ export function setSelectionAndChangeStrategy(
     .configureSelector((selector) => selector.orderBy((input) => input.creationHeight));
 }
 
+/**
+ * @param options.fundedBoxes boxes whose minimum value the Babel swap pays for. That many
+ * `MIN_BOX_VALUE`s, as far as the fee covers them, are left out of the miner fee so the
+ * outputs can take them.
+ */
 export async function setFee(
   builder: TransactionBuilder,
-  fee: FeeSettings
+  fee: FeeSettings,
+  options?: { fundedBoxes?: number }
 ): Promise<TransactionBuilder> {
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
   let feeNanoErgs = undecimalize(fee.value, ERG_DECIMALS);
@@ -136,7 +149,11 @@ export async function setFee(
     }
 
     feeNanoErgs = tokenUnits.multipliedBy(getNanoErgsPerTokenRate(selectedBox));
-    if (
+    if (options?.fundedBoxes !== undefined) {
+      const fundable = feeNanoErgs.minus(SAFE_MIN_FEE_VALUE).dividedToIntegerBy(MIN_BOX_VALUE);
+      const funded = BigNumber.max(0, BigNumber.min(options.fundedBoxes, fundable));
+      feeNanoErgs = feeNanoErgs.minus(funded.times(MIN_BOX_VALUE));
+    } else if (
       sendingNanoErgs.gt(0) &&
       sendingNanoErgs.lte(MIN_BOX_VALUE) &&
       sendingNanoErgs.lte(feeNanoErgs.minus(SAFE_MIN_FEE_VALUE))

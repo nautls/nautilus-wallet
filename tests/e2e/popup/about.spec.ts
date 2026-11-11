@@ -31,7 +31,7 @@ test.describe("about", () => {
     await popup.page.locator("#donate").click();
 
     await expect(popup.page).toHaveURL(/#\/send\?recipient=/);
-    await expect(popup.page.locator("#recipient")).toHaveValue(DONATION_ADDRESS);
+    await expect(popup.page.locator("#recipient-0")).toHaveValue(DONATION_ADDRESS);
   });
 
   test("read-only wallets get a copyable donation address", async ({ popup }) => {

@@ -318,7 +318,7 @@ test.describe("settings", () => {
 
       // the old password no longer signs transactions, the new one does
       await popup.navigate("send");
-      await page.locator("#recipient").fill(RECIPIENT_ADDRESS);
+      await page.locator("#recipient-0").fill(RECIPIENT_ADDRESS);
       await page.getByPlaceholder("0").first().fill("1");
       await page.getByRole("button", { name: "Send", exact: true }).click();
 
