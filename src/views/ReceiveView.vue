@@ -66,7 +66,7 @@ function openExplorer(address: string | undefined) {
 
 <template>
   <div class="flex flex-col gap-4 p-4 pb-2">
-    <Card class="p-6 text-sm">
+    <Card class="px-4 text-sm">
       <div class="flex h-full flex-row items-center gap-4">
         <div class="flex h-full w-full flex-col justify-between">
           <CardTitle class="leading-none font-semibold tracking-tight">

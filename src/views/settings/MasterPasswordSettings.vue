@@ -70,7 +70,7 @@ async function reset() {
 </script>
 
 <template>
-  <Card class="flex flex-col gap-4 p-6" data-master-password-settings>
+  <Card class="px-4" data-master-password-settings>
     <div class="flex items-center justify-between gap-4">
       <Label class="flex flex-col items-start gap-1">
         {{ t("wallet.masterPassword") }}

@@ -187,7 +187,7 @@ const { r$ } = useRegle(
 
 <template>
   <div class="space-y-4">
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col items-start gap-2">
           {{ t("settings.global.displayLanguage") }}
@@ -253,7 +253,7 @@ const { r$ } = useRegle(
       </Popover>
     </Card>
 
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <Label class="flex flex-col items-start gap-2">
         {{ t("settings.global.colorMode") }}
         <div class="text-muted-foreground text-xs font-normal">
@@ -280,7 +280,7 @@ const { r$ } = useRegle(
     <MasterPasswordSettings />
     <UnlockSessionSettings />
 
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col items-start gap-2">
           {{ t("settings.global.conversionCurrency") }}
@@ -334,7 +334,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <div class="flex items-center justify-between gap-4">
         <Label for="dev-mode" class="flex flex-col items-start gap-1">
           {{ t("settings.global.devMode") }}
@@ -346,7 +346,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <Label class="flex flex-col items-start gap-1">
         {{ t("settings.global.tokenBlacklists") }}
         <div class="text-muted-foreground text-xs font-normal">
@@ -374,7 +374,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <div class="flex flex-col gap-2">
         <FormField :validation="r$.graphQLServer">
           <Label for="gql-server">{{ t("settings.global.gqlServer") }}</Label>
@@ -409,7 +409,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <Label class="flex flex-col items-start gap-2">{{ t("settings.global.ledger") }}</Label>
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col items-start gap-2">
@@ -459,7 +459,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="bg-warning/10 flex flex-col gap-4 p-6">
+    <Card class="bg-warning/10 px-4">
       <Label class="flex flex-col items-start gap-2">
         <div class="flex items-center gap-1">
           {{ t("settings.global.experimental") }}

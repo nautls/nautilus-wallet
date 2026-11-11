@@ -46,11 +46,7 @@ async function remove(origin: string) {
     </div>
 
     <template v-else>
-      <Card
-        v-for="(connection, i) in connections"
-        :key="i"
-        class="relative flex flex-col gap-4 py-6"
-      >
+      <Card v-for="(connection, i) in connections" :key="i" class="relative">
         <Button
           tabindex="-1"
           size="icon"
@@ -61,9 +57,9 @@ async function remove(origin: string) {
           <TrashIcon class="m-auto size-4 p-0.5" />
         </Button>
 
-        <AppItem class="px-6" :origin="connection.origin" :favicon="connection.favicon" />
+        <AppItem class="px-4" :origin="connection.origin" :favicon="connection.favicon" />
         <Separator class="my-4 w-full" :icon="CableIcon" />
-        <WalletItem class="m-auto w-fit px-6" :wallet="getWalletBy(connection.walletId)!" />
+        <WalletItem class="m-auto w-fit px-4" :wallet="getWalletBy(connection.walletId)!" />
       </Card>
     </template>
   </div>

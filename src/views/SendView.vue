@@ -12,6 +12,7 @@ import { AssetInput, AssetSelect } from "@/components/asset";
 import ActionFooter from "@/components/ActionFooter.vue";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -316,11 +317,11 @@ function isFeeAsset(tokenId: string): boolean {
 <template>
   <ScrollArea type="scroll" class="grow">
     <Form class="space-y-4 p-4" @submit="sendTransaction">
-      <div
+      <Card
         v-for="(recipient, index) in recipients"
         :key="recipient.id"
         :data-recipient="index"
-        class="space-y-4 rounded-lg border p-3"
+        class="px-4"
       >
         <FormField :validation="r$.recipients.$each[index]?.address">
           <div class="flex h-5 items-center justify-between">
@@ -388,7 +389,7 @@ function isFeeAsset(tokenId: string): boolean {
             </template>
           </AssetSelect>
         </FormField>
-      </div>
+      </Card>
 
       <Button
         id="add-recipient"

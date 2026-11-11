@@ -103,7 +103,7 @@ const { r$ } = useRegle(
 
 <template>
   <div class="space-y-4">
-    <Card class="flex flex-col gap-4 p-6">
+    <Card class="px-4">
       <FormField :validation="r$.walletName">
         <Label for="name-input">{{ t("wallet.walletName") }}</Label>
         <Input id="name-input" v-model="walletName" />
@@ -121,7 +121,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card v-if="isStandard && passwordKind" class="flex flex-col gap-4 p-6">
+    <Card v-if="isStandard && passwordKind" class="px-4">
       <Label class="flex flex-col items-start gap-1"
         >{{ t("wallet.spendingPassword") }}
         <div class="text-muted-foreground text-xs font-normal hyphens-auto">
@@ -151,7 +151,7 @@ const { r$ } = useRegle(
       >
     </Card>
 
-    <Card class="grid grid-cols-[1fr_auto] gap-4 p-6">
+    <Card class="grid grid-cols-[1fr_auto] px-4">
       <div class="col-span-2 grid grid-cols-subgrid items-center">
         <Label class="flex flex-col items-start gap-1"
           >{{ t("wallet.xPubKey") }}
@@ -195,7 +195,7 @@ const { r$ } = useRegle(
       </div>
     </Card>
 
-    <Card class="bg-destructive/15 flex flex-col gap-4 p-6">
+    <Card class="bg-destructive/15 px-4">
       <div class="flex items-center justify-between gap-4">
         <Label class="flex flex-col items-start gap-1">
           {{ t("settings.wallet.removeWallet") }}

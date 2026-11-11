@@ -70,7 +70,7 @@ async function select(value: unknown) {
 </script>
 
 <template>
-  <Card v-if="usesMaster" class="flex flex-col gap-4 p-6" data-unlock-session-settings>
+  <Card v-if="usesMaster" class="px-4" data-unlock-session-settings>
     <Label for="unlock-session" class="flex flex-col items-start gap-2">
       {{ t("settings.password.unlockSession") }}
       <span class="text-muted-foreground text-xs font-normal">
