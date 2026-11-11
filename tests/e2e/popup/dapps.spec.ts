@@ -306,6 +306,32 @@ test.describe("dApps", () => {
       expect(received).toBeDefined();
     });
 
+    test("shows one error for the last edited amount", async ({ popup }) => {
+      const page = popup.page;
+      await page.getByRole("button", { name: "SigmaUSD Protocol" }).click();
+      await expect(page.getByText(/^\d+%$/)).toBeVisible();
+
+      await page.getByRole("button", { name: "Select" }).click();
+      await page.getByRole("option", { name: /SigRSV/ }).click();
+      await expect(page.getByRole("option")).toHaveCount(0);
+
+      const error = page.locator("#sigmausd-error");
+      const [ergAmount, rsvAmount] = await page.getByPlaceholder("0").all();
+
+      await ergAmount.fill("999999999");
+      await expect(error).toHaveText(/Amount must be .* ERG or less$/);
+      await expect(ergAmount).toHaveAttribute("aria-invalid", "true");
+      await expect(ergAmount).toHaveAttribute("aria-describedby", "sigmausd-error");
+      await expect(rsvAmount).not.toHaveAttribute("aria-invalid");
+
+      await rsvAmount.fill("99999999999999");
+      await expect(error).toHaveText(/Bank reserves allow up to .* SigRSV$/);
+      await expect(rsvAmount).toHaveAttribute("aria-invalid", "true");
+      await expect(ergAmount).not.toHaveAttribute("aria-invalid");
+      await expect(page.locator("[data-form-error]")).toHaveCount(1);
+      await expect(page.locator("button", { hasText: "Swap" })).toBeDisabled();
+    });
+
     test("blocks SigUSD minting when reserves are too low", async ({ popup, chain }) => {
       const page = popup.page;
       await page.getByRole("button", { name: "SigmaUSD Protocol" }).click();

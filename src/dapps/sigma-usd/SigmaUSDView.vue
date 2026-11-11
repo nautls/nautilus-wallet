@@ -13,13 +13,14 @@ import {
 } from "vue";
 import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { BoxSource } from "@fleet-sdk/blockchain-providers";
-import { flatErrors, Maybe, useRegle } from "@regle/core";
+import { Maybe, useRegle } from "@regle/core";
 import { withMessage, withParams } from "@regle/rules";
 import { pausableWatch, useIntervalFn } from "@vueuse/core";
 import BigNumber from "bignumber.js";
 import {
   ArrowDownIcon,
   ArrowDownUpIcon,
+  CircleAlertIcon,
   DollarSignIcon,
   InfoIcon,
   LandmarkIcon,
@@ -38,7 +39,6 @@ import {
   AccordionItem,
   AccordionTrigger
 } from "@/components/ui/accordion";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,6 +89,12 @@ const reservedErgAmount = computed(() => {
   const tokensCount = wallet.balance.length;
   const count = Math.ceil(tokensCount / SAFE_MAX_CHANGE_TOKEN_LIMIT) + 1; // +1 for incoming token
   return MIN_BOX_VAL.times(count);
+});
+
+const fromAvailable = computed(() => {
+  const balance = fromAsset.value?.balance;
+  if (!balance || !fromAsset.value || !isErg(fromAsset.value.tokenId)) return balance;
+  return balance.gte(reservedErgAmount.value) ? balance.minus(reservedErgAmount.value) : balance;
 });
 
 const fromAssets = computed(() => [
@@ -153,9 +159,13 @@ const { r$ } = useRegle(
       balance: withMessage(
         withParams(
           (n: Maybe<BigNumber>, balance: BigNumber | undefined) => !balance || !n || n.lte(balance),
-          [() => fromAsset.value?.balance]
+          [() => fromAvailable.value]
         ),
-        () => t("dapps.sigmaUsd.insufficientBalance", { asset: fromAsset.value?.metadata?.name })
+        () =>
+          t("dapps.sigmaUsd.insufficientBalance", {
+            amount: format.number.decimal(fromAvailable.value ?? _0),
+            asset: fromAsset.value?.metadata?.name
+          })
       ),
       maxRedeem: withMessage(maxAction(fromAsset), () => buildBankErrorMessage(fromAsset))
     },
@@ -165,7 +175,15 @@ const { r$ } = useRegle(
   }
 );
 
-const errors = computed(() => flatErrors(r$.$errors));
+const ERROR_ID = "sigmausd-error";
+const error = computed(() => {
+  const fields = lastChanged.value === "to" ? (["to", "from"] as const) : (["from", "to"] as const);
+  for (const field of fields) {
+    const message = (field === "from" ? r$.fromAmount : r$.toAmount).$errors[0];
+    if (message) return { field, message };
+  }
+  return undefined;
+});
 
 watch(
   () => [txFee.value, bank.value, toAsset.value],
@@ -526,33 +544,50 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
         </StatsCard>
       </div>
 
-      <div class="relative flex flex-col gap-2">
-        <AssetInputSelect
-          v-model:amount="fromAmount"
-          v-model:selected-asset="fromAsset"
-          :reserved-amount="fromAsset && isErg(fromAsset.tokenId) ? reservedErgAmount : undefined"
-          :disabled="loading"
-          :assets="fromAssets"
-        />
-        <AssetInputSelect
-          v-model:amount="toAmount"
-          v-model:selected-asset="toAsset"
-          :disabled="loading"
-          :assets="toAssets"
-        />
+      <div class="flex flex-col gap-1.5">
+        <div class="relative flex flex-col gap-2">
+          <AssetInputSelect
+            v-model:amount="fromAmount"
+            v-model:selected-asset="fromAsset"
+            :reserved-amount="fromAsset && isErg(fromAsset.tokenId) ? reservedErgAmount : undefined"
+            :disabled="loading"
+            :assets="fromAssets"
+            :invalid="error?.field === 'from'"
+            :described-by="error?.field === 'from' ? ERROR_ID : undefined"
+          />
+          <AssetInputSelect
+            v-model:amount="toAmount"
+            v-model:selected-asset="toAsset"
+            :disabled="loading"
+            :assets="toAssets"
+            :invalid="error?.field === 'to'"
+            :described-by="error?.field === 'to' ? ERROR_ID : undefined"
+          />
 
-        <Button
-          id="sigmausd-flip-assets"
-          :disabled="loading || !canFlipAssets"
-          tabindex="-1"
-          size="icon"
-          variant="outline"
-          class="group bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent absolute top-1/2 left-1/2 z-10 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
-          @click="flipAssets"
+          <Button
+            id="sigmausd-flip-assets"
+            :disabled="loading || !canFlipAssets"
+            tabindex="-1"
+            size="icon"
+            variant="outline"
+            class="group bg-background dark:bg-background hover:bg-accent dark:hover:bg-accent absolute top-1/2 left-1/2 z-10 size-8 -translate-x-1/2 -translate-y-1/2 disabled:opacity-100"
+            @click="flipAssets"
+          >
+            <ArrowDownIcon class="group-hover:hidden in-disabled:opacity-50" />
+            <ArrowDownUpIcon class="hidden group-hover:block" />
+          </Button>
+        </div>
+
+        <p
+          v-if="error"
+          :id="ERROR_ID"
+          role="alert"
+          data-form-error
+          class="text-destructive flex items-start gap-1.5 text-xs leading-4"
         >
-          <ArrowDownIcon class="group-hover:hidden in-disabled:opacity-50" />
-          <ArrowDownUpIcon class="hidden group-hover:block" />
-        </Button>
+          <CircleAlertIcon class="size-3.5 shrink-0 translate-y-px" aria-hidden="true" />
+          {{ error.message }}
+        </p>
       </div>
 
       <div class="-mt-2 -mb-2 grow space-y-4">
@@ -691,14 +726,6 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-
-        <Alert variant="destructive" v-if="errors.length">
-          <AlertDescription class="text-xs">
-            <ul :class="errors.length > 1 ? 'ml-4 list-disc' : 'list-none'">
-              <li v-for="(message, i) in errors" :key="i">{{ message }}</li>
-            </ul>
-          </AlertDescription>
-        </Alert>
       </div>
     </div>
 

@@ -3,8 +3,8 @@
     "sigmaUsd": {
       "title": "SigmaUSD Protocol",
       "summary": "Buy and sell SigUSD and SigRSV.",
-      "insufficientBalance": "You don't have enough {asset}",
-      "blockedAction": "Bank reserves only allow you to {action} up to {amount} {asset}",
+      "insufficientBalance": "Amount must be {amount} {asset} or less",
+      "blockedAction": "Bank reserves allow up to {amount} {asset}",
       "feeSummary": "Fees {amount}",
       "protocolFee": "Protocol Fee",
       "protocolFeeDesc": "The Protocol Fee directly contributes to the bank reserves.",
