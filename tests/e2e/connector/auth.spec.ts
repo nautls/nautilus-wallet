@@ -67,7 +67,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       });
 
       await win.getByRole("button", { name: "Authenticate" }).click();
-      await expect(win.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
+      await expect(win.getByText(`Enter the "${WALLET_A.name}" password`)).toBeVisible();
 
       await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });

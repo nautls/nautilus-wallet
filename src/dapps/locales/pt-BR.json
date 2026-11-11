@@ -45,8 +45,7 @@
         "amountRequired": "A quantidade emitida é obrigatória.",
         "invalidAmount": "A quantidade deve ser maior que zero.",
         "tooManyDecimals": "A quantidade não pode ter mais de {decimals} casas decimais.",
-        "invalidDecimals": "As casas decimais devem ser um número inteiro entre 0 e {max}.",
-        "tooLong": "Este campo é muito longo."
+        "invalidDecimals": "As casas decimais devem ser um número inteiro entre 0 e {max}."
       },
       "burn": {
         "tab": "Queimar",

@@ -45,8 +45,7 @@
         "amountRequired": "Le montant de l'émission est requis.",
         "invalidAmount": "Le montant doit être supérieur à zéro.",
         "tooManyDecimals": "Le montant ne peut pas avoir plus de {decimals} décimales.",
-        "invalidDecimals": "Les décimales doivent être un nombre entier compris entre 0 et {max}.",
-        "tooLong": "Ce champ est trop long."
+        "invalidDecimals": "Les décimales doivent être un nombre entier compris entre 0 et {max}."
       },
       "burn": {
         "tab": "Brûler",

@@ -1,15 +1,22 @@
 import { computed, ComputedRef, inject, InjectionKey, provide } from "vue";
 
-const FORM_FIELD_INVALID: InjectionKey<ComputedRef<boolean>> = Symbol("formFieldInvalid");
+export interface FormFieldContext {
+  id: string;
+  invalid: ComputedRef<boolean>;
+  describedBy: ComputedRef<string | undefined>;
+}
 
-export function provideFormFieldInvalid(invalid: ComputedRef<boolean>) {
-  provide(FORM_FIELD_INVALID, invalid);
+const FORM_FIELD: InjectionKey<FormFieldContext> = Symbol("formField");
+
+export function provideFormField(context: FormFieldContext) {
+  provide(FORM_FIELD, context);
+}
+
+export function useFormField(): FormFieldContext | undefined {
+  return inject(FORM_FIELD, undefined);
 }
 
 export function useFormFieldInvalid(): ComputedRef<boolean> {
-  return inject(
-    FORM_FIELD_INVALID,
-    computed(() => false),
-    false
-  );
+  const field = useFormField();
+  return computed(() => field?.invalid.value ?? false);
 }

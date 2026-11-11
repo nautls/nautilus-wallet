@@ -149,23 +149,25 @@ test.describe("settings", () => {
       const input = page.locator("#gql-server");
 
       await input.fill("");
-      await expect(page.getByText("GraphQL URL is required.")).toBeVisible();
+      await expect(page.getByText("Enter a GraphQL server URL")).toBeVisible();
 
       chain.network = "testnet";
       await input.fill("https://gql.ergoplatform.com/");
-      await expect(page.getByText("Wrong server network.")).toBeVisible();
+      await expect(
+        page.getByText("Server must be on the same network as the wallet")
+      ).toBeVisible();
 
       chain.network = "mainnet";
       chain.version = "0.3.9";
       await input.fill("https://graphql.erg.zelcore.io/");
-      await expect(
-        page.getByText("Unsupported server version. Nautilus requires at least version 0.4.4.")
-      ).toBeVisible();
+      await expect(page.getByText("Server must run version 0.4.4 or later")).toBeVisible();
 
       chain.version = "0.5.1";
       await input.fill("https://gql.ergoplatform.com/");
-      await expect(page.getByText("Wrong server network.")).toHaveCount(0);
-      await expect(page.getByText(/Unsupported server version/)).toHaveCount(0);
+      await expect(page.getByText("Server must be on the same network as the wallet")).toHaveCount(
+        0
+      );
+      await expect(page.getByText(/Server must run version/)).toHaveCount(0);
 
       await page.reload();
       await expect(input).toHaveValue("https://gql.ergoplatform.com/");
@@ -176,19 +178,19 @@ test.describe("settings", () => {
       const page = popup.page;
 
       await page.locator("#explorer-url").fill("");
-      await expect(page.getByText("Explorer URL is required.")).toBeVisible();
+      await expect(page.getByText("Enter an explorer URL")).toBeVisible();
 
       await page.locator("#ipfs-gateway").fill("");
-      await expect(page.getByText("IPFS Gateway URL is required.")).toBeVisible();
+      await expect(page.getByText("Enter an IPFS gateway URL")).toBeVisible();
 
       await page.locator("#explorer-url").fill("not a url");
-      await expect(page.getByText("Invalid URL.")).toBeVisible();
+      await expect(page.getByText("Enter a valid URL, like https://example.com")).toBeVisible();
 
       // visible errors are translated when the display language changes
       await page.getByRole("button", { name: "System default" }).click();
       await page.getByRole("option", { name: "Deutsch (DE)" }).click();
       await expect(page.getByText("Ungültige URL.")).toBeVisible();
-      await expect(page.getByText("Invalid URL.")).toHaveCount(0);
+      await expect(page.getByText("Enter a valid URL, like https://example.com")).toHaveCount(0);
     });
 
     test("toggles token blacklists and 0-conf", async ({ popup }) => {
@@ -222,7 +224,7 @@ test.describe("settings", () => {
       await expect(name).toHaveValue(WALLET_A.name);
 
       await name.fill("");
-      await expect(page.getByText("Wallet name is required.")).toBeVisible();
+      await expect(page.getByText("Enter a wallet name")).toBeVisible();
       await expect(popup.walletSwitcher).toContainText(WALLET_A.name);
 
       await name.fill("Savings");
@@ -285,8 +287,8 @@ test.describe("settings", () => {
       await drawer.locator("#new-password").fill("short");
       await drawer.locator("#confirm-new-password").fill("mismatch");
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(drawer.getByText("Password must be at least 10 characters long.")).toBeVisible();
-      await expect(drawer.getByText("Passwords don't match.")).toBeVisible();
+      await expect(drawer.getByText("Password must be 10 characters or more")).toBeVisible();
+      await expect(drawer.getByText("Passwords don't match")).toBeVisible();
 
       await drawer.locator("#new-password").fill("password1234");
       await drawer.locator("#confirm-new-password").fill("password1234");
@@ -295,7 +297,7 @@ test.describe("settings", () => {
         "Weak"
       );
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(drawer.getByText("This password is too easy to guess.")).toBeVisible();
+      await expect(drawer.getByText("Choose a harder password")).toBeVisible();
 
       // rejects a wrong current password and keeps the drawer open
       await drawer.locator("#current-password").fill("wrong password");
@@ -346,7 +348,7 @@ test.describe("settings", () => {
       // requires the wallet's password, by name
       await expect(drawer.getByText(`"${WALLET_A.name}" password`, { exact: true })).toBeVisible();
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(drawer.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
+      await expect(drawer.getByText(`Enter the "${WALLET_A.name}" password`)).toBeVisible();
 
       // rejects a wrong password and keeps the drawer open
       await drawer.locator("#backup-password").fill("wrong password");
@@ -404,7 +406,7 @@ test.describe("settings", () => {
       await drawer.getByRole("button", { name: "Confirm" }).click();
 
       await expect(
-        drawer.getByText("The recovery phrase does not match the original one.")
+        drawer.getByText("Recovery phrase doesn't match the one shown earlier")
       ).toBeVisible();
       await expect(drawer).toContainText("Confirm your recovery phrase");
     });
@@ -538,7 +540,7 @@ test.describe("settings", () => {
         await card.getByRole("button", { name: "Set up" }).click();
         await page.locator("#new-password").fill("short");
         await page.getByRole("button", { name: "Choose wallets" }).click();
-        await expect(page.getByText("Password must be at least 10 characters long.")).toBeVisible();
+        await expect(page.getByText("Password must be 10 characters or more")).toBeVisible();
         await page.locator("#new-password").fill(masterPassword);
         await page.locator("#confirm-new-password").fill(masterPassword);
         await page.getByRole("button", { name: "Choose wallets" }).click();

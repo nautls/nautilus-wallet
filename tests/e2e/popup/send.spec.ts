@@ -105,18 +105,18 @@ test.describe("send", () => {
     const send = page.getByRole("button", { name: "Send", exact: true });
 
     await send.click();
-    await expect(page.getByText("Please enter the recipient address.")).toBeVisible();
-    await expect(page.getByText("Please enter an amount.")).toBeVisible();
+    await expect(page.getByText("Enter a recipient address")).toBeVisible();
+    await expect(page.getByText("Enter an amount")).toBeVisible();
 
     await fillSendForm(popup, "9notAnAddress", "1");
     await send.click();
-    await expect(page.getByText("Please enter a valid Ergo address.")).toBeVisible();
+    await expect(page.getByText("Enter a valid Ergo address")).toBeVisible();
 
     await fillSendForm(popup, RECIPIENT_ADDRESS, "1000");
     await send.click();
-    await expect(page.getByText(/The amount should be less than or equal to/)).toBeVisible();
-    await expect(page.getByText("Please enter the recipient address.")).toHaveCount(0);
-    await expect(page.getByText("Please enter a valid Ergo address.")).toHaveCount(0);
+    await expect(page.getByText(/Amount must be .* or less/)).toBeVisible();
+    await expect(page.getByText("Enter a recipient address")).toHaveCount(0);
+    await expect(page.getByText("Enter a valid Ergo address")).toHaveCount(0);
     await expect(reviewDrawer(page)).toHaveCount(0);
 
     expect(chain.submitted).toHaveLength(0);
@@ -125,7 +125,7 @@ test.describe("send", () => {
   test("validates every selected asset amount", async ({ popup, chain }) => {
     const page = popup.page;
     const send = page.getByRole("button", { name: "Send", exact: true });
-    const maxAmountError = page.getByText(/The amount should be less than or equal to/);
+    const maxAmountError = page.getByText(/Amount must be .* or less/);
 
     await fillSendForm(popup, RECIPIENT_ADDRESS, "1");
     await page.getByRole("combobox").filter({ hasText: "Add asset" }).click();
@@ -193,7 +193,7 @@ test.describe("send", () => {
   test("caps an asset split across recipients by the balance", async ({ popup, chain }) => {
     const page = popup.page;
     const send = page.getByRole("button", { name: "Send", exact: true });
-    const maxAmountError = page.getByText(/The amount should be less than or equal to/);
+    const maxAmountError = page.getByText(/Amount must be .* or less/);
 
     await fillSendForm(popup, RECIPIENT_ADDRESS);
     await addToken(page, 0);
@@ -226,12 +226,12 @@ test.describe("send", () => {
     await expect(page.getByRole("button", { name: "Remove recipient" })).toHaveCount(0);
     await page.locator("#add-recipient").click();
     await send.click();
-    await expect(page.getByText("Please enter the recipient address.")).toBeVisible();
+    await expect(page.getByText("Enter a recipient address")).toBeVisible();
 
     // an invalid recipient no longer blocks sending once removed
     await recipientBox(page, 1).getByRole("button", { name: "Remove recipient" }).click();
     await expect(page.locator("[data-recipient]")).toHaveCount(1);
-    await expect(page.getByText("Please enter the recipient address.")).toHaveCount(0);
+    await expect(page.getByText("Enter a recipient address")).toHaveCount(0);
 
     await send.click();
     await expect(reviewDrawer(page)).toBeVisible();

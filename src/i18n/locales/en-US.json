@@ -171,12 +171,12 @@
       "assets": "Assets",
       "addAllAssets": "Add all assets",
       "addAllAssetsDesc": "Add all assets to the sending list.",
-      "minNamedAssetError": "You need at least {min} {asset} to send this transaction.",
-      "requiredAmountError": "Please enter an amount.",
-      "minFeeError": "You need to pay a minimum fee of {min} {name} to send this transaction.",
+      "minNamedAssetError": "Amount must be {min} {asset} or more",
+      "requiredAmountError": "Enter an amount",
+      "minFeeError": "Fee must be {min} {name} or more",
       "adjustFee": "Adjust fee",
-      "emptyAddressError": "Please enter the recipient address.",
-      "noSelectedAssetsError": "Please select at least one asset to send this transaction."
+      "emptyAddressError": "Enter a recipient address",
+      "noSelectedAssetsError": "Select at least one asset"
     },
     "sign": {
       "babelFeeSwap": "Babel Fee swap",
@@ -211,10 +211,10 @@
     "walletPasswordStepDesc": "Protects this wallet only. You'll type it to sign transactions with it.",
     "createMasterPassword": "Create master password",
     "createWalletPassword": "Create wallet password",
-    "masterPasswordRequired": "Master password is required.",
-    "wrongMasterPassword": "Wrong master password.",
+    "masterPasswordRequired": "Enter your master password",
+    "wrongMasterPassword": "Master password is incorrect",
     "walletPassword": "Wallet password",
-    "walletPasswordRequired": "Wallet password is required.",
+    "walletPasswordRequired": "Enter a wallet password",
     "useMasterPassword": "Use master password",
     "useMasterPasswordDesc": "Turn off to give this wallet its own password.",
     "masterPasswordNotRecoverable": "This password can't be recovered. If you forget it, you'll need the recovery phrase of every wallet that uses it.",
@@ -226,16 +226,16 @@
     "unlockTitle": "Unlock Nautilus",
     "unlockDesc": "Enter your master password to unlock your wallets.",
     "unlockFailed": "Failed to unlock session",
-    "minPasswordLength": "Password must be at least {min} characters long.",
-    "passwordsDontMatch": "Passwords don't match.",
+    "minPasswordLength": "Password must be {min} characters or more",
+    "passwordsDontMatch": "Passwords don't match",
     "password": "Password",
     "namedWalletPassword": "\"{name}\" password",
-    "enterMasterPassword": "Please enter your master password.",
-    "enterWalletPassword": "Please enter the \"{name}\" password.",
+    "enterMasterPassword": "Enter your master password",
+    "enterWalletPassword": "Enter the \"{name}\" password",
     "wrongMasterPasswordTitle": "Wrong master password",
     "wrongWalletPasswordTitle": "Wrong \"{name}\" password",
     "wrongPasswordHint": "Check for typos and Caps Lock, then try again.",
-    "passwordTooGuessable": "This password is too easy to guess. Avoid common passwords and patterns like password123 or 123456.",
+    "passwordTooGuessable": "Choose a harder password, without common words or patterns like 123456",
     "passwordStrength": {
       "title": "Password strength",
       "weak": "Weak",
@@ -244,14 +244,14 @@
       "strong": "Strong"
     },
     "emptyProof": "Prover returned no signed data.",
-    "requiredSpendingPassword": "Please enter your spending password.",
+    "requiredSpendingPassword": "Enter your spending password",
     "wrongPassword": "Wrong password",
     "xPubKey": "Extended public key",
     "xPubKeyDesc": "Extended public keys allow viewing transaction history and generating new addresses, but they cannot spend or move funds in any way.",
     "xPrivKey": "Extended private key",
     "walletName": "Wallet name",
     "confirmPassword": "Confirm password",
-    "requiredWalletName": "Wallet name is required.",
+    "requiredWalletName": "Enter a wallet name",
     "infoStep": "Wallet information",
     "infoStepDesc": "This information will be used to identify and protect your wallet.",
     "cantSignData": "This wallet can't sign data.",
@@ -286,7 +286,7 @@
     "create": {
       "backUpRecoveryPhrase": "Back up recovery phrase",
       "iHaveSavedTheseWords": "I've stored my recovery phrase safely",
-      "recoveryPhraseDoNotMatch": "The recovery phrase does not match the original one.",
+      "recoveryPhraseDoNotMatch": "Recovery phrase doesn't match the one shown earlier",
       "walletCreationError": "Wallet creation failed",
       "secretStep": "Recovery phrase",
       "secretStepDesc": "These words are the keys to your wallet. Make sure you save them in a secure location.",
@@ -298,8 +298,8 @@
     "import": {
       "insertPubKey": "Insert a public key",
       "insertRecoveryPhrase": "Insert a recovery phrase",
-      "requiredXPubKey": "Extended public key is required.",
-      "requiredRecoveryPhrase": "Recovery phrase is required.",
+      "requiredXPubKey": "Enter an extended public key",
+      "requiredRecoveryPhrase": "Enter your recovery phrase",
       "walletImportError": "Wallet import failed",
       "importStep": "Insert the Extended Public Key of your wallet.",
       "importStepDesc": "Select the type of secret you want to use and fill it out.",
@@ -328,7 +328,7 @@
       "failed": "Failed to retrieve the recovery phrase",
       "saveFailed": "Failed to save the backup status"
     },
-    "newPasswordRequired": "Password is required."
+    "newPasswordRequired": "Enter a password"
   },
   "settings": {
     "systemDefault": "System default",
@@ -357,13 +357,13 @@
       "scamTokensBlacklist": "Scam tokens",
       "scamTokensBlacklistDesc": "Hide scam tokens.",
       "gqlServer": "GraphQL server",
-      "requiredGql": "GraphQL URL is required.",
-      "wrongServerNetwork": "Wrong server network.",
-      "unsupportedServerVersion": "Unsupported server version. Nautilus requires at least version {version}.",
+      "requiredGql": "Enter a GraphQL server URL",
+      "wrongServerNetwork": "Server must be on the same network as the wallet",
+      "unsupportedServerVersion": "Server must run version {version} or later",
       "explorerUrl": "Explorer URL",
-      "requiredExplorer": "Explorer URL is required.",
+      "requiredExplorer": "Enter an explorer URL",
       "ipfsGateway": "IPFS Gateway",
-      "requiredIpfs": "IPFS Gateway URL is required.",
+      "requiredIpfs": "Enter an IPFS gateway URL",
       "experimental": "Experimental",
       "experimentalDesc": "The features under this section are marked as experimental, which means they're not stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a work in progress, so expect some rough edges.",
       "zeroConf": "Enable 0-conf",
@@ -464,12 +464,12 @@
     }
   },
   "validation": {
-    "invalidAddress": "Please enter a valid Ergo address.",
-    "invalidRecoveryPhrase": "Invalid recovery phrase.",
-    "invalidPublicKey": "Invalid public key",
-    "invalidUrl": "Invalid URL.",
-    "maxAmount": "The amount should be less than or equal to {max}",
-    "minAmount": "The amount should be greater than or equal to {min}"
+    "invalidAddress": "Enter a valid Ergo address",
+    "invalidRecoveryPhrase": "Enter a valid recovery phrase",
+    "invalidPublicKey": "Enter a valid extended public key",
+    "invalidUrl": "Enter a valid URL, like https://example.com",
+    "maxAmount": "Amount must be {max} or less",
+    "minAmount": "Amount must be {min} or more"
   },
   "masterSetup": {
     "alert": "One password for all your wallets",
@@ -478,7 +478,7 @@
     "walletsStep": "Wallets",
     "walletsStepDesc": "Choose the wallets that will use the master password and enter each one's current password. The others keep their own.",
     "chooseWallets": "Choose wallets",
-    "wrongPassword": "Wrong password.",
+    "wrongPassword": "Password is incorrect",
     "passwordCorrect": "Correct password"
   }
 }

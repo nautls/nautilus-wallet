@@ -77,14 +77,12 @@ test.describe("dApps", () => {
       await page.getByLabel("Decimals").fill("2");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
 
-      await expect(page.getByText("Token name is required.")).toBeVisible();
-      await expect(
-        page.getByText("The amount can't have more than 2 decimal places.")
-      ).toBeVisible();
+      await expect(page.getByText("Enter a token name")).toBeVisible();
+      await expect(page.getByText("Amount can't have more than 2 decimal places")).toBeVisible();
 
       await page.getByLabel("Emission amount").fill("100000000000000000");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
-      await expect(page.getByText(/The amount should be less than or equal to/)).toBeVisible();
+      await expect(page.getByText(/Amount must be .* or less/)).toBeVisible();
 
       await expect(page.getByRole("dialog")).toHaveCount(0);
       expect(chain.submitted).toHaveLength(0);
@@ -111,7 +109,7 @@ test.describe("dApps", () => {
 
       await page.getByLabel("Name").fill("Test Token");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
-      await expect(page.getByText("Emission amount is required.")).toBeInViewport();
+      await expect(page.getByText("Enter an emission amount")).toBeInViewport();
     });
   });
 
@@ -166,7 +164,7 @@ test.describe("dApps", () => {
       const page = popup.page;
       await page.getByRole("button", { name: "Burn", exact: true }).click();
 
-      await expect(page.getByText("Select at least one token to burn.")).toBeVisible();
+      await expect(page.getByText("Select at least one token to burn")).toBeVisible();
       await expect(page.getByRole("dialog")).toHaveCount(0);
       expect(chain.submitted).toHaveLength(0);
     });

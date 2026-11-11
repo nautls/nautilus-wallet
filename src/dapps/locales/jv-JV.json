@@ -45,8 +45,7 @@
         "amountRequired": "Jumlah emisi kedah dipun-isi.",
         "invalidAmount": "Jumlah kedah langkung ageng saking nol.",
         "tooManyDecimals": "Jumlah mboten saged gadhah langkung saking {decimals} angka desimal.",
-        "invalidDecimals": "Desimal kedah wujud angka wetah antawis 0 lan {max}.",
-        "tooLong": "Kolom punika kepanjangen."
+        "invalidDecimals": "Desimal kedah wujud angka wetah antawis 0 lan {max}."
       },
       "burn": {
         "tab": "Bakar",

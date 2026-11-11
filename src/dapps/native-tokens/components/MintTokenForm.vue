@@ -83,13 +83,13 @@ const { r$ } = useRegle(
       ),
       maxBytes: withMessage(
         (value: Maybe<string>) => byteSize(value) <= MAX_NAME_BYTES,
-        () => t("dapps.nativeTokens.mint.tooLong")
+        () => t("dapps.nativeTokens.mint.nameTooLong")
       )
     },
     description: {
       maxBytes: withMessage(
         (value: Maybe<string>) => byteSize(value) <= MAX_DESCRIPTION_BYTES,
-        () => t("dapps.nativeTokens.mint.tooLong")
+        () => t("dapps.nativeTokens.mint.descriptionTooLong")
       )
     },
     decimals: {

@@ -45,8 +45,7 @@
         "amountRequired": "发行量为必填项。",
         "invalidAmount": "数量必须大于零。",
         "tooManyDecimals": "数量的小数位数不能超过 {decimals} 位。",
-        "invalidDecimals": "小数位数必须是 0 到 {max} 之间的整数。",
-        "tooLong": "此字段过长。"
+        "invalidDecimals": "小数位数必须是 0 到 {max} 之间的整数。"
       },
       "burn": {
         "tab": "销毁",

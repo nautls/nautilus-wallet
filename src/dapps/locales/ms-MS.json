@@ -45,8 +45,7 @@
         "amountRequired": "Jumlah emisi diperlukan.",
         "invalidAmount": "Jumlah mestilah lebih besar daripada sifar.",
         "tooManyDecimals": "Jumlah tidak boleh mempunyai lebih daripada {decimals} tempat perpuluhan.",
-        "invalidDecimals": "Perpuluhan mestilah nombor bulat antara 0 dan {max}.",
-        "tooLong": "Medan ini terlalu panjang."
+        "invalidDecimals": "Perpuluhan mestilah nombor bulat antara 0 dan {max}."
       },
       "burn": {
         "tab": "Bakar",

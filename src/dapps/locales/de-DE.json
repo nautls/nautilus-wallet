@@ -45,8 +45,7 @@
         "amountRequired": "Die Emissionsmenge ist erforderlich.",
         "invalidAmount": "Der Betrag muss größer als null sein.",
         "tooManyDecimals": "Der Betrag darf nicht mehr als {decimals} Dezimalstellen haben.",
-        "invalidDecimals": "Die Dezimalstellen müssen eine ganze Zahl zwischen 0 und {max} sein.",
-        "tooLong": "Dieses Feld ist zu lang."
+        "invalidDecimals": "Die Dezimalstellen müssen eine ganze Zahl zwischen 0 und {max} sein."
       },
       "burn": {
         "tab": "Verbrennen",

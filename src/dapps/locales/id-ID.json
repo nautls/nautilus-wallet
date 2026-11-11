@@ -45,8 +45,7 @@
         "amountRequired": "Jumlah emisi wajib diisi.",
         "invalidAmount": "Jumlah harus lebih besar dari nol.",
         "tooManyDecimals": "Jumlah tidak boleh memiliki lebih dari {decimals} angka desimal.",
-        "invalidDecimals": "Desimal harus berupa bilangan bulat antara 0 dan {max}.",
-        "tooLong": "Kolom ini terlalu panjang."
+        "invalidDecimals": "Desimal harus berupa bilangan bulat antara 0 dan {max}."
       },
       "burn": {
         "tab": "Bakar",
