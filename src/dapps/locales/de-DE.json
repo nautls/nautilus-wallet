@@ -3,8 +3,8 @@
     "sigmaUsd": {
       "title": "SigmaUSD-Protokoll",
       "summary": "Kaufe und verkaufe SigUSD und SigRSV.",
-      "insufficientBalance": "Unzureichender {asset}-Kontostand.",
-      "blockedAction": "Aufgrund der aktuellen Bankreserven kannst du nicht mehr als {amount} {asset} {action}.",
+      "insufficientBalance": "Der Betrag darf höchstens {amount} {asset} sein",
+      "blockedAction": "Die Bankreserven erlauben höchstens {amount} {asset}",
       "feeSummary": "Gebühren {amount}",
       "protocolFee": "Protokollgebühr",
       "protocolFeeDesc": "Die Protokollgebühr fließt direkt in die Bankreserven.",
@@ -41,12 +41,13 @@
         "amount": "Emissionsmenge",
         "decimals": "Dezimalstellen",
         "mint": "Erstellen",
-        "nameRequired": "Der Token-Name ist erforderlich.",
-        "amountRequired": "Die Emissionsmenge ist erforderlich.",
-        "invalidAmount": "Der Betrag muss größer als null sein.",
-        "tooManyDecimals": "Der Betrag darf nicht mehr als {decimals} Dezimalstellen haben.",
-        "invalidDecimals": "Die Dezimalstellen müssen eine ganze Zahl zwischen 0 und {max} sein.",
-        "tooLong": "Dieses Feld ist zu lang."
+        "nameRequired": "Gib einen Token-Namen ein",
+        "amountRequired": "Gib eine Emissionsmenge ein",
+        "invalidAmount": "Der Betrag muss größer als 0 sein",
+        "tooManyDecimals": "Der Betrag darf höchstens {decimals} Dezimalstellen haben",
+        "invalidDecimals": "Die Dezimalstellen müssen eine ganze Zahl von 0 bis {max} sein",
+        "nameTooLong": "Der Name ist zu lang",
+        "descriptionTooLong": "Die Beschreibung ist zu lang"
       },
       "burn": {
         "tab": "Verbrennen",
@@ -56,7 +57,7 @@
         "nsfwTokens": "Alle NSFW-Token hinzufügen",
         "nsfwTokensDesc": "Du besitzt keine als NSFW gelisteten Token. | Den als NSFW gelisteten Token hinzufügen, den du besitzt. | Die {count} als NSFW gelisteten Token hinzufügen, die du besitzt.",
         "tokens": "Zu verbrennende Token",
-        "noSelectedTokens": "Wähle mindestens einen Token zum Verbrennen aus.",
+        "noSelectedTokens": "Wähle mindestens einen Token zum Verbrennen aus",
         "burn": "Verbrennen"
       }
     }

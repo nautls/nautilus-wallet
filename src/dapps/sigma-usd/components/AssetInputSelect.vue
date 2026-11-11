@@ -19,6 +19,8 @@ interface Props {
   amount: BigNumber | undefined;
   reservedAmount?: BigNumber;
   disabled?: boolean;
+  invalid?: boolean;
+  describedBy?: string;
 }
 
 const props = defineProps<Props>();
@@ -37,6 +39,8 @@ const amount = useVModel(props, "amount", emits, { passive: true });
     v-model="amount"
     input-class="text-lg"
     :validate="false"
+    :invalid="props.invalid"
+    :described-by="props.describedBy"
     :reserved-amount="props.reservedAmount"
     :disabled="!selectedAsset || props.disabled"
     :asset="selectedAsset ?? EMPTY_ASSET"

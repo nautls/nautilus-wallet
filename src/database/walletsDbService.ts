@@ -569,7 +569,7 @@ async function writeSecrets(moves: Move[], master?: MasterChange) {
   for (const { id, current } of moves) {
     if (!(await readWallet(id))) throw Error("wallet not found");
     if (!isEqual(await readSecret(id), current)) {
-      throw Error("the spending password was changed meanwhile");
+      throw Error("the wallet password was changed meanwhile");
     }
   }
   if (master) await assertMasterUnchanged(master);

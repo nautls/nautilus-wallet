@@ -79,10 +79,10 @@ const texts = computed(() => {
   switch (props.action) {
     case "change":
       return {
-        title: t("settings.wallet.changeSpendingPassword"),
-        description: t("settings.wallet.changeSpendingPasswordDesc"),
+        title: t("settings.wallet.changeWalletPassword"),
+        description: t("settings.wallet.changeWalletPasswordDesc"),
         current: t("settings.wallet.currentPassword"),
-        done: t("settings.wallet.spendingPasswordChanged")
+        done: t("settings.wallet.walletPasswordChanged")
       };
     case "changeMaster":
       return {

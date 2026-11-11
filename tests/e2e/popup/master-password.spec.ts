@@ -29,7 +29,7 @@ test.describe("master password set up for existing wallets", () => {
     ).toBeChecked();
     const setUp = page.getByRole("button", { name: "Set up master password" });
     await setUp.click();
-    await expect(page.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
+    await expect(page.getByText(`Enter the "${WALLET_A.name}" password`)).toBeVisible();
 
     await page
       .getByRole("textbox", { name: `"${WALLET_A.name}" password` })
@@ -40,7 +40,9 @@ test.describe("master password set up for existing wallets", () => {
     const passwordB = page.getByRole("textbox", { name: `"${WALLET_B.name}" password` });
     await passwordB.fill("short");
     await page.waitForTimeout(500);
-    const wrongB = page.getByRole("button", { name: WALLET_B.name }).getByLabel("Wrong password.");
+    const wrongB = page
+      .getByRole("button", { name: WALLET_B.name })
+      .getByLabel("Password is incorrect");
     await expect(wrongB).toHaveCount(0);
     await passwordB.blur();
     await expect(wrongB).toBeVisible();
@@ -50,15 +52,15 @@ test.describe("master password set up for existing wallets", () => {
     const rowA = page.getByRole("button", { name: WALLET_A.name });
     const rowB = page.getByRole("button", { name: WALLET_B.name });
     await expect(rowA.getByLabel("Correct password")).toBeVisible();
-    await expect(rowB.getByLabel("Wrong password.")).toBeVisible();
-    await expect(page.getByText("Wrong password.")).toHaveCount(1);
+    await expect(rowB.getByLabel("Password is incorrect")).toBeVisible();
+    await expect(page.getByText("Password is incorrect")).toHaveCount(1);
     await setUp.click();
-    await expect(page.getByText("Wrong password.")).toHaveCount(1);
+    await expect(page.getByText("Password is incorrect")).toHaveCount(1);
 
     await page
       .getByRole("textbox", { name: `"${WALLET_B.name}" password` })
       .fill(WALLET_B.password);
-    await expect(page.getByText("Wrong password.")).toHaveCount(0);
+    await expect(page.getByText("Password is incorrect")).toHaveCount(0);
     await expect(rowB.getByLabel("Correct password")).toBeVisible();
     await setUp.click();
     await expect(popup.toast("Master password set up")).toBeVisible();

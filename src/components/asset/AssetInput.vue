@@ -23,6 +23,8 @@ interface Props {
   disposable?: boolean;
   disabled?: boolean;
   validate?: boolean;
+  invalid?: boolean;
+  describedBy?: string;
   asset: AssetBalance;
   modelValue?: BigNumber;
   reservedAmount?: BigNumber;
@@ -264,7 +266,8 @@ function tokenRate(tokenId: string): number {
         <input
           ref="value-input"
           :disabled="props.disabled"
-          :aria-invalid="props.validate && r$.$error ? true : undefined"
+          :aria-invalid="(props.validate && r$.$error) || props.invalid ? true : undefined"
+          :aria-describedby="props.describedBy"
           :class="
             cn(
               'placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground w-full min-w-24 bg-transparent font-medium outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
