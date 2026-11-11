@@ -63,5 +63,6 @@ export const assetIconMap = new Map<string, string>([
   ["ae399fcb751e8e247d0da8179a2bcca2aa5119fff9c85721ffab9cdc9a3cb2dd", "DORT.svg"],
   ["00b42b41cb438c41d0139aa8432eb5eeb70d5a02d3df891f880d5fe08670c365", "Crux.png"],
   ["c7bc7295d9e522e2731bf73aaec4e212e96f69a31b2e1d7ff4758762297a9f80", "hof.png"],
-  ["c1980d829988229516430a47a5eca376060b6ce859616db0936e78ab25cb6de7", "lit.png"]
+  ["c1980d829988229516430a47a5eca376060b6ce859616db0936e78ab25cb6de7", "lit.png"],
+  ["edaa0362f492cbb7c284a76d1bab12ff3468061e00b73db4a3f2cebc5aec77b3", "hns.svg"]
 ]);
