@@ -20,7 +20,7 @@ import { bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useChildRegle } from "@/composables/useValidationScope";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
 import { bigNumberMinValue, staticBigNumber } from "@/validators";
 
@@ -31,7 +31,8 @@ interface FeeAsset extends AssetInfo {
 
 interface Props {
   modelValue: FeeSettings;
-  includeMinAmountPerBox?: number;
+  /** nanoERGs a token fee also pays for, on top of the miner fee, e.g. new boxes' value. */
+  boxesValue?: BigNumber;
   disabled?: boolean;
   maxMultiplier?: number;
   class?: HTMLAttributes["class"];
@@ -40,7 +41,6 @@ interface Props {
 }
 
 const BN_MIN_ERG_FEE = bn(SAFE_MIN_FEE_VALUE);
-const BN_MIN_BOX_VAL = bn(MIN_BOX_VALUE);
 
 const format = useFormat();
 const appStore = useAppStore();
@@ -49,7 +49,7 @@ const wallet = useWalletStore();
 const { t } = useI18n();
 
 const props = withDefaults(defineProps<Props>(), {
-  includeMinAmountPerBox: 0,
+  boxesValue: () => bn(0),
   maxMultiplier: 10,
   class: undefined
 });
@@ -63,7 +63,7 @@ const cachedMinRequired = shallowRef(bn(0));
 const loading = ref(false);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat || 0);
-const minTokenFee = computed(() => getTokenUnitsFor(BN_MIN_ERG_FEE));
+const minTokenFee = computed(() => getTokenUnitsFor(BN_MIN_ERG_FEE.plus(props.boxesValue)));
 const nanoErgsFee = computed(() => BN_MIN_ERG_FEE.times(multiplier.value));
 const tokenUnitsFee = computed(() => minTokenFee.value.times(multiplier.value));
 
@@ -130,7 +130,7 @@ watch(
 );
 
 watch(() => feeAmount.value, emitSelected);
-watch(() => props.includeMinAmountPerBox, recalculateMinRequired);
+watch(() => props.boxesValue.toString(), recalculateMinRequired);
 
 watch(
   () => ({ walletId: wallet.id, assets: wallet.nonArtworkBalance }),
@@ -220,15 +220,9 @@ function recalculateMinRequired() {
     if (!r$.$dirty) multiplier.value = 1;
   } else {
     cachedMinRequired.value = decimalize(
-      getTokenUnitsFor(BN_MIN_ERG_FEE.plus(BN_MIN_BOX_VAL.times(props.includeMinAmountPerBox))),
+      minTokenFee.value,
       intSelected.value.metadata?.decimals || 0
     );
-
-    if (cachedMinRequired.value.isGreaterThan(feeAmount.value)) {
-      const baseFee = decimalize(minTokenFee.value, intSelected.value.metadata?.decimals || 0);
-      const m = cachedMinRequired.value.dividedBy(baseFee).integerValue(BigNumber.ROUND_UP);
-      multiplier.value = m.isGreaterThan(10) ? 10 : m.toNumber();
-    }
   }
 }
 

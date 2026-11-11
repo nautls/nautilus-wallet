@@ -1,11 +1,14 @@
 import { computed, onMounted, onUnmounted } from "vue";
+import { BOX_VALUE_PER_BYTE } from "@fleet-sdk/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { HEIGHT_CHECK_INTERVAL } from "../constants/intervals";
 
+type ChainState = { height: number; minValuePerByte?: number };
+
 const usePrivateState = defineStore("_chain", () => {
-  const state = useWebExtStorage("ergoChainState", { height: 0 });
+  const state = useWebExtStorage<ChainState>("ergoChainState", { height: 0 });
   return { state };
 });
 
@@ -15,7 +18,7 @@ export const useChainStore = defineStore("chain", () => {
   let fetchingHeight = false;
 
   onMounted(async () => {
-    await fetchHeight();
+    await Promise.all([fetchParams(), fetchHeight()]);
     intervalId = setInterval(fetchHeight, HEIGHT_CHECK_INTERVAL);
   });
 
@@ -24,6 +27,9 @@ export const useChainStore = defineStore("chain", () => {
   });
 
   const height = computed(() => privateState.state.height);
+  const minValuePerByte = computed(() =>
+    BigInt(privateState.state.minValuePerByte ?? BOX_VALUE_PER_BYTE)
+  );
 
   async function fetchHeight() {
     if (fetchingHeight) return;
@@ -37,7 +43,14 @@ export const useChainStore = defineStore("chain", () => {
     fetchingHeight = false;
   }
 
-  return { height };
+  async function fetchParams() {
+    const minValuePerByte = await graphQLService.getMinValuePerByte();
+    if (minValuePerByte && minValuePerByte !== privateState.state.minValuePerByte) {
+      privateState.state.minValuePerByte = minValuePerByte;
+    }
+  }
+
+  return { height, minValuePerByte };
 });
 
 if (import.meta.hot) {

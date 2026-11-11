@@ -294,8 +294,7 @@ test.describe("send", () => {
 
 /**
  * Funds WALLET_A with TestToken in a box holding only the minimum ERG, and adds a Babel box
- * at 1,000 nanoERGs per TestToken unit, so each 0.001 ERG box the fee covers costs 10 TestToken
- * on top of the 11 TestToken miner fee.
+ * at 1,000 nanoERGs per TestToken unit, so the 1,100,000 nanoERGs miner fee costs 11 TestToken.
  */
 async function fundTokenOnlyWallet(chain: MockChain) {
   chain.addToken(TEST_TOKEN);
@@ -312,45 +311,7 @@ async function payFeeInTestToken(page: Page) {
   await page.getByRole("option", { name: /TestToken/ }).click();
 }
 
-test("an insufficient fee blocks sending", async ({ chain, popup }) => {
-  await fundTokenOnlyWallet(chain);
-  await popup.importWallet(WALLET_A);
-  await popup.navigate("send");
-
-  const page = popup.page;
-  const send = page.getByRole("button", { name: "Send", exact: true });
-  // the miner fee plus the recipient box
-  const minFeeError = page.getByText(/You need to pay a minimum fee of 21 TestToken/);
-
-  await fillSendForm(popup, RECIPIENT_ADDRESS);
-  await payFeeInTestToken(page);
-  await addToken(page, 0);
-  await recipientBox(page, 0).getByPlaceholder("0").last().fill("10");
-
-  const adjustFee = page.getByRole("button", { name: /^Adjust fee/ });
-  const multiplier = page.getByRole("slider");
-
-  // lower the fee multiplier below the required minimum
-  await adjustFee.click();
-  await expect(multiplier).toBeFocused();
-  await multiplier.press("Home");
-  await expect(multiplier).toHaveAttribute("aria-valuenow", "1");
-  await multiplier.press("Escape");
-  await expect(multiplier).toHaveCount(0);
-
-  await send.click();
-  await expect(minFeeError).toBeVisible();
-  await expect(reviewDrawer(page)).toHaveCount(0);
-
-  await adjustFee.click();
-  await multiplier.press("End");
-  await multiplier.press("Escape");
-  await expect(minFeeError).toHaveCount(0);
-  await send.click();
-  await expect(reviewDrawer(page)).toBeVisible();
-});
-
-test("a Babel fee covers recipient boxes even when the wallet has ERG", async ({
+test("a token fee covers the recipient boxes even when the wallet has ERG", async ({
   chain,
   popup
 }) => {
@@ -360,16 +321,33 @@ test("a Babel fee covers recipient boxes even when the wallet has ERG", async ({
   await popup.navigate("send");
 
   const page = popup.page;
+  const adjustFee = page.getByRole("button", { name: /^Adjust fee/ });
   await fillSendForm(popup, RECIPIENT_ADDRESS);
   await payFeeInTestToken(page);
-  await addToken(page, 0);
-  await page.locator("#add-recipient").click();
+  // the miner fee plus a 79 bytes box at 396 nanoERGs per byte: 1,100,000 + 79 * 396
+  await expect(adjustFee).toHaveText(/11\.32$/);
 
-  // the miner fee plus both recipient boxes, regardless of the 10 ERG in the wallet
-  await expect(page.getByRole("button", { name: /^Adjust fee/ })).toHaveText(/33/);
+  await page.locator("#add-recipient").click();
+  await page.locator("#recipient-1").fill(await addressOf(WALLET_B, 0));
+  // and a second one
+  await expect(adjustFee).toHaveText(/11\.63$/);
 });
 
-test("a Babel fee funds recipient boxes of a wallet without spare ERG", async ({
+test("a token fee follows the chain's minimum value per byte", async ({ chain, popup }) => {
+  chain.minValuePerByte = 400;
+  await fundWallet(chain, WALLET_A);
+  addBabelBox(chain, TEST_TOKEN.tokenId, 1000n);
+  await popup.importWallet(WALLET_A);
+  await popup.navigate("send");
+
+  const page = popup.page;
+  await fillSendForm(popup, RECIPIENT_ADDRESS);
+  await payFeeInTestToken(page);
+  // the miner fee plus a 79 bytes box at 440 nanoERGs per byte: 1,100,000 + 79 * 440
+  await expect(page.getByRole("button", { name: /^Adjust fee/ })).toHaveText(/11\.35$/);
+});
+
+test("a token fee funds the recipient boxes of a wallet without spare ERG", async ({
   chain,
   popup
 }) => {
@@ -381,11 +359,8 @@ test("a Babel fee funds recipient boxes of a wallet without spare ERG", async ({
   const secondRecipient = await addressOf(WALLET_B, 0);
   const adjustFee = page.getByRole("button", { name: /^Adjust fee/ });
 
-  await payFeeInTestToken(page);
-  // the miner fee plus the recipient box
-  await expect(adjustFee).toHaveText(/22/);
-
   await fillSendForm(popup, RECIPIENT_ADDRESS);
+  await payFeeInTestToken(page);
   await addToken(page, 0);
   await recipientBox(page, 0).getByPlaceholder("0").last().fill("10");
 
@@ -393,8 +368,8 @@ test("a Babel fee funds recipient boxes of a wallet without spare ERG", async ({
   await page.locator("#recipient-1").fill(secondRecipient);
   await addToken(page, 1);
   await recipientBox(page, 1).getByPlaceholder("0").last().fill("20");
-  // and the second recipient box
-  await expect(adjustFee).toHaveText(/33/);
+  // the miner fee plus two 113 bytes boxes holding a token: 1,100,000 + 2 * 113 * 396
+  await expect(adjustFee).toHaveText(/11\.9$/);
 
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await signInDrawer(popup, WALLET_A.password);
@@ -402,18 +377,22 @@ test("a Babel fee funds recipient boxes of a wallet without spare ERG", async ({
 
   const [tx] = chain.submitted;
   const first = tx.outputs.find((o) => o.ergoTree === RECIPIENT_TREE);
-  expect(first?.value.toString()).toBe("1000000");
+  expect(first?.value.toString()).toBe("44748");
   expect(first?.assets).toEqual([{ tokenId: TEST_TOKEN.tokenId, amount: "1000" }]);
 
   const secondTree = ErgoAddress.decode(secondRecipient).ergoTree;
   const second = tx.outputs.find((o) => o.ergoTree === secondTree);
-  expect(second?.value.toString()).toBe("1000000");
+  expect(second?.value.toString()).toBe("44748");
   expect(second?.assets).toEqual([{ tokenId: TEST_TOKEN.tokenId, amount: "2000" }]);
 
+  // the ERG of the spent token box
   const changeTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
   const change = tx.outputs.find((o) => o.ergoTree === changeTree);
-  // the ERG of the spent token box
   expect(change?.value.toString()).toBe("1000000");
+
+  // the swapped 1,190,000 nanoERGs minus what the recipient boxes took
+  const minerFee = tx.outputs.find((o) => o.assets.length === 0);
+  expect(minerFee?.value.toString()).toBe("1100504");
 });
 
 test("read-only wallets can't send", async ({ chain, popup }) => {

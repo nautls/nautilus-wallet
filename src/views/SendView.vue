@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import ScrollArea from "@/components/ui/scroll-area/ScrollArea.vue";
 import {
   createP2PTransaction,
+  estimateRecipientBoxValue,
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
   TxRecipient
 } from "@/chains/ergo/transaction/builder";
@@ -128,15 +129,15 @@ const changeValue = computed(() =>
 );
 
 /**
- * With a Babel fee, the swap pays the minimum box value of every recipient box without ERG.
- * Change boxes take back the ERG locked in the spent inputs instead.
+ * With a Babel fee, the swap pays for the boxes of recipients without ERG, so the fee must
+ * cover their minimum value.
  */
-const feeFundedBoxesCount = computed(() => {
-  if (isFeeInErg.value) return 0;
+const feeFundedBoxesValue = computed(() => {
+  if (isFeeInErg.value) return bn(0);
 
-  return recipients.value.filter(
-    (r) => !r.assets.some((a) => isErg(a.asset.tokenId) && a.amount?.gt(0))
-  ).length;
+  return recipients.value
+    .filter((r) => !r.assets.some((a) => isErg(a.asset.tokenId) && a.amount?.gt(0)))
+    .reduce((total, r) => total.plus(estimateRecipientBoxValue(r)), bn(0));
 });
 
 watch(
@@ -227,7 +228,6 @@ async function sendTransaction() {
       createP2PTransaction({
         recipients: recipients.value.map(({ address, assets }) => ({ address, assets })),
         fee: fee.value,
-        feeFundedBoxes: feeFundedBoxesCount.value,
         walletType: wallet.type
       }),
     onSuccess: () => {
@@ -404,7 +404,7 @@ function isFeeAsset(tokenId: string): boolean {
   </ScrollArea>
 
   <ActionFooter>
-    <TransactionFeeConfig v-model="fee" :include-min-amount-per-box="feeFundedBoxesCount" />
+    <TransactionFeeConfig v-model="fee" :boxes-value="feeFundedBoxesValue" />
     <Button type="submit" size="lg" class="w-full" @click="sendTransaction">{{
       t("common.send")
     }}</Button>

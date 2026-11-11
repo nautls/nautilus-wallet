@@ -19,7 +19,7 @@ import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
 import { staticBigNumber } from "@/validators";
-import { createMintTransaction } from "../transactionFactory";
+import { createMintTransaction, MINT_BOX_VALUE } from "../transactionFactory";
 
 // amounts are stored as signed 64-bit integers (Long)
 const MAX_TOKEN_AMOUNT = bn("9223372036854775807");
@@ -231,7 +231,7 @@ function reset() {
   </ScrollArea>
 
   <ActionFooter>
-    <TransactionFeeConfig v-model="fee" />
+    <TransactionFeeConfig v-model="fee" :boxes-value="MINT_BOX_VALUE" />
     <Button type="submit" size="lg" class="w-full" @click="mint">{{
       t("dapps.nativeTokens.mint.mint")
     }}</Button>

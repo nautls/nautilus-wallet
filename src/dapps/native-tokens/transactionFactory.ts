@@ -1,5 +1,7 @@
 import { EIP12UnsignedTransaction, isEmpty, TokenAmount } from "@fleet-sdk/common";
-import { estimateMinBoxValue, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
+import { OutputBuilder, SAFE_MIN_BOX_VALUE, TransactionBuilder } from "@fleet-sdk/core";
+import BigNumber from "bignumber.js";
+import { bn } from "@/common/bigNumber";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
@@ -10,6 +12,8 @@ import {
   setSelectionAndChangeStrategy
 } from "@/chains/ergo/transaction/builder";
 import { FeeSettings } from "@/types/internal";
+
+export const MINT_BOX_VALUE = bn(SAFE_MIN_BOX_VALUE.toString());
 
 export type NewTokenParams = {
   name: string;
@@ -31,7 +35,7 @@ export async function createMintTransaction(
   const unsigned = new TransactionBuilder(height)
     .from(inputs)
     .to(
-      new OutputBuilder(estimateMinBoxValue(), recipient, height).mintToken({
+      new OutputBuilder(MINT_BOX_VALUE.toString(), recipient, height).mintToken({
         amount: token.amount,
         name: token.name,
         decimals: token.decimals,
@@ -40,7 +44,7 @@ export async function createMintTransaction(
     )
     .sendChangeTo(recipient);
 
-  return finalize(unsigned, fee);
+  return finalize(unsigned, fee, MINT_BOX_VALUE);
 }
 
 /**
@@ -79,11 +83,15 @@ async function getContext() {
   return { inputs, height, recipient: safeGetChangeAddress() };
 }
 
+/**
+ * @param swapFundedNanoErgs value of the new boxes a Babel fee pays for
+ */
 async function finalize(
   builder: TransactionBuilder,
-  fee: FeeSettings
+  fee: FeeSettings,
+  swapFundedNanoErgs?: BigNumber
 ): Promise<EIP12UnsignedTransaction> {
-  await setFee(builder, fee);
+  await setFee(builder, fee, { swapFundedNanoErgs });
   setSelectionAndChangeStrategy(builder, useWalletStore().type);
 
   return builder.build().toEIP12Object();

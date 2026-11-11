@@ -1,9 +1,17 @@
 import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
 import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
-import { CherryPickSelectionStrategy, OutputBuilder, TransactionBuilder } from "@fleet-sdk/core";
+import {
+  CherryPickSelectionStrategy,
+  ErgoAddress,
+  estimateMinBoxValue,
+  OutputBuilder,
+  TransactionBuilder
+} from "@fleet-sdk/core";
 import BigNumber from "bignumber.js";
 import { useAppStore } from "@/stores/appStore";
+import { useChainStore } from "@/stores/chainStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
+import { validateAddress } from "@/chains/ergo/addresses";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
@@ -17,6 +25,7 @@ export const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 const wallet = useWalletStore();
 const app = useAppStore();
+const chain = useChainStore();
 
 export type TxAssetAmount = {
   asset: AssetBalance;
@@ -67,30 +76,23 @@ async function getContext() {
 export async function createP2PTransaction({
   recipients,
   fee,
-  feeFundedBoxes,
   walletType
 }: {
   recipients: TxRecipient[];
   fee: FeeSettings;
-  feeFundedBoxes: number;
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
   const { inputs, currentHeight } = await getContext();
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
 
-  const outputs = recipients.map(({ address, assets }) => {
-    const nanoErgs = getSendingNanoErgs(assets);
-    return new OutputBuilder(
-      nanoErgs.eq(0) && isBabelFee ? BigInt(MIN_BOX_VALUE) : nanoErgs.toString(),
-      address
-    ).addTokens(
-      assets
-        .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
-        .map((token) => ({
-          tokenId: token.asset.tokenId,
-          amount: undecimalize(token.amount || bn(0), token.asset.metadata?.decimals).toString()
-        }))
-    );
+  let swapFundedNanoErgs = bn(0);
+  const outputs = recipients.map((recipient) => {
+    const output = buildRecipientOutput(recipient.address, recipient.assets, currentHeight);
+    if (isBabelFee && getSendingNanoErgs(recipient.assets).isZero()) {
+      swapFundedNanoErgs = swapFundedNanoErgs.plus(output.value.toString());
+    }
+
+    return output;
   });
 
   const unsigned = new TransactionBuilder(currentHeight)
@@ -98,10 +100,69 @@ export async function createP2PTransaction({
     .to(outputs)
     .sendChangeTo(safeGetChangeAddress());
 
-  await setFee(unsigned, fee, { fundedBoxes: feeFundedBoxes });
+  await setFee(unsigned, fee, { swapFundedNanoErgs });
   setSelectionAndChangeStrategy(unsigned, walletType);
 
   return unsigned.build().toEIP12Object();
+}
+
+// all P2PK ErgoTrees have the same size, so any P2PK address sizes a box the same way
+const P2PK_PLACEHOLDER = ErgoAddress.fromPublicKey(
+  "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+);
+const MAX_CACHED_ADDRESSES = 32;
+const SAFE_VALUE_PER_BYTE_PERCENT = 110n;
+
+const decodedAddresses = new Map<string, ErgoAddress>();
+
+/**
+ * Estimates the minimum value of the box created for `recipient` when it sends no ERG. An
+ * invalid address is estimated as a P2PK one.
+ */
+export function estimateRecipientBoxValue(recipient: TxRecipient): BigNumber {
+  const height = chain.height || Number.MAX_SAFE_INTEGER;
+  const output = buildRecipientOutput(decodeAddress(recipient.address), recipient.assets, height);
+  return bn(output.value.toString());
+}
+
+function decodeAddress(address: string): ErgoAddress {
+  let decoded = decodedAddresses.get(address);
+  if (decoded) return decoded;
+
+  decoded = address && validateAddress(address) ? ErgoAddress.decode(address) : P2PK_PLACEHOLDER;
+  if (decodedAddresses.size >= MAX_CACHED_ADDRESSES) decodedAddresses.clear();
+  decodedAddresses.set(address, decoded);
+
+  return decoded;
+}
+
+/** Builds an output to `address`. Without ERG, it holds the minimum value for its size. */
+function buildRecipientOutput(
+  address: string | ErgoAddress,
+  assets: TxAssetAmount[],
+  height: number
+): OutputBuilder {
+  const nanoErgs = getSendingNanoErgs(assets);
+  const boxValue = nanoErgs.isZero()
+    ? estimateMinBoxValue(safeValuePerByte())
+    : nanoErgs.toString();
+
+  return new OutputBuilder(boxValue, address, height).addTokens(
+    assets
+      .filter((a) => a.asset.tokenId !== ERG_TOKEN_ID && a.amount && !a.amount.isZero())
+      .map((token) => ({
+        tokenId: token.asset.tokenId,
+        amount: undecimalize(token.amount || bn(0), token.asset.metadata?.decimals).toString()
+      }))
+  );
+}
+
+/**
+ * The chain's minimum value per byte plus a buffer, so a box estimated with a slightly
+ * different size or height, or with a value that's outdated after a vote, still holds enough ERG.
+ */
+function safeValuePerByte(): bigint {
+  return (chain.minValuePerByte * SAFE_VALUE_PER_BYTE_PERCENT) / 100n;
 }
 
 export function setSelectionAndChangeStrategy(
@@ -120,14 +181,13 @@ export function setSelectionAndChangeStrategy(
 }
 
 /**
- * @param options.fundedBoxes boxes whose minimum value the Babel swap pays for. That many
- * `MIN_BOX_VALUE`s, as far as the fee covers them, are left out of the miner fee so the
- * outputs can take them.
+ * @param options.swapFundedNanoErgs nanoERGs of the outputs the Babel swap pays for. As far as
+ * the fee covers them, they are left out of the miner fee so the outputs can take them.
  */
 export async function setFee(
   builder: TransactionBuilder,
   fee: FeeSettings,
-  options?: { fundedBoxes?: number }
+  options?: { swapFundedNanoErgs?: BigNumber }
 ): Promise<TransactionBuilder> {
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
   let feeNanoErgs = undecimalize(fee.value, ERG_DECIMALS);
@@ -149,10 +209,10 @@ export async function setFee(
     }
 
     feeNanoErgs = tokenUnits.multipliedBy(getNanoErgsPerTokenRate(selectedBox));
-    if (options?.fundedBoxes !== undefined) {
-      const fundable = feeNanoErgs.minus(SAFE_MIN_FEE_VALUE).dividedToIntegerBy(MIN_BOX_VALUE);
-      const funded = BigNumber.max(0, BigNumber.min(options.fundedBoxes, fundable));
-      feeNanoErgs = feeNanoErgs.minus(funded.times(MIN_BOX_VALUE));
+    if (options?.swapFundedNanoErgs) {
+      const fundable = feeNanoErgs.minus(SAFE_MIN_FEE_VALUE);
+      const funded = BigNumber.max(0, BigNumber.min(options.swapFundedNanoErgs, fundable));
+      feeNanoErgs = feeNanoErgs.minus(funded);
     } else if (
       sendingNanoErgs.gt(0) &&
       sendingNanoErgs.lte(MIN_BOX_VALUE) &&

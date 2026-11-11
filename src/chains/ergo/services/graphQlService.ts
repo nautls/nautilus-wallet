@@ -86,12 +86,14 @@ export async function validateServerNetwork(url: string): Promise<boolean> {
 
 const ADDRESS_INFO_QUERY = `query addresses($addresses: [String!]!) { addresses(addresses: $addresses) { address used balance { nanoErgs assets { amount tokenId } } } }`;
 const CURRENT_HEIGHT_QUERY = `query currentHeight { blockHeaders(take: 1) { height } }`;
+const CHAIN_PARAMS_QUERY = `query chainParams { state { params { minValuePerByte } } }`;
 const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 1 ) { creationHeight } }`;
 const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
 const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
 
 type AddressInfoResponse = { addresses: Address[] };
 type CurrentHeightResponse = { blockHeaders: { height: number }[] };
+type ChainParamsResponse = { state: { params?: { minValuePerByte?: number } } };
 type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
 type TokensResponse = { tokens: Token[] };
 type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
@@ -99,6 +101,7 @@ type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: s
 class GraphQLService extends ErgoGraphQLProvider<string> {
   #getAddressInfo;
   #getCurrentHeight;
+  #getChainParams;
   #checkOldBoxes;
   #getTokenMetadata;
   #checkMempoolTxs;
@@ -114,6 +117,7 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
 
     this.#getAddressInfo = this.createOperation<AddressInfoResponse>(ADDRESS_INFO_QUERY);
     this.#getCurrentHeight = this.createOperation<CurrentHeightResponse>(CURRENT_HEIGHT_QUERY);
+    this.#getChainParams = this.createOperation<ChainParamsResponse>(CHAIN_PARAMS_QUERY);
     this.#checkOldBoxes = this.createOperation<OldBoxesCheckResponse>(OLD_BOXES_CHECK_QUERY);
     this.#getTokenMetadata = this.createOperation<TokensResponse>(TOKEN_METADATA_QUERY);
     this.#checkMempoolTxs = this.createOperation<MempoolTransactionsResponse>(MEMPOOL_TXS_QUERY);
@@ -136,6 +140,16 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
       return response.data.blockHeaders[0]?.height;
     } catch (e) {
       log.error("Failed to fetch current height", e);
+    }
+  }
+
+  /** Returns `undefined` when it fails, e.g. on servers that predate `state.params`. */
+  async getMinValuePerByte(): Promise<number | undefined> {
+    try {
+      const response = await this.#getChainParams();
+      return response.data.state.params?.minValuePerByte;
+    } catch (e) {
+      log.error("Failed to fetch chain parameters", e);
     }
   }
 
