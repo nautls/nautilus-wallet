@@ -30,7 +30,7 @@ test.describe("dApps", () => {
       await page.getByLabel("Decimals").fill("2");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       // incoming assets show the decoded EIP-4 data instead of the bare token ID
       const incoming = drawer
         .locator("[data-slot=card]")
@@ -50,7 +50,7 @@ test.describe("dApps", () => {
 
       await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
@@ -129,7 +129,7 @@ test.describe("dApps", () => {
       await page.getByPlaceholder("0").fill("12.34");
       await page.getByRole("button", { name: "Burn", exact: true }).click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       const password = drawer.getByRole("textbox", { name: / password$/ });
       await expect(drawer.getByText("Burning")).toBeVisible();
       // signing is blocked until the user agrees to burn the tokens
@@ -137,7 +137,7 @@ test.describe("dApps", () => {
       await drawer.getByLabel("Burn tokens permanently").click();
       await password.fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       // signed inputs only carry box ids, so resolve them against the wallet boxes
@@ -206,11 +206,11 @@ test.describe("dApps", () => {
         await expect(page.getByRole("option")).toHaveCount(0);
 
         await page.getByRole("button", { name: "Burn", exact: true }).click();
-        const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+        const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
         await drawer.getByLabel("Burn tokens permanently").click();
         await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
         await drawer.getByRole("button", { name: "Sign" }).click();
-        await expect(popup.toast("Transaction sent!")).toBeVisible();
+        await expect(popup.toast("Transaction sent")).toBeVisible();
 
         const [tx] = chain.submitted;
         const outputTokens = tx.outputs.flatMap((o) => o.assets.map((a) => a.tokenId));
@@ -237,11 +237,11 @@ test.describe("dApps", () => {
       await page.getByRole("button", { name: "Wallet Optimizer" }).click();
       await page.getByRole("button", { name: "Optimize", exact: true }).click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await expect(drawer.getByText("Sending to your address").first()).toBeVisible();
       await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
@@ -287,11 +287,11 @@ test.describe("dApps", () => {
       await expect(swap).toBeEnabled();
       await swap.click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await expect(drawer.getByText("Sending to contract").first()).toBeVisible();
       await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
@@ -375,10 +375,10 @@ test("a token fee pays for the minting box", async ({ chain, popup }) => {
   await expect(page.getByRole("button", { name: /^Adjust fee/ })).toHaveText(/21$/);
 
   await page.getByRole("button", { name: "Mint", exact: true }).click();
-  const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+  const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
   await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
   await drawer.getByRole("button", { name: "Sign" }).click();
-  await expect(popup.toast("Transaction sent!")).toBeVisible();
+  await expect(popup.toast("Transaction sent")).toBeVisible();
 
   const [tx] = chain.submitted;
   const tokenId = tx.inputs[0].boxId;

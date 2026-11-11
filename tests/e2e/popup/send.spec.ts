@@ -26,7 +26,7 @@ async function addToken(page: Page, index: number) {
 }
 
 function reviewDrawer(page: Page) {
-  return page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+  return page.getByRole("dialog").filter({ hasText: "Transaction review" });
 }
 
 async function fillSendForm(popup: Popup, recipient: string, ergAmount?: string) {
@@ -60,7 +60,7 @@ test.describe("send", () => {
 
     await signInDrawer(popup, WALLET_A.password);
 
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
     await expect(drawer).toBeHidden();
 
     expect(chain.submitted).toHaveLength(1);
@@ -93,7 +93,7 @@ test.describe("send", () => {
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(reviewDrawer(page).getByText("TestToken").first()).toBeVisible();
     await signInDrawer(popup, WALLET_A.password);
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
 
     const payment = chain.submitted[0].outputs.find((o) => o.ergoTree === RECIPIENT_TREE);
     expect(payment?.value.toString()).toBe("1000000");
@@ -152,7 +152,7 @@ test.describe("send", () => {
     await send.click();
     await expect(reviewDrawer(page)).toBeVisible();
     await signInDrawer(popup, WALLET_A.password);
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
 
     const payment = chain.submitted[0].outputs.find((o) => o.ergoTree === RECIPIENT_TREE);
     expect(payment?.value.toString()).toBe("1000000000");
@@ -173,7 +173,7 @@ test.describe("send", () => {
 
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await signInDrawer(popup, WALLET_A.password);
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
 
     const [tx] = chain.submitted;
     const first = tx.outputs.find((o) => o.ergoTree === RECIPIENT_TREE);
@@ -252,11 +252,11 @@ test.describe("send", () => {
     await page.getByRole("button", { name: "Send", exact: true }).click();
 
     await signInDrawer(popup, "wrong password");
-    await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
+    await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
     await expect(reviewDrawer(page)).toBeVisible();
 
     await signInDrawer(popup, WALLET_A.password);
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
     expect(chain.submitted).toHaveLength(1);
   });
 
@@ -373,7 +373,7 @@ test("a token fee funds the recipient boxes of a wallet without spare ERG", asyn
 
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await signInDrawer(popup, WALLET_A.password);
-  await expect(popup.toast("Transaction sent!")).toBeVisible();
+  await expect(popup.toast("Transaction sent")).toBeVisible();
 
   const [tx] = chain.submitted;
   const first = tx.outputs.find((o) => o.ergoTree === RECIPIENT_TREE);

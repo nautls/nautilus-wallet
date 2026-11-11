@@ -60,7 +60,7 @@ test.describe("dApp authentication (EIP-28)", () => {
       expect(proof).toMatch(/^[0-9a-f]{112}$/);
     });
 
-    test("requires the spending password", async ({ context, dapp }) => {
+    test("requires the wallet password", async ({ context, dapp }) => {
       const { win, result } = await requestAuth(context, dapp, {
         address: await addressOf(WALLET_A, 0),
         message: "login"

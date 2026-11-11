@@ -314,7 +314,7 @@ test.describe("onboarding", () => {
       await expect(drawer.getByText("Enter your master password")).toBeVisible();
       await drawer.locator("#backup-password").fill(WALLET_B.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(popup.toast("Wrong master password")).toBeVisible();
+      await expect(popup.toast("Incorrect master password")).toBeVisible();
       await drawer.locator("#backup-password").fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
       expect(await popup.readMnemonic()).toEqual(WALLET_B.mnemonic.split(" "));

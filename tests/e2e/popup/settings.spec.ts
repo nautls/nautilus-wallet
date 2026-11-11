@@ -271,7 +271,7 @@ test.describe("settings", () => {
       }
     });
 
-    test("changes the spending password", async ({ popup, chain }) => {
+    test("changes the wallet password", async ({ popup, chain }) => {
       const page = popup.page;
       const newPassword = "new spending password";
 
@@ -280,7 +280,7 @@ test.describe("settings", () => {
       await page.getByRole("button", { name: "Change password" }).click();
 
       const drawer = page.getByRole("dialog");
-      await expect(drawer).toContainText("Change spending password");
+      await expect(drawer).toContainText("Change wallet password");
 
       // validates the new password
       await drawer.locator("#current-password").fill(WALLET_A.password);
@@ -304,12 +304,12 @@ test.describe("settings", () => {
       await drawer.locator("#new-password").fill(newPassword);
       await drawer.locator("#confirm-new-password").fill(newPassword);
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
       await expect(drawer).toBeVisible();
 
       await drawer.locator("#current-password").fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(popup.toast("Spending password changed")).toBeVisible();
+      await expect(popup.toast("Wallet password changed")).toBeVisible();
       await expect(drawer).toBeHidden();
 
       // fields are cleared when reopening
@@ -324,14 +324,14 @@ test.describe("settings", () => {
       await page.getByPlaceholder("0").first().fill("1");
       await page.getByRole("button", { name: "Send", exact: true }).click();
 
-      const review = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const review = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await review.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await review.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast(`Wrong "${WALLET_A.name}" password`).last()).toBeVisible();
+      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`).last()).toBeVisible();
 
       await review.getByRole("textbox", { name: / password$/ }).fill(newPassword);
       await review.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
       expect(chain.submitted).toHaveLength(1);
     });
 
@@ -353,10 +353,10 @@ test.describe("settings", () => {
       // rejects a wrong password and keeps the drawer open
       await drawer.locator("#backup-password").fill("wrong password");
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
       await expect(
         popup
-          .toast(`Wrong "${WALLET_A.name}" password`)
+          .toast(`Incorrect "${WALLET_A.name}" password`)
           .getByText("Check for typos and Caps Lock, then try again.")
       ).toBeVisible();
       await expect(drawer.locator("#backup-password")).toBeVisible();
@@ -411,7 +411,7 @@ test.describe("settings", () => {
       await expect(drawer).toContainText("Confirm your recovery phrase");
     });
 
-    test("hides the spending password and backup options for read-only wallets", async ({
+    test("hides the wallet password and backup options for read-only wallets", async ({
       popup
     }) => {
       await popup.importReadOnlyWallet(WALLET_B.name, await xpubOf(WALLET_B));
@@ -472,7 +472,7 @@ test.describe("settings", () => {
         await drawer.locator("#new-password").fill(ownPassword);
         await drawer.locator("#confirm-new-password").fill(ownPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Wrong master password")).toBeVisible();
+        await expect(popup.toast("Incorrect master password")).toBeVisible();
 
         await drawer.locator("#current-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
@@ -484,11 +484,11 @@ test.describe("settings", () => {
         await drawer.locator("#current-password").fill(ownPassword);
         await drawer.locator("#master-password").fill("wrong password");
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Wrong master password").last()).toBeVisible();
+        await expect(popup.toast("Incorrect master password").last()).toBeVisible();
         await drawer.locator("#current-password").fill("wrong password");
         await drawer.locator("#master-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast(`Wrong "${WALLET_A.name}" password`)).toBeVisible();
+        await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
 
         await drawer.locator("#current-password").fill(ownPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
@@ -565,7 +565,7 @@ test.describe("settings", () => {
         await drawer.locator("#new-password").fill(newMaster);
         await drawer.locator("#confirm-new-password").fill(newMaster);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Wrong master password")).toBeVisible();
+        await expect(popup.toast("Incorrect master password")).toBeVisible();
         await drawer.locator("#current-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
         await expect(popup.toast("Master password changed")).toBeVisible();

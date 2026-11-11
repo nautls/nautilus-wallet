@@ -38,7 +38,7 @@ test.describe("transaction history", () => {
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await page.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
     await page.getByRole("button", { name: "Sign" }).click();
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
     const [sent] = chain.submitted;
 
     // the mempool is polled every 10 seconds
@@ -49,11 +49,11 @@ test.describe("transaction history", () => {
 
     // replace-by-fee cancellation
     await page.getByRole("button", { name: "Cancel" }).click();
-    const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+    const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
     await expect(drawer.getByText("Sending to your address").first()).toBeVisible();
     await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
     await drawer.getByRole("button", { name: "Sign" }).click();
-    await expect(popup.toast("Transaction sent!")).toBeVisible();
+    await expect(popup.toast("Transaction sent")).toBeVisible();
 
     expect(chain.submitted).toHaveLength(2);
     const [, cancel] = chain.submitted;

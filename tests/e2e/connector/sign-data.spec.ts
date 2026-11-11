@@ -77,7 +77,7 @@ test.describe("dApp data signing", () => {
 
       await win.getByRole("textbox", { name: / password$/ }).fill("wrong password");
       await win.getByRole("button", { name: "Sign" }).click();
-      await expect(toast(win, `Wrong "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(toast(win, `Incorrect "${WALLET_A.name}" password`)).toBeVisible();
 
       await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });
