@@ -2,6 +2,7 @@
   "dapps": {
     "sigmaUsd": {
       "title": "SigmaUSD-Protokoll",
+      "summary": "Kaufe und verkaufe SigUSD und SigRSV.",
       "insufficientBalance": "Unzureichender {asset}-Kontostand.",
       "blockedAction": "Aufgrund der aktuellen Bankreserven kannst du nicht mehr als {amount} {asset} {action}.",
       "feeSummary": "Gebühren {amount}",
@@ -19,6 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Wallet-Optimierer",
+      "summary": "Führe UTxOs zusammen, um deine Wallet zu beschleunigen und Demurrage zu vermeiden.",
       "description": "Nutze dieses Tool, um deine UTxOs zusammenzuführen, die Leistung zu steigern und die {demurrage}-Gebühr zu vermeiden.",
       "demurrage": "Demurrage",
       "size": "{count} {size}",
@@ -30,6 +32,7 @@
     },
     "nativeTokens": {
       "title": "Native Tokens",
+      "summary": "Erstelle neue Token oder verbrenne die, die du besitzt.",
       "mint": {
         "tab": "Erstellen",
         "description": "Erstelle deinen eigenen EIP-4-konformen Token.",

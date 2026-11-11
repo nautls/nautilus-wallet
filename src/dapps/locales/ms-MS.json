@@ -2,6 +2,7 @@
   "dapps": {
     "sigmaUsd": {
       "title": "Protokol SigmaUSD",
+      "summary": "Beli dan jual SigUSD dan SigRSV.",
       "insufficientBalance": "Baki {asset} tidak mencukupi.",
       "blockedAction": "Disebabkan rizab bank semasa, anda tidak boleh {action} lebih daripada {amount} {asset}.",
       "feeSummary": "Bayaran {amount}",
@@ -19,6 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Pengoptimum Dompet",
+      "summary": "Gabungkan UTxO untuk mempercepatkan dompet anda dan mengelakkan demurrage.",
       "description": "Gunakan alat ini untuk menggabungkan UTxOs anda, meningkatkan prestasi dan mengelakkan bayaran {demurrage}.",
       "demurrage": "demurrage",
       "size": "{count} {size}",
@@ -30,6 +32,7 @@
     },
     "nativeTokens": {
       "title": "Token Asli",
+      "summary": "Cipta token baharu atau bakar token yang anda miliki.",
       "mint": {
         "tab": "Cetak",
         "description": "Cipta token anda sendiri yang mematuhi EIP-4.",

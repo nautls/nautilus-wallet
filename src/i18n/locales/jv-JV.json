@@ -139,7 +139,6 @@
       "default": "Alamat standar"
     },
     "receive": {
-      "": "Aja ngirim langkung saking {count} token ing setunggal transaksi dhateng dompet punika. Memori piranti ingkang winates saged njalari dana panjenengan mboten saged dipunakses.",
       "verifyOnLedger": "Verifikasi ing piranti Ledger",
       "newAddressError": "Gagal ngasilaken alamat",
       "newAddressErrorFallbackMessage": "Mboten saged ngasilaken alamat enggal."
@@ -166,12 +165,16 @@
     },
     "send": {
       "recipient": "Panampi",
+      "recipientN": "Panampi {n}",
+      "addRecipient": "Tambah panampi",
+      "removeRecipient": "Busak panampi",
       "assets": "Aset",
       "addAllAssets": "Tambah sedaya aset",
       "addAllAssetsDesc": "Tambah sedaya aset dhateng dhaptar kirim.",
       "minNamedAssetError": "Panjenengan mbetahaken paling mboten {min} {asset} kangge ngirim transaksi punika.",
       "requiredAmountError": "Mangga lebetaken jumlah.",
       "minFeeError": "Panjenengan kedah mbayar biaya minimal {min} {name} kangge ngirim transaksi punika.",
+      "adjustFee": "Atur biaya",
       "emptyAddressError": "Mangga lebetaken alamat panampi.",
       "noSelectedAssetsError": "Mangga pilih paling mboten setunggal aset kangge ngirim transaksi punika."
     },
@@ -272,10 +275,10 @@
     },
     "index": {
       "title": "Sugeng rawuh ing Nautilus Wallet",
-      "subtitle": "Pilih pilihan kangge miwiti",
+      "subtitle": "Damel dompet enggal utawi ngginakaken dompet ingkang sampun panjenengan gadhahi.",
       "kyaAgreement": "Kanthi nerusaken, panjenengan sarujuk kaliyan {termsOfUse} Nautilus",
       "create": "Nggawe dompet enggal",
-      "createDesc": "Nggawe dompet Ergo enggal",
+      "createDesc": "Miwiti saking wiwitan kanthi dompet enggal",
       "connect": "Sambungaken dompet Ledger",
       "import": "Impor dompet",
       "importDesc": "Impor dompet ingkang sampun wonten"
@@ -437,6 +440,7 @@
     "donation": "Dukung pangembangan Nautilus Wallet kanthi nyumbang."
   },
   "connector": {
+    "notSecure": "Mboten aman",
     "connect": {
       "header": "{host} nyuwun kangge nyambung kaliyan Nautilus.",
       "connect": "Sambungaken"
