@@ -66,7 +66,7 @@ export function usePasswordTexts(walletName: MaybeRefOrGetter<string>) {
     required: byKind({
       master: () => t("wallet.enterMasterPassword"),
       password: () => t("wallet.enterWalletPassword", { name: name() }),
-      unknown: () => t("wallet.requiredSpendingPassword")
+      unknown: () => t("wallet.enterYourWalletPassword")
     }),
     /** Title for the wrong password toast; `wrongHint` is its description. */
     wrong: byKind({

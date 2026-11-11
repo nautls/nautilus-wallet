@@ -189,7 +189,9 @@ test.describe("settings", () => {
       // visible errors are translated when the display language changes
       await page.getByRole("button", { name: "System default" }).click();
       await page.getByRole("option", { name: "Deutsch (DE)" }).click();
-      await expect(page.getByText("Ungültige URL.")).toBeVisible();
+      await expect(
+        page.getByText("Gib eine gültige URL ein, z. B. https://example.com")
+      ).toBeVisible();
       await expect(page.getByText("Enter a valid URL, like https://example.com")).toHaveCount(0);
     });
 
