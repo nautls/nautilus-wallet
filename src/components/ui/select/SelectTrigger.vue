@@ -5,6 +5,7 @@ import { ChevronDown } from "@lucide/vue";
 import { reactiveOmit } from "@vueuse/core";
 import { cn } from "@/common/utils";
 import { SelectIcon, SelectTrigger, useForwardProps } from "reka-ui";
+import { useFormFieldInvalid } from "../form/useFormField";
 
 const props = withDefaults(
   defineProps<SelectTriggerProps & { class?: HTMLAttributes["class"]; size?: "sm" | "default" }>(),
@@ -13,11 +14,13 @@ const props = withDefaults(
 
 const delegatedProps = reactiveOmit(props, "class", "size");
 const forwardedProps = useForwardProps(delegatedProps);
+const invalid = useFormFieldInvalid();
 </script>
 
 <template>
   <SelectTrigger
     data-slot="select-trigger"
+    :aria-invalid="invalid || undefined"
     :data-size="size"
     v-bind="forwardedProps"
     :class="

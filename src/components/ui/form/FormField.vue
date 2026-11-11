@@ -2,6 +2,7 @@
 import { computed, HTMLAttributes } from "vue";
 import { flatErrors } from "@regle/core";
 import { cn } from "@/common/utils";
+import { provideFormFieldInvalid } from "./useFormField";
 
 interface Validation {
   $error: boolean;
@@ -21,6 +22,8 @@ const errors = computed<string[]>(() => {
   if (Array.isArray(errors)) return errors as string[];
   return flatErrors(errors as Parameters<typeof flatErrors>[0]);
 });
+
+provideFormFieldInvalid(computed(() => !!props.validation?.$error));
 </script>
 
 <template>
