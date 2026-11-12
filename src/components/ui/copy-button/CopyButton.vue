@@ -50,16 +50,8 @@ function onClick(e: MouseEvent) {
           @click="onClick"
         >
           <slot v-if="$slots.default" />
-          <Transition
-            mode="out-in"
-            enter-active-class="transition-all duration-150 ease-out"
-            leave-active-class="transition-all duration-100 ease-in"
-            enter-from-class="scale-50 opacity-0"
-            leave-to-class="scale-50 opacity-0"
-          >
-            <CopyCheckIcon v-if="copied" class="size-auto" />
-            <CopyIcon v-else class="size-auto" />
-          </Transition>
+          <CopyCheckIcon v-if="copied" class="size-auto" />
+          <CopyIcon v-else class="size-auto" />
         </Button>
       </TooltipTrigger>
       <TooltipContent :aria-label="label">
