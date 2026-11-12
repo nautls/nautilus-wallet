@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Wallet Optimizer",
-      "summary": "Merge UTxOs to speed up your wallet and avoid demurrage.",
+      "summary": "Speed up your wallet and avoid demurrage by merging UTxOs.",
       "description": "Use this tool to merge your UTxOs, boosting performance and avoiding {demurrage} fee.",
       "demurrage": "demurrage",
       "size": "{count} {size}",

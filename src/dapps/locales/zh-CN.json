@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "钱包优化器",
-      "summary": "合并 UTxO 以提升钱包速度并避免滞纳费用。",
+      "summary": "通过合并 UTxO 提升钱包速度并避免滞纳费用。",
       "description": "使用此工具合并您的 UTxO，提升性能并避免 {demurrage} 费用。",
       "demurrage": "滞纳费用",
       "size": "{count} {size}",

@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Optimalisasi Dompet",
-      "summary": "Gabungaken UTxO supados dompet panjenengan langkung cepet lan ngindhari demurrage.",
+      "summary": "Damel dompet panjenengan langkung cepet lan ngindhari demurrage kanthi nggabungaken UTxO.",
       "description": "Gunakaken piranti punika kangge nggabungaken UTxO panjenengan, ningkataken kinerja lan ngindhari biaya {demurrage}.",
       "demurrage": "demurrage",
       "size": "{count} {size}",

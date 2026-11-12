@@ -23,7 +23,7 @@ const { t } = useI18n();
         @click="navigate"
       >
         <span
-          class="bg-secondary text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg [&_img]:size-10 [&>svg]:size-6"
+          class="bg-secondary text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg [&_img]:size-7 [&>svg]:size-6"
         >
           <component :is="dapp.icon.component" v-bind="dapp.icon.props" />
         </span>

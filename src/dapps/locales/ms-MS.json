@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Pengoptimum Dompet",
-      "summary": "Gabungkan UTxO untuk mempercepatkan dompet anda dan mengelakkan demurrage.",
+      "summary": "Percepatkan dompet anda dan elakkan demurrage dengan menggabungkan UTxO.",
       "description": "Gunakan alat ini untuk menggabungkan UTxOs anda, meningkatkan prestasi dan mengelakkan bayaran {demurrage}.",
       "demurrage": "demurrage",
       "size": "{count} {size}",

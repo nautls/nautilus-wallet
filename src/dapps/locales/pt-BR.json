@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Otimização de Carteira",
-      "summary": "Consolide UTxOs para acelerar sua carteira e evitar a sobrestadia.",
+      "summary": "Acelere sua carteira e evite a sobrestadia consolidando UTxOs.",
       "description": "Use esta ferramenta para consolidar os seus UTxOs, aumentando o desempenho e evitando a taxa de {demurrage}.",
       "demurrage": "sobrestadia",
       "size": "{count} {size}",
