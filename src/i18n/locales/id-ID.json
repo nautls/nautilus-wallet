@@ -337,6 +337,10 @@
       "connections": "Koneksi"
     },
     "global": {
+      "languageAndRegion": "Bahasa dan wilayah",
+      "languageAndRegionDesc": "Pilih bahasa Anda dan mata uang untuk menampilkan nilai aset.",
+      "language": "Bahasa",
+      "currency": "Mata uang",
       "colorMode": "Tema warna",
       "colorModeDesc": "Pilih tampilan Nautilus atau ikuti pengaturan sistem.",
       "colorModeAuto": "Sistem",
@@ -349,6 +353,8 @@
       "tokenBlacklistsDesc": "Kelola daftar hitam token untuk menyembunyikan token yang tidak diinginkan.",
       "nsfwTokensBlacklist": "Token NSFW",
       "scamTokensBlacklist": "Token penipu",
+      "network": "Jaringan",
+      "networkDesc": "Pilih server yang digunakan Nautilus.",
       "gqlServer": "Server GraphQL",
       "requiredGql": "Masukkan URL server GraphQL",
       "wrongServerNetwork": "Server harus berada di jaringan yang sama dengan dompet",
@@ -361,11 +367,15 @@
       "experimentalDesc": "Fitur-fitur di bawah bagian ini ditandai sebagai eksperimental, yang berarti tidak stabil. Gunakan dengan hati-hati, karena mungkin mengandung bug atau mengalami perubahan signifikan. Ini masih dalam tahap pengerjaan, jadi harap bersabar.",
       "zeroConf": "Aktifkan 0-conf",
       "zeroConfDesc": "0-conf, kependekan dari zero-confirmations, memungkinkan Anda untuk membelanjakan aset tanpa menunggu konfirmasi. Cepat tetapi berisiko dibelanjakan dua kali hingga dikonfirmasi oleh blockchain.",
-      "ledger": "Dompet perangkat keras Ledger",
-      "ledgerTransportDesc": "Pilih metode transport yang akan digunakan dengan dompet perangkat keras Ledger Anda."
+      "advanced": "Lanjutan",
+      "advancedDesc": "Pengaturan yang tidak perlu diubah oleh kebanyakan orang.",
+      "ledger": "Koneksi Ledger",
+      "ledgerTransportDesc": "Pilih cara Nautilus terhubung ke dompet perangkat keras Ledger Anda."
     },
     "wallet": {
       "walletNameDesc": "Tetapkan nama untuk dompet milik Anda.",
+      "maintenance": "Cadangan dan pemeliharaan",
+      "maintenanceDesc": "Ekspor, cadangkan, atau sinkronkan ulang dompet ini.",
       "xPubKeyDesc": "Gunakan opsi ini untuk mengekspor kunci publik yang diperluas dari dompet Anda.",
       "walletPasswordDesc": "Kata sandi yang membuka dompet ini.",
       "mnemonicBackupDesc": "Tampilkan dan cadangkan frasa pemulihan dompet ini.",

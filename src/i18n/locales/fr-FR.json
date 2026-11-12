@@ -337,6 +337,10 @@
       "connections": "Connexions"
     },
     "global": {
+      "languageAndRegion": "Langue et région",
+      "languageAndRegionDesc": "Sélectionnez votre langue et la devise d'affichage des valeurs.",
+      "language": "Langue",
+      "currency": "Devise",
       "colorMode": "Thème de couleur",
       "colorModeDesc": "Choisissez l'apparence de Nautilus ou suivez le réglage du système.",
       "colorModeAuto": "Système",
@@ -349,6 +353,8 @@
       "tokenBlacklistsDesc": "Gérez les listes de jetons bloqués pour masquer les jetons indésirables.",
       "nsfwTokensBlacklist": "Jetons NSFW",
       "scamTokensBlacklist": "Jetons frauduleux",
+      "network": "Réseau",
+      "networkDesc": "Choisissez les serveurs auxquels Nautilus se connecte.",
       "gqlServer": "Serveur GraphQL",
       "requiredGql": "Saisissez l'URL d'un serveur GraphQL",
       "wrongServerNetwork": "Le serveur doit être sur le même réseau que le portefeuille",
@@ -361,11 +367,15 @@
       "experimentalDesc": "Les fonctionnalités de cette section sont marquées comme expérimentales, ce qui signifie qu'elles ne sont pas stables. Utilisez-les avec prudence, car elles peuvent contenir des bugs ou subir des modifications importantes. C'est un travail en cours, donc attendez-vous à quelques imperfections.",
       "zeroConf": "Activer 0-conf",
       "zeroConfDesc": "0-conf, abréviation de zéro-confirmations, vous permet de dépenser des actifs sans attendre les confirmations. C'est rapide mais comporte un risque de double dépense tant que la blockchain n'a pas confirmé.",
-      "ledger": "Portefeuille matériel Ledger",
-      "ledgerTransportDesc": "Sélectionnez la méthode de transport à utiliser avec votre portefeuille matériel Ledger."
+      "advanced": "Avancé",
+      "advancedDesc": "Réglages que la plupart des gens n'ont pas besoin de modifier.",
+      "ledger": "Connexion Ledger",
+      "ledgerTransportDesc": "Sélectionnez la façon dont Nautilus se connecte à votre portefeuille matériel Ledger."
     },
     "wallet": {
       "walletNameDesc": "Définissez un nom pour votre portefeuille.",
+      "maintenance": "Sauvegarde et maintenance",
+      "maintenanceDesc": "Exportez, sauvegardez ou resynchronisez ce portefeuille.",
       "xPubKeyDesc": "Utilisez cette option pour exporter la clé publique étendue de votre portefeuille.",
       "walletPasswordDesc": "Le mot de passe qui déverrouille ce portefeuille.",
       "mnemonicBackupDesc": "Affichez et sauvegardez la phrase de récupération de ce portefeuille.",

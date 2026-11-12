@@ -337,6 +337,10 @@
       "connections": "Conexões"
     },
     "global": {
+      "languageAndRegion": "Idioma e região",
+      "languageAndRegionDesc": "Selecione seu idioma e a moeda para exibir os valores dos ativos.",
+      "language": "Idioma",
+      "currency": "Moeda",
       "colorMode": "Tema de cores",
       "colorModeDesc": "Escolha a aparência do Nautilus ou siga a configuração do sistema.",
       "colorModeAuto": "Sistema",
@@ -349,6 +353,8 @@
       "tokenBlacklistsDesc": "Gerencie listas negras de tokens para ocultar tokens indesejados.",
       "nsfwTokensBlacklist": "Tokens NSFW",
       "scamTokensBlacklist": "Tokens de golpe",
+      "network": "Rede",
+      "networkDesc": "Escolha os servidores aos quais o Nautilus se conecta.",
       "gqlServer": "Servidor GraphQL",
       "requiredGql": "Insira a URL de um servidor GraphQL",
       "wrongServerNetwork": "O servidor deve estar na mesma rede que a carteira",
@@ -361,11 +367,15 @@
       "experimentalDesc": "Os recursos desta seção são marcados como experimentais, o que significa que não são estáveis. Use com cautela, pois podem conter bugs ou passar por mudanças significativas. Também podem estar em desenvolvimento, então espere algumas imperfeições.",
       "zeroConf": "Ativar 0-conf",
       "zeroConfDesc": "0-conf, abreviação de zero confirmações, permite enviar ativos sem ter que aguardar confirmações. É rápido, mas há risco de transações serem canceladas ou substituidas enquanto pendentes.",
-      "ledger": "Ledger hardware wallet",
-      "ledgerTransportDesc": "Selecione o método de transporte a ser usado com sua carteira física Ledger."
+      "advanced": "Avançado",
+      "advancedDesc": "Configurações que a maioria das pessoas não precisa alterar.",
+      "ledger": "Conexão Ledger",
+      "ledgerTransportDesc": "Selecione como o Nautilus se conecta à sua carteira física Ledger."
     },
     "wallet": {
       "walletNameDesc": "Defina um nome para sua carteira.",
+      "maintenance": "Backup e manutenção",
+      "maintenanceDesc": "Exporte, faça backup ou ressincronize esta carteira.",
       "xPubKeyDesc": "Use esta opção para exportar a chave pública estendida da sua carteira.",
       "walletPasswordDesc": "A senha que desbloqueia esta carteira.",
       "mnemonicBackupDesc": "Revele e faça backup da frase de recuperação desta carteira.",

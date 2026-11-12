@@ -337,6 +337,10 @@
       "connections": "Sambungan"
     },
     "global": {
+      "languageAndRegion": "Bahasa dan rantau",
+      "languageAndRegionDesc": "Pilih bahasa anda dan mata wang untuk memaparkan nilai aset.",
+      "language": "Bahasa",
+      "currency": "Mata wang",
       "colorMode": "Warna Tema",
       "colorModeDesc": "Pilih rupa Nautilus, atau ikut tetapan sistem anda.",
       "colorModeAuto": "Sistem",
@@ -349,6 +353,8 @@
       "tokenBlacklistsDesc": "Urus senarai hitam token untuk menyembunyikan token yang tidak diingini.",
       "nsfwTokensBlacklist": "Token NSFW",
       "scamTokensBlacklist": "Token penipuan",
+      "network": "Rangkaian",
+      "networkDesc": "Pilih pelayan yang disambungkan oleh Nautilus.",
       "gqlServer": "Pelayan GraphQL",
       "requiredGql": "Masukkan URL pelayan GraphQL",
       "wrongServerNetwork": "Pelayan mestilah berada pada rangkaian yang sama dengan dompet",
@@ -361,11 +367,15 @@
       "experimentalDesc": "Ciri-ciri di bawah bahagian ini ditandakan sebagai eksperimen, yang bermaksud ia tidak stabil. Gunakannya dengan berhati-hati, kerana ia mungkin mengandungi pepijat atau menjalani perubahan ketara. Ia adalah kerja yang sedang berjalan, jadi jangkakan beberapa kesulitan.",
       "zeroConf": "Dayakan 0-conf",
       "zeroConfDesc": "0-conf, singkatan untuk sifar-pengesahan, membolehkan anda membelanjakan aset tanpa menunggu pengesahan. Ia pantas tetapi membawa risiko digandakan sehingga disahkan oleh blockchain.",
-      "ledger": "Dompet perkakasan Ledger",
-      "ledgerTransportDesc": "Pilih kaedah pengangkutan untuk digunakan dengan dompet perkakasan Ledger anda."
+      "advanced": "Lanjutan",
+      "advancedDesc": "Tetapan yang tidak perlu diubah oleh kebanyakan orang.",
+      "ledger": "Sambungan Ledger",
+      "ledgerTransportDesc": "Pilih cara Nautilus bersambung ke dompet perkakasan Ledger anda."
     },
     "wallet": {
       "walletNameDesc": "Tetapkan nama untuk dompet anda.",
+      "maintenance": "Sandaran dan penyelenggaraan",
+      "maintenanceDesc": "Eksport, sandarkan atau segerak semula dompet ini.",
       "xPubKeyDesc": "Gunakan pilihan ini untuk mengeksport kunci awam lanjutan dompet anda.",
       "walletPasswordDesc": "Kata laluan yang membuka kunci dompet ini.",
       "mnemonicBackupDesc": "Paparkan dan sandarkan frasa pemulihan dompet ini.",

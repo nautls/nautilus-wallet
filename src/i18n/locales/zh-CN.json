@@ -337,6 +337,10 @@
       "connections": "连接"
     },
     "global": {
+      "languageAndRegion": "语言和地区",
+      "languageAndRegionDesc": "选择您的语言以及显示资产价值所用的货币。",
+      "language": "语言",
+      "currency": "货币",
       "colorMode": "颜色主题",
       "colorModeDesc": "选择 Nautilus 的外观，或跟随系统设置。",
       "colorModeAuto": "系统",
@@ -349,6 +353,8 @@
       "tokenBlacklistsDesc": "管理代币黑名单以隐藏不需要的代币。",
       "nsfwTokensBlacklist": "NSFW 代币",
       "scamTokensBlacklist": "骗局代币",
+      "network": "网络",
+      "networkDesc": "选择 Nautilus 连接的服务器。",
       "gqlServer": "GraphQL 服务器",
       "requiredGql": "请输入 GraphQL 服务器 URL",
       "wrongServerNetwork": "服务器必须与钱包位于同一网络",
@@ -361,11 +367,15 @@
       "experimentalDesc": "此部分的功能标记为实验性，这意味着它们不稳定。使用时需谨慎，因为可能存在错误或经历重大更改。它仍在开发中，因此可能不够完善。",
       "zeroConf": "启用 0-conf",
       "zeroConfDesc": "0-conf 是零确认的简称，它允许您在无需等待确认的情况下使用资产。这种方式快速但在区块链确认前有被双花的风险。",
-      "ledger": "Ledger 硬件钱包",
-      "ledgerTransportDesc": "请选择与 Ledger 硬件钱包一起使用的传输方式."
+      "advanced": "高级",
+      "advancedDesc": "大多数人无需更改的设置。",
+      "ledger": "Ledger 连接",
+      "ledgerTransportDesc": "选择 Nautilus 连接 Ledger 硬件钱包的方式。"
     },
     "wallet": {
       "walletNameDesc": "为您的钱包设置一个名称。",
+      "maintenance": "备份和维护",
+      "maintenanceDesc": "导出、备份或重新同步此钱包。",
       "xPubKeyDesc": "使用此选项导出您的钱包扩展公钥。",
       "walletPasswordDesc": "用于解锁此钱包的密码。",
       "mnemonicBackupDesc": "显示并备份此钱包的恢复短语。",
