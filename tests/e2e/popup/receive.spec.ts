@@ -127,10 +127,15 @@ test.describe("receive", () => {
   test("shows the current unused address when avoiding address reuse", async ({ popup }) => {
     const page = popup.page;
 
-    await popup.menu("Settings");
-    await page.getByRole("tab", { name: "Wallet" }).click();
-    await page.locator("#address-reuse").click();
-    await popup.navigate("receive");
+    // the setting has no UI anymore, but wallets that enabled it before keep it
+    await page.evaluate(async () => {
+      const items = await chrome.storage.local.get<Record<string, { settings: object }>>(null);
+      for (const [key, wallet] of Object.entries(items)) {
+        if (!key.startsWith("wallet:")) continue;
+        const settings = { ...wallet.settings, avoidAddressReuse: true };
+        await chrome.storage.local.set({ [key]: { ...wallet, settings } });
+      }
+    });
 
     await expect(page.getByText("Current address")).toBeVisible();
     await expect(page.getByText(await addressOf(WALLET_A, 2), { exact: true })).toBeVisible();
