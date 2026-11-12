@@ -2,4 +2,4 @@
 "nautilus-wallet": minor
 ---
 
-Add wallet re-sync option.
+Add an option to re-sync a wallet.

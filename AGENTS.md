@@ -29,7 +29,8 @@ has reviewed the content. Put the disclosure in the artifact itself, not in a si
 
 The one exception is changesets: you may write `.changeset/*.md` entries, without a disclosure,
 since their text goes verbatim into `CHANGELOG.md` and the release notes. A maintainer reviews it
-in the version PR before it ships.
+in the version PR before it ships. Follow the conventions in
+[.changeset/README.md](.changeset/README.md).
 
 ## Before you finish
 

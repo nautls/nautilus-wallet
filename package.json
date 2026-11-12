@@ -25,7 +25,7 @@
     "fix:format": "prettier ./src ./tests --write",
     "test:types": "vue-tsc --build --force",
     "changeset": "changeset",
-    "changeset:version": "changeset version && node .changeset/format-changelog.mjs && prettier --write CHANGELOG.md",
+    "changeset:version": "changeset version",
     "changeset:tag": "changeset git-tag"
   },
   "dependencies": {

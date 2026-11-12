@@ -2,4 +2,4 @@
 "nautilus-wallet": patch
 ---
 
-Security hardening of the dApp connector.
+Harden the dApp connector against pages that try to act for another origin.

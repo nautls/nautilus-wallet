@@ -2,4 +2,4 @@
 "nautilus-wallet": minor
 ---
 
-Flag insecure dApp origins.
+Flag insecure dApp origins on connector requests.

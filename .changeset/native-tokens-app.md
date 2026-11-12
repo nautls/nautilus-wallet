@@ -2,4 +2,4 @@
 "nautilus-wallet": minor
 ---
 
-Add the Native Tokens app with mint and burn tokens support.
+Add the Native Tokens app for minting and burning tokens.
