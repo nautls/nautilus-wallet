@@ -1,4 +1,4 @@
-import { Address, Info, State, Token } from "@ergo-graphql/types";
+import { Address, Asset, Box, Info, State, Token } from "@ergo-graphql/types";
 import {
   createGqlOperation,
   ErgoGraphQLProvider,
@@ -90,6 +90,7 @@ const CHAIN_PARAMS_QUERY = `query chainParams { state { params { minValuePerByte
 const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 1 ) { creationHeight } }`;
 const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
 const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
+const UNSPENT_BOXES_BY_TOKEN_QUERY = `query unspentBoxesByToken($tokenId: String, $take: Int) { boxes(tokenId: $tokenId, spent: false, take: $take) { boxId ergoTree creationHeight additionalRegisters assets { tokenId amount } } }`;
 
 type AddressInfoResponse = { addresses: Address[] };
 type CurrentHeightResponse = { blockHeaders: { height: number }[] };
@@ -97,6 +98,12 @@ type ChainParamsResponse = { state: { params?: { minValuePerByte?: number } } };
 type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
 type TokensResponse = { tokens: Token[] };
 type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
+type UnspentBoxesByTokenResponse = { boxes: UnspentTokenBox[] };
+
+export type UnspentTokenBox = Pick<
+  Box,
+  "boxId" | "ergoTree" | "creationHeight" | "additionalRegisters"
+> & { assets: Pick<Asset, "tokenId" | "amount">[] };
 
 class GraphQLService extends ErgoGraphQLProvider<string> {
   #getAddressInfo;
@@ -105,6 +112,7 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
   #checkOldBoxes;
   #getTokenMetadata;
   #checkMempoolTxs;
+  #getUnspentBoxesByToken;
 
   constructor() {
     super({
@@ -121,6 +129,9 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     this.#checkOldBoxes = this.createOperation<OldBoxesCheckResponse>(OLD_BOXES_CHECK_QUERY);
     this.#getTokenMetadata = this.createOperation<TokensResponse>(TOKEN_METADATA_QUERY);
     this.#checkMempoolTxs = this.createOperation<MempoolTransactionsResponse>(MEMPOOL_TXS_QUERY);
+    this.#getUnspentBoxesByToken = this.createOperation<UnspentBoxesByTokenResponse>(
+      UNSPENT_BOXES_BY_TOKEN_QUERY
+    );
   }
 
   #loadServerUrl() {
@@ -224,6 +235,11 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     else if (walletId) utxosDbService.addFromTx(signedTransaction, walletId);
 
     return result;
+  }
+
+  async getUnspentBoxesByTokenId(tokenId: string, take = 2): Promise<UnspentTokenBox[]> {
+    const response = await this.#getUnspentBoxesByToken({ tokenId, take });
+    return response.data.boxes;
   }
 
   async mempoolTransactionsLookup(txIds: string[]): Promise<Set<string>> {

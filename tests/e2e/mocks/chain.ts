@@ -209,6 +209,8 @@ export class MockChain {
         return { mempool: { transactions: this.#mempoolLookup(vars.transactionIds as string[]) } };
       case "boxes":
         return this.#boxes(query, vars);
+      case "unspentBoxesByToken":
+        return { boxes: this.#unspentWithToken(vars.tokenId as string, vars) };
       case "confirmedTransactions":
         return { transactions: this.#transactions(this.#confirmed, vars) };
       case "unconfirmedTransactions":
@@ -321,6 +323,13 @@ export class MockChain {
     }
 
     return result;
+  }
+
+  #unspentWithToken(tokenId: string, vars: Record<string, unknown>) {
+    return paginate(
+      this.#unspent.filter((b) => b.assets.some((a) => a.tokenId === tokenId)),
+      vars
+    );
   }
 
   #transactions(source: GqlTransaction[], vars: Record<string, unknown>) {

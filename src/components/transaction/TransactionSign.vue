@@ -40,6 +40,8 @@ interface Props {
   inputsToSign?: number[];
   loading?: boolean;
   broadcast?: boolean;
+  /** Names the user typed, keyed by the address each one resolved to. */
+  addressNames?: Record<string, string>;
   class?: HTMLAttributes["class"];
 }
 
@@ -52,7 +54,8 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   broadcast: true,
   transaction: undefined,
-  inputsToSign: undefined
+  inputsToSign: undefined,
+  addressNames: undefined
 });
 
 const emit = defineEmits<Emits>();
@@ -253,6 +256,13 @@ const { r$ } = useRegle(
           </p>
           <template v-if="!output.isBabelSwap" #subheader>
             <div class="flex flex-col gap-2 font-mono break-all">
+              <p
+                v-if="props.addressNames?.[output.receiver]"
+                class="text-foreground font-sans font-semibold"
+                :data-receiver-name="index"
+              >
+                {{ props.addressNames[output.receiver] }}
+              </p>
               <p>
                 {{ format.string.shorten(output.receiver, 60) }}
                 <CopyButton

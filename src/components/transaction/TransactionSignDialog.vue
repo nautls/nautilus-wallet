@@ -18,6 +18,8 @@ import TransactionSign from "./TransactionSign.vue";
 
 interface Props {
   transactionBuilder: TransactionBuilderFunction;
+  /** Names the user typed, keyed by the address each one resolved to. */
+  addressNames?: Record<string, string>;
 }
 
 interface Emits {
@@ -125,6 +127,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
       <TransactionSign
         :transaction="transaction"
         :loading="loading"
+        :address-names="props.addressNames"
         @success="onSuccess"
         @fail="onFail"
         @refused="setOpened(false)"
