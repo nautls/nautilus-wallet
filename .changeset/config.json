@@ -3,7 +3,7 @@
   "baseBranch": "master",
   "access": "restricted",
   "format": "auto",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": "./changelog.mjs",
   "commit": false,
   "ignore": [],
   "fixed": [],

@@ -17,6 +17,8 @@ overrides:
   markdown-it@<14.3.3: ^14.3.3
   markdown-it@>=14.1.0 <14.3.3: ^14.3.3
   node-forge@<=1.4.0: ^1.4.1
+  glob@>=9.0.0 <=14.0.1: ^14.0.2
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
 patchedDependencies:
   webext-bridge@6.0.1: patches/webext-bridge@6.0.1.patch
   "@types/cleave.js@1.4.12": patches/@types__cleave.js@1.4.12.patch
