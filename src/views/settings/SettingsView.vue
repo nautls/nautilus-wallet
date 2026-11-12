@@ -24,7 +24,9 @@ const { t } = useI18n();
         }}</TabsTrigger>
       </TabsList>
 
-      <div class="py-2">
+      <div
+        class="py-2 **:data-[slot=card-action]:self-center **:data-[slot=card-description]:text-xs **:data-[slot=card-title]:text-base"
+      >
         <TabsContent value="global-settings"><GlobalSettings /></TabsContent>
         <TabsContent value="wallet-settings"><WalletSettings /></TabsContent>
         <TabsContent value="connections"><ConnectedApps /> </TabsContent>

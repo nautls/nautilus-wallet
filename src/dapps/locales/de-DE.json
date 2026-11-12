@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Wallet-Optimierer",
-      "summary": "Führe UTxOs zusammen, um deine Wallet zu beschleunigen und Demurrage zu vermeiden.",
+      "summary": "Beschleunige deine Wallet und vermeide Demurrage, indem du UTxOs zusammenführst.",
       "description": "Nutze dieses Tool, um deine UTxOs zusammenzuführen, die Leistung zu steigern und die {demurrage}-Gebühr zu vermeiden.",
       "demurrage": "Demurrage",
       "size": "{count} {size}",

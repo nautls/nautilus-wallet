@@ -20,7 +20,7 @@
     },
     "walletOptimizer": {
       "title": "Optimiseur de portefeuille",
-      "summary": "Fusionnez vos UTxO pour accélérer votre portefeuille et éviter la dépréciation.",
+      "summary": "Accélérez votre portefeuille et évitez la dépréciation en fusionnant vos UTxO.",
       "description": "Utilisez cet outil pour fusionner vos UTxO, améliorer les performances et éviter les frais de {demurrage}.",
       "demurrage": "dépréciation",
       "size": "{count} {size}",

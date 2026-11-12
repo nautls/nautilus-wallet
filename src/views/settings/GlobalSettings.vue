@@ -14,7 +14,7 @@ import {
 import { Locale, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -187,198 +187,180 @@ const { r$ } = useRegle(
 
 <template>
   <div class="space-y-4">
-    <Card class="px-4">
-      <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col items-start gap-2">
-          {{ t("settings.global.displayLanguage") }}
-          <div class="text-muted-foreground text-xs font-normal">
-            {{ t("settings.global.displayLanguageDesc") }}
-          </div>
-        </Label>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ t("settings.global.languageAndRegion") }}</CardTitle>
+        <CardDescription>{{ t("settings.global.languageAndRegionDesc") }}</CardDescription>
+      </CardHeader>
 
-      <Popover v-model:open="localeState.isPopoverOpen">
-        <PopoverTrigger as-child>
-          <Button variant="outline">
-            <span class="grow">{{ currentLocale }}</span>
-            <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
+      <CardContent class="grid grid-cols-[auto_1fr] items-center gap-4">
+        <div class="contents">
+          <Label>{{ t("settings.global.language") }}</Label>
+          <Popover v-model:open="localeState.isPopoverOpen">
+            <PopoverTrigger as-child>
+              <Button variant="outline" class="w-full">
+                <span class="min-w-0 grow truncate text-left">{{ currentLocale }}</span>
+                <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
 
-        <PopoverContent class="p-0">
-          <Command reset-search-term-on-blur>
-            <CommandInput :placeholder="t('common.search')" />
-            <CommandList class="max-h-[200px]">
-              <CommandGroup>
-                <CommandItem
-                  value="auto"
-                  class="justify-between gap-2 whitespace-nowrap"
-                  @select="selectLocale('auto')"
-                >
-                  <div class="font-medium">{{ t("settings.systemDefault") }}</div>
+            <PopoverContent class="w-(--reka-popover-trigger-width) p-0">
+              <Command reset-search-term-on-blur>
+                <CommandInput :placeholder="t('common.search')" />
+                <CommandList class="max-h-50">
+                  <CommandGroup>
+                    <CommandItem
+                      value="auto"
+                      class="justify-between gap-2 whitespace-nowrap"
+                      @select="selectLocale('auto')"
+                    >
+                      <div class="font-medium">{{ t("settings.systemDefault") }}</div>
 
-                  <CheckIcon
-                    :class="
-                      cn(
-                        'mr-2 h-4 w-4',
-                        app.settings.locale === 'auto' ? 'opacity-100' : 'opacity-0'
-                      )
-                    "
-                  />
-                </CommandItem>
-              </CommandGroup>
+                      <CheckIcon
+                        :class="
+                          cn(
+                            'mr-2 h-4 w-4',
+                            app.settings.locale === 'auto' ? 'opacity-100' : 'opacity-0'
+                          )
+                        "
+                      />
+                    </CommandItem>
+                  </CommandGroup>
 
-              <CommandSeparator />
+                  <CommandSeparator />
 
-              <CommandGroup>
-                <CommandItem
-                  v-for="lang in localeState.available"
-                  :key="lang"
-                  class="justify-between gap-2"
-                  :value="lang"
-                  @select="selectLocale(lang)"
-                >
-                  <div>{{ LANGUAGE_LABELS.get(lang) }}</div>
+                  <CommandGroup>
+                    <CommandItem
+                      v-for="lang in localeState.available"
+                      :key="lang"
+                      class="justify-between gap-2"
+                      :value="lang"
+                      @select="selectLocale(lang)"
+                    >
+                      <div>{{ LANGUAGE_LABELS.get(lang) }}</div>
 
-                  <CheckIcon
-                    :class="
-                      cn('mr-2 h-4 w-4', lang === app.settings.locale ? 'opacity-100' : 'opacity-0')
-                    "
-                  />
-                </CommandItem>
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                      <CheckIcon
+                        :class="
+                          cn(
+                            'mr-2 h-4 w-4',
+                            lang === app.settings.locale ? 'opacity-100' : 'opacity-0'
+                          )
+                        "
+                      />
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div class="contents">
+          <Label>{{ t("settings.global.currency") }}</Label>
+          <Popover v-model:open="currencyState.isPopoverOpen">
+            <PopoverTrigger as-child>
+              <Button :disabled="currencyState.loading" variant="outline" class="w-full">
+                <span class="grow text-left uppercase">{{ app.settings.conversionCurrency }}</span>
+
+                <Loader2Icon
+                  v-if="currencyState.loading"
+                  class="size-4 shrink-0 animate-spin opacity-50"
+                />
+                <ChevronsUpDownIcon v-else class="size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent class="w-(--reka-popover-trigger-width) p-0">
+              <Command reset-search-term-on-blur>
+                <CommandInput :placeholder="t('common.search')" />
+                <CommandEmpty>{{ t("settings.global.noCurrenciesFound") }}</CommandEmpty>
+                <CommandList class="max-h-[200px]">
+                  <CommandGroup>
+                    <CommandItem
+                      v-for="currency in currencyState.available"
+                      :key="currency"
+                      class="justify-between gap-2"
+                      :value="currency"
+                      @select="selectCurrency(currency)"
+                    >
+                      <div class="uppercase">{{ currency }}</div>
+
+                      <CheckIcon
+                        :class="
+                          cn(
+                            'mr-2 h-4 w-4',
+                            currency === app.settings.conversionCurrency
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )
+                        "
+                      />
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </CardContent>
     </Card>
 
-    <Card class="px-4">
-      <Label class="flex flex-col items-start gap-2">
-        {{ t("settings.global.colorMode") }}
-        <div class="text-muted-foreground text-xs font-normal">
-          {{ t("settings.global.colorModeDesc") }}
-        </div>
-      </Label>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ t("settings.global.colorMode") }}</CardTitle>
+        <CardDescription>{{ t("settings.global.colorModeDesc") }}</CardDescription>
+      </CardHeader>
 
-      <Tabs v-model="app.settings.colorMode">
-        <TabsList class="flex h-auto w-full">
-          <TabsTrigger
-            v-for="mode in colorModes"
-            :key="mode.value"
-            :value="mode.value"
-            :title="mode.label"
-            class="min-w-0 flex-1 basis-0 py-1.5 [&>span]:min-w-0"
-          >
-            <component :is="mode.icon" class="mx-auto mb-1 block size-4" />
-            {{ mode.label }}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <CardContent>
+        <Tabs v-model="app.settings.colorMode">
+          <TabsList class="flex w-full">
+            <TabsTrigger
+              v-for="mode in colorModes"
+              :key="mode.value"
+              :value="mode.value"
+              :title="mode.label"
+              class="min-w-0 flex-1 basis-0 [&>span]:min-w-0"
+            >
+              <component :is="mode.icon" class="me-1.5 inline-block size-4 align-[-3px]" />
+              {{ mode.label }}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </CardContent>
     </Card>
 
     <MasterPasswordSettings />
     <UnlockSessionSettings />
 
-    <Card class="px-4">
-      <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col items-start gap-2">
-          {{ t("settings.global.conversionCurrency") }}
-          <div class="text-muted-foreground text-xs font-normal">
-            {{ t("settings.global.conversionCurrencyDesc") }}
-          </div>
-        </Label>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ t("settings.global.tokenBlacklists") }}</CardTitle>
+        <CardDescription>{{ t("settings.global.tokenBlacklistsDesc") }}</CardDescription>
+      </CardHeader>
 
-        <Popover v-model:open="currencyState.isPopoverOpen">
-          <PopoverTrigger as-child>
-            <Button :disabled="currencyState.loading" variant="outline" class="min-w-[90px]">
-              <span class="grow uppercase">{{ app.settings.conversionCurrency }}</span>
-
-              <Loader2Icon
-                v-if="currencyState.loading"
-                class="size-4 shrink-0 animate-spin opacity-50"
-              />
-              <ChevronsUpDownIcon v-else class="size-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-
-          <PopoverContent class="max-w-[110px] p-0">
-            <Command reset-search-term-on-blur>
-              <CommandInput :placeholder="t('common.search')" />
-              <CommandEmpty>{{ t("settings.global.noCurrenciesFound") }}</CommandEmpty>
-              <CommandList class="max-h-[200px]">
-                <CommandGroup>
-                  <CommandItem
-                    v-for="currency in currencyState.available"
-                    :key="currency"
-                    class="justify-between gap-2"
-                    :value="currency"
-                    @select="selectCurrency(currency)"
-                  >
-                    <div class="uppercase">{{ currency }}</div>
-
-                    <CheckIcon
-                      :class="
-                        cn(
-                          'mr-2 h-4 w-4',
-                          currency === app.settings.conversionCurrency ? 'opacity-100' : 'opacity-0'
-                        )
-                      "
-                    />
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </Card>
-
-    <Card class="px-4">
-      <div class="flex items-center justify-between gap-4">
-        <Label for="dev-mode" class="flex flex-col items-start gap-1">
-          {{ t("settings.global.devMode") }}
-          <div class="text-muted-foreground text-xs font-normal">
-            {{ t("settings.global.devModeDesc") }}
-          </div></Label
-        >
-        <Switch id="dev-mode" v-model="app.settings.devMode" />
-      </div>
-    </Card>
-
-    <Card class="px-4">
-      <Label class="flex flex-col items-start gap-1">
-        {{ t("settings.global.tokenBlacklists") }}
-        <div class="text-muted-foreground text-xs font-normal">
-          {{ t("settings.global.tokenBlacklistsDesc") }}
+      <CardContent class="grid grid-cols-[1fr_auto] gap-4">
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label for="nsfw-blacklist">{{ t("settings.global.nsfwTokensBlacklist") }}</Label>
+          <Switch id="nsfw-blacklist" class="justify-self-end" v-model="nsfwBlacklist" />
         </div>
-      </Label>
 
-      <div class="flex items-center justify-between gap-4">
-        <Label for="nsfw-blacklist" class="flex flex-col items-start gap-1">
-          {{ t("settings.global.nsfwTokensBlacklist") }}
-          <div class="text-muted-foreground text-xs font-normal">
-            {{ t("settings.global.nsfwTokensBlacklistDesc") }}
-          </div>
-        </Label>
-        <Switch id="nsfw-blacklist" v-model="nsfwBlacklist" />
-      </div>
-      <div class="flex items-center justify-between gap-4">
-        <Label for="scam-blacklist" class="flex flex-col items-start gap-1"
-          >{{ t("settings.global.scamTokensBlacklist") }}
-          <div class="text-muted-foreground text-xs font-normal">
-            {{ t("settings.global.scamTokensBlacklistDesc") }}
-          </div></Label
-        >
-        <Switch id="scam-blacklist" v-model="scamBlacklist" />
-      </div>
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label for="scam-blacklist">{{ t("settings.global.scamTokensBlacklist") }}</Label>
+          <Switch id="scam-blacklist" class="justify-self-end" v-model="scamBlacklist" />
+        </div>
+      </CardContent>
     </Card>
 
-    <Card class="px-4">
-      <div class="flex flex-col gap-2">
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ t("settings.global.network") }}</CardTitle>
+        <CardDescription>{{ t("settings.global.networkDesc") }}</CardDescription>
+      </CardHeader>
+
+      <CardContent class="flex flex-col gap-4">
         <FormField :validation="r$.graphQLServer">
           <Label for="gql-server">{{ t("settings.global.gqlServer") }}</Label>
-          <div class="relative w-full max-w-sm items-center">
+          <div class="relative w-full items-center">
             <Input
               id="gql-server"
               v-model="graphQLServer"
@@ -392,94 +374,109 @@ const { r$ } = useRegle(
             </span>
           </div>
         </FormField>
-      </div>
 
-      <div class="flex flex-col gap-2">
         <FormField :validation="r$.explorerUrl">
           <Label for="explorer-url">{{ t("settings.global.explorerUrl") }}</Label>
           <Input id="explorer-url" v-model="explorerUrl" />
         </FormField>
-      </div>
 
-      <div class="flex flex-col gap-2">
         <FormField :validation="r$.ipfsGateway">
           <Label for="ipfs-gateway">{{ t("settings.global.ipfsGateway") }}</Label>
           <Input id="ipfs-gateway" v-model="ipfsGateway" />
         </FormField>
-      </div>
+      </CardContent>
     </Card>
 
-    <Card class="px-4">
-      <Label class="flex flex-col items-start gap-2">{{ t("settings.global.ledger") }}</Label>
-      <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col items-start gap-2">
-          <div class="text-muted-foreground text-xs font-normal">
-            {{ t("settings.global.ledgerTransportDesc") }}
-          </div>
-        </Label>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ t("settings.global.advanced") }}</CardTitle>
+        <CardDescription>{{ t("settings.global.advancedDesc") }}</CardDescription>
+      </CardHeader>
 
-        <Popover v-model:open="ledgerTransportsState.isPopoverOpen">
-          <PopoverTrigger as-child>
-            <Button variant="outline" class="min-w-[110px]">
-              <span class="grow">{{
-                transportsDisplayName.get(app.settings.ledger.transport)
-              }}</span>
-              <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
+      <CardContent class="grid grid-cols-[1fr_auto] gap-4">
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label class="flex flex-col items-start gap-1">
+            {{ t("settings.global.ledger") }}
+            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
+              {{ t("settings.global.ledgerTransportDesc") }}
+            </span>
+          </Label>
+          <Popover v-model:open="ledgerTransportsState.isPopoverOpen">
+            <PopoverTrigger as-child>
+              <Button variant="outline" class="min-w-[110px]">
+                <span class="grow">{{
+                  transportsDisplayName.get(app.settings.ledger.transport)
+                }}</span>
+                <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
 
-          <PopoverContent class="max-w-[110px] p-0">
-            <Command reset-search-term-on-blur>
-              <CommandInput :placeholder="t('common.search')" />
-              <CommandList class="max-h-[200px]">
-                <CommandGroup>
-                  <CommandItem
-                    v-for="transport in ledgerTransportsState.available"
-                    :key="transport"
-                    class="justify-between gap-2"
-                    :value="transport"
-                    @select="selectLedgerTransport(transport)"
-                  >
-                    <div>{{ transportsDisplayName.get(transport) }}</div>
+            <PopoverContent class="w-(--reka-popover-trigger-width) p-0">
+              <Command reset-search-term-on-blur>
+                <CommandInput :placeholder="t('common.search')" />
+                <CommandList class="max-h-[200px]">
+                  <CommandGroup>
+                    <CommandItem
+                      v-for="transport in ledgerTransportsState.available"
+                      :key="transport"
+                      class="justify-between gap-2"
+                      :value="transport"
+                      @select="selectLedgerTransport(transport)"
+                    >
+                      <div>{{ transportsDisplayName.get(transport) }}</div>
 
-                    <CheckIcon
-                      :class="
-                        cn(
-                          'mr-2 h-4 w-4',
-                          transport === app.settings.ledger.transport ? 'opacity-100' : 'opacity-0'
-                        )
-                      "
-                    />
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
+                      <CheckIcon
+                        :class="
+                          cn(
+                            'mr-2 h-4 w-4',
+                            transport === app.settings.ledger.transport
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )
+                        "
+                      />
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label for="dev-mode" class="flex flex-col items-start gap-1">
+            {{ t("settings.global.devMode") }}
+            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
+              {{ t("settings.global.devModeDesc") }}
+            </span>
+          </Label>
+          <Switch id="dev-mode" class="justify-self-end" v-model="app.settings.devMode" />
+        </div>
+      </CardContent>
     </Card>
 
-    <Card class="bg-warning/10 px-4">
-      <Label class="flex flex-col items-start gap-2">
-        <div class="flex items-center gap-1">
+    <Card class="bg-warning/10">
+      <CardHeader>
+        <CardTitle class="flex items-center gap-1">
           {{ t("settings.global.experimental") }}
-          <TriangleAlertIcon class="text-warning size-3" />
-        </div>
-
-        <div class="text-xs font-normal hyphens-auto">
+          <TriangleAlertIcon class="text-warning size-4" />
+        </CardTitle>
+        <CardDescription class="hyphens-auto">
           {{ t("settings.global.experimentalDesc") }}
-        </div>
-      </Label>
+        </CardDescription>
+      </CardHeader>
 
-      <div class="flex items-center justify-between gap-4">
-        <Label for="0-conf" class="flex flex-col items-start gap-1">
-          {{ t("settings.global.zeroConf") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.global.zeroConfDesc") }}
-          </div></Label
-        >
-        <Switch id="0-conf" v-model="app.settings.zeroConf" />
-      </div>
+      <CardContent class="grid grid-cols-[1fr_auto] gap-4">
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label for="0-conf" class="flex flex-col items-start gap-1">
+            {{ t("settings.global.zeroConf") }}
+            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
+              {{ t("settings.global.zeroConfDesc") }}
+            </span>
+          </Label>
+          <Switch id="0-conf" class="justify-self-end" v-model="app.settings.zeroConf" />
+        </div>
+      </CardContent>
     </Card>
   </div>
 </template>

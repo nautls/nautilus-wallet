@@ -153,8 +153,18 @@ test("applies changes made in another window to the open wallet", async ({
   await expect(other.page.locator("#name-input")).toHaveValue("Renamed");
 
   // a setting changed in the other window doesn't bring the old name back
-  await other.page.locator("#address-reuse").click();
-  await expect(popup.page.locator("#address-reuse")).toBeChecked();
+  await other.navigate("receive");
+  await other.page.getByRole("tab", { name: "Unused" }).click();
   await expect(popup.page.locator("#name-input")).toHaveValue("Renamed");
-  await expect(other.page.locator("#name-input")).toHaveValue("Renamed");
+  await popup.navigate("receive");
+  await expect(popup.page.getByRole("tab", { name: "Unused" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await other.page.getByRole("tab", { name: "All" }).click();
+  await expect(popup.page.getByRole("tab", { name: "All" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(popup.walletSwitcher).toContainText("Renamed");
 });

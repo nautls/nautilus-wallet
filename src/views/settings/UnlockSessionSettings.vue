@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -70,25 +69,31 @@ async function select(value: unknown) {
 </script>
 
 <template>
-  <Card v-if="usesMaster" class="px-4" data-unlock-session-settings>
-    <Label for="unlock-session" class="flex flex-col items-start gap-2">
-      {{ t("settings.password.unlockSession") }}
-      <span class="text-muted-foreground text-xs font-normal">
-        {{ t("settings.password.unlockSessionDesc") }}
-      </span>
-    </Label>
+  <Card v-if="usesMaster" data-unlock-session-settings>
+    <CardHeader>
+      <CardTitle id="unlock-session-title">{{ t("settings.password.unlockSession") }}</CardTitle>
+      <CardDescription id="unlock-session-desc">{{
+        t("settings.password.unlockSessionDesc")
+      }}</CardDescription>
+    </CardHeader>
 
-    <Select :model-value="selected" :disabled="saving" @update:model-value="select">
-      <SelectTrigger id="unlock-session">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectItem v-for="option in options" :key="option" :value="option">
-            {{ label(option) }}
-          </SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <CardContent>
+      <Select :model-value="selected" :disabled="saving" @update:model-value="select">
+        <SelectTrigger
+          id="unlock-session"
+          aria-labelledby="unlock-session-title"
+          aria-describedby="unlock-session-desc"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectItem v-for="option in options" :key="option" :value="option">
+              {{ label(option) }}
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </CardContent>
   </Card>
 </template>

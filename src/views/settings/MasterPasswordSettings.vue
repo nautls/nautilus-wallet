@@ -3,7 +3,14 @@ import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import {
   Drawer,
   DrawerClose,
@@ -14,7 +21,6 @@ import {
   DrawerTitle,
   DrawerTrigger
 } from "@/components/ui/drawer";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
@@ -70,16 +76,11 @@ async function reset() {
 </script>
 
 <template>
-  <Card class="px-4" data-master-password-settings>
-    <div class="flex items-center justify-between gap-4">
-      <Label class="flex flex-col items-start gap-1">
-        {{ t("wallet.masterPassword") }}
-        <div class="text-muted-foreground text-xs font-normal">
-          {{ hasMaster === undefined ? "" : description }}
-        </div>
-      </Label>
-
-      <template v-if="hasMaster !== undefined && !canReset">
+  <Card data-master-password-settings>
+    <CardHeader>
+      <CardTitle>{{ t("wallet.masterPassword") }}</CardTitle>
+      <CardDescription>{{ hasMaster === undefined ? "" : description }}</CardDescription>
+      <CardAction v-if="hasMaster !== undefined && !canReset">
         <Button
           v-if="hasMaster"
           variant="outline"
@@ -93,10 +94,10 @@ async function reset() {
           @click="router.push({ name: 'master-password-setup' })"
           >{{ t("settings.password.setUp") }}</Button
         >
-      </template>
-    </div>
+      </CardAction>
+    </CardHeader>
 
-    <div v-if="canReset" class="flex gap-2">
+    <CardContent v-if="canReset" class="flex gap-2">
       <Drawer>
         <DrawerTrigger as-child>
           <Button variant="outline" class="flex-1">{{ t("settings.password.reset") }}</Button>
@@ -127,6 +128,6 @@ async function reset() {
         @click="openPasswordDialog({ action: 'changeMaster' })"
         >{{ t("common.change") }}</Button
       >
-    </div>
+    </CardContent>
   </Card>
 </template>

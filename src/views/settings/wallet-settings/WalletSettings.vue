@@ -7,7 +7,14 @@ import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import {
   Drawer,
   DrawerClose,
@@ -20,7 +27,6 @@ import {
 import { FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { MnemonicBackupDialog } from "@/components/wallet";
@@ -103,146 +109,149 @@ const { r$ } = useRegle(
 
 <template>
   <div class="space-y-4">
-    <Card class="px-4">
-      <FormField :validation="r$.walletName">
-        <Label for="name-input">{{ t("wallet.walletName") }}</Label>
-        <Input id="name-input" v-model="walletName" />
-        <template #description>{{ t("settings.wallet.walletNameDesc") }}</template>
-      </FormField>
+    <Card>
+      <CardHeader>
+        <CardTitle id="wallet-name-title">{{ t("wallet.walletName") }}</CardTitle>
+        <CardDescription>{{ t("settings.wallet.walletNameDesc") }}</CardDescription>
+      </CardHeader>
 
-      <div class="flex items-center justify-between gap-4">
-        <Label for="address-reuse" class="flex flex-col items-start gap-1">
-          {{ t("settings.wallet.avoidAddressReuse") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.avoidAddressReuseDesc") }}
-          </div>
-        </Label>
-        <Switch id="address-reuse" v-model="wallet.settings.avoidAddressReuse" />
-      </div>
+      <CardContent>
+        <FormField :validation="r$.walletName">
+          <Input id="name-input" v-model="walletName" aria-labelledby="wallet-name-title" />
+        </FormField>
+      </CardContent>
     </Card>
 
-    <Card v-if="isStandard && passwordKind" class="px-4">
-      <Label class="flex flex-col items-start gap-1"
-        >{{ t("wallet.walletPassword") }}
-        <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-          {{ t("settings.wallet.walletPasswordDesc") }}
-        </div></Label
-      >
-      <Tabs
-        :model-value="passwordKind"
-        activation-mode="manual"
-        @update:model-value="switchPassword"
-      >
-        <TabsList class="flex h-auto w-full">
-          <TabsTrigger value="master" class="min-w-0 flex-1 basis-0 py-1.5">{{
-            t("settings.password.master")
-          }}</TabsTrigger>
-          <TabsTrigger value="password" class="min-w-0 flex-1 basis-0 py-1.5">{{
-            t("settings.password.own")
-          }}</TabsTrigger>
-        </TabsList>
-      </Tabs>
-      <Button
-        v-if="passwordKind === 'password'"
-        variant="outline"
-        class="w-full"
-        @click="openPasswordDialog({ action: 'change' })"
-        >{{ t("settings.password.changePassword") }}</Button
-      >
-    </Card>
+    <Card v-if="isStandard && passwordKind">
+      <CardHeader>
+        <CardTitle>{{ t("wallet.walletPassword") }}</CardTitle>
+        <CardDescription>{{ t("settings.wallet.walletPasswordDesc") }}</CardDescription>
+      </CardHeader>
 
-    <Card class="grid grid-cols-[1fr_auto] px-4">
-      <div class="col-span-2 grid grid-cols-subgrid items-center">
-        <Label class="flex flex-col items-start gap-1"
-          >{{ t("wallet.xPubKey") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.xPubKeyDesc") }}
-          </div></Label
+      <CardContent class="flex flex-col gap-4">
+        <Tabs
+          :model-value="passwordKind"
+          activation-mode="manual"
+          @update:model-value="switchPassword"
         >
-        <Button variant="outline" class="w-full" @click="openPublicKeyDialog">{{
-          t("common.export")
-        }}</Button>
-      </div>
-
-      <div v-if="isStandard" class="col-span-2 grid grid-cols-subgrid items-center">
-        <Label class="flex flex-col items-start gap-1"
-          >{{ t("wallet.backup.title") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.mnemonicBackupDesc") }}
-          </div></Label
-        >
-        <Button variant="outline" class="w-full" @click="openMnemonicBackupDialog">{{
-          t("common.backup")
-        }}</Button>
-      </div>
-
-      <div class="col-span-2 grid grid-cols-subgrid items-center">
-        <Label class="flex flex-col items-start gap-1"
-          >{{ t("settings.wallet.resync") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.resyncDesc") }}
-          </div></Label
-        >
+          <TabsList class="flex h-auto w-full">
+            <TabsTrigger value="master" class="min-w-0 flex-1 basis-0 py-1.5">{{
+              t("settings.password.master")
+            }}</TabsTrigger>
+            <TabsTrigger value="password" class="min-w-0 flex-1 basis-0 py-1.5">{{
+              t("settings.password.own")
+            }}</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <Button
+          v-if="passwordKind === 'password'"
           variant="outline"
-          class="relative w-full"
-          :disabled="resyncing || wallet.loading"
-          @click="resync"
+          class="w-full"
+          @click="openPasswordDialog({ action: 'change' })"
+          >{{ t("settings.password.changePassword") }}</Button
         >
-          <span :class="{ invisible: resyncing }">{{ t("common.resync") }}</span>
-          <Loader2Icon v-if="resyncing" class="absolute inset-0 m-auto animate-spin" />
-        </Button>
-      </div>
+      </CardContent>
     </Card>
 
-    <Card class="bg-destructive/15 px-4">
-      <div class="flex items-center justify-between gap-4">
-        <Label class="flex flex-col items-start gap-1">
-          {{ t("settings.wallet.removeWallet") }}
-          <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-            {{ t("settings.wallet.removeWalletDesc") }}
-          </div>
-        </Label>
-        <Drawer @update:open="resetRemoveConfirmation">
-          <DrawerTrigger as-child>
-            <Button variant="destructive">{{ t("common.remove") }}</Button>
-          </DrawerTrigger>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ t("settings.wallet.maintenance") }}</CardTitle>
+        <CardDescription>{{ t("settings.wallet.maintenanceDesc") }}</CardDescription>
+      </CardHeader>
 
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle v-once>{{ t("settings.wallet.walletRemoveConfirmation") }}</DrawerTitle>
-            </DrawerHeader>
-            <div v-once>
-              {{ t("settings.wallet.walletRemoveConfirmationDesc") }}
-            </div>
-            <div class="flex flex-col gap-2">
-              <Label for="remove-confirmation-input">{{
-                t("settings.wallet.walletRemoveTypeName", { name: wallet.name })
-              }}</Label>
-              <Input
-                id="remove-confirmation-input"
-                v-model="removeConfirmation"
-                autocomplete="off"
-                spellcheck="false"
-              />
-            </div>
-            <DrawerFooter class="flex-row gap-4">
-              <DrawerClose as-child>
-                <Button variant="outline" class="flex-1">{{ t("common.cancel") }}</Button>
-              </DrawerClose>
-              <DrawerClose as-child>
-                <Button
-                  variant="destructive"
-                  class="flex-2"
-                  :disabled="!canRemove"
-                  @click="app.deleteWallet(wallet.id)"
-                  >{{ t("common.remove") }}</Button
-                >
-              </DrawerClose>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
-      </div>
+      <CardContent class="grid grid-cols-[1fr_auto] gap-4">
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label class="flex flex-col items-start gap-1">
+            {{ t("wallet.xPubKey") }}
+            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
+              {{ t("settings.wallet.xPubKeyDesc") }}
+            </span>
+          </Label>
+          <Button variant="outline" class="w-full" @click="openPublicKeyDialog">{{
+            t("common.export")
+          }}</Button>
+        </div>
+
+        <div v-if="isStandard" class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label class="flex flex-col items-start gap-1">
+            {{ t("wallet.backup.title") }}
+            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
+              {{ t("settings.wallet.mnemonicBackupDesc") }}
+            </span>
+          </Label>
+          <Button variant="outline" class="w-full" @click="openMnemonicBackupDialog">{{
+            t("common.backup")
+          }}</Button>
+        </div>
+
+        <div class="col-span-2 grid grid-cols-subgrid items-start">
+          <Label class="flex flex-col items-start gap-1">
+            {{ t("settings.wallet.resync") }}
+            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
+              {{ t("settings.wallet.resyncDesc") }}
+            </span>
+          </Label>
+          <Button
+            variant="outline"
+            class="relative w-full"
+            :disabled="resyncing || wallet.loading"
+            @click="resync"
+          >
+            <span :class="{ invisible: resyncing }">{{ t("common.resync") }}</span>
+            <Loader2Icon v-if="resyncing" class="absolute inset-0 m-auto animate-spin" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card class="bg-destructive/15">
+      <CardHeader>
+        <CardTitle>{{ t("settings.wallet.removeWallet") }}</CardTitle>
+        <CardDescription>{{ t("settings.wallet.removeWalletDesc") }}</CardDescription>
+        <CardAction>
+          <Drawer @update:open="resetRemoveConfirmation">
+            <DrawerTrigger as-child>
+              <Button variant="destructive">{{ t("common.remove") }}</Button>
+            </DrawerTrigger>
+
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle v-once>{{
+                  t("settings.wallet.walletRemoveConfirmation")
+                }}</DrawerTitle>
+              </DrawerHeader>
+              <div v-once>
+                {{ t("settings.wallet.walletRemoveConfirmationDesc") }}
+              </div>
+              <div class="flex flex-col gap-2">
+                <Label for="remove-confirmation-input">{{
+                  t("settings.wallet.walletRemoveTypeName", { name: wallet.name })
+                }}</Label>
+                <Input
+                  id="remove-confirmation-input"
+                  v-model="removeConfirmation"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+              <DrawerFooter class="flex-row gap-4">
+                <DrawerClose as-child>
+                  <Button variant="outline" class="flex-1">{{ t("common.cancel") }}</Button>
+                </DrawerClose>
+                <DrawerClose as-child>
+                  <Button
+                    variant="destructive"
+                    class="flex-2"
+                    :disabled="!canRemove"
+                    @click="app.deleteWallet(wallet.id)"
+                    >{{ t("common.remove") }}</Button
+                  >
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        </CardAction>
+      </CardHeader>
     </Card>
   </div>
 </template>
