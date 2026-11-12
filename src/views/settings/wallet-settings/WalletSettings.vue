@@ -123,9 +123,9 @@ const { r$ } = useRegle(
 
     <Card v-if="isStandard && passwordKind" class="px-4">
       <Label class="flex flex-col items-start gap-1"
-        >{{ t("wallet.spendingPassword") }}
+        >{{ t("wallet.walletPassword") }}
         <div class="text-muted-foreground text-xs font-normal hyphens-auto">
-          {{ t("settings.wallet.spendingPasswordDesc") }}
+          {{ t("settings.wallet.walletPasswordDesc") }}
         </div></Label
       >
       <Tabs

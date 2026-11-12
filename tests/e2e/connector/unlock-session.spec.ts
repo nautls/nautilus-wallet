@@ -200,7 +200,7 @@ test.describe("unlock session", () => {
     await expect(button).toHaveAccessibleName("Unlock");
     await button.click();
     const drawer = page.getByRole("dialog", { name: "Unlock Nautilus" });
-    const required = drawer.getByText("Master password is required.");
+    const required = drawer.getByText("Enter your master password", { exact: true });
     await expect(drawer.locator("#unlock-password")).toBeFocused();
     await expect(required).toHaveCount(0);
     await drawer.getByRole("button", { name: "Unlock" }).click();
@@ -208,7 +208,7 @@ test.describe("unlock session", () => {
     await drawer.locator("#unlock-password").fill("wrong password");
     await expect(required).toHaveCount(0);
     await drawer.getByRole("button", { name: "Unlock" }).click();
-    await expect(drawer.getByText("Wrong master password.")).toBeVisible();
+    await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
     await expect(drawer.locator("#unlock-password")).toBeFocused();
     await drawer.locator("#unlock-password").fill(masterPassword);
     await drawer.getByRole("button", { name: "Unlock" }).click();

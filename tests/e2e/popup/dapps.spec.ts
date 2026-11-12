@@ -30,7 +30,7 @@ test.describe("dApps", () => {
       await page.getByLabel("Decimals").fill("2");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       // incoming assets show the decoded EIP-4 data instead of the bare token ID
       const incoming = drawer
         .locator("[data-slot=card]")
@@ -50,7 +50,7 @@ test.describe("dApps", () => {
 
       await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
@@ -77,14 +77,12 @@ test.describe("dApps", () => {
       await page.getByLabel("Decimals").fill("2");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
 
-      await expect(page.getByText("Token name is required.")).toBeVisible();
-      await expect(
-        page.getByText("The amount can't have more than 2 decimal places.")
-      ).toBeVisible();
+      await expect(page.getByText("Enter a token name")).toBeVisible();
+      await expect(page.getByText("Amount can't have more than 2 decimal places")).toBeVisible();
 
       await page.getByLabel("Emission amount").fill("100000000000000000");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
-      await expect(page.getByText(/The amount should be less than or equal to/)).toBeVisible();
+      await expect(page.getByText(/Amount must be .* or less/)).toBeVisible();
 
       await expect(page.getByRole("dialog")).toHaveCount(0);
       expect(chain.submitted).toHaveLength(0);
@@ -111,7 +109,7 @@ test.describe("dApps", () => {
 
       await page.getByLabel("Name").fill("Test Token");
       await page.getByRole("button", { name: "Mint", exact: true }).click();
-      await expect(page.getByText("Emission amount is required.")).toBeInViewport();
+      await expect(page.getByText("Enter an emission amount")).toBeInViewport();
     });
   });
 
@@ -131,7 +129,7 @@ test.describe("dApps", () => {
       await page.getByPlaceholder("0").fill("12.34");
       await page.getByRole("button", { name: "Burn", exact: true }).click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       const password = drawer.getByRole("textbox", { name: / password$/ });
       await expect(drawer.getByText("Burning")).toBeVisible();
       // signing is blocked until the user agrees to burn the tokens
@@ -139,7 +137,7 @@ test.describe("dApps", () => {
       await drawer.getByLabel("Burn tokens permanently").click();
       await password.fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       // signed inputs only carry box ids, so resolve them against the wallet boxes
@@ -166,7 +164,7 @@ test.describe("dApps", () => {
       const page = popup.page;
       await page.getByRole("button", { name: "Burn", exact: true }).click();
 
-      await expect(page.getByText("Select at least one token to burn.")).toBeVisible();
+      await expect(page.getByText("Select at least one token to burn")).toBeVisible();
       await expect(page.getByRole("dialog")).toHaveCount(0);
       expect(chain.submitted).toHaveLength(0);
     });
@@ -208,11 +206,11 @@ test.describe("dApps", () => {
         await expect(page.getByRole("option")).toHaveCount(0);
 
         await page.getByRole("button", { name: "Burn", exact: true }).click();
-        const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+        const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
         await drawer.getByLabel("Burn tokens permanently").click();
         await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
         await drawer.getByRole("button", { name: "Sign" }).click();
-        await expect(popup.toast("Transaction sent!")).toBeVisible();
+        await expect(popup.toast("Transaction sent")).toBeVisible();
 
         const [tx] = chain.submitted;
         const outputTokens = tx.outputs.flatMap((o) => o.assets.map((a) => a.tokenId));
@@ -239,11 +237,11 @@ test.describe("dApps", () => {
       await page.getByRole("button", { name: "Wallet Optimizer" }).click();
       await page.getByRole("button", { name: "Optimize", exact: true }).click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await expect(drawer.getByText("Sending to your address").first()).toBeVisible();
       await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
@@ -289,11 +287,11 @@ test.describe("dApps", () => {
       await expect(swap).toBeEnabled();
       await swap.click();
 
-      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await expect(drawer.getByText("Sending to contract").first()).toBeVisible();
       await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast("Transaction sent!")).toBeVisible();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
 
       const [tx] = chain.submitted;
       const ownTree = ErgoAddress.decode(await addressOf(WALLET_A, 0)).ergoTree;
@@ -306,6 +304,32 @@ test.describe("dApps", () => {
           o.assets.some((a) => a.tokenId === SIGMA_USD_PARAMETERS.tokens.reserveCoinId)
       );
       expect(received).toBeDefined();
+    });
+
+    test("shows one error for the last edited amount", async ({ popup }) => {
+      const page = popup.page;
+      await page.getByRole("button", { name: "SigmaUSD Protocol" }).click();
+      await expect(page.getByText(/^\d+%$/)).toBeVisible();
+
+      await page.getByRole("button", { name: "Select" }).click();
+      await page.getByRole("option", { name: /SigRSV/ }).click();
+      await expect(page.getByRole("option")).toHaveCount(0);
+
+      const error = page.locator("#sigmausd-error");
+      const [ergAmount, rsvAmount] = await page.getByPlaceholder("0").all();
+
+      await ergAmount.fill("999999999");
+      await expect(error).toHaveText(/Amount must be .* ERG or less$/);
+      await expect(ergAmount).toHaveAttribute("aria-invalid", "true");
+      await expect(ergAmount).toHaveAttribute("aria-describedby", "sigmausd-error");
+      await expect(rsvAmount).not.toHaveAttribute("aria-invalid");
+
+      await rsvAmount.fill("99999999999999");
+      await expect(error).toHaveText(/Bank reserves allow up to .* SigRSV$/);
+      await expect(rsvAmount).toHaveAttribute("aria-invalid", "true");
+      await expect(ergAmount).not.toHaveAttribute("aria-invalid");
+      await expect(page.locator("[data-form-error]")).toHaveCount(1);
+      await expect(page.locator("button", { hasText: "Swap" })).toBeDisabled();
     });
 
     test("blocks SigUSD minting when reserves are too low", async ({ popup, chain }) => {
@@ -351,10 +375,10 @@ test("a token fee pays for the minting box", async ({ chain, popup }) => {
   await expect(page.getByRole("button", { name: /^Adjust fee/ })).toHaveText(/21$/);
 
   await page.getByRole("button", { name: "Mint", exact: true }).click();
-  const drawer = page.getByRole("dialog").filter({ hasText: "Transaction Review" });
+  const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
   await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
   await drawer.getByRole("button", { name: "Sign" }).click();
-  await expect(popup.toast("Transaction sent!")).toBeVisible();
+  await expect(popup.toast("Transaction sent")).toBeVisible();
 
   const [tx] = chain.submitted;
   const tokenId = tx.inputs[0].boxId;

@@ -4,16 +4,19 @@ import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
 import { cn } from "@/common/utils";
 import { Label } from "reka-ui";
+import { useFormField } from "../form/useFormField";
 
 const props = defineProps<LabelProps & { class?: HTMLAttributes["class"]; disabled?: boolean }>();
 
-const delegatedProps = reactiveOmit(props, "class");
+const delegatedProps = reactiveOmit(props, "class", "for");
+const field = useFormField();
 </script>
 
 <template>
   <Label
     data-slot="label"
     v-bind="delegatedProps"
+    :for="props.for ?? field?.id"
     :class="
       cn(
         'flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',

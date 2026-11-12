@@ -3,16 +3,16 @@
     "sigmaUsd": {
       "title": "Protokol SigmaUSD",
       "summary": "Tumbas lan sade SigUSD lan SigRSV.",
-      "insufficientBalance": "Duwitmu {asset} mboten cekap.",
-      "blockedAction": "Amargi cadangan bank sakniki, panjenengan mboten saged {action} langkung saking {amount} {asset}.",
+      "insufficientBalance": "Jumlah kedah kirang saking utawi sami kaliyan {amount} {asset}",
+      "blockedAction": "Cadangan bank namung ngidini ngantos {amount} {asset}",
       "feeSummary": "Biaya {amount}",
-      "protocolFee": "Biaya Protokol",
-      "protocolFeeDesc": "Biaya Protokol langsung nyumbang dhateng cadangan bank.",
-      "serviceFee": "Biaya Layanan",
+      "protocolFee": "Biaya protokol",
+      "protocolFeeDesc": "Biaya protokol langsung nyumbang dhateng cadangan bank.",
+      "serviceFee": "Biaya layanan",
       "serviceFeeDesc": "Nautilus Wallet ngisi biaya datar kangge nyukupi pangembangan kanthi lestari.",
-      "networkFee": "Biaya Jaringan",
+      "networkFee": "Biaya jaringan",
       "networkFeeDesc": "Punika biaya kangge nambahaken transaksi dhateng blockchain.",
-      "totalFee": "Total Biaya",
+      "totalFee": "Total biaya",
       "bankReserves": "Cadangan bank",
       "oracleRate": "Kurs sakniki",
       "buy": "tumbas",
@@ -41,12 +41,13 @@
         "amount": "Jumlah emisi",
         "decimals": "Desimal",
         "mint": "Mint",
-        "nameRequired": "Nami token kedah dipun-isi.",
-        "amountRequired": "Jumlah emisi kedah dipun-isi.",
-        "invalidAmount": "Jumlah kedah langkung ageng saking nol.",
-        "tooManyDecimals": "Jumlah mboten saged gadhah langkung saking {decimals} angka desimal.",
-        "invalidDecimals": "Desimal kedah wujud angka wetah antawis 0 lan {max}.",
-        "tooLong": "Kolom punika kepanjangen."
+        "nameRequired": "Mangga lebetaken nami token",
+        "amountRequired": "Mangga lebetaken jumlah emisi",
+        "invalidAmount": "Jumlah kedah langkung ageng saking 0",
+        "tooManyDecimals": "Jumlah mboten saged gadhah langkung saking {decimals} angka desimal",
+        "invalidDecimals": "Desimal kedah wujud angka wetah saking 0 ngantos {max}",
+        "nameTooLong": "Nami kepanjangan",
+        "descriptionTooLong": "Deskripsi kepanjangan"
       },
       "burn": {
         "tab": "Bakar",
@@ -56,7 +57,7 @@
         "nsfwTokens": "Tambah sedaya token NSFW",
         "nsfwTokensDesc": "Panjenengan mboten gadhah token NSFW ing daftar ireng. | Tambah token NSFW ing daftar ireng ingkang panjenengan gadhahi. | Tambah {count} token NSFW ing daftar ireng ingkang panjenengan gadhahi.",
         "tokens": "Token ingkang badhe dipun-bakar",
-        "noSelectedTokens": "Mangga pilih paling mboten setunggal token kangge dipun-bakar.",
+        "noSelectedTokens": "Mangga pilih paling mboten setunggal token kangge dipunbakar",
         "burn": "Bakar"
       }
     }

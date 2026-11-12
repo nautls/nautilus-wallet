@@ -74,11 +74,11 @@ test.describe("dApp transaction signing", () => {
 
       const sign = win.getByRole("button", { name: "Sign" });
       await sign.click();
-      await expect(win.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
+      await expect(win.getByText(`Enter the "${WALLET_A.name}" password`)).toBeVisible();
 
       await win.getByRole("textbox", { name: / password$/ }).fill("wrong password");
       await sign.click();
-      await expect(toast(win, `Wrong "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(toast(win, `Incorrect "${WALLET_A.name}" password`)).toBeVisible();
       expect(win.isClosed()).toBe(false);
 
       await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);

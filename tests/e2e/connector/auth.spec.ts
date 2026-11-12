@@ -60,14 +60,14 @@ test.describe("dApp authentication (EIP-28)", () => {
       expect(proof).toMatch(/^[0-9a-f]{112}$/);
     });
 
-    test("requires the spending password", async ({ context, dapp }) => {
+    test("requires the wallet password", async ({ context, dapp }) => {
       const { win, result } = await requestAuth(context, dapp, {
         address: await addressOf(WALLET_A, 0),
         message: "login"
       });
 
       await win.getByRole("button", { name: "Authenticate" }).click();
-      await expect(win.getByText(`Please enter the "${WALLET_A.name}" password.`)).toBeVisible();
+      await expect(win.getByText(`Enter the "${WALLET_A.name}" password`)).toBeVisible();
 
       await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });

@@ -3,16 +3,16 @@
     "sigmaUsd": {
       "title": "Protocolo SigmaUSD",
       "summary": "Compre e venda SigUSD e SigRSV.",
-      "insufficientBalance": "Saldo insuficiente de {asset}.",
-      "blockedAction": "Devido às reservas atuais do banco, você não pode {action} mais de {amount} {asset}.",
+      "insufficientBalance": "O valor deve ser menor ou igual a {amount} {asset}",
+      "blockedAction": "As reservas do banco permitem até {amount} {asset}",
       "feeSummary": "Taxas {amount}",
-      "protocolFee": "Taxa do Protocolo",
-      "protocolFeeDesc": "A Taxa do Protocolo contribui diretamente para as reservas do banco.",
-      "serviceFee": "Taxa de Serviço",
+      "protocolFee": "Taxa do protocolo",
+      "protocolFeeDesc": "A taxa do protocolo contribui diretamente para as reservas do banco.",
+      "serviceFee": "Taxa de serviço",
       "serviceFeeDesc": "A Carteira Nautilus cobra uma taxa fixa para financiar seu desenvolvimento de forma sustentável.",
-      "networkFee": "Taxa de Rede",
+      "networkFee": "Taxa de rede",
       "networkFeeDesc": "Este é o custo para adicionar a transação à blockchain.",
-      "totalFee": "Taxa Total",
+      "totalFee": "Taxa total",
       "bankReserves": "Reservas",
       "oracleRate": "Cotação atual",
       "buy": "comprar",
@@ -41,12 +41,13 @@
         "amount": "Quantidade emitida",
         "decimals": "Decimais",
         "mint": "Emitir",
-        "nameRequired": "O nome do token é obrigatório.",
-        "amountRequired": "A quantidade emitida é obrigatória.",
-        "invalidAmount": "A quantidade deve ser maior que zero.",
-        "tooManyDecimals": "A quantidade não pode ter mais de {decimals} casas decimais.",
-        "invalidDecimals": "As casas decimais devem ser um número inteiro entre 0 e {max}.",
-        "tooLong": "Este campo é muito longo."
+        "nameRequired": "Insira um nome para o token",
+        "amountRequired": "Insira a quantidade emitida",
+        "invalidAmount": "A quantidade deve ser maior que 0",
+        "tooManyDecimals": "A quantidade não pode ter mais de {decimals} casas decimais",
+        "invalidDecimals": "As casas decimais devem ser um número inteiro de 0 a {max}",
+        "nameTooLong": "O nome é muito longo",
+        "descriptionTooLong": "A descrição é muito longa"
       },
       "burn": {
         "tab": "Queimar",
@@ -56,7 +57,7 @@
         "nsfwTokens": "Adicionar todos os tokens NSFW",
         "nsfwTokensDesc": "Você não possui nenhum token NSFW da lista negra. | Adicionar o token NSFW da lista negra que você possui. | Adicionar os {count} tokens NSFW da lista negra que você possui.",
         "tokens": "Tokens a queimar",
-        "noSelectedTokens": "Selecione pelo menos um token para queimar.",
+        "noSelectedTokens": "Selecione pelo menos um token para queimar",
         "burn": "Queimar"
       }
     }

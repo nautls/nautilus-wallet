@@ -107,7 +107,7 @@ test.describe("onboarding", () => {
       const toPassword = page.getByRole("button", { name: "Create master password" });
 
       await toPassword.click();
-      await expect(page.getByText("Wallet name is required.")).toBeVisible();
+      await expect(page.getByText("Enter a wallet name")).toBeVisible();
 
       await page.locator("#wallet-name").fill("My wallet");
       await toPassword.click();
@@ -116,12 +116,12 @@ test.describe("onboarding", () => {
 
       const next = page.getByRole("button", { name: "Back up recovery phrase" });
       await next.click();
-      await expect(page.getByText("Master password is required.")).toBeVisible();
+      await expect(page.getByText("Enter your master password")).toBeVisible();
 
       await popup.fillNewPassword("short");
       await next.click();
-      await expect(page.getByText("Password must be at least 10 characters long.")).toBeVisible();
-      await expect(page.getByText("too easy to guess")).toHaveCount(0);
+      await expect(page.getByText("Password must be 10 characters or more")).toBeVisible();
+      await expect(page.getByText("Choose a harder password")).toHaveCount(0);
 
       await popup.fillNewPassword("qwertyuiop");
       await expect(page.locator("[data-password-strength]")).toHaveAttribute(
@@ -129,7 +129,7 @@ test.describe("onboarding", () => {
         "Weak"
       );
       await next.click();
-      await expect(page.getByText("This password is too easy to guess.")).toBeVisible();
+      await expect(page.getByText("Choose a harder password")).toBeVisible();
 
       await popup.fillNewPassword("Summer2024!");
       await expect(page.locator("[data-password-strength]")).toHaveAttribute(
@@ -143,7 +143,7 @@ test.describe("onboarding", () => {
         "Strong"
       );
       await next.click();
-      await expect(page.getByText("Passwords don't match.")).toBeVisible();
+      await expect(page.getByText("Passwords don't match")).toBeVisible();
 
       // still on the password step
       await expect(page.locator("#confirm-password")).toBeVisible();
@@ -180,7 +180,7 @@ test.describe("onboarding", () => {
       await popup.page.getByRole("button", { name: "Confirm" }).click();
 
       await expect(
-        popup.page.getByText("The recovery phrase does not match the original one.")
+        popup.page.getByText("Recovery phrase doesn't match the one shown earlier")
       ).toBeVisible();
       await expect(popup.page).toHaveURL(/#\/add\/new/);
     });
@@ -234,7 +234,7 @@ test.describe("onboarding", () => {
       await popup.paste("this is definitely not a recovery phrase at all ok");
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();
 
-      await expect(popup.page.getByText("Recovery phrase is required.")).toBeVisible();
+      await expect(popup.page.getByText("Enter your recovery phrase")).toBeVisible();
       await expect(popup.page).toHaveURL(/#\/add\/import/);
     });
 
@@ -249,11 +249,11 @@ test.describe("onboarding", () => {
 
       await popup.page.getByRole("button", { name: "Insert a public key" }).click();
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();
-      await expect(popup.page.getByText("Extended public key is required.")).toBeVisible();
+      await expect(popup.page.getByText("Enter an extended public key")).toBeVisible();
 
       await popup.page.locator("#xpk").fill("not a key");
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();
-      await expect(popup.page.getByText("Invalid public key")).toBeVisible();
+      await expect(popup.page.getByText("Enter a valid extended public key")).toBeVisible();
 
       await popup.page.locator("#xpk").fill(await xpubOf(WALLET_A));
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();
@@ -289,7 +289,7 @@ test.describe("onboarding", () => {
       // a wrong master password is caught before leaving the first step
       await page.locator("#password").fill(WALLET_B.password);
       await page.getByRole("button", { name: "Insert a recovery phrase" }).click();
-      await expect(page.getByText("Wrong master password.")).toBeVisible();
+      await expect(page.getByText("Master password is incorrect")).toBeVisible();
       await expect(page.locator("#wallet-name")).toBeVisible();
 
       await page.locator("#password").fill(WALLET_A.password);
@@ -311,10 +311,10 @@ test.describe("onboarding", () => {
       const drawer = page.getByRole("dialog");
       await expect(drawer.getByText("Master password", { exact: true })).toBeVisible();
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(drawer.getByText("Please enter your master password.")).toBeVisible();
+      await expect(drawer.getByText("Enter your master password")).toBeVisible();
       await drawer.locator("#backup-password").fill(WALLET_B.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(popup.toast("Wrong master password")).toBeVisible();
+      await expect(popup.toast("Incorrect master password")).toBeVisible();
       await drawer.locator("#backup-password").fill(WALLET_A.password);
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
       expect(await popup.readMnemonic()).toEqual(WALLET_B.mnemonic.split(" "));
