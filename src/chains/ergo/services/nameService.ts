@@ -5,21 +5,23 @@ import { graphQLService, UnspentTokenBox } from "@/chains/ergo/services/graphQlS
 import { MAINNET } from "@/constants/ergo";
 
 /**
- * Mew Names (`alice.erg`, `alice.ergo`). The resolver API answers which record box holds a
- * name, and the wallet confirms that box against its own GraphQL server before using it.
- * https://github.com/Hq3r/ergonames/blob/main/docs/resolver-api.md
+ * Mew Names (`alice.erg`, `alice.ergo`), https://names.mewfinance.com. The resolver API answers
+ * which record box holds a name, and the wallet confirms that box against its own GraphQL server
+ * before using it.
  */
 export const NAME_SERVICE_URL = "https://names.mewfinance.com/api";
 
-type RecordContract = { treeHash: string; maxExpiryAhead?: number };
+type RecordContract = { treeHash: string; maxExpiryAhead: number };
 
-/** Record contracts by registry, as SHA-256 of the ErgoTree bytes. */
+/**
+ * Record contracts by registry: SHA-256 of the ErgoTree bytes, and the furthest expiry the
+ * contract allows past its box's creation height.
+ */
 export const RECORD_CONTRACTS: Record<string, RecordContract> = {
-  v5: { treeHash: "b493d5adab88f040789bd3eaa819156a622e221e4447da546707362cb826464c" },
-  // Name Record V3 never allows an expiry further than this past its box's creation; a record
-  // beyond it can only come from a storage-rent spend, and the V6 registrar treats it as released.
+  // Name Record V3. Its expiry is at most three renewal periods plus 1,440 blocks ahead; a record
+  // beyond that can only come from a storage-rent spend, and the V6 registrar treats it as released.
   v6: {
-    treeHash: "0761805a011cff8d594551c4895cda390470429b0c21ccd332c24f878b2df40e",
+    treeHash: "4765fa94ba09cb2b0da3b3a4e5dea413b68bb9781c6298d0020224c7f938b6a7",
     maxExpiryAhead: 789_840
   }
 };
@@ -27,7 +29,12 @@ export const RECORD_CONTRACTS: Record<string, RecordContract> = {
 /** About 30 days. */
 export const NAME_EXPIRY_WARNING_BLOCKS = 21_600;
 
-const NAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.(erg|ergo)$/;
+/**
+ * 1 to 63 characters, counted in code points: a-z, 0-9, inner hyphens and emoji from U+1F000 to
+ * U+1FFFF. No other Unicode, so letters from other scripts that look like a-z can't occur.
+ */
+const NAME_PATTERN = /^(?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1FFFF}]){1,63}(?<!-)\.(erg|ergo)$/u;
+const VARIATION_SELECTORS = /[\uFE0E\uFE0F]/gu;
 const HEX_ID_PATTERN = /^[0-9a-f]{64}$/;
 const SIGMA_PROP_P2PK_PREFIX = "08cd";
 const UNRESOLVED_STATUSES = ["not_registered", "expired", "invalid"] as const;
@@ -73,11 +80,14 @@ type NameServiceOptions = {
   fetch?: (url: string) => Promise<Response>;
   getUnspentBoxesByTokenId?: (tokenId: string) => Promise<UnspentTokenBox[]>;
   getHeight?: () => Promise<number | undefined>;
-  recordContracts?: Record<string, RecordContract>;
 };
 
+/**
+ * Trimmed and lowercased, without emoji variation selectors (U+FE0E, U+FE0F): keyboards add them
+ * to some emoji, and the name is the same without them.
+ */
 export function normalizeName(value: string): string {
-  return value.trim().toLowerCase();
+  return value.trim().toLowerCase().replace(VARIATION_SELECTORS, "");
 }
 
 /** Whether the input is meant as a name rather than an address. Names are mainnet only. */
@@ -92,7 +102,6 @@ export function createNameService(options: NameServiceOptions = {}) {
     options.getUnspentBoxesByTokenId ??
     ((tokenId: string) => graphQLService.getUnspentBoxesByTokenId(tokenId));
   const getHeight = options.getHeight ?? (() => graphQLService.getHeight());
-  const recordContracts = options.recordContracts ?? RECORD_CONTRACTS;
 
   async function query(name: string): Promise<ApiAnswer | { status: UnresolvedNameStatus }> {
     const url = `${baseUrl}/v1/resolve?${new URLSearchParams({ name })}`;
@@ -118,7 +127,7 @@ export function createNameService(options: NameServiceOptions = {}) {
   }
 
   async function verify(answer: ApiAnswer): Promise<NameResolution> {
-    const contract = recordContracts[answer.registry];
+    const contract = RECORD_CONTRACTS[answer.registry];
     if (!contract) throw new NameLookupError("unverified", `Unknown registry ${answer.registry}`);
 
     let boxes: UnspentTokenBox[];
@@ -147,14 +156,14 @@ export function createNameService(options: NameServiceOptions = {}) {
     }
 
     const registers = (box.additionalRegisters ?? {}) as Record<string, string | undefined>;
-    if (decodeString(registers.R7) !== answer.name) fail("name");
+    if (decodeBytes(registers.R7) !== hex.encode(utf8.decode(answer.name))) fail("name");
     if (decodeP2PKAddress(registers.R5) !== answer.address) fail("address");
 
     const expiryHeight = decodeNumber(registers.R6);
     if (expiryHeight !== answer.expiryHeight) fail("expiry");
 
     if (expiryHeight <= height) return { status: "expired", name: answer.name };
-    if (contract.maxExpiryAhead && expiryHeight > box.creationHeight + contract.maxExpiryAhead) {
+    if (expiryHeight > box.creationHeight + contract.maxExpiryAhead) {
       return { status: "invalid", name: answer.name };
     }
 
@@ -207,9 +216,10 @@ function isValidAddress(address: string): boolean {
   }
 }
 
-function decodeString(serialized?: string): string | undefined {
+/** Hex of a `Coll[Byte]` register's bytes. */
+function decodeBytes(serialized?: string): string | undefined {
   const data = safeSigmaDecode<Uint8Array>(serialized)?.data;
-  return data instanceof Uint8Array ? utf8.encode(data) : undefined;
+  return data instanceof Uint8Array ? hex.encode(data) : undefined;
 }
 
 function decodeNumber(serialized?: string): number {

@@ -1,5 +1,5 @@
 import { ErgoAddress } from "@fleet-sdk/core";
-import { hex, sha256, utf8 } from "@fleet-sdk/crypto";
+import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SByte, SColl, SLong } from "@fleet-sdk/serializer";
 import { describe, expect, it, vi } from "vitest";
 import type { UnspentTokenBox } from "./graphQlService";
@@ -7,9 +7,9 @@ import { createNameService, isName, NameLookupError, normalizeName } from "./nam
 
 vi.mock("@/chains/ergo/services/graphQlService", () => ({ graphQLService: {} }));
 
-// hq3r.erg on the V5 registry, as read from mainnet at height 1915070
-const V5_RECORD_TREE =
-  "09db07d81bd601e4e30002d602b2a5040000d603d0e4c672020408d604e4c6a70408d605d07204d606e4c672020605d607e4c6a70605d608e4c672020805d609e4c672020905d60ac2a7d60b93b1b5a4d9010b6393c2720b720a0402d60cc1a7d60ddb6308a7d60eb2720d040000d60f0e030008cdd610d0e4c6a70508d611e4c6a70805d612e4c6a70905d613ed93721105009372120500d614ed927211058092f401ececececec93721205f02e93721205e02b93721205d02893721205c02593721205b02293721205a01fd6159683050193720c0580897a93b1720d0402938c720e0205029683040193b17205044893b4720504000406720f93b17210044893b4721004000406720fec72137214d616db63087202d617b27216040000d618d0e4c672020508d6199683080193b1b5a5d901196393c27219720a040293c27202720a93c17202720c93b172160402938c7217018c720e01938c72170205029683040193b17203044893b4720304000406720f93b17218044893b4721804000406720f93e4c67202070ee4c6a7070ed61a7ea305d61b8f721a7207959372010201ea027204d196830901720b72157219721b72139372037205937206720793720805009372090500959372010202ea027204d196830a01720b72157219721b721394720372059372187203937206720793720805009372090500959372010203d801d61c99720695917207721a7207721aea027204d196830b01720b7215721972139372037205937218721092721c05a08a20939e721c05a08a20050093720805009372090500aea5d9011d63ed93c2721dd008cd0373c110be6f32148553221aa5cfba3c3d66cae609bbdca6fa48228396556c437992c1721d9c9d721c05a08a200580c8afa025959372010204ea027204d196830a01720b72157219721b7213937203720593721872109372067207927208058092f401ececececec93720905f02e93720905e02b93720905d02893720905c02593720905b02293720905a01f959372010205d804d61cb2a5040200d61d7e721106d61e9d9c721d7e72120606030186a0d61fb2a5040400d196830a01afa4d9012063ec93c57220c5a7d801d622c27220ed93b17222044893b4722204000406720f720b72157219721b721492b1a5040696830501947203720593721872039372067207937208050093720905009683020193c2721c7205927ec1721c0699721d721e9683020193c2721fd008cd037537248e07814ce5fb6a1fa9db91c7ee8b15d51295e2025367a78ab73da526f8927ec1721f06721e959372010206ea027204d196830901720b72157219721493720372059372187210937206720793720805009372090500d10100";
+// Name Record V3, from contracts/ergo-name-record-v3.json of Mew Names
+const RECORD_TREE =
+  "09e30ad829d601e4e30002d602b2a5040000d603d0e4c672020408d604e4c6a70408d605d07204d606e4c672020605d607e4c6a70605d608e4c672020859d6098c720801d60a8c720802d60bc2a7d60c93b1b5a4d9010c6393c2720c720b0402d60ddb6308a7d60eb2720d040000d60f0e030008cdd610d0e4c6a70508d611e4c6a70859d6128c721101d6138c721102d614ed93721205009372130500d615ed927212058092f401ececececec93721305f02e93721305e02b93721305d02893721305c02593721305b02293721305a01fd6169683040193b1720d0402938c720e0205029683040193b17205044893b4720504000406720f93b17210044893b4721004000406720fec72147215d617c17202d6188cc7720201d6198cc7a701d61adb63087202d61bb2721a040000d61cd0e4c672020508d61de4c6a7070ed61ee4c67202090ed61fb1721ed62096830c0193b1b5a5d901206393c27220720b040293c27202720b927217c1a79272170580897a927218721992721899a304a00b93b1721a0402938c721b018c720e01938c721b0205029683040193b17203044893b4720304000406720f93b1721c044893b4721c04000406720f93e4c67202070e721d90721f048010d6217ea305d6228f72217207d62393721f0400d6240e240008cd037537248e07814ce5fb6a1fa9db91c7ee8b15d51295e2025367a78ab73da526f8d625b1721dd626b095ed917225040a93b4721d997225040a72250e052e6572676fb4721d0400997225040ab4721d040099722504080400d901264002d801d6288c72260195908c72260202bf72289a72280402d627afa4d9012763ec93c57227c5a7d801d629c27227ed93b17229044893b4722904000406720fd6289a720705c0f407d62993721ee4c6a7090e959372010201ea027204d196830901720c721672207222721493720372059372067207937209050093720a0500959372010202ea027204d196830b01720c7216722072227214947203720593721c720372239372067207937209050093720a0500959372010203d806d62ab2db6501fe040000d62bdb6308722ad62cb2722b040000d62de4c6722a0405d62e9972067207d62fb2a5040200ea027204d196830f01720c7216722072148f722172289683050191b1722b0400938c722c010e206a2b821b5727e85beb5e78b4efb9f0250d59cd48481d2ded2c23e91ba1d07c66938c722c02050291722d0500928cc7722a0199a30478937203720593721c7210722992722e05a08a20939e722e05a08a2005009072069a722105e09e60937209050093720a050096830301722793c2722f7224927ec1722f069d9c9c7e9d722e05a08a20067e95937226040205d0860395937226040405a09c0195937226040605904e95937226040805a01f05e807067e9591722d058084af5f722d058084af5f06060164959372010204ea027204d196830b01720c7216722072227214937203720593721c721072299372067207927209058092f401ececececec93720a05f02e93720a05e02b93720a05d02893720a05c02593720a05b02293720a05a01f959372010205d804d62ab2a5040200d62b7e721206d62c9d9c722b7e72130606030186a0d62db2a5040400d196830a017227720c721672207222721592b1a5040696830601947203720593721c720372239372067207937209050093720a05009683020193c2722a7205927ec1722a0699722b722c9683020193c2722d7224927ec1722d06722c959372010206ea027204d196830a01720c721672207215937203720593721c721072299372067207937209050093720a0500959372010207d196830b01720c7216722090721999a304c094409272217228937203720593721c721072299372067207937209721293720a7213d10100";
 const NAME = "hq3r.erg";
 const ADDRESS = "9gvDVNy1XvDeFoi4ZHn5v6u3tFRECMXGKbwuHbijJu6Z2hLQTQz";
 const OTHER_ADDRESS = "9fJiyM6A77VGoN6rNy6dYzYdaJ5JqLKfChoX1QXCYS6kPs4bXBp";
@@ -25,14 +25,13 @@ const answer = {
   expiryHeight: EXPIRY,
   tokenId: TOKEN_ID,
   recordBoxId: BOX_ID,
-  registry: "v5",
-  registryNftId: "d0205941ebcadbef0236d483a8a7a8e354f3ed1add0e470284a13368f671f018",
+  registry: "v6",
   height: HEIGHT
 };
 
 const recordBox: UnspentTokenBox = {
   boxId: BOX_ID,
-  ergoTree: V5_RECORD_TREE,
+  ergoTree: RECORD_TREE,
   creationHeight: 1914766,
   assets: [{ tokenId: TOKEN_ID, amount: "1" }],
   additionalRegisters: {
@@ -64,10 +63,7 @@ function jsonResponse(status: number, body: unknown) {
 function setup({
   response = jsonResponse(200, answer) as Response | Error,
   boxes = [recordBox] as UnspentTokenBox[] | Error,
-  height = HEIGHT as number | null,
-  recordContracts = undefined as NonNullable<
-    Parameters<typeof createNameService>[0]
-  >["recordContracts"]
+  height = HEIGHT as number | null
 } = {}) {
   const fetch = vi.fn(async (url: string) => {
     void url;
@@ -83,8 +79,7 @@ function setup({
   const service = createNameService({
     fetch,
     getUnspentBoxesByTokenId,
-    getHeight,
-    recordContracts
+    getHeight
   });
 
   return { service, fetch, getUnspentBoxesByTokenId };
@@ -109,12 +104,24 @@ describe("isName", () => {
     expect(isName("alice.erg")).toBe(true);
     expect(isName("alice.ergo")).toBe(true);
     expect(isName("a.erg")).toBe(true);
+    expect(isName("7.ergo")).toBe(true);
     expect(isName("my-name-1.erg")).toBe(true);
+    expect(isName("a".repeat(63) + ".erg")).toBe(true);
   });
 
-  it("should trim and lowercase the input", () => {
+  it("should recognise names with emoji, counting an emoji as one character", () => {
+    expect(isName("\u{1F431}.erg")).toBe(true); // cat face
+    expect(isName("cat-\u{1F431}\u{1F680}.ergo")).toBe(true);
+    expect(isName("\u{1F431}".repeat(63) + ".erg")).toBe(true);
+    expect(isName("\u{1F431}".repeat(64) + ".erg")).toBe(false);
+  });
+
+  it("should trim, lowercase and drop emoji variation selectors", () => {
     expect(isName("  Alice.ERG ")).toBe(true);
     expect(normalizeName("  Alice.ERG ")).toBe("alice.erg");
+    expect(normalizeName("\u{1F431}\uFE0F.erg")).toBe("\u{1F431}.erg");
+    expect(normalizeName("\u{1F431}\uFE0E.erg")).toBe("\u{1F431}.erg");
+    expect(isName("\u{1F431}\uFE0F.erg")).toBe(true);
   });
 
   it("should not treat other input as a name", () => {
@@ -123,12 +130,21 @@ describe("isName", () => {
     expect(isName(undefined)).toBe(false);
     expect(isName("alice")).toBe(false);
     expect(isName(".erg")).toBe(false);
+    expect(isName("a".repeat(64) + ".erg")).toBe(false);
     expect(isName("-alice.erg")).toBe(false);
     expect(isName("alice-.erg")).toBe(false);
     expect(isName("sub.alice.erg")).toBe(false);
     expect(isName("alice.eth")).toBe(false);
     expect(isName("al ice.erg")).toBe(false);
-    expect(isName("аlice.erg")).toBe(false); // Cyrillic "а"
+    expect(isName("al_ice.erg")).toBe(false);
+  });
+
+  it("should refuse Unicode other than emoji from U+1F000 to U+1FFFF", () => {
+    expect(isName("\u0430lice.erg")).toBe(false); // Cyrillic "а"
+    expect(isName("caf\u00e9.erg")).toBe(false); // accented "é"
+    expect(isName("\u2764.erg")).toBe(false); // heavy black heart, below the emoji range
+    expect(isName("\u{1F469}\u200D\u{1F4BB}.erg")).toBe(false); // joined emoji
+    expect(isName("\u{20000}.erg")).toBe(false); // above the emoji range
   });
 });
 
@@ -176,7 +192,8 @@ describe("name resolution", () => {
     ["another name", { ...answer, name: "other.erg" }],
     ["a malformed address", { ...answer, address: "not-an-address" }],
     ["a missing token id", { ...answer, tokenId: undefined }],
-    ["an unknown registry", { ...answer, registry: "v7" }]
+    ["an unknown registry", { ...answer, registry: "v7" }],
+    ["the retired V5 registry", { ...answer, registry: "v5" }]
   ])("should fail when the service answers with %s", async (_, body) => {
     const { service } = setup({ response: jsonResponse(200, body) });
     expect(await lookupError(service.resolve(NAME))).toBe("unverified");
@@ -193,6 +210,7 @@ describe("name resolution", () => {
     ],
     ["more than one copy", [withBox({ assets: [{ tokenId: TOKEN_ID, amount: "2" }] })]],
     ["another name", [withBox({}, { R7: bytesRegister("other.erg") })]],
+    ["a name with a variation selector", [withBox({}, { R7: bytesRegister("hq3r\uFE0F.erg") })]],
     ["another address", [withBox({}, { R5: p2pkRegister(OTHER_ADDRESS) })]],
     ["an unreadable address", [withBox({}, { R5: "0e00" })]],
     ["another expiry", [withBox({}, { R6: longRegister(EXPIRY + 1) })]]
@@ -213,24 +231,28 @@ describe("name resolution", () => {
     await expect(service.resolve(NAME)).resolves.toEqual({ status: "expired", name: NAME });
   });
 
-  it("should reject a record with an impossible expiry when the registry limits it", async () => {
-    const ergoTree = "0008cd" + "02".repeat(33);
-    const treeHash = hex.encode(sha256(hex.decode(ergoTree)));
-    const recordContracts = { v6: { treeHash, maxExpiryAhead: 789_840 } };
-    const response = () => jsonResponse(200, { ...answer, registry: "v6" });
-
-    const valid = setup({
-      response: response(),
-      recordContracts,
-      boxes: [withBox({ ergoTree, creationHeight: EXPIRY - 789_840 })]
+  it("should resolve a name with emoji by its canonical bytes", async () => {
+    const name = "\u{1F431}.erg";
+    const { service, fetch } = setup({
+      response: jsonResponse(200, { ...answer, name }),
+      boxes: [withBox({}, { R7: bytesRegister(name) })]
     });
-    await expect(valid.service.resolve(NAME)).resolves.toMatchObject({ status: "resolved" });
 
-    const tooFar = setup({
-      response: response(),
-      recordContracts,
-      boxes: [withBox({ ergoTree, creationHeight: EXPIRY - 789_841 })]
+    await expect(service.resolve("\u{1F431}\uFE0F.ERG")).resolves.toMatchObject({
+      status: "resolved",
+      name,
+      address: ADDRESS
     });
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(
+      "https://names.mewfinance.com/api/v1/resolve?name=%F0%9F%90%B1.erg"
+    );
+  });
+
+  it("should reject a record with an expiry the contract can't produce", async () => {
+    const atLimit = setup({ boxes: [withBox({ creationHeight: EXPIRY - 789_840 })] });
+    await expect(atLimit.service.resolve(NAME)).resolves.toMatchObject({ status: "resolved" });
+
+    const tooFar = setup({ boxes: [withBox({ creationHeight: EXPIRY - 789_841 })] });
     await expect(tooFar.service.resolve(NAME)).resolves.toEqual({ status: "invalid", name: NAME });
   });
 });

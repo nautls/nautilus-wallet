@@ -8,9 +8,9 @@ import { expect, fundWallet, test } from "../fixtures/test";
 import { RECIPIENT_ADDRESS, WALLET_A } from "../fixtures/wallets";
 import { EXTERNAL_ADDRESS, type GqlBox, type MockChain } from "../mocks/chain";
 
-const { v5RecordErgoTree } = JSON.parse(
+const { recordErgoTree } = JSON.parse(
   readFileSync(new URL("../fixtures/data/names.json", import.meta.url), "utf8")
-) as { v5RecordErgoTree: string };
+) as { recordErgoTree: string };
 
 const RESOLVE_URL = "https://names.mewfinance.com/api/v1/resolve?**";
 const NAME = "alice.erg";
@@ -25,7 +25,7 @@ function p2pk(address: string) {
   return treeOf(address).slice(2);
 }
 
-/** Puts a V5 name record on the chain and returns it with the resolver API's answer for it. */
+/** Puts a V6 name record on the chain and returns it with the resolver API's answer for it. */
 function addNameRecord(chain: MockChain, address: string): NameRecord {
   const tokenId = hex32();
   const expiryHeight = chain.height + 100_000;
@@ -35,7 +35,7 @@ function addNameRecord(chain: MockChain, address: string): NameRecord {
     index: 1,
     value: "2000000",
     creationHeight: chain.height - 50,
-    ergoTree: v5RecordErgoTree,
+    ergoTree: recordErgoTree,
     assets: [{ tokenId, amount: "1" }],
     additionalRegisters: {
       R4: p2pk(address),
@@ -53,8 +53,7 @@ function addNameRecord(chain: MockChain, address: string): NameRecord {
     expiryHeight,
     tokenId,
     recordBoxId: box.boxId,
-    registry: "v5",
-    registryNftId: "d0205941ebcadbef0236d483a8a7a8e354f3ed1add0e470284a13368f671f018",
+    registry: "v6",
     height: chain.height
   };
 
