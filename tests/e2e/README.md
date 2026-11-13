@@ -1,7 +1,9 @@
 # End-to-end tests
 
-Playwright tests that load the built Chrome extension (`dist/`) into Chromium and drive the
-popup, the connector windows and the injected dApp API exactly like a user and a dApp would.
+Playwright tests that load the end-to-end build of the Chrome extension (`dist-e2e/`) into
+Chromium and drive the popup, the connector windows and the injected dApp API exactly like a user
+and a dApp would. That build trusts a test name registry, so it goes to its own folder and is
+never the one released.
 
 ```sh
 pnpm test:e2e                                    # build + run everything

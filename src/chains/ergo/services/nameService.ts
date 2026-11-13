@@ -1,7 +1,8 @@
 import { hex, sha256, utf8 } from "@fleet-sdk/crypto";
 import { addressFromPk, validateAddress } from "@/chains/ergo/addresses";
 import { safeSigmaDecode } from "@/chains/ergo/serialization";
-import { graphQLService, InputBox, UnspentTokenBox } from "@/chains/ergo/services/graphQlService";
+import { graphQLService, NameRecordState } from "@/chains/ergo/services/graphQlService";
+import { punycode } from "@/common/punycode";
 import { MAINNET } from "@/constants/ergo";
 
 /**
@@ -25,6 +26,8 @@ export type NameRegistry = {
   registryNftId: string;
   /** SHA-256 of the registrar's ErgoTree bytes. */
   registrarTreeHash: string;
+  /** Output of a registration transaction that holds the new name record. */
+  recordOutputIndex: number;
   /** SHA-256 of the name record's ErgoTree bytes. */
   recordTreeHash: string;
   /** The furthest expiry the record contract allows past its box's creation height. */
@@ -39,6 +42,9 @@ export const NAME_REGISTRY: NameRegistry = {
   registryNftId: import.meta.env.NAME_REGISTRY_NFT_ID || V6_REGISTRY_NFT_ID,
   // Registrar V6
   registrarTreeHash: "7a1d49f981741bad05be406d3d88a58da0e62bfce260fcd14ace808149a1080b",
+  // OUTPUTS(1) when the registrar registers a name (modes 0 and 1); a refresh (mode 2) creates no
+  // record box at all
+  recordOutputIndex: 1,
   // Name Record V3
   recordTreeHash: "4765fa94ba09cb2b0da3b3a4e5dea413b68bb9781c6298d0020224c7f938b6a7",
   // Name Record V3 allows an expiry at most three renewal periods plus 1,440 blocks ahead; a
@@ -51,11 +57,33 @@ export const NAME_REGISTRY: NameRegistry = {
 export const NAME_EXPIRY_WARNING_BLOCKS = 21_600;
 
 /**
- * 1 to 63 characters, counted in code points: a-z, 0-9, inner hyphens and emoji from U+1F000 to
- * U+1FFFF. No other Unicode, so letters from other scripts that look like a-z can't occur.
+ * The Registrar V6 rule: 1 to 63 characters, counted in code points, of a-z, 0-9, inner hyphens
+ * and emoji from U+1F000 to U+1FFFF. No other Unicode, so letters from other scripts that look
+ * like a-z can't occur.
  */
-const NAME_PATTERN = /^(?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1FFFF}]){1,63}(?<!-)\.(erg|ergo)$/u;
+const NAME_PATTERN = /^((?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1FFFF}]){1,63}(?<!-))\.(?:erg|ergo)$/u;
 const VARIATION_SELECTORS = /[\uFE0E\uFE0F]/gu;
+const MAX_DNS_LABEL_LENGTH = 63;
+
+/**
+ * Emoji whose DNS form (UTS #46, as in browsers) maps back to the same emoji, as Mew Names lists
+ * them. The rest of U+1F000-U+1FFFF is unassigned, not valid in DNS, or maps to other text
+ * (U+1F130 to "a"), so it would share a web address with another name.
+ */
+// prettier-ignore
+const WEB_EMOJI: [number, number][] = [
+  [0x1f000, 0x1f02b], [0x1f030, 0x1f093], [0x1f0a0, 0x1f0ae], [0x1f0b1, 0x1f0bf],
+  [0x1f0c1, 0x1f0cf], [0x1f0d1, 0x1f0f5], [0x1f10b, 0x1f10f], [0x1f12f, 0x1f12f],
+  [0x1f150, 0x1f169], [0x1f16d, 0x1f18f], [0x1f191, 0x1f1ad], [0x1f1e6, 0x1f1ff],
+  [0x1f260, 0x1f265], [0x1f300, 0x1f6d7], [0x1f6dc, 0x1f6ec], [0x1f6f0, 0x1f6fc],
+  [0x1f700, 0x1f776], [0x1f77b, 0x1f7d9], [0x1f7e0, 0x1f7eb], [0x1f7f0, 0x1f7f0],
+  [0x1f800, 0x1f80b], [0x1f810, 0x1f847], [0x1f850, 0x1f859], [0x1f860, 0x1f887],
+  [0x1f890, 0x1f8ad], [0x1f8b0, 0x1f8b1], [0x1f900, 0x1fa53], [0x1fa60, 0x1fa6d],
+  [0x1fa70, 0x1fa7c], [0x1fa80, 0x1fa88], [0x1fa90, 0x1fabd], [0x1fabf, 0x1fac5],
+  [0x1face, 0x1fadb], [0x1fae0, 0x1fae8], [0x1faf0, 0x1faf8], [0x1fb00, 0x1fb92],
+  [0x1fb94, 0x1fbca]
+];
+
 const HEX_ID_PATTERN = /^[0-9a-f]{64}$/;
 const SIGMA_PROP_P2PK_PREFIX = "08cd";
 const UNRESOLVED_STATUSES = ["not_registered", "expired", "invalid"] as const;
@@ -101,8 +129,7 @@ type ApiAnswer = {
 type NameServiceOptions = {
   baseUrl?: string;
   fetch?: (url: string) => Promise<Response>;
-  getUnspentBoxesByTokenId?: (tokenId: string) => Promise<UnspentTokenBox[]>;
-  getSpendingTransactionInputs?: (boxId: string) => Promise<InputBox[] | undefined>;
+  getNameRecord?: (tokenId: string, recordBoxId: string) => Promise<NameRecordState>;
   getHeight?: () => Promise<number | undefined>;
   registry?: NameRegistry;
 };
@@ -115,24 +142,34 @@ export function normalizeName(value: string): string {
   return value.trim().toLowerCase().replace(VARIATION_SELECTORS, "");
 }
 
-/** Whether the input is meant as a name rather than an address. Names are mainnet only. */
+/**
+ * Whether the input is meant as a name rather than an address. Names are mainnet only, and only
+ * names with a DNS form of their own are used: not a label that is already a DNS form (`xn--`),
+ * not emoji that map to other text, and not one whose DNS label is over 63 characters. Other
+ * names can exist on chain, but Mew Names doesn't sell them, and the same web address would
+ * stand for two names.
+ */
 export function isName(value?: string | null): value is string {
-  return MAINNET && !!value && NAME_PATTERN.test(normalizeName(value));
+  if (!MAINNET || !value) return false;
+
+  const label = NAME_PATTERN.exec(normalizeName(value))?.[1];
+  if (!label || label.startsWith("xn--")) return false;
+
+  const emoji = [...label].filter((character) => character.length > 1);
+  if (!emoji.length) return true;
+  if (!emoji.every((character) => isWebEmoji(character.codePointAt(0)!))) return false;
+
+  return `xn--${punycode(label)}`.length <= MAX_DNS_LABEL_LENGTH;
 }
 
 export function createNameService(options: NameServiceOptions = {}) {
   const baseUrl = options.baseUrl ?? NAME_SERVICE_URL;
   const fetchImpl = options.fetch ?? ((url: string) => fetch(url));
-  const getBoxes =
-    options.getUnspentBoxesByTokenId ??
-    ((tokenId: string) => graphQLService.getUnspentBoxesByTokenId(tokenId));
-  const getSpendingInputs =
-    options.getSpendingTransactionInputs ??
-    ((boxId: string) => graphQLService.getSpendingTransactionInputs(boxId));
+  const getNameRecord =
+    options.getNameRecord ??
+    ((tokenId: string, recordBoxId: string) => graphQLService.getNameRecord(tokenId, recordBoxId));
   const getHeight = options.getHeight ?? (() => graphQLService.getHeight());
   const registry = options.registry ?? NAME_REGISTRY;
-  /** Record NFTs already found to be issued by the registrar. */
-  const issued = new Set<string>();
 
   async function query(name: string): Promise<ApiAnswer | { status: UnresolvedNameStatus }> {
     const url = `${baseUrl}/v1/resolve?${new URLSearchParams({ name })}`;
@@ -158,22 +195,25 @@ export function createNameService(options: NameServiceOptions = {}) {
   }
 
   /**
-   * Whether the registrar issued the record NFT. A new token's id is the id of the first input
-   * of the transaction that mints it, so the minting transaction is the one that spent the box
-   * with that id, and the registrar box must be one of its inputs.
+   * Whether the registrar issued the record NFT for `name`: the transaction that minted it spent
+   * the registrar box, and minted it into the record output of a registration, a record box with
+   * that name. The registrar then also made it the only token of its kind.
    */
-  async function issuedByRegistrar(tokenId: string): Promise<boolean> {
-    if (issued.has(tokenId)) return true;
+  function issuedByRegistrar({ mintBox, mint }: NameRecordState, tokenId: string, name: string) {
+    if (!mintBox || !mint || mintBox.transactionId !== mint.transactionId) return false;
 
-    const inputs = await getSpendingInputs(tokenId);
-    const fromRegistrar = !!inputs?.some(
-      (box) =>
-        treeHash(box.ergoTree) === registry.registrarTreeHash &&
-        box.assets.some((asset) => asset.tokenId === registry.registryNftId)
+    const registers = (mintBox.additionalRegisters ?? {}) as Record<string, string | undefined>;
+    return (
+      mint.inputs.some(
+        (box) =>
+          treeHash(box.ergoTree) === registry.registrarTreeHash &&
+          box.assets.some((asset) => asset.tokenId === registry.registryNftId)
+      ) &&
+      mintBox.index === registry.recordOutputIndex &&
+      treeHash(mintBox.ergoTree) === registry.recordTreeHash &&
+      holdsOnly(mintBox.assets, tokenId) &&
+      decodeBytes(registers.R7) === hex.encode(utf8.decode(name))
     );
-    if (fromRegistrar) issued.add(tokenId);
-
-    return fromRegistrar;
   }
 
   async function verify(answer: ApiAnswer): Promise<NameResolution> {
@@ -184,14 +224,12 @@ export function createNameService(options: NameServiceOptions = {}) {
       throw new NameLookupError("unverified", "The name registry isn't configured");
     }
 
-    let boxes: UnspentTokenBox[];
+    let record: NameRecordState;
     let height: number | undefined;
-    let fromRegistrar: boolean;
     try {
-      [boxes, height, fromRegistrar] = await Promise.all([
-        getBoxes(answer.tokenId),
-        getHeight(),
-        issuedByRegistrar(answer.tokenId)
+      [record, height] = await Promise.all([
+        getNameRecord(answer.tokenId, answer.recordBoxId),
+        getHeight()
       ]);
     } catch (e) {
       throw new NameLookupError("unavailable", `Chain unreachable: ${String(e)}`);
@@ -202,18 +240,14 @@ export function createNameService(options: NameServiceOptions = {}) {
       throw new NameLookupError("unverified", `Name record mismatch: ${why}`);
     };
 
-    if (!fromRegistrar) fail("not issued by the registrar");
-    if (boxes.length !== 1) fail("expected one unspent box");
-    const [box] = boxes;
+    if (!issuedByRegistrar(record, answer.tokenId, answer.name)) {
+      fail("not issued by the registrar");
+    }
+    // the NFT is the only one of its kind, so the unspent box holding it is the name's record
+    const box = record.recordBox ?? fail("record box spent or missing");
     if (box.boxId !== answer.recordBoxId) fail("record box");
     if (treeHash(box.ergoTree) !== registry.recordTreeHash) fail("contract");
-    if (
-      box.assets.length !== 1 ||
-      box.assets[0].tokenId !== answer.tokenId ||
-      String(box.assets[0].amount) !== "1"
-    ) {
-      fail("assets");
-    }
+    if (!holdsOnly(box.assets, answer.tokenId)) fail("assets");
 
     const registers = (box.additionalRegisters ?? {}) as Record<string, string | undefined>;
     if (decodeBytes(registers.R7) !== hex.encode(utf8.decode(answer.name))) fail("name");
@@ -243,6 +277,8 @@ export function createNameService(options: NameServiceOptions = {}) {
      * name cannot be checked.
      */
     async resolve(input: string): Promise<NameResolution> {
+      if (!isName(input)) throw new Error(`Not a name: ${input}`);
+
       const name = normalizeName(input);
       const answer = await query(name);
       if ("status" in answer) return { status: answer.status, name };
@@ -273,6 +309,15 @@ function isApiAnswer(body: unknown): body is ApiAnswer {
     HEX_ID_PATTERN.test(b.recordBoxId) &&
     typeof b.registry === "string"
   );
+}
+
+/** Whether a box holds exactly one unit of `tokenId` and no other token. */
+function holdsOnly(assets: { tokenId: string; amount: unknown }[], tokenId: string): boolean {
+  return assets.length === 1 && assets[0].tokenId === tokenId && String(assets[0].amount) === "1";
+}
+
+function isWebEmoji(codePoint: number): boolean {
+  return WEB_EMOJI.some(([low, high]) => codePoint >= low && codePoint <= high);
 }
 
 function treeHash(ergoTree: string): string {

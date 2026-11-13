@@ -90,7 +90,8 @@ export default defineConfig(({ mode }) => ({
     modulePreload: false,
     chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
-    outDir: r("dist")
+    // end-to-end builds trust a test name registry, so they never share the release folder
+    outDir: r(mode === "e2e" ? "dist-e2e" : "dist")
   },
   server: {
     port,

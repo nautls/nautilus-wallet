@@ -5,7 +5,7 @@ import { defineConfig } from "@playwright/test";
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS = "1";
 
 /**
- * End-to-end tests run against the built Chrome extension in `dist/`.
+ * End-to-end tests run against the built Chrome extension in `dist-e2e/`.
  * Build it first with `pnpm build:e2e`, or use `pnpm test:e2e`.
  */
 export default defineConfig({

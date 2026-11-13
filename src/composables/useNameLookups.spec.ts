@@ -52,6 +52,22 @@ describe("useNameLookups", () => {
     expect(names.get("alice.erg")).toMatchObject({ state: "done", addressChanged: false });
   });
 
+  it("should flag a changed address after a failed lookup was retried", async () => {
+    const resolve = vi
+      .fn()
+      .mockResolvedValueOnce(resolved(ADDRESS))
+      .mockRejectedValueOnce(new NameLookupError("unavailable", "down"))
+      .mockResolvedValueOnce(resolved(OTHER_ADDRESS));
+    const names = useNameLookups({ resolve });
+
+    await names.lookup("alice.erg");
+    await names.lookup("alice.erg");
+    expect(names.get("alice.erg")).toEqual({ state: "failed", reason: "unavailable" });
+
+    await names.lookup("alice.erg");
+    expect(names.get("alice.erg")).toMatchObject({ state: "done", addressChanged: true });
+  });
+
   it("should keep the newest answer when lookups overlap", async () => {
     const slow = deferred<NameResolution>();
     const resolve = vi

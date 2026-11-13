@@ -17,6 +17,8 @@ export type NameLookups = ReturnType<typeof useNameLookups>;
 export function useNameLookups(service: Pick<typeof nameService, "resolve"> = nameService) {
   const lookups = reactive(new Map<string, NameLookup>());
   const latest = new Map<string, number>();
+  /** The address last shown for each name, kept while later lookups load or fail. */
+  const shown = new Map<string, string>();
   let counter = 0;
 
   function get(input: string): NameLookup | undefined {
@@ -33,13 +35,13 @@ export function useNameLookups(service: Pick<typeof nameService, "resolve"> = na
   async function lookup(input: string): Promise<void> {
     const name = normalizeName(input);
     const id = ++counter;
-    const shownAddress = resolvedAddress(name);
     latest.set(name, id);
     lookups.set(name, { state: "loading" });
 
     let entry: NameLookup;
     try {
       const result = await service.resolve(name);
+      const shownAddress = shown.get(name);
       const addressChanged =
         shownAddress !== undefined &&
         result.status === "resolved" &&
@@ -50,7 +52,12 @@ export function useNameLookups(service: Pick<typeof nameService, "resolve"> = na
     }
 
     // a slower, older lookup must not replace a newer one
-    if (latest.get(name) === id) lookups.set(name, entry);
+    if (latest.get(name) !== id) return;
+
+    lookups.set(name, entry);
+    if (entry.state === "done" && entry.result.status === "resolved") {
+      shown.set(name, entry.result.address);
+    }
   }
 
   return { lookups, get, lookup, resolvedAddress };

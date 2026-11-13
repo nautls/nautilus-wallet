@@ -1,8 +1,9 @@
+import { domainToASCII } from "node:url";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { hex, sha256, utf8 } from "@fleet-sdk/crypto";
 import { SByte, SColl, SLong } from "@fleet-sdk/serializer";
 import { describe, expect, it, vi } from "vitest";
-import type { InputBox, UnspentTokenBox } from "./graphQlService";
+import type { InputBox, MintBox, NameRecordState, RecordBox } from "./graphQlService";
 import {
   createNameService,
   isName,
@@ -44,7 +45,7 @@ const answer = {
   height: HEIGHT
 };
 
-const recordBox: UnspentTokenBox = {
+const recordBox: RecordBox = {
   boxId: BOX_ID,
   ergoTree: RECORD_TREE,
   creationHeight: 1914766,
@@ -65,6 +66,23 @@ const registrarBox: InputBox = {
 };
 const registrantBox: InputBox = { ergoTree: "0008cd" + "03".repeat(33), assets: [] };
 
+type Mint = NonNullable<NameRecordState["mint"]>;
+
+/** The registration that minted the record NFT: it spent the registrar box. */
+const mintTx: Mint = { transactionId: "ee".repeat(32), inputs: [registrantBox, registrarBox] };
+
+/** The box the record NFT was minted into: a registration's record output, OUTPUTS(1). */
+function mintBoxOf(name: string, changes: Partial<MintBox> = {}): MintBox {
+  return {
+    index: 1,
+    transactionId: mintTx.transactionId,
+    ergoTree: RECORD_TREE,
+    assets: [{ tokenId: TOKEN_ID, amount: "1" }],
+    additionalRegisters: { R7: bytesRegister(name) },
+    ...changes
+  };
+}
+
 function p2pkRegister(address: string) {
   return "08cd" + hex.encode(ErgoAddress.decode(address).getPublicKeys()[0]);
 }
@@ -83,9 +101,11 @@ function jsonResponse(status: number, body: unknown) {
 
 function setup({
   response = jsonResponse(200, answer) as Response | Error,
-  boxes = [recordBox] as UnspentTokenBox[] | Error,
-  // null: no transaction spent the box
-  mintInputs = [registrantBox, registrarBox] as InputBox[] | null | Error,
+  // null: spent, or not on chain
+  record = recordBox as RecordBox | null,
+  mintBox = mintBoxOf(NAME) as MintBox | null,
+  mint = mintTx as Mint | null,
+  chainError = undefined as Error | undefined,
   height = HEIGHT as number | null,
   registryNftId = REGISTRY_NFT_ID
 } = {}) {
@@ -94,29 +114,27 @@ function setup({
     if (response instanceof Error) throw response;
     return response.clone();
   });
-  const getUnspentBoxesByTokenId = vi.fn(async (tokenId: string) => {
-    void tokenId;
-    if (boxes instanceof Error) throw boxes;
-    return boxes;
-  });
-  const getSpendingTransactionInputs = vi.fn(async (boxId: string) => {
-    void boxId;
-    if (mintInputs instanceof Error) throw mintInputs;
-    return mintInputs ?? undefined;
+  const getNameRecord = vi.fn(async (tokenId: string, recordBoxId: string) => {
+    void [tokenId, recordBoxId];
+    if (chainError) throw chainError;
+    return {
+      mintBox: mintBox ?? undefined,
+      mint: mint ?? undefined,
+      recordBox: record ?? undefined
+    };
   });
   const getHeight = vi.fn(async () => height ?? undefined);
   const service = createNameService({
     fetch,
-    getUnspentBoxesByTokenId,
-    getSpendingTransactionInputs,
+    getNameRecord,
     getHeight,
     registry: { ...registry, registryNftId }
   });
 
-  return { service, fetch, getUnspentBoxesByTokenId, getSpendingTransactionInputs };
+  return { service, fetch, getNameRecord };
 }
 
-function withBox(changes: Partial<UnspentTokenBox>, registers: Record<string, string> = {}) {
+function withBox(changes: Partial<RecordBox>, registers: Record<string, string> = {}) {
   return {
     ...recordBox,
     ...changes,
@@ -143,7 +161,30 @@ describe("isName", () => {
   it("should recognise names with emoji, counting an emoji as one character", () => {
     expect(isName("\u{1F431}.erg")).toBe(true); // cat face
     expect(isName("cat-\u{1F431}\u{1F680}.ergo")).toBe(true);
-    expect(isName("\u{1F431}".repeat(63) + ".erg")).toBe(true);
+  });
+
+  it("should only recognise names with a DNS form of their own", () => {
+    expect(isName("\u{1F431}.erg")).toBe(true); // its DNS form is xn--5o8h.erg
+    // that DNS form, typed as a name, would be a different name on chain
+    expect(isName("xn--5o8h.erg")).toBe(false);
+    expect(isName("xn--abc.ergo")).toBe(false);
+    expect(isName("xn-abc.erg")).toBe(true);
+    // emoji whose DNS form is other text: U+1F130 maps to "a"
+    expect(isName("\u{1F130}.erg")).toBe(false);
+    expect(isName("\u{1F90C}.erg")).toBe(true); // in a listed range
+    expect(isName("\u{1F6D8}.erg")).toBe(false); // outside the listed ranges
+  });
+
+  it("should refuse names whose DNS label is over 63 characters", () => {
+    const emoji = (count: number) =>
+      Array.from({ length: count }, (_, i) => String.fromCodePoint(0x1f300 + i * 37)).join("");
+
+    expect(domainToASCII(`${emoji(26)}.erg`).split(".")[0]).toHaveLength(61);
+    expect(isName(`${emoji(26)}.erg`)).toBe(true);
+    expect(domainToASCII(`${emoji(27)}.erg`).split(".")[0]).toHaveLength(64);
+    expect(isName(`${emoji(27)}.erg`)).toBe(false);
+    // repeated emoji compress well, so many of them still fit
+    expect(isName("\u{1F431}".repeat(40) + ".erg")).toBe(true);
     expect(isName("\u{1F431}".repeat(64) + ".erg")).toBe(false);
   });
 
@@ -181,7 +222,7 @@ describe("isName", () => {
 
 describe("name resolution", () => {
   it("should resolve a name confirmed by its record box", async () => {
-    const { service, fetch, getUnspentBoxesByTokenId, getSpendingTransactionInputs } = setup();
+    const { service, fetch, getNameRecord } = setup();
 
     await expect(service.resolve(" HQ3R.erg")).resolves.toEqual({
       status: "resolved",
@@ -194,35 +235,53 @@ describe("name resolution", () => {
     expect(fetch).toHaveBeenCalledExactlyOnceWith(
       "https://names.mewfinance.com/api/v1/resolve?name=hq3r.erg"
     );
-    expect(getUnspentBoxesByTokenId).toHaveBeenCalledWith(TOKEN_ID);
-    // the NFT was minted by the transaction that spent the box with the token's id
-    expect(getSpendingTransactionInputs).toHaveBeenCalledWith(TOKEN_ID);
+    expect(getNameRecord).toHaveBeenCalledExactlyOnceWith(TOKEN_ID, BOX_ID);
   });
 
-  it("should check where a record NFT came from only once", async () => {
-    const { service, getSpendingTransactionInputs } = setup();
-
-    await service.resolve(NAME);
-    await service.resolve(NAME);
-    expect(getSpendingTransactionInputs).toHaveBeenCalledOnce();
-  });
+  const otherToken = [{ tokenId: "bb".repeat(32), amount: "1" }];
+  const withInputs = (inputs: InputBox[]) => ({ mint: { ...mintTx, inputs } });
 
   it.each([
-    ["no minting transaction", null],
-    ["a mint without the registrar", [registrantBox]],
+    ["no minting transaction", { mint: null }],
+    ["no minting box", { mintBox: null }],
     [
-      "a registrar box without the registry NFT",
-      [registrantBox, { ...registrarBox, assets: [{ tokenId: "bb".repeat(32), amount: "1" }] }]
+      "a minting box from another transaction",
+      { mintBox: mintBoxOf(NAME, { transactionId: "dd".repeat(32) }) }
     ],
-    ["the registry NFT in another contract", [{ ...registrantBox, assets: registrarBox.assets }]]
-  ])("should fail when the record NFT has %s", async (_, mintInputs) => {
-    const { service, getSpendingTransactionInputs } = setup({ mintInputs });
-
+    ["a mint without the registrar", withInputs([registrantBox])],
+    [
+      "a mint with a registrar box without the registry NFT",
+      withInputs([registrantBox, { ...registrarBox, assets: otherToken }])
+    ],
+    [
+      "a mint with the registry NFT in another contract",
+      withInputs([{ ...registrantBox, assets: registrarBox.assets }])
+    ],
+    [
+      "a minting box with another contract",
+      { mintBox: mintBoxOf(NAME, { ergoTree: "0008cd" + "02".repeat(33) }) }
+    ],
+    ["a minting box naming another name", { mintBox: mintBoxOf("other.erg") }],
+    ["a minting box without the NFT", { mintBox: mintBoxOf(NAME, { assets: otherToken }) }],
+    [
+      "more than one NFT minted",
+      { mintBox: mintBoxOf(NAME, { assets: [{ tokenId: TOKEN_ID, amount: "2" }] }) }
+    ],
+    // a registration's record is OUTPUTS(1); a refresh creates none
+    ["a minting box at another output", { mintBox: mintBoxOf(NAME, { index: 2 }) }]
+  ])("should fail when the record NFT has %s", async (_, chain) => {
+    const { service } = setup(chain);
     expect(await lookupError(service.resolve(NAME))).toBe("unverified");
-    // a failed check isn't remembered
-    await service.resolve(NAME).catch(() => undefined);
-    expect(getSpendingTransactionInputs).toHaveBeenCalledTimes(2);
   });
+
+  it.each(["xn--5o8h.erg", "\u{1F130}.erg", "alice"])(
+    "should refuse %s without asking the service",
+    async (input) => {
+      const { service, fetch } = setup();
+      await expect(service.resolve(input)).rejects.toThrow("Not a name");
+      expect(fetch).not.toHaveBeenCalled();
+    }
+  );
 
   it("should not confirm any name while the registry NFT isn't set", async () => {
     const { service } = setup({ registryNftId: "" });
@@ -232,12 +291,12 @@ describe("name resolution", () => {
   it.each(["not_registered", "expired", "invalid"])(
     "should report a %s name without reading the chain",
     async (status) => {
-      const { service, getUnspentBoxesByTokenId } = setup({
+      const { service, getNameRecord } = setup({
         response: jsonResponse(404, { error: "", name: NAME, status })
       });
 
       await expect(service.resolve(NAME)).resolves.toEqual({ status, name: NAME });
-      expect(getUnspentBoxesByTokenId).not.toHaveBeenCalled();
+      expect(getNameRecord).not.toHaveBeenCalled();
     }
   );
 
@@ -264,33 +323,30 @@ describe("name resolution", () => {
   });
 
   it.each([
-    ["no box", []],
-    ["two boxes", [recordBox, recordBox]],
-    ["another box", [withBox({ boxId: TOKEN_ID })]],
-    ["another contract", [withBox({ ergoTree: "0008cd" + "02".repeat(33) })]],
+    ["no unspent record box", null],
+    ["another box", withBox({ boxId: TOKEN_ID })],
+    ["another contract", withBox({ ergoTree: "0008cd" + "02".repeat(33) })],
     [
       "an extra token",
-      [withBox({ assets: [...recordBox.assets, { tokenId: BOX_ID, amount: "1" }] })]
+      withBox({ assets: [...recordBox.assets, { tokenId: BOX_ID, amount: "1" }] })
     ],
-    ["more than one copy", [withBox({ assets: [{ tokenId: TOKEN_ID, amount: "2" }] })]],
-    ["another name", [withBox({}, { R7: bytesRegister("other.erg") })]],
-    ["a name with a variation selector", [withBox({}, { R7: bytesRegister("hq3r\uFE0F.erg") })]],
-    ["another address", [withBox({}, { R5: p2pkRegister(OTHER_ADDRESS) })]],
-    ["an unreadable address", [withBox({}, { R5: "0e00" })]],
-    ["another expiry", [withBox({}, { R6: longRegister(EXPIRY + 1) })]]
-  ])("should fail when the chain has %s", async (_, boxes) => {
-    const { service } = setup({ boxes });
+    ["more than one copy", withBox({ assets: [{ tokenId: TOKEN_ID, amount: "2" }] })],
+    ["another name", withBox({}, { R7: bytesRegister("other.erg") })],
+    ["a name with a variation selector", withBox({}, { R7: bytesRegister("hq3r\uFE0F.erg") })],
+    ["another address", withBox({}, { R5: p2pkRegister(OTHER_ADDRESS) })],
+    ["an unreadable address", withBox({}, { R5: "0e00" })],
+    ["another expiry", withBox({}, { R6: longRegister(EXPIRY + 1) })]
+  ])("should fail when the chain has %s", async (_, record) => {
+    const { service } = setup({ record });
     expect(await lookupError(service.resolve(NAME))).toBe("unverified");
   });
 
   it("should fail when the chain can't be read", async () => {
-    expect(await lookupError(setup({ boxes: new Error("timeout") }).service.resolve(NAME))).toBe(
+    const timeout = new Error("timeout");
+    expect(await lookupError(setup({ chainError: timeout }).service.resolve(NAME))).toBe(
       "unavailable"
     );
     expect(await lookupError(setup({ height: null }).service.resolve(NAME))).toBe("unavailable");
-    expect(
-      await lookupError(setup({ mintInputs: new Error("timeout") }).service.resolve(NAME))
-    ).toBe("unavailable");
   });
 
   it("should treat a record as expired at the wallet's own height", async () => {
@@ -302,7 +358,8 @@ describe("name resolution", () => {
     const name = "\u{1F431}.erg";
     const { service, fetch } = setup({
       response: jsonResponse(200, { ...answer, name }),
-      boxes: [withBox({}, { R7: bytesRegister(name) })]
+      record: withBox({}, { R7: bytesRegister(name) }),
+      mintBox: mintBoxOf(name)
     });
 
     await expect(service.resolve("\u{1F431}\uFE0F.ERG")).resolves.toMatchObject({
@@ -316,10 +373,10 @@ describe("name resolution", () => {
   });
 
   it("should reject a record with an expiry the contract can't produce", async () => {
-    const atLimit = setup({ boxes: [withBox({ creationHeight: EXPIRY - 789_840 })] });
+    const atLimit = setup({ record: withBox({ creationHeight: EXPIRY - 789_840 }) });
     await expect(atLimit.service.resolve(NAME)).resolves.toMatchObject({ status: "resolved" });
 
-    const tooFar = setup({ boxes: [withBox({ creationHeight: EXPIRY - 789_841 })] });
+    const tooFar = setup({ record: withBox({ creationHeight: EXPIRY - 789_841 }) });
     await expect(tooFar.service.resolve(NAME)).resolves.toEqual({ status: "invalid", name: NAME });
   });
 });

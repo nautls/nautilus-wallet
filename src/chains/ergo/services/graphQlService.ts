@@ -90,8 +90,7 @@ const CHAIN_PARAMS_QUERY = `query chainParams { state { params { minValuePerByte
 const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 1 ) { creationHeight } }`;
 const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
 const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
-const UNSPENT_BOXES_BY_TOKEN_QUERY = `query unspentBoxesByToken($tokenId: String, $take: Int) { boxes(tokenId: $tokenId, spent: false, take: $take) { boxId ergoTree creationHeight additionalRegisters assets { tokenId amount } } }`;
-const SPENDING_TX_INPUTS_QUERY = `query spendingTransactionInputs($boxId: String) { inputs(boxId: $boxId, take: 5) { mainChain transaction { inputs { box { ergoTree assets { tokenId amount } } } } } }`;
+const NAME_RECORD_QUERY = `query nameRecord($tokenId: String!, $recordBoxId: String!) { tokens(tokenIds: [$tokenId]) { box { index transactionId ergoTree additionalRegisters assets { tokenId amount } } } inputs(boxId: $tokenId, take: 5) { mainChain transactionId transaction { inputs { box { ergoTree assets { tokenId amount } } } } } boxes(boxIds: [$recordBoxId], spent: false) { boxId ergoTree creationHeight additionalRegisters assets { tokenId amount } } }`;
 
 type AddressInfoResponse = { addresses: Address[] };
 type CurrentHeightResponse = { blockHeaders: { height: number }[] };
@@ -99,17 +98,35 @@ type ChainParamsResponse = { state: { params?: { minValuePerByte?: number } } };
 type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
 type TokensResponse = { tokens: Token[] };
 type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
-type UnspentBoxesByTokenResponse = { boxes: UnspentTokenBox[] };
-type SpendingTransactionInputsResponse = {
-  inputs: { mainChain: boolean; transaction: { inputs: { box?: InputBox | null }[] } }[];
+type NameRecordResponse = {
+  tokens: { box?: MintBox | null }[];
+  inputs: {
+    mainChain: boolean;
+    transactionId: string;
+    transaction: { inputs: { box?: InputBox | null }[] };
+  }[];
+  boxes: RecordBox[];
 };
 
-export type UnspentTokenBox = Pick<
-  Box,
-  "boxId" | "ergoTree" | "creationHeight" | "additionalRegisters"
-> & { assets: Pick<Asset, "tokenId" | "amount">[] };
+type BoxAssets = { assets: Pick<Asset, "tokenId" | "amount">[] };
+export type InputBox = Pick<Box, "ergoTree"> & BoxAssets;
+export type MintBox = Pick<Box, "index" | "transactionId" | "ergoTree" | "additionalRegisters"> &
+  BoxAssets;
+export type RecordBox = Pick<Box, "boxId" | "ergoTree" | "creationHeight" | "additionalRegisters"> &
+  BoxAssets;
 
-export type InputBox = Pick<Box, "ergoTree"> & { assets: Pick<Asset, "tokenId" | "amount">[] };
+/** What the chain holds about a name record, read in one request. */
+export type NameRecordState = {
+  /** The box the record NFT was minted into. */
+  mintBox?: MintBox;
+  /**
+   * The main-chain transaction that spent the box whose id is the NFT's id: the transaction that
+   * minted the NFT, as a new token's id is the id of its minting transaction's first input.
+   */
+  mint?: { transactionId: string; inputs: InputBox[] };
+  /** The record box, while it is unspent. */
+  recordBox?: RecordBox;
+};
 
 class GraphQLService extends ErgoGraphQLProvider<string> {
   #getAddressInfo;
@@ -118,8 +135,7 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
   #checkOldBoxes;
   #getTokenMetadata;
   #checkMempoolTxs;
-  #getUnspentBoxesByToken;
-  #getSpendingTransactionInputs;
+  #getNameRecord;
 
   constructor() {
     super({
@@ -136,11 +152,7 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     this.#checkOldBoxes = this.createOperation<OldBoxesCheckResponse>(OLD_BOXES_CHECK_QUERY);
     this.#getTokenMetadata = this.createOperation<TokensResponse>(TOKEN_METADATA_QUERY);
     this.#checkMempoolTxs = this.createOperation<MempoolTransactionsResponse>(MEMPOOL_TXS_QUERY);
-    this.#getUnspentBoxesByToken = this.createOperation<UnspentBoxesByTokenResponse>(
-      UNSPENT_BOXES_BY_TOKEN_QUERY
-    );
-    this.#getSpendingTransactionInputs =
-      this.createOperation<SpendingTransactionInputsResponse>(SPENDING_TX_INPUTS_QUERY);
+    this.#getNameRecord = this.createOperation<NameRecordResponse>(NAME_RECORD_QUERY);
   }
 
   #loadServerUrl() {
@@ -246,22 +258,28 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     return result;
   }
 
-  async getUnspentBoxesByTokenId(tokenId: string, take = 2): Promise<UnspentTokenBox[]> {
-    const response = await this.#getUnspentBoxesByToken({ tokenId, take });
-    return response.data.boxes;
-  }
-
   /**
-   * Input boxes of the confirmed transaction that spent `boxId`, or `undefined` when no
-   * main-chain transaction spent it.
+   * The minting box, minting transaction inputs and current box of a name record. Each is found
+   * by an id, as some servers take tens of seconds to list a transaction's outputs or the boxes
+   * holding a token.
    */
-  async getSpendingTransactionInputs(boxId: string): Promise<InputBox[] | undefined> {
-    const response = await this.#getSpendingTransactionInputs({ boxId });
-    const spending = response.data.inputs.find((input) => input.mainChain);
-    return spending?.transaction.inputs.map((input) => {
-      if (!input.box) throw new Error(`Input box of a transaction spending ${boxId} is missing`);
-      return input.box;
-    });
+  async getNameRecord(tokenId: string, recordBoxId: string): Promise<NameRecordState> {
+    const { data } = await this.#getNameRecord({ tokenId, recordBoxId });
+    const spending = data.inputs.find((input) => input.mainChain);
+    const mint = spending && {
+      transactionId: spending.transactionId,
+      inputs: spending.transaction.inputs.map((input) => {
+        if (!input.box)
+          throw new Error(`Input box of a transaction spending ${tokenId} is missing`);
+        return input.box;
+      })
+    };
+
+    return {
+      mintBox: data.tokens[0]?.box ?? undefined,
+      mint,
+      recordBox: data.boxes.find((box) => box.boxId === recordBoxId)
+    };
   }
 
   async mempoolTransactionsLookup(txIds: string[]): Promise<Set<string>> {

@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 /dist
+/dist-e2e
 
 
 # local env files
@@ -23,6 +24,7 @@ pnpm-debug.log*
 *.sw?
 
 docs/.vitepress/dist
+/dist-e2e
 docs/.vitepress/cache
 
 # Playwright

@@ -214,10 +214,8 @@ export class MockChain {
         return { mempool: { transactions: this.#mempoolLookup(vars.transactionIds as string[]) } };
       case "boxes":
         return this.#boxes(query, vars);
-      case "unspentBoxesByToken":
-        return { boxes: this.#unspentWithToken(vars.tokenId as string, vars) };
-      case "spendingTransactionInputs":
-        return { inputs: this.#spendingInputs(vars.boxId as string) };
+      case "nameRecord":
+        return this.#nameRecord(vars.tokenId as string, vars.recordBoxId as string);
       case "confirmedTransactions":
         return { transactions: this.#transactions(this.#confirmed, vars) };
       case "unconfirmedTransactions":
@@ -332,20 +330,24 @@ export class MockChain {
     return result;
   }
 
-  #unspentWithToken(tokenId: string, vars: Record<string, unknown>) {
-    return paginate(
-      this.#unspent.filter((b) => b.assets.some((a) => a.tokenId === tokenId)),
-      vars
-    );
-  }
+  #nameRecord(tokenId: string, recordBoxId: string) {
+    // a token is minted by the transaction that spends the box with its id
+    const mint = this.#confirmed.find((tx) => tx.inputs.some((i) => i.box.boxId === tokenId));
+    const mintBox = mint?.outputs.find((box) => box.assets.some((a) => a.tokenId === tokenId));
 
-  #spendingInputs(boxId: string) {
-    return this.#confirmed
-      .filter((tx) => tx.inputs.some((input) => input.box.boxId === boxId))
-      .map((tx) => ({
-        mainChain: true,
-        transaction: { inputs: tx.inputs.map((input) => ({ box: input.box })) }
-      }));
+    return {
+      tokens: mintBox ? [{ box: mintBox }] : [],
+      inputs: mint
+        ? [
+            {
+              mainChain: true,
+              transactionId: mint.transactionId,
+              transaction: { inputs: mint.inputs.map((input) => ({ box: input.box })) }
+            }
+          ]
+        : [],
+      boxes: this.#unspent.filter((box) => box.boxId === recordBoxId)
+    };
   }
 
   #transactions(source: GqlTransaction[], vars: Record<string, unknown>) {
