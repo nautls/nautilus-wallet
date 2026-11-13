@@ -1,11 +1,13 @@
 # End-to-end tests
 
-Playwright tests that load the built Chrome extension (`dist/`) into Chromium and drive the
-popup, the connector windows and the injected dApp API exactly like a user and a dApp would.
+Playwright tests that load the end-to-end build of the Chrome extension (`dist-e2e/`) into
+Chromium and drive the popup, the connector windows and the injected dApp API exactly like a user
+and a dApp would. That build trusts a test name registry, so it goes to its own folder and is
+never the one released.
 
 ```sh
 pnpm test:e2e                                    # build + run everything
-pnpm exec playwright test tests/e2e/connector    # run a folder (needs a fresh `pnpm build:mainnet:chrome`)
+pnpm exec playwright test tests/e2e/connector    # run a folder (needs a fresh `pnpm build:e2e`)
 pnpm exec playwright test -g "sends ERG" --debug # step through a single test
 ```
 
@@ -23,6 +25,8 @@ The first run needs a browser: `pnpm exec playwright install chromium`.
 - **Fixtures** (`fixtures/`):
   - `headers.json`: 10 mainnet block headers, needed to build the signing context.
   - `sigmausd.json`: mainnet snapshot of the SigmaUSD bank and oracle boxes.
+  - `names.json`: Mew Names contract trees and the test name registry NFT, which `pnpm build:e2e`
+    builds into the extension in place of the mainnet one.
   - `wallets.ts`: deterministic test wallets and address/xpub derivation helpers.
   - `test.ts`: the `chain`, `context`, `extensionId`, `popup` and `dapp` fixtures. Every test gets
     a fresh browser profile.

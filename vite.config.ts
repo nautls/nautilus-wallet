@@ -56,7 +56,7 @@ export default defineConfig(({ mode }) => ({
       clsx: "cn" // dedupe class-variance-authority's clsx import
     }
   },
-  define: defEnv(env),
+  define: defEnv({ ...env, NAME_REGISTRY_NFT_ID: nameRegistryNftId(mode) }),
   plugins: [
     ...(mode === "development" ? plugins : []),
     webExtension({
@@ -90,7 +90,8 @@ export default defineConfig(({ mode }) => ({
     modulePreload: false,
     chunkSizeWarningLimit: 1024,
     emptyOutDir: true,
-    outDir: r("dist")
+    // end-to-end builds trust a test name registry, so they never share the release folder
+    outDir: r(mode === "e2e" ? "dist-e2e" : "dist")
   },
   server: {
     port,
@@ -103,6 +104,14 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ["tests/unit/setup.ts"]
   }
 }));
+
+/** End-to-end test builds trust a test name registry; every other build uses the pinned one. */
+function nameRegistryNftId(mode: string): string {
+  if (mode !== "e2e") return "";
+
+  const names = JSON.parse(readFileSync(r("tests/e2e/fixtures/data/names.json"), "utf8"));
+  return names.registryNftId;
+}
 
 function objectLogger(obj: Record<string, string>): PluginOption {
   const li = (k: string, v: string) => `\x1b[32m➜\x1b[0m ${k} \x1b[36m${v}\x1b[0m`;

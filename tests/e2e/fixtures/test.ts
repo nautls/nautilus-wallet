@@ -10,7 +10,7 @@ import { DAPP_ORIGIN, installServiceMocks, type ServiceOptions } from "../mocks/
 import { Popup } from "../pages/popup";
 import { addressOf, TEST_NFT, TEST_TOKEN, type TestWallet } from "./wallets";
 
-const EXTENSION_PATH = path.resolve(import.meta.dirname, "../../../dist");
+const EXTENSION_PATH = path.resolve(import.meta.dirname, "../../../dist-e2e");
 
 type Fixtures = {
   serviceOptions: ServiceOptions;

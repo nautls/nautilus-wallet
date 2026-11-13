@@ -137,6 +137,11 @@ export class MockChain {
     this.#unspent.push(box);
   }
 
+  /** Adds a confirmed transaction; add its unspent outputs with `addBox`. */
+  addTransaction(tx: GqlTransaction) {
+    this.#confirmed.push(tx);
+  }
+
   /** Advances the chain height. */
   mine(blocks = 1) {
     this.height += blocks;
@@ -209,6 +214,8 @@ export class MockChain {
         return { mempool: { transactions: this.#mempoolLookup(vars.transactionIds as string[]) } };
       case "boxes":
         return this.#boxes(query, vars);
+      case "nameRecord":
+        return this.#nameRecord(vars.tokenId as string, vars.recordBoxId as string);
       case "confirmedTransactions":
         return { transactions: this.#transactions(this.#confirmed, vars) };
       case "unconfirmedTransactions":
@@ -321,6 +328,26 @@ export class MockChain {
     }
 
     return result;
+  }
+
+  #nameRecord(tokenId: string, recordBoxId: string) {
+    // a token is minted by the transaction that spends the box with its id
+    const mint = this.#confirmed.find((tx) => tx.inputs.some((i) => i.box.boxId === tokenId));
+    const mintBox = mint?.outputs.find((box) => box.assets.some((a) => a.tokenId === tokenId));
+
+    return {
+      tokens: mintBox ? [{ box: mintBox }] : [],
+      inputs: mint
+        ? [
+            {
+              mainChain: true,
+              transactionId: mint.transactionId,
+              transaction: { inputs: mint.inputs.map((input) => ({ box: input.box })) }
+            }
+          ]
+        : [],
+      boxes: this.#unspent.filter((box) => box.boxId === recordBoxId)
+    };
   }
 
   #transactions(source: GqlTransaction[], vars: Record<string, unknown>) {
