@@ -42,6 +42,8 @@ interface Props {
   broadcast?: boolean;
   /** Names the user typed, keyed by the address each one resolved to. */
   addressNames?: Record<string, string>;
+  /** Runs once the user confirms, right before signing. Signing stops if it throws. */
+  beforeSign?: () => Promise<void>;
   class?: HTMLAttributes["class"];
 }
 
@@ -55,7 +57,8 @@ const props = withDefaults(defineProps<Props>(), {
   broadcast: true,
   transaction: undefined,
   inputsToSign: undefined,
-  addressNames: undefined
+  addressNames: undefined,
+  beforeSign: undefined
 });
 
 const emit = defineEmits<Emits>();
@@ -125,6 +128,7 @@ async function sign() {
 
   try {
     signing.value = true;
+    await props.beforeSign?.();
 
     if (isLedger.value) {
       const ready = await ledgerDevice.value?.openErgoApp();

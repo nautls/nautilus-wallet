@@ -20,6 +20,8 @@ interface Props {
   transactionBuilder: TransactionBuilderFunction;
   /** Names the user typed, keyed by the address each one resolved to. */
   addressNames?: Record<string, string>;
+  /** Runs once the user confirms, right before signing. Signing stops if it throws. */
+  beforeSign?: () => Promise<void>;
 }
 
 interface Emits {
@@ -128,6 +130,7 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         :transaction="transaction"
         :loading="loading"
         :address-names="props.addressNames"
+        :before-sign="props.beforeSign"
         @success="onSuccess"
         @fail="onFail"
         @refused="setOpened(false)"

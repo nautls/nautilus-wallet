@@ -8,9 +8,9 @@ import { expect, fundWallet, test } from "../fixtures/test";
 import { RECIPIENT_ADDRESS, WALLET_A } from "../fixtures/wallets";
 import { EXTERNAL_ADDRESS, type GqlBox, type MockChain } from "../mocks/chain";
 
-const { recordErgoTree } = JSON.parse(
+const { registryNftId, registrarErgoTree, recordErgoTree } = JSON.parse(
   readFileSync(new URL("../fixtures/data/names.json", import.meta.url), "utf8")
-) as { recordErgoTree: string };
+) as { registryNftId: string; registrarErgoTree: string; recordErgoTree: string };
 
 const RESOLVE_URL = "https://names.mewfinance.com/api/v1/resolve?**";
 const NAME = "alice.erg";
@@ -25,16 +25,19 @@ function p2pk(address: string) {
   return treeOf(address).slice(2);
 }
 
-/** Puts a V6 name record on the chain and returns it with the resolver API's answer for it. */
-function addNameRecord(chain: MockChain, address: string): NameRecord {
-  const tokenId = hex32();
+/**
+ * Puts a V6 name record on the chain, with the transaction that minted its NFT, and returns it
+ * with the resolver API's answer for it. Without `registrar` the NFT is minted by an ordinary
+ * wallet, as anyone can, instead of by the registrar.
+ */
+function addNameRecord(chain: MockChain, address: string, { registrar = true } = {}): NameRecord {
   const expiryHeight = chain.height + 100_000;
-  const box: GqlBox = {
-    boxId: hex32(),
-    transactionId: hex32(),
+  const funding = gqlBox({ ergoTree: treeOf(address), value: "10000000" });
+  // a new token's id is the id of the minting transaction's first input
+  const tokenId = funding.boxId;
+  const box = gqlBox({
     index: 1,
     value: "2000000",
-    creationHeight: chain.height - 50,
     ergoTree: recordErgoTree,
     assets: [{ tokenId, amount: "1" }],
     additionalRegisters: {
@@ -43,7 +46,21 @@ function addNameRecord(chain: MockChain, address: string): NameRecord {
       R6: SLong(BigInt(expiryHeight)).toHex(),
       R7: SColl(SByte, utf8.decode(NAME)).toHex()
     }
-  };
+  });
+  const registrarBox = gqlBox({
+    ergoTree: registrarErgoTree,
+    assets: [{ tokenId: registryNftId, amount: "1" }]
+  });
+  const inputs = registrar ? [funding, registrarBox] : [funding];
+
+  chain.addTransaction({
+    transactionId: box.transactionId,
+    timestamp: String(Date.now()),
+    inputs: inputs.map((input, index) => ({ proofBytes: "", extension: {}, index, box: input })),
+    dataInputs: [],
+    outputs: [box],
+    inclusionHeight: box.creationHeight
+  });
   chain.addBox(box);
 
   const answer = {
@@ -58,6 +75,20 @@ function addNameRecord(chain: MockChain, address: string): NameRecord {
   };
 
   return { box, answer };
+
+  function gqlBox(fields: Partial<GqlBox>): GqlBox {
+    return {
+      boxId: hex32(),
+      transactionId: hex32(),
+      index: 0,
+      value: "1000000",
+      creationHeight: chain.height - 50,
+      ergoTree: "",
+      assets: [],
+      additionalRegisters: {},
+      ...fields
+    };
+  }
 }
 
 /** Serves the resolver API from `answers`; names it doesn't hold are not registered. */
@@ -82,6 +113,15 @@ async function serveResolver(context: BrowserContext, answers: () => Record<stri
 function reviewDrawer(page: Page) {
   return page.getByRole("dialog").filter({ hasText: "Transaction review" });
 }
+
+async function sign(page: Page) {
+  const drawer = reviewDrawer(page);
+  await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
+  await drawer.getByRole("button", { name: "Sign" }).click();
+}
+
+const paidTo = (chain: MockChain, address: string) =>
+  chain.submitted.some((tx) => tx.outputs.some((o) => o.ergoTree === treeOf(address)));
 
 async function fillRecipient(page: Page, recipient: string, ergAmount = "1") {
   await page.locator("#recipient-0").fill(recipient);
@@ -112,12 +152,13 @@ test.describe("send to a name", () => {
     await expect(drawer.locator('[data-receiver-name="0"]')).toHaveText(NAME);
     await expect(drawer.getByText(RECIPIENT_ADDRESS)).toBeVisible();
 
-    // looked up once while typing and again right before signing
+    // looked up while typing and again before the review opens
     expect(requests).toEqual([NAME, NAME]);
 
-    await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
-    await drawer.getByRole("button", { name: "Sign" }).click();
+    await sign(page);
     await expect(popup.toast("Transaction sent")).toBeVisible();
+    // and once more after the user confirms
+    expect(requests).toEqual([NAME, NAME, NAME]);
 
     const [tx] = chain.submitted;
     const payment = tx.outputs.find((o) => o.ergoTree === treeOf(RECIPIENT_ADDRESS));
@@ -169,5 +210,62 @@ test.describe("send to a name", () => {
     const drawer = reviewDrawer(page);
     await expect(drawer.locator('[data-receiver-name="0"]')).toHaveText(NAME);
     await expect(drawer.getByText(EXTERNAL_ADDRESS)).toBeVisible();
+  });
+
+  test("doesn't trust a record NFT the registrar didn't issue", async ({
+    popup,
+    chain,
+    context
+  }) => {
+    const page = popup.page;
+    addNameRecord(chain, RECIPIENT_ADDRESS);
+    // anyone can mint an NFT into a box with the record contract and the name in R7
+    const forged = addNameRecord(chain, EXTERNAL_ADDRESS, { registrar: false });
+    await serveResolver(context, () => ({ [NAME]: forged.answer }));
+
+    await fillRecipient(page, NAME);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(page.getByText("Couldn't confirm this name on the blockchain")).toBeVisible();
+
+    await expect(page.locator('[data-resolved-address="0"]')).toHaveCount(0);
+    await expect(reviewDrawer(page)).toHaveCount(0);
+    expect(chain.submitted).toHaveLength(0);
+  });
+
+  test("doesn't sign when the name changes while the review is open", async ({
+    popup,
+    chain,
+    context
+  }) => {
+    const page = popup.page;
+    const record = addNameRecord(chain, RECIPIENT_ADDRESS);
+    const requests = await serveResolver(context, () => ({ [NAME]: record.answer }));
+
+    await fillRecipient(page, NAME);
+    await expect(page.locator('[data-resolved-address="0"]')).toContainText(RECIPIENT_ADDRESS);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(reviewDrawer(page).getByText(RECIPIENT_ADDRESS)).toBeVisible();
+
+    // the owner points the name at another address: the record box is spent and recreated
+    record.box.boxId = hex32();
+    record.box.additionalRegisters.R5 = p2pk(EXTERNAL_ADDRESS);
+    record.answer = { ...record.answer, recordBoxId: record.box.boxId, address: EXTERNAL_ADDRESS };
+
+    await sign(page);
+    await expect(
+      page.getByText("This name's address changed. Review it again.", { exact: true })
+    ).toBeVisible();
+    await expect(reviewDrawer(page)).toHaveCount(0);
+    expect(requests).toEqual([NAME, NAME, NAME]);
+    expect(chain.submitted).toHaveLength(0);
+
+    // the form shows the new address and asks for another review
+    await expect(page.locator('[data-resolved-address="0"]')).toContainText(EXTERNAL_ADDRESS);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(reviewDrawer(page).getByText(EXTERNAL_ADDRESS)).toBeVisible();
+    await sign(page);
+    await expect(popup.toast("Transaction sent")).toBeVisible();
+    expect(paidTo(chain, RECIPIENT_ADDRESS)).toBe(false);
+    expect(paidTo(chain, EXTERNAL_ADDRESS)).toBe(true);
   });
 });

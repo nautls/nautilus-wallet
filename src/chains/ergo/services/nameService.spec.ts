@@ -1,15 +1,30 @@
 import { ErgoAddress } from "@fleet-sdk/core";
-import { hex, utf8 } from "@fleet-sdk/crypto";
+import { hex, sha256, utf8 } from "@fleet-sdk/crypto";
 import { SByte, SColl, SLong } from "@fleet-sdk/serializer";
 import { describe, expect, it, vi } from "vitest";
-import type { UnspentTokenBox } from "./graphQlService";
-import { createNameService, isName, NameLookupError, normalizeName } from "./nameService";
+import type { InputBox, UnspentTokenBox } from "./graphQlService";
+import {
+  createNameService,
+  isName,
+  NAME_REGISTRY,
+  NameLookupError,
+  normalizeName
+} from "./nameService";
 
 vi.mock("@/chains/ergo/services/graphQlService", () => ({ graphQLService: {} }));
 
 // Name Record V3, from contracts/ergo-name-record-v3.json of Mew Names
 const RECORD_TREE =
   "09e30ad829d601e4e30002d602b2a5040000d603d0e4c672020408d604e4c6a70408d605d07204d606e4c672020605d607e4c6a70605d608e4c672020859d6098c720801d60a8c720802d60bc2a7d60c93b1b5a4d9010c6393c2720c720b0402d60ddb6308a7d60eb2720d040000d60f0e030008cdd610d0e4c6a70508d611e4c6a70859d6128c721101d6138c721102d614ed93721205009372130500d615ed927212058092f401ececececec93721305f02e93721305e02b93721305d02893721305c02593721305b02293721305a01fd6169683040193b1720d0402938c720e0205029683040193b17205044893b4720504000406720f93b17210044893b4721004000406720fec72147215d617c17202d6188cc7720201d6198cc7a701d61adb63087202d61bb2721a040000d61cd0e4c672020508d61de4c6a7070ed61ee4c67202090ed61fb1721ed62096830c0193b1b5a5d901206393c27220720b040293c27202720b927217c1a79272170580897a927218721992721899a304a00b93b1721a0402938c721b018c720e01938c721b0205029683040193b17203044893b4720304000406720f93b1721c044893b4721c04000406720f93e4c67202070e721d90721f048010d6217ea305d6228f72217207d62393721f0400d6240e240008cd037537248e07814ce5fb6a1fa9db91c7ee8b15d51295e2025367a78ab73da526f8d625b1721dd626b095ed917225040a93b4721d997225040a72250e052e6572676fb4721d0400997225040ab4721d040099722504080400d901264002d801d6288c72260195908c72260202bf72289a72280402d627afa4d9012763ec93c57227c5a7d801d629c27227ed93b17229044893b4722904000406720fd6289a720705c0f407d62993721ee4c6a7090e959372010201ea027204d196830901720c721672207222721493720372059372067207937209050093720a0500959372010202ea027204d196830b01720c7216722072227214947203720593721c720372239372067207937209050093720a0500959372010203d806d62ab2db6501fe040000d62bdb6308722ad62cb2722b040000d62de4c6722a0405d62e9972067207d62fb2a5040200ea027204d196830f01720c7216722072148f722172289683050191b1722b0400938c722c010e206a2b821b5727e85beb5e78b4efb9f0250d59cd48481d2ded2c23e91ba1d07c66938c722c02050291722d0500928cc7722a0199a30478937203720593721c7210722992722e05a08a20939e722e05a08a2005009072069a722105e09e60937209050093720a050096830301722793c2722f7224927ec1722f069d9c9c7e9d722e05a08a20067e95937226040205d0860395937226040405a09c0195937226040605904e95937226040805a01f05e807067e9591722d058084af5f722d058084af5f06060164959372010204ea027204d196830b01720c7216722072227214937203720593721c721072299372067207927209058092f401ececececec93720a05f02e93720a05e02b93720a05d02893720a05c02593720a05b02293720a05a01f959372010205d804d62ab2a5040200d62b7e721206d62c9d9c722b7e72130606030186a0d62db2a5040400d196830a017227720c721672207222721592b1a5040696830601947203720593721c720372239372067207937209050093720a05009683020193c2722a7205927ec1722a0699722b722c9683020193c2722d7224927ec1722d06722c959372010206ea027204d196830a01720c721672207215937203720593721c721072299372067207937209050093720a0500959372010207d196830b01720c7216722090721999a304c094409272217228937203720593721c721072299372067207937209721293720a7213d10100";
+// stands in for Registrar V6; only its hash is compared
+const REGISTRAR_TREE = "1004" + "00".repeat(40);
+const REGISTRY_NFT_ID = "aa".repeat(32);
+const registry = {
+  ...NAME_REGISTRY,
+  registryNftId: REGISTRY_NFT_ID,
+  registrarTreeHash: hex.encode(sha256(hex.decode(REGISTRAR_TREE)))
+};
+
 const NAME = "hq3r.erg";
 const ADDRESS = "9gvDVNy1XvDeFoi4ZHn5v6u3tFRECMXGKbwuHbijJu6Z2hLQTQz";
 const OTHER_ADDRESS = "9fJiyM6A77VGoN6rNy6dYzYdaJ5JqLKfChoX1QXCYS6kPs4bXBp";
@@ -44,6 +59,12 @@ const recordBox: UnspentTokenBox = {
   }
 };
 
+const registrarBox: InputBox = {
+  ergoTree: REGISTRAR_TREE,
+  assets: [{ tokenId: REGISTRY_NFT_ID, amount: "1" }]
+};
+const registrantBox: InputBox = { ergoTree: "0008cd" + "03".repeat(33), assets: [] };
+
 function p2pkRegister(address: string) {
   return "08cd" + hex.encode(ErgoAddress.decode(address).getPublicKeys()[0]);
 }
@@ -63,26 +84,36 @@ function jsonResponse(status: number, body: unknown) {
 function setup({
   response = jsonResponse(200, answer) as Response | Error,
   boxes = [recordBox] as UnspentTokenBox[] | Error,
-  height = HEIGHT as number | null
+  // null: no transaction spent the box
+  mintInputs = [registrantBox, registrarBox] as InputBox[] | null | Error,
+  height = HEIGHT as number | null,
+  registryNftId = REGISTRY_NFT_ID
 } = {}) {
   const fetch = vi.fn(async (url: string) => {
     void url;
     if (response instanceof Error) throw response;
-    return response;
+    return response.clone();
   });
   const getUnspentBoxesByTokenId = vi.fn(async (tokenId: string) => {
     void tokenId;
     if (boxes instanceof Error) throw boxes;
     return boxes;
   });
+  const getSpendingTransactionInputs = vi.fn(async (boxId: string) => {
+    void boxId;
+    if (mintInputs instanceof Error) throw mintInputs;
+    return mintInputs ?? undefined;
+  });
   const getHeight = vi.fn(async () => height ?? undefined);
   const service = createNameService({
     fetch,
     getUnspentBoxesByTokenId,
-    getHeight
+    getSpendingTransactionInputs,
+    getHeight,
+    registry: { ...registry, registryNftId }
   });
 
-  return { service, fetch, getUnspentBoxesByTokenId };
+  return { service, fetch, getUnspentBoxesByTokenId, getSpendingTransactionInputs };
 }
 
 function withBox(changes: Partial<UnspentTokenBox>, registers: Record<string, string> = {}) {
@@ -150,12 +181,13 @@ describe("isName", () => {
 
 describe("name resolution", () => {
   it("should resolve a name confirmed by its record box", async () => {
-    const { service, fetch, getUnspentBoxesByTokenId } = setup();
+    const { service, fetch, getUnspentBoxesByTokenId, getSpendingTransactionInputs } = setup();
 
     await expect(service.resolve(" HQ3R.erg")).resolves.toEqual({
       status: "resolved",
       name: NAME,
       address: ADDRESS,
+      recordBoxId: BOX_ID,
       expiryHeight: EXPIRY,
       height: HEIGHT
     });
@@ -163,6 +195,38 @@ describe("name resolution", () => {
       "https://names.mewfinance.com/api/v1/resolve?name=hq3r.erg"
     );
     expect(getUnspentBoxesByTokenId).toHaveBeenCalledWith(TOKEN_ID);
+    // the NFT was minted by the transaction that spent the box with the token's id
+    expect(getSpendingTransactionInputs).toHaveBeenCalledWith(TOKEN_ID);
+  });
+
+  it("should check where a record NFT came from only once", async () => {
+    const { service, getSpendingTransactionInputs } = setup();
+
+    await service.resolve(NAME);
+    await service.resolve(NAME);
+    expect(getSpendingTransactionInputs).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["no minting transaction", null],
+    ["a mint without the registrar", [registrantBox]],
+    [
+      "a registrar box without the registry NFT",
+      [registrantBox, { ...registrarBox, assets: [{ tokenId: "bb".repeat(32), amount: "1" }] }]
+    ],
+    ["the registry NFT in another contract", [{ ...registrantBox, assets: registrarBox.assets }]]
+  ])("should fail when the record NFT has %s", async (_, mintInputs) => {
+    const { service, getSpendingTransactionInputs } = setup({ mintInputs });
+
+    expect(await lookupError(service.resolve(NAME))).toBe("unverified");
+    // a failed check isn't remembered
+    await service.resolve(NAME).catch(() => undefined);
+    expect(getSpendingTransactionInputs).toHaveBeenCalledTimes(2);
+  });
+
+  it("should not confirm any name while the registry NFT isn't set", async () => {
+    const { service } = setup({ registryNftId: "" });
+    expect(await lookupError(service.resolve(NAME))).toBe("unverified");
   });
 
   it.each(["not_registered", "expired", "invalid"])(
@@ -224,6 +288,9 @@ describe("name resolution", () => {
       "unavailable"
     );
     expect(await lookupError(setup({ height: null }).service.resolve(NAME))).toBe("unavailable");
+    expect(
+      await lookupError(setup({ mintInputs: new Error("timeout") }).service.resolve(NAME))
+    ).toBe("unavailable");
   });
 
   it("should treat a record as expired at the wallet's own height", async () => {

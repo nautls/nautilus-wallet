@@ -203,6 +203,7 @@
       "buildError": "Transaction build failed",
       "success": "Transaction sent",
       "successDesc": "Your transaction has been successfully signed and sent.",
+      "nameChanged": "This name's address changed. Review it again.",
       "signError": "Transaction signing failed"
     }
   },

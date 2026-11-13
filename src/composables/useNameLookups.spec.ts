@@ -8,7 +8,14 @@ const ADDRESS = "9gvDVNy1XvDeFoi4ZHn5v6u3tFRECMXGKbwuHbijJu6Z2hLQTQz";
 const OTHER_ADDRESS = "9fJiyM6A77VGoN6rNy6dYzYdaJ5JqLKfChoX1QXCYS6kPs4bXBp";
 
 function resolved(address: string): NameResolution {
-  return { status: "resolved", name: "alice.erg", address, expiryHeight: 2_000_000, height: 1 };
+  return {
+    status: "resolved",
+    name: "alice.erg",
+    address,
+    recordBoxId: "cc".repeat(32),
+    expiryHeight: 2_000_000,
+    height: 1
+  };
 }
 
 function deferred<T>() {

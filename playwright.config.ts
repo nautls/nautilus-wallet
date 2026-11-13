@@ -6,7 +6,7 @@ process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS = "1";
 
 /**
  * End-to-end tests run against the built Chrome extension in `dist/`.
- * Build it first with `pnpm build:mainnet:chrome`, or use `pnpm test:e2e`.
+ * Build it first with `pnpm build:e2e`, or use `pnpm test:e2e`.
  */
 export default defineConfig({
   testDir: "tests/e2e",

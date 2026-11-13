@@ -25,7 +25,11 @@ import {
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
   TxRecipient
 } from "@/chains/ergo/transaction/builder";
-import { isName, NAME_EXPIRY_WARNING_BLOCKS } from "@/chains/ergo/services/nameService";
+import {
+  isName,
+  NAME_EXPIRY_WARNING_BLOCKS,
+  ResolvedName
+} from "@/chains/ergo/services/nameService";
 import { bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
@@ -254,6 +258,7 @@ async function sendTransaction() {
   if (!valid) return scrollToErrorElement();
 
   const addressNames: Record<string, string> = {};
+  const shownNames = new Map<string, ResolvedName>();
   const txRecipients = recipients.value.map(({ address, assets }) => {
     if (!isName(address)) return { address, assets };
 
@@ -263,11 +268,13 @@ async function sendTransaction() {
     }
 
     addressNames[resolved.result.address] = resolved.result.name;
+    shownNames.set(resolved.result.name, resolved.result);
     return { address: resolved.result.address, assets };
   });
 
   openTransactionSignDialog({
     addressNames,
+    beforeSign: shownNames.size ? () => confirmNamesUnchanged(shownNames) : undefined,
     transactionBuilder: async () =>
       createP2PTransaction({
         recipients: txRecipients,
@@ -354,6 +361,32 @@ function setAssetSelector(id: number, el: unknown) {
 
 function isFeeAsset(tokenId: string): boolean {
   return tokenId === fee.value.tokenId;
+}
+
+/**
+ * Looks the names up once more after the user confirms, so a name transferred while the review
+ * was open can't receive the payment meant for its previous address.
+ */
+async function confirmNamesUnchanged(shown: Map<string, ResolvedName>) {
+  await Promise.all([...shown.keys()].map((name) => names.lookup(name)));
+
+  for (const [name, before] of shown) {
+    const lookup = names.get(name);
+    if (lookup?.state === "failed") {
+      throw new Error(
+        t(
+          lookup.reason === "unverified"
+            ? "validation.nameUnverified"
+            : "validation.nameUnavailable"
+        )
+      );
+    }
+
+    const now = lookup?.state === "done" && lookup.result.status === "resolved" && lookup.result;
+    if (!now || now.address !== before.address || now.recordBoxId !== before.recordBoxId) {
+      throw new Error(t("transaction.sign.nameChanged"));
+    }
+  }
 }
 
 function onRecipientBlur(index: number, input: string) {

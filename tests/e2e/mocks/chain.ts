@@ -137,6 +137,11 @@ export class MockChain {
     this.#unspent.push(box);
   }
 
+  /** Adds a confirmed transaction; add its unspent outputs with `addBox`. */
+  addTransaction(tx: GqlTransaction) {
+    this.#confirmed.push(tx);
+  }
+
   /** Advances the chain height. */
   mine(blocks = 1) {
     this.height += blocks;
@@ -211,6 +216,8 @@ export class MockChain {
         return this.#boxes(query, vars);
       case "unspentBoxesByToken":
         return { boxes: this.#unspentWithToken(vars.tokenId as string, vars) };
+      case "spendingTransactionInputs":
+        return { inputs: this.#spendingInputs(vars.boxId as string) };
       case "confirmedTransactions":
         return { transactions: this.#transactions(this.#confirmed, vars) };
       case "unconfirmedTransactions":
@@ -330,6 +337,15 @@ export class MockChain {
       this.#unspent.filter((b) => b.assets.some((a) => a.tokenId === tokenId)),
       vars
     );
+  }
+
+  #spendingInputs(boxId: string) {
+    return this.#confirmed
+      .filter((tx) => tx.inputs.some((input) => input.box.boxId === boxId))
+      .map((tx) => ({
+        mainChain: true,
+        transaction: { inputs: tx.inputs.map((input) => ({ box: input.box })) }
+      }));
   }
 
   #transactions(source: GqlTransaction[], vars: Record<string, unknown>) {

@@ -91,6 +91,7 @@ const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: 
 const TOKEN_METADATA_QUERY = `query Tokens($tokenIds: [String!]) { tokens(tokenIds: $tokenIds) { tokenId type emissionAmount name description decimals boxId box { transactionId additionalRegisters } } }`;
 const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
 const UNSPENT_BOXES_BY_TOKEN_QUERY = `query unspentBoxesByToken($tokenId: String, $take: Int) { boxes(tokenId: $tokenId, spent: false, take: $take) { boxId ergoTree creationHeight additionalRegisters assets { tokenId amount } } }`;
+const SPENDING_TX_INPUTS_QUERY = `query spendingTransactionInputs($boxId: String) { inputs(boxId: $boxId, take: 5) { mainChain transaction { inputs { box { ergoTree assets { tokenId amount } } } } } }`;
 
 type AddressInfoResponse = { addresses: Address[] };
 type CurrentHeightResponse = { blockHeaders: { height: number }[] };
@@ -99,11 +100,16 @@ type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
 type TokensResponse = { tokens: Token[] };
 type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
 type UnspentBoxesByTokenResponse = { boxes: UnspentTokenBox[] };
+type SpendingTransactionInputsResponse = {
+  inputs: { mainChain: boolean; transaction: { inputs: { box?: InputBox | null }[] } }[];
+};
 
 export type UnspentTokenBox = Pick<
   Box,
   "boxId" | "ergoTree" | "creationHeight" | "additionalRegisters"
 > & { assets: Pick<Asset, "tokenId" | "amount">[] };
+
+export type InputBox = Pick<Box, "ergoTree"> & { assets: Pick<Asset, "tokenId" | "amount">[] };
 
 class GraphQLService extends ErgoGraphQLProvider<string> {
   #getAddressInfo;
@@ -113,6 +119,7 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
   #getTokenMetadata;
   #checkMempoolTxs;
   #getUnspentBoxesByToken;
+  #getSpendingTransactionInputs;
 
   constructor() {
     super({
@@ -132,6 +139,8 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     this.#getUnspentBoxesByToken = this.createOperation<UnspentBoxesByTokenResponse>(
       UNSPENT_BOXES_BY_TOKEN_QUERY
     );
+    this.#getSpendingTransactionInputs =
+      this.createOperation<SpendingTransactionInputsResponse>(SPENDING_TX_INPUTS_QUERY);
   }
 
   #loadServerUrl() {
@@ -240,6 +249,19 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
   async getUnspentBoxesByTokenId(tokenId: string, take = 2): Promise<UnspentTokenBox[]> {
     const response = await this.#getUnspentBoxesByToken({ tokenId, take });
     return response.data.boxes;
+  }
+
+  /**
+   * Input boxes of the confirmed transaction that spent `boxId`, or `undefined` when no
+   * main-chain transaction spent it.
+   */
+  async getSpendingTransactionInputs(boxId: string): Promise<InputBox[] | undefined> {
+    const response = await this.#getSpendingTransactionInputs({ boxId });
+    const spending = response.data.inputs.find((input) => input.mainChain);
+    return spending?.transaction.inputs.map((input) => {
+      if (!input.box) throw new Error(`Input box of a transaction spending ${boxId} is missing`);
+      return input.box;
+    });
   }
 
   async mempoolTransactionsLookup(txIds: string[]): Promise<Set<string>> {
