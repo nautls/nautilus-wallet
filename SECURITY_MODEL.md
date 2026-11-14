@@ -58,8 +58,7 @@ a wallet on the master password without typing it. The timeout bounds this.
   that.
 - **IndexedDB (Dexie)** holds cached chain data only. Anything it loses must be refetchable or
   reconstructable from the chain. It can be evicted or cleared, so it holds no secrets and
-  nothing that must persist. Exception: the deprecated `wallets` table, see
-  [Known gaps](#known-gaps).
+  nothing that must persist. Exception: the deprecated `wallets` table.
 - **`localStorage` and `sessionStorage`** are never used. They don't exist in the service worker
   and aren't covered by the `TRUSTED_CONTEXTS` restriction.
 - Never write a secret, password or usable key unencrypted to disk (`storage.local`, IndexedDB
@@ -110,8 +109,7 @@ While the session is active, wallets on the master password can sign without typ
 - **Expiry is checked on every read.** `readUnlockSession` rejects a session idle for longer
   than its timeout, and any session when the timeout is `"off"`. The `alarms` expiry and the
   `idle` "locked" listener only clear the session on time. They can fire late or be missing
-  (Firefox has no `idle`). The `systemLock` timeout is the exception, see
-  [Known gaps](#known-gaps).
+  (Firefox has no `idle`). The `systemLock` timeout is the exception.
 - **Only the user can extend it.** `touchUnlockSession` runs only when the session's master key
   is used: to sign, to add a wallet, or to move a wallet onto the master password. Each of these
   follows a user's click. Status reads (`isUnlocked`, `canUnlock`) and dApp requests must never
