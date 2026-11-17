@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, shallowReactive, watch } from "vue";
+import { computed, inject, onMounted, ref, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
@@ -7,6 +7,7 @@ import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { PRELOADED_SETTINGS } from "@/boot/preload";
 import { log } from "@/common/logger";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
@@ -63,9 +64,13 @@ export const useAppStore = defineStore("app", () => {
   const privateState = usePrivateState();
   const chain = useChainStore();
   const router = useRouter();
-  const settings = useWebExtStorage<Settings>("settings", DEFAULT_SETTINGS, {
-    mergeDefaults: true
-  });
+  const settings = useWebExtStorage<Settings>(
+    "settings",
+    inject(PRELOADED_SETTINGS, DEFAULT_SETTINGS),
+    {
+      mergeDefaults: true
+    }
+  );
   const colorMode = useColorMode({
     storageKey: null /** disable storage */,
     initialValue: settings.value.colorMode
@@ -92,7 +97,8 @@ export const useAppStore = defineStore("app", () => {
     (newServerUrl) => {
       graphQLService.setUrl(newServerUrl);
       sendBackendServerUrl(newServerUrl);
-    }
+    },
+    { immediate: true }
   );
 
   watch(() => chain.height, checkPendingBoxes);
