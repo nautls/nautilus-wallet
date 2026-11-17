@@ -1,5 +1,5 @@
+import type { BigNumber } from "@/common/bigNumber";
 import { createRule, Maybe } from "@regle/core";
-import BigNumber from "bignumber.js";
 import { useFormat } from "../composables/useFormat";
 import { gt } from "@/i18n";
 

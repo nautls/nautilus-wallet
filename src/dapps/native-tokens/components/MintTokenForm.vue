@@ -2,7 +2,6 @@
 import { computed, nextTick, Ref, ref, useTemplateRef } from "vue";
 import { mergeRegles, Maybe, useRegle } from "@regle/core";
 import { required, withMessage, withParams } from "@regle/rules";
-import BigNumber from "bignumber.js";
 import { useI18n } from "vue-i18n";
 import ActionFooter from "@/components/ActionFooter.vue";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
@@ -12,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { bn, decimalize } from "@/common/bigNumber";
+import { type BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { useFormat, useProgrammaticDialog } from "@/composables";
 import { useNumericMask } from "@/composables/useNumericMask";
 import { useCollectChildValidations } from "@/composables/useValidationScope";

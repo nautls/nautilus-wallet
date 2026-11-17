@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T extends Asset">
+import type { BigNumber } from "@/common/bigNumber";
 import { computed, Ref, ref, useTemplateRef } from "vue";
 import { useResizeObserver, useVModel } from "@vueuse/core";
-import BigNumber from "bignumber.js";
 import { CheckIcon, PlusIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";

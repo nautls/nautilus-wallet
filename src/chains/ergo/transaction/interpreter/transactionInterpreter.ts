@@ -8,9 +8,8 @@ import {
   utxoDiff,
   utxoSum
 } from "@fleet-sdk/common";
-import BigNumber from "bignumber.js";
 import { groupBy } from "es-toolkit";
-import { bn, decimalize, sumBy } from "@/common/bigNumber";
+import { type BigNumber, bn, decimalize, sumBy } from "@/common/bigNumber";
 import { ERG_TOKEN_ID, MAINNET_MINER_FEE_TREE } from "@/constants/ergo";
 import { ErgoBoxCandidate, Token } from "@/types/connector";
 import { AssetsMetadataMap } from "@/types/internal";

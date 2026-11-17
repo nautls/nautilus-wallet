@@ -1,5 +1,12 @@
 import BigNumber from "bignumber.js";
 
+// BigNumbers are immutable, so Vue never needs to track their internals. Deep-proxying them makes
+// every operation on a value held in reactive state an order of magnitude slower. Importing
+// BigNumber only through this module guarantees the flag is set before any instance exists.
+Object.defineProperty(BigNumber.prototype, "__v_skip", { value: true });
+
+export { BigNumber };
+
 type BNInput = BigNumber | string | number | bigint;
 
 export function decimalize(value: BigNumber, decimals?: number): BigNumber;

@@ -3,7 +3,6 @@ import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { withMessage } from "@regle/rules";
-import BigNumber from "bignumber.js";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
 import { ChevronsUpDownIcon, Loader2Icon, SlidersHorizontalIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -16,7 +15,7 @@ import { FormField } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
-import { bn, decimalize } from "@/common/bigNumber";
+import { BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useChildRegle } from "@/composables/useValidationScope";

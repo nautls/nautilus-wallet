@@ -1,8 +1,7 @@
 import { isValidBabelContract } from "@fleet-sdk/babel-fees-plugin";
 import { AddressType, EIP12UnsignedInput, isEmpty } from "@fleet-sdk/common";
 import { ErgoAddress, Network } from "@fleet-sdk/core";
-import BigNumber from "bignumber.js";
-import { bn, decimalize } from "@/common/bigNumber";
+import { type BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
 import { ErgoBoxCandidate } from "@/types/connector";
 import { AssetsMetadataMap, BasicAssetMetadata } from "@/types/internal";

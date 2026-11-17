@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { useVModel } from "@vueuse/core";
-import BigNumber from "bignumber.js";
 import { ChevronsUpDownIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { AssetIcon, AssetInput, AssetSelect } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { PopoverTrigger } from "@/components/ui/popover";
-import { bn } from "@/common/bigNumber";
+import { type BigNumber, bn } from "@/common/bigNumber";
 import { Asset } from ".";
 
 const EMPTY_ASSET: Asset = { tokenId: "EMPTY_ASSET", balance: bn(0) };

@@ -3,7 +3,6 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { mergeRegles, useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
-import BigNumber from "bignumber.js";
 import { CheckCheckIcon, UserPlusIcon, XIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
@@ -24,7 +23,7 @@ import {
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
   TxRecipient
 } from "@/chains/ergo/transaction/builder";
-import { bn, decimalize } from "@/common/bigNumber";
+import { type BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { useCollectChildValidations } from "@/composables/useValidationScope";

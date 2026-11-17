@@ -1,7 +1,6 @@
 import { onBeforeUnmount, onMounted, Ref, shallowRef, watch } from "vue";
-import BigNumber from "bignumber.js";
 import Cleave, { CleaveOnChangedEvent, CleaveOptions } from "cleave.js";
-import { bn } from "@/common/bigNumber";
+import { type BigNumber, bn } from "@/common/bigNumber";
 
 interface HTMLCleaveInputElement extends HTMLInputElement {
   cleave?: Cleave;

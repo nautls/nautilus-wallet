@@ -51,6 +51,19 @@ export default [
       "sort-imports": "off",
 
       "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "bignumber.js",
+              message:
+                "Import BigNumber from @/common/bigNumber, which opts it out of Vue reactivity.",
+              allowTypeImports: true
+            }
+          ]
+        }
+      ],
 
       "vue/component-api-style": ["warn", ["script-setup", "composition"]],
       "vue/multi-word-component-names": "off",
@@ -69,5 +82,9 @@ export default [
       "@intlify/vue-i18n/no-v-html": "off",
       "@intlify/vue-i18n/valid-message-syntax": "off"
     }
+  },
+  {
+    files: ["src/common/bigNumber.ts"],
+    rules: { "@typescript-eslint/no-restricted-imports": "off" }
   }
 ];

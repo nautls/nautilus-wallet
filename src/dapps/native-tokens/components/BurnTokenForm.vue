@@ -2,7 +2,6 @@
 import { computed, nextTick, ref, useTemplateRef } from "vue";
 import { mergeRegles, useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
-import BigNumber from "bignumber.js";
 import { differenceBy } from "es-toolkit";
 import { EyeOffIcon, FlameIcon, ShieldAlertIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -18,7 +17,7 @@ import { Form, FormField } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TxAssetAmount } from "@/chains/ergo/transaction/builder";
-import { bn, decimalize, undecimalize } from "@/common/bigNumber";
+import { BigNumber, bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables";
 import { useCollectChildValidations } from "@/composables/useValidationScope";

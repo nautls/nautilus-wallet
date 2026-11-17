@@ -1,5 +1,4 @@
-import BigNumber from "bignumber.js";
-import { bn } from "@/common/bigNumber";
+import { type BigNumber, bn } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { getLocale } from "@/i18n";
 import { currencySymbolMap } from "@/mappers/currencySymbolMap";

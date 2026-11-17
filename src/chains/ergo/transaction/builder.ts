@@ -7,13 +7,12 @@ import {
   OutputBuilder,
   TransactionBuilder
 } from "@fleet-sdk/core";
-import BigNumber from "bignumber.js";
 import { useAppStore } from "@/stores/appStore";
 import { useChainStore } from "@/stores/chainStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { validateAddress } from "@/chains/ergo/addresses";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { bn, undecimalize } from "@/common/bigNumber";
+import { BigNumber, bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings, WalletType } from "@/types/internal";

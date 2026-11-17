@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { required, withMessage } from "@regle/rules";
-import BigNumber from "bignumber.js";
 import { ArrowDownUpIcon, ArrowUpLeftIcon, TrashIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
@@ -11,7 +10,7 @@ import { AssetIcon } from "@/components/asset";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { bn } from "@/common/bigNumber";
+import { BigNumber, bn } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useChildRegle } from "@/composables/useValidationScope";
