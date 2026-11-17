@@ -1,6 +1,6 @@
+import type { BigNumber } from "@/common/bigNumber";
 import { computed, MaybeRefOrGetter, toValue } from "vue";
 import { markStatic } from "@regle/core";
-import BigNumber from "bignumber.js";
 
 /**
  * Regle treats object values as nested forms, so `BigNumber` instances must be

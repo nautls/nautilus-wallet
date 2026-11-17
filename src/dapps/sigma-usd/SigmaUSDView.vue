@@ -16,7 +16,6 @@ import { BoxSource } from "@fleet-sdk/blockchain-providers";
 import { Maybe, useRegle } from "@regle/core";
 import { withMessage, withParams } from "@regle/rules";
 import { pausableWatch, useIntervalFn } from "@vueuse/core";
-import BigNumber from "bignumber.js";
 import {
   ArrowDownIcon,
   ArrowDownUpIcon,
@@ -45,7 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SAFE_MAX_CHANGE_TOKEN_LIMIT } from "@/chains/ergo/transaction/builder";
-import { bn, dbn, undecimalize } from "@/common/bigNumber";
+import { type BigNumber, bn, dbn, undecimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useFormat } from "@/composables";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";

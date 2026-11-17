@@ -1,7 +1,6 @@
 import { EIP12UnsignedTransaction, isEmpty, TokenAmount } from "@fleet-sdk/common";
 import { OutputBuilder, SAFE_MIN_BOX_VALUE, TransactionBuilder } from "@fleet-sdk/core";
-import BigNumber from "bignumber.js";
-import { bn } from "@/common/bigNumber";
+import { type BigNumber, bn } from "@/common/bigNumber";
 import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
