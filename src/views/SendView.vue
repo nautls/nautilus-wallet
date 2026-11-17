@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { isEmpty } from "@fleet-sdk/common";
 import { mergeRegles, useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
+import { watchDebounced } from "@vueuse/core";
 import BigNumber from "bignumber.js";
 import { CheckCheckIcon, UserPlusIcon, XIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -24,25 +25,40 @@ import {
   SAFE_MAX_CHANGE_TOKEN_LIMIT,
   TxRecipient
 } from "@/chains/ergo/transaction/builder";
+import {
+  isName,
+  NAME_EXPIRY_WARNING_BLOCKS,
+  ResolvedName
+} from "@/chains/ergo/services/nameService";
 import { bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
+import { useNameLookups } from "@/composables/useNameLookups";
 import { useCollectChildValidations } from "@/composables/useValidationScope";
-import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
+import {
+  BLOCK_TIME_IN_MINUTES,
+  ERG_DECIMALS,
+  ERG_TOKEN_ID,
+  MIN_BOX_VALUE,
+  SAFE_MIN_FEE_VALUE
+} from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
-import { validErgoAddress } from "@/validators";
+import { validErgoAddressOrName } from "@/validators";
 
 type Recipient = TxRecipient & { id: number };
 type AssetSelectInstance = { close(): void; clearSearch(): void };
+type NameHint = { address: string; expiresInDays?: number };
 
 const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
 const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
+const MINUTES_IN_A_DAY = 24 * 60;
 
 const wallet = useWalletStore();
 const route = useRoute();
 
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+const names = useNameLookups();
 
 const assetSelectors = new Map<number, AssetSelectInstance>();
 const recipients = ref<Recipient[]>([]);
@@ -56,7 +72,8 @@ const { r$ } = useRegle(
       $each: {
         address: {
           required: withMessage(required, () => t("transaction.send.emptyAddressError")),
-          validErgoAddress
+          // a new map on every change, so regle validates again once a lookup finishes
+          validErgoAddressOrName: validErgoAddressOrName(() => new Map(names.lookups))
         },
         assets: {
           required: withMessage(required, () => t("transaction.send.noSelectedAssetsError"))
@@ -70,6 +87,16 @@ const { r$ } = useRegle(
 // collects child components validations, like asset amounts and fee settings
 const { r$: children$ } = useCollectChildValidations();
 const form$ = mergeRegles({ r$, children$ });
+
+watchDebounced(
+  () => recipients.value.map((r) => r.address),
+  (inputs) => {
+    for (const input of inputs) {
+      if (isName(input) && !names.get(input)) names.lookup(input);
+    }
+  },
+  { debounce: 400 }
+);
 
 onMounted(() => {
   const address = typeof route.query.recipient === "string" ? route.query.recipient : "";
@@ -87,6 +114,8 @@ const selectedTotals = computed(() => {
 
   return totals;
 });
+
+const nameHints = computed(() => recipients.value.map((r) => nameHintFor(r.address)));
 
 const unselected = computed(() =>
   wallet.balance.filter((asset) => !selectedTotals.value.has(asset.tokenId))
@@ -221,13 +250,34 @@ async function scrollToErrorElement() {
 }
 
 async function sendTransaction() {
+  // names can be transferred at any time, so look them up again right before signing
+  const typedNames = new Set(recipients.value.map((r) => r.address).filter(isName));
+  await Promise.all([...typedNames].map((name) => names.lookup(name)));
+
   const { valid } = await form$.$validate();
   if (!valid) return scrollToErrorElement();
 
+  const addressNames: Record<string, string> = {};
+  const shownNames = new Map<string, ResolvedName>();
+  const txRecipients = recipients.value.map(({ address, assets }) => {
+    if (!isName(address)) return { address, assets };
+
+    const resolved = names.get(address);
+    if (resolved?.state !== "done" || resolved.result.status !== "resolved") {
+      throw new Error(`Unresolved name: ${address}`);
+    }
+
+    addressNames[resolved.result.address] = resolved.result.name;
+    shownNames.set(resolved.result.name, resolved.result);
+    return { address: resolved.result.address, assets };
+  });
+
   openTransactionSignDialog({
+    addressNames,
+    beforeSign: shownNames.size ? () => confirmNamesUnchanged(shownNames) : undefined,
     transactionBuilder: async () =>
       createP2PTransaction({
-        recipients: recipients.value.map(({ address, assets }) => ({ address, assets })),
+        recipients: txRecipients,
         fee: fee.value,
         walletType: wallet.type
       }),
@@ -312,6 +362,56 @@ function setAssetSelector(id: number, el: unknown) {
 function isFeeAsset(tokenId: string): boolean {
   return tokenId === fee.value.tokenId;
 }
+
+/**
+ * Looks the names up once more after the user confirms, so a name transferred while the review
+ * was open can't receive the payment meant for its previous address.
+ */
+async function confirmNamesUnchanged(shown: Map<string, ResolvedName>) {
+  await Promise.all([...shown.keys()].map((name) => names.lookup(name)));
+
+  for (const [name, before] of shown) {
+    const lookup = names.get(name);
+    if (lookup?.state === "failed") {
+      throw new Error(
+        t(
+          lookup.reason === "unverified"
+            ? "validation.nameUnverified"
+            : "validation.nameUnavailable"
+        )
+      );
+    }
+
+    const now = lookup?.state === "done" && lookup.result.status === "resolved" && lookup.result;
+    if (!now || now.address !== before.address || now.recordBoxId !== before.recordBoxId) {
+      throw new Error(t("transaction.sign.nameChanged"));
+    }
+  }
+}
+
+function onRecipientBlur(index: number, input: string) {
+  r$.recipients.$each[index]?.address.$touch();
+  if (!isName(input)) return;
+
+  const state = names.get(input)?.state;
+  if (!state || state === "failed") names.lookup(input);
+}
+
+function nameHintFor(input: string): NameHint | undefined {
+  if (!isName(input)) return;
+
+  const lookup = names.get(input);
+  if (lookup?.state !== "done" || lookup.result.status !== "resolved") return;
+
+  const { address, expiryHeight, height } = lookup.result;
+  const blocksLeft = expiryHeight - height;
+  const expiresInDays =
+    blocksLeft <= NAME_EXPIRY_WARNING_BLOCKS
+      ? Math.max(1, Math.floor((blocksLeft * BLOCK_TIME_IN_MINUTES) / MINUTES_IN_A_DAY))
+      : undefined;
+
+  return { address, expiresInDays };
+}
 </script>
 
 <template>
@@ -349,8 +449,16 @@ function isFeeAsset(tokenId: string): boolean {
             type="text"
             spellcheck="false"
             class="w-full"
-            @blur="r$.recipients.$each[index]?.address.$touch()"
+            @blur="onRecipientBlur(index, recipient.address)"
           />
+          <template v-if="nameHints[index]" #description>
+            <span :data-resolved-address="index" class="font-mono break-all">
+              {{ t("transaction.send.nameResolvesTo", { address: nameHints[index].address }) }}
+            </span>
+            <span v-if="nameHints[index].expiresInDays" class="text-warning mt-1 block">
+              {{ t("transaction.send.nameExpiresSoon", { days: nameHints[index].expiresInDays }) }}
+            </span>
+          </template>
         </FormField>
 
         <FormField>

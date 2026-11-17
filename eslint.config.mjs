@@ -10,6 +10,7 @@ export default [
     ignores: [
       "**/node_modules",
       "**/dist",
+      "**/dist-e2e",
       "**/coverage",
       "**/docs",
       "src/components/ui",

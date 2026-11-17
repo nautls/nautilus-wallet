@@ -1,12 +1,14 @@
 import bigNumberMaxVal from "./bigNumberMaxVal";
 import bigNumberMinVal from "./bigNumberMinVal";
 import ergoAddress from "./ergoAddress";
+import ergoAddressOrName from "./ergoAddressOrName";
 import mnemonic from "./mnemonic";
 import publicKey from "./publicKey";
 import url from "./url";
 
 export const validPublicKey = publicKey;
 export const validErgoAddress = ergoAddress;
+export const validErgoAddressOrName = ergoAddressOrName;
 export const validMnemonic = mnemonic;
 export const validUrl = url;
 export const bigNumberMinValue = bigNumberMinVal;
