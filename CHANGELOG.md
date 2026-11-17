@@ -1,5 +1,14 @@
 # nautilus-wallet
 
+## 2.0.0-alpha.1
+
+### Patch Changes
+
+- 148fa8f: Speed up forms that handle asset amounts.
+- 13eb2fc: Fix the drawer close button ignoring clicks while an empty password field has focus.
+- 9dbc904: Fix balances and theme briefly showing defaults when the popup opens.
+- f9031df: Fix wallet header resizing when the popup opens.
+
 ## 2.0.0-alpha.0
 
 ### Major Changes
