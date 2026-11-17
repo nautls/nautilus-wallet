@@ -3,20 +3,13 @@ allowBuilds:
   spawn-sync: true
   vue-demi: true
 minimumReleaseAge: 10080 # 7 days
-minimumReleaseAgeExclude:
-  - markdown-it@14.3.3
-  - node-forge@1.4.1
 overrides:
   webextension-polyfill@<0.12.0: ^0.12.0 # avoid multiple versions of the same thing
   adm-zip@<0.6.1: ^0.6.1
   shell-quote@<1.9.0: ^1.9.0
-  source-map-js@<1.2.2: ^1.2.2
   tmp@<0.2.6: ^0.2.6
   uuid@<11.1.1: ^11.1.1
   vitepress>vite: ^6.4.3
-  markdown-it@<14.3.3: ^14.3.3
-  markdown-it@>=14.1.0 <14.3.3: ^14.3.3
-  node-forge@<=1.4.0: ^1.4.1
   glob@>=9.0.0 <=14.0.1: ^14.0.2
   minimatch@>=7.0.0 <11.0.1: ^11.0.1
 patchedDependencies:
