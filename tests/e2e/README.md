@@ -25,8 +25,9 @@ The first run needs a browser: `pnpm exec playwright install chromium`.
 - **Fixtures** (`fixtures/`):
   - `headers.json`: 10 mainnet block headers, needed to build the signing context.
   - `sigmausd.json`: mainnet snapshot of the SigmaUSD bank and oracle boxes.
-  - `names.json`: Mew Names contract trees and the test name registry NFT, which `pnpm build:e2e`
-    builds into the extension in place of the mainnet one.
+  - `names.json`: Mew Names contract trees and the test name registry NFT. `pnpm build:e2e` builds
+    the NFT id and the SHA-256 of `registrarErgoTree` into the extension in place of the mainnet
+    launch values.
   - `wallets.ts`: deterministic test wallets and address/xpub derivation helpers.
   - `test.ts`: the `chain`, `context`, `extensionId`, `popup` and `dapp` fixtures. Every test gets
     a fresh browser profile.

@@ -107,7 +107,8 @@ function setup({
   mint = mintTx as Mint | null,
   chainError = undefined as Error | undefined,
   height = HEIGHT as number | null,
-  registryNftId = REGISTRY_NFT_ID
+  registryNftId = REGISTRY_NFT_ID,
+  registrarTreeHash = registry.registrarTreeHash
 } = {}) {
   const fetch = vi.fn(async (url: string) => {
     void url;
@@ -128,7 +129,7 @@ function setup({
     fetch,
     getNameRecord,
     getHeight,
-    registry: { ...registry, registryNftId }
+    registry: { ...registry, registryNftId, registrarTreeHash }
   });
 
   return { service, fetch, getNameRecord };
@@ -173,6 +174,14 @@ describe("isName", () => {
     expect(isName("\u{1F130}.erg")).toBe(false);
     expect(isName("\u{1F90C}.erg")).toBe(true); // in a listed range
     expect(isName("\u{1F6D8}.erg")).toBe(false); // outside the listed ranges
+  });
+
+  it("should refuse Symbols for Legacy Computing, which Registrar V6 doesn't allow", () => {
+    expect(isName("\u{1FB00}.erg")).toBe(false);
+    expect(isName("\u{1FBF1}.erg")).toBe(false); // segmented digit one
+    expect(isName("a\u{1FBCA}b.ergo")).toBe(false);
+    expect(isName("\u{1FAF8}\u{1FC00}.erg")).toBe(false); // U+1FC00 is unassigned
+    expect(isName("\u{1FAF8}.erg")).toBe(true); // just below the range
   });
 
   it("should refuse names whose DNS label is over 63 characters", () => {
@@ -284,8 +293,15 @@ describe("name resolution", () => {
   );
 
   it("should not confirm any name while the registry NFT isn't set", async () => {
-    const { service } = setup({ registryNftId: "" });
+    const { service, getNameRecord } = setup({ registryNftId: "" });
     expect(await lookupError(service.resolve(NAME))).toBe("unverified");
+    expect(getNameRecord).not.toHaveBeenCalled();
+  });
+
+  it("should not confirm any name while the registrar tree hash isn't set", async () => {
+    const { service, getNameRecord } = setup({ registrarTreeHash: "" });
+    expect(await lookupError(service.resolve(NAME))).toBe("unverified");
+    expect(getNameRecord).not.toHaveBeenCalled();
   });
 
   it.each(["not_registered", "expired", "invalid"])(

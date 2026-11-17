@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /// <reference types="vitest/config" />
 import { execSync } from "child_process";
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, URL } from "node:url";
@@ -56,7 +57,7 @@ export default defineConfig(({ mode }) => ({
       clsx: "cn" // dedupe class-variance-authority's clsx import
     }
   },
-  define: defEnv({ ...env, NAME_REGISTRY_NFT_ID: nameRegistryNftId(mode) }),
+  define: defEnv({ ...env, ...nameRegistry(mode) }),
   plugins: [
     ...(mode === "development" ? plugins : []),
     webExtension({
@@ -106,11 +107,16 @@ export default defineConfig(({ mode }) => ({
 }));
 
 /** End-to-end test builds trust a test name registry; every other build uses the pinned one. */
-function nameRegistryNftId(mode: string): string {
-  if (mode !== "e2e") return "";
+function nameRegistry(mode: string) {
+  if (mode !== "e2e") return { NAME_REGISTRY_NFT_ID: "", NAME_REGISTRAR_TREE_HASH: "" };
 
   const names = JSON.parse(readFileSync(r("tests/e2e/fixtures/data/names.json"), "utf8"));
-  return names.registryNftId;
+  return {
+    NAME_REGISTRY_NFT_ID: names.registryNftId as string,
+    NAME_REGISTRAR_TREE_HASH: createHash("sha256")
+      .update(Buffer.from(names.registrarErgoTree, "hex"))
+      .digest("hex")
+  };
 }
 
 function objectLogger(obj: Record<string, string>): PluginOption {

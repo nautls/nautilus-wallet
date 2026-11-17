@@ -20,8 +20,8 @@ export type NameRegistry = {
   /** `registry` in the resolver API's answer. */
   id: string;
   /**
-   * NFT held by the registrar box. While it is empty no name can be confirmed, so names don't
-   * resolve. The end-to-end tests build with a test registry instead.
+   * NFT held by the registrar box. While it or `registrarTreeHash` is empty no name can be
+   * confirmed, so names don't resolve. The end-to-end tests build with a test registry instead.
    */
   registryNftId: string;
   /** SHA-256 of the registrar's ErgoTree bytes. */
@@ -34,14 +34,18 @@ export type NameRegistry = {
   maxExpiryAhead: number;
 };
 
-/** Registry NFT of Registrar V6, set once the registry is created on mainnet. */
+/**
+ * Registrar V6 launch values, both set once the registry is created on mainnet: the registry NFT,
+ * and the SHA-256 of the registrar's ErgoTree. The registrar compiles the registry NFT id, its
+ * operator key and its open height into its tree, so the hash is only known after launch.
+ */
 const V6_REGISTRY_NFT_ID = "";
+const V6_REGISTRAR_TREE_HASH = "";
 
 export const NAME_REGISTRY: NameRegistry = {
   id: "v6",
   registryNftId: import.meta.env.NAME_REGISTRY_NFT_ID || V6_REGISTRY_NFT_ID,
-  // Registrar V6
-  registrarTreeHash: "7a1d49f981741bad05be406d3d88a58da0e62bfce260fcd14ace808149a1080b",
+  registrarTreeHash: import.meta.env.NAME_REGISTRAR_TREE_HASH || V6_REGISTRAR_TREE_HASH,
   // OUTPUTS(1) when the registrar registers a name (modes 0 and 1); a refresh (mode 2) creates no
   // record box at all
   recordOutputIndex: 1,
@@ -58,17 +62,20 @@ export const NAME_EXPIRY_WARNING_BLOCKS = 21_600;
 
 /**
  * The Registrar V6 rule: 1 to 63 characters, counted in code points, of a-z, 0-9, inner hyphens
- * and emoji from U+1F000 to U+1FFFF. No other Unicode, so letters from other scripts that look
+ * and emoji from U+1F000 to U+1FFFF, except U+1FB00 to U+1FBFF (Symbols for Legacy Computing),
+ * whose segmented digits look like 0-9. No other Unicode, so letters from other scripts that look
  * like a-z can't occur.
  */
-const NAME_PATTERN = /^((?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1FFFF}]){1,63}(?<!-))\.(?:erg|ergo)$/u;
+const NAME_PATTERN =
+  /^((?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1FAFF}\u{1FC00}-\u{1FFFF}]){1,63}(?<!-))\.(?:erg|ergo)$/u;
 const VARIATION_SELECTORS = /[\uFE0E\uFE0F]/gu;
 const MAX_DNS_LABEL_LENGTH = 63;
 
 /**
  * Emoji whose DNS form (UTS #46, as in browsers) maps back to the same emoji, as Mew Names lists
- * them. The rest of U+1F000-U+1FFFF is unassigned, not valid in DNS, or maps to other text
- * (U+1F130 to "a"), so it would share a web address with another name.
+ * them. The rest of U+1F000-U+1FFFF is unassigned, not valid in DNS, maps to other text (U+1F130
+ * to "a"), so it would share a web address with another name, or is not a valid V6 character
+ * (U+1FB00-U+1FBFF, where U+1FBF1 maps to "1").
  */
 // prettier-ignore
 const WEB_EMOJI: [number, number][] = [
@@ -80,8 +87,7 @@ const WEB_EMOJI: [number, number][] = [
   [0x1f800, 0x1f80b], [0x1f810, 0x1f847], [0x1f850, 0x1f859], [0x1f860, 0x1f887],
   [0x1f890, 0x1f8ad], [0x1f8b0, 0x1f8b1], [0x1f900, 0x1fa53], [0x1fa60, 0x1fa6d],
   [0x1fa70, 0x1fa7c], [0x1fa80, 0x1fa88], [0x1fa90, 0x1fabd], [0x1fabf, 0x1fac5],
-  [0x1face, 0x1fadb], [0x1fae0, 0x1fae8], [0x1faf0, 0x1faf8], [0x1fb00, 0x1fb92],
-  [0x1fb94, 0x1fbca]
+  [0x1face, 0x1fadb], [0x1fae0, 0x1fae8], [0x1faf0, 0x1faf8]
 ];
 
 const HEX_ID_PATTERN = /^[0-9a-f]{64}$/;
@@ -220,7 +226,7 @@ export function createNameService(options: NameServiceOptions = {}) {
     if (answer.registry !== registry.id) {
       throw new NameLookupError("unverified", `Unknown registry ${answer.registry}`);
     }
-    if (!registry.registryNftId) {
+    if (!registry.registryNftId || !registry.registrarTreeHash) {
       throw new NameLookupError("unverified", "The name registry isn't configured");
     }
 
