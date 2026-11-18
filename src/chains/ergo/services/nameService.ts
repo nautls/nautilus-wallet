@@ -62,26 +62,27 @@ export const NAME_EXPIRY_WARNING_BLOCKS = 21_600;
 
 /**
  * The Registrar V6 rule: 1 to 63 characters, counted in code points, of a-z, 0-9, inner hyphens
- * and emoji from U+1F000 to U+1FFFF, except U+1FB00 to U+1FBFF (Symbols for Legacy Computing),
- * whose segmented digits look like 0-9. No other Unicode, so letters from other scripts that look
- * like a-z can't occur.
+ * and emoji from U+1F000 to U+1FFFF, except U+1F100 to U+1F16F and U+1F190 (digits with stops,
+ * parenthesized, circled and squared letters, which NFKC maps to letters or digits) and U+1FB00
+ * to U+1FBFF (Symbols for Legacy Computing, whose segmented digits look like 0-9). No other
+ * Unicode, so letters from other scripts that look like a-z can't occur.
  */
 const NAME_PATTERN =
-  /^((?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1FAFF}\u{1FC00}-\u{1FFFF}]){1,63}(?<!-))\.(?:erg|ergo)$/u;
+  /^((?!-)(?:[a-z0-9-]|[\u{1F000}-\u{1F0FF}\u{1F170}-\u{1F18F}\u{1F191}-\u{1FAFF}\u{1FC00}-\u{1FFFF}]){1,63}(?<!-))\.(?:erg|ergo)$/u;
 const VARIATION_SELECTORS = /[\uFE0E\uFE0F]/gu;
 const MAX_DNS_LABEL_LENGTH = 63;
 
 /**
  * Emoji whose DNS form (UTS #46, as in browsers) maps back to the same emoji, as Mew Names lists
- * them. The rest of U+1F000-U+1FFFF is unassigned, not valid in DNS, maps to other text (U+1F130
- * to "a"), so it would share a web address with another name, or is not a valid V6 character
- * (U+1FB00-U+1FBFF, where U+1FBF1 maps to "1").
+ * them. The rest of U+1F000-U+1FFFF is unassigned, not valid in DNS, maps to other text (U+1F21A
+ * to "無"), so it would share a web address with another name, or is not a valid V6 character
+ * (U+1F100-U+1F16F, U+1F190 and U+1FB00-U+1FBFF, where U+1FBF1 maps to "1").
  */
 // prettier-ignore
 const WEB_EMOJI: [number, number][] = [
   [0x1f000, 0x1f02b], [0x1f030, 0x1f093], [0x1f0a0, 0x1f0ae], [0x1f0b1, 0x1f0bf],
-  [0x1f0c1, 0x1f0cf], [0x1f0d1, 0x1f0f5], [0x1f10b, 0x1f10f], [0x1f12f, 0x1f12f],
-  [0x1f150, 0x1f169], [0x1f16d, 0x1f18f], [0x1f191, 0x1f1ad], [0x1f1e6, 0x1f1ff],
+  [0x1f0c1, 0x1f0cf], [0x1f0d1, 0x1f0f5], [0x1f170, 0x1f18f], [0x1f191, 0x1f1ad],
+  [0x1f1e6, 0x1f1ff],
   [0x1f260, 0x1f265], [0x1f300, 0x1f6d7], [0x1f6dc, 0x1f6ec], [0x1f6f0, 0x1f6fc],
   [0x1f700, 0x1f776], [0x1f77b, 0x1f7d9], [0x1f7e0, 0x1f7eb], [0x1f7f0, 0x1f7f0],
   [0x1f800, 0x1f80b], [0x1f810, 0x1f847], [0x1f850, 0x1f859], [0x1f860, 0x1f887],

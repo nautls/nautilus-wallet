@@ -170,10 +170,23 @@ describe("isName", () => {
     expect(isName("xn--5o8h.erg")).toBe(false);
     expect(isName("xn--abc.ergo")).toBe(false);
     expect(isName("xn-abc.erg")).toBe(true);
-    // emoji whose DNS form is other text: U+1F130 maps to "a"
-    expect(isName("\u{1F130}.erg")).toBe(false);
+    // emoji whose DNS form is other text: U+1F21A maps to "無"
+    expect(isName("\u{1F21A}.erg")).toBe(false);
+    expect(isName("\u{1FFFD}.erg")).toBe(false); // unassigned
     expect(isName("\u{1F90C}.erg")).toBe(true); // in a listed range
     expect(isName("\u{1F6D8}.erg")).toBe(false); // outside the listed ranges
+  });
+
+  it("should refuse letter and digit forms, which Registrar V6 doesn't allow", () => {
+    // squared letters that read "alice"
+    expect(isName("\u{1F130}\u{1F13B}\u{1F138}\u{1F132}\u{1F134}.erg")).toBe(false);
+    for (const codePoint of [0x1f100, 0x1f13f, 0x1f140, 0x1f150, 0x1f16f, 0x1f190]) {
+      expect(isName(`${String.fromCodePoint(codePoint)}.erg`)).toBe(false);
+    }
+    expect(isName("\u{1F170}.erg")).toBe(true); // negative squared A
+    expect(isName("\u{1F197}.erg")).toBe(true); // squared OK
+    expect(isName("\u{1F1FA}\u{1F1F8}.erg")).toBe(true); // US flag
+    expect(isName("\u{1F191}.erg")).toBe(true); // squared CL
   });
 
   it("should refuse Symbols for Legacy Computing, which Registrar V6 doesn't allow", () => {
@@ -283,7 +296,7 @@ describe("name resolution", () => {
     expect(await lookupError(service.resolve(NAME))).toBe("unverified");
   });
 
-  it.each(["xn--5o8h.erg", "\u{1F130}.erg", "alice"])(
+  it.each(["xn--5o8h.erg", "\u{1F130}.erg", "\u{1F21A}.erg", "alice"])(
     "should refuse %s without asking the service",
     async (input) => {
       const { service, fetch } = setup();
