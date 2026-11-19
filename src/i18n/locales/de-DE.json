@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Wallet-Guthaben",
+    "totalBalanceNoRate": "Wallet-Guthaben in ERG, kein {currency}-Kurs",
+    "balanceHidden": "Guthaben ausgeblendet",
+    "amountHidden": "Betrag ausgeblendet",
+    "loadingBalance": "Guthaben wird geladen",
     "noConversionRate": "Kein Umrechnungskurs",
     "add": "Asset hinzufügen",
     "noAssetsFound": "Keine Assets gefunden.",

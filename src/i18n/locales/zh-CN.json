@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "钱包余额",
+    "totalBalanceNoRate": "钱包余额（ERG），无 {currency} 兑换率",
+    "balanceHidden": "余额已隐藏",
+    "amountHidden": "金额已隐藏",
+    "loadingBalance": "正在加载余额",
     "noConversionRate": "无兑换率",
     "add": "添加资产",
     "noAssetsFound": "未找到资产。",

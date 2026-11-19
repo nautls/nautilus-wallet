@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Баланс кошелька",
+    "totalBalanceNoRate": "Баланс кошелька в ERG, нет курса {currency}",
+    "balanceHidden": "Баланс скрыт",
+    "amountHidden": "Сумма скрыта",
+    "loadingBalance": "Загрузка баланса",
     "noConversionRate": "Нет курса конвертации",
     "add": "Добавить актив",
     "noAssetsFound": "Активы не найдены.",

@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Baki dompet",
+    "totalBalanceNoRate": "Baki dompet dalam ERG, tiada kadar {currency}",
+    "balanceHidden": "Baki disembunyikan",
+    "amountHidden": "Jumlah disembunyikan",
+    "loadingBalance": "Memuatkan baki",
     "noConversionRate": "Tiada kadar penukaran",
     "add": "Tambah aset",
     "noAssetsFound": "Tiada aset ditemui.",

@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Solde du portefeuille",
+    "totalBalanceNoRate": "Solde du portefeuille en ERG, aucun taux {currency}",
+    "balanceHidden": "Solde masqué",
+    "amountHidden": "Montant masqué",
+    "loadingBalance": "Chargement du solde",
     "noConversionRate": "Aucun taux de conversion",
     "add": "Ajouter un actif",
     "noAssetsFound": "Aucun actif trouvé.",

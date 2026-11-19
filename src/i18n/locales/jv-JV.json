@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Duwit dompet",
+    "totalBalanceNoRate": "Duwit dompet ing ERG, mboten wonten kurs {currency}",
+    "balanceHidden": "Duwit dipun dhelikaken",
+    "amountHidden": "Jumlah dipun dhelikaken",
+    "loadingBalance": "Nembe ngemot duwit",
     "noConversionRate": "Mboten wonten kurs konversi",
     "add": "Tambah aset",
     "noAssetsFound": "Mboten wonten aset kapanggihaken.",
