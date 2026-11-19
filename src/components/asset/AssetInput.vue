@@ -7,9 +7,9 @@ import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance } from "@/stores/walletStore";
 import { AssetIcon } from "@/components/asset";
+import HiddenAmount from "@/components/HiddenAmount.vue";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
-import { Skeleton } from "@/components/ui/skeleton";
 import { BigNumber, bn } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
@@ -316,7 +316,11 @@ function tokenRate(tokenId: string): number {
         </div>
 
         <template v-if="props.asset.balance.isPositive()">
-          <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
+          <HiddenAmount
+            v-if="app.settings.hideBalances"
+            class="text-muted-foreground text-xs"
+            :class="props.disabled && 'opacity-50'"
+          />
           <Button
             v-else
             type="button"

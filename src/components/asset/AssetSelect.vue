@@ -6,6 +6,7 @@ import { CheckIcon, PlusIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { AssetIcon } from "@/components/asset";
+import HiddenAmount from "@/components/HiddenAmount.vue";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -16,7 +17,6 @@ import {
   CommandList
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn, isErg } from "@/common/utils";
 import { useFormat } from "@/composables";
 import { AssetInfo } from "@/types/internal";
@@ -139,9 +139,7 @@ function filter(items: (T | string)[]) {
                 v-if="props.showBalance && asset.balance?.isPositive()"
                 class="text-right align-middle text-xs whitespace-nowrap"
               >
-                <div v-if="app.settings.hideBalances" class="flex flex-col items-end gap-1">
-                  <Skeleton class="h-4 w-12 animate-none" />
-                </div>
+                <HiddenAmount v-if="app.settings.hideBalances" />
                 <template v-else>
                   <div class="tabular-nums">
                     {{ format.number.decimal(asset.balance) }}

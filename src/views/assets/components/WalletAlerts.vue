@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { ExternalLinkIcon } from "@lucide/vue";
+import { useIntervalFn } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/appStore";
@@ -23,8 +24,11 @@ const { t } = useI18n();
 
 const { open: openMnemonicBackupDialog } = useProgrammaticDialog(MnemonicBackupDialog);
 
+const now = ref(Date.now());
+useIntervalFn(() => (now.value = Date.now()), 60_000);
+
 const isUsed = computed(() => wallet.addresses.some((a) => a.state === AddressState.Used));
-const isRecent = computed(() => Date.now() - wallet.createdAt < RECENT_WALLET_INTERVAL);
+const isRecent = computed(() => now.value - wallet.createdAt < RECENT_WALLET_INTERVAL);
 
 // only display the backup alert if the wallet is used or not recently added
 const showBackupAlert = computed(
@@ -36,12 +40,27 @@ const backupAlertVariant = computed(() =>
   !isUsed.value ? "default" : isRecent.value ? "destructive-outline" : "destructive"
 );
 
+// read-only wallets would reach the optimizer only to be refused at signing
+const canOptimize = computed(() => wallet.type !== "readonly");
+
 const goToOptimizationDapp = () => router.push({ name: "wallet-optimization" });
 
 const hasMaster = ref<boolean>();
+let masterCheckId = 0;
 watch(
   () => app.wallets.length,
-  async () => (hasMaster.value = await walletsDbService.hasMasterPassword()),
+  async () => {
+    const checkId = ++masterCheckId;
+    let result: boolean | undefined;
+    try {
+      result = await walletsDbService.hasMasterPassword();
+    } catch {
+      result = undefined; // unknown, so don't nag
+    }
+
+    // a slower earlier check must not overwrite a newer one
+    if (checkId === masterCheckId) hasMaster.value = result;
+  },
   { immediate: true }
 );
 
@@ -55,7 +74,7 @@ const showMasterPasswordAlert = computed(
 );
 
 function openUrl(url: string) {
-  window.open(url, "_blank");
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 </script>
 
@@ -63,18 +82,15 @@ function openUrl(url: string) {
   <Alert v-if="showMasterPasswordAlert" data-master-password-alert>
     <AlertTitle>{{ t("masterSetup.alert") }}</AlertTitle>
 
-    <AlertDescription class="hyphens-auto">
+    <AlertDescription>
       {{ t("masterSetup.alertDesc") }}
     </AlertDescription>
 
-    <div class="col-start-2 mt-4 flex gap-2">
-      <Button
-        class="flex-1"
-        variant="ghost"
-        @click="app.settings.masterPasswordAlertDismissed = true"
-        >{{ t("masterSetup.dontAskAgain") }}</Button
-      >
-      <Button class="flex-1" @click="router.push({ name: 'master-password-setup' })">{{
+    <div class="col-start-2 mt-3 flex flex-wrap justify-end gap-2">
+      <Button size="sm" variant="ghost" @click="app.settings.masterPasswordAlertDismissed = true">{{
+        t("masterSetup.dontAskAgain")
+      }}</Button>
+      <Button size="sm" @click="router.push({ name: 'master-password-setup' })">{{
         t("settings.password.setUp")
       }}</Button>
     </div>
@@ -83,39 +99,43 @@ function openUrl(url: string) {
   <Alert v-if="showBackupAlert" :variant="backupAlertVariant">
     <AlertTitle>{{ t("wallet.alerts.backup") }}</AlertTitle>
 
-    <AlertDescription class="hyphens-auto">
+    <AlertDescription>
       {{ t("wallet.alerts.backupDesc") }}
     </AlertDescription>
 
-    <Button class="col-start-2 mt-4 w-full" @click="openMnemonicBackupDialog">{{
-      t("wallet.alerts.backupNow")
-    }}</Button>
+    <div class="col-start-2 mt-3 flex flex-wrap justify-end gap-2">
+      <Button size="sm" @click="openMnemonicBackupDialog">{{
+        t("wallet.alerts.backupNow")
+      }}</Button>
+    </div>
   </Alert>
 
   <Alert v-if="wallet.health.hasOldUtxos" variant="destructive">
     <AlertTitle>{{ t("wallet.alerts.demurrage") }}</AlertTitle>
 
-    <div class="col-start-2 space-y-4">
-      <AlertDescription class="hyphens-auto">
-        {{ t("wallet.alerts.demurrageDesc") }}
-      </AlertDescription>
+    <AlertDescription>
+      {{ t("wallet.alerts.demurrageDesc") }}
+    </AlertDescription>
 
-      <Button class="w-full" variant="ghost" @click="() => openUrl(STORAGE_RENT_URL)"
+    <div class="col-start-2 mt-3 flex flex-wrap justify-end gap-2">
+      <Button size="sm" variant="ghost" @click="() => openUrl(STORAGE_RENT_URL)"
         >{{ t("common.learnMore") }}<ExternalLinkIcon
       /></Button>
-      <Button class="w-full" @click="goToOptimizationDapp">{{ t("common.consolidate") }}</Button>
+      <Button v-if="canOptimize" size="sm" @click="goToOptimizationDapp">{{
+        t("common.consolidate")
+      }}</Button>
     </div>
   </Alert>
 
   <Alert v-else-if="wallet.health.utxoCount > HEALTHY_UTXO_COUNT">
     <AlertTitle>{{ t("wallet.alerts.fragmentation") }}</AlertTitle>
 
-    <AlertDescription class="hyphens-auto">
+    <AlertDescription>
       {{ t("wallet.alerts.fragmentationDesc") }}
     </AlertDescription>
 
-    <Button class="col-start-2 mt-4 w-full" @click="goToOptimizationDapp">{{
-      t("common.optimize")
-    }}</Button>
+    <div v-if="canOptimize" class="col-start-2 mt-3 flex flex-wrap justify-end gap-2">
+      <Button size="sm" @click="goToOptimizationDapp">{{ t("common.optimize") }}</Button>
+    </div>
   </Alert>
 </template>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { SearchCheckIcon, SearchIcon } from "@lucide/vue";
+import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetImageSandbox, AssetInfoDialog } from "@/components/asset";
 import BuyErgButton from "@/components/BuyErgButton.vue";
+import HiddenAmount from "@/components/HiddenAmount.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -15,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BigNumber, bn } from "@/common/bigNumber";
-import { isErg } from "@/common/utils";
+import { cn, isErg } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -27,6 +28,8 @@ const wallet = useWalletStore();
 const format = useFormat();
 
 const { t } = useI18n({ useScope: "global" });
+
+const LOADER_DELAY_MS = 300;
 
 const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles">("tokens");
@@ -40,10 +43,39 @@ const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
 );
 
-const walletTotal = computed(() =>
-  wallet.nonArtworkBalance
-    .reduce((acc, a) => acc.plus(a.balance.times(rate(a.tokenId))), bn(0))
-    .times(ergPrice.value)
+// a wallet that has never synced has no balance to show yet, only a placeholder ERG row
+const balancePending = computed(
+  () => wallet.loading || (wallet.syncing && !wallet.synced) || !assetsStore.pricesLoaded
+);
+const hasFiatRate = computed(() => ergPrice.value > 0);
+
+// loads that finish within the delay would only flash the loader
+const showLoader = ref(false);
+watch(
+  balancePending,
+  (pending, _, onCleanup) => {
+    if (!pending) {
+      showLoader.value = false;
+      return;
+    }
+
+    const timer = setTimeout(() => (showLoader.value = true), LOADER_DELAY_MS);
+    onCleanup(() => clearTimeout(timer));
+  },
+  { immediate: true }
+);
+
+const ergTotal = computed(() =>
+  wallet.nonArtworkBalance.reduce(
+    (acc, a) => acc.plus(a.balance.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))),
+    bn(0)
+  )
+);
+
+const formattedTotal = computed(() =>
+  hasFiatRate.value
+    ? formatCurrencyAmount(ergTotal.value.times(ergPrice.value), 2)
+    : format.number.currency(ergTotal.value, "erg", 2)
 );
 
 watch(
@@ -76,7 +108,7 @@ function formatCurrencyAmount(value: BigNumber, decimals?: number): string {
 }
 
 function formatCoinPrice(amount: number, decimals = 9): string {
-  return `Σ ${format.number.decimal(BigNumber(amount ?? 0), decimals)}`;
+  return format.number.currency(BigNumber(amount ?? 0), "erg", decimals);
 }
 
 function openAssetInfoDialog(tokenId: string) {
@@ -88,15 +120,51 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
-      <div class="flex cursor-default items-center justify-around bg-transparent py-4">
-        <div>
-          <h2 class="text-2xl">
-            <span v-if="!app.settings.hideBalances"
-              >{{ formatCurrencyAmount(walletTotal, 2) }}
-            </span>
-            <Skeleton v-else class="inline-block h-6 w-24 animate-none font-light tracking-wider" />
-          </h2>
-          <p class="text-muted-foreground text-xs">{{ t("asset.totalBalance") }}</p>
+      <div class="flex items-center justify-between gap-4 pt-2 pb-1">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1">
+            <h2
+              class="min-w-0 truncate text-[1.75rem] leading-9 tabular-nums"
+              :aria-busy="balancePending && !app.settings.hideBalances"
+            >
+              <template v-if="app.settings.hideBalances">
+                <HiddenAmount :length="6" :label="t('asset.balanceHidden')" />
+              </template>
+              <template v-else-if="balancePending">
+                <Skeleton
+                  class="mt-1 inline-block h-7 w-32 align-top"
+                  :class="{ invisible: !showLoader }"
+                />
+                <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
+              </template>
+              <template v-else>{{ formattedTotal }}</template>
+            </h2>
+            <Button
+              v-if="app.settings.hideBalances || !balancePending"
+              id="toggle-balances"
+              variant="ghost"
+              size="icon-sm"
+              class="text-muted-foreground hover:text-foreground shrink-0"
+              :aria-label="
+                app.settings.hideBalances
+                  ? t('header.menu.showBalances')
+                  : t('header.menu.hideBalances')
+              "
+              @click="app.settings.hideBalances = !app.settings.hideBalances"
+            >
+              <EyeIcon v-if="app.settings.hideBalances" />
+              <EyeOffIcon v-else />
+            </Button>
+          </div>
+          <p class="text-muted-foreground text-xs">
+            {{
+              hasFiatRate || balancePending || app.settings.hideBalances
+                ? t("asset.totalBalance")
+                : t("asset.totalBalanceNoRate", {
+                    currency: app.settings.conversionCurrency.toUpperCase()
+                  })
+            }}
+          </p>
         </div>
 
         <BuyErgButton />
@@ -135,16 +203,29 @@ function openAssetInfoDialog(tokenId: string) {
         </div>
 
         <TabsContent value="tokens">
+          <p
+            v-if="tokens.length === 0 && normalizedFilter"
+            class="text-muted-foreground py-8 text-center text-sm"
+          >
+            {{ t("asset.noAssetsFound") }}
+          </p>
           <Transition name="slide-up" appear>
-            <div class="flex flex-col pt-1">
+            <div data-token-list class="flex flex-col">
               <Button
                 v-for="asset in tokens"
                 :key="asset.tokenId"
+                :as="isErg(asset.tokenId) ? 'div' : 'button'"
                 variant="ghost"
+                :class="
+                  cn(
+                    'h-auto gap-3 p-3 text-left [&_svg]:size-9',
+                    isErg(asset.tokenId) &&
+                      'text-foreground hover:text-foreground cursor-default hover:bg-transparent dark:hover:bg-transparent'
+                  )
+                "
                 @click="openAssetInfoDialog(asset.tokenId)"
-                class="h-auto p-3 text-left [&_svg]:size-10"
               >
-                <AssetIcon class="size-10" :token-id="asset.tokenId" :type="asset.metadata?.type" />
+                <AssetIcon class="size-9" :token-id="asset.tokenId" :type="asset.metadata?.type" />
 
                 <div
                   class="flex grow flex-col gap-0.5 align-middle text-sm"
@@ -159,16 +240,21 @@ function openAssetInfoDialog(tokenId: string) {
 
                 <div class="flex flex-col items-end gap-0.5 whitespace-nowrap tabular-nums">
                   <template v-if="app.settings.hideBalances">
-                    <Skeleton class="h-5 w-24 animate-none" />
-                    <Skeleton class="h-3 w-3/4 animate-none" />
+                    <HiddenAmount />
+                  </template>
+                  <template v-else-if="balancePending">
+                    <Skeleton class="my-0.5 h-4 w-16" :class="{ invisible: !showLoader }" />
+                    <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
                   </template>
                   <template v-else>
                     <span>{{ format.number.decimal(asset.balance) }}</span>
 
                     <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
-                        <TooltipTrigger class="text-muted-foreground text-xs">
-                          {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId)), 2) }}
+                        <TooltipTrigger as-child>
+                          <span class="text-muted-foreground text-xs">
+                            {{ formatCurrencyAmount(asset.balance.times(price(asset.tokenId)), 2) }}
+                          </span>
                         </TooltipTrigger>
                         <TooltipContent class="text-center">
                           <p class="pb-1 font-bold">
@@ -189,9 +275,15 @@ function openAssetInfoDialog(tokenId: string) {
         </TabsContent>
 
         <TabsContent value="collectibles">
+          <p
+            v-if="collectibles.length === 0 && normalizedFilter"
+            class="text-muted-foreground py-8 text-center text-sm"
+          >
+            {{ t("asset.noAssetsFound") }}
+          </p>
           <Transition name="slide-up" appear>
             <div
-              class="grid grid-cols-2 justify-stretch gap-4 px-2 py-4 sm:grid-cols-4 md:grid-cols-2"
+              class="grid grid-cols-2 justify-stretch gap-4 pt-3 pb-4 sm:grid-cols-4 md:grid-cols-2"
             >
               <div
                 v-for="nft in collectibles"

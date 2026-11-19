@@ -9,6 +9,8 @@ export const ERG_FIAT_RATES: Record<string, number> = { usd: 2, eur: 1.5, btc: 0
 export type ServiceOptions = {
   /** Token blacklist served by the sigmanauts blacklist endpoint. */
   blacklist?: { nsfw: string[]; scam: string[] };
+  /** Fails the ERG fiat price request, as when CoinGecko is down. */
+  failPrices?: boolean;
 };
 
 const DAPP_HTML = `<!doctype html>
@@ -33,6 +35,7 @@ export async function installServiceMocks(context: BrowserContext, opt: ServiceO
   );
 
   await context.route("https://api.coingecko.com/api/v3/simple/price**", (route) => {
+    if (opt.failPrices) return route.fulfill({ status: 500 });
     const currency = new URL(route.request().url()).searchParams.get("vs_currencies") ?? "usd";
     return route.fulfill({ json: { ergo: { [currency]: ERG_FIAT_RATES[currency] ?? 1 } } });
   });

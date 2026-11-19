@@ -11,6 +11,7 @@ import { useChainStore } from "@/stores/chainStore";
 import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetSignIcon } from "@/components/asset";
+import HiddenAmount from "@/components/HiddenAmount.vue";
 import { TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import {
@@ -169,7 +170,7 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
                 {{ asset.metadata?.name ?? formatter.string.shorten(asset.tokenId, 10) }}
               </div>
               <div>
-                <Skeleton v-if="app.settings.hideBalances" class="h-5 w-16" />
+                <HiddenAmount v-if="app.settings.hideBalances" />
                 <template v-else>{{ formatter.number.decimal(positive(asset.amount)) }}</template>
               </div>
             </div>
