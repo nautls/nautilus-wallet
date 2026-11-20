@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { ChartPieIcon, ClockIcon, DownloadIcon, LayoutGridIcon, SendIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import { useWalletStore } from "@/stores/walletStore";
 
 const wallet = useWalletStore();
+const route = useRoute();
 const { t } = useI18n();
 
 const readonly = computed(() => wallet.type === "readonly");
@@ -15,10 +17,24 @@ const navItems = computed(() => [
   { to: "/send", icon: SendIcon, label: t("header.nav.send"), disabled: readonly.value },
   { to: "/dapps", icon: LayoutGridIcon, label: t("header.nav.dApps"), disabled: readonly.value }
 ]);
+
+const activeIndex = computed(() =>
+  navItems.value.findIndex((item) => route.matched.some((record) => record.path === item.to))
+);
+
+// on routes outside the nav (settings, about) the bar fades out in place, and it fades back in
+// at the new item instead of sliding across from the one it left
+const indicatorIndex = ref(Math.max(activeIndex.value, 0));
+const slide = ref(true);
+watch(activeIndex, (index, previous) => {
+  if (index === -1) return;
+  slide.value = previous !== -1;
+  indicatorIndex.value = index;
+});
 </script>
 
 <template>
-  <nav class="bg-header flex flex-row items-stretch border-b px-2">
+  <nav class="bg-header relative flex flex-row items-stretch border-b px-2">
     <router-link
       v-for="item in navItems"
       :key="item.to"
@@ -47,12 +63,22 @@ const navItems = computed(() => [
           aria-hidden="true"
         />
         <span class="sr-only">{{ item.label }}</span>
-        <span
-          v-if="isActive"
-          class="bg-primary absolute inset-x-4 -bottom-px h-0.5 rounded-full"
-          aria-hidden="true"
-        />
       </a>
     </router-link>
+    <div class="pointer-events-none absolute inset-x-2 -bottom-px h-0.5" aria-hidden="true">
+      <div
+        class="ease-snap h-full px-4 duration-200 motion-reduce:transition-none"
+        :class="[
+          slide ? 'transition-[translate,opacity]' : 'transition-opacity',
+          activeIndex === -1 ? 'opacity-0' : 'opacity-100'
+        ]"
+        :style="{
+          width: `${100 / navItems.length}%`,
+          translate: `${indicatorIndex * 100}% 0`
+        }"
+      >
+        <div class="bg-primary size-full rounded-full" />
+      </div>
+    </div>
   </nav>
 </template>

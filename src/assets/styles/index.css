@@ -87,6 +87,8 @@
 @theme inline {
   --font-sans: OpenSans, ui-sans-serif, system-ui, sans-serif;
 
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
