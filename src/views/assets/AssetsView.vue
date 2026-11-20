@@ -214,13 +214,11 @@ function openAssetInfoDialog(tokenId: string) {
               <Button
                 v-for="asset in tokens"
                 :key="asset.tokenId"
-                :as="isErg(asset.tokenId) ? 'div' : 'button'"
                 variant="ghost"
                 :class="
                   cn(
                     'h-auto gap-3 p-3 text-left [&_svg]:size-9',
-                    isErg(asset.tokenId) &&
-                      'text-foreground hover:text-foreground cursor-default hover:bg-transparent dark:hover:bg-transparent'
+                    isErg(asset.tokenId) && 'cursor-default'
                   )
                 "
                 @click="openAssetInfoDialog(asset.tokenId)"
