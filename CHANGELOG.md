@@ -1,5 +1,19 @@
 # nautilus-wallet
 
+## 2.0.0-alpha.2
+
+### Minor Changes
+
+- 6ff9d97: Show the wallet balance in ERG when no fiat rate is available, instead of zero.
+
+### Patch Changes
+
+- 6ff9d97: Align the wallet balance to the left and make the master password prompt more compact.
+- 6ff9d97: Show hidden amounts the same way on every screen.
+- 6ff9d97: Stop offering to consolidate or optimize read-only wallets, which can't sign the transaction.
+- 6ff9d97: Show keyboard focus on tab panels.
+- 6ff9d97: Fix the unreadable demurrage warning text and give every wallet alert the same compact actions.
+
 ## 2.0.0-alpha.1
 
 ### Patch Changes
