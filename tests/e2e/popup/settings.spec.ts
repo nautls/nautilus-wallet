@@ -604,7 +604,7 @@ test.describe("settings", () => {
     test.describe("re-sync", () => {
       test("rebuilds lost wallet data from the blockchain", async ({ popup }) => {
         const page = popup.page;
-        const tokens = page.getByRole("tabpanel").locator("div.pt-1 > button");
+        const tokens = page.getByRole("tabpanel").locator("[data-token-list] > *");
         await expect(tokens).toHaveCount(2);
 
         // balances are lost and not restored by the regular sync, as the wallet was just synced

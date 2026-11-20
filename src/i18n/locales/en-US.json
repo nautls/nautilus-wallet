@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Wallet balance",
+    "totalBalanceNoRate": "Wallet balance in ERG, no {currency} rate",
+    "balanceHidden": "Balance hidden",
+    "amountHidden": "Amount hidden",
+    "loadingBalance": "Loading balance",
     "noConversionRate": "No conversion rate",
     "add": "Add asset",
     "noAssetsFound": "No assets found.",

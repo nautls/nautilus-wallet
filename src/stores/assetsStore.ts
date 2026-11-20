@@ -188,7 +188,9 @@ export const useAssetsStore = defineStore("assets", () => {
     }
   }
 
-  return { blacklist, blacklists, metadata, prices, loadMetadata };
+  const pricesLoaded = computed(() => loaded.prices);
+
+  return { blacklist, blacklists, metadata, prices, pricesLoaded, loadMetadata };
 });
 
 function unknownMetadata(id: string): IAssetInfo {

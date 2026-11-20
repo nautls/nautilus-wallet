@@ -75,6 +75,15 @@ describe("currency formatting", () => {
     expect(inLocale("de-DE", () => number.currency(amount, "usd", 2))).toBe(`3.588,54${NBSP}$`);
   });
 
+  it("keeps two decimals for zero and negative amounts", () => {
+    expect(inLocale("en-US", () => number.currency(bn(0), "usd", 2))).toBe("$0.00");
+    expect(inLocale("en-US", () => number.currency(bn(-5), "usd", 2))).toBe("-$5.00");
+  });
+
+  it("shows two significant digits for amounts under a cent", () => {
+    expect(inLocale("en-US", () => number.currency(bn("0.001234"), "usd", 2))).toBe("$0.0012");
+  });
+
   it("keeps the symbol around compact amounts", () => {
     expect(inLocale("de-DE", () => number.currency(bn(1_250_000), "eur", 2))).toBe(
       `1,25${NBSP}Mio.${NBSP}€`

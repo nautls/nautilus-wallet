@@ -5,13 +5,13 @@ import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { StateAddress, useWalletStore } from "@/stores/walletStore";
 import { AddressQrCodeDialog, AddressVerifyDialog } from "@/components/address";
+import HiddenAmount from "@/components/HiddenAmount.vue";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CopyButton } from "@/components/ui/copy-button";
 import { QrCode } from "@/components/ui/qr-code";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -114,7 +114,7 @@ function openExplorer(address: string | undefined) {
         <div
           v-for="address in addresses"
           :key="address.script"
-          class="hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2 rounded-md bg-transparent px-3 py-4 transition-colors"
+          class="flex items-center justify-between gap-2 px-3 py-3"
         >
           <div class="flex items-center gap-2">
             <Button
@@ -192,7 +192,7 @@ function openExplorer(address: string | undefined) {
           </div>
 
           <div class="text-right text-xs tabular-nums">
-            <Skeleton v-if="app.settings.hideBalances" class="h-4 w-20 animate-none" />
+            <HiddenAmount v-if="app.settings.hideBalances" />
             <template v-else>
               <span>{{ getFormattedErgBalance(address) }}</span>
               <span v-if="address.assets.length > 1" class="text-muted-foreground">

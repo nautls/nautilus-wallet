@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Saldo dompet",
+    "totalBalanceNoRate": "Saldo dompet dalam ERG, tidak ada kurs {currency}",
+    "balanceHidden": "Saldo disembunyikan",
+    "amountHidden": "Jumlah disembunyikan",
+    "loadingBalance": "Memuat saldo",
     "noConversionRate": "Tidak ada tingkat konversi",
     "add": "Tambahkan aset",
     "noAssetsFound": "Tidak ada aset ditemukan.",

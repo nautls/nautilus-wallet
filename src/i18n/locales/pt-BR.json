@@ -108,6 +108,10 @@
   },
   "asset": {
     "totalBalance": "Saldo da carteira",
+    "totalBalanceNoRate": "Saldo da carteira em ERG, sem cotação em {currency}",
+    "balanceHidden": "Saldo oculto",
+    "amountHidden": "Valor oculto",
+    "loadingBalance": "Carregando saldo",
     "noConversionRate": "Sem taxa de conversão",
     "add": "Adicionar ativo",
     "noAssetsFound": "Nenhum ativo encontrado.",
