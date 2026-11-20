@@ -21,8 +21,8 @@ test.describe("assets", () => {
     await expect(tokens.nth(0)).toContainText("ERG");
     await expect(tokens.nth(0)).toContainText("12.5");
     await expect(tokens.nth(0)).toContainText(/\$\s?25\.00/);
-    // ERG has no details dialog, so its row is not a button
-    await expect(page.getByRole("tabpanel").getByRole("button", { name: /Ergo/ })).toHaveCount(0);
+    await tokens.nth(0).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     await expect(tokens.nth(1)).toContainText("TestToken");
     await expect(tokens.nth(1)).toContainText("1,000");
