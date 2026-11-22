@@ -117,6 +117,32 @@ export function addBabelBox(chain: MockChain, tokenId: string, nanoErgsPerToken:
   return box;
 }
 
+/**
+ * Adds an ErgoTree v3 box spendable by the key stored in its R4, `proveDlog(SELF.R4[GroupElement].get)`.
+ * Its key can't be found from the tree, so only an explicit signer can prove it.
+ */
+export function addRegisterKeyBox(chain: MockChain, publicKey: Uint8Array) {
+  const transactionId = randomBytes(32).toString("hex");
+  const candidate = {
+    value: 1_000_000_000n,
+    ergoTree: "0b06cde4c6a70407",
+    creationHeight: chain.height - 10,
+    assets: [],
+    additionalRegisters: { R4: SGroupElement(publicKey).toHex() }
+  };
+
+  const box: GqlBox = {
+    ...candidate,
+    boxId: new ErgoBox(candidate, transactionId, 0).boxId,
+    transactionId,
+    index: 0,
+    value: candidate.value.toString()
+  };
+
+  chain.addBox(box);
+  return box;
+}
+
 /** Adds mainnet snapshots of the SigmaUSD bank and oracle boxes to the chain. */
 export function addSigmaUsdBoxes(chain: MockChain) {
   const { bank, oracle } = JSON.parse(

@@ -2,7 +2,7 @@ import type { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/com
 import { SelectionTarget } from "@nautilus-js/eip12-types";
 import type { JsonValue } from "type-fest";
 import { sendMessage, setNamespace } from "webext-bridge/window";
-import { APIErrorCode } from "@/types/connector";
+import { APIErrorCode, SignTxOptions } from "@/types/connector";
 import {
   buildNamespaceFor,
   ExternalEvent,
@@ -116,8 +116,10 @@ class NautilusErgoApi {
     return handle(await sendMessage(ExternalRequest.GetAddresses, "change", CONTENT_SCRIPT));
   }
 
-  async sign_tx(transaction: EIP12UnsignedTransaction) {
-    return handle(await sendMessage(ExternalRequest.SignTx, { transaction }, CONTENT_SCRIPT));
+  async sign_tx(transaction: EIP12UnsignedTransaction, options?: SignTxOptions) {
+    return handle(
+      await sendMessage(ExternalRequest.SignTx, { transaction, options }, CONTENT_SCRIPT)
+    );
   }
 
   async sign_tx_inputs(transaction: EIP12UnsignedTransaction, indexes: number[]) {

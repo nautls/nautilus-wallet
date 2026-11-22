@@ -1,42 +1,52 @@
 import { Box, isEmpty, uniq } from "@fleet-sdk/common";
-import { ErgoTree } from "ergo-lib-wasm-browser";
-import { P2PK_TREE_PREFIX, PK_HEX_LENGTH, SIGMA_CONSTANT_PK_MATCHER } from "@/constants/ergo";
+import { ErgoTree } from "@fleet-sdk/core";
+import { hex } from "@fleet-sdk/crypto";
+import { isColl, isTuple, SCollType, STupleType, SType } from "@fleet-sdk/serializer";
+import { P2PK_TREE_PREFIX } from "@/constants/ergo";
 import { Registers } from "@/types/connector";
 import { addressFromErgoTree, addressFromPk } from "./addresses";
+import { safeSigmaDecode } from "./serialization";
+
+const PK_BYTE_LENGTH = 33;
+const P2PK_TREE_BYTE_LENGTH = P2PK_TREE_PREFIX.length / 2 + PK_BYTE_LENGTH;
 
 export function extractPksFromRegisters(registers: Registers): string[] {
   const pks: string[] = [];
   for (const register of Object.values(registers)) {
-    const pk = extractPkFromSigmaConstant(register);
-    if (pk) pks.push(pk);
+    const constant = safeSigmaDecode(register);
+    if (constant) collectPks(constant.type, constant.data, pks);
   }
 
   return pks;
 }
 
 export function extractPksFromP2SErgoTree(ergoTree: string): string[] {
-  const pks: string[] = [];
-  const tree = ErgoTree.from_base16_bytes(ergoTree);
-  const len = tree.constants_len();
-  for (let i = 0; i < len; i++) {
-    const constant = tree.get_constant(i)?.encode_to_base16();
-    const pk = extractPkFromSigmaConstant(constant);
-    if (pk) pks.push(pk);
+  let constants;
+  try {
+    constants = new ErgoTree(ergoTree).constants;
+  } catch {
+    return [];
   }
+
+  const pks: string[] = [];
+  for (const { type, data } of constants) collectPks(type, data, pks);
 
   return pks;
 }
 
-export function extractPkFromSigmaConstant(constant?: string): string | undefined {
-  if (!constant) return;
-
-  const result = SIGMA_CONSTANT_PK_MATCHER.exec(constant);
-  if (!result) return;
-
-  for (let i = 0; i < result.length; i++) {
-    if (result[i] && result[i].length === PK_HEX_LENGTH) {
-      return result[i];
-    }
+function collectPks(type: SType, data: unknown, pks: string[]) {
+  const name = type.toString();
+  if (name === "SSigmaProp" || name === "SGroupElement") {
+    if (data instanceof Uint8Array && data.length === PK_BYTE_LENGTH) pks.push(hex.encode(data));
+  } else if (name === "SColl[SByte]") {
+    if (!(data instanceof Uint8Array) || data.length !== P2PK_TREE_BYTE_LENGTH) return;
+    const tree = hex.encode(data);
+    if (tree.startsWith(P2PK_TREE_PREFIX)) pks.push(tree.slice(P2PK_TREE_PREFIX.length));
+  } else if (isColl(type) && Array.isArray(data)) {
+    for (const item of data) collectPks((type as SCollType).elementsType, item, pks);
+  } else if (isTuple(type) && Array.isArray(data)) {
+    const types = (type as STupleType).elementsType;
+    data.forEach((item, i) => collectPks(types[i], item, pks));
   }
 }
 

@@ -4,6 +4,7 @@ import { serializeTransaction } from "@fleet-sdk/serializer";
 import type { JsonValue } from "type-fest";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { onMessage, sendMessage } from "webext-bridge/background";
+import { hasValidBoxIds } from "@/chains/ergo/boxId";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { browser } from "@/common/browser";
 import { log } from "@/common/logger";
@@ -38,6 +39,7 @@ type AuthenticatedMessageHandler<T extends InternalRequest> = (
 ) => GetReturnType<T> | Promise<GetReturnType<T>>;
 
 const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
+const BOX_ID_MISMATCH = "Box contents don't match their ids.";
 const KEEP_ALIVE_INTERVAL = 20_000;
 const requests = new AsyncRequestQueue();
 const pendingRequests = new Map<string, Promise<unknown>>();
@@ -163,18 +165,52 @@ function handleDataSigningRequest(request: InternalRequest.Auth | InternalReques
   };
 }
 
-onMessageAuth(InternalRequest.SignTx, async (msg) => {
-  if (!msg.data.transaction) return invalidRequest("Invalid params.");
+onMessageAuth(InternalRequest.SignTx, async (msg, walletId) => {
+  const { transaction, options } = msg.data;
+  if (!transaction) return invalidRequest("Invalid params.");
 
   let txHash: string;
   try {
-    txHash = hashTransaction(msg.data.transaction);
+    txHash = hashTransaction(transaction);
   } catch {
     return invalidRequest("Invalid transaction.");
   }
 
-  return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, txHash);
+  if (!hasValidBoxIds(transaction)) return invalidRequest(BOX_ID_MISMATCH);
+
+  const signers = options?.signers;
+  if (signers === undefined) {
+    return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, txHash);
+  }
+
+  const invalid = await findInvalidSigner(signers, transaction.inputs.length, walletId);
+  if (invalid) return invalidRequest(invalid);
+
+  const argsHash = `${txHash}:${JSON.stringify(signers)}`;
+  return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, argsHash);
 });
+
+async function findInvalidSigner(
+  signers: unknown,
+  inputCount: number,
+  walletId: number
+): Promise<string | undefined> {
+  if (!signers || typeof signers !== "object" || Array.isArray(signers)) {
+    return "Invalid signers.";
+  }
+
+  for (const [key, address] of Object.entries(signers)) {
+    if (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= inputCount)
+      return "Invalid signer input index.";
+    if (address === null) continue;
+    if (typeof address !== "string") return "Invalid signer address.";
+
+    const owned = await addressesDbService.getByScript(address);
+    if (owned?.walletId !== walletId) {
+      return "The address is not associated with the connected wallet.";
+    }
+  }
+}
 
 onMessageAuth(InternalRequest.SignTxInputs, async (msg) => {
   const { transaction, indexes } = msg.data;
@@ -188,6 +224,8 @@ onMessageAuth(InternalRequest.SignTxInputs, async (msg) => {
   } catch {
     return invalidRequest("Invalid transaction.");
   }
+
+  if (!hasValidBoxIds(transaction)) return invalidRequest(BOX_ID_MISMATCH);
 
   const isValidIndex = (i: unknown) =>
     Number.isInteger(i) && (i as number) >= 0 && (i as number) < transaction.inputs.length;
