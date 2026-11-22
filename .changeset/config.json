@@ -3,7 +3,10 @@
   "baseBranch": "master",
   "access": "restricted",
   "format": "auto",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "nautls/nautilus-wallet", "template": "- {summary} {ref} Thanks {authors}!" }
+  ],
   "commit": false,
   "ignore": [],
   "fixed": [],

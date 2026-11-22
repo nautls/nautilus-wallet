@@ -51,6 +51,8 @@ jobs:
       - name: Create release PR or tag
         id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           version-script: pnpm changeset:version
