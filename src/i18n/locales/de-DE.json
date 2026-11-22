@@ -29,7 +29,6 @@
     "healthy": "Gesund",
     "unhealthy": "Ungesund",
     "authenticate": "Authentifizieren",
-    "buyErg": "ERG kaufen",
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
     "backup": "Sichern",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Wallet-Guthaben",
-    "totalBalanceNoRate": "Wallet-Guthaben in ERG, kein {currency}-Kurs",
+    "totalBalanceNoRate": "Wallet-Guthaben in ERG, {currency}-Kurs nicht verfügbar",
     "balanceHidden": "Guthaben ausgeblendet",
     "amountHidden": "Betrag ausgeblendet",
     "loadingBalance": "Guthaben wird geladen",

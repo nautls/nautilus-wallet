@@ -200,6 +200,13 @@ async function toggleViewMode() {
             @pointerenter="clearHighlight"
           >
             <ActionButton
+              :label="isDark ? t('header.menu.lightMode') : t('header.menu.darkMode')"
+              @click="toggleColorMode"
+            >
+              <SunIcon v-if="isDark" />
+              <MoonIcon v-else />
+            </ActionButton>
+            <ActionButton
               :label="
                 app.settings.hideBalances
                   ? t('header.menu.showBalances')
@@ -209,13 +216,6 @@ async function toggleViewMode() {
             >
               <EyeIcon v-if="app.settings.hideBalances" />
               <EyeOffIcon v-else />
-            </ActionButton>
-            <ActionButton
-              :label="isDark ? t('header.menu.lightMode') : t('header.menu.darkMode')"
-              @click="toggleColorMode"
-            >
-              <SunIcon v-if="isDark" />
-              <MoonIcon v-else />
             </ActionButton>
             <ActionButton
               :label="isPopupView ? t('header.menu.openSidePanel') : t('header.menu.openPopup')"

@@ -6,7 +6,6 @@ import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetImageSandbox, AssetInfoDialog } from "@/components/asset";
-import BuyErgButton from "@/components/BuyErgButton.vue";
 import HiddenAmount from "@/components/HiddenAmount.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,54 +119,50 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
-      <div class="flex items-center justify-between gap-4 pt-2 pb-1">
-        <div class="min-w-0">
-          <div class="flex items-center gap-1">
-            <h2
-              class="min-w-0 truncate text-[1.75rem] leading-9 tabular-nums"
-              :aria-busy="balancePending && !app.settings.hideBalances"
-            >
-              <template v-if="app.settings.hideBalances">
-                <HiddenAmount :length="6" :label="t('asset.balanceHidden')" />
-              </template>
-              <template v-else-if="balancePending">
-                <Skeleton
-                  class="mt-1 inline-block h-7 w-32 align-top"
-                  :class="{ invisible: !showLoader }"
-                />
-                <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
-              </template>
-              <template v-else>{{ formattedTotal }}</template>
-            </h2>
-            <Button
-              v-if="app.settings.hideBalances || !balancePending"
-              id="toggle-balances"
-              variant="ghost"
-              size="icon-sm"
-              class="text-muted-foreground hover:text-foreground shrink-0"
-              :aria-label="
-                app.settings.hideBalances
-                  ? t('header.menu.showBalances')
-                  : t('header.menu.hideBalances')
-              "
-              @click="app.settings.hideBalances = !app.settings.hideBalances"
-            >
-              <EyeIcon v-if="app.settings.hideBalances" />
-              <EyeOffIcon v-else />
-            </Button>
-          </div>
-          <p class="text-muted-foreground text-xs">
-            {{
-              hasFiatRate || balancePending || app.settings.hideBalances
-                ? t("asset.totalBalance")
-                : t("asset.totalBalanceNoRate", {
-                    currency: app.settings.conversionCurrency.toUpperCase()
-                  })
-            }}
-          </p>
+      <div class="flex flex-col items-center gap-1 pt-2 pb-2 text-center">
+        <div class="relative max-w-[calc(100%-4rem)]">
+          <h2
+            class="truncate text-3xl leading-9 tabular-nums"
+            :aria-busy="balancePending && !app.settings.hideBalances"
+          >
+            <template v-if="app.settings.hideBalances">
+              <HiddenAmount :length="6" :label="t('asset.balanceHidden')" />
+            </template>
+            <template v-else-if="balancePending">
+              <Skeleton
+                class="mt-1 inline-block h-7 w-32 align-top"
+                :class="{ invisible: !showLoader }"
+              />
+              <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
+            </template>
+            <template v-else>{{ formattedTotal }}</template>
+          </h2>
+          <Button
+            v-if="app.settings.hideBalances || !balancePending"
+            id="toggle-balances"
+            variant="ghost"
+            size="icon-sm"
+            class="text-muted-foreground hover:text-foreground absolute top-1/2 left-full ml-1 -translate-y-1/2"
+            :aria-label="
+              app.settings.hideBalances
+                ? t('header.menu.showBalances')
+                : t('header.menu.hideBalances')
+            "
+            @click="app.settings.hideBalances = !app.settings.hideBalances"
+          >
+            <EyeIcon v-if="app.settings.hideBalances" />
+            <EyeOffIcon v-else />
+          </Button>
         </div>
-
-        <BuyErgButton />
+        <p class="text-muted-foreground text-xs">
+          {{
+            hasFiatRate || balancePending || app.settings.hideBalances
+              ? t("asset.totalBalance")
+              : t("asset.totalBalanceNoRate", {
+                  currency: app.settings.conversionCurrency.toUpperCase()
+                })
+          }}
+        </p>
       </div>
 
       <WalletAlerts />

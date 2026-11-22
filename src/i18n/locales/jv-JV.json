@@ -29,7 +29,6 @@
     "healthy": "Waras",
     "unhealthy": "Mboten sehat",
     "authenticate": "Otentikasi",
-    "buyErg": "Tumbas ERG",
     "showMore": "Tampilake luwih akeh",
     "showLess": "Tampilake luwih sithik",
     "backup": "Serep",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Duwit dompet",
-    "totalBalanceNoRate": "Duwit dompet ing ERG, mboten wonten kurs {currency}",
+    "totalBalanceNoRate": "Duwit dompet ing ERG, kurs {currency} mboten wonten",
     "balanceHidden": "Duwit dipun dhelikaken",
     "amountHidden": "Jumlah dipun dhelikaken",
     "loadingBalance": "Nembe ngemot duwit",

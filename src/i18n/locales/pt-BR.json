@@ -29,7 +29,6 @@
     "healthy": "Saudável",
     "unhealthy": "Não saudável",
     "authenticate": "Autenticar",
-    "buyErg": "Comprar ERG",
     "showMore": "Mostrar mais",
     "showLess": "Mostrar menos",
     "backup": "Fazer backup",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Saldo da carteira",
-    "totalBalanceNoRate": "Saldo da carteira em ERG, sem cotação em {currency}",
+    "totalBalanceNoRate": "Saldo da carteira em ERG, cotação em {currency} indisponível",
     "balanceHidden": "Saldo oculto",
     "amountHidden": "Valor oculto",
     "loadingBalance": "Carregando saldo",

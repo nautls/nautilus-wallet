@@ -29,7 +29,6 @@
     "healthy": "Sain",
     "unhealthy": "À risque",
     "authenticate": "Authentifier",
-    "buyErg": "Acheter ERG",
     "showMore": "Afficher plus",
     "showLess": "Afficher moins",
     "backup": "Sauvegarder",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Solde du portefeuille",
-    "totalBalanceNoRate": "Solde du portefeuille en ERG, aucun taux {currency}",
+    "totalBalanceNoRate": "Solde du portefeuille en ERG, taux {currency} indisponible",
     "balanceHidden": "Solde masqué",
     "amountHidden": "Montant masqué",
     "loadingBalance": "Chargement du solde",

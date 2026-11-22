@@ -29,7 +29,6 @@
     "healthy": "Здоров",
     "unhealthy": "Нездоров",
     "authenticate": "Аутентифицировать",
-    "buyErg": "Купить ERG",
     "showMore": "Показать больше",
     "showLess": "Показать меньше",
     "backup": "Резервная копия",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Баланс кошелька",
-    "totalBalanceNoRate": "Баланс кошелька в ERG, нет курса {currency}",
+    "totalBalanceNoRate": "Баланс кошелька в ERG, курс {currency} недоступен",
     "balanceHidden": "Баланс скрыт",
     "amountHidden": "Сумма скрыта",
     "loadingBalance": "Загрузка баланса",
