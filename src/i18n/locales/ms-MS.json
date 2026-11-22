@@ -29,7 +29,6 @@
     "healthy": "Sihat",
     "unhealthy": "Tidak sihat",
     "authenticate": "Sahkan",
-    "buyErg": "Beli ERG",
     "showMore": "Tunjuk lagi",
     "showLess": "Tunjuk kurang",
     "backup": "Sandarkan",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Baki dompet",
-    "totalBalanceNoRate": "Baki dompet dalam ERG, tiada kadar {currency}",
+    "totalBalanceNoRate": "Baki dompet dalam ERG, kadar {currency} tidak tersedia",
     "balanceHidden": "Baki disembunyikan",
     "amountHidden": "Jumlah disembunyikan",
     "loadingBalance": "Memuatkan baki",

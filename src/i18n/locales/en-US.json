@@ -29,7 +29,6 @@
     "healthy": "Healthy",
     "unhealthy": "Unhealthy",
     "authenticate": "Authenticate",
-    "buyErg": "Buy ERG",
     "showMore": "Show more",
     "showLess": "Show less",
     "backup": "Back up",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "Wallet balance",
-    "totalBalanceNoRate": "Wallet balance in ERG, no {currency} rate",
+    "totalBalanceNoRate": "Wallet balance in ERG, {currency} rate unavailable",
     "balanceHidden": "Balance hidden",
     "amountHidden": "Amount hidden",
     "loadingBalance": "Loading balance",

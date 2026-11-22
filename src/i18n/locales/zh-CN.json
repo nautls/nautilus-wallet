@@ -29,7 +29,6 @@
     "healthy": "健康",
     "unhealthy": "不健康",
     "authenticate": "认证",
-    "buyErg": "购买 ERG",
     "showMore": "显示更多",
     "showLess": "收起",
     "backup": "备份",
@@ -108,7 +107,7 @@
   },
   "asset": {
     "totalBalance": "钱包余额",
-    "totalBalanceNoRate": "钱包余额（ERG），无 {currency} 兑换率",
+    "totalBalanceNoRate": "钱包余额（ERG），{currency} 兑换率不可用",
     "balanceHidden": "余额已隐藏",
     "amountHidden": "金额已隐藏",
     "loadingBalance": "正在加载余额",

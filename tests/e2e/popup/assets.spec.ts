@@ -86,7 +86,7 @@ test.describe("assets without a fiat rate", () => {
     await popup.importWallet(WALLET_A);
 
     await expect(popup.page.getByRole("heading", { name: /Σ\s?12\.50/ })).toBeVisible();
-    await expect(popup.page.getByText("Wallet balance in ERG, no USD rate")).toBeVisible();
+    await expect(popup.page.getByText("Wallet balance in ERG, USD rate unavailable")).toBeVisible();
   });
 });
 
