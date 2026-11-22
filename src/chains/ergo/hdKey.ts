@@ -67,6 +67,10 @@ export default class HdKey {
     return key.fill(0, 4, 12);
   }
 
+  public deriveKey(index: number): ErgoHDKey {
+    return this.#change.deriveChild(index);
+  }
+
   public derivePrivateKey(index: number): Uint8Array {
     const sk = this.#change.deriveChild(index).privateKey;
     if (!sk) throw Error("Private key not found.");

@@ -14,6 +14,7 @@ import { IDbAddress } from "@/types/database";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
 import { graphQLService } from "./services/graphQlService";
+import { hasV3ErgoTree } from "./transaction/blindSigning";
 import { getPrivateDeriver, Prover, StateCallback } from "./transaction/prover";
 import { useAppStore } from "@/stores/appStore";
 import { hostOf } from "@/common/origin";
@@ -123,9 +124,16 @@ export async function signTransaction({
     .setHeaders(blockHeaders)
     .setCallback(callback);
 
-  return some(inputsToSign)
-    ? prover.signInputs(transaction, inputsToSign)
-    : prover.signTransaction(transaction);
+  if (some(inputsToSign)) return prover.signInputs(transaction, inputsToSign);
+
+  const signed = await prover.signTransaction(transaction);
+  if (hasV3ErgoTree(transaction)) {
+    // v3 transactions are signed without script reduction, so a node is the only validity check.
+    const result = await graphQLService.checkTransaction(signed);
+    if (!result.success) throw new Error(result.message);
+  }
+
+  return signed;
 }
 
 function dbAddressMapper(a: IDbAddress) {

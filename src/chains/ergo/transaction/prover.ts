@@ -24,8 +24,12 @@ import { BoxCandidate, ErgoLedgerApp, Network, Token, UnsignedBox } from "ledger
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
 import { addressFromErgoTree } from "../addresses";
+import { extractAddressesFromInputs } from "../extraction";
 import HdKey, { IndexedAddress } from "../hdKey";
+import { hasV3ErgoTree, signWithoutReduction } from "./blindSigning";
 import { createTransport, TransportType } from "@/common/ledger";
+
+const V3_UNSUPPORTED_ERROR = "ErgoTree v3 isn't supported for this signing method yet.";
 
 export type ProverStateType = "success" | "error" | "loading" | "locked" | "ready";
 
@@ -109,6 +113,11 @@ export class Prover {
   }
 
   async signTransaction(unsignedTx: EIP12UnsignedTransaction): Promise<SignedTransaction> {
+    if (hasV3ErgoTree(unsignedTx)) {
+      if (this.#useLedger) throw new Error(V3_UNSUPPORTED_ERROR);
+      return this.#signWithoutReduction(unsignedTx);
+    }
+
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     const signed = await this.#signTx(tx, inputs, dataInputs);
     return signed.to_js_eip12();
@@ -118,14 +127,25 @@ export class Prover {
     unsignedTx: EIP12UnsignedTransaction,
     inputsToSign: number[]
   ): Promise<SignedInput[]> {
+    if (hasV3ErgoTree(unsignedTx)) throw new Error(V3_UNSUPPORTED_ERROR);
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     return this.#signInputs(tx, inputs, dataInputs, inputsToSign);
   }
 
   genCommitments(unsignedTx: EIP12UnsignedTransaction) {
+    if (hasV3ErgoTree(unsignedTx)) throw new Error(V3_UNSUPPORTED_ERROR);
     const context = this.#buildContext();
     const { tx, inputs, dataInputs } = this.#parseUnsignedTx(unsignedTx);
     return this.#buildWallet().generate_commitments(context, tx, inputs, dataInputs).to_json();
+  }
+
+  #signWithoutReduction(unsignedTx: EIP12UnsignedTransaction): SignedTransaction {
+    const indexes = new Map(this.#from.map((a) => [a.script, a.index]));
+
+    return signWithoutReduction(unsignedTx, (input) => {
+      const own = extractAddressesFromInputs([input]).find((a) => indexes.has(a));
+      return own ? this.#deriver.deriveKey(indexes.get(own) as number) : undefined;
+    });
   }
 
   #parseUnsignedTx(unsignedTx: EIP12UnsignedTransaction) {
