@@ -1,9 +1,10 @@
 import { EIP12UnsignedInput, EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 import { ErgoTree } from "@fleet-sdk/core";
 import { blake2b256, hex } from "@fleet-sdk/crypto";
-import { serializeBox, serializeTransaction } from "@fleet-sdk/serializer";
+import { serializeTransaction } from "@fleet-sdk/serializer";
 import { ErgoHDKey, generateProof } from "@fleet-sdk/wallet";
 import { P2PK_TREE_PREFIX } from "@/constants/ergo";
+import { computeBoxId, hasValidBoxIds } from "../boxId";
 
 const MIN_UNSUPPORTED_ERGOTREE_VERSION = 3;
 const PK_HEX_LENGTH = 66;
@@ -55,6 +56,8 @@ export function signWithoutReduction(
   tx: EIP12UnsignedTransaction,
   keyFor: (input: EIP12UnsignedInput, index: number) => ErgoHDKey | undefined
 ): SignedTransaction {
+  if (!hasValidBoxIds(tx)) throw new Error("Box contents don't match their ids.");
+
   const bytes = serializeTransaction(tx).toBytes();
   const id = hex.encode(blake2b256(bytes));
 
@@ -73,7 +76,7 @@ export function signWithoutReduction(
     dataInputs: tx.dataInputs.map((x) => ({ boxId: x.boxId })),
     outputs: tx.outputs.map((output, index) => {
       const box = { ...output, boxId: "", transactionId: id, index };
-      box.boxId = hex.encode(blake2b256(serializeBox(box).toBytes()));
+      box.boxId = computeBoxId(box);
       return box;
     })
   };

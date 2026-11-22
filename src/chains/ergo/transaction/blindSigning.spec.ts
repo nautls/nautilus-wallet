@@ -3,6 +3,7 @@ import { ErgoAddress } from "@fleet-sdk/core";
 import { ErgoHDKey, Prover } from "@fleet-sdk/wallet";
 import { describe, expect, it } from "vitest";
 import { hex } from "@fleet-sdk/crypto";
+import { computeBoxId } from "../boxId";
 import { hasV3ErgoTree, proveDlogKeyOf, signWithoutReduction } from "./blindSigning";
 
 const MNEMONIC =
@@ -14,20 +15,23 @@ async function buildTx() {
   const key = root.derive("m/44'/429'/0'/0/0");
   const p2pk = ErgoAddress.fromPublicKey(key.publicKey).ergoTree;
 
-  const box = (boxId: string, ergoTree: string) => ({
-    boxId,
-    transactionId: "e".repeat(64),
-    index: 0,
-    value: "1000000000",
-    ergoTree,
-    creationHeight: 1_000_000,
-    assets: [],
-    additionalRegisters: {},
-    extension: {}
-  });
+  const box = (n: number, ergoTree: string) => {
+    const b = {
+      boxId: "",
+      transactionId: n.toString().repeat(64),
+      index: 0,
+      value: "1000000000",
+      ergoTree,
+      creationHeight: 1_000_000,
+      assets: [],
+      additionalRegisters: {},
+      extension: {}
+    };
+    return { ...b, boxId: computeBoxId(b) };
+  };
 
   const tx: EIP12UnsignedTransaction = {
-    inputs: [box("a".repeat(64), p2pk), box("b".repeat(64), V3_TREE)],
+    inputs: [box(1, p2pk), box(2, V3_TREE)],
     dataInputs: [],
     outputs: [
       {
@@ -90,6 +94,15 @@ describe("signWithoutReduction", () => {
     const [owned, contract] = signed.inputs;
     expect(new Prover().verify(signed, owned.spendingProof?.proofBytes ?? "", key)).toBe(true);
     expect(contract.spendingProof?.proofBytes).toBe("");
+  });
+
+  it("refuses inputs whose contents don't match their id", async () => {
+    const { key, tx } = await buildTx();
+    tx.inputs[0] = { ...tx.inputs[0], value: "2000000000" };
+
+    expect(() => signWithoutReduction(tx, () => key)).toThrow(
+      "Box contents don't match their ids."
+    );
   });
 
   it("produces the same id and outputs as Fleet's prover", async () => {

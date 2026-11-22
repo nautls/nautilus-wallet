@@ -1,10 +1,10 @@
 import { EIP12UnsignedTransaction, SignedTransaction } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
-import { blake2b256, hex } from "@fleet-sdk/crypto";
-import { serializeBox } from "@fleet-sdk/serializer";
+import { hex } from "@fleet-sdk/crypto";
 import { ErgoHDKey, Prover as FleetProver } from "@fleet-sdk/wallet";
 import { describe, expect, it, vi } from "vitest";
 import { DERIVATION_PATH } from "@/constants/ergo";
+import { computeBoxId } from "../boxId";
 import HdKey from "../hdKey";
 import { Prover } from "./prover";
 
@@ -31,17 +31,20 @@ async function setup() {
   const key1 = deriver.deriveKey(1);
   const pk1 = hex.encode(key1.publicKey);
 
-  const box = (n: number, ergoTree: string) => ({
-    boxId: n.toString().repeat(64),
-    transactionId: "e".repeat(64),
-    index: 0,
-    value: "1000000000",
-    ergoTree,
-    creationHeight: 1_000_000,
-    assets: [],
-    additionalRegisters: {},
-    extension: {}
-  });
+  const box = (n: number, ergoTree: string) => {
+    const b = {
+      boxId: "",
+      transactionId: n.toString().repeat(64),
+      index: 0,
+      value: "1000000000",
+      ergoTree,
+      creationHeight: 1_000_000,
+      assets: [],
+      additionalRegisters: {},
+      extension: {}
+    };
+    return { ...b, boxId: computeBoxId(b) };
+  };
 
   const p2pk0 = ErgoAddress.decode(addr0.script).ergoTree;
   const tx: EIP12UnsignedTransaction = {
@@ -101,7 +104,8 @@ describe("Prover with ErgoTree v3", () => {
   it("leaves inputs that only hold a key as data unsigned", async () => {
     const { prover, tx, addr1 } = await setup();
     const [pk1] = ErgoAddress.decode(addr1.script).getPublicKeys();
-    tx.inputs[1].additionalRegisters = { R4: `08cd${hex.encode(pk1)}` };
+    const input = { ...tx.inputs[1], additionalRegisters: { R4: `08cd${hex.encode(pk1)}` } };
+    tx.inputs[1] = { ...input, boxId: computeBoxId(input) };
     const signed = await prover.signTransaction(tx);
 
     expect(signed.inputs[1].spendingProof?.proofBytes).toBe("");
@@ -132,8 +136,7 @@ describe("Prover with Ledger", () => {
         assets: [],
         additionalRegisters: {}
       };
-      b.boxId = hex.encode(blake2b256(serializeBox(b).toBytes()));
-      return { ...b, extension: {} };
+      return { ...b, boxId: computeBoxId(b), extension: {} };
     };
 
     const tx: EIP12UnsignedTransaction = {

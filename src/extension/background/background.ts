@@ -4,6 +4,7 @@ import { serializeTransaction } from "@fleet-sdk/serializer";
 import type { JsonValue } from "type-fest";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { onMessage, sendMessage } from "webext-bridge/background";
+import { hasValidBoxIds } from "@/chains/ergo/boxId";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { browser } from "@/common/browser";
 import { log } from "@/common/logger";
@@ -38,6 +39,7 @@ type AuthenticatedMessageHandler<T extends InternalRequest> = (
 ) => GetReturnType<T> | Promise<GetReturnType<T>>;
 
 const NOT_CONNECTED_ERROR = error(APIErrorCode.InvalidRequest, "Not connected.");
+const BOX_ID_MISMATCH = "Box contents don't match their ids.";
 const KEEP_ALIVE_INTERVAL = 20_000;
 const requests = new AsyncRequestQueue();
 const pendingRequests = new Map<string, Promise<unknown>>();
@@ -174,6 +176,8 @@ onMessageAuth(InternalRequest.SignTx, async (msg, walletId) => {
     return invalidRequest("Invalid transaction.");
   }
 
+  if (!hasValidBoxIds(transaction)) return invalidRequest(BOX_ID_MISMATCH);
+
   const signers = options?.signers;
   if (signers === undefined) {
     return await openWindow(InternalRequest.SignTx, msg.data, msg.sender.tabId, txHash);
@@ -220,6 +224,8 @@ onMessageAuth(InternalRequest.SignTxInputs, async (msg) => {
   } catch {
     return invalidRequest("Invalid transaction.");
   }
+
+  if (!hasValidBoxIds(transaction)) return invalidRequest(BOX_ID_MISMATCH);
 
   const isValidIndex = (i: unknown) =>
     Number.isInteger(i) && (i as number) >= 0 && (i as number) < transaction.inputs.length;

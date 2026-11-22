@@ -17,7 +17,8 @@ const mocks = vi.hoisted(() => ({
   installedListeners: new Set<() => void>(),
   startupListeners: new Set<() => void>(),
   migrate: vi.fn(async () => {}),
-  clearStaleMask: vi.fn(async () => {})
+  clearStaleMask: vi.fn(async () => {}),
+  hasValidBoxIds: vi.fn()
 }));
 
 vi.mock("webext-bridge", () => ({ isInternalEndpoint: () => true }));
@@ -47,6 +48,7 @@ vi.mock("@/common/browser", () => ({
 
 vi.mock("@/common/uiHelpers", () => ({ createWindow: mocks.createWindow }));
 vi.mock("@/chains/ergo/services/graphQlService", () => ({ graphQLService: {} }));
+vi.mock("@/chains/ergo/boxId", () => ({ hasValidBoxIds: mocks.hasValidBoxIds }));
 vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: { getByScript: mocks.getByScript }
 }));
@@ -93,6 +95,7 @@ beforeEach(async () => {
   mocks.migrate.mockReset().mockResolvedValue(undefined);
   mocks.clearStaleMask.mockReset().mockResolvedValue(undefined);
   mocks.getByScript.mockReset().mockResolvedValue({ script: ADDRESS, walletId: WALLET_ID });
+  mocks.hasValidBoxIds.mockReset().mockReturnValue(true);
 
   await import("./background");
 });
@@ -383,6 +386,21 @@ describe("transaction validation", () => {
     await expect(signTx({ inputs: "invalid" })).resolves.toEqual({
       success: false,
       error: { code: -1, info: "Invalid transaction." }
+    });
+    expect(mocks.createWindow).not.toHaveBeenCalled();
+  });
+});
+
+describe("box id validation", () => {
+  it.each([
+    ["sign_tx", InternalRequest.SignTx, {}],
+    ["sign_tx_inputs", InternalRequest.SignTxInputs, { indexes: [0] }]
+  ])("%s should reject boxes that don't match their ids", async (_, type, args) => {
+    mocks.hasValidBoxIds.mockReturnValue(false);
+
+    await expect(request(type, { transaction: { inputs: [{}] }, ...args })).resolves.toEqual({
+      success: false,
+      error: { code: -1, info: "Box contents don't match their ids." }
     });
     expect(mocks.createWindow).not.toHaveBeenCalled();
   });
