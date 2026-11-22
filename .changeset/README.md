@@ -26,6 +26,7 @@ Add multi-recipient transactions.
 - Write for users, not developers, and make the entry make sense on its own.
 - Keep it to one sentence. Add a second one only when the impact isn't obvious from the first,
   such as a migration, a security behaviour or a side effect.
+- Keep it to one paragraph. A blank line turns the release's whole list into spaced paragraphs.
 - Pick the bump by SemVer: `patch` for fixes and small tweaks, `minor` for new features or
   behaviour changes, `major` for breaking changes.
 - Name the file after the change (`multi-recipient-send.md`), not the generated random name.
