@@ -1,7 +1,9 @@
 import type { EIP12UnsignedTransaction, SignedInput, SignedTransaction } from "@fleet-sdk/common";
-import { expect, fundWallet, test } from "../fixtures/test";
+import { ErgoAddress } from "@fleet-sdk/core";
+import { Prover as FleetProver } from "@fleet-sdk/wallet";
+import { addRegisterKeyBox, expect, fundWallet, test } from "../fixtures/test";
 import { buildTransaction } from "../fixtures/transactions";
-import { RECIPIENT_ADDRESS, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wallets";
+import { addressOf, RECIPIENT_ADDRESS, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wallets";
 import { DAPP_HOST } from "../mocks/services";
 import { toast } from "../pages/common";
 import {
@@ -13,7 +15,11 @@ import {
   withConnectorWindow
 } from "../pages/connector";
 
-type SignTxRequest = { tx: EIP12UnsignedTransaction; indexes?: number[] };
+type SignTxRequest = {
+  tx: EIP12UnsignedTransaction;
+  indexes?: number[];
+  signers?: Record<number, string | null>;
+};
 
 test.describe("dApp transaction signing", () => {
   test.describe("standard wallet", () => {
@@ -196,6 +202,58 @@ test.describe("dApp transaction signing", () => {
 
       const signed = ((await result) as { value: SignedInput[] }).value;
       expect(signed.map((i) => i.boxId)).toEqual([tx.inputs[1].boxId]);
+    });
+
+    test("signs each input with the address the dApp chooses", async ({ context, dapp, chain }) => {
+      const signer = await addressOf(WALLET_A, 1);
+      const [signerPk] = ErgoAddress.decode(signer).getPublicKeys();
+      const contract = addRegisterKeyBox(chain, signerPk);
+      const tx = await buildTransaction(chain, WALLET_A, { inputs: [contract] });
+      const index = tx.inputs.findIndex((i) => i.boxId === contract.boxId);
+
+      const { win, result } = await requestSignature(context, dapp, tx, {
+        signers: { [index]: signer }
+      });
+      await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
+      await clickToClose(win.getByRole("button", { name: "Sign" }));
+
+      const outcome = await result;
+      expect(outcome.ok).toBe(true);
+      const signed = (outcome as { value: SignedTransaction }).value;
+      const prover = new FleetProver();
+      for (const [i, input] of tx.inputs.entries()) {
+        const [pk] =
+          i === index ? [signerPk] : ErgoAddress.fromErgoTree(input.ergoTree).getPublicKeys();
+        const proof = signed.inputs[i].spendingProof?.proofBytes ?? "";
+        expect(prover.verify(signed, proof, pk), `input ${i}`).toBe(true);
+      }
+
+      // v3 transactions are checked by the node before they're returned
+      expect(chain.operations.map((o) => o.name)).toContain("checkTransaction");
+      expect(chain.submitted).toHaveLength(0);
+    });
+
+    test("rejects signers outside the wallet without opening a window", async ({
+      context,
+      dapp,
+      chain
+    }) => {
+      const tx = await buildTransaction(chain, WALLET_A);
+
+      let opened = false;
+      context.on("page", () => (opened = true));
+
+      const outcome = await invoke<unknown, SignTxRequest>(
+        dapp,
+        ({ tx, signers }) => window.ergo.sign_tx(tx, { signers }),
+        { tx, signers: { 0: RECIPIENT_ADDRESS } }
+      );
+
+      expect(outcome).toEqual({
+        ok: false,
+        error: { code: -1, info: "The address is not associated with the connected wallet." }
+      });
+      expect(opened).toBe(false);
     });
 
     test("validates input indexes without opening a window", async ({ context, dapp, chain }) => {

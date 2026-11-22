@@ -82,17 +82,20 @@ export async function connectDapp(context: BrowserContext, dapp: Page, walletNam
   expect(await result).toEqual({ ok: true, value: true });
 }
 
+export type SignTxOptions = { signers?: Record<number, string | null> };
+
 /** Asks the dApp to sign `tx`, which opens the transaction signing window. */
 export function requestSignature(
   context: BrowserContext,
   dapp: Page,
-  tx: EIP12UnsignedTransaction
+  tx: EIP12UnsignedTransaction,
+  options?: SignTxOptions
 ) {
   return withConnectorWindow(context, "sign/tx", () =>
-    invoke<SignedTransaction, { tx: EIP12UnsignedTransaction }>(
+    invoke<SignedTransaction, { tx: EIP12UnsignedTransaction; options?: SignTxOptions }>(
       dapp,
-      ({ tx }) => window.ergo.sign_tx(tx),
-      { tx }
+      ({ tx, options }) => window.ergo.sign_tx(tx, options),
+      { tx, options }
     )
   );
 }

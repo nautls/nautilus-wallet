@@ -1,10 +1,12 @@
 import type { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { OutputBuilder, RECOMMENDED_MIN_FEE_VALUE, TransactionBuilder } from "@fleet-sdk/core";
-import type { MockChain } from "../mocks/chain";
+import type { GqlBox, MockChain } from "../mocks/chain";
 import { addressOf, RECIPIENT_ADDRESS, type TestWallet } from "./wallets";
 
 type P2PTxOptions = {
   to?: string;
+  /** Extra boxes that are always spent, besides the wallet's own. */
+  inputs?: GqlBox[];
   nanoErgs?: bigint;
   tokens?: { tokenId: string; amount: string }[];
   burn?: { tokenId: string; amount: string }[];
@@ -20,7 +22,11 @@ export async function buildTransaction(
   opt: P2PTxOptions = {}
 ): Promise<EIP12UnsignedTransaction> {
   const change = await addressOf(wallet, 0);
-  const inputs = [...chain.boxesOf(change), ...chain.boxesOf(await addressOf(wallet, 1))];
+  const inputs = [
+    ...chain.boxesOf(change),
+    ...chain.boxesOf(await addressOf(wallet, 1)),
+    ...(opt.inputs ?? [])
+  ];
 
   const builder = new TransactionBuilder(chain.height)
     .from(inputs)
@@ -33,6 +39,10 @@ export async function buildTransaction(
     .payFee(RECOMMENDED_MIN_FEE_VALUE);
 
   if (opt.burn) builder.burnTokens(opt.burn);
+  if (opt.inputs) {
+    const ids = opt.inputs.map((b) => b.boxId);
+    builder.configureSelector((selector) => selector.ensureInclusion(ids));
+  }
 
   return builder.build().toEIP12Object();
 }
