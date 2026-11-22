@@ -28,6 +28,7 @@ import { signTransaction } from "@/chains/ergo/signing";
 import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transaction/interpreter";
 import { log } from "@/common/logger";
 import { cn, extractErrorMessage } from "@/common/utils";
+import { InputSigners } from "@/types/connector";
 import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
 import { useFormat } from "@/composables";
@@ -38,6 +39,7 @@ import LedgerDevice from "../LedgerDevice.vue";
 interface Props {
   transaction?: EIP12UnsignedTransaction;
   inputsToSign?: number[];
+  signers?: InputSigners;
   loading?: boolean;
   broadcast?: boolean;
   class?: HTMLAttributes["class"];
@@ -52,7 +54,8 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   broadcast: true,
   transaction: undefined,
-  inputsToSign: undefined
+  inputsToSign: undefined,
+  signers: undefined
 });
 
 const emit = defineEmits<Emits>();
@@ -132,6 +135,7 @@ async function sign() {
       transaction: props.transaction,
       password: prompt.passwordOrSession(password.value),
       inputsToSign: props.inputsToSign,
+      signers: props.signers,
       stateCallback: ledgerDevice.value?.setState
     });
 

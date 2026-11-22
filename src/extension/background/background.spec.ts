@@ -451,6 +451,70 @@ describe("input signing", () => {
   });
 });
 
+describe("transaction signers", () => {
+  const transaction = { inputs: [{}, {}] };
+
+  function signTxWith(signers: unknown) {
+    return request(InternalRequest.SignTx, { transaction, options: { signers } });
+  }
+
+  it("should deliver valid signers to the popup", async () => {
+    const signers = { 0: ADDRESS, 1: null };
+    const result = signTxWith(signers);
+    await flush();
+
+    await load("signed");
+    close(windowId);
+
+    await expect(result).resolves.toBe("signed");
+    const [type, data] = mocks.sendMessage.mock.calls[0];
+    expect(type).toBe(InternalRequest.SignTx);
+    expect(data.options.signers).toEqual(signers);
+  });
+
+  it.each([
+    ["non-object signers", "9f", "Invalid signers."],
+    ["array signers", [ADDRESS], "Invalid signers."],
+    ["out of range indexes", { 2: ADDRESS }, "Invalid signer input index."],
+    ["negative indexes", { "-1": ADDRESS }, "Invalid signer input index."],
+    ["non-integer indexes", { "0.5": ADDRESS }, "Invalid signer input index."],
+    ["zero-padded indexes", { "01": ADDRESS }, "Invalid signer input index."],
+    ["non-string addresses", { 0: 1 }, "Invalid signer address."]
+  ])("should reject %s", async (_, signers, info) => {
+    await expect(signTxWith(signers)).resolves.toEqual({
+      success: false,
+      error: { code: -1, info }
+    });
+    expect(mocks.createWindow).not.toHaveBeenCalled();
+  });
+
+  it("should reject addresses from other wallets", async () => {
+    mocks.getByScript.mockResolvedValue({ script: ADDRESS, walletId: WALLET_ID + 1 });
+
+    await expect(signTxWith({ 0: ADDRESS })).resolves.toEqual({
+      success: false,
+      error: { code: -1, info: "The address is not associated with the connected wallet." }
+    });
+    expect(mocks.createWindow).not.toHaveBeenCalled();
+  });
+
+  it("should not share results across different signers", async () => {
+    const first = signTxWith({ 0: ADDRESS });
+    const second = signTxWith({ 0: null });
+    await flush();
+
+    await load("signed0");
+    close(windowId);
+    await flush();
+    await load("signed1");
+    close(windowId);
+
+    const results = await Promise.all([first, second]);
+    expect(results.sort()).toEqual(["signed0", "signed1"]);
+    expect(mocks.createWindow).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("transaction submission", () => {
   it("should reject malformed transactions before submitting them", async () => {
     const result = request(InternalRequest.SubmitTransaction, {

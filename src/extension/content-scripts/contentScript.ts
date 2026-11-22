@@ -158,7 +158,7 @@ function dropForeignPortOffers() {
   onMessage(ExternalRequest.SignTx, async ({ data }) => {
     return await sendMessage(
       InternalRequest.SignTx,
-      { ...pick(data, ["transaction"]), payload },
+      { ...pick(data, ["transaction", "options"]), payload },
       BACKGROUND
     );
   });

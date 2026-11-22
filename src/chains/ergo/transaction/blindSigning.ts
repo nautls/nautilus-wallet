@@ -3,8 +3,13 @@ import { ErgoTree } from "@fleet-sdk/core";
 import { blake2b256, hex } from "@fleet-sdk/crypto";
 import { serializeBox, serializeTransaction } from "@fleet-sdk/serializer";
 import { ErgoHDKey, generateProof } from "@fleet-sdk/wallet";
+import { P2PK_TREE_PREFIX } from "@/constants/ergo";
 
 const MIN_UNSUPPORTED_ERGOTREE_VERSION = 3;
+const PK_HEX_LENGTH = 66;
+const CONSTANT_PLACEHOLDER_0 = "7300";
+
+// Temporary until sigma-rust supports ErgoTree v3.
 
 /** ergo-lib-wasm can't parse ErgoTree v3 or later. */
 export function isV3ErgoTree(ergoTree: string): boolean {
@@ -16,21 +21,47 @@ export function hasV3ErgoTree(tx: EIP12UnsignedTransaction): boolean {
 }
 
 /**
+ * Returns the public key when the whole script is a single `proveDlog`, the only case where a
+ * proof can be chosen without reducing it. Keys found elsewhere may be plain data, e.g. a
+ * recipient stored in a register.
+ */
+export function proveDlogKeyOf(ergoTree: string): string | undefined {
+  if (ergoTree.startsWith(P2PK_TREE_PREFIX)) {
+    const pk = ergoTree.slice(P2PK_TREE_PREFIX.length);
+    return pk.length === PK_HEX_LENGTH ? pk : undefined;
+  }
+
+  try {
+    const tree = new ErgoTree(ergoTree);
+    const constants = tree.constants;
+    if (constants.length !== 1 || hex.encode(tree.template) !== CONSTANT_PLACEHOLDER_0) return;
+
+    const { type, data } = constants[0];
+    if (type.toString() !== "SSigmaProp" || !(data instanceof Uint8Array)) return;
+
+    const pk = hex.encode(data);
+    return pk.length === PK_HEX_LENGTH ? pk : undefined;
+  } catch {
+    return;
+  }
+}
+
+/**
  * Signs without reducing input scripts: each input gets a Schnorr proof from the key returned by
  * `keyFor`, or an empty proof when it returns nothing. Validity is unknown until the transaction
  * is checked by a node.
  */
 export function signWithoutReduction(
   tx: EIP12UnsignedTransaction,
-  keyFor: (input: EIP12UnsignedInput) => ErgoHDKey | undefined
+  keyFor: (input: EIP12UnsignedInput, index: number) => ErgoHDKey | undefined
 ): SignedTransaction {
   const bytes = serializeTransaction(tx).toBytes();
   const id = hex.encode(blake2b256(bytes));
 
   return {
     id,
-    inputs: tx.inputs.map((input) => {
-      const key = keyFor(input);
+    inputs: tx.inputs.map((input, index) => {
+      const key = keyFor(input, index);
       return {
         boxId: input.boxId,
         spendingProof: {

@@ -47,6 +47,11 @@ describe("content script request forwarding", () => {
     [ExternalRequest.SignData, InternalRequest.SignData, { address: "9f", message: "hi" }],
     [ExternalRequest.Auth, InternalRequest.Auth, { address: "9f", message: "hi" }],
     [ExternalRequest.SignTx, InternalRequest.SignTx, { transaction: {} }],
+    [
+      ExternalRequest.SignTx,
+      InternalRequest.SignTx,
+      { transaction: {}, options: { signers: { 0: "9f", 1: null } } }
+    ],
     [ExternalRequest.SignTxInputs, InternalRequest.SignTxInputs, { transaction: {}, indexes: [0] }]
   ];
 

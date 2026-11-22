@@ -19,6 +19,15 @@ export enum SignErrorCode {
   UserDeclined = 2
 }
 
+/**
+ * Maps input indexes to the address whose key signs them, or `null` for inputs that need no
+ * proof. Used where inputs are signed without script reduction: Ledger devices, which sign every
+ * input and so sign `null` ones with the change key, and ErgoTree v3 transactions.
+ */
+export type InputSigners = Record<number, string | null>;
+
+export type SignTxOptions = { signers?: InputSigners };
+
 export type Token = {
   tokenId: string;
   amount: string;

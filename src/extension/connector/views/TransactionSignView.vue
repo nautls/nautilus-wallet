@@ -53,6 +53,11 @@ function setWallet(loading: boolean, walletId: number) {
   wallet.load(walletId);
 }
 
+const signers = computed(() => {
+  const data = request.value?.data;
+  return data && "options" in data ? data.options?.signers : undefined;
+});
+
 const inputsToSign = computed(() => {
   if (!isSignInputsRequest(request.value)) return undefined;
   return request.value.data.indexes;
@@ -124,6 +129,7 @@ function closeWindow() {
     <TransactionSign
       :transaction="request?.data.transaction"
       :inputs-to-sign="inputsToSign"
+      :signers="signers"
       :broadcast="false"
       @refused="onRefused"
       @fail="onFail"

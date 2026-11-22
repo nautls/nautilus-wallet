@@ -23,10 +23,10 @@ import {
 import { BoxCandidate, ErgoLedgerApp, Network, Token, UnsignedBox } from "ledger-ergo-js";
 import { DERIVATION_PATH, MAINNET } from "@/constants/ergo";
 import { walletsDbService } from "@/database/walletsDbService";
-import { addressFromErgoTree } from "../addresses";
-import { extractAddressesFromInputs } from "../extraction";
+import { InputSigners } from "@/types/connector";
+import { addressFromErgoTree, addressFromPk } from "../addresses";
 import HdKey, { IndexedAddress } from "../hdKey";
-import { hasV3ErgoTree, signWithoutReduction } from "./blindSigning";
+import { hasV3ErgoTree, proveDlogKeyOf, signWithoutReduction } from "./blindSigning";
 import { createTransport, TransportType } from "@/common/ledger";
 
 const V3_UNSUPPORTED_ERROR = "ErgoTree v3 isn't supported for this signing method yet.";
@@ -63,6 +63,7 @@ export class Prover {
   #deriver!: HdKey;
   #headers?: BlockHeaders;
   #ledgerTransportType?: TransportType;
+  #signers?: InputSigners;
 
   #callbackFn?: StateCallback;
 
@@ -96,6 +97,12 @@ export class Prover {
 
   withTransport(transport: TransportType): Prover {
     this.#ledgerTransportType = transport;
+    return this;
+  }
+
+  /** See {@link InputSigners}. */
+  setSigners(signers?: InputSigners): Prover {
+    this.#signers = signers;
     return this;
   }
 
@@ -142,9 +149,20 @@ export class Prover {
   #signWithoutReduction(unsignedTx: EIP12UnsignedTransaction): SignedTransaction {
     const indexes = new Map(this.#from.map((a) => [a.script, a.index]));
 
-    return signWithoutReduction(unsignedTx, (input) => {
-      const own = extractAddressesFromInputs([input]).find((a) => indexes.has(a));
-      return own ? this.#deriver.deriveKey(indexes.get(own) as number) : undefined;
+    const keyAt = (address: string) => {
+      const index = indexes.get(address);
+      if (index === undefined) throw new Error(`No key found for ${address}.`);
+      return this.#deriver.deriveKey(index);
+    };
+
+    return signWithoutReduction(unsignedTx, (input, index) => {
+      const signer = this.#signers?.[index];
+      if (signer === null) return;
+      if (signer) return keyAt(signer);
+
+      const pk = proveDlogKeyOf(input.ergoTree);
+      const address = pk && addressFromPk(pk);
+      return address && indexes.has(address) ? keyAt(address) : undefined;
     });
   }
 
@@ -182,7 +200,13 @@ export class Prover {
 
       const proofs = await ledgerApp.signTx(
         {
-          inputs: mapLedgerInputs(unsigned, unspentBoxes, this.#from),
+          inputs: mapLedgerInputs(
+            unsigned,
+            unspentBoxes,
+            this.#from,
+            this.#changeIndex ?? 0,
+            this.#signers
+          ),
           dataInputs: mapLedgerDataInputs(dataInputs),
           outputs: mapLedgerOutputs(unsigned),
           distinctTokenIds: unsigned.distinct_token_ids(),
@@ -262,7 +286,13 @@ function mapTokens(wasmTokens: Tokens) {
   return tokens;
 }
 
-function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: IndexedAddress[]) {
+function mapLedgerInputs(
+  tx: UnsignedTransaction,
+  inputs: ErgoBoxes,
+  addresses: IndexedAddress[],
+  changeIndex: number,
+  signers?: InputSigners
+) {
   const mappedInputs: UnsignedBox[] = [];
   for (let i = 0; i < tx.inputs().len(); i++) {
     const input = tx.inputs().get(i);
@@ -270,9 +300,9 @@ function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: 
     if (!box) throw Error(`Input ${input.box_id().to_str()} not found in unspent boxes.`);
 
     const ergoTree = box.ergo_tree().to_base16_bytes().toString();
-    const path =
-      addresses.find((a) => a.script === addressFromErgoTree(ergoTree)) ?? first(addresses);
-    if (!path) throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
+    const index = ledgerKeyIndex(signers?.[i], ergoTree, addresses, changeIndex);
+    if (index === undefined)
+      throw Error(`Unable to find a sign path for ${input.box_id().to_str()}.`);
 
     mappedInputs.push({
       txId: box.tx_id().to_str(),
@@ -283,11 +313,25 @@ function mapLedgerInputs(tx: UnsignedTransaction, inputs: ErgoBoxes, addresses: 
       tokens: mapTokens(box.tokens()),
       additionalRegisters: box.serialized_additional_registers(),
       extension: input.extension().sigma_serialize_bytes(),
-      signPath: `${DERIVATION_PATH}/${path.index}`
+      signPath: `${DERIVATION_PATH}/${index}`
     });
   }
 
   return mappedInputs;
+}
+
+function ledgerKeyIndex(
+  signer: string | null | undefined,
+  ergoTree: string,
+  addresses: IndexedAddress[],
+  changeIndex: number
+) {
+  // The device signs every input, so one that needs no proof gets the change key.
+  if (signer === null) return changeIndex;
+  if (signer) return addresses.find((a) => a.script === signer)?.index;
+
+  const address = addressFromErgoTree(ergoTree);
+  return (addresses.find((a) => a.script === address) ?? first(addresses))?.index;
 }
 
 function mapLedgerDataInputs(dataInputs: ErgoBoxes) {

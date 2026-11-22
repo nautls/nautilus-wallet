@@ -2,7 +2,8 @@ import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { ErgoHDKey, Prover } from "@fleet-sdk/wallet";
 import { describe, expect, it } from "vitest";
-import { hasV3ErgoTree, signWithoutReduction } from "./blindSigning";
+import { hex } from "@fleet-sdk/crypto";
+import { hasV3ErgoTree, proveDlogKeyOf, signWithoutReduction } from "./blindSigning";
 
 const MNEMONIC =
   "decline usual reward fine flight vintage deny slight minimum spirit hero aerobic loan peanut feel";
@@ -58,6 +59,26 @@ describe("hasV3ErgoTree", () => {
         outputs: [output, { ...output, ergoTree: V3_TREE }]
       })
     ).toBe(true);
+  });
+});
+
+describe("proveDlogKeyOf", () => {
+  it("returns the key of P2PK and single proveDlog scripts", async () => {
+    const { key, p2pk } = await buildTx();
+    const pk = hex.encode(key.publicKey);
+
+    expect(proveDlogKeyOf(p2pk)).toBe(pk);
+    expect(proveDlogKeyOf(`1b260108cd${pk}7300`)).toBe(pk);
+  });
+
+  it("returns nothing for scripts that do more than prove a single key", async () => {
+    const { key } = await buildTx();
+    const pk = hex.encode(key.publicKey);
+
+    expect(proveDlogKeyOf(`1b2a0108cd${pk}ea0273007300`)).toBeUndefined(); // key && key
+    expect(proveDlogKeyOf(`1b2802040008cd${pk}7301`)).toBeUndefined(); // two constants
+    expect(proveDlogKeyOf(V3_TREE)).toBeUndefined();
+    expect(proveDlogKeyOf("1bff")).toBeUndefined();
   });
 });
 

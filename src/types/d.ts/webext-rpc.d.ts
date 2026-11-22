@@ -16,6 +16,7 @@ import type {
   Result,
   DataWithPayload as WithPayload
 } from "@/extension/connector/rpc/protocol";
+import type { SignTxOptions } from "@/types/connector";
 
 type UTxOsTarget = { target: SelectionTarget | undefined };
 type UTxOResult = Result<Box<string>[]>;
@@ -29,7 +30,7 @@ type AddressesResult = Result<string[] | string>;
 type SignDataArgs = { address: string; message: JsonValue };
 type AuthArgs = { address: string; message: string };
 
-type SignTxArgs = { transaction: EIP12UnsignedTransaction };
+type SignTxArgs = { transaction: EIP12UnsignedTransaction; options?: SignTxOptions };
 type SignTxResult = Result<SignedTransaction>;
 
 type SignTxInputsArgs = { transaction: EIP12UnsignedTransaction; indexes: number[] };

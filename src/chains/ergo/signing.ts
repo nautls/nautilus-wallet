@@ -10,6 +10,7 @@ import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
 import { useWalletStore } from "@/stores/walletStore";
 import { hdKeyPool } from "@/common/objectPool";
 import { addressesDbService } from "@/database/addressesDbService";
+import { InputSigners } from "@/types/connector";
 import { IDbAddress } from "@/types/database";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
@@ -35,6 +36,7 @@ export interface TransactionSigningParams {
   password?: string;
   stateCallback?: StateCallback;
   inputsToSign?: number[];
+  signers?: InputSigners;
 }
 
 const wallet = useWalletStore();
@@ -82,10 +84,16 @@ export async function signTransaction({
   transaction,
   password,
   stateCallback: callback,
-  inputsToSign
+  inputsToSign,
+  signers
 }: TransactionSigningParams): Promise<SignedTransaction | SignedInput[]> {
   const walletId = wallet.id;
+  const isLedger = wallet.type === "ledger";
   const inputAddresses = extractAddressesFromInputs(transaction.inputs);
+  // With script reduction, a signer's key could also prove inputs the dApp didn't list.
+  if (signers && (isLedger || hasV3ErgoTree(transaction))) {
+    inputAddresses.push(...Object.values(signers).filter((a) => a !== null));
+  }
   const ownAddresses = await addressesDbService.getByWalletId(walletId);
   const addresses = ownAddresses
     .filter((a) => inputAddresses.includes(a.script))
@@ -102,7 +110,6 @@ export async function signTransaction({
     );
   }
 
-  const isLedger = wallet.type === "ledger";
   if (isLedger && some(inputsToSign)) {
     throw new Error("Signing selected inputs is not supported by Ledger devices.");
   }
@@ -122,6 +129,7 @@ export async function signTransaction({
     .withTransport(app.settings.ledger.transport)
     .changeIndex(changeIndex)
     .setHeaders(blockHeaders)
+    .setSigners(signers)
     .setCallback(callback);
 
   if (some(inputsToSign)) return prover.signInputs(transaction, inputsToSign);
