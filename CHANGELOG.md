@@ -1,5 +1,13 @@
 # nautilus-wallet
 
+## 2.0.0-beta.3
+
+### Minor Changes
+
+- Support signing transactions with ErgoTree v3 contracts. These transactions are checked by the configured GraphQL server before they're returned or submitted; Ledger and partial signing don't support them yet. ([#412](https://github.com/nautls/nautilus-wallet/pull/412)) Thanks [@arobsn](https://github.com/arobsn)!
+- Remove the Buy ERG button from the assets view. ([#414](https://github.com/nautls/nautilus-wallet/pull/414)) Thanks [@arobsn](https://github.com/arobsn)!
+- Let dApps choose which address signs each input with `ergo.sign_tx(tx, { signers })`, for Ledger wallets and ErgoTree v3 transactions. ([#412](https://github.com/nautls/nautilus-wallet/pull/412)) Thanks [@arobsn](https://github.com/arobsn)!
+
 ## 2.0.0-alpha.2
 
 ### Minor Changes
