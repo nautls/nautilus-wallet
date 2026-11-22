@@ -400,6 +400,34 @@ type TokenAmount = { tokenId: string; amount: string };
 type NonMandatoryRegisters = Partial<Record<"R4" | "R5" | "R6" | "R7" | "R8" | "R9", string>>;
 ```
 
+### Choose the Signing Address of Each Input
+
+Nautilus usually works out which keys a transaction needs by evaluating each input's script. It can't do that in two cases:
+
+* **Ledger wallets**: the device signs every input with the key it's given, without evaluating scripts.
+* **Transactions with ErgoTree v3**: inputs, data inputs or outputs whose ErgoTree is version 3 or later are signed without evaluating scripts. Before returning, Nautilus asks a node to check the signed transaction and throws a `ProofGeneration` [error](/dapp-connector/api-overview#errors) if the node rejects it. Ledger wallets can't sign these transactions yet.
+
+In those cases, Nautilus signs inputs that belong to the wallet's addresses with the matching key. For other inputs:
+
+* **Ledger wallets** sign them with the key of the first wallet address found in the transaction's inputs.
+* **Transactions with ErgoTree v3** sign them only when the whole script is a single `proveDlog` of a wallet key, and leave them unsigned otherwise. A key stored as data, such as a recipient in a register, isn't used.
+
+If your contract needs a different key, pass a `signers` option that maps input indexes to the address that should sign them:
+
+```ts
+const signedTransaction = await ergo.sign_tx(unsignedTransaction, {
+  signers: {
+    1: "9f…", // sign input 1 with this address's key // [!code focus]
+    2: null // input 2 needs no signature // [!code focus]
+  }
+});
+```
+
+* Each index must be within the bounds of the transaction's `inputs` array.
+* Each address must belong to the connected wallet. Use `null` for inputs whose script doesn't need a signature. Ledger devices sign every input, so they sign these with the change address's key.
+* Inputs that aren't listed keep the default behaviour.
+* Invalid signers throw an `InvalidRequest` [error](/dapp-connector/api-overview#errors) without prompting the user.
+
 ### Sign Specific Inputs
 
 In multi-party scenarios, where a transaction spends inputs owned by different wallets, you can ask Nautilus to sign only some of the inputs by calling `ergo.sign_tx_inputs()` with the unsigned transaction and the indexes of the inputs to be signed.
