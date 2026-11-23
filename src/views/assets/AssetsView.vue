@@ -64,11 +64,20 @@ watch(
   { immediate: true }
 );
 
+// until the first load ends there are no amounts to keep showing, only the placeholder ERG row
+const firstLoadDone = ref(!wallet.loading);
+watch(
+  () => wallet.loading,
+  (loading) => {
+    if (!loading) firstLoadDone.value = true;
+  }
+);
+
 const hideAmounts = computed(
   () =>
     (wallet.syncing && !wallet.synced) ||
     !assetsStore.pricesLoaded ||
-    (wallet.loading && showLoader.value)
+    (wallet.loading && (showLoader.value || !firstLoadDone.value))
 );
 
 const ergTotal = computed(() =>
