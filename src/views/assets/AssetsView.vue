@@ -64,6 +64,13 @@ watch(
   { immediate: true }
 );
 
+const hideAmounts = computed(
+  () =>
+    (wallet.syncing && !wallet.synced) ||
+    !assetsStore.pricesLoaded ||
+    (wallet.loading && showLoader.value)
+);
+
 const ergTotal = computed(() =>
   wallet.nonArtworkBalance.reduce(
     (acc, a) => acc.plus(a.balance.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))),
@@ -128,7 +135,7 @@ function openAssetInfoDialog(tokenId: string) {
             <template v-if="app.settings.hideBalances">
               <HiddenAmount :length="6" :label="t('asset.balanceHidden')" />
             </template>
-            <template v-else-if="balancePending">
+            <template v-else-if="hideAmounts">
               <Skeleton
                 class="mt-1 inline-block h-7 w-32 align-top"
                 :class="{ invisible: !showLoader }"
@@ -138,7 +145,7 @@ function openAssetInfoDialog(tokenId: string) {
             <template v-else>{{ formattedTotal }}</template>
           </h2>
           <Button
-            v-if="app.settings.hideBalances || !balancePending"
+            v-if="app.settings.hideBalances || !hideAmounts"
             id="toggle-balances"
             variant="ghost"
             size="icon-sm"
@@ -156,7 +163,7 @@ function openAssetInfoDialog(tokenId: string) {
         </div>
         <p class="text-muted-foreground text-xs">
           {{
-            hasFiatRate || balancePending || app.settings.hideBalances
+            hasFiatRate || hideAmounts || app.settings.hideBalances
               ? t("asset.totalBalance")
               : t("asset.totalBalanceNoRate", {
                   currency: app.settings.conversionCurrency.toUpperCase()
@@ -235,7 +242,7 @@ function openAssetInfoDialog(tokenId: string) {
                   <template v-if="app.settings.hideBalances">
                     <HiddenAmount />
                   </template>
-                  <template v-else-if="balancePending">
+                  <template v-else-if="hideAmounts">
                     <Skeleton class="my-0.5 h-4 w-16" :class="{ invisible: !showLoader }" />
                     <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
                   </template>
