@@ -114,7 +114,7 @@ function openExplorer(address: string | undefined) {
         <div
           v-for="address in addresses"
           :key="address.script"
-          class="flex items-center justify-between gap-2 px-3 py-3"
+          class="flex items-center justify-between gap-2 px-3 py-2"
         >
           <div class="flex items-center gap-2">
             <Button
@@ -128,7 +128,7 @@ function openExplorer(address: string | undefined) {
                 :model-value="wallet.settings.defaultChangeIndex === address.index"
               />
               <span class="text-foreground font-mono whitespace-nowrap">{{
-                format.string.shorten(address.script, 8)
+                format.string.shorten(address.script, 10)
               }}</span>
             </Button>
 

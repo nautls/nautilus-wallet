@@ -135,7 +135,7 @@ function openAssetInfoDialog(tokenId: string) {
 <template>
   <ScrollArea type="scroll">
     <div class="flex flex-col gap-4 p-4">
-      <div class="flex flex-col items-center gap-1 pt-2 pb-2 text-center">
+      <div class="flex flex-col items-center gap-1 py-4 text-center">
         <div class="relative max-w-[calc(100%-4rem)]">
           <h2
             class="truncate text-3xl leading-9 tabular-nums"
@@ -228,7 +228,7 @@ function openAssetInfoDialog(tokenId: string) {
                 variant="ghost"
                 :class="
                   cn(
-                    'h-auto gap-3 p-3 text-left [&_svg]:size-9',
+                    'h-auto gap-3 px-3 py-2.5 text-left [&_svg]:size-9',
                     isErg(asset.tokenId) && 'cursor-default'
                   )
                 "
