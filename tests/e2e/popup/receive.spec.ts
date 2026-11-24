@@ -11,7 +11,7 @@ function addressRows(page: Page): Locator {
 }
 
 function shorten(address: string) {
-  return `${address.slice(0, 3)}…${address.slice(-3)}`;
+  return `${address.slice(0, 4)}…${address.slice(-4)}`;
 }
 
 test.describe("receive", () => {
