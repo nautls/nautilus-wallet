@@ -63,6 +63,13 @@ const TOKENS = [
     ergPrice: 95_000 / ERG_USD
   },
   {
+    tokenId: "203ef3066a912f35c488487cc2cb94bdb0d30680dab22551c7e6fdbc70dfcc8e",
+    name: "rsETH",
+    decimals: 9,
+    amount: "420000000", // 0.42
+    ergPrice: 3_400 / ERG_USD
+  },
+  {
     tokenId: "c1980d829988229516430a47a5eca376060b6ce859616db0936e78ab25cb6de7",
     name: "LIT",
     decimals: 6,
@@ -191,6 +198,9 @@ for (const scheme of ["dark", "light"] as const) {
       await popup.importWallet(WALLET_B);
       await popup.importReadOnlyWallet(COLD_WALLET.name, await xpubOf(COLD_WALLET));
       await popup.importWallet(WALLET_A);
+      const masterAlert = page.locator("[data-master-password-alert]");
+      await masterAlert.getByRole("button", { name: "Don't ask again" }).click();
+      await expect(masterAlert).toHaveCount(0);
       await page.waitForTimeout(1500);
       await expect(page.getByRole("tabpanel")).toContainText("SigUSD");
       await shot(page, `${scheme}-assets`);

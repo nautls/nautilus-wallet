@@ -23,9 +23,9 @@
 <p align="center">
   <img alt="Assets view" src="docs/public/screenshots/assets.png" width="250">
   &nbsp;
-  <img alt="Receive view" src="docs/public/screenshots/receive.png" width="250">
+  <img alt="Receive view" src="docs/public/screenshots/send.png" width="250">
   &nbsp;
-  <img alt="dApp connection request" src="docs/public/screenshots/connect.png" width="250">
+  <img alt="dApp connection request" src="docs/public/screenshots/sign.png" width="250">
 </p>
 
 ## Description
