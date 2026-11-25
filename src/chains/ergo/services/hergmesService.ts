@@ -17,7 +17,7 @@ export type Balances = { nanoErgs: bigint; tokens: Map<string, bigint> };
 
 const MISSING_INPUTS_ERROR =
   "Malformed transaction: Every input of the transaction should be in UTXO.";
-const MAX_CONCURRENT_REQUESTS = 4;
+const MAX_CONCURRENT_REQUESTS = 10;
 const SUBMIT_ATTEMPTS = 5;
 const SUBMIT_FIRST_DELAY = 500;
 
@@ -183,7 +183,7 @@ export async function getBalances(addresses: string[]): Promise<Balances> {
   return total;
 }
 
-/** `capacity_exceeded` isn't retried by the SDK, so requests go a few at a time. */
+/** Requests go a few at a time, to stay within the relay proxy's rate limit. */
 async function forEachAddress(addresses: string[], fn: (address: string) => Promise<void>) {
   const queue = [...addresses];
   const worker = async () => {

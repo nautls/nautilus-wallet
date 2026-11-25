@@ -5,7 +5,8 @@ import { getBalance, getUTxOs } from "./ergoHandlers";
 
 const mocks = vi.hoisted(() => ({
   holders: [] as string[],
-  boxesByAddress: new Map<string, SpendableBox[]>()
+  boxesByAddress: new Map<string, SpendableBox[]>(),
+  balanceByAddress: new Map<string, { nanoErgs: bigint; tokens: [string, bigint][] }>()
 }));
 
 vi.mock("@/chains/ergo/services/hergmesService", () => ({
@@ -13,8 +14,11 @@ vi.mock("@/chains/ergo/services/hergmesService", () => ({
     addresses.flatMap((a) => mocks.boxesByAddress.get(a) ?? [])
   ),
   getBalances: vi.fn(async (addresses: string[]) => {
-    expect(addresses).toEqual(["addr0", "addr1"]);
-    return { nanoErgs: 5n, tokens: new Map([["t1", 7n]]) };
+    const found = addresses.flatMap((a) => mocks.balanceByAddress.get(a) ?? []);
+    return {
+      nanoErgs: found.reduce((sum, b) => sum + b.nanoErgs, 0n),
+      tokens: new Map(found.flatMap((b) => b.tokens))
+    };
   })
 }));
 vi.mock("@/database/addressesDbService", () => ({
@@ -49,6 +53,7 @@ const pending = box("b", false);
 beforeEach(() => {
   mocks.holders = ["addr0"];
   mocks.boxesByAddress = new Map([["addr0", [confirmed, pending]]]);
+  mocks.balanceByAddress = new Map([["addr0", { nanoErgs: 5n, tokens: [["t1", 7n]] }]]);
 });
 
 const ids = (boxes: { boxId: string }[]) => boxes.map((b) => b.boxId).sort();
@@ -69,11 +74,18 @@ describe("getUTxOs", () => {
 });
 
 describe("getBalance", () => {
-  it("should sum every address of the wallet", async () => {
+  it("should read the addresses holding ERG", async () => {
+    mocks.balanceByAddress.set("addr1", { nanoErgs: 100n, tokens: [] });
+
     expect(await getBalance(1, "all")).toEqual([
       { tokenId: "ERG", balance: "5" },
       { tokenId: "t1", balance: "7" }
     ]);
+  });
+
+  it("should look at the other addresses when the ERG holders hold nothing", async () => {
+    mocks.balanceByAddress = new Map([["addr1", { nanoErgs: 3n, tokens: [] }]]);
+    expect(await getBalance(1, ERG_TOKEN_ID)).toBe("3");
   });
 
   it("should answer one asset as a string, 0 when not held", async () => {
