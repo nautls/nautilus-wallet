@@ -14,7 +14,7 @@ import { InputSigners } from "@/types/connector";
 import { IDbAddress } from "@/types/database";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
-import { graphQLService } from "./services/graphQlService";
+import { checkTransaction, getHeaders } from "./services/hergmesService";
 import { hasV3ErgoTree } from "./transaction/blindSigning";
 import { getPrivateDeriver, Prover, StateCallback } from "./transaction/prover";
 import { useAppStore } from "@/stores/appStore";
@@ -121,7 +121,7 @@ export async function signTransaction({
   const encodedAddresses = ownAddresses.map((a) => a.script);
   const changeAddress = getChangeAddress(transaction.outputs, encodedAddresses);
 
-  const blockHeaders = isLedger ? [] : await graphQLService.getHeaders({ take: 10 });
+  const blockHeaders = isLedger ? [] : await getHeaders();
   const changeIndex = ownAddresses.find((a) => a.script === changeAddress)?.index ?? 0;
   const prover = new Prover(deriver)
     .from(addresses)
@@ -137,8 +137,7 @@ export async function signTransaction({
   const signed = await prover.signTransaction(transaction);
   if (hasV3ErgoTree(transaction)) {
     // v3 transactions are signed without script reduction, so a node is the only validity check.
-    const result = await graphQLService.checkTransaction(signed);
-    if (!result.success) throw new Error(result.message);
+    await checkTransaction(signed);
   }
 
   return signed;

@@ -2,7 +2,7 @@ import { computed, reactive, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { getAssetsMetadata } from "@/chains/ergo/services/hergmesService";
 import {
   ErgoTokenBlacklist,
   ergoTokenBlacklistService
@@ -160,7 +160,7 @@ export const useAssetsStore = defineStore("assets", () => {
   }
 
   async function loadRemoteMetadata(missing: string[], persist: boolean) {
-    const newMeta = await graphQLService.getAssetsMetadata(missing);
+    const newMeta = await getAssetsMetadata(missing);
     if (!newMeta) return;
 
     if (missing.length > newMeta.length) {

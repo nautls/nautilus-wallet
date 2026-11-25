@@ -204,7 +204,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const unfilteredBalance = computed(() => summarizeBalance());
 
   function summarizeBalance(hidden?: Set<string>): AssetBalance[] {
-    const poolBalance = appStore.settings.zeroConf ? new Map(pool.balance) : new Map();
+    const poolBalance = new Map(pool.balance);
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
     let summary = [] as AssetBalance[];
     let patched = false;

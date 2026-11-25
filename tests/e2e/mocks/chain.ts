@@ -2,6 +2,8 @@ import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import type { SignedTransaction } from "@fleet-sdk/common";
 import { ErgoAddress, ErgoBox } from "@fleet-sdk/core";
+import { hex } from "@fleet-sdk/crypto";
+import { Transaction } from "ergo-lib-wasm-browser";
 import type { BrowserContext, Route } from "@playwright/test";
 
 /**
@@ -13,6 +15,9 @@ export const GRAPHQL_URLS = [
   "https://gql.ergoplatform.com/",
   "https://graphql.erg.zelcore.io/"
 ];
+
+/** Relays the wallet may talk to: the default one, and one tests can switch to in settings. */
+export const RELAY_URLS = ["https://hergmes.nautiluswallet.com", "https://relay.test"];
 
 /** Address used as the counterparty of funding transactions. */
 export const EXTERNAL_ADDRESS = "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVpY5By";
@@ -49,13 +54,15 @@ export type GqlTransaction = {
   index?: number;
 };
 
+/** An EIP-4 token, as the relay serves it; `type` and `artworkUrl` are hergmes' names. */
 export type TokenMetadata = {
   tokenId: string;
   name: string;
   decimals?: number;
   description?: string;
   emissionAmount?: string;
-  registers?: Registers;
+  type?: string;
+  artworkUrl?: string;
 };
 
 type GqlRequest = { operationName?: string; query: string; variables?: Record<string, unknown> };
@@ -67,21 +74,23 @@ export type BoxOptions = {
   registers?: Registers;
 };
 
-const HEADERS: { height: number }[] = JSON.parse(
+const HEADERS: { id: string; height: number }[] = JSON.parse(
   readFileSync(new URL("../fixtures/data/headers.json", import.meta.url), "utf8")
-).data.blockHeaders;
+).items;
 const hex32 = () => randomBytes(32).toString("hex");
 const treeOf = (address: string) => ErgoAddress.decode(address).ergoTree;
 
 /**
- * In-memory Ergo blockchain served through a GraphQL API compatible with ergo-graphql.
- * Tests mutate its state (fund addresses, add tokens, push mempool transactions, ...)
- * and the wallet reads it through intercepted HTTP requests.
+ * In-memory Ergo blockchain served through a GraphQL API compatible with ergo-graphql and
+ * the hergmes relay's REST API. Tests mutate its state (fund addresses, add tokens, push
+ * mempool transactions, ...) and the wallet reads it through intercepted HTTP requests.
  */
 export class MockChain {
   height = HEADERS[0].height;
   network = "mainnet";
-  version = "0.5.1";
+  /** Whether the relay reports it has started. */
+  ready = true;
+  relayVersion = "0.2.0";
   minValuePerByte = 360;
 
   /** When set, `submitTransaction` and `checkTransaction` fail with this message. */
@@ -90,7 +99,7 @@ export class MockChain {
   /** Every signed transaction successfully submitted to the chain. */
   readonly submitted: SignedTransaction[] = [];
 
-  /** Log of every GraphQL operation received, useful for assertions. */
+  /** Log of every GraphQL operation and relay route (`GET /v1/...`) received. */
   readonly operations: { name: string; variables: Record<string, unknown> }[] = [];
 
   #unspent: GqlBox[] = [];
@@ -142,7 +151,7 @@ export class MockChain {
     this.height += blocks;
   }
 
-  /** Registers token metadata, as returned by the `tokens` query. */
+  /** Registers token metadata, as served by the relay. */
   addToken(token: TokenMetadata) {
     this.#tokens.set(token.tokenId, token);
   }
@@ -171,6 +180,70 @@ export class MockChain {
     for (const url of GRAPHQL_URLS) {
       await context.route(url, (route) => this.#handle(route));
     }
+    for (const url of RELAY_URLS) {
+      await context.route(`${url}/v1/**`, (route) => this.#handleRelay(route));
+    }
+  }
+
+  async #handleRelay(route: Route) {
+    const request = route.request();
+    const url = new URL(request.url());
+    const name = `${request.method()} ${url.pathname}`;
+    this.operations.push({ name, variables: Object.fromEntries(url.searchParams) });
+
+    const json = (body: unknown, status = 200) =>
+      route.fulfill({ status, json: body, headers: { "access-control-allow-origin": "*" } });
+
+    if (request.method() === "POST" && url.pathname === "/v1/transactions") {
+      try {
+        // rejected before parsing, so tests can send txs a node couldn't read
+        if (this.submitError) throw new Error(this.submitError);
+        const tx = parseTransaction(request.postData() ?? "");
+        const transactionId =
+          url.searchParams.get("broadcast") === "false" ? this.#check(tx) : this.#submit(tx);
+        return json({ transactionId });
+      } catch (e) {
+        const message = (e as Error).message;
+        return json({ error: "transaction_rejected", reason: "invalid", message }, 400);
+      }
+    }
+
+    const spendable = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/boxes\/spendable$/);
+    if (request.method() === "GET" && spendable) {
+      const items = this.#spendable(decodeURIComponent(spendable[1]));
+      return json({ asOf: { height: this.height }, items, truncated: false, total: items.length });
+    }
+
+    const balance = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/balance$/);
+    if (request.method() === "GET" && balance) {
+      return json({
+        asOf: { height: this.height },
+        ...this.#balance(decodeURIComponent(balance[1]))
+      });
+    }
+
+    switch (name) {
+      case "GET /v1/status":
+        return json({
+          version: this.relayVersion,
+          network: this.network,
+          tip: { height: this.height, headerId: HEADERS[0].id },
+          ready: this.ready
+        });
+      case "GET /v1/parameters":
+        return json({ height: this.height, minValuePerByte: this.minValuePerByte });
+      case "GET /v1/headers": {
+        const limit = Number(url.searchParams.get("limit") ?? 10);
+        const asOf = { height: HEADERS[0].height, headerId: HEADERS[0].id };
+        return json({ asOf, items: HEADERS.slice(0, limit) });
+      }
+      case "GET /v1/tokens/metadata": {
+        const ids = (url.searchParams.get("ids") ?? "").split(",");
+        return json({ items: this.#tokenInfo(ids) });
+      }
+      default:
+        return json({ error: "not_found", message: `MockChain: unsupported route '${name}'` }, 404);
+    }
   }
 
   async #handle(route: Route) {
@@ -191,20 +264,10 @@ export class MockChain {
 
   #resolve(name: string, query: string, vars: Record<string, unknown>): unknown {
     switch (name) {
-      case "info":
-        return { info: { version: this.version }, state: { network: this.network } };
-      case "currentHeight":
-        return { blockHeaders: [{ height: this.height }] };
-      case "chainParams":
-        return { state: { params: { minValuePerByte: this.minValuePerByte } } };
-      case "blockHeaders":
-        return { blockHeaders: HEADERS.slice(0, (vars.take as number) ?? 10) };
       case "addresses":
         return { addresses: (vars.addresses as string[]).map((a) => this.#addressInfo(a)) };
       case "oldBoxesCheck":
         return { boxes: this.#oldBoxes(vars.maxHeight as number, vars.addresses as string[]) };
-      case "Tokens":
-        return { tokens: this.#tokenInfo(vars.tokenIds as string[]) };
       case "mempoolTxCheck":
         return { mempool: { transactions: this.#mempoolLookup(vars.transactionIds as string[]) } };
       case "boxes":
@@ -213,10 +276,6 @@ export class MockChain {
         return { transactions: this.#transactions(this.#confirmed, vars) };
       case "unconfirmedTransactions":
         return { mempool: { transactions: this.#transactions(this.#mempool, vars) } };
-      case "checkTransaction":
-        return { checkTransaction: this.#check(vars.signedTransaction as SignedTransaction) };
-      case "submitTransaction":
-        return { submitTransaction: this.#submit(vars.signedTransaction as SignedTransaction) };
       default:
         throw new Error(`MockChain: unsupported operation '${name}'`);
     }
@@ -283,14 +342,46 @@ export class MockChain {
       .filter((t): t is TokenMetadata => !!t)
       .map((t) => ({
         tokenId: t.tokenId,
-        type: "EIP-004",
-        emissionAmount: t.emissionAmount ?? "1000000",
-        name: t.name,
-        description: t.description ?? "",
-        decimals: t.decimals ?? 0,
-        boxId: t.tokenId,
-        box: { transactionId: hex32(), additionalRegisters: t.registers ?? {} }
+        mintingTxId: hex32(),
+        emission: t.emissionAmount ?? "1000000",
+        standard: "eip-4",
+        metadata: {
+          name: t.name,
+          description: t.description ?? "",
+          decimals: t.decimals ?? 0,
+          ...(t.type ? { type: t.type } : {}),
+          ...(t.artworkUrl ? { artworkUrl: t.artworkUrl } : {})
+        }
       }));
+  }
+
+  /** Assets of `address` at the tip, and the signed change mempool txs make to them. */
+  #balance(address: string) {
+    const tree = treeOf(address);
+    const created = this.#mempool.flatMap((tx) => tx.outputs);
+    const spentIds = new Set(this.#mempool.flatMap((tx) => tx.inputs.map((i) => i.box.boxId)));
+    const spent = [...this.#unspent, ...created].filter((b) => spentIds.has(b.boxId));
+    const own = (boxes: GqlBox[]) => boxes.filter((b) => b.ergoTree === tree);
+
+    const confirmed = sumAssets(own(this.#unspent));
+    const pending = sumAssets(own(created), own(spent));
+    const used = this.#used.has(address) || own(this.#unspent).length > 0;
+
+    return { confirmed, pending, used };
+  }
+
+  /** Confirmed boxes and mempool outputs of `address`, less what mempool txs spend. */
+  #spendable(address: string) {
+    const tree = treeOf(address);
+    const spent = new Set(this.#mempool.flatMap((tx) => tx.inputs.map((i) => i.box.boxId)));
+    const confirmed = this.#unspent
+      .filter((b) => b.ergoTree === tree && !spent.has(b.boxId))
+      .map((b) => ({ ...b, inclusionHeight: b.creationHeight }));
+    const pending = this.#mempool
+      .flatMap((tx) => tx.outputs)
+      .filter((b) => b.ergoTree === tree && !spent.has(b.boxId));
+
+    return [...confirmed, ...pending];
   }
 
   #mempoolLookup(txIds: string[]) {
@@ -399,4 +490,42 @@ function paginate<T>(items: T[], vars: Record<string, unknown>): T[] {
   const skip = (vars.skip as number) ?? 0;
   const take = (vars.take as number) ?? 50;
   return items.slice(skip, skip + take);
+}
+
+/**
+ * A signed tx from the hex the relay takes. ergo-lib rather than Fleet's deserializer, which
+ * can't read ErgoTrees without a size flag, like the SigmaUSD and Babel Fee contracts'.
+ */
+function parseTransaction(body: string): SignedTransaction {
+  const tx = Transaction.sigma_parse_bytes(hex.decode(body.trim()));
+  try {
+    return tx.to_js_eip12() as SignedTransaction;
+  } finally {
+    tx.free();
+  }
+}
+
+/** What `added` holds less what `removed` holds, in the relay's wire shape. */
+function sumAssets(added: GqlBox[], removed: GqlBox[] = []) {
+  let nanoErgs = 0n;
+  const tokens = new Map<string, bigint>();
+  for (const [boxes, sign] of [
+    [added, 1n],
+    [removed, -1n]
+  ] as const) {
+    for (const box of boxes) {
+      nanoErgs += sign * BigInt(box.value);
+      for (const t of box.assets) {
+        tokens.set(t.tokenId, (tokens.get(t.tokenId) ?? 0n) + sign * BigInt(t.amount));
+      }
+    }
+  }
+
+  return {
+    nanoErgs: nanoErgs.toString(),
+    tokens: [...tokens]
+      .filter(([, amount]) => amount !== 0n)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([tokenId, amount]) => ({ tokenId, amount: amount.toString() }))
+  };
 }

@@ -70,6 +70,5 @@ declare module "webext-bridge" {
     [InternalRequest.SubmitTransaction]: WithReturn<WithPayload<SubmitTxArgs>, SubmitTxResult>;
 
     [InternalEvent.Loaded]: undefined;
-    [InternalEvent.UpdatedBackendUrl]: string;
   }
 }

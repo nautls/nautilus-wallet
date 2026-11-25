@@ -34,10 +34,8 @@ export const TEST_NFT = {
   tokenId: "a5b1c7e1f0f8a3d0f6b2c9e4d1a8b7c6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0",
   name: "Nautilus NFT",
   decimals: 0,
-  registers: {
-    R7: "0e020101", // Coll[Byte](0x01, 0x01) => picture artwork
-    R9: "0e1668747470733a2f2f6e66742e746573742f612e706e67" // "https://nft.test/a.png"
-  }
+  type: "nft-picture",
+  artworkUrl: "https://nft.test/a.png"
 };
 
 const keyCache = new Map<string, ErgoHDKey>();

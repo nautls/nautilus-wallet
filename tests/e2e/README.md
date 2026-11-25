@@ -17,11 +17,12 @@ The first run needs a browser: `pnpm exec playwright install chromium`.
   mocked. `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS` (set in `playwright.config.ts`) lets
   Playwright intercept requests made by the background service worker, too.
 - **`MockChain`** (`mocks/chain.ts`) is an in-memory Ergo chain behind an ergo-graphql compatible
-  API. Tests fund addresses, register tokens, mine blocks or make the node reject transactions,
+  API and the hergmes relay's REST API (`RELAY_URLS`). Tests fund addresses, register tokens, mine blocks or make the node reject transactions,
   then assert on `chain.submitted`. Boxes get real box ids, so transactions are built and signed
   by the wallet's real prover.
 - **Fixtures** (`fixtures/`):
-  - `headers.json`: 10 mainnet block headers, needed to build the signing context.
+  - `headers.json`: 10 mainnet block headers as the relay's `/v1/headers` serves them, needed to
+    build the signing context.
   - `sigmausd.json`: mainnet snapshot of the SigmaUSD bank and oracle boxes.
   - `wallets.ts`: deterministic test wallets and address/xpub derivation helpers.
   - `test.ts`: the `chain`, `context`, `extensionId`, `popup` and `dapp` fixtures. Every test gets

@@ -5,7 +5,7 @@ import type { JsonValue } from "type-fest";
 import { BridgeMessage, GetDataType, GetReturnType, isInternalEndpoint } from "webext-bridge";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { hasValidBoxIds } from "@/chains/ergo/boxId";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { getHeight, submitTransaction } from "@/chains/ergo/services/hergmesService";
 import { browser } from "@/common/browser";
 import { log } from "@/common/logger";
 import { createWindow } from "@/common/uiHelpers";
@@ -24,13 +24,7 @@ import {
   InternalRequest,
   success
 } from "../connector/rpc/protocol";
-import {
-  checkConnection,
-  getAddresses,
-  getBalance,
-  getCurrentHeight,
-  getUTxOs
-} from "./ergoHandlers";
+import { checkConnection, getAddresses, getBalance, getUTxOs } from "./ergoHandlers";
 
 type AuthenticatedMessageHandler<T extends InternalRequest> = (
   // @ts-expect-error webext-bridge uses an older version of type-fest, so JsonValue is not recognized
@@ -128,7 +122,7 @@ onMessageAuth(InternalRequest.GetAddresses, async (msg, walletId) => {
 });
 
 onMessageAuth(InternalRequest.GetCurrentHeight, async () => {
-  const height = await getCurrentHeight();
+  const height = await getHeight();
   return height
     ? success(height)
     : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
@@ -139,7 +133,7 @@ onMessageAuth(InternalRequest.SubmitTransaction, async (msg, walletId) => {
   if (!isValidSignedTx(msg.data.transaction)) return invalidRequest("Invalid signed transaction.");
 
   try {
-    const response = await graphQLService.submitTransaction(msg.data.transaction, walletId);
+    const response = await submitTransaction(msg.data.transaction, walletId);
     return success(response.transactionId);
   } catch (e) {
     return error(TxSendErrorCode.Refused, (e as Error).message);
@@ -251,11 +245,6 @@ onMessage(InternalEvent.Loaded, async ({ sender }) => {
   } catch (e) {
     request.reject(e);
   }
-});
-
-onMessage(InternalEvent.UpdatedBackendUrl, (msg) => {
-  if (!isInternalEndpoint(msg.sender) || !msg.data) return;
-  graphQLService.setUrl(msg.data);
 });
 
 /**

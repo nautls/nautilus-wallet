@@ -4,14 +4,13 @@ import { Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
 import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
-import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ActionFooter from "@/components/ActionFooter.vue";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { getHeight } from "@/chains/ergo/services/hergmesService";
 import { bn, decimalize } from "@/common/bigNumber";
 import { useProgrammaticDialog, useRelativeDateFormatter } from "@/composables";
 import {
@@ -27,7 +26,6 @@ import DataPoint from "./components/DataPoint.vue";
 import { createConsolidationTransaction } from "./transactionFactory";
 
 const wallet = useWalletStore();
-const app = useAppStore();
 
 const { t, d } = useI18n();
 const { rd } = useRelativeDateFormatter({ t, d, showRelativeTimeQualifier: false });
@@ -80,10 +78,7 @@ const healthStatus = computed(() =>
 async function loadBoxes() {
   setLoading(true);
 
-  const [ownBoxes, height] = await Promise.all([
-    fetchBoxes(wallet.id, app.settings.zeroConf),
-    graphQLService.getHeight()
-  ]);
+  const [ownBoxes, height] = await Promise.all([fetchBoxes(wallet.id), getHeight()]);
   boxes.value = ownBoxes;
   if (height) currentHeight.value = height;
 

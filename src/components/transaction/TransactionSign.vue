@@ -23,7 +23,7 @@ import { JsonViewer } from "@/components/ui/json-viewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ToastAction, useToast } from "@/components/ui/toast";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { submitTransaction } from "@/chains/ergo/services/hergmesService";
 import { signTransaction } from "@/chains/ergo/signing";
 import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transaction/interpreter";
 import { log } from "@/common/logger";
@@ -179,7 +179,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
   try {
     if (retry) signing.value = true;
 
-    const result = await graphQLService.submitTransaction(signedTransaction, wallet.id);
+    const result = await submitTransaction(signedTransaction, wallet.id);
     return result.transactionId;
   } catch (e) {
     toast({

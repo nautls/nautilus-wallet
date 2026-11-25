@@ -14,9 +14,9 @@ import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { MAINNET } from "@/constants/ergo";
 import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
 import { DEFAULT_SETTINGS } from "@/constants/settings";
+import { mergeSettings } from "@/extension/background/settings";
 import { utxosDbService } from "@/database/utxosDbService";
 import { PasswordKind, WalletPatch, walletsDbService } from "@/database/walletsDbService";
-import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
@@ -25,12 +25,11 @@ export type Settings = {
   lastOpenedWalletId: number;
   conversionCurrency: string;
   devMode: boolean;
-  graphQLServer: string;
+  relayUrl: string;
   explorerUrl: string;
   ipfsGateway: string;
   hideBalances: boolean;
   blacklistedTokensLists: string[];
-  zeroConf: boolean;
   locale: Locale | "auto";
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
@@ -68,7 +67,7 @@ export const useAppStore = defineStore("app", () => {
     "settings",
     inject(PRELOADED_SETTINGS, DEFAULT_SETTINGS),
     {
-      mergeDefaults: true
+      mergeDefaults: mergeSettings
     }
   );
   const colorMode = useColorMode({
@@ -91,15 +90,6 @@ export const useAppStore = defineStore("app", () => {
     if (!viewTitle.value) return;
     viewTitle.value = "";
   });
-
-  watch(
-    () => settings.value.graphQLServer,
-    (newServerUrl) => {
-      graphQLService.setUrl(newServerUrl);
-      sendBackendServerUrl(newServerUrl);
-    },
-    { immediate: true }
-  );
 
   watch(() => chain.height, checkPendingBoxes);
 

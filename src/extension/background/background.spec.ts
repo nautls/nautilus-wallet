@@ -47,7 +47,10 @@ vi.mock("@/common/browser", () => ({
 }));
 
 vi.mock("@/common/uiHelpers", () => ({ createWindow: mocks.createWindow }));
-vi.mock("@/chains/ergo/services/graphQlService", () => ({ graphQLService: {} }));
+vi.mock("@/chains/ergo/services/hergmesService", () => ({
+  getHeight: vi.fn(),
+  submitTransaction: vi.fn()
+}));
 vi.mock("@/chains/ergo/boxId", () => ({ hasValidBoxIds: mocks.hasValidBoxIds }));
 vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: { getByScript: mocks.getByScript }

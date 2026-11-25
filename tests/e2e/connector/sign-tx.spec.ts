@@ -229,7 +229,10 @@ test.describe("dApp transaction signing", () => {
       }
 
       // v3 transactions are checked by the node before they're returned
-      expect(chain.operations.map((o) => o.name)).toContain("checkTransaction");
+      expect(chain.operations).toContainEqual({
+        name: "POST /v1/transactions",
+        variables: { broadcast: "false" }
+      });
       expect(chain.submitted).toHaveLength(0);
     });
 

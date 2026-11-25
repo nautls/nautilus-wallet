@@ -30,10 +30,6 @@ function fromBackground<T extends AsyncRequestType>(type: T) {
   };
 }
 
-export function sendBackendServerUrl(url: string) {
-  sendMessage(InternalEvent.UpdatedBackendUrl, url, BACKGROUND);
-}
-
 async function handle<T>(type: AsyncRequestType, data: DataWithPayload) {
   const { origin, favicon } = data.payload;
   const promise = queue.push<T>({ type, origin, favicon, data });

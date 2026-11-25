@@ -1,7 +1,7 @@
 import type { Locator, Page, Route } from "@playwright/test";
 import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, RECIPIENT_ADDRESS, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
-import { GRAPHQL_URLS } from "../mocks/chain";
+import { GRAPHQL_URLS, RELAY_URLS } from "../mocks/chain";
 import { DAPP_HOST } from "../mocks/services";
 import { connectDapp } from "../pages/connector";
 
@@ -143,34 +143,58 @@ test.describe("settings", () => {
       await expect(page.getByRole("tab", { name: "Dunkel" })).toBeVisible();
     });
 
-    test("validates the GraphQL server", async ({ popup, chain }) => {
+    test("validates the relay server", async ({ popup, chain }) => {
       await popup.goto("/settings");
       const page = popup.page;
-      const input = page.locator("#gql-server");
+      const input = page.locator("#relay-url");
+      const [defaultRelay, otherRelay] = RELAY_URLS;
+
+      await expect(input).toHaveValue(defaultRelay);
 
       await input.fill("");
-      await expect(page.getByText("Enter a GraphQL server URL")).toBeVisible();
+      await expect(page.getByText("Enter a relay server URL")).toBeVisible();
 
       chain.network = "testnet";
-      await input.fill("https://gql.ergoplatform.com/");
+      await input.fill(otherRelay);
       await expect(
         page.getByText("Server must be on the same network as the wallet")
       ).toBeVisible();
 
       chain.network = "mainnet";
-      chain.version = "0.3.9";
-      await input.fill("https://graphql.erg.zelcore.io/");
-      await expect(page.getByText("Server must run version 0.4.4 or later")).toBeVisible();
+      chain.relayVersion = "0.1.9";
+      await input.fill(defaultRelay);
+      await expect(
+        page.getByText("Enter a relay server running version 0.2.0 or later")
+      ).toBeVisible();
 
-      chain.version = "0.5.1";
-      await input.fill("https://gql.ergoplatform.com/");
+      chain.relayVersion = "0.2.0";
+      await input.fill("https://unreachable.test");
+      await expect(page.getByText("Enter the URL of a reachable relay server")).toBeVisible();
+
+      await input.fill(otherRelay);
       await expect(page.getByText("Server must be on the same network as the wallet")).toHaveCount(
         0
       );
-      await expect(page.getByText(/Server must run version/)).toHaveCount(0);
+      await expect(page.getByText(/relay server/)).toHaveCount(0);
 
       await page.reload();
-      await expect(input).toHaveValue("https://gql.ergoplatform.com/");
+      await expect(input).toHaveValue(otherRelay);
+    });
+
+    test("saves a relay that is still starting up, with a warning", async ({ popup, chain }) => {
+      await popup.goto("/settings");
+      const page = popup.page;
+      const input = page.locator("#relay-url");
+      const [, otherRelay] = RELAY_URLS;
+
+      chain.ready = false;
+      await input.fill(otherRelay);
+      await expect(page.locator("#relay-starting")).toHaveText(
+        "This relay is still starting up, so it may not answer until it's done."
+      );
+
+      await page.reload();
+      await expect(input).toHaveValue(otherRelay);
     });
 
     test("validates the explorer and IPFS gateway URLs", async ({ popup }) => {
@@ -195,7 +219,7 @@ test.describe("settings", () => {
       await expect(page.getByText("Enter a valid URL, like https://example.com")).toHaveCount(0);
     });
 
-    test("toggles token blacklists and 0-conf", async ({ popup }) => {
+    test("toggles token blacklists", async ({ popup }) => {
       await popup.goto("/settings");
       const page = popup.page;
 
@@ -205,14 +229,9 @@ test.describe("settings", () => {
         await expect(page.locator(id)).not.toBeChecked();
       }
 
-      await expect(page.locator("[id='0-conf']")).not.toBeChecked();
-      await page.locator("[id='0-conf']").click();
-      await expect(page.locator("[id='0-conf']")).toBeChecked();
-
       await page.reload();
       await expect(page.locator("#nsfw-blacklist")).not.toBeChecked();
       await expect(page.locator("#scam-blacklist")).not.toBeChecked();
-      await expect(page.locator("[id='0-conf']")).toBeChecked();
     });
   });
 

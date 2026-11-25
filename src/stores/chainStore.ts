@@ -1,7 +1,7 @@
 import { computed, onMounted, onUnmounted } from "vue";
 import { BOX_VALUE_PER_BYTE } from "@fleet-sdk/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { getHeight, getMinValuePerByte } from "@/chains/ergo/services/hergmesService";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { HEIGHT_CHECK_INTERVAL } from "../constants/intervals";
 
@@ -35,7 +35,7 @@ export const useChainStore = defineStore("chain", () => {
     if (fetchingHeight) return;
     fetchingHeight = true;
 
-    const height = await graphQLService.getHeight();
+    const height = await getHeight();
     if (height && height !== privateState.state.height) {
       privateState.state.height = height;
     }
@@ -44,7 +44,7 @@ export const useChainStore = defineStore("chain", () => {
   }
 
   async function fetchParams() {
-    const minValuePerByte = await graphQLService.getMinValuePerByte();
+    const minValuePerByte = await getMinValuePerByte();
     if (minValuePerByte && minValuePerByte !== privateState.state.minValuePerByte) {
       privateState.state.minValuePerByte = minValuePerByte;
     }

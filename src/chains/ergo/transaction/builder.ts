@@ -7,11 +7,10 @@ import {
   OutputBuilder,
   TransactionBuilder
 } from "@fleet-sdk/core";
-import { useAppStore } from "@/stores/appStore";
 import { useChainStore } from "@/stores/chainStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { validateAddress } from "@/chains/ergo/addresses";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { getHeight } from "@/chains/ergo/services/hergmesService";
 import { BigNumber, bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -23,7 +22,6 @@ import { fetchBoxes } from "../boxFetcher";
 export const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
 const wallet = useWalletStore();
-const app = useAppStore();
 const chain = useChainStore();
 
 export type TxAssetAmount = {
@@ -53,10 +51,7 @@ export async function createRBFCancellationTransaction(
 }
 
 async function getContext() {
-  const [inputs, currentHeight] = await Promise.all([
-    fetchBoxes(wallet.id, app.settings.zeroConf),
-    graphQLService.getHeight()
-  ]);
+  const [inputs, currentHeight] = await Promise.all([fetchBoxes(wallet.id), getHeight()]);
 
   if (isEmpty(inputs)) {
     throw Error("Unable to fetch inputs, please check your connection.");
