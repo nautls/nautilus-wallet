@@ -90,11 +90,17 @@ export class MockChain {
   network = "mainnet";
   /** Whether the relay reports it has started. */
   ready = true;
-  relayVersion = "0.2.0";
+  relayVersion = "0.3.0";
   minValuePerByte = 360;
 
   /** When set, `submitTransaction` and `checkTransaction` fail with this message. */
   submitError?: string;
+
+  /**
+   * How long a submitted tx stays unseen by the relay's routes, as the relay only applies it
+   * at its next mempool poll. The node still knows it, so txs chained on it are taken.
+   */
+  relayLagMs = 0;
 
   /** Every signed transaction successfully submitted to the chain. */
   readonly submitted: SignedTransaction[] = [];
@@ -105,6 +111,7 @@ export class MockChain {
   #unspent: GqlBox[] = [];
   #confirmed: GqlTransaction[] = [];
   #mempool: GqlTransaction[] = [];
+  #unseen: GqlTransaction[] = [];
   #tokens = new Map<string, TokenMetadata>();
   #used = new Set<string>();
 
@@ -222,6 +229,22 @@ export class MockChain {
       });
     }
 
+    const pooled = url.pathname.match(/^\/v1\/mempool\/transactions\/([^/]+)$/);
+    if (request.method() === "GET" && pooled) {
+      const tx = this.#mempool.find((t) => t.transactionId === pooled[1]);
+      if (!tx) return json({ error: "transaction_not_found", message: "no pending tx" }, 404);
+
+      return json({
+        id: tx.transactionId,
+        inputs: tx.inputs.map((i) => ({
+          ...i.box,
+          spendingProof: { proofBytes: i.proofBytes, extension: i.extension }
+        })),
+        dataInputs: tx.dataInputs,
+        outputs: tx.outputs
+      });
+    }
+
     switch (name) {
       case "GET /v1/status":
         return json({
@@ -268,8 +291,6 @@ export class MockChain {
         return { addresses: (vars.addresses as string[]).map((a) => this.#addressInfo(a)) };
       case "oldBoxesCheck":
         return { boxes: this.#oldBoxes(vars.maxHeight as number, vars.addresses as string[]) };
-      case "mempoolTxCheck":
-        return { mempool: { transactions: this.#mempoolLookup(vars.transactionIds as string[]) } };
       case "boxes":
         return this.#boxes(query, vars);
       case "confirmedTransactions":
@@ -384,12 +405,6 @@ export class MockChain {
     return [...confirmed, ...pending];
   }
 
-  #mempoolLookup(txIds: string[]) {
-    return this.#mempool
-      .filter((tx) => txIds.includes(tx.transactionId))
-      .map((tx) => ({ transactionId: tx.transactionId }));
-  }
-
   #boxes(query: string, vars: Record<string, unknown>) {
     const spentInMempool = new Set(
       this.#mempool.flatMap((tx) => tx.inputs.map((i) => i.box.boxId))
@@ -441,9 +456,7 @@ export class MockChain {
   #check(tx: SignedTransaction) {
     if (this.submitError) throw new Error(this.submitError);
 
-    const known = new Map(
-      [...this.#unspent, ...this.#mempool.flatMap((t) => t.outputs)].map((b) => [b.boxId, b])
-    );
+    const known = new Map(this.#nodeBoxes().map((b) => [b.boxId, b]));
     const missing = tx.inputs.find((i) => !known.has(i.boxId));
     if (missing) {
       throw new Error("Malformed transaction: Every input of the transaction should be in UTXO.");
@@ -452,15 +465,18 @@ export class MockChain {
     return tx.id;
   }
 
+  /** Boxes the node can resolve inputs against: confirmed, and outputs of every pool tx. */
+  #nodeBoxes() {
+    return [...this.#unspent, ...[...this.#mempool, ...this.#unseen].flatMap((t) => t.outputs)];
+  }
+
   #submit(tx: SignedTransaction) {
     this.#check(tx);
 
-    const known = new Map(
-      [...this.#unspent, ...this.#mempool.flatMap((t) => t.outputs)].map((b) => [b.boxId, b])
-    );
+    const known = new Map(this.#nodeBoxes().map((b) => [b.boxId, b]));
 
     this.submitted.push(tx);
-    this.#mempool.push({
+    const pooled: GqlTransaction = {
       transactionId: tx.id,
       timestamp: String(Date.now()),
       inputs: tx.inputs.map((input, index) => ({
@@ -480,7 +496,17 @@ export class MockChain {
         assets: o.assets.map((a) => ({ tokenId: a.tokenId, amount: a.amount.toString() })),
         additionalRegisters: o.additionalRegisters as Registers
       }))
-    });
+    };
+
+    if (this.relayLagMs > 0) {
+      this.#unseen.push(pooled);
+      setTimeout(() => {
+        this.#unseen = this.#unseen.filter((t) => t !== pooled);
+        this.#mempool.push(pooled);
+      }, this.relayLagMs);
+    } else {
+      this.#mempool.push(pooled);
+    }
 
     return tx.id;
   }

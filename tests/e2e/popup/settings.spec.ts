@@ -161,13 +161,13 @@ test.describe("settings", () => {
       ).toBeVisible();
 
       chain.network = "mainnet";
-      chain.relayVersion = "0.1.9";
+      chain.relayVersion = "0.2.9";
       await input.fill(defaultRelay);
       await expect(
-        page.getByText("Enter a relay server running version 0.2.0 or later")
+        page.getByText("Enter a relay server running version 0.3.0 or later")
       ).toBeVisible();
 
-      chain.relayVersion = "0.2.0";
+      chain.relayVersion = "0.3.0";
       await input.fill("https://unreachable.test");
       await expect(page.getByText("Enter the URL of a reachable relay server")).toBeVisible();
 

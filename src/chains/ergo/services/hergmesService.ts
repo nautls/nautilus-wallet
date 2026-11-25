@@ -7,7 +7,6 @@ import {
   type TokenMetadata
 } from "@hergmes/sdk";
 import { log } from "@/common/logger";
-import { utxosDbService } from "@/database/utxosDbService";
 import { getSettings } from "@/extension/background/settings";
 import { IAssetInfo } from "@/types/database";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
@@ -15,11 +14,9 @@ import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 export type SpendableBox = Box<string> & { confirmed: boolean };
 export type Balances = { nanoErgs: bigint; tokens: Map<string, bigint> };
 
-const MISSING_INPUTS_ERROR =
-  "Malformed transaction: Every input of the transaction should be in UTXO.";
 const MAX_CONCURRENT_REQUESTS = 10;
-const SUBMIT_ATTEMPTS = 5;
-const SUBMIT_FIRST_DELAY = 500;
+const SUBMIT_VISIBILITY_TIMEOUT = 10_000;
+const SUBMIT_VISIBILITY_POLL_INTERVAL = 250;
 
 const TYPES: Record<string, { type: AssetType; subtype?: string }> = {
   "nft-picture": { type: AssetType.NFT, subtype: AssetSubtype.PictureArtwork },
@@ -34,8 +31,7 @@ const TYPES: Record<string, { type: AssetType; subtype?: string }> = {
   }
 };
 
-/** The oldest relay that serves what the wallet reads: token standards and chain parameters. */
-export const MIN_RELAY_VERSION = "0.2.0";
+export const MIN_RELAY_VERSION = "0.3.0";
 
 let client: RestClient | undefined;
 let clientUrl: string | undefined;
@@ -102,40 +98,48 @@ export async function checkTransaction(signedTransaction: SignedTransaction): Pr
   await (await rest()).submitTransaction(signedTransaction, { broadcast: false });
 }
 
-export async function submitTransaction(
-  signedTransaction: SignedTransaction,
-  walletId?: number
-): Promise<Submitted> {
+/**
+ * Resolves once the relay shows the tx, so that the next tx built from `getSpendableBoxes`
+ * neither reuses its inputs nor misses its change: the relay only applies a sent tx at its next
+ * mempool poll. A tx the relay is slow to show is reported as sent anyway.
+ */
+export async function submitTransaction(signedTransaction: SignedTransaction): Promise<Submitted> {
   const relay = await rest();
-  // a tx that spends outputs of one we just sent can reach a node that hasn't seen the
-  // first one yet, so it's retried while the node answers that its inputs are unknown
-  const chained = await utxosDbService.containsAtLeastOneOf(
-    signedTransaction.inputs.map((i) => i.boxId)
-  );
+  const result = await relay.submitTransaction(signedTransaction);
+  await waitUntilVisible(relay, signedTransaction);
 
-  let attempts = chained ? SUBMIT_ATTEMPTS : 1;
-  let delay = SUBMIT_FIRST_DELAY;
+  return result;
+}
+
+async function waitUntilVisible(relay: RestClient, tx: SignedTransaction) {
+  const deadline = Date.now() + SUBMIT_VISIBILITY_TIMEOUT;
+
   for (;;) {
-    if (chained) await new Promise((resolve) => setTimeout(resolve, delay));
-
-    let result: Submitted;
+    // the client waits out a 503's Retry-After within one call, past the deadline otherwise
+    const signal = AbortSignal.timeout(Math.max(deadline - Date.now(), 1));
     try {
-      result = await relay.submitTransaction(signedTransaction);
+      if (await isFound(relay.mempoolTransaction(tx.id, { signal }))) return;
     } catch (e) {
-      attempts--;
-      if (attempts === 0 || !isMissingInputsError(e)) throw e;
-      delay *= 2;
-      continue;
+      log.warn("Stopped waiting for the sent transaction to show up", e);
+      return;
     }
 
-    // the tx is sent by now, so failing to track it locally must not report it as refused
-    if (walletId) {
-      await utxosDbService
-        .addFromTx(signedTransaction, walletId)
-        .catch((e) => log.error("Failed to track the sent transaction", e));
+    if (Date.now() >= deadline) {
+      log.warn(`Sent transaction ${tx.id} is not visible yet.`);
+      return;
     }
 
-    return result;
+    await new Promise((resolve) => setTimeout(resolve, SUBMIT_VISIBILITY_POLL_INTERVAL));
+  }
+}
+
+async function isFound(request: Promise<unknown>): Promise<boolean> {
+  try {
+    await request;
+    return true;
+  } catch (e) {
+    if (e instanceof RelayError && e.status === 404) return false;
+    throw e;
   }
 }
 
@@ -211,10 +215,6 @@ export function isSupportedRelayVersion(version: string): boolean {
   }
 
   return true;
-}
-
-function isMissingInputsError(e: unknown): boolean {
-  return e instanceof RelayError && e.message.startsWith(MISSING_INPUTS_ERROR);
 }
 
 function parseTokenMetadata(token: TokenMetadata): IAssetInfo {

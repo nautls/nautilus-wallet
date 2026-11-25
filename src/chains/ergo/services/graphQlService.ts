@@ -28,16 +28,13 @@ const GRAPHQL_SERVER_URL = MAINNET
 
 const ADDRESS_INFO_QUERY = `query addresses($addresses: [String!]!) { addresses(addresses: $addresses) { address used balance { nanoErgs assets { amount tokenId } } } }`;
 const OLD_BOXES_CHECK_QUERY = `query oldBoxesCheck($maxHeight: Int, $addresses: [String!]) { boxes( maxHeight: $maxHeight addresses: $addresses heightType: creation spent: false take: 1 ) { creationHeight } }`;
-const MEMPOOL_TXS_QUERY = `query mempoolTxCheck($transactionIds: [String!]) { mempool { transactions(transactionIds: $transactionIds) { transactionId } } }`;
 
 type AddressInfoResponse = { addresses: Address[] };
 type OldBoxesCheckResponse = { boxes: { creationHeight: number }[] };
-type MempoolTransactionsResponse = { mempool: { transactions: { transactionId: string }[] } };
 
 class GraphQLService extends ErgoGraphQLProvider<string> {
   #getAddressInfo;
   #checkOldBoxes;
-  #checkMempoolTxs;
 
   constructor() {
     super({
@@ -49,7 +46,6 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
 
     this.#getAddressInfo = this.createOperation<AddressInfoResponse>(ADDRESS_INFO_QUERY);
     this.#checkOldBoxes = this.createOperation<OldBoxesCheckResponse>(OLD_BOXES_CHECK_QUERY);
-    this.#checkMempoolTxs = this.createOperation<MempoolTransactionsResponse>(MEMPOOL_TXS_QUERY);
   }
 
   async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {
@@ -67,19 +63,6 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
     }
 
     return false;
-  }
-
-  async mempoolTransactionsLookup(txIds: string[]): Promise<Set<string>> {
-    const set = new Set<string>();
-    const chunks = chunk(txIds, MAX_PARAMS_PER_REQUEST);
-
-    for (const txIds of chunks) {
-      const { data } = await this.#checkMempoolTxs({ transactionIds: txIds });
-      if (data?.mempool?.transactions?.length === 0) continue;
-      for (const tx of data.mempool.transactions) set.add(tx.transactionId);
-    }
-
-    return set;
   }
 }
 

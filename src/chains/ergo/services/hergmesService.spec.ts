@@ -18,16 +18,11 @@ import {
 
 const mocks = vi.hoisted(() => ({
   relayUrl: "https://relay.test",
-  fetch: vi.fn<typeof fetch>(),
-  containsAtLeastOneOf: vi.fn<(ids: string[]) => Promise<boolean>>(async () => false),
-  addFromTx: vi.fn<(tx: SignedTransaction, walletId: number) => Promise<void>>(async () => {})
+  fetch: vi.fn<typeof fetch>()
 }));
 
 vi.mock("@/extension/background/settings", () => ({
   getSettings: async () => ({ relayUrl: mocks.relayUrl })
-}));
-vi.mock("@/database/utxosDbService", () => ({
-  utxosDbService: { containsAtLeastOneOf: mocks.containsAtLeastOneOf, addFromTx: mocks.addFromTx }
 }));
 vi.mock("@/database/walletsDbService", () => ({ walletsDbService: {} }));
 vi.mock("@/common/ledger", () => ({ createTransport: vi.fn() }));
@@ -36,6 +31,7 @@ const MNEMONIC =
   "decline usual reward fine flight vintage deny slight minimum spirit hero aerobic loan peanut feel";
 const MISSING_INPUTS =
   "Malformed transaction: Every input of the transaction should be in UTXO. Input 0 is missing";
+const OUTPUT_ID = "e".repeat(64);
 const BOX = {
   boxId: "a".repeat(64),
   transactionId: "b".repeat(64),
@@ -112,7 +108,7 @@ describe("height", () => {
   it("should be the relay's tip", async () => {
     reply(
       "GET /v1/status",
-      json({ version: "0.2.0", network: "mainnet", tip: { height: 7, headerId: "f" }, ready: true })
+      json({ version: "0.3.0", network: "mainnet", tip: { height: 7, headerId: "f" }, ready: true })
     );
     expect(await getHeight()).toBe(7);
   });
@@ -120,7 +116,7 @@ describe("height", () => {
   it("should be undefined before the relay applied a block", async () => {
     reply(
       "GET /v1/status",
-      json({ version: "0.2.0", network: "mainnet", tip: null, ready: false })
+      json({ version: "0.3.0", network: "mainnet", tip: null, ready: false })
     );
     expect(await getHeight()).toBeUndefined();
   });
@@ -208,60 +204,53 @@ describe("submitTransaction", () => {
     id: "d".repeat(64),
     inputs: [{ boxId: BOX.boxId, spendingProof: { proofBytes: "", extension: {} } }],
     dataInputs: [],
-    outputs: []
+    outputs: [{ ...BOX, boxId: OUTPUT_ID }]
   };
 
-  it("should record the tx as pending for the wallet", async () => {
-    reply("POST /v1/transactions", json({ transactionId: "id" }));
+  const POOL_ROUTE = `GET /v1/mempool/transactions/${tx.id}`;
+  const notFound = json({ error: "transaction_not_found", message: "not found" }, 404);
+  const requests = (path: string) =>
+    mocks.fetch.mock.calls.filter(([input]) => input.toString().includes(path)).length;
 
-    await expect(submitTransaction(tx, 1)).resolves.toEqual({ transactionId: "id" });
-    expect(mocks.addFromTx).toHaveBeenCalledWith(tx, 1);
+  it("should wait until the relay's pool has the tx", async () => {
+    vi.useFakeTimers();
+    reply("POST /v1/transactions", json({ transactionId: "id" }));
+    reply(POOL_ROUTE, notFound, notFound, json(tx));
+
+    let resolved = false;
+    const result = submitTransaction(tx).then((r) => ((resolved = true), r));
+    await vi.advanceTimersByTimeAsync(300);
+    expect(resolved).toBe(false);
+
+    await vi.runAllTimersAsync();
+    await expect(result).resolves.toEqual({ transactionId: "id" });
+    expect(requests("/v1/mempool/transactions/")).toBe(3);
   });
 
-  it("should report a sent tx as sent even if tracking it locally fails", async () => {
+  it("should report the tx as sent if the relay doesn't show it in time", async () => {
+    vi.useFakeTimers();
     reply("POST /v1/transactions", json({ transactionId: "id" }));
-    mocks.addFromTx.mockRejectedValueOnce(new Error("QuotaExceededError"));
+    reply(POOL_ROUTE, notFound);
 
-    await expect(submitTransaction(tx, 1)).resolves.toEqual({ transactionId: "id" });
-    expect(mocks.fetch).toHaveBeenCalledTimes(1);
+    const result = submitTransaction(tx);
+    await vi.runAllTimersAsync();
+
+    await expect(result).resolves.toEqual({ transactionId: "id" });
+    expect(requests("/v1/mempool/transactions/")).toBeGreaterThan(1);
+  });
+
+  it("should stop waiting on an error other than not found", async () => {
+    reply("POST /v1/transactions", json({ transactionId: "id" }));
+    reply(POOL_ROUTE, json({ error: "node_error", message: "down" }, 502));
+
+    await expect(submitTransaction(tx)).resolves.toEqual({ transactionId: "id" });
+    expect(requests("/v1/mempool/transactions/")).toBe(1);
   });
 
   it("should fail at once with the node's message", async () => {
     reply("POST /v1/transactions", refused(MISSING_INPUTS));
 
-    await expect(submitTransaction(tx, 1)).rejects.toThrow(MISSING_INPUTS);
-    expect(mocks.fetch).toHaveBeenCalledTimes(1);
-    expect(mocks.addFromTx).not.toHaveBeenCalled();
-  });
-
-  it("should retry a tx spending pending outputs while its inputs are unknown", async () => {
-    vi.useFakeTimers();
-    mocks.containsAtLeastOneOf.mockResolvedValueOnce(true);
-    reply(
-      "POST /v1/transactions",
-      refused(MISSING_INPUTS),
-      refused(MISSING_INPUTS),
-      json({ transactionId: "c" })
-    );
-
-    const result = submitTransaction(tx, 1);
-    await vi.runAllTimersAsync();
-
-    await expect(result).resolves.toEqual({ transactionId: "c" });
-    expect(mocks.containsAtLeastOneOf).toHaveBeenCalledWith([BOX.boxId]);
-    expect(mocks.fetch).toHaveBeenCalledTimes(3);
-    expect(mocks.addFromTx).toHaveBeenCalledOnce();
-  });
-
-  it("should not retry other refusals", async () => {
-    vi.useFakeTimers();
-    mocks.containsAtLeastOneOf.mockResolvedValueOnce(true);
-    reply("POST /v1/transactions", refused("Double spending attempt"));
-
-    const result = expect(submitTransaction(tx, 1)).rejects.toThrow("Double spending attempt");
-    await vi.runAllTimersAsync();
-
-    await result;
+    await expect(submitTransaction(tx)).rejects.toThrow(MISSING_INPUTS);
     expect(mocks.fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -272,7 +261,6 @@ describe("submitTransaction", () => {
 
     const [input] = mocks.fetch.mock.calls[0];
     expect(new URL(input.toString()).searchParams.get("broadcast")).toBe("false");
-    expect(mocks.addFromTx).not.toHaveBeenCalled();
   });
 });
 
@@ -307,11 +295,11 @@ describe("getSpendableBoxes", () => {
 });
 
 describe("isSupportedRelayVersion", () => {
-  it.each(["0.2.0", "0.2.1", "0.10.0", "1.0.0", "0.2.0-rc.1"])("should accept %s", (v) => {
+  it.each(["0.3.0", "0.3.1", "0.10.0", "1.0.0", "0.3.0-rc.1"])("should accept %s", (v) => {
     expect(isSupportedRelayVersion(v)).toBe(true);
   });
 
-  it.each(["0.1.9", "0.1.10", "0.0.1", "unknown", ""])("should refuse %s", (v) => {
+  it.each(["0.2.9", "0.2.10", "0.0.1", "unknown", ""])("should refuse %s", (v) => {
     expect(isSupportedRelayVersion(v)).toBe(false);
   });
 });

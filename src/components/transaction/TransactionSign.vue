@@ -179,7 +179,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
   try {
     if (retry) signing.value = true;
 
-    const result = await submitTransaction(signedTransaction, wallet.id);
+    const result = await submitTransaction(signedTransaction);
     return result.transactionId;
   } catch (e) {
     toast({

@@ -7,7 +7,6 @@ import {
   IDbAddress,
   IDbAsset,
   IDbDAppConnection,
-  IDbUtxo,
   IDbWalletSync,
   ILegacyDbWallet
 } from "@/types/database";
@@ -18,7 +17,6 @@ class NautilusDb extends Dexie {
   addresses!: Table<IDbAddress, string>;
   assets!: Table<IDbAsset, string[]>;
   connectedDApps!: Table<IDbDAppConnection, string>;
-  utxos!: Table<IDbUtxo, string>;
   assetInfo!: Table<IAssetInfo, string>;
   walletSync!: Table<IDbWalletSync, number>;
 
@@ -92,6 +90,8 @@ class NautilusDb extends Dexie {
       await table.clear();
       await table.bulkAdd(connections.map((c) => ({ ...c, origin: legacyHostToOrigin(c.origin) })));
     });
+
+    this.version(10).stores({ utxos: null });
   }
 }
 

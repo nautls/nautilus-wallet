@@ -23,8 +23,14 @@ vi.mock("@/chains/ergo/services/hergmesService", () => ({
 }));
 vi.mock("@/database/addressesDbService", () => ({
   addressesDbService: {
-    getByWalletId: async () => [{ script: "addr0" }, { script: "addr1" }]
+    getByWalletId: async () => [
+      { script: "addr0", index: 0 },
+      { script: "addr1", index: 1 }
+    ]
   }
+}));
+vi.mock("@/database/walletsDbService", () => ({
+  walletsDbService: { getById: async () => ({ settings: { defaultChangeIndex: 0 } }) }
 }));
 vi.mock("@/database/assetsDbService", () => ({
   assetsDbService: { getAddressesByTokenId: async () => mocks.holders }

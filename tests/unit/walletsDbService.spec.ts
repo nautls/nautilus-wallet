@@ -103,7 +103,6 @@ vi.mock("@/database/dbContext", () => {
       addresses: table(),
       assets: table(),
       connectedDApps: table(),
-      utxos: table(),
       walletSync: { delete: async (id: number) => void syncRows.delete(id) }
     }
   };

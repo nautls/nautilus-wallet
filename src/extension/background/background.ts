@@ -128,12 +128,12 @@ onMessageAuth(InternalRequest.GetCurrentHeight, async () => {
     : error(APIErrorCode.InternalError, "The height returned by the backend is invalid.");
 });
 
-onMessageAuth(InternalRequest.SubmitTransaction, async (msg, walletId) => {
+onMessageAuth(InternalRequest.SubmitTransaction, async (msg) => {
   if (!msg.data.transaction) return invalidRequest("Invalid params.");
   if (!isValidSignedTx(msg.data.transaction)) return invalidRequest("Invalid signed transaction.");
 
   try {
-    const response = await submitTransaction(msg.data.transaction, walletId);
+    const response = await submitTransaction(msg.data.transaction);
     return success(response.transactionId);
   } catch (e) {
     return error(TxSendErrorCode.Refused, (e as Error).message);

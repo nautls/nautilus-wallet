@@ -4,13 +4,14 @@ import {
   CherryPickSelectionStrategy,
   ErgoAddress,
   estimateMinBoxValue,
+  InsufficientInputs,
   OutputBuilder,
   TransactionBuilder
 } from "@fleet-sdk/core";
 import { useChainStore } from "@/stores/chainStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { validateAddress } from "@/chains/ergo/addresses";
-import { getHeight } from "@/chains/ergo/services/hergmesService";
+import { getHeight, type SpendableBox } from "@/chains/ergo/services/hergmesService";
 import { BigNumber, bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -37,23 +38,38 @@ export type TxRecipient = {
 export async function createRBFCancellationTransaction(
   unconfirmedTx: UnconfirmedTransactionSummary
 ): Promise<EIP12UnsignedTransaction> {
-  const { inputs, currentHeight } = await getContext();
+  const { inputs, currentHeight } = await getContext({ allowEmpty: true });
   const ownBoxIds = new Set(unconfirmedTx.ownInputs.map((input) => input.boxId));
-  const unsigned = new TransactionBuilder(currentHeight)
-    .from(unconfirmedTx.ownInputs, { ensureInclusion: true })
-    .and.from(inputs.filter((input) => !ownBoxIds.has(input.boxId)))
-    .payFee(undecimalize(unconfirmedTx.fee, ERG_DECIMALS).plus(SAFE_MIN_FEE_VALUE).toString())
-    .sendChangeTo(safeGetChangeAddress());
+  // the canceled tx's outputs are spendable until the cancel replaces it, and then never exist
+  const others = inputs.filter(
+    (input) => !ownBoxIds.has(input.boxId) && input.transactionId !== unconfirmedTx.transactionId
+  );
 
-  setSelectionAndChangeStrategy(unsigned, wallet.type);
+  const build = (extra: SpendableBox[]) => {
+    const unsigned = new TransactionBuilder(currentHeight)
+      .from(unconfirmedTx.ownInputs, { ensureInclusion: true })
+      .and.from(extra)
+      .payFee(undecimalize(unconfirmedTx.fee, ERG_DECIMALS).plus(SAFE_MIN_FEE_VALUE).toString())
+      .sendChangeTo(safeGetChangeAddress());
 
-  return unsigned.build().toEIP12Object();
+    setSelectionAndChangeStrategy(unsigned, wallet.type);
+    return unsigned.build().toEIP12Object();
+  };
+
+  // a pending box can come from a tx chained on the canceled one, which the cancel also drops,
+  // so pending boxes are taken only when confirmed ones can't pay the higher fee
+  try {
+    return build(others.filter((input) => input.confirmed));
+  } catch (e) {
+    if (!(e instanceof InsufficientInputs)) throw e;
+    return build(others);
+  }
 }
 
-async function getContext() {
+async function getContext({ allowEmpty = false } = {}) {
   const [inputs, currentHeight] = await Promise.all([fetchBoxes(wallet.id), getHeight()]);
 
-  if (isEmpty(inputs)) {
+  if (!allowEmpty && isEmpty(inputs)) {
     throw Error("Unable to fetch inputs, please check your connection.");
   }
 

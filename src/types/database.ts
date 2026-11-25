@@ -1,4 +1,3 @@
-import { Box } from "@fleet-sdk/common";
 import {
   AddressState,
   AddressType,
@@ -85,15 +84,4 @@ export interface IAssetInfo {
   artworkUrl?: string;
   artworkCover?: string;
   artworkHash?: string;
-}
-
-export interface IDbUtxo {
-  id: string;
-  confirmed: boolean;
-  locked: boolean;
-  spentTxId: string;
-  spentTimestamp?: number;
-  content?: Box<string> & { confirmed: boolean };
-  address?: string;
-  walletId: number;
 }

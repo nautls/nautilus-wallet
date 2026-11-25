@@ -77,6 +77,30 @@ test.describe("send", () => {
     await expect(page.locator("#recipient-0")).toHaveValue("");
   });
 
+  test("spends the change of a pending transaction right after sending it", async ({
+    popup,
+    chain
+  }) => {
+    const send = async (ergAmount: string) => {
+      await fillSendForm(popup, RECIPIENT_ADDRESS, ergAmount);
+      await popup.page.getByRole("button", { name: "Send", exact: true }).click();
+      await signInDrawer(popup, WALLET_A.password);
+      await expect(popup.toast("Transaction sent").last()).toBeVisible();
+      await expect(reviewDrawer(popup.page)).toBeHidden();
+    };
+
+    chain.relayLagMs = 1_000;
+
+    // more than either funded box holds, so the first tx spends them both
+    await send("11");
+    await send("0.5");
+
+    expect(chain.submitted).toHaveLength(2);
+    const [first, second] = chain.submitted;
+    const firstOutputs = new Set(first.outputs.map((o) => o.boxId));
+    expect(second.inputs.every((i) => firstOutputs.has(i.boxId))).toBe(true);
+  });
+
   test("sends tokens", async ({ popup, chain }) => {
     const page = popup.page;
     await fillSendForm(popup, RECIPIENT_ADDRESS);

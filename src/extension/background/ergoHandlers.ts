@@ -1,14 +1,10 @@
 import { Box, isDefined } from "@fleet-sdk/common";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
-import {
-  getBalances,
-  getSpendableBoxes,
-  type SpendableBox
-} from "@/chains/ergo/services/hergmesService";
+import { fetchBoxes, readHoldersFirst } from "@/chains/ergo/boxFetcher";
+import { getBalances } from "@/chains/ergo/services/hergmesService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
-import { assetsDbService } from "@/database/assetsDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AddressState } from "@/types/internal";
 import type { AddressType } from "../connector/rpc/protocol";
@@ -19,7 +15,7 @@ export async function checkConnection(origin: string) {
 }
 
 export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
-  const boxes = await fetchSpendableBoxes(walletId);
+  const boxes = await fetchBoxes(walletId);
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
     (box) => box.creationHeight
   );
@@ -45,10 +41,6 @@ export async function getUTxOs(walletId: number, target?: SelectionTarget): Prom
   }));
 }
 
-function fetchSpendableBoxes(walletId: number): Promise<SpendableBox[]> {
-  return readHoldersFirst(walletId, getSpendableBoxes, (boxes) => boxes.length === 0);
-}
-
 export async function getBalance(
   walletId: number,
   tokenId: string
@@ -69,26 +61,6 @@ export async function getBalance(
   } else {
     return (tokens.get(tokenId) ?? 0n).toString();
   }
-}
-
-/**
- * Reads the addresses known to hold ERG, which every box carries, so they hold all the wallet's
- * assets. The local balance can lag behind the chain, so the other addresses are read when the
- * holders come back empty, and all of them when none is known.
- */
-async function readHoldersFirst<T>(
-  walletId: number,
-  read: (addresses: string[]) => Promise<T>,
-  isEmpty: (result: T) => boolean
-): Promise<T> {
-  const all = (await addressesDbService.getByWalletId(walletId)).map((a) => a.script);
-  const holders = await assetsDbService.getAddressesByTokenId(walletId, ERG_TOKEN_ID);
-
-  const result = await read(holders.length ? holders : all);
-  if (!holders.length || !isEmpty(result)) return result;
-
-  const holderSet = new Set(holders);
-  return read(all.filter((a) => !holderSet.has(a)));
 }
 
 export async function getAddresses(walletId: number, filter: AddressType) {

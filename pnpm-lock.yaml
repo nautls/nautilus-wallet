@@ -51,8 +51,8 @@ importers:
         specifier: ^0.12.0
         version: 0.12.0
       '@hergmes/sdk':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@ledgerhq/hw-transport':
         specifier: ^6.37.0
         version: 6.37.0
@@ -813,8 +813,8 @@ packages:
     peerDependencies:
       vue: '>=3.3.0'
 
-  '@hergmes/sdk@0.2.0':
-    resolution: {integrity: sha512-zWs2aG4eA9Sd78BiEYYHEaFt8AbPMB1fG+j7TRMuA1bkmFyKYjkKZYCcaZ81rRVWNGdLupG0Hy0FRvjf2yK0Fg==}
+  '@hergmes/sdk@0.3.0':
+    resolution: {integrity: sha512-4o0w4AZbo+t+oAwUWOtaLvKoELCJDOqPp4F50ksYDykWwFs3zxAQkcp2aFDwu1SM5UrOkWfyy4/DIffH+Da+2A==}
     engines: {node: '>=22'}
 
   '@humanfs/core@0.19.2':
@@ -5402,7 +5402,7 @@ snapshots:
       '@floating-ui/utils': 0.2.12
       vue: 3.5.45(typescript@6.0.3)
 
-  '@hergmes/sdk@0.2.0':
+  '@hergmes/sdk@0.3.0':
     dependencies:
       '@fleet-sdk/common': 0.10.0
       '@fleet-sdk/serializer': 0.11.0

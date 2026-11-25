@@ -427,7 +427,6 @@ class WalletsDbService {
       dbContext.addresses.where({ walletId }).delete(),
       dbContext.assets.where({ walletId }).delete(),
       dbContext.connectedDApps.where({ walletId }).delete(),
-      dbContext.utxos.where({ walletId }).delete(),
       dbContext.walletSync.delete(walletId),
       withLock(async () => {
         await storage.local.remove([walletKey(walletId), secretKey(walletId)]);
