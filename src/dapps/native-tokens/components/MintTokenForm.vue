@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { type BigNumber, bn, decimalize } from "@/common/bigNumber";
+import { useTxReady } from "@/composables/useWalletBoxes";
 import { useFormat, useProgrammaticDialog } from "@/composables";
 import { useNumericMask } from "@/composables/useNumericMask";
 import { useCollectChildValidations } from "@/composables/useValidationScope";
@@ -33,6 +34,7 @@ const MAX_DESCRIPTION_BYTES = 1024;
 const { t } = useI18n();
 const format = useFormat();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+const txReady = useTxReady();
 
 const amountInput = useTemplateRef<InstanceType<typeof Input>>("amount-input");
 const decimalsInput = useTemplateRef<InstanceType<typeof Input>>("decimals-input");
@@ -138,6 +140,7 @@ const { r$: children$ } = useCollectChildValidations();
 const form$ = mergeRegles({ r$, children$ });
 
 async function mint() {
+  if (!txReady.value) return; // Enter submits the form even while the footer's button is disabled
   const { valid } = await form$.$validate();
   if (!valid || !emission.value || parsedDecimals.value === undefined) {
     return scrollToFirstError();

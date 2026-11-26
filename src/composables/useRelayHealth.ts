@@ -26,6 +26,8 @@ export function useRelayHealth() {
     if (phases.includes("rejected") || boxes.status === "error") {
       return { health: "error", reason: boxes.error?.code };
     }
+    // an old relay can fail in ways that look like a connection problem, so it's named first
+    if (relayStore.outdated) return { health: "error", reason: "outdated" };
     if (phases.includes("disconnected") || boxes.status === "reconnecting") {
       return { health: "reconnecting" };
     }
@@ -37,7 +39,6 @@ export function useRelayHealth() {
     ) {
       return { health: "loading" };
     }
-    if (relayStore.outdated) return { health: "error", reason: "outdated" };
 
     return { health: "live" };
   });

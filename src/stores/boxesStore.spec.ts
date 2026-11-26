@@ -139,6 +139,40 @@ describe("status", () => {
     expect(store.status).toBe("waiting");
   });
 
+  it("is an error while no relay is set", async () => {
+    mocks.relay = undefined;
+    const store = useBoxesStore();
+    store.follow();
+    expect(store.status).toBe("error");
+    await expect(store.spendable()).rejects.toThrow("No relay server is set");
+  });
+
+  it("is loading while the wallet's first sync runs, not later ones", async () => {
+    const wallet = mocks.wallet as { syncing: boolean; synced: boolean };
+    Object.assign(wallet, { syncing: true, synced: false });
+    const store = useBoxesStore();
+    store.follow();
+    await nextTick();
+    relay.push(A0, {});
+    relay.push(A1, {});
+    expect(store.status).toBe("loading");
+
+    wallet.synced = true;
+    expect(store.status).toBe("ready");
+  });
+
+  it("follows another wallet's boxes only once asked again", async () => {
+    const store = useBoxesStore();
+    store.follow();
+    await nextTick();
+    expect(store.status).toBe("loading");
+
+    (mocks.wallet as { id: number }).id = 2;
+    expect(store.status).toBe("idle");
+    store.follow();
+    expect(store.status).toBe("loading");
+  });
+
   it("reports the error of a refused address", async () => {
     const store = useBoxesStore();
     store.follow();

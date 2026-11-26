@@ -9,7 +9,7 @@ export const SHOW_DELAY = 200;
 /** How long the relay must stay live before a shown problem clears, so a flap doesn't blink. */
 export const SETTLE_DELAY = 500;
 /** How long `connected` stays before the badge goes away. */
-export const CONNECTED_FOR = 1_500;
+export const CONNECTED_FOR = 1_000;
 
 /** What the relay badge shows for `health`, with the timing rules above. */
 export function useDisplayedHealth(health: Ref<RelayHealth>): Ref<DisplayedHealth> {

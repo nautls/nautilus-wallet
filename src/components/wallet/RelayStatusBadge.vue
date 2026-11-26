@@ -41,7 +41,7 @@ const props = defineProps<{
             'motion-safe:animate-ripple absolute rounded-full motion-reduce:hidden',
             health === 'loading'
               ? 'bg-muted-foreground inset-0'
-              : 'border-warning -inset-[1.5px] border-[1.5px]'
+              : 'border-warning inset-[-1.5px] border-[1.5px]'
           ]"
         />
       </span>

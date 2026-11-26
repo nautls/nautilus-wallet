@@ -3,7 +3,7 @@ import { computed, type HTMLAttributes } from "vue";
 import { Loader2Icon } from "@lucide/vue";
 import { Button, type ButtonVariants } from "@/components/ui/button";
 import { cn } from "@/common/utils";
-import { useWalletBoxes } from "@/composables/useWalletBoxes";
+import { useTxReady, useWalletBoxes } from "@/composables/useWalletBoxes";
 
 /**
  * The button that starts a tx the wallet funds. It follows the wallet's boxes while shown, and
@@ -23,9 +23,7 @@ const props = withDefaults(
 
 const boxes = useWalletBoxes();
 
-const usable = computed(
-  () => boxes.status === "ready" || (props.allowRestFallback && boxes.status === "error")
-);
+const usable = useTxReady(() => props.allowRestFallback);
 const progressing = computed(() => boxes.status === "loading" || boxes.status === "reconnecting");
 </script>
 

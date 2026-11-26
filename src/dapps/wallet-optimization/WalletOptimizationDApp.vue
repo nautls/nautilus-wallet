@@ -83,9 +83,12 @@ watch(
   async ([status], previous) => {
     // the REST read doesn't follow the chain, so it's taken once per refusal
     if (status === "error" && previous?.[0] === "error") return;
+
+    // any change outdates a read still on its way, which may be of the previous wallet
+    const read = ++reads;
+    if (status === "idle" || status === "loading") setLoading(true);
     if (status !== "ready" && status !== "error") return;
 
-    const read = ++reads;
     const result = await readBoxes(status === "ready");
     if (read !== reads) return;
     boxes.value = result;
@@ -96,13 +99,22 @@ watch(
 
 /**
  * A wallet with too many boxes for the relay to follow, the very one this dApp is for, is read
- * once over REST, cut at the relay's limit.
+ * once over REST, cut at the relay's limit; so is one whose followed boxes can't be read.
  */
-async function readBoxes(followed: boolean) {
-  if (followed) return (await walletBoxes.spendable()).all;
+async function readBoxes(followed: boolean): Promise<Box<Amount>[]> {
+  try {
+    if (followed) return (await walletBoxes.spendable()).all;
+    log.error("Failed to follow the wallet's boxes", walletBoxes.error);
+  } catch (e) {
+    log.error("Failed to read the wallet's followed boxes", e);
+  }
 
-  log.error("Failed to follow the wallet's boxes", walletBoxes.error);
-  return fetchBoxes(wallet.id);
+  try {
+    return await fetchBoxes(wallet.id);
+  } catch (e) {
+    log.error("Failed to read the wallet's boxes", e);
+    return [];
+  }
 }
 
 function setLoading(load = true) {
@@ -183,9 +195,12 @@ function formatBytes(bytes: number, decimals = 1) {
 
     <ActionFooter>
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
-      <TxActionButton :disabled="loading" allow-rest-fallback @click="sendTransaction">{{
-        t("common.optimize")
-      }}</TxActionButton>
+      <TxActionButton
+        :disabled="loading || boxes.length === 0"
+        allow-rest-fallback
+        @click="sendTransaction"
+        >{{ t("common.optimize") }}</TxActionButton
+      >
     </ActionFooter>
   </div>
 </template>

@@ -29,6 +29,7 @@ import {
 } from "@/chains/ergo/transaction/builder";
 import { type BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
+import { useTxReady } from "@/composables/useWalletBoxes";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -46,6 +47,7 @@ const route = useRoute();
 
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+const txReady = useTxReady();
 
 const assetSelectors = new Map<number, AssetSelectInstance>();
 const recipients = ref<Recipient[]>([]);
@@ -224,6 +226,7 @@ async function scrollToErrorElement() {
 }
 
 async function sendTransaction() {
+  if (!txReady.value) return; // Enter submits the form even while the footer's button is disabled
   const { valid } = await form$.$validate();
   if (!valid) return scrollToErrorElement();
 

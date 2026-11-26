@@ -7,6 +7,8 @@ import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { useRelayStore } from "./relayStore";
 import { MAX_ADDRESS_SUBSCRIPTIONS, useWalletStore } from "./walletStore";
 
+const NO_RELAY_MESSAGE = "No relay server is set. Set one in settings.";
+
 /** What a tx can spend now, and that split by whether a block has included each box. */
 export type SpendableBoxes = {
   all: Box<Amount>[];
@@ -37,7 +39,9 @@ export const useBoxesStore = defineStore("boxes", () => {
   const holds = new Map<string, Hold>();
   /** Bumped on every change of a hold's state, which isn't reactive. */
   const version = shallowRef(0);
-  const wanted = ref(false);
+  /** The wallet a page asked to follow the boxes of; another wallet's aren't followed for it. */
+  const wantedFor = ref<number>();
+  const wanted = computed(() => !!wallet.id && wantedFor.value === wallet.id);
   let followed: { relay: Relay; walletId: number } | undefined;
 
   /**
@@ -59,14 +63,6 @@ export const useBoxesStore = defineStore("boxes", () => {
       read: scripts.slice(MAX_ADDRESS_SUBSCRIPTIONS)
     };
   });
-
-  watch(
-    () => wallet.id,
-    (_, previous) => {
-      if (!previous) return;
-      wanted.value = false;
-    }
-  );
 
   watch(
     [() => relayStore.relay, () => wallet.id, () => wallet.loading, wanted, holders],
@@ -99,23 +95,25 @@ export const useBoxesStore = defineStore("boxes", () => {
     return holders.value.followed.map((script) => holds.get(script)?.subscription.state);
   });
 
-  const error = computed<SubscriptionError | undefined>(
-    () => states.value.find((s) => s?.phase === "rejected")?.error
-  );
+  const error = computed<SubscriptionError | undefined>(() => {
+    if (!relayStore.relay) return { code: "no_relay", message: NO_RELAY_MESSAGE };
+    return states.value.find((s) => s?.phase === "rejected")?.error;
+  });
 
   const status = computed<BoxesStatus>(() => {
     if (!wanted.value) return "idle";
-    if (!relayStore.relay || wallet.loading) return "loading";
     if (error.value) return "error";
+    // until the first sync, discovery may still mark addresses holding ERG the stored balances miss
+    if (wallet.loading || (wallet.syncing && !wallet.synced)) return "loading";
     if (states.value.some((s) => s?.phase === "waiting")) return "waiting";
     if (states.value.some((s) => !s?.boxes)) return "loading";
     if (states.value.some((s) => s?.phase !== "live")) return "reconnecting";
     return "ready";
   });
 
-  /** Starts following the wallet's boxes, so they are ready by the time a tx is built. */
+  /** Starts following the current wallet's boxes, so they are ready by the time a tx is built. */
   function follow() {
-    wanted.value = true;
+    wantedFor.value = wallet.id || undefined;
   }
 
   /**
@@ -124,6 +122,7 @@ export const useBoxesStore = defineStore("boxes", () => {
    */
   async function spendable(): Promise<SpendableBoxes> {
     follow();
+    if (status.value === "error") throw new Error(error.value?.message);
     if (status.value !== "ready") throw new Error("The wallet's boxes are still loading.");
 
     const boxes: SpendableBoxes = { all: [], confirmed: [], unconfirmed: [] };

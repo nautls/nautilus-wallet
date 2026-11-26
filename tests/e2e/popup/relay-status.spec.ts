@@ -1,5 +1,5 @@
 import { expect, fundWallet, test } from "../fixtures/test";
-import { WALLET_A } from "../fixtures/wallets";
+import { addressOf, WALLET_A } from "../fixtures/wallets";
 
 const SHOTS = process.env.RELAY_STATUS_SHOTS;
 
@@ -127,4 +127,31 @@ test("shows no badge for a relay that runs a supported version", async ({ popup,
   await popup.importWallet(WALLET_A);
   await expect(popup.page.getByText("Wallet balance")).toBeVisible();
   await expect(popup.page.locator("[data-relay-status]")).toHaveCount(0);
+});
+
+test("Enter doesn't start a tx while the boxes load", async ({ popup, chain, context }) => {
+  const page = popup.page;
+  await fundWallet(chain, WALLET_A);
+  await popup.importWallet(WALLET_A);
+
+  let release = () => {};
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await context.route(/\/v1\/addresses\/[^/]+\/boxes(\?|$)/, async (route) => {
+    await held;
+    await route.fallback();
+  });
+
+  await popup.navigate("send");
+  const send = page.getByRole("button", { name: "Send", exact: true });
+  await expect(send).toBeDisabled();
+
+  await page.locator("#recipient-0").fill(await addressOf(WALLET_A, 1));
+  await page.getByPlaceholder("0").first().fill("1");
+  await page.locator("#recipient-0").press("Enter");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  release();
+  await expect(send).toBeEnabled();
+  await page.locator("#recipient-0").press("Enter");
+  await expect(page.getByRole("dialog").filter({ hasText: "Transaction review" })).toBeVisible();
 });

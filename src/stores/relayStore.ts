@@ -35,7 +35,8 @@ export const useRelayStore = defineStore("relay", () => {
 
     try {
       const result = await read.rest.status();
-      if (relay.value === read) status.value = result;
+      if (relay.value !== read) return; // the relay changed while this read was on its way
+      status.value = result;
       return result;
     } catch (e) {
       log.error("Failed to read the relay's status", e);

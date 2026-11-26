@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { TxAssetAmount } from "@/chains/ergo/transaction/builder";
 import { BigNumber, bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
+import { useTxReady } from "@/composables/useWalletBoxes";
 import { useProgrammaticDialog } from "@/composables";
 import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -32,6 +33,7 @@ const wallet = useWalletStore();
 const assets = useAssetsStore();
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+const txReady = useTxReady();
 
 const selected = ref<TxAssetAmount[]>([]);
 const fee = ref<FeeSettings>({
@@ -115,6 +117,7 @@ function getReservedAmountFor(tokenId: string): BigNumber | undefined {
 }
 
 async function burn() {
+  if (!txReady.value) return; // Enter submits the form even while the footer's button is disabled
   const { valid } = await form$.$validate();
   if (!valid) return;
 
