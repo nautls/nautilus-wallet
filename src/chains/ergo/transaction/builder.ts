@@ -4,6 +4,7 @@ import {
   CherryPickSelectionStrategy,
   ErgoAddress,
   estimateMinBoxValue,
+  FEE_CONTRACT,
   InsufficientInputs,
   OutputBuilder,
   TransactionBuilder
@@ -12,11 +13,11 @@ import { useBoxesStore } from "@/stores/boxesStore";
 import { useChainStore } from "@/stores/chainStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { validateAddress } from "@/chains/ergo/addresses";
+import { getPendingTransaction } from "@/chains/ergo/services/hergmesService";
 import { BigNumber, bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings, WalletType } from "@/types/internal";
-import { UnconfirmedTransactionSummary } from "@/types/transactions";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
 
 export const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
@@ -35,19 +36,30 @@ export type TxRecipient = {
 };
 
 export async function createRBFCancellationTransaction(
-  unconfirmedTx: UnconfirmedTransactionSummary
+  txId: string
 ): Promise<EIP12UnsignedTransaction> {
+  const pending = await getPendingTransaction(txId);
+  if (!pending) {
+    throw Error("This transaction was confirmed or dropped, so it can no longer be canceled.");
+  }
+
+  const ownTrees = new Set(
+    wallet.addresses.map((x) => ErgoAddress.decodeUnsafe(x.script).ergoTree)
+  );
+  const ownInputs: Box<string>[] = pending.inputs.filter((x) => ownTrees.has(x.ergoTree));
+  if (isEmpty(ownInputs)) throw Error("This transaction spends nothing from this wallet.");
+  const fee = pending.outputs.find((x) => x.ergoTree === FEE_CONTRACT)?.value ?? "0";
+
   const { boxes, currentHeight } = await getContext({ allowEmpty: true });
-  const ownBoxIds = new Set(unconfirmedTx.ownInputs.map((input) => input.boxId));
+  const ownBoxIds = new Set(ownInputs.map((input) => input.boxId));
   // the canceled tx's outputs are spendable until the cancel replaces it, and then never exist
-  const other = (input: Box<Amount>) =>
-    !ownBoxIds.has(input.boxId) && input.transactionId !== unconfirmedTx.transactionId;
+  const other = (input: Box<Amount>) => !ownBoxIds.has(input.boxId) && input.transactionId !== txId;
 
   const build = (extra: Box<Amount>[]) => {
     const unsigned = new TransactionBuilder(currentHeight)
-      .from(unconfirmedTx.ownInputs, { ensureInclusion: true })
+      .from(ownInputs, { ensureInclusion: true })
       .and.from(extra)
-      .payFee(undecimalize(unconfirmedTx.fee, ERG_DECIMALS).plus(SAFE_MIN_FEE_VALUE).toString())
+      .payFee((BigInt(fee) + BigInt(SAFE_MIN_FEE_VALUE)).toString())
       .sendChangeTo(safeGetChangeAddress());
 
     setSelectionAndChangeStrategy(unsigned, wallet.type);

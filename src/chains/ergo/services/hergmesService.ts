@@ -1,5 +1,6 @@
 import type { BlockHeader, Box, SignedTransaction } from "@fleet-sdk/common";
 import {
+  type MempoolTransaction,
   RelayError,
   RestClient,
   type Status,
@@ -117,6 +118,19 @@ export async function submitTransaction(signedTransaction: SignedTransaction): P
   await waitUntilVisible(relay, signedTransaction);
 
   return result;
+}
+
+/**
+ * A pending tx, its inputs resolved to the boxes they spend; `undefined` once a block took it
+ * or the node dropped it, and before the relay's mempool poll sees it.
+ */
+export async function getPendingTransaction(txId: string): Promise<MempoolTransaction | undefined> {
+  try {
+    return await (await rest()).mempoolTransaction(txId);
+  } catch (e) {
+    if (e instanceof RelayError && e.status === 404) return;
+    throw e;
+  }
 }
 
 async function waitUntilVisible(relay: RestClient, tx: SignedTransaction) {

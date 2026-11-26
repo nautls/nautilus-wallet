@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import type { SignedTransaction } from "@fleet-sdk/common";
-import { ErgoAddress, ErgoBox, ErgoTree } from "@fleet-sdk/core";
+import { ErgoAddress, ErgoBox, ErgoTree, FEE_CONTRACT } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
 import { Transaction } from "ergo-lib-wasm-browser";
 import type { BrowserContext, Route, WebSocketRoute } from "@playwright/test";
@@ -144,6 +144,9 @@ export class MockChain {
   /** With `boxesError`, answers `429` with this `Retry-After`, so the app waits to try again. */
   boxesRetryAfter?: number;
 
+  /** When set, address histories fail with this relay error code, not retried by the client. */
+  historyError?: string;
+
   /** Every signed transaction successfully submitted to the chain. */
   readonly submitted: SignedTransaction[] = [];
 
@@ -207,6 +210,48 @@ export class MockChain {
   addBox(box: GqlBox) {
     this.#unspent.push(box);
     this.#pushChanges(true);
+  }
+
+  /**
+   * Adds a pending tx paying each of `outputs`, and a fee, funded by an external address and
+   * by the ERG of the boxes in `spend`, as a dApp tx spending a wallet's box does.
+   */
+  receivePending(
+    outputs: [address: string, opt: BoxOptions][],
+    spend: GqlBox[] = []
+  ): GqlTransaction {
+    const transactionId = hex32();
+    const fee = 1_100_000n;
+    const total = outputs.reduce((sum, [, opt]) => sum + BigInt(opt.nanoErgs), fee);
+    const spent = spend.reduce((sum, box) => sum + BigInt(box.value), 0n);
+    const input = this.#createBox(
+      treeOf(EXTERNAL_ADDRESS),
+      { nanoErgs: total - spent, tokens: outputs.flatMap(([, opt]) => opt.tokens ?? []) },
+      hex32(),
+      0,
+      this.height - 100
+    );
+    const tx: GqlTransaction = {
+      transactionId,
+      timestamp: String(Date.now()),
+      inputs: [input, ...spend].map((box, index) => ({
+        proofBytes: "",
+        extension: {},
+        index,
+        box
+      })),
+      dataInputs: [],
+      outputs: [
+        ...outputs.map(([address, opt], i) =>
+          this.#createBox(treeOf(address), opt, transactionId, i, this.height)
+        ),
+        this.#createBox(FEE_CONTRACT, { nanoErgs: fee }, transactionId, outputs.length, this.height)
+      ]
+    };
+
+    this.#unspent.push(input);
+    this.addPending(tx);
+    return tx;
   }
 
   /** Adds a tx sent by someone else to the mempool, e.g. a contract update. */
@@ -426,6 +471,21 @@ export class MockChain {
       });
     }
 
+    const history = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/transactions$/);
+    if (request.method() === "GET" && history) {
+      if (this.historyError) {
+        return json({ error: this.historyError, message: this.historyError }, 422);
+      }
+      const limit = Number(url.searchParams.get("limit") ?? 25);
+      const offset = Number(url.searchParams.get("cursor") ?? 0);
+      const items = this.#history(decodeURIComponent(history[1]));
+      const end = offset + limit >= items.length;
+      return json({
+        items: items.slice(offset, offset + limit),
+        nextCursor: end ? null : String(offset + limit)
+      });
+    }
+
     switch (name) {
       case "GET /v1/status":
         return json({
@@ -538,6 +598,30 @@ export class MockChain {
     const used = this.#used.has(address) || own(this.#unspent).length > 0;
 
     return { confirmed, pending, used };
+  }
+
+  /** The txs touching `address`, pending first, each with its signed change to it. */
+  #history(address: string) {
+    const tree = treeOf(address);
+    const own = (boxes: GqlBox[]) => boxes.filter((b) => b.ergoTree === tree);
+    const confirmed = [...this.#confirmed].sort(
+      (a, b) => (b.inclusionHeight ?? 0) - (a.inclusionHeight ?? 0)
+    );
+
+    return [...[...this.#mempool].reverse(), ...confirmed]
+      .map((tx) => ({
+        tx,
+        outputs: own(tx.outputs),
+        inputs: own(tx.inputs.map((i) => i.box))
+      }))
+      .filter(({ outputs, inputs }) => outputs.length > 0 || inputs.length > 0)
+      .map(({ tx, outputs, inputs }) => ({
+        txId: tx.transactionId,
+        height: tx.inclusionHeight,
+        timestamp: tx.inclusionHeight === undefined ? undefined : Number(tx.timestamp),
+        delta: sumAssets(outputs, inputs),
+        fee: tx.outputs.find((o) => o.ergoTree === FEE_CONTRACT)?.value
+      }));
   }
 
   /** The mempool txs touching `key`: their outputs to it, and its boxes they spend. */

@@ -176,7 +176,11 @@
       "txTitle": "Transaction {txId}",
       "txState": "Pending | {count} confirmation | {count} confirmations",
       "empty": "You have no transaction history yet.",
-      "nextPage": "Load more transactions"
+      "nextPage": "Load more transactions",
+      "noRelay": "No relay server is set, so your transaction history can't be loaded.",
+      "loadError": "Some transactions couldn't be loaded.",
+      "cancelNotice": "This replaces transaction {txId} by sending its funds back to you at a higher fee. If the original is confirmed first, it goes through instead.",
+      "cancelsChained": "This cancels pending transaction {txIds}, which spends this transaction's outputs. | This cancels {count} pending transactions that spend this transaction's outputs: {txIds}."
     },
     "send": {
       "recipient": "Recipient",

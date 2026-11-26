@@ -674,6 +674,7 @@ export const useWalletStore = defineStore("wallet", () => {
     synced: computed(() => privateState.lastSynced > 0),
     health,
     followPhases,
+    follows: (script: string) => holds.has(script),
     needsBackup: computed(() => storedWallet()?.needsBackup ?? false),
     createdAt: computed(() => storedWallet()?.createdAt ?? 0),
     name,

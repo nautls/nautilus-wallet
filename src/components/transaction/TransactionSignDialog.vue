@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { h, ref, watch } from "vue";
 import { EIP12UnsignedTransaction, SignedInput, SignedTransaction } from "@fleet-sdk/common";
-import { ExternalLinkIcon } from "@lucide/vue";
+import { ExternalLinkIcon, InfoIcon, TriangleAlertIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Drawer,
   DrawerContent,
@@ -18,6 +19,10 @@ import TransactionSign from "./TransactionSign.vue";
 
 interface Props {
   transactionBuilder: TransactionBuilderFunction;
+  /** What signing does beyond what the review shows. */
+  notice?: string;
+  /** A consequence of signing the user could regret, set apart from the notice to be noticed. */
+  warning?: string;
 }
 
 interface Emits {
@@ -121,6 +126,17 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
         <DrawerTitle>{{ t("transaction.sign.reviewTx") }}</DrawerTitle>
         <DrawerDescription>{{ t("transaction.sign.reviewTxDesc") }}</DrawerDescription>
       </DrawerHeader>
+
+      <div v-if="notice || warning" class="flex flex-col gap-2 px-4 pt-4">
+        <Alert v-if="notice" id="tx-sign-notice">
+          <InfoIcon />
+          <AlertDescription>{{ notice }}</AlertDescription>
+        </Alert>
+        <Alert v-if="warning" id="tx-sign-warning" class="border-warning [&>svg]:text-warning">
+          <TriangleAlertIcon />
+          <AlertDescription>{{ warning }}</AlertDescription>
+        </Alert>
+      </div>
 
       <TransactionSign
         :transaction="transaction"
