@@ -203,7 +203,6 @@
       "reviewTxDesc": "Tinjau transaksi sebelum menandatangani.",
       "buildError": "Pembuatan transaksi gagal",
       "success": "Transaksi terkirim",
-      "successDesc": "Transaksi Anda telah berhasil ditandatangani dan dikirim.",
       "signError": "Penandatanganan transaksi gagal"
     }
   },

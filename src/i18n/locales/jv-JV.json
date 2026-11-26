@@ -203,7 +203,6 @@
       "reviewTxDesc": "Review transaksi sadurunge nggunakake tanda tangan.",
       "buildError": "Nggawe transaksi gagal",
       "success": "Transaksi sampun kakirim",
-      "successDesc": "Transaksi panjenengan sampun kasil ditandhani lan dikirim.",
       "signError": "Tanda tangan transaksi gagal"
     }
   },

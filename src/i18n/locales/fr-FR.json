@@ -203,7 +203,6 @@
       "reviewTxDesc": "Revoir la transaction avant de signer.",
       "buildError": "Échec de la construction de la transaction",
       "success": "Transaction envoyée",
-      "successDesc": "Votre transaction a été signée et envoyée avec succès.",
       "signError": "Échec de la signature de la transaction"
     }
   },

@@ -1,5 +1,5 @@
 import { expect, fundWallet, test } from "../fixtures/test";
-import { addressOf, TEST_NFT, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wallets";
+import { addressOf, TEST_NFT, TEST_TOKEN, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
 
 test.describe("assets", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -102,6 +102,42 @@ test("follows balances pushed by the relay", async ({ chain, popup }) => {
 
   await expect(popup.page.getByText("13.5", { exact: true })).toBeVisible();
   await expect.poll(() => chain.follows(next)).toBe(true);
+
+  // 1 ERG at 2 USD
+  const delta = popup.page.locator("[data-balance-delta]");
+  await expect(delta).toHaveText(/\+\$\s?2\.00/);
+  await expect(delta).toHaveClass(/text-success/);
+  await expect(popup.page.getByText(/Balance changed by \+\$\s?2\.00/)).toHaveCount(1);
+});
+
+test("shows a balance drop without the gain color", async ({ chain, popup }) => {
+  await fundWallet(chain, WALLET_A);
+  await popup.importWallet(WALLET_A);
+  await expect(popup.page.getByText("12.5", { exact: true })).toBeVisible();
+
+  const address = await addressOf(WALLET_A, 1);
+  const [box] = chain.boxesOf(address);
+  chain.receivePending(
+    [
+      [address, { nanoErgs: 1_500_000_000n }],
+      [await addressOf(WALLET_B, 0), { nanoErgs: 1_000_000_000n }]
+    ],
+    [box]
+  );
+
+  // 1 ERG at 2 USD
+  const delta = popup.page.locator("[data-balance-delta]");
+  await expect(delta).toHaveText(/\u2212\$\s?2\.00/);
+  await expect(delta).not.toHaveClass(/text-success/);
+});
+
+test("shows no balance change when the balance is first loaded", async ({ chain, popup }) => {
+  await fundWallet(chain, WALLET_A);
+  await popup.importWallet(WALLET_A);
+
+  await expect(popup.page.getByRole("heading", { name: /\$\s?25\.00/ })).toBeVisible();
+  await expect(popup.page.getByText("Wallet balance")).toBeVisible();
+  await expect(popup.page.locator("[data-balance-delta]")).toHaveCount(0);
 });
 
 test.describe("assets alerts", () => {
@@ -115,6 +151,51 @@ test.describe("assets alerts", () => {
     await expect(popup.page.getByText("You may soon incur demurrage")).toBeVisible();
     await popup.page.getByRole("button", { name: "Consolidate" }).click();
     await expect(popup.page).toHaveURL(/#\/dapps\/wallet-optimization$/);
+  });
+
+  test("warns again after switching back to the wallet", async ({ chain, popup }) => {
+    chain.fund(await addressOf(WALLET_A, 0), {
+      nanoErgs: 1_000_000_000n,
+      creationHeight: chain.height - 800_000
+    });
+    await popup.importWallet(WALLET_A);
+    await popup.importWallet(WALLET_B);
+
+    await popup.switchWallet(WALLET_A.name);
+    await expect(popup.page.getByText("You may soon incur demurrage")).toBeVisible();
+  });
+
+  test("keeps token rows in place when an alert goes away", async ({ chain, popup }) => {
+    chain.fund(await addressOf(WALLET_A, 0), {
+      nanoErgs: 1_000_000_000n,
+      creationHeight: chain.height - 800_000
+    });
+    await popup.importWallet(WALLET_B);
+    await popup.importWallet(WALLET_A);
+    const page = popup.page;
+    await expect(page.getByText("You may soon incur demurrage")).toBeVisible();
+
+    await page.evaluate(() => {
+      const w = window as unknown as { rowTransforms: string[] };
+      w.rowTransforms = [];
+      const sample = () => {
+        for (const row of document.querySelectorAll<HTMLElement>("[data-token-list] > *")) {
+          const { transform } = getComputedStyle(row);
+          if (transform !== "none") w.rowTransforms.push(transform);
+        }
+        requestAnimationFrame(sample);
+      };
+      sample();
+    });
+
+    await popup.switchWallet(WALLET_B.name);
+    await expect(page.getByText("You may soon incur demurrage")).toHaveCount(0);
+    await page.waitForTimeout(500);
+
+    const transforms = await page.evaluate(
+      () => (window as unknown as { rowTransforms: string[] }).rowTransforms
+    );
+    expect(transforms).toEqual([]);
   });
 
   test("warns a read-only wallet without offering to consolidate", async ({ chain, popup }) => {

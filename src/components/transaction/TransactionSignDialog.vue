@@ -31,6 +31,8 @@ interface Emits {
   (e: "refused"): void;
 }
 
+const SUCCESS_TOAST_MS = 3000;
+
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
@@ -81,7 +83,7 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
 
   toast({
     title: t("transaction.sign.success"),
-    description: t("transaction.sign.successDesc"),
+    duration: SUCCESS_TOAST_MS,
     action: h(
       ToastAction,
       {

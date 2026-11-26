@@ -203,7 +203,6 @@
       "reviewTxDesc": "Revise a transação antes de assinar.",
       "buildError": "Falha ao montar a transação",
       "success": "Transação enviada",
-      "successDesc": "Sua transação foi assinada e enviada com sucesso.",
       "signError": "Falha ao assinar a transação"
     }
   },

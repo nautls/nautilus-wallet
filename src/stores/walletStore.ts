@@ -334,6 +334,9 @@ export const useWalletStore = defineStore("wallet", () => {
         HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
       );
 
+      // a sync checks for old boxes once done, but one this recent is skipped
+      if (!syncDue()) checkOldUtxos();
+
       if (syncInBackground) {
         sync().catch((e) => log.error("Failed to sync wallet", e));
       } else {
@@ -550,8 +553,12 @@ export const useWalletStore = defineStore("wallet", () => {
    * Looks for addresses used past the last known used one; balances of known addresses are
    * followed by `follow`. A sync asked for while one runs runs again after it.
    */
+  function syncDue(): boolean {
+    return Date.now() - privateState.lastSynced >= MIN_SYNC_INTERVAL;
+  }
+
   function sync(opt: { force?: boolean } = {}): Promise<void> {
-    if (!opt.force && Date.now() - privateState.lastSynced < MIN_SYNC_INTERVAL) {
+    if (!opt.force && !syncDue()) {
       setSyncing(false);
       return Promise.resolve();
     }

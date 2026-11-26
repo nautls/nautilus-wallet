@@ -203,7 +203,6 @@
       "reviewTxDesc": "Überprüf die Transaktion, bevor du sie signierst.",
       "buildError": "Transaktion konnte nicht erstellt werden",
       "success": "Transaktion gesendet",
-      "successDesc": "Deine Transaktion wurde erfolgreich signiert und gesendet.",
       "signError": "Signieren der Transaktion fehlgeschlagen"
     }
   },

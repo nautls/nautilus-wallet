@@ -203,7 +203,6 @@
       "reviewTxDesc": "在签署前审核交易。",
       "buildError": "交易构建失败",
       "success": "交易已发送",
-      "successDesc": "您的交易已成功签署并发送。",
       "signError": "交易签署失败"
     }
   },

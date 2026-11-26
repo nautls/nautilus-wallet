@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onScopeDispose, ref, watch } from "vue";
 import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "@lucide/vue";
+import { useMediaQuery } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BigNumber, bn } from "@/common/bigNumber";
 import { cn, isErg } from "@/common/utils";
+import { BalanceDirection, useBalanceChanges } from "@/composables/useBalanceChanges";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -29,6 +31,12 @@ const format = useFormat();
 const { t } = useI18n({ useScope: "global" });
 
 const LOADER_DELAY_MS = 300;
+const BALANCE_DELTA_MS = 4000;
+const ROW_ENTER: KeyframeAnimationOptions = {
+  duration: 220,
+  easing: "cubic-bezier(0.16, 1, 0.3, 1)"
+};
+const ROW_LEAVE: KeyframeAnimationOptions = { duration: 280, easing: "ease-in-out" };
 
 const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles">("tokens");
@@ -87,6 +95,106 @@ const ergTotal = computed(() =>
   )
 );
 
+const balanceChanges = useBalanceChanges(
+  () => wallet.id,
+  () => wallet.nonArtworkBalance,
+  () => !wallet.loading && !hideAmounts.value && !app.settings.hideBalances,
+  showTotalChange
+);
+
+const totalMove = ref<{ key: number; direction?: BalanceDirection }>({ key: 0 });
+const totalDelta = ref<{ text: string; gain: boolean }>();
+let totalDeltaTimer: ReturnType<typeof setTimeout> | undefined;
+
+function showTotalChange(deltas: Map<string, BigNumber>) {
+  let delta = bn(0);
+  for (const [tokenId, amount] of deltas) {
+    delta = delta.plus(amount.times(isErg(tokenId) ? 1 : rate(tokenId)));
+  }
+  if (hasFiatRate.value) delta = delta.times(ergPrice.value);
+  // the total shows two decimals, so smaller changes don't show in it
+  if (delta.abs().lt(0.005)) return;
+
+  totalMove.value = { key: totalMove.value.key + 1, direction: delta.isPositive() ? "up" : "down" };
+  const gain = delta.isPositive();
+  const amount = hasFiatRate.value
+    ? formatCurrencyAmount(delta.abs(), 2)
+    : format.number.currency(delta.abs(), "erg", 2);
+  totalDelta.value = { text: `${gain ? "+" : "\u2212"}${amount}`, gain };
+
+  clearTimeout(totalDeltaTimer);
+  totalDeltaTimer = setTimeout(() => (totalDelta.value = undefined), BALANCE_DELTA_MS);
+}
+
+function hideTotalChange() {
+  clearTimeout(totalDeltaTimer);
+  totalDelta.value = undefined;
+}
+
+onScopeDispose(() => clearTimeout(totalDeltaTimer));
+
+const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+
+function rowFrames(row: HTMLElement) {
+  const style = getComputedStyle(row);
+  return {
+    open: {
+      height: `${row.offsetHeight}px`,
+      paddingTop: style.paddingTop,
+      paddingBottom: style.paddingBottom
+    },
+    closed: { height: "0px", paddingTop: "0px", paddingBottom: "0px" }
+  };
+}
+
+function animateRow(
+  row: HTMLElement,
+  keyframes: Keyframe[],
+  options: KeyframeAnimationOptions,
+  done: () => void
+) {
+  row.style.overflow = "hidden";
+  const animation = row.animate(keyframes, options);
+  animation.onfinish = animation.oncancel = () => {
+    row.style.overflow = "";
+    done();
+  };
+}
+
+// rows also come and go when filtering or switching wallets, which must stay instant
+function onRowEnter(el: Element, done: () => void) {
+  const row = el as HTMLElement;
+  if (reducedMotion.value || !balanceChanges.isNew(row.dataset.tokenId!)) return done();
+
+  const { open, closed } = rowFrames(row);
+  animateRow(
+    row,
+    [
+      { ...closed, opacity: 0 },
+      { ...open, opacity: 1 }
+    ],
+    ROW_ENTER,
+    done
+  );
+}
+
+function onRowLeave(el: Element, done: () => void) {
+  const row = el as HTMLElement;
+  if (reducedMotion.value || !balanceChanges.isRemoved(row.dataset.tokenId!)) return done();
+
+  const { open, closed } = rowFrames(row);
+  animateRow(
+    row,
+    [
+      { ...open, opacity: 1 },
+      { ...open, opacity: 0, offset: 0.4 },
+      { ...closed, opacity: 0 }
+    ],
+    ROW_LEAVE,
+    done
+  );
+}
+
 const formattedTotal = computed(() =>
   hasFiatRate.value
     ? formatCurrencyAmount(ergTotal.value.times(ergPrice.value), 2)
@@ -98,6 +206,7 @@ watch(
   () => {
     filter.value = "";
     currentTab.value = "tokens";
+    hideTotalChange();
   }
 );
 
@@ -151,7 +260,9 @@ function openAssetInfoDialog(tokenId: string) {
               />
               <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
             </template>
-            <template v-else>{{ formattedTotal }}</template>
+            <Transition v-else :name="`balance-${totalMove.direction}`" mode="out-in">
+              <span :key="totalMove.key" class="block truncate">{{ formattedTotal }}</span>
+            </Transition>
           </h2>
           <Button
             v-if="app.settings.hideBalances || !hideAmounts"
@@ -170,15 +281,29 @@ function openAssetInfoDialog(tokenId: string) {
             <EyeOffIcon v-else />
           </Button>
         </div>
-        <p class="text-muted-foreground text-xs">
-          {{
-            hasFiatRate || hideAmounts || app.settings.hideBalances
-              ? t("asset.totalBalance")
-              : t("asset.totalBalanceNoRate", {
-                  currency: app.settings.conversionCurrency.toUpperCase()
-                })
-          }}
-        </p>
+        <Transition name="balance-caption" mode="out-in">
+          <p
+            v-if="totalDelta && !hideAmounts && !app.settings.hideBalances"
+            key="delta"
+            data-balance-delta
+            class="text-xs font-medium tabular-nums"
+            :class="{ 'text-success': totalDelta.gain }"
+          >
+            {{ totalDelta.text }}
+          </p>
+          <p v-else key="label" class="text-muted-foreground text-xs">
+            {{
+              hasFiatRate || hideAmounts || app.settings.hideBalances
+                ? t("asset.totalBalance")
+                : t("asset.totalBalanceNoRate", {
+                    currency: app.settings.conversionCurrency.toUpperCase()
+                  })
+            }}
+          </p>
+        </Transition>
+        <span class="sr-only" aria-live="polite">
+          {{ totalDelta ? t("asset.balanceChanged", { amount: totalDelta.text }) : "" }}
+        </span>
       </div>
 
       <WalletAlerts />
@@ -221,15 +346,25 @@ function openAssetInfoDialog(tokenId: string) {
             {{ t("asset.noAssetsFound") }}
           </p>
           <Transition name="slide-up" appear>
-            <div data-token-list class="flex flex-col">
+            <TransitionGroup
+              tag="div"
+              data-token-list
+              class="flex flex-col"
+              :css="false"
+              move-class="transition-none"
+              @enter="onRowEnter"
+              @leave="onRowLeave"
+            >
               <Button
                 v-for="asset in tokens"
                 :key="asset.tokenId"
+                :data-token-id="asset.tokenId"
                 variant="ghost"
                 :class="
                   cn(
                     'h-auto gap-3 px-3 py-2.5 text-left [&_svg]:size-9',
-                    isErg(asset.tokenId) && 'cursor-default'
+                    isErg(asset.tokenId) && 'cursor-default',
+                    balanceChanges.isNew(asset.tokenId) && 'animate-token-new'
                   )
                 "
                 @click="openAssetInfoDialog(asset.tokenId)"
@@ -256,7 +391,17 @@ function openAssetInfoDialog(tokenId: string) {
                     <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
                   </template>
                   <template v-else>
-                    <span>{{ format.number.decimal(asset.balance) }}</span>
+                    <Transition
+                      :name="`balance-${balanceChanges.direction(asset.tokenId)}`"
+                      mode="out-in"
+                    >
+                      <span
+                        :key="balanceChanges.amountKey(asset.tokenId)"
+                        class="inline-block [--balance-shift:0.3em]"
+                      >
+                        {{ format.number.decimal(asset.balance) }}
+                      </span>
+                    </Transition>
 
                     <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
@@ -279,7 +424,7 @@ function openAssetInfoDialog(tokenId: string) {
                   </template>
                 </div>
               </Button>
-            </div>
+            </TransitionGroup>
           </Transition>
         </TabsContent>
 
