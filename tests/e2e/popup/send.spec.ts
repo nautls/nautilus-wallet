@@ -421,6 +421,12 @@ test("a token fee funds the recipient boxes of a wallet without spare ERG", asyn
   // the swapped 1,190,000 nanoERGs minus what the recipient boxes took
   const minerFee = tx.outputs.find((o) => o.assets.length === 0);
   expect(minerFee?.value.toString()).toBe("1100504");
+
+  // the fee selector and the builder read the Babel boxes through one subscription
+  const babelSubscriptions = chain.operations.filter(
+    (o) => o.name === "WS subscribe" && "template" in (o.variables.key as object)
+  );
+  expect(babelSubscriptions).toHaveLength(1);
 });
 
 test("read-only wallets can't send", async ({ chain, popup }) => {

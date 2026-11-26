@@ -2,12 +2,10 @@ import { computed, ref, shallowRef, watch } from "vue";
 import type { Amount, Box } from "@fleet-sdk/common";
 import type { Relay, Subscription, SubscriptionError } from "@hergmes/sdk";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { getSpendableBoxes } from "@/chains/ergo/services/hergmesService";
+import { getSpendableBoxes, NO_RELAY_MESSAGE } from "@/chains/ergo/services/hergmesService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { useRelayStore } from "./relayStore";
 import { MAX_ADDRESS_SUBSCRIPTIONS, useWalletStore } from "./walletStore";
-
-const NO_RELAY_MESSAGE = "No relay server is set. Set one in settings.";
 
 /** What a tx can spend now, and that split by whether a block has included each box. */
 export type SpendableBoxes = {

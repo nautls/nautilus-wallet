@@ -69,7 +69,10 @@ vi.mock("./walletStore", () => ({
   useWalletStore: () => mocks.wallet
 }));
 vi.mock("./relayStore", () => ({ useRelayStore: () => ({ relay: mocks.relay }) }));
-vi.mock("@/chains/ergo/services/hergmesService", () => ({ getSpendableBoxes: vi.fn() }));
+vi.mock("@/chains/ergo/services/hergmesService", () => ({
+  getSpendableBoxes: vi.fn(),
+  NO_RELAY_MESSAGE: "No relay server is set. Set one in settings."
+}));
 
 function box(id: string, address: ErgoAddress, creationHeight = 100): Box<bigint> {
   return {

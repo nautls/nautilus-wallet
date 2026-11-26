@@ -39,6 +39,7 @@ const TYPES: Record<string, { type: AssetType; subtype?: string }> = {
 };
 
 export const MIN_RELAY_VERSION = "0.3.0";
+export const NO_RELAY_MESSAGE = "No relay server is set. Set one in settings.";
 
 let client: RestClient | undefined;
 let clientUrl: string | undefined;
@@ -49,7 +50,7 @@ let clientUrl: string | undefined;
  */
 async function rest(): Promise<RestClient> {
   const { relayUrl } = await getSettings();
-  if (!relayUrl) throw new Error("No relay server is set. Set one in settings.");
+  if (!relayUrl) throw new Error(NO_RELAY_MESSAGE);
   if (!client || clientUrl !== relayUrl) {
     client = new RestClient(relayUrl);
     clientUrl = relayUrl;

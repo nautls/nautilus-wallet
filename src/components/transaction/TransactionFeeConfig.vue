@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue";
-import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
+import { type BabelBox, extractTokenIdFromBabelContract } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { withMessage } from "@regle/rules";
 import { groupBy, maxBy, sortBy } from "es-toolkit";
-import { ChevronsUpDownIcon, Loader2Icon, SlidersHorizontalIcon } from "@lucide/vue";
+import { ChevronsUpDownIcon, SlidersHorizontalIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
 import { BigNumber, bn, decimalize } from "@/common/bigNumber";
+import { log } from "@/common/logger";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
 import { useChildRegle } from "@/composables/useValidationScope";
@@ -170,10 +171,16 @@ async function loadAssets() {
     return;
   }
 
-  const allBoxes = await fetchBabelBoxes(tokenIds);
-  const groups = groupBy(allBoxes.filter(isValidBabelBox), (box) =>
-    extractTokenIdFromBabelContract(box.ergoTree)
-  );
+  let allBoxes: BabelBox[];
+  try {
+    allBoxes = await fetchBabelBoxes(tokenIds);
+  } catch (e) {
+    log.error("Failed to load Babel boxes", e);
+    loading.value = false;
+    return;
+  }
+
+  const groups = groupBy(allBoxes, (box) => extractTokenIdFromBabelContract(box.ergoTree));
 
   const newAssets = Object.keys(groups)
     .map((tokenId): FeeAsset => {
@@ -313,8 +320,7 @@ function emitSelected() {
                 :type="intSelected.metadata?.type"
               />
               {{ format.asset.name(intSelected) }}
-              <Loader2Icon v-if="loading" class="size-4 animate-spin opacity-50" />
-              <ChevronsUpDownIcon v-else class="size-4 opacity-50" />
+              <ChevronsUpDownIcon class="size-4 opacity-50" />
             </Button>
           </PopoverTrigger>
         </AssetSelect>

@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import type { SignedTransaction } from "@fleet-sdk/common";
-import { ErgoAddress, ErgoBox } from "@fleet-sdk/core";
+import { ErgoAddress, ErgoBox, ErgoTree } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
 import { Transaction } from "ergo-lib-wasm-browser";
 import type { BrowserContext, Route, WebSocketRoute } from "@playwright/test";
@@ -66,8 +66,13 @@ export type TokenMetadata = {
 };
 
 type BlockRef = { height: number; headerId: string };
-/** A followed address: its balance alone, or also its boxes, from the snapshot at `lastChange`. */
-type Follow = { lastChange?: BlockRef };
+/** A key the relay follows: an address, a token id, or a contract's template. */
+type Key = { address: string } | { tokenId: string } | { template: string };
+/**
+ * A followed key: an address's balance alone, or the key's boxes, from the snapshot at
+ * `lastChange`. Token and template keys always follow boxes.
+ */
+type Follow = { key: Key; lastChange?: BlockRef };
 
 type GqlRequest = { operationName?: string; query: string; variables?: Record<string, unknown> };
 
@@ -84,10 +89,37 @@ const HEADERS: { id: string; height: number }[] = JSON.parse(
 const hex32 = () => randomBytes(32).toString("hex");
 const treeOf = (address: string) => ErgoAddress.decode(address).ergoTree;
 
+/** Keys followed sockets by; an address's is the address itself. */
+const keyId = (key: Key) =>
+  "address" in key
+    ? key.address
+    : "tokenId" in key
+      ? `token:${key.tokenId}`
+      : `template:${key.template}`;
+
+function templateOf(ergoTree: string): string | undefined {
+  try {
+    const tree = new ErgoTree(ergoTree);
+    return tree.hasSegregatedConstants ? hex.encode(tree.template) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Whether `box` belongs to `key`. */
+function matcher(key: Key): (box: GqlBox) => boolean {
+  if ("address" in key) {
+    const tree = treeOf(key.address);
+    return (box) => box.ergoTree === tree;
+  }
+  if ("tokenId" in key) return (box) => box.assets.some((a) => a.tokenId === key.tokenId);
+  return (box) => templateOf(box.ergoTree) === key.template;
+}
+
 /**
  * In-memory Ergo blockchain served through a GraphQL API compatible with ergo-graphql and
- * the hergmes relay's REST API and WebSocket (tips, and balance and box subscriptions to
- * addresses). Tests mutate its state (fund addresses, add tokens, push mempool transactions,
+ * the hergmes relay's REST API and WebSocket (tips, balance subscriptions to addresses, and box
+ * subscriptions to addresses, tokens and templates). Tests mutate its state (fund addresses, add tokens, push mempool transactions,
  * ...) and the wallet reads it through intercepted HTTP requests.
  */
 export class MockChain {
@@ -121,7 +153,7 @@ export class MockChain {
    */
   readonly operations: { name: string; variables: Record<string, unknown> }[] = [];
 
-  /** Open relay sockets and the addresses each follows. */
+  /** Open relay sockets and the keys each follows, by `keyId`. */
   #sockets = new Map<WebSocketRoute, Map<string, Follow>>();
   /**
    * Stands for the block of the last confirmed change. Confirmed boxes change without blocks
@@ -175,6 +207,12 @@ export class MockChain {
   addBox(box: GqlBox) {
     this.#unspent.push(box);
     this.#pushChanges(true);
+  }
+
+  /** Adds a tx sent by someone else to the mempool, e.g. a contract update. */
+  addPending(tx: GqlTransaction) {
+    this.#mempool.push(tx);
+    this.#pushChanges();
   }
 
   /** Advances the chain height. */
@@ -246,26 +284,23 @@ export class MockChain {
 
     ws.onMessage((data) => {
       const message = JSON.parse(String(data));
-      const { id, key } = message;
-      const address: string | undefined = key?.address;
+      const { id } = message;
+      const key = message.key as Key;
       this.operations.push({ name: `WS ${message.op}`, variables: message });
 
-      if (message.op === "unsubscribe" && address) {
-        keys.delete(address);
-      } else if (message.op === "subscribe" && address) {
+      if (message.op === "unsubscribe") {
+        keys.delete(keyId(key));
+      } else if (message.op === "subscribe") {
         const from: BlockRef | undefined = message.from;
         if (from && from.headerId !== this.#changeId) {
           ws.send(JSON.stringify({ type: "resync_required", id, key, reason: "outside_window" }));
           return;
         }
 
-        const follow = { lastChange: from };
-        keys.set(address, follow);
+        const follow = { key, lastChange: from };
+        keys.set(keyId(key), follow);
         ws.send(JSON.stringify({ type: "subscribed", id, key }));
-        this.#sendState(ws, address, follow);
-      } else if (message.op === "subscribe") {
-        const reason = "MockChain: only subscriptions to addresses are supported";
-        ws.send(JSON.stringify({ type: "rejected", id, key, reason }));
+        this.#sendState(ws, follow);
       }
     });
   }
@@ -276,16 +311,14 @@ export class MockChain {
     ws.send(JSON.stringify(withParameters ? { ...tip, parameters } : tip));
   }
 
-  /** The mempool's effect on a followed address's boxes, if it follows them, and its balance. */
-  #sendState(ws: WebSocketRoute, address: string, { lastChange }: Follow) {
-    const key = { address };
+  /** The mempool's effect on a followed key's boxes, if it follows them, and an address's balance. */
+  #sendState(ws: WebSocketRoute, { key, lastChange }: Follow) {
     if (lastChange) {
-      ws.send(
-        JSON.stringify({ type: "mempool", key, lastChange, pending: this.#pendingOf(address) })
-      );
+      ws.send(JSON.stringify({ type: "mempool", key, lastChange, pending: this.#pendingOf(key) }));
     }
+    if (!("address" in key)) return;
 
-    const { confirmed, pending } = this.#balance(address);
+    const { confirmed, pending } = this.#balance(key.address);
     const asOf = { height: this.height, headerId: HEADERS[0].id };
     ws.send(JSON.stringify({ type: "balance", key, asOf, lastChange, confirmed, pending }));
   }
@@ -298,12 +331,12 @@ export class MockChain {
     if (confirmed) this.#changeId = hex32();
 
     for (const [ws, keys] of this.#sockets) {
-      for (const [address, follow] of keys) {
+      for (const follow of keys.values()) {
         if (confirmed && follow.lastChange) {
-          const message = { type: "resync_required", key: { address }, reason: "outside_window" };
+          const message = { type: "resync_required", key: follow.key, reason: "outside_window" };
           ws.send(JSON.stringify(message));
         } else {
-          this.#sendState(ws, address, follow);
+          this.#sendState(ws, follow);
         }
       }
     }
@@ -338,7 +371,7 @@ export class MockChain {
       return json({ asOf: { height: this.height }, items, truncated: false, total: items.length });
     }
 
-    const boxes = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/boxes$/);
+    const boxes = url.pathname.match(/^\/v1\/(addresses|tokens|templates)\/([^/]+)\/boxes$/);
     if (request.method() === "GET" && boxes) {
       if (this.boxesError) {
         const body = { error: this.boxesError, message: this.boxesError };
@@ -354,7 +387,15 @@ export class MockChain {
         });
       }
       const limit = Number(url.searchParams.get("limit") ?? 100);
-      const items = this.boxesOf(decodeURIComponent(boxes[1]))
+      const value = decodeURIComponent(boxes[2]);
+      const key: Key =
+        boxes[1] === "addresses"
+          ? { address: value }
+          : boxes[1] === "tokens"
+            ? { tokenId: value }
+            : { template: value };
+      const items = this.#unspent
+        .filter(matcher(key))
         .map((b) => ({ ...b, inclusionHeight: b.creationHeight }))
         .sort((a, b) => a.inclusionHeight - b.inclusionHeight);
       const asOf = { height: this.height, headerId: this.#changeId };
@@ -499,14 +540,14 @@ export class MockChain {
     return { confirmed, pending, used };
   }
 
-  /** The mempool txs touching `address`: their outputs to it, and its boxes they spend. */
-  #pendingOf(address: string) {
-    const tree = treeOf(address);
+  /** The mempool txs touching `key`: their outputs to it, and its boxes they spend. */
+  #pendingOf(key: Key) {
+    const matches = matcher(key);
     return this.#mempool
       .map((tx) => ({
         txId: tx.transactionId,
-        created: tx.outputs.filter((o) => o.ergoTree === tree),
-        spent: tx.inputs.filter((i) => i.box.ergoTree === tree).map((i) => i.box.boxId)
+        created: tx.outputs.filter(matches),
+        spent: tx.inputs.filter((i) => matches(i.box)).map((i) => i.box.boxId)
       }))
       .filter((tx) => tx.created.length > 0 || tx.spent.length > 0);
   }
@@ -580,6 +621,9 @@ export class MockChain {
     const missing = tx.inputs.find((i) => !known.has(i.boxId));
     if (missing) {
       throw new Error("Malformed transaction: Every input of the transaction should be in UTXO.");
+    }
+    if (tx.dataInputs.some((d) => !known.has(d.boxId))) {
+      throw new Error("Malformed transaction: Missed data boxes.");
     }
 
     return tx.id;

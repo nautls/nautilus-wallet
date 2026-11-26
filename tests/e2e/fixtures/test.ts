@@ -153,3 +153,35 @@ export function addSigmaUsdBoxes(chain: MockChain) {
   chain.addBox(oracle);
   return { bank, oracle };
 }
+
+/**
+ * Adds a pending oracle update to the chain: a tx spending `oracle` into a box with the same
+ * NFT and `rate` in R4, in nanoERGs per USD cent. Returns the new oracle box.
+ */
+export function updateOracle(chain: MockChain, oracle: GqlBox, rate: bigint): GqlBox {
+  const transactionId = randomBytes(32).toString("hex");
+  const candidate = {
+    value: BigInt(oracle.value),
+    ergoTree: oracle.ergoTree,
+    creationHeight: chain.height,
+    assets: oracle.assets.map((a) => ({ tokenId: a.tokenId, amount: BigInt(a.amount) })),
+    additionalRegisters: { ...oracle.additionalRegisters, R4: SLong(rate).toHex() }
+  };
+  const box: GqlBox = {
+    ...candidate,
+    boxId: new ErgoBox(candidate, transactionId, 0).boxId,
+    transactionId,
+    index: 0,
+    value: candidate.value.toString(),
+    assets: oracle.assets
+  };
+
+  chain.addPending({
+    transactionId,
+    timestamp: String(Date.now()),
+    inputs: [{ proofBytes: "", extension: {}, index: 0, box: oracle }],
+    dataInputs: [],
+    outputs: [box]
+  });
+  return box;
+}

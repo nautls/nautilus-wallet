@@ -2,8 +2,16 @@ import { SIGMA_USD_PARAMETERS } from "@fleet-sdk/ageusd-plugin";
 import { utf8 } from "@fleet-sdk/crypto";
 import { ErgoAddress } from "@fleet-sdk/core";
 import { SByte, SColl } from "@fleet-sdk/serializer";
-import { addBabelBox, addSigmaUsdBoxes, expect, fundWallet, test } from "../fixtures/test";
+import {
+  addBabelBox,
+  addSigmaUsdBoxes,
+  expect,
+  fundWallet,
+  test,
+  updateOracle
+} from "../fixtures/test";
 import { addressOf, TEST_NFT, TEST_TOKEN, WALLET_A } from "../fixtures/wallets";
+import type { GqlBox } from "../mocks/chain";
 
 test.describe("dApps", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -255,8 +263,9 @@ test.describe("dApps", () => {
   });
 
   test.describe("SigmaUSD", () => {
+    let oracle: GqlBox;
     test.beforeEach(({ chain }) => {
-      addSigmaUsdBoxes(chain);
+      ({ oracle } = addSigmaUsdBoxes(chain));
     });
 
     test("shows bank reserves and the oracle rate", async ({ popup }) => {
@@ -304,6 +313,63 @@ test.describe("dApps", () => {
           o.assets.some((a) => a.tokenId === SIGMA_USD_PARAMETERS.tokens.reserveCoinId)
       );
       expect(received).toBeDefined();
+    });
+
+    test("chains a mint on the bank box of a pending one", async ({ popup, chain }) => {
+      const page = popup.page;
+      await page.getByRole("button", { name: "SigmaUSD Protocol" }).click();
+      await expect(page.getByText(/^\d+%$/)).toBeVisible();
+
+      // the target asset is cleared once a tx is sent
+      for (let i = 1; i <= 2; i++) {
+        await page.getByRole("button", { name: "Select" }).click();
+        await page.getByRole("option", { name: /SigRSV/ }).click();
+        await expect(page.getByRole("option")).toHaveCount(0);
+
+        const [ergAmount, rsvAmount] = await page.getByPlaceholder("0").all();
+        await ergAmount.fill("1");
+        await expect(rsvAmount).not.toHaveValue("");
+        await page.getByRole("button", { name: "Swap" }).click();
+
+        const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
+        await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
+        await drawer.getByRole("button", { name: "Sign" }).click();
+        await expect.poll(() => chain.submitted.length).toBe(i);
+        await expect(drawer).toBeHidden();
+        // cleared, so the same amount can be entered again
+        for (const amount of await page.getByPlaceholder("0").all()) {
+          await expect(amount).toHaveValue("0");
+        }
+      }
+
+      const [first, second] = chain.submitted;
+      expect(second.inputs[0].boxId).toBe(first.outputs[0].boxId);
+    });
+
+    test("reads the rate of a pending oracle update", async ({ popup, chain }) => {
+      const page = popup.page;
+      await page.getByRole("button", { name: "SigmaUSD Protocol" }).click();
+      await expect(page.getByText("$0.3", { exact: true })).toBeVisible();
+
+      // half the nanoERGs per cent, so ERG is worth twice as much
+      const updated = updateOracle(chain, oracle, 1_647_909_417n);
+      await expect(page.getByText("$0.6", { exact: true })).toBeVisible();
+
+      await page.getByRole("button", { name: "Select" }).click();
+      await page.getByRole("option", { name: /SigRSV/ }).click();
+      await expect(page.getByRole("option")).toHaveCount(0);
+
+      const [ergAmount, rsvAmount] = await page.getByPlaceholder("0").all();
+      await ergAmount.fill("1");
+      await expect(rsvAmount).not.toHaveValue("");
+      await page.getByRole("button", { name: "Swap" }).click();
+
+      const drawer = page.getByRole("dialog").filter({ hasText: "Transaction review" });
+      await drawer.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
+      await drawer.getByRole("button", { name: "Sign" }).click();
+      await expect(popup.toast("Transaction sent")).toBeVisible();
+
+      expect(chain.submitted[0].dataInputs).toEqual([{ boxId: updated.boxId }]);
     });
 
     test("shows one error for the last edited amount", async ({ popup }) => {
