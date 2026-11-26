@@ -233,9 +233,6 @@
     "namedWalletPassword": "Passwort von „{name}“",
     "enterMasterPassword": "Gib dein Master-Passwort ein",
     "enterWalletPassword": "Gib das Passwort von „{name}“ ein",
-    "wrongMasterPasswordTitle": "Falsches Master-Passwort",
-    "wrongWalletPasswordTitle": "Falsches Passwort von „{name}“",
-    "wrongPasswordHint": "Prüfe auf Tippfehler und die Feststelltaste und versuche es erneut.",
     "passwordTooGuessable": "Wähle ein sichereres Passwort, ohne gängige Wörter oder Muster wie 123456",
     "passwordStrength": {
       "title": "Passwortstärke",

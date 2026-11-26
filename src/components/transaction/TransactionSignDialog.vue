@@ -83,6 +83,7 @@ async function onSuccess(signed: SignedTransaction | SignedInput[]) {
 
   toast({
     title: t("transaction.sign.success"),
+    icon: "sent",
     duration: SUCCESS_TOAST_MS,
     action: h(
       ToastAction,

@@ -233,9 +233,6 @@
     "namedWalletPassword": "Sandi \"{name}\"",
     "enterMasterPassword": "Mangga lebetaken sandi utama panjenengan",
     "enterWalletPassword": "Mangga lebetaken sandi \"{name}\"",
-    "wrongMasterPasswordTitle": "Sandi utama salah",
-    "wrongWalletPasswordTitle": "Sandi \"{name}\" salah",
-    "wrongPasswordHint": "Priksa salah ketik lan Caps Lock, banjur coba maneh.",
     "passwordTooGuessable": "Pilih sandi ingkang langkung kiyat, tanpa tembung umum utawi pola kados 123456",
     "passwordStrength": {
       "title": "Kekuwatan sandi",

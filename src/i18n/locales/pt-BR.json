@@ -233,9 +233,6 @@
     "namedWalletPassword": "Senha de \"{name}\"",
     "enterMasterPassword": "Digite sua senha mestra",
     "enterWalletPassword": "Digite a senha de \"{name}\"",
-    "wrongMasterPasswordTitle": "Senha mestra incorreta",
-    "wrongWalletPasswordTitle": "Senha de \"{name}\" incorreta",
-    "wrongPasswordHint": "Verifique erros de digitação e o Caps Lock e tente novamente.",
     "passwordTooGuessable": "Escolha uma senha mais forte, sem palavras comuns ou padrões como 123456",
     "passwordStrength": {
       "title": "Força da senha",

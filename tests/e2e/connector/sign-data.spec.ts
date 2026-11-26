@@ -1,7 +1,6 @@
 import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
 import { DAPP_HOST } from "../mocks/services";
-import { toast } from "../pages/common";
 import {
   clickToClose,
   connectDapp,
@@ -77,7 +76,7 @@ test.describe("dApp data signing", () => {
 
       await win.getByRole("textbox", { name: / password$/ }).fill("wrong password");
       await win.getByRole("button", { name: "Sign" }).click();
-      await expect(toast(win, `Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(win.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
 
       await clickToClose(win.getByRole("button", { name: "Cancel" }));
       expect(await result).toEqual({ ok: false, error: { code: -3, info: "User rejected." } });

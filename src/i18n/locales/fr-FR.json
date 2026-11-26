@@ -233,9 +233,6 @@
     "namedWalletPassword": "Mot de passe de « {name} »",
     "enterMasterPassword": "Saisissez votre mot de passe principal",
     "enterWalletPassword": "Saisissez le mot de passe de « {name} »",
-    "wrongMasterPasswordTitle": "Mot de passe principal incorrect",
-    "wrongWalletPasswordTitle": "Mot de passe de « {name} » incorrect",
-    "wrongPasswordHint": "Vérifiez les fautes de frappe et la touche Verr. Maj, puis réessayez.",
     "passwordTooGuessable": "Choisissez un mot de passe plus robuste, sans mots courants ni motifs comme 123456",
     "passwordStrength": {
       "title": "Robustesse du mot de passe",

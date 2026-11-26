@@ -5,7 +5,6 @@ import { addRegisterKeyBox, expect, fundWallet, test } from "../fixtures/test";
 import { buildTransaction } from "../fixtures/transactions";
 import { addressOf, RECIPIENT_ADDRESS, TEST_TOKEN, WALLET_A, xpubOf } from "../fixtures/wallets";
 import { DAPP_HOST } from "../mocks/services";
-import { toast } from "../pages/common";
 import {
   clickToClose,
   connectDapp,
@@ -84,7 +83,7 @@ test.describe("dApp transaction signing", () => {
 
       await win.getByRole("textbox", { name: / password$/ }).fill("wrong password");
       await sign.click();
-      await expect(toast(win, `Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(win.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
       expect(win.isClosed()).toBe(false);
 
       await win.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);

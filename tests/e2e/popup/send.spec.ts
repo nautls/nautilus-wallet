@@ -280,7 +280,9 @@ test.describe("send", () => {
     await page.getByRole("button", { name: "Send", exact: true }).click();
 
     await signInDrawer(popup, "wrong password");
-    await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+    await expect(
+      reviewDrawer(page).getByText(`"${WALLET_A.name}" password is incorrect`)
+    ).toBeVisible();
     await expect(reviewDrawer(page)).toBeVisible();
 
     await signInDrawer(popup, WALLET_A.password);

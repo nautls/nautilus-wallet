@@ -233,9 +233,6 @@
     "namedWalletPassword": "Пароль «{name}»",
     "enterMasterPassword": "Введите мастер-пароль",
     "enterWalletPassword": "Введите пароль «{name}»",
-    "wrongMasterPasswordTitle": "Неверный мастер-пароль",
-    "wrongWalletPasswordTitle": "Неверный пароль «{name}»",
-    "wrongPasswordHint": "Проверьте опечатки и Caps Lock, затем попробуйте снова.",
     "passwordTooGuessable": "Выберите более надёжный пароль, без распространённых слов и шаблонов вроде 123456",
     "passwordStrength": {
       "title": "Надёжность пароля",

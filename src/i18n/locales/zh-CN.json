@@ -233,9 +233,6 @@
     "namedWalletPassword": "“{name}”的密码",
     "enterMasterPassword": "请输入您的主密码",
     "enterWalletPassword": "请输入“{name}”的密码",
-    "wrongMasterPasswordTitle": "主密码不正确",
-    "wrongWalletPasswordTitle": "“{name}”的密码不正确",
-    "wrongPasswordHint": "请检查是否有拼写错误或是否开启了大写锁定，然后重试。",
     "passwordTooGuessable": "请选择更安全的密码，避免常见词语或类似 123456 的模式",
     "passwordStrength": {
       "title": "密码强度",

@@ -233,9 +233,6 @@
     "namedWalletPassword": "Kata laluan \"{name}\"",
     "enterMasterPassword": "Masukkan kata laluan induk anda",
     "enterWalletPassword": "Masukkan kata laluan \"{name}\"",
-    "wrongMasterPasswordTitle": "Kata laluan induk salah",
-    "wrongWalletPasswordTitle": "Kata laluan \"{name}\" salah",
-    "wrongPasswordHint": "Semak kesilapan ejaan dan Caps Lock, kemudian cuba lagi.",
     "passwordTooGuessable": "Pilih kata laluan yang lebih kukuh, tanpa perkataan biasa atau corak seperti 123456",
     "passwordStrength": {
       "title": "Kekuatan kata laluan",

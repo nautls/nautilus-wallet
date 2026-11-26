@@ -37,7 +37,8 @@ const password = ref("");
 const walletId = ref(0);
 const prompt = usePasswordPrompt(
   () => walletId.value,
-  () => wallet.name
+  () => wallet.name,
+  password
 );
 const activated = useActivationDelay(request);
 const messageData = ref<string | JsonObject>();
@@ -52,7 +53,12 @@ const detachUnloadListener = useEventListener(window, "beforeunload", refuse);
 
 const { r$ } = useRegle(
   { password },
-  { password: { required: prompt.requiredRule(() => isLedger.value) } },
+  {
+    password: {
+      required: prompt.requiredRule(() => isLedger.value),
+      correct: prompt.correctRule()
+    }
+  },
   { autoDirty: false, lazy: true }
 );
 
@@ -134,7 +140,7 @@ async function sign() {
     detachUnloadListener();
     window.close();
   } catch (e) {
-    if (!(await prompt.handleError(e))) {
+    if (!(await prompt.handleError(e, r$.password))) {
       request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
     }
   }

@@ -62,9 +62,11 @@ const emit = defineEmits<Emits>();
 
 const app = useAppStore();
 const wallet = useWalletStore();
+const password = ref("");
 const prompt = usePasswordPrompt(
   () => wallet.id,
-  () => wallet.name
+  () => wallet.name,
+  password
 );
 const activated = useActivationDelay(() => props.transaction);
 const assets = useAssetsStore();
@@ -76,7 +78,6 @@ const { t } = useI18n();
 const pwdInput = useTemplateRef("pwd-input");
 const ledgerDevice = useTemplateRef("ledger-device");
 
-const password = ref("");
 const hasBurnAgreement = ref(false);
 const signing = ref(false);
 
@@ -152,8 +153,11 @@ async function sign() {
     password.value = "";
     r$.$reset();
   } catch (e) {
-    if (await prompt.handleError(e)) {
-      nextTick(() => pwdInput.value?.input?.$el.focus());
+    if (await prompt.handleError(e, r$.password)) {
+      // a disabled input can't take focus, so re-enable it and wait for the render first
+      signing.value = false;
+      await nextTick();
+      pwdInput.value?.input?.$el.focus();
       return;
     } else if (e instanceof DeviceError) {
       if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
@@ -202,7 +206,12 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
 
 const { r$ } = useRegle(
   { password },
-  { password: { required: prompt.requiredRule(() => isLedger.value) } },
+  {
+    password: {
+      required: prompt.requiredRule(() => isLedger.value),
+      correct: prompt.correctRule()
+    }
+  },
   { autoDirty: false }
 );
 </script>

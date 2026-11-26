@@ -325,7 +325,7 @@ test.describe("settings", () => {
       await drawer.locator("#new-password").fill(newPassword);
       await drawer.locator("#confirm-new-password").fill(newPassword);
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(drawer.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
       await expect(drawer).toBeVisible();
 
       await drawer.locator("#current-password").fill(WALLET_A.password);
@@ -348,7 +348,7 @@ test.describe("settings", () => {
       const review = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await review.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await review.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`).last()).toBeVisible();
+      await expect(review.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
 
       await review.getByRole("textbox", { name: / password$/ }).fill(newPassword);
       await review.getByRole("button", { name: "Sign" }).click();
@@ -374,12 +374,7 @@ test.describe("settings", () => {
       // rejects a wrong password and keeps the drawer open
       await drawer.locator("#backup-password").fill("wrong password");
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
-      await expect(
-        popup
-          .toast(`Incorrect "${WALLET_A.name}" password`)
-          .getByText("Check for typos and Caps Lock, then try again.")
-      ).toBeVisible();
+      await expect(drawer.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
       await expect(drawer.locator("#backup-password")).toBeVisible();
 
       // submits with enter
@@ -493,7 +488,7 @@ test.describe("settings", () => {
         await drawer.locator("#new-password").fill(ownPassword);
         await drawer.locator("#confirm-new-password").fill(ownPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Incorrect master password")).toBeVisible();
+        await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
 
         await drawer.locator("#current-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
@@ -505,11 +500,11 @@ test.describe("settings", () => {
         await drawer.locator("#current-password").fill(ownPassword);
         await drawer.locator("#master-password").fill("wrong password");
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Incorrect master password").last()).toBeVisible();
+        await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
         await drawer.locator("#current-password").fill("wrong password");
         await drawer.locator("#master-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+        await expect(drawer.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
 
         await drawer.locator("#current-password").fill(ownPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
@@ -586,7 +581,7 @@ test.describe("settings", () => {
         await drawer.locator("#new-password").fill(newMaster);
         await drawer.locator("#confirm-new-password").fill(newMaster);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Incorrect master password")).toBeVisible();
+        await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
         await drawer.locator("#current-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
         await expect(popup.toast("Master password changed")).toBeVisible();

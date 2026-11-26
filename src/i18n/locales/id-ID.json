@@ -233,9 +233,6 @@
     "namedWalletPassword": "Kata sandi \"{name}\"",
     "enterMasterPassword": "Masukkan kata sandi utama Anda",
     "enterWalletPassword": "Masukkan kata sandi \"{name}\"",
-    "wrongMasterPasswordTitle": "Kata sandi utama salah",
-    "wrongWalletPasswordTitle": "Kata sandi \"{name}\" salah",
-    "wrongPasswordHint": "Periksa salah ketik dan Caps Lock, lalu coba lagi.",
     "passwordTooGuessable": "Pilih kata sandi yang lebih kuat, tanpa kata umum atau pola seperti 123456",
     "passwordStrength": {
       "title": "Kekuatan kata sandi",

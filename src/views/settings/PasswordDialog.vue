@@ -24,7 +24,7 @@ import { MasterPasswordChangedError, PasswordError, SessionLockedError } from "@
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useNewPassword } from "@/composables/useNewPassword";
-import { usePasswordTexts } from "@/composables/usePasswordPrompt";
+import { usePasswordTexts, useWrongPasswordRule } from "@/composables/usePasswordPrompt";
 import { useUnlockSession } from "@/composables/useUnlockSession";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
@@ -121,18 +121,32 @@ const newLabel = computed(() => {
     : t("settings.wallet.newPassword");
 });
 
+const wrongCurrent = useWrongPasswordRule(currentPassword, () =>
+  passwordTexts.wrong(current.value)
+);
+const wrongMaster = useWrongPasswordRule(masterPassword, () => passwordTexts.wrong("master"));
+
 const { r$ } = useRegle(
   { currentPassword, masterPassword },
   {
     currentPassword: {
-      required: withMessage(required, () => passwordTexts.required(current.value))
+      required: withMessage(required, () => passwordTexts.required(current.value)),
+      correct: wrongCurrent.correct
     },
     masterPassword: {
-      required: withMessage(requiredIf(asksMaster), () => passwordTexts.required("master"))
+      required: withMessage(requiredIf(asksMaster), () => passwordTexts.required("master")),
+      correct: wrongMaster.correct
     }
   },
   { autoDirty: false }
 );
+
+// a disabled input can't take focus, so re-enable it and wait for the render first
+async function focusAfterError(input: typeof currentInput) {
+  loading.value = false;
+  await nextTick();
+  input.value?.input?.$el.focus();
+}
 
 async function submit() {
   const { valid } = await r$.$validate();
@@ -143,7 +157,7 @@ async function submit() {
     loading.value = true;
     await run(created);
 
-    toast({ title: texts.value.done });
+    toast({ title: texts.value.done, icon: "done" });
     emit("done");
     setOpened(false);
   } catch (e) {
@@ -161,21 +175,16 @@ async function submit() {
 
     if (e instanceof SessionLockedError) {
       await session.reload();
-      toast({ title: t("wallet.sessionLocked"), description: passwordTexts.required("master") });
-      nextTick(() => masterInput.value?.input?.$el.focus());
+      await r$.masterPassword.$validate();
+      await focusAfterError(masterInput);
       return;
     }
 
     if (e instanceof PasswordError) {
-      const kind = e.kind ?? current.value;
-      toast({
-        title: passwordTexts.wrong(kind),
-        variant: "destructive",
-        description: passwordTexts.wrongHint()
-      });
-
-      const input = kind === current.value ? currentInput : masterInput;
-      nextTick(() => input.value?.input?.$el.focus());
+      const isCurrent = (e.kind ?? current.value) === current.value;
+      (isCurrent ? wrongCurrent : wrongMaster).markWrong();
+      await (isCurrent ? r$.currentPassword : r$.masterPassword).$validate();
+      await focusAfterError(isCurrent ? currentInput : masterInput);
       return;
     }
 
