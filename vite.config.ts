@@ -24,6 +24,9 @@ const env = {
 };
 
 const INSPECT_BUNDLE = process.env.INSPECT === "true";
+// vite-plugin-web-extension deletes the out dir when a server starts, Vitest's included, which
+// would wipe the build the end-to-end tests run against
+const IS_UNIT_TEST = !!process.env.VITEST;
 const REPORT_ZIP_SIZE = process.env.ZIP_SIZE === "true";
 
 function r(...paths: string[]): string {
@@ -59,18 +62,20 @@ export default defineConfig(({ mode }) => ({
   define: defEnv(env),
   plugins: [
     ...(mode === "development" ? plugins : []),
-    webExtension({
-      manifest: () => buildManifest(env.NETWORK, env.TARGET, mode),
-      skipManifestValidation: true, // skip for now
-      watchFilePaths: [r("src/manifest.ts")],
-      additionalInputs: [
-        `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
-        `${EXT_ENTRY_ROOT}/connector/index.html`
-      ],
-      disableAutoLaunch: true,
-      browser: env.TARGET,
-      htmlViteConfig: { plugins }
-    }),
+    IS_UNIT_TEST
+      ? undefined
+      : webExtension({
+          manifest: () => buildManifest(env.NETWORK, env.TARGET, mode),
+          skipManifestValidation: true, // skip for now
+          watchFilePaths: [r("src/manifest.ts")],
+          additionalInputs: [
+            `${EXT_ENTRY_ROOT}/content-scripts/injected.ts`,
+            `${EXT_ENTRY_ROOT}/connector/index.html`
+          ],
+          disableAutoLaunch: true,
+          browser: env.TARGET,
+          htmlViteConfig: { plugins }
+        }),
     REPORT_ZIP_SIZE ? zipSizeReporter(r("dist")) : undefined
   ],
   build: {
