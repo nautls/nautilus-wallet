@@ -1,5 +1,4 @@
 import type { BrowserContext } from "@playwright/test";
-import { GRAPHQL_URLS } from "./chain";
 
 export const DAPP_ORIGIN = "https://dapp.test";
 export const DAPP_HOST = "dapp.test";
@@ -28,9 +27,8 @@ const FRAME_HTML = `<!doctype html><html><head></head><body>frame</body></html>`
  */
 export async function installServiceMocks(context: BrowserContext, opt: ServiceOptions = {}) {
   // lowest priority: block everything that isn't explicitly mocked
-  const mocked = new Set(GRAPHQL_URLS.map((u) => new URL(u).host));
   await context.route(
-    (url) => url.protocol.startsWith("http") && !mocked.has(url.host),
+    (url) => url.protocol.startsWith("http"),
     (route) => route.abort("blockedbyclient")
   );
 

@@ -6,16 +6,6 @@ import { hex } from "@fleet-sdk/crypto";
 import { Transaction } from "ergo-lib-wasm-browser";
 import type { BrowserContext, Route, WebSocketRoute } from "@playwright/test";
 
-/**
- * GraphQL endpoints the wallet may talk to, both from extension pages and from the
- * background service worker. All of them are served by the same in-memory chain.
- */
-export const GRAPHQL_URLS = [
-  "https://explore.sigmaspace.io/api/graphql",
-  "https://gql.ergoplatform.com/",
-  "https://graphql.erg.zelcore.io/"
-];
-
 /** Relays the wallet may talk to: the default one, and one tests can switch to in settings. */
 export const RELAY_URLS = ["https://hergmes.nautiluswallet.com", "https://relay.test"];
 
@@ -25,7 +15,7 @@ export const EXTERNAL_ADDRESS = "9iPgSVU3yrRnTxtJC6hYA7bS5mMqZtjeJHrT3fNdLV7JZVp
 type Asset = { tokenId: string; amount: string };
 type Registers = Record<string, string>;
 
-export type GqlBox = {
+export type MockBox = {
   boxId: string;
   transactionId: string;
   index: number;
@@ -36,19 +26,19 @@ export type GqlBox = {
   additionalRegisters: Registers;
 };
 
-type GqlInput = {
+type MockInput = {
   proofBytes: string;
   extension: Record<string, string>;
   index: number;
-  box: GqlBox;
+  box: MockBox;
 };
 
-export type GqlTransaction = {
+export type MockTransaction = {
   transactionId: string;
   timestamp: string;
-  inputs: GqlInput[];
+  inputs: MockInput[];
   dataInputs: { boxId: string }[];
-  outputs: GqlBox[];
+  outputs: MockBox[];
   inclusionHeight?: number;
   headerId?: string;
   index?: number;
@@ -73,8 +63,6 @@ type Key = { address: string } | { tokenId: string } | { template: string };
  * `lastChange`. Token and template keys always follow boxes.
  */
 type Follow = { key: Key; lastChange?: BlockRef };
-
-type GqlRequest = { operationName?: string; query: string; variables?: Record<string, unknown> };
 
 export type BoxOptions = {
   nanoErgs: bigint | string;
@@ -107,7 +95,7 @@ function templateOf(ergoTree: string): string | undefined {
 }
 
 /** Whether `box` belongs to `key`. */
-function matcher(key: Key): (box: GqlBox) => boolean {
+function matcher(key: Key): (box: MockBox) => boolean {
   if ("address" in key) {
     const tree = treeOf(key.address);
     return (box) => box.ergoTree === tree;
@@ -117,10 +105,10 @@ function matcher(key: Key): (box: GqlBox) => boolean {
 }
 
 /**
- * In-memory Ergo blockchain served through a GraphQL API compatible with ergo-graphql and
- * the hergmes relay's REST API and WebSocket (tips, balance subscriptions to addresses, and box
- * subscriptions to addresses, tokens and templates). Tests mutate its state (fund addresses, add tokens, push mempool transactions,
- * ...) and the wallet reads it through intercepted HTTP requests.
+ * In-memory Ergo blockchain served through the hergmes relay's REST API and WebSocket (tips,
+ * balance subscriptions to addresses, and box subscriptions to addresses, tokens and templates).
+ * Tests mutate its state (fund addresses, add tokens, push mempool transactions, ...) and the
+ * wallet reads it through intercepted HTTP requests.
  */
 export class MockChain {
   height = HEADERS[0].height;
@@ -151,8 +139,8 @@ export class MockChain {
   readonly submitted: SignedTransaction[] = [];
 
   /**
-   * Log of every GraphQL operation, relay route (`GET /v1/...`) and socket message
-   * (`WS subscribe`, `WS unsubscribe`) received.
+   * Log of every relay route (`GET /v1/...`) and socket message (`WS subscribe`,
+   * `WS unsubscribe`) received.
    */
   readonly operations: { name: string; variables: Record<string, unknown> }[] = [];
 
@@ -165,10 +153,10 @@ export class MockChain {
   #changeId = hex32();
   #socketsDown = false;
 
-  #unspent: GqlBox[] = [];
-  #confirmed: GqlTransaction[] = [];
-  #mempool: GqlTransaction[] = [];
-  #unseen: GqlTransaction[] = [];
+  #unspent: MockBox[] = [];
+  #confirmed: MockTransaction[] = [];
+  #mempool: MockTransaction[] = [];
+  #unseen: MockTransaction[] = [];
   #tokens = new Map<string, TokenMetadata>();
   #used = new Set<string>();
 
@@ -176,7 +164,7 @@ export class MockChain {
    * Creates a confirmed transaction sending the given assets from an external address
    * to `address`. Returns the created box.
    */
-  fund(address: string, opt: BoxOptions): GqlBox {
+  fund(address: string, opt: BoxOptions): MockBox {
     const height = opt.creationHeight ?? this.height - 10;
     const transactionId = hex32();
     const output = this.#createBox(treeOf(address), opt, transactionId, 0, height);
@@ -207,7 +195,7 @@ export class MockChain {
   }
 
   /** Adds an arbitrary unspent box, e.g. a contract box snapshotted from mainnet. */
-  addBox(box: GqlBox) {
+  addBox(box: MockBox) {
     this.#unspent.push(box);
     this.#pushChanges(true);
   }
@@ -218,8 +206,8 @@ export class MockChain {
    */
   receivePending(
     outputs: [address: string, opt: BoxOptions][],
-    spend: GqlBox[] = []
-  ): GqlTransaction {
+    spend: MockBox[] = []
+  ): MockTransaction {
     const transactionId = hex32();
     const fee = 1_100_000n;
     const total = outputs.reduce((sum, [, opt]) => sum + BigInt(opt.nanoErgs), fee);
@@ -231,7 +219,7 @@ export class MockChain {
       0,
       this.height - 100
     );
-    const tx: GqlTransaction = {
+    const tx: MockTransaction = {
       transactionId,
       timestamp: String(Date.now()),
       inputs: [input, ...spend].map((box, index) => ({
@@ -255,7 +243,7 @@ export class MockChain {
   }
 
   /** Adds a tx sent by someone else to the mempool, e.g. a contract update. */
-  addPending(tx: GqlTransaction) {
+  addPending(tx: MockTransaction) {
     this.#mempool.push(tx);
     this.#pushChanges();
   }
@@ -278,12 +266,12 @@ export class MockChain {
   }
 
   /** Unspent confirmed boxes owned by `address`. */
-  boxesOf(address: string): GqlBox[] {
+  boxesOf(address: string): MockBox[] {
     const tree = treeOf(address);
     return this.#unspent.filter((b) => b.ergoTree === tree);
   }
 
-  get mempool(): readonly GqlTransaction[] {
+  get mempool(): readonly MockTransaction[] {
     return this.#mempool;
   }
 
@@ -309,9 +297,6 @@ export class MockChain {
   }
 
   async install(context: BrowserContext) {
-    for (const url of GRAPHQL_URLS) {
-      await context.route(url, (route) => this.#handle(route));
-    }
     for (const url of RELAY_URLS) {
       await context.route(`${url}/v1/**`, (route) => this.#handleRelay(route));
       await context.routeWebSocket(`${url.replace(/^http/, "ws")}/v1/ws`, (ws) =>
@@ -510,42 +495,13 @@ export class MockChain {
     }
   }
 
-  async #handle(route: Route) {
-    if (route.request().method() !== "POST") return route.fulfill({ status: 405 });
-
-    const body = route.request().postDataJSON() as GqlRequest;
-    const name = body.operationName ?? "";
-    const vars = body.variables ?? {};
-    this.operations.push({ name, variables: vars });
-
-    try {
-      const data = this.#resolve(name, body.query, vars);
-      await route.fulfill({ json: { data } });
-    } catch (e) {
-      await route.fulfill({ json: { data: null, errors: [{ message: (e as Error).message }] } });
-    }
-  }
-
-  #resolve(name: string, query: string, vars: Record<string, unknown>): unknown {
-    switch (name) {
-      case "boxes":
-        return this.#boxes(query, vars);
-      case "confirmedTransactions":
-        return { transactions: this.#transactions(this.#confirmed, vars) };
-      case "unconfirmedTransactions":
-        return { mempool: { transactions: this.#transactions(this.#mempool, vars) } };
-      default:
-        throw new Error(`MockChain: unsupported operation '${name}'`);
-    }
-  }
-
   #createBox(
     ergoTree: string,
     opt: BoxOptions,
     transactionId: string,
     index: number,
     creationHeight: number
-  ): GqlBox {
+  ): MockBox {
     const candidate = {
       value: BigInt(opt.nanoErgs),
       ergoTree,
@@ -591,7 +547,7 @@ export class MockChain {
     const created = this.#mempool.flatMap((tx) => tx.outputs);
     const spentIds = new Set(this.#mempool.flatMap((tx) => tx.inputs.map((i) => i.box.boxId)));
     const spent = [...this.#unspent, ...created].filter((b) => spentIds.has(b.boxId));
-    const own = (boxes: GqlBox[]) => boxes.filter((b) => b.ergoTree === tree);
+    const own = (boxes: MockBox[]) => boxes.filter((b) => b.ergoTree === tree);
 
     const confirmed = sumAssets(own(this.#unspent));
     const pending = sumAssets(own(created), own(spent));
@@ -603,7 +559,7 @@ export class MockChain {
   /** The txs touching `address`, pending first, each with its signed change to it. */
   #history(address: string) {
     const tree = treeOf(address);
-    const own = (boxes: GqlBox[]) => boxes.filter((b) => b.ergoTree === tree);
+    const own = (boxes: MockBox[]) => boxes.filter((b) => b.ergoTree === tree);
     const confirmed = [...this.#confirmed].sort(
       (a, b) => (b.inclusionHeight ?? 0) - (a.inclusionHeight ?? 0)
     );
@@ -650,54 +606,6 @@ export class MockChain {
     return [...confirmed, ...pending];
   }
 
-  #boxes(query: string, vars: Record<string, unknown>) {
-    const spentInMempool = new Set(
-      this.#mempool.flatMap((tx) => tx.inputs.map((i) => i.box.boxId))
-    );
-    const filter = (boxes: GqlBox[]) =>
-      paginate(
-        boxes
-          .filter((b) => !vars.ergoTrees || (vars.ergoTrees as string[]).includes(b.ergoTree))
-          .filter((b) => !vars.boxIds || (vars.boxIds as string[]).includes(b.boxId))
-          .filter((b) => !vars.tokenId || b.assets.some((a) => a.tokenId === vars.tokenId))
-          .map((b) => ({ ...b, beingSpent: spentInMempool.has(b.boxId) })),
-        vars
-      );
-
-    const result: Record<string, unknown> = {};
-    if (/boxes\(spent/.test(query)) result.boxes = filter(this.#unspent);
-    if (/mempool\s*\{/.test(query)) {
-      const created = this.#mempool.flatMap((tx) => tx.outputs);
-      result.mempool = { boxes: filter(created) };
-    }
-
-    return result;
-  }
-
-  #transactions(source: GqlTransaction[], vars: Record<string, unknown>) {
-    const addresses = vars.addresses as string[] | undefined;
-    const txIds = vars.transactionIds as string[] | undefined;
-    const trees = addresses ? new Set(addresses.map(treeOf)) : undefined;
-    const relevantOnly = vars.onlyRelevantOutputs === true;
-
-    const txs = source
-      .filter((tx) => !txIds || txIds.includes(tx.transactionId))
-      .filter(
-        (tx) =>
-          !trees ||
-          tx.inputs.some((i) => trees.has(i.box.ergoTree)) ||
-          tx.outputs.some((o) => trees.has(o.ergoTree))
-      )
-      .map((tx) =>
-        relevantOnly && trees
-          ? { ...tx, outputs: tx.outputs.filter((o) => trees.has(o.ergoTree)) }
-          : tx
-      )
-      .sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
-
-    return paginate(txs, vars);
-  }
-
   #check(tx: SignedTransaction) {
     if (this.submitError) throw new Error(this.submitError);
 
@@ -724,7 +632,7 @@ export class MockChain {
     const known = new Map(this.#nodeBoxes().map((b) => [b.boxId, b]));
 
     this.submitted.push(tx);
-    const pooled: GqlTransaction = {
+    const pooled: MockTransaction = {
       transactionId: tx.id,
       timestamp: String(Date.now()),
       inputs: tx.inputs.map((input, index) => ({
@@ -762,12 +670,6 @@ export class MockChain {
   }
 }
 
-function paginate<T>(items: T[], vars: Record<string, unknown>): T[] {
-  const skip = (vars.skip as number) ?? 0;
-  const take = (vars.take as number) ?? 50;
-  return items.slice(skip, skip + take);
-}
-
 /**
  * A signed tx from the hex the relay takes. ergo-lib rather than Fleet's deserializer, which
  * can't read ErgoTrees without a size flag, like the SigmaUSD and Babel Fee contracts'.
@@ -782,7 +684,7 @@ function parseTransaction(body: string): SignedTransaction {
 }
 
 /** What `added` holds less what `removed` holds, in the relay's wire shape. */
-function sumAssets(added: GqlBox[], removed: GqlBox[] = []) {
+function sumAssets(added: MockBox[], removed: MockBox[] = []) {
   let nanoErgs = 0n;
   const tokens = new Map<string, bigint>();
   for (const [boxes, sign] of [

@@ -32,9 +32,6 @@ importers:
       '@fleet-sdk/babel-fees-plugin':
         specifier: ^0.1.26
         version: 0.1.26
-      '@fleet-sdk/blockchain-providers':
-        specifier: ^0.12.0
-        version: 0.12.0
       '@fleet-sdk/common':
         specifier: ^0.10.0
         version: 0.10.0
@@ -144,9 +141,6 @@ importers:
       '@changesets/cli':
         specifier: ^3.0.3
         version: 3.0.3
-      '@ergo-graphql/types':
-        specifier: ^0.5.1
-        version: 0.5.1
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.14.0(jiti@2.7.0))
@@ -549,9 +543,6 @@ packages:
   '@emnapi/wasi-threads@1.2.2':
     resolution: {integrity: sha512-c95qOXkHdydNKhscBTebqEC1CVAZpyqOfVfBzQ1qgzyl3gfeldUjIggDbIZgDKsHLgnsM+igH7TJ/eAasaVuMA==}
 
-  '@ergo-graphql/types@0.5.1':
-    resolution: {integrity: sha512-VAGIBOSdK+uSn0mMWAWLF78hCLP8DzDh1hXEVLvUNkOBxg/L53SIUo9PJc9JgkhL6z09ArqdehrpAuwHJpHptg==}
-
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
     engines: {node: '>=18'}
@@ -757,10 +748,6 @@ packages:
 
   '@fleet-sdk/babel-fees-plugin@0.1.26':
     resolution: {integrity: sha512-gN09OHV1tcBNU/i2Ve8nQErurvgn4t7Bs1Pfa33/fXrjfSvcOpbi+rHisZj8wZIBV7qMV6aYw8BS230xytp8qw==}
-    engines: {node: '>=18'}
-
-  '@fleet-sdk/blockchain-providers@0.12.0':
-    resolution: {integrity: sha512-l1SIqmHbyebVYNnZ7yigDxOq3XG0rn+DTza4llFAfxckfrC7eqPBWpGDmotsQ/TK7mt7I3QNzGz7IKWiiw90qQ==}
     engines: {node: '>=18'}
 
   '@fleet-sdk/common@0.10.0':
@@ -5192,8 +5179,6 @@ snapshots:
       tslib: 2.9.1
     optional: true
 
-  '@ergo-graphql/types@0.5.1': {}
-
   '@esbuild/aix-ppc64@0.25.12':
     optional: true
 
@@ -5331,11 +5316,6 @@ snapshots:
       '@fleet-sdk/common': 0.10.0
       '@fleet-sdk/core': 0.12.0
       '@fleet-sdk/serializer': 0.11.0
-
-  '@fleet-sdk/blockchain-providers@0.12.0':
-    dependencies:
-      '@fleet-sdk/common': 0.10.0
-      '@fleet-sdk/core': 0.12.0
 
   '@fleet-sdk/common@0.10.0': {}
 

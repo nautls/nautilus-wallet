@@ -1,12 +1,12 @@
 import type { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { OutputBuilder, RECOMMENDED_MIN_FEE_VALUE, TransactionBuilder } from "@fleet-sdk/core";
-import type { GqlBox, MockChain } from "../mocks/chain";
+import type { MockBox, MockChain } from "../mocks/chain";
 import { addressOf, RECIPIENT_ADDRESS, type TestWallet } from "./wallets";
 
 type P2PTxOptions = {
   to?: string;
   /** Extra boxes that are always spent, besides the wallet's own. */
-  inputs?: GqlBox[];
+  inputs?: MockBox[];
   nanoErgs?: bigint;
   tokens?: { tokenId: string; amount: string }[];
   burn?: { tokenId: string; amount: string }[];

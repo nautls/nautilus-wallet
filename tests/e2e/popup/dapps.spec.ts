@@ -11,7 +11,7 @@ import {
   updateOracle
 } from "../fixtures/test";
 import { addressOf, TEST_NFT, TEST_TOKEN, WALLET_A } from "../fixtures/wallets";
-import type { GqlBox } from "../mocks/chain";
+import type { MockBox } from "../mocks/chain";
 
 test.describe("dApps", () => {
   test.beforeEach(async ({ chain, popup }) => {
@@ -263,7 +263,7 @@ test.describe("dApps", () => {
   });
 
   test.describe("SigmaUSD", () => {
-    let oracle: GqlBox;
+    let oracle: MockBox;
     test.beforeEach(({ chain }) => {
       ({ oracle } = addSigmaUsdBoxes(chain));
     });
