@@ -4,8 +4,11 @@ import { mergeRegles, Maybe, useRegle } from "@regle/core";
 import { required, withMessage, withParams } from "@regle/rules";
 import { useI18n } from "vue-i18n";
 import ActionFooter from "@/components/ActionFooter.vue";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
-import { Button } from "@/components/ui/button";
+import {
+  TransactionFeeConfig,
+  TransactionSignDialog,
+  TxActionButton
+} from "@/components/transaction";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -231,8 +234,8 @@ function reset() {
 
   <ActionFooter>
     <TransactionFeeConfig v-model="fee" :boxes-value="MINT_BOX_VALUE" />
-    <Button type="submit" size="lg" class="w-full" @click="mint">{{
+    <TxActionButton type="submit" @click="mint">{{
       t("dapps.nativeTokens.mint.mint")
-    }}</Button>
+    }}</TxActionButton>
   </ActionFooter>
 </template>

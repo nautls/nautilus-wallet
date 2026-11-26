@@ -39,6 +39,13 @@ class FakeRelay {
     };
   }
 
+  /** Changes the address's state, as one relay message would. */
+  set(address: ErgoAddress, change: Partial<SubscriptionState>) {
+    const script = address.encode();
+    this.states.set(script, { ...this.states.get(script)!, ...change });
+    for (const listener of this.listeners.get(script) ?? []) listener(this.states.get(script)!);
+  }
+
   /** Sets the address's live view, as one relay message would. */
   push(address: ErgoAddress, view: Partial<BoxView>) {
     const script = address.encode();
@@ -79,13 +86,6 @@ function box(id: string, address: ErgoAddress, creationHeight = 100): Box<bigint
 
 const confirmed = (b: Box<bigint>) => ({ ...b, inclusionHeight: b.creationHeight });
 
-async function settled<T>(promise: Promise<T>) {
-  let done = false;
-  promise.then(() => (done = true));
-  await new Promise((r) => setTimeout(r, 0));
-  return done;
-}
-
 beforeEach(() => {
   setActivePinia(createPinia());
   relay = new FakeRelay();
@@ -102,18 +102,72 @@ beforeEach(() => {
   });
 });
 
+describe("status", () => {
+  it("is ready once every followed address is live", async () => {
+    const store = useBoxesStore();
+    expect(store.status).toBe("idle");
+
+    store.follow();
+    await nextTick();
+    expect(store.status).toBe("loading");
+
+    relay.push(A0, {});
+    expect(store.status).toBe("loading");
+
+    relay.push(A1, {});
+    expect(store.status).toBe("ready");
+  });
+
+  it("is reconnecting while a followed address isn't live", async () => {
+    const store = useBoxesStore();
+    store.follow();
+    await nextTick();
+    relay.push(A0, {});
+    relay.push(A1, {});
+
+    relay.set(A1, { phase: "disconnected" });
+    expect(store.status).toBe("reconnecting");
+  });
+
+  it("is waiting while the relay asks an address to try again later", async () => {
+    const store = useBoxesStore();
+    store.follow();
+    await nextTick();
+    relay.push(A0, {});
+
+    relay.set(A1, { phase: "waiting", error: { code: "capacity_exceeded", message: "" } });
+    expect(store.status).toBe("waiting");
+  });
+
+  it("reports the error of a refused address", async () => {
+    const store = useBoxesStore();
+    store.follow();
+    await nextTick();
+    relay.push(A0, {});
+
+    const error = { code: "too_many_boxes", message: "too_many_boxes" };
+    relay.set(A1, { phase: "rejected", boxes: undefined, error });
+    expect(store.status).toBe("error");
+    expect(store.error).toEqual(error);
+  });
+});
+
 describe("spendable", () => {
-  it("waits for every followed address to be live", async () => {
+  it("throws until the boxes are ready", async () => {
+    const store = useBoxesStore();
+    await expect(store.spendable()).rejects.toThrow("still loading");
+  });
+
+  it("splits the followed boxes by confirmation", async () => {
     const store = useBoxesStore();
     const b0 = confirmed(box("0", A0));
     const b1 = box("1", A1);
 
-    const result = store.spendable();
+    store.follow();
     await nextTick();
     relay.push(A0, { confirmed: [b0], spendable: [b0] });
-    expect(await settled(result)).toBe(false);
-
     relay.push(A1, { spendable: [b1] });
-    expect(await result).toEqual({ all: [b0, b1], confirmed: [b0], unconfirmed: [b1] });
+
+    expect(await store.spendable()).toEqual({ all: [b0, b1], confirmed: [b0], unconfirmed: [b1] });
   });
 });

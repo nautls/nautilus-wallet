@@ -201,8 +201,8 @@ export async function getAddressBalances(addresses: string[]): Promise<AddressBa
     balances.push({
       address,
       used,
-      confirmed: parseAssets(confirmed),
-      pending: parseAssets(pending)
+      confirmed: mapAssets(confirmed),
+      pending: mapAssets(pending)
     });
   });
 
@@ -226,7 +226,7 @@ export async function hasBoxesCreatedBefore(height: number, addresses: string[])
   return found;
 }
 
-function parseAssets(assets: WireAssets): Balances {
+function mapAssets(assets: WireAssets): Balances {
   return {
     nanoErgs: BigInt(assets.nanoErgs),
     tokens: new Map(assets.tokens.map((t) => [t.tokenId, BigInt(t.amount)]))

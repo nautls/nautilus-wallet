@@ -9,9 +9,12 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
 import ActionFooter from "@/components/ActionFooter.vue";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionSignDialog,
+  TxActionButton
+} from "@/components/transaction";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
@@ -193,8 +196,8 @@ function reset() {
 
   <ActionFooter>
     <TransactionFeeConfig v-model="fee" />
-    <Button type="submit" variant="destructive" size="lg" class="w-full" @click="burn">{{
+    <TxActionButton type="submit" variant="destructive" @click="burn">{{
       t("dapps.nativeTokens.burn.burn")
-    }}</Button>
+    }}</TxActionButton>
   </ActionFooter>
 </template>

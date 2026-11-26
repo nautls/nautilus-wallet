@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRaw } from "vue";
+import { computed, ref, toRaw, watch } from "vue";
 import { Amount, Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
 import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
-import { useBoxesStore } from "@/stores/boxesStore";
 import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ActionFooter from "@/components/ActionFooter.vue";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
-import { Button } from "@/components/ui/button";
+import {
+  TransactionFeeConfig,
+  TransactionSignDialog,
+  TxActionButton
+} from "@/components/transaction";
 import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import { log } from "@/common/logger";
 import { bn, decimalize } from "@/common/bigNumber";
+import { useWalletBoxes } from "@/composables/useWalletBoxes";
 import { useProgrammaticDialog, useRelativeDateFormatter } from "@/composables";
 import {
   BLOCK_TIME_IN_MINUTES,
@@ -28,7 +31,7 @@ import DataPoint from "./components/DataPoint.vue";
 import { createConsolidationTransaction } from "./transactionFactory";
 
 const wallet = useWalletStore();
-const walletBoxes = useBoxesStore();
+const walletBoxes = useWalletBoxes();
 const chain = useChainStore();
 
 const { t, d } = useI18n();
@@ -41,8 +44,6 @@ const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
   value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
 });
-
-onMounted(loadBoxes);
 
 const walletSize = computed(() => {
   let size = 0;
@@ -76,22 +77,32 @@ const healthStatus = computed(() =>
   utxoHealth.value.overall ? t("common.healthy") : t("common.unhealthy")
 );
 
-async function loadBoxes() {
-  setLoading(true);
+let reads = 0;
+watch(
+  [() => walletBoxes.status, () => walletBoxes.version],
+  async ([status], previous) => {
+    // the REST read doesn't follow the chain, so it's taken once per refusal
+    if (status === "error" && previous?.[0] === "error") return;
+    if (status !== "ready" && status !== "error") return;
 
-  boxes.value = await readBoxes();
+    const read = ++reads;
+    const result = await readBoxes(status === "ready");
+    if (read !== reads) return;
+    boxes.value = result;
+    setLoading(false);
+  },
+  { immediate: true }
+);
 
-  setLoading(false);
-}
+/**
+ * A wallet with too many boxes for the relay to follow, the very one this dApp is for, is read
+ * once over REST, cut at the relay's limit.
+ */
+async function readBoxes(followed: boolean) {
+  if (followed) return (await walletBoxes.spendable()).all;
 
-/** Falls back to a one-off read, cut at the relay's limit, when the subscriptions fail. */
-async function readBoxes() {
-  try {
-    return (await walletBoxes.spendable()).all;
-  } catch (e) {
-    log.error("Failed to follow the wallet's boxes", e);
-    return fetchBoxes(wallet.id);
-  }
+  log.error("Failed to follow the wallet's boxes", walletBoxes.error);
+  return fetchBoxes(wallet.id);
 }
 
 function setLoading(load = true) {
@@ -172,9 +183,9 @@ function formatBytes(bytes: number, decimals = 1) {
 
     <ActionFooter>
       <TransactionFeeConfig v-model="fee" :disabled="loading" />
-      <Button :disabled="loading" size="lg" class="w-full" @click="sendTransaction">{{
+      <TxActionButton :disabled="loading" allow-rest-fallback @click="sendTransaction">{{
         t("common.optimize")
-      }}</Button>
+      }}</TxActionButton>
     </ActionFooter>
   </div>
 </template>

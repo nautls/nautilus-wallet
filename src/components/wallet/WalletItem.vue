@@ -77,12 +77,15 @@ function walletTypeToString(type: WalletType): string {
 
 <template>
   <div :class="cn('flex h-auto w-full flex-row items-center gap-2 rounded text-left', props.class)">
-    <canvas
-      :id="canvasId"
-      width="28"
-      height="28"
-      class="ring-foreground/10 ml-px inline-block h-full w-auto rounded-sm ring-1 ring-offset-1"
-    ></canvas>
+    <span class="relative inline-flex shrink-0">
+      <canvas
+        :id="canvasId"
+        width="28"
+        height="28"
+        class="ring-foreground/10 ml-px inline-block h-full w-auto rounded-sm ring-1 ring-offset-1"
+      ></canvas>
+      <slot name="badge" />
+    </span>
 
     <div class="flex w-full flex-col justify-between whitespace-nowrap">
       <div

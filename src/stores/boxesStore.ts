@@ -1,14 +1,11 @@
 import { computed, ref, shallowRef, watch } from "vue";
-import { acceptHMRUpdate, defineStore } from "pinia";
 import type { Amount, Box } from "@fleet-sdk/common";
-import type { Relay, Subscription } from "@hergmes/sdk";
+import type { Relay, Subscription, SubscriptionError } from "@hergmes/sdk";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { getSpendableBoxes } from "@/chains/ergo/services/hergmesService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { useRelayStore } from "./relayStore";
 import { MAX_ADDRESS_SUBSCRIPTIONS, useWalletStore } from "./walletStore";
-
-/** How long `spendable` waits for the subscriptions, which first read every box they follow. */
-const READY_TIMEOUT = 30_000;
 
 /** What a tx can spend now, and that split by whether a block has included each box. */
 export type SpendableBoxes = {
@@ -16,6 +13,16 @@ export type SpendableBoxes = {
   confirmed: Box<Amount>[];
   unconfirmed: Box<Amount>[];
 };
+
+/**
+ * - `idle`: no page asked for the boxes yet;
+ * - `loading`: a followed address hasn't read its boxes yet;
+ * - `waiting`: the relay asked an address to try again later;
+ * - `reconnecting`: every address has read its boxes, but one isn't following the chain now;
+ * - `error`: the relay refused an address for good, see `error`;
+ * - `ready`: every followed address is live, so a tx can be built.
+ */
+export type BoxesStatus = "idle" | "loading" | "waiting" | "reconnecting" | "error" | "ready";
 
 /**
  * The wallet's spendable boxes, followed over the relay once a page that builds txs asks for
@@ -87,34 +94,37 @@ export const useBoxesStore = defineStore("boxes", () => {
     version.value++;
   }
 
+  const states = computed(() => {
+    void version.value;
+    return holders.value.followed.map((script) => holds.get(script)?.subscription.state);
+  });
+
+  const error = computed<SubscriptionError | undefined>(
+    () => states.value.find((s) => s?.phase === "rejected")?.error
+  );
+
+  const status = computed<BoxesStatus>(() => {
+    if (!wanted.value) return "idle";
+    if (!relayStore.relay || wallet.loading) return "loading";
+    if (error.value) return "error";
+    if (states.value.some((s) => s?.phase === "waiting")) return "waiting";
+    if (states.value.some((s) => !s?.boxes)) return "loading";
+    if (states.value.some((s) => s?.phase !== "live")) return "reconnecting";
+    return "ready";
+  });
+
   /** Starts following the wallet's boxes, so they are ready by the time a tx is built. */
-  function prepare() {
+  function follow() {
     wanted.value = true;
   }
 
-  function isReady() {
-    return holders.value.followed.every(
-      (script) => holds.get(script)?.subscription.state.phase === "live"
-    );
-  }
-
   /**
-   * The wallet's spendable boxes with the mempool applied. Waits for the subscriptions to
-   * catch up.
+   * The wallet's spendable boxes with the mempool applied. Throws unless `status` is `ready`:
+   * pages enable their tx actions only then.
    */
   async function spendable(): Promise<SpendableBoxes> {
-    if (!relayStore.relay) throw new Error("No relay is set.");
-    prepare();
-
-    const walletId = wallet.id;
-    await until(() => {
-      void version.value;
-      // discovery marks the addresses holding ERG that the stored balances miss
-      return wallet.id !== walletId || (!wallet.loading && !wallet.syncing && isReady());
-    }, READY_TIMEOUT);
-
-    if (wallet.id !== walletId) throw new Error("The wallet changed while its boxes were loading.");
-    if (!isReady()) throw new Error("Unable to load the wallet's boxes, check your connection.");
+    follow();
+    if (status.value !== "ready") throw new Error("The wallet's boxes are still loading.");
 
     const boxes: SpendableBoxes = { all: [], confirmed: [], unconfirmed: [] };
     const add = (box: Box<Amount>, confirmed: boolean) => {
@@ -122,10 +132,9 @@ export const useBoxesStore = defineStore("boxes", () => {
       (confirmed ? boxes.confirmed : boxes.unconfirmed).push(box);
     };
 
-    for (const script of holders.value.followed) {
-      const view = holds.get(script)?.subscription.state.boxes;
-      // confirmed boxes keep their inclusionHeight, pending outputs have none
-      for (const box of view?.spendable ?? []) add(box, "inclusionHeight" in box);
+    // confirmed boxes keep their inclusionHeight, pending outputs have none
+    for (const state of states.value) {
+      for (const box of state?.boxes?.spendable ?? []) add(box, "inclusionHeight" in box);
     }
 
     if (holders.value.read.length > 0) {
@@ -135,22 +144,8 @@ export const useBoxesStore = defineStore("boxes", () => {
     return boxes;
   }
 
-  return { prepare, spendable };
+  return { status, error, version, follow, spendable };
 });
-
-function until(predicate: () => boolean, timeout: number): Promise<void> {
-  if (predicate()) return Promise.resolve();
-
-  return new Promise((resolve) => {
-    const done = () => {
-      clearTimeout(timer);
-      stop();
-      resolve();
-    };
-    const timer = setTimeout(done, timeout);
-    const stop = watch(predicate, (ok) => ok && done());
-  });
-}
 
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useBoxesStore, import.meta.hot));

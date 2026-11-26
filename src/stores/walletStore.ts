@@ -427,6 +427,12 @@ export const useWalletStore = defineStore("wallet", () => {
   // #region relay subscriptions
   type Hold = { subscription: Subscription; stop: () => void };
   const holds = new Map<string, Hold>();
+  /** Bumped on every change of a hold's state, which isn't reactive. */
+  const holdsVersion = shallowRef(0);
+  const followPhases = computed(() => {
+    void holdsVersion.value;
+    return [...holds.values()].map((h) => h.subscription.state.phase);
+  });
   let followed: { relay: Relay; walletId: number } | undefined;
   let stopPolling: (() => void) | undefined;
 
@@ -466,10 +472,12 @@ export const useWalletStore = defineStore("wallet", () => {
       if (holds.has(script)) continue;
       const subscription = relay.subscribe({ address: script }, { boxes: false });
       const stop = subscription.subscribe(({ balance }) => {
+        holdsVersion.value++;
         if (balance) applyBalance(walletId, script, balance.confirmed, balance.pending);
       });
       holds.set(script, { subscription, stop });
     }
+    holdsVersion.value++;
 
     stopPolling?.();
     stopPolling = undefined;
@@ -486,6 +494,7 @@ export const useWalletStore = defineStore("wallet", () => {
     stopPolling?.();
     stopPolling = undefined;
     followed = undefined;
+    holdsVersion.value++;
   }
 
   function release(hold: Hold) {
@@ -664,6 +673,7 @@ export const useWalletStore = defineStore("wallet", () => {
     syncing: computed(() => privateState.syncing),
     synced: computed(() => privateState.lastSynced > 0),
     health,
+    followPhases,
     needsBackup: computed(() => storedWallet()?.needsBackup ?? false),
     createdAt: computed(() => storedWallet()?.createdAt ?? 0),
     name,

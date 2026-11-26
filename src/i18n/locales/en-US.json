@@ -85,6 +85,18 @@
     }
   },
   "header": {
+    "relay": {
+      "connected": "Connected to the relay",
+      "loading": "Connecting to the relay",
+      "reconnecting": "Reconnecting to the relay. Balances may be out of date.",
+      "waiting": "The relay is busy and asked to try again later. Balances may be out of date.",
+      "noRelay": "No relay server is set. Set one in {link}.",
+      "outdated": "The relay runs version {version}, but this version of Nautilus needs {required} or later. Some features may not work. Choose another relay in {link}.",
+      "tooManyBoxes": "This wallet has too many boxes for the relay to follow. Consolidate them with the {link}.",
+      "optimizer": "Wallet Optimizer",
+      "settings": "settings",
+      "refused": "The relay can't follow this wallet. Balances may be out of date."
+    },
     "nav": {
       "assets": "Assets",
       "history": "History",

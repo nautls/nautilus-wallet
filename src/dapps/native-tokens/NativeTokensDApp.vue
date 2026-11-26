@@ -2,7 +2,6 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import { useBoxesStore } from "@/stores/boxesStore";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TABS = ["native-tokens-mint", "native-tokens-burn"] as const;
@@ -11,7 +10,6 @@ type Tab = (typeof TABS)[number];
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-useBoxesStore().prepare();
 
 const current = computed<Tab>(() =>
   TABS.includes(route.name as Tab) ? (route.name as Tab) : "native-tokens-mint"

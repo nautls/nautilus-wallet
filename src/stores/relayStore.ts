@@ -1,6 +1,8 @@
-import { computed, markRaw } from "vue";
-import { Relay } from "@hergmes/sdk";
+import { computed, markRaw, shallowRef } from "vue";
+import { Relay, type Status } from "@hergmes/sdk";
 import { acceptHMRUpdate, defineStore } from "pinia";
+import { isSupportedRelayVersion } from "@/chains/ergo/services/hergmesService";
+import { log } from "@/common/logger";
 import { useAppStore } from "./appStore";
 
 /**
@@ -22,7 +24,28 @@ export const useRelayStore = defineStore("relay", () => {
     return current?.relay;
   });
 
-  return { relay };
+  /** The relay's last read status, `undefined` until read or when the read failed. */
+  const status = shallowRef<Status>();
+
+  /** Reads the relay's status over REST, which needs no socket. */
+  async function readStatus(): Promise<Status | undefined> {
+    const read = relay.value;
+    status.value = undefined;
+    if (!read) return;
+
+    try {
+      const result = await read.rest.status();
+      if (relay.value === read) status.value = result;
+      return result;
+    } catch (e) {
+      log.error("Failed to read the relay's status", e);
+    }
+  }
+
+  /** Whether the relay runs a version older than this release needs, so features may fail. */
+  const outdated = computed(() => !!status.value && !isSupportedRelayVersion(status.value.version));
+
+  return { relay, status, outdated, readStatus };
 });
 
 if (import.meta.hot) {

@@ -107,6 +107,11 @@ export class MockChain {
    */
   relayLagMs = 0;
 
+  /** When set, box snapshots fail with this relay error code, as `too_many_boxes` does. */
+  boxesError?: string;
+  /** With `boxesError`, answers `429` with this `Retry-After`, so the app waits to try again. */
+  boxesRetryAfter?: number;
+
   /** Every signed transaction successfully submitted to the chain. */
   readonly submitted: SignedTransaction[] = [];
 
@@ -123,6 +128,7 @@ export class MockChain {
    * here, so a box subscriber is asked to read a new snapshot whenever they do.
    */
   #changeId = hex32();
+  #socketsDown = false;
 
   #unspent: GqlBox[] = [];
   #confirmed: GqlTransaction[] = [];
@@ -208,6 +214,12 @@ export class MockChain {
     return [...this.#sockets.values()].some((keys) => !!keys.get(address)?.lastChange);
   }
 
+  /** Closes every relay socket and, while `down`, every socket the app opens again. */
+  setSocketsDown(down: boolean) {
+    this.#socketsDown = down;
+    if (down) for (const ws of this.#sockets.keys()) ws.close();
+  }
+
   /** Count of operations received with the given name. */
   count(operationName: string) {
     return this.operations.filter((x) => x.name === operationName).length;
@@ -226,6 +238,7 @@ export class MockChain {
   }
 
   #handleSocket(ws: WebSocketRoute) {
+    if (this.#socketsDown) return ws.close();
     const keys = new Map<string, Follow>();
     this.#sockets.set(ws, keys);
     ws.onClose(() => this.#sockets.delete(ws));
@@ -327,6 +340,19 @@ export class MockChain {
 
     const boxes = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/boxes$/);
     if (request.method() === "GET" && boxes) {
+      if (this.boxesError) {
+        const body = { error: this.boxesError, message: this.boxesError };
+        if (this.boxesRetryAfter === undefined) return json(body, 422);
+        return route.fulfill({
+          status: 429,
+          json: body,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-expose-headers": "retry-after",
+            "retry-after": String(this.boxesRetryAfter)
+          }
+        });
+      }
       const limit = Number(url.searchParams.get("limit") ?? 100);
       const items = this.boxesOf(decodeURIComponent(boxes[1]))
         .map((b) => ({ ...b, inclusionHeight: b.creationHeight }))

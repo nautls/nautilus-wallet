@@ -1,7 +1,7 @@
 import { computed, onMounted, onUnmounted, watch } from "vue";
 import { BOX_VALUE_PER_BYTE } from "@fleet-sdk/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { getHeight, getMinValuePerByte } from "@/chains/ergo/services/hergmesService";
+import { getMinValuePerByte } from "@/chains/ergo/services/hergmesService";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { useRelayStore } from "./relayStore";
 
@@ -44,7 +44,7 @@ export const useChainStore = defineStore("chain", () => {
   );
 
   async function fetchHeight() {
-    setHeight(await getHeight());
+    setHeight((await relayStore.readStatus())?.tip?.height);
   }
 
   async function fetchParams() {

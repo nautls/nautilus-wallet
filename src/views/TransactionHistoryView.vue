@@ -12,7 +12,7 @@ import { usePoolStore } from "@/stores/poolStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { AssetIcon, AssetSignIcon } from "@/components/asset";
 import HiddenAmount from "@/components/HiddenAmount.vue";
-import { TransactionSignDialog } from "@/components/transaction";
+import { TransactionSignDialog, TxActionButton } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -177,13 +177,13 @@ function cancelTransaction(tx: UnconfirmedTransactionSummary) {
           </CardContent>
 
           <CardFooter v-if="!tx.confirmed && tx.cancelable">
-            <Button
-              class="w-full"
+            <TxActionButton
               variant="outline"
+              size="default"
               @click="cancelTransaction(tx as unknown as UnconfirmedTransactionSummary)"
             >
               {{ t("common.cancel") }}
-            </Button>
+            </TxActionButton>
           </CardFooter>
         </Card>
 
