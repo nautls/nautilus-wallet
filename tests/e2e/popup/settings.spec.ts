@@ -1,7 +1,7 @@
-import type { Locator, Page, Route } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, RECIPIENT_ADDRESS, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
-import { GRAPHQL_URLS, RELAY_URLS } from "../mocks/chain";
+import { RELAY_URLS } from "../mocks/chain";
 import { DAPP_HOST } from "../mocks/services";
 import { connectDapp } from "../pages/connector";
 
@@ -714,11 +714,8 @@ test.describe("settings", () => {
 
       test("reports a failure and can be retried", async ({ popup, context }) => {
         const page = popup.page;
-        const failAddressLookups = (route: Route) =>
-          route.request().postDataJSON()?.operationName === "addresses"
-            ? route.abort()
-            : route.fallback();
-        for (const url of GRAPHQL_URLS) await context.route(url, failAddressLookups);
+        const balances = `${RELAY_URLS[0]}/v1/addresses/*/balance`;
+        await context.route(balances, (route) => route.abort());
 
         await popup.goto("/settings");
         await resyncWallet(page);
@@ -726,7 +723,7 @@ test.describe("settings", () => {
         const button = page.getByRole("button", { name: "Re-sync", exact: true });
         await expect(button).toBeEnabled();
 
-        for (const url of GRAPHQL_URLS) await context.unroute(url, failAddressLookups);
+        await context.unroute(balances);
         await button.click();
         await expect(popup.toast("Wallet re-synced")).toBeVisible();
 
@@ -735,7 +732,9 @@ test.describe("settings", () => {
       });
     });
 
-    test("removes the only wallet", async ({ popup }) => {
+    test("removes the only wallet", async ({ popup, chain }) => {
+      const address = await addressOf(WALLET_A, 0);
+      await expect.poll(() => chain.follows(address)).toBe(true);
       await popup.goto("/settings");
       const page = popup.page;
       await page.getByRole("tab", { name: "Wallet" }).click();
@@ -748,6 +747,7 @@ test.describe("settings", () => {
 
       await expect(page).toHaveURL(/#\/add$/);
       await expect(page.getByText("Welcome to Nautilus Wallet")).toBeVisible();
+      await expect.poll(() => chain.follows(address)).toBe(false);
     });
 
     test("removes a wallet and switches to the remaining one", async ({ popup }) => {

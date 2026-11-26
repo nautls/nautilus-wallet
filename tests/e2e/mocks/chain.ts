@@ -4,7 +4,7 @@ import type { SignedTransaction } from "@fleet-sdk/common";
 import { ErgoAddress, ErgoBox } from "@fleet-sdk/core";
 import { hex } from "@fleet-sdk/crypto";
 import { Transaction } from "ergo-lib-wasm-browser";
-import type { BrowserContext, Route } from "@playwright/test";
+import type { BrowserContext, Route, WebSocketRoute } from "@playwright/test";
 
 /**
  * GraphQL endpoints the wallet may talk to, both from extension pages and from the
@@ -65,6 +65,10 @@ export type TokenMetadata = {
   artworkUrl?: string;
 };
 
+type BlockRef = { height: number; headerId: string };
+/** A followed address: its balance alone, or also its boxes, from the snapshot at `lastChange`. */
+type Follow = { lastChange?: BlockRef };
+
 type GqlRequest = { operationName?: string; query: string; variables?: Record<string, unknown> };
 
 export type BoxOptions = {
@@ -82,8 +86,9 @@ const treeOf = (address: string) => ErgoAddress.decode(address).ergoTree;
 
 /**
  * In-memory Ergo blockchain served through a GraphQL API compatible with ergo-graphql and
- * the hergmes relay's REST API. Tests mutate its state (fund addresses, add tokens, push
- * mempool transactions, ...) and the wallet reads it through intercepted HTTP requests.
+ * the hergmes relay's REST API and WebSocket (tips, and balance and box subscriptions to
+ * addresses). Tests mutate its state (fund addresses, add tokens, push mempool transactions,
+ * ...) and the wallet reads it through intercepted HTTP requests.
  */
 export class MockChain {
   height = HEADERS[0].height;
@@ -105,8 +110,19 @@ export class MockChain {
   /** Every signed transaction successfully submitted to the chain. */
   readonly submitted: SignedTransaction[] = [];
 
-  /** Log of every GraphQL operation and relay route (`GET /v1/...`) received. */
+  /**
+   * Log of every GraphQL operation, relay route (`GET /v1/...`) and socket message
+   * (`WS subscribe`, `WS unsubscribe`) received.
+   */
   readonly operations: { name: string; variables: Record<string, unknown> }[] = [];
+
+  /** Open relay sockets and the addresses each follows. */
+  #sockets = new Map<WebSocketRoute, Map<string, Follow>>();
+  /**
+   * Stands for the block of the last confirmed change. Confirmed boxes change without blocks
+   * here, so a box subscriber is asked to read a new snapshot whenever they do.
+   */
+  #changeId = hex32();
 
   #unspent: GqlBox[] = [];
   #confirmed: GqlTransaction[] = [];
@@ -144,6 +160,7 @@ export class MockChain {
 
     this.#unspent.push(output);
     this.#used.add(address);
+    this.#pushChanges(true);
 
     return output;
   }
@@ -151,11 +168,14 @@ export class MockChain {
   /** Adds an arbitrary unspent box, e.g. a contract box snapshotted from mainnet. */
   addBox(box: GqlBox) {
     this.#unspent.push(box);
+    this.#pushChanges(true);
   }
 
   /** Advances the chain height. */
   mine(blocks = 1) {
     this.height += blocks;
+    for (const ws of this.#sockets.keys()) this.#sendTip(ws);
+    this.#pushChanges();
   }
 
   /** Registers token metadata, as served by the relay. */
@@ -178,6 +198,16 @@ export class MockChain {
     return this.#mempool;
   }
 
+  /** Whether an open relay socket follows `address`. */
+  follows(address: string) {
+    return [...this.#sockets.values()].some((keys) => keys.has(address));
+  }
+
+  /** Whether an open relay socket follows the boxes of `address`, not only its balance. */
+  followsBoxes(address: string) {
+    return [...this.#sockets.values()].some((keys) => !!keys.get(address)?.lastChange);
+  }
+
   /** Count of operations received with the given name. */
   count(operationName: string) {
     return this.operations.filter((x) => x.name === operationName).length;
@@ -189,6 +219,80 @@ export class MockChain {
     }
     for (const url of RELAY_URLS) {
       await context.route(`${url}/v1/**`, (route) => this.#handleRelay(route));
+      await context.routeWebSocket(`${url.replace(/^http/, "ws")}/v1/ws`, (ws) =>
+        this.#handleSocket(ws)
+      );
+    }
+  }
+
+  #handleSocket(ws: WebSocketRoute) {
+    const keys = new Map<string, Follow>();
+    this.#sockets.set(ws, keys);
+    ws.onClose(() => this.#sockets.delete(ws));
+    this.#sendTip(ws, true);
+
+    ws.onMessage((data) => {
+      const message = JSON.parse(String(data));
+      const { id, key } = message;
+      const address: string | undefined = key?.address;
+      this.operations.push({ name: `WS ${message.op}`, variables: message });
+
+      if (message.op === "unsubscribe" && address) {
+        keys.delete(address);
+      } else if (message.op === "subscribe" && address) {
+        const from: BlockRef | undefined = message.from;
+        if (from && from.headerId !== this.#changeId) {
+          ws.send(JSON.stringify({ type: "resync_required", id, key, reason: "outside_window" }));
+          return;
+        }
+
+        const follow = { lastChange: from };
+        keys.set(address, follow);
+        ws.send(JSON.stringify({ type: "subscribed", id, key }));
+        this.#sendState(ws, address, follow);
+      } else if (message.op === "subscribe") {
+        const reason = "MockChain: only subscriptions to addresses are supported";
+        ws.send(JSON.stringify({ type: "rejected", id, key, reason }));
+      }
+    });
+  }
+
+  #sendTip(ws: WebSocketRoute, withParameters = false) {
+    const tip = { type: "tip", height: this.height, headerId: HEADERS[0].id };
+    const parameters = { height: this.height, minValuePerByte: this.minValuePerByte };
+    ws.send(JSON.stringify(withParameters ? { ...tip, parameters } : tip));
+  }
+
+  /** The mempool's effect on a followed address's boxes, if it follows them, and its balance. */
+  #sendState(ws: WebSocketRoute, address: string, { lastChange }: Follow) {
+    const key = { address };
+    if (lastChange) {
+      ws.send(
+        JSON.stringify({ type: "mempool", key, lastChange, pending: this.#pendingOf(address) })
+      );
+    }
+
+    const { confirmed, pending } = this.#balance(address);
+    const asOf = { height: this.height, headerId: HEADERS[0].id };
+    ws.send(JSON.stringify({ type: "balance", key, asOf, lastChange, confirmed, pending }));
+  }
+
+  /**
+   * Sends every followed address its state, as the relay does when a block or tx moves it. A
+   * confirmed change asks box subscribers for a new snapshot instead.
+   */
+  #pushChanges(confirmed = false) {
+    if (confirmed) this.#changeId = hex32();
+
+    for (const [ws, keys] of this.#sockets) {
+      for (const [address, follow] of keys) {
+        if (confirmed && follow.lastChange) {
+          const message = { type: "resync_required", key: { address }, reason: "outside_window" };
+          ws.send(JSON.stringify(message));
+        } else {
+          this.#sendState(ws, address, follow);
+        }
+      }
     }
   }
 
@@ -219,6 +323,16 @@ export class MockChain {
     if (request.method() === "GET" && spendable) {
       const items = this.#spendable(decodeURIComponent(spendable[1]));
       return json({ asOf: { height: this.height }, items, truncated: false, total: items.length });
+    }
+
+    const boxes = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/boxes$/);
+    if (request.method() === "GET" && boxes) {
+      const limit = Number(url.searchParams.get("limit") ?? 100);
+      const items = this.boxesOf(decodeURIComponent(boxes[1]))
+        .map((b) => ({ ...b, inclusionHeight: b.creationHeight }))
+        .sort((a, b) => a.inclusionHeight - b.inclusionHeight);
+      const asOf = { height: this.height, headerId: this.#changeId };
+      return json({ asOf, items: items.slice(0, limit), nextCursor: null });
     }
 
     const balance = url.pathname.match(/^\/v1\/addresses\/([^/]+)\/balance$/);
@@ -287,10 +401,6 @@ export class MockChain {
 
   #resolve(name: string, query: string, vars: Record<string, unknown>): unknown {
     switch (name) {
-      case "addresses":
-        return { addresses: (vars.addresses as string[]).map((a) => this.#addressInfo(a)) };
-      case "oldBoxesCheck":
-        return { boxes: this.#oldBoxes(vars.maxHeight as number, vars.addresses as string[]) };
       case "boxes":
         return this.#boxes(query, vars);
       case "confirmedTransactions":
@@ -329,34 +439,6 @@ export class MockChain {
     };
   }
 
-  #addressInfo(address: string) {
-    const boxes = this.boxesOf(address);
-    const tokens = new Map<string, bigint>();
-    let nanoErgs = 0n;
-    for (const box of boxes) {
-      nanoErgs += BigInt(box.value);
-      for (const t of box.assets)
-        tokens.set(t.tokenId, (tokens.get(t.tokenId) ?? 0n) + BigInt(t.amount));
-    }
-
-    return {
-      address,
-      used: this.#used.has(address) || boxes.length > 0,
-      balance: {
-        nanoErgs: nanoErgs.toString(),
-        assets: [...tokens].map(([tokenId, amount]) => ({ tokenId, amount: amount.toString() }))
-      }
-    };
-  }
-
-  #oldBoxes(maxHeight: number, addresses: string[]) {
-    const trees = new Set(addresses.map(treeOf));
-    return this.#unspent
-      .filter((b) => trees.has(b.ergoTree) && b.creationHeight <= maxHeight)
-      .slice(0, 1)
-      .map((b) => ({ creationHeight: b.creationHeight }));
-  }
-
   #tokenInfo(tokenIds: string[]) {
     return tokenIds
       .map((id) => this.#tokens.get(id))
@@ -389,6 +471,18 @@ export class MockChain {
     const used = this.#used.has(address) || own(this.#unspent).length > 0;
 
     return { confirmed, pending, used };
+  }
+
+  /** The mempool txs touching `address`: their outputs to it, and its boxes they spend. */
+  #pendingOf(address: string) {
+    const tree = treeOf(address);
+    return this.#mempool
+      .map((tx) => ({
+        txId: tx.transactionId,
+        created: tx.outputs.filter((o) => o.ergoTree === tree),
+        spent: tx.inputs.filter((i) => i.box.ergoTree === tree).map((i) => i.box.boxId)
+      }))
+      .filter((tx) => tx.created.length > 0 || tx.spent.length > 0);
   }
 
   /** Confirmed boxes and mempool outputs of `address`, less what mempool txs spend. */
@@ -503,9 +597,11 @@ export class MockChain {
       setTimeout(() => {
         this.#unseen = this.#unseen.filter((t) => t !== pooled);
         this.#mempool.push(pooled);
+        this.#pushChanges();
       }, this.relayLagMs);
     } else {
       this.#mempool.push(pooled);
+      this.#pushChanges();
     }
 
     return tx.id;

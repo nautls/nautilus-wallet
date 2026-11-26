@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, toRaw } from "vue";
-import { Box } from "@fleet-sdk/common";
+import { Amount, Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
 import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
+import { useBoxesStore } from "@/stores/boxesStore";
+import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ActionFooter from "@/components/ActionFooter.vue";
 import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import { getHeight } from "@/chains/ergo/services/hergmesService";
+import { log } from "@/common/logger";
 import { bn, decimalize } from "@/common/bigNumber";
 import { useProgrammaticDialog, useRelativeDateFormatter } from "@/composables";
 import {
@@ -26,14 +28,15 @@ import DataPoint from "./components/DataPoint.vue";
 import { createConsolidationTransaction } from "./transactionFactory";
 
 const wallet = useWalletStore();
+const walletBoxes = useBoxesStore();
+const chain = useChainStore();
 
 const { t, d } = useI18n();
 const { rd } = useRelativeDateFormatter({ t, d, showRelativeTimeQualifier: false });
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
 const loading = ref(true);
-const boxes = ref<Box[]>([]);
-const currentHeight = ref(0);
+const boxes = ref<Box<Amount>[]>([]);
 const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
   value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
@@ -57,14 +60,12 @@ const minBoxHeight = computed(() => {
 const oldestBox = computed(() => {
   if (loading.value || !minBoxHeight.value) return "";
 
-  return rd(
-    new Date().setMinutes(-((currentHeight.value - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES))
-  );
+  return rd(new Date().setMinutes(-((chain.height - minBoxHeight.value) * BLOCK_TIME_IN_MINUTES)));
 });
 
 const utxoHealth = computed(() => {
   const count = boxes.value.length < HEALTHY_UTXO_COUNT;
-  const age = !minBoxHeight.value || currentHeight.value - minBoxHeight.value < HEALTHY_BLOCKS_AGE;
+  const age = !minBoxHeight.value || chain.height - minBoxHeight.value < HEALTHY_BLOCKS_AGE;
   const size = walletSize.value < 100_000;
   const overall = count && age && size;
 
@@ -78,11 +79,19 @@ const healthStatus = computed(() =>
 async function loadBoxes() {
   setLoading(true);
 
-  const [ownBoxes, height] = await Promise.all([fetchBoxes(wallet.id), getHeight()]);
-  boxes.value = ownBoxes;
-  if (height) currentHeight.value = height;
+  boxes.value = await readBoxes();
 
   setLoading(false);
+}
+
+/** Falls back to a one-off read, cut at the relay's limit, when the subscriptions fail. */
+async function readBoxes() {
+  try {
+    return (await walletBoxes.spendable()).all;
+  } catch (e) {
+    log.error("Failed to follow the wallet's boxes", e);
+    return fetchBoxes(wallet.id);
+  }
 }
 
 function setLoading(load = true) {
@@ -96,7 +105,7 @@ function sendTransaction() {
 async function createTransaction() {
   return createConsolidationTransaction(
     toRaw(boxes.value),
-    currentHeight.value,
+    chain.height,
     wallet.type,
     toRaw(fee.value)
   );

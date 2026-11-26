@@ -99,6 +99,10 @@ test.describe("send", () => {
     const [first, second] = chain.submitted;
     const firstOutputs = new Set(first.outputs.map((o) => o.boxId));
     expect(second.inputs.every((i) => firstOutputs.has(i.boxId))).toBe(true);
+
+    // built from the boxes followed over the socket, not read over REST
+    expect(chain.followsBoxes(await addressOf(WALLET_A, 0))).toBe(true);
+    expect(chain.operations.some((x) => x.name.endsWith("/boxes/spendable"))).toBe(false);
   });
 
   test("sends tokens", async ({ popup, chain }) => {

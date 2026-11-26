@@ -98,25 +98,20 @@ onMounted(async () => {
   currencyState.loading = false;
 });
 
-watch(explorerUrl, async () => {
+// a value edited while its validation ran is saved by its own validation, if it passes
+watch(explorerUrl, async (url) => {
   const { valid } = await r$.explorerUrl.$validate();
-  if (!valid) return;
-
-  app.settings.explorerUrl = explorerUrl.value;
+  if (valid && url === explorerUrl.value) app.settings.explorerUrl = url;
 });
 
-watch(relayUrl, async () => {
+watch(relayUrl, async (url) => {
   const { valid } = await r$.relayUrl.$validate();
-  if (!valid) return;
-
-  app.settings.relayUrl = relayUrl.value;
+  if (valid && url === relayUrl.value) app.settings.relayUrl = url;
 });
 
-watch(ipfsGateway, async () => {
+watch(ipfsGateway, async (url) => {
   const { valid } = await r$.ipfsGateway.$validate();
-  if (!valid) return;
-
-  app.settings.ipfsGateway = ipfsGateway.value;
+  if (valid && url === ipfsGateway.value) app.settings.ipfsGateway = url;
 });
 
 function selectCurrency(currency: string) {

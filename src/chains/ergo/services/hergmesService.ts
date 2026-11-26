@@ -4,7 +4,8 @@ import {
   RestClient,
   type Status,
   type Submitted,
-  type TokenMetadata
+  type TokenMetadata,
+  type WireAssets
 } from "@hergmes/sdk";
 import { log } from "@/common/logger";
 import { getSettings } from "@/extension/background/settings";
@@ -13,6 +14,12 @@ import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
 
 export type SpendableBox = Box<string> & { confirmed: boolean };
 export type Balances = { nanoErgs: bigint; tokens: Map<string, bigint> };
+export type AddressBalance = {
+  address: string;
+  used: boolean;
+  confirmed: Balances;
+  pending: Balances;
+};
 
 const MAX_CONCURRENT_REQUESTS = 10;
 const SUBMIT_VISIBILITY_TIMEOUT = 10_000;
@@ -167,24 +174,63 @@ export async function getSpendableBoxes(addresses: string[]): Promise<SpendableB
 
 /** The sum of the addresses' balances with the mempool applied: confirmed plus pending. */
 export async function getBalances(addresses: string[]): Promise<Balances> {
-  const relay = await rest();
   const total: Balances = { nanoErgs: 0n, tokens: new Map() };
 
-  await forEachAddress(addresses, async (address) => {
-    const { confirmed, pending } = await relay.balance(address);
+  for (const { confirmed, pending } of await getAddressBalances(addresses)) {
     for (const assets of [confirmed, pending]) {
-      total.nanoErgs += BigInt(assets.nanoErgs);
-      for (const { tokenId, amount } of assets.tokens) {
-        total.tokens.set(tokenId, (total.tokens.get(tokenId) ?? 0n) + BigInt(amount));
+      total.nanoErgs += assets.nanoErgs;
+      for (const [tokenId, amount] of assets.tokens) {
+        total.tokens.set(tokenId, (total.tokens.get(tokenId) ?? 0n) + amount);
       }
     }
-  });
+  }
 
   for (const [tokenId, amount] of total.tokens) {
     if (amount <= 0n) total.tokens.delete(tokenId);
   }
 
   return total;
+}
+
+export async function getAddressBalances(addresses: string[]): Promise<AddressBalance[]> {
+  const relay = await rest();
+  const balances: AddressBalance[] = [];
+
+  await forEachAddress(addresses, async (address) => {
+    const { used, confirmed, pending } = await relay.balance(address);
+    balances.push({
+      address,
+      used,
+      confirmed: parseAssets(confirmed),
+      pending: parseAssets(pending)
+    });
+  });
+
+  return balances;
+}
+
+/**
+ * Whether any of the addresses holds a confirmed box created at `height` or before. Only each
+ * address's first box is read: boxes come in inclusion order, so it is the oldest one or close.
+ */
+export async function hasBoxesCreatedBefore(height: number, addresses: string[]): Promise<boolean> {
+  const relay = await rest();
+  let found = false;
+
+  await forEachAddress(addresses, async (address) => {
+    if (found) return;
+    const { items } = await relay.boxes({ address }, { limit: 1 });
+    if (items.some((box) => box.creationHeight <= height)) found = true;
+  });
+
+  return found;
+}
+
+function parseAssets(assets: WireAssets): Balances {
+  return {
+    nanoErgs: BigInt(assets.nanoErgs),
+    tokens: new Map(assets.tokens.map((t) => [t.tokenId, BigInt(t.amount)]))
+  };
 }
 
 /** Requests go a few at a time, to stay within the relay proxy's rate limit. */

@@ -7,11 +7,13 @@ import e2eHeaders from "../../../../tests/e2e/fixtures/data/headers.json";
 import relayHeaders from "./fixtures/relayHeaders.json";
 import {
   checkTransaction,
+  getAddressBalances,
   getAssetsMetadata,
   getBalances,
   getHeaders,
   getHeight,
   getSpendableBoxes,
+  hasBoxesCreatedBefore,
   isSupportedRelayVersion,
   submitTransaction
 } from "./hergmesService";
@@ -329,5 +331,67 @@ describe("getBalances", () => {
       nanoErgs: 950n,
       tokens: new Map([["t2", 3n]])
     });
+  });
+});
+
+describe("getAddressBalances", () => {
+  it("should read each address's usage and signed pending change", async () => {
+    reply(
+      "GET /v1/addresses/addr1/balance",
+      json({
+        asOf: { height: 10 },
+        confirmed: { nanoErgs: "1000", tokens: [{ tokenId: "t1", amount: "5" }] },
+        pending: { nanoErgs: "-300", tokens: [] },
+        used: true
+      })
+    );
+    reply(
+      "GET /v1/addresses/addr2/balance",
+      json({
+        asOf: { height: 10 },
+        confirmed: { nanoErgs: "0", tokens: [] },
+        pending: { nanoErgs: "0", tokens: [] },
+        used: false
+      })
+    );
+
+    const balances = await getAddressBalances(["addr1", "addr2"]);
+
+    expect(balances.sort((a, b) => a.address.localeCompare(b.address))).toEqual([
+      {
+        address: "addr1",
+        used: true,
+        confirmed: { nanoErgs: 1000n, tokens: new Map([["t1", 5n]]) },
+        pending: { nanoErgs: -300n, tokens: new Map() }
+      },
+      {
+        address: "addr2",
+        used: false,
+        confirmed: { nanoErgs: 0n, tokens: new Map() },
+        pending: { nanoErgs: 0n, tokens: new Map() }
+      }
+    ]);
+  });
+});
+
+describe("hasBoxesCreatedBefore", () => {
+  const page = (items: unknown[]) =>
+    json({ asOf: { height: 1000, headerId: "c".repeat(64) }, items, nextCursor: null });
+
+  it("should find an address whose first box was created at the height or before", async () => {
+    reply("GET /v1/addresses/addr1/boxes", page([]));
+    reply("GET /v1/addresses/addr2/boxes", page([{ ...BOX, inclusionHeight: 101 }]));
+
+    expect(await hasBoxesCreatedBefore(100, ["addr1", "addr2"])).toBe(true);
+    expect(await hasBoxesCreatedBefore(99, ["addr1", "addr2"])).toBe(false);
+  });
+
+  it("should read one box per address", async () => {
+    reply("GET /v1/addresses/addr1/boxes", page([]));
+
+    await hasBoxesCreatedBefore(100, ["addr1"]);
+
+    const [input] = mocks.fetch.mock.calls[0];
+    expect(new URL(String(input)).searchParams.get("limit")).toBe("1");
   });
 });

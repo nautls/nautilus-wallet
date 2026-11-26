@@ -1,5 +1,5 @@
 import { BabelSwapPlugin } from "@fleet-sdk/babel-fees-plugin";
-import { EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
+import { Amount, Box, EIP12UnsignedTransaction, isEmpty } from "@fleet-sdk/common";
 import {
   CherryPickSelectionStrategy,
   ErgoAddress,
@@ -8,17 +8,16 @@ import {
   OutputBuilder,
   TransactionBuilder
 } from "@fleet-sdk/core";
+import { useBoxesStore } from "@/stores/boxesStore";
 import { useChainStore } from "@/stores/chainStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { validateAddress } from "@/chains/ergo/addresses";
-import { getHeight, type SpendableBox } from "@/chains/ergo/services/hergmesService";
 import { BigNumber, bn, undecimalize } from "@/common/bigNumber";
 import { hdKeyPool } from "@/common/objectPool";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { FeeSettings, WalletType } from "@/types/internal";
 import { UnconfirmedTransactionSummary } from "@/types/transactions";
 import { fetchBabelBoxes, getNanoErgsPerTokenRate, selectBestBabelBox } from "../babelFees";
-import { fetchBoxes } from "../boxFetcher";
 
 export const SAFE_MAX_CHANGE_TOKEN_LIMIT = 100;
 
@@ -38,14 +37,13 @@ export type TxRecipient = {
 export async function createRBFCancellationTransaction(
   unconfirmedTx: UnconfirmedTransactionSummary
 ): Promise<EIP12UnsignedTransaction> {
-  const { inputs, currentHeight } = await getContext({ allowEmpty: true });
+  const { boxes, currentHeight } = await getContext({ allowEmpty: true });
   const ownBoxIds = new Set(unconfirmedTx.ownInputs.map((input) => input.boxId));
   // the canceled tx's outputs are spendable until the cancel replaces it, and then never exist
-  const others = inputs.filter(
-    (input) => !ownBoxIds.has(input.boxId) && input.transactionId !== unconfirmedTx.transactionId
-  );
+  const other = (input: Box<Amount>) =>
+    !ownBoxIds.has(input.boxId) && input.transactionId !== unconfirmedTx.transactionId;
 
-  const build = (extra: SpendableBox[]) => {
+  const build = (extra: Box<Amount>[]) => {
     const unsigned = new TransactionBuilder(currentHeight)
       .from(unconfirmedTx.ownInputs, { ensureInclusion: true })
       .and.from(extra)
@@ -59,17 +57,18 @@ export async function createRBFCancellationTransaction(
   // a pending box can come from a tx chained on the canceled one, which the cancel also drops,
   // so pending boxes are taken only when confirmed ones can't pay the higher fee
   try {
-    return build(others.filter((input) => input.confirmed));
+    return build(boxes.confirmed.filter(other));
   } catch (e) {
     if (!(e instanceof InsufficientInputs)) throw e;
-    return build(others);
+    return build(boxes.all.filter(other));
   }
 }
 
 async function getContext({ allowEmpty = false } = {}) {
-  const [inputs, currentHeight] = await Promise.all([fetchBoxes(wallet.id), getHeight()]);
+  const boxes = await useBoxesStore().spendable();
+  const currentHeight = chain.height;
 
-  if (!allowEmpty && isEmpty(inputs)) {
+  if (!allowEmpty && isEmpty(boxes.all)) {
     throw Error("Unable to fetch inputs, please check your connection.");
   }
 
@@ -77,10 +76,7 @@ async function getContext({ allowEmpty = false } = {}) {
     throw Error("Unable to fetch current height, please check your connection.");
   }
 
-  return {
-    inputs,
-    currentHeight
-  };
+  return { boxes, currentHeight };
 }
 
 export async function createP2PTransaction({
@@ -92,7 +88,7 @@ export async function createP2PTransaction({
   fee: FeeSettings;
   walletType: WalletType;
 }): Promise<EIP12UnsignedTransaction> {
-  const { inputs, currentHeight } = await getContext();
+  const { boxes, currentHeight } = await getContext();
   const isBabelFee = fee.tokenId !== ERG_TOKEN_ID;
 
   let swapFundedNanoErgs = bn(0);
@@ -106,7 +102,7 @@ export async function createP2PTransaction({
   });
 
   const unsigned = new TransactionBuilder(currentHeight)
-    .from(inputs)
+    .from(boxes.all)
     .to(outputs)
     .sendChangeTo(safeGetChangeAddress());
 

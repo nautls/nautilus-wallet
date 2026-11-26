@@ -1,9 +1,9 @@
-import { computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, watch } from "vue";
 import { BOX_VALUE_PER_BYTE } from "@fleet-sdk/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { getHeight, getMinValuePerByte } from "@/chains/ergo/services/hergmesService";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
-import { HEIGHT_CHECK_INTERVAL } from "../constants/intervals";
+import { useRelayStore } from "./relayStore";
 
 type ChainState = { height: number; minValuePerByte?: number };
 
@@ -14,17 +14,29 @@ const usePrivateState = defineStore("_chain", () => {
 
 export const useChainStore = defineStore("chain", () => {
   const privateState = usePrivateState();
-  let intervalId: ReturnType<typeof setInterval> | undefined;
-  let fetchingHeight = false;
+  const relayStore = useRelayStore();
+  let stopFollowing: (() => void) | undefined;
 
-  onMounted(async () => {
-    await Promise.all([fetchParams(), fetchHeight()]);
-    intervalId = setInterval(fetchHeight, HEIGHT_CHECK_INTERVAL);
+  // the relay's tip comes only over its socket, which opens on the first subscription, so the
+  // height and parameters are read once over REST for pages that subscribe to nothing
+  onMounted(() => {
+    watch(
+      () => relayStore.relay,
+      (relay) => {
+        stopFollowing?.();
+        stopFollowing = relay?.onTip((tip) => {
+          setHeight(tip.height);
+          setMinValuePerByte(relay.parameters?.minValuePerByte);
+        });
+
+        fetchHeight();
+        fetchParams();
+      },
+      { immediate: true }
+    );
   });
 
-  onUnmounted(() => {
-    if (intervalId) clearInterval(intervalId);
-  });
+  onUnmounted(() => stopFollowing?.());
 
   const height = computed(() => privateState.state.height);
   const minValuePerByte = computed(() =>
@@ -32,21 +44,20 @@ export const useChainStore = defineStore("chain", () => {
   );
 
   async function fetchHeight() {
-    if (fetchingHeight) return;
-    fetchingHeight = true;
-
-    const height = await getHeight();
-    if (height && height !== privateState.state.height) {
-      privateState.state.height = height;
-    }
-
-    fetchingHeight = false;
+    setHeight(await getHeight());
   }
 
   async function fetchParams() {
-    const minValuePerByte = await getMinValuePerByte();
-    if (minValuePerByte && minValuePerByte !== privateState.state.minValuePerByte) {
-      privateState.state.minValuePerByte = minValuePerByte;
+    setMinValuePerByte(await getMinValuePerByte());
+  }
+
+  function setHeight(height: number | undefined) {
+    if (height && height !== privateState.state.height) privateState.state.height = height;
+  }
+
+  function setMinValuePerByte(value: number | undefined) {
+    if (value && value !== privateState.state.minValuePerByte) {
+      privateState.state.minValuePerByte = value;
     }
   }
 

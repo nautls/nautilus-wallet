@@ -6,6 +6,7 @@ import { required, withMessage } from "@regle/rules";
 import { CheckCheckIcon, UserPlusIcon, XIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
+import { useBoxesStore } from "@/stores/boxesStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
 import ActionFooter from "@/components/ActionFooter.vue";
@@ -38,6 +39,7 @@ const INITIAL_FEE_VAL = decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS);
 const MIN_BOX_VAL = decimalize(bn(MIN_BOX_VALUE), ERG_DECIMALS);
 
 const wallet = useWalletStore();
+useBoxesStore().prepare();
 const route = useRoute();
 
 const { t } = useI18n();

@@ -90,18 +90,18 @@ test.describe("assets without a fiat rate", () => {
   });
 });
 
-test("refreshes balances when a new block is mined", async ({ chain, popup }) => {
+test("follows balances pushed by the relay", async ({ chain, popup }) => {
   await fundWallet(chain, WALLET_A);
-  await popup.page.clock.install();
   await popup.importWallet(WALLET_A);
   await expect(popup.page.getByText("12.5", { exact: true })).toBeVisible();
 
+  // address #2 is the unused one past the last used, so funding it also makes the wallet
+  // follow address #3
+  const next = await addressOf(WALLET_A, 3);
   chain.fund(await addressOf(WALLET_A, 2), { nanoErgs: 1_000_000_000n });
-  chain.mine();
 
-  // height is polled every 10s and wallets are synced at most every 30s
-  await popup.page.clock.fastForward("00:40");
   await expect(popup.page.getByText("13.5", { exact: true })).toBeVisible();
+  await expect.poll(() => chain.follows(next)).toBe(true);
 });
 
 test.describe("assets alerts", () => {

@@ -28,6 +28,7 @@ import {
 import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
+import { useBoxesStore } from "@/stores/boxesStore";
 import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ActionFooter from "@/components/ActionFooter.vue";
@@ -64,6 +65,7 @@ const wallet = useWalletStore();
 const app = useAppStore();
 const assets = useAssetsStore();
 const chain = useChainStore();
+useBoxesStore().prepare();
 const format = useFormat();
 const { t } = useI18n();
 

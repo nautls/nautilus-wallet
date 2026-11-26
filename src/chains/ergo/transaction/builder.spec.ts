@@ -24,8 +24,16 @@ vi.mock("@/stores/chainStore", () => ({ useChainStore: () => ({ height: 1000 }) 
 vi.mock("@/common/objectPool", () => ({
   hdKeyPool: { get: () => ({ deriveAddress: () => ({ script: ADDRESS.encode() }) }) }
 }));
-vi.mock("@/chains/ergo/services/hergmesService", () => ({ getHeight: async () => 1000 }));
-vi.mock("../boxFetcher", () => ({ fetchBoxes: async () => mocks.boxes }));
+vi.mock("@/chains/ergo/services/hergmesService", () => ({}));
+vi.mock("@/stores/boxesStore", () => ({
+  useBoxesStore: () => ({
+    spendable: async () => ({
+      all: mocks.boxes,
+      confirmed: mocks.boxes.filter((b) => b.confirmed),
+      unconfirmed: mocks.boxes.filter((b) => !b.confirmed)
+    })
+  })
+}));
 vi.mock("../babelFees", () => ({}));
 
 function box(value: bigint, confirmed: boolean, transactionId = "1"): SpendableBox {

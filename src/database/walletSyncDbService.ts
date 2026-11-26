@@ -16,15 +16,15 @@ class WalletSyncDbService {
 
   /**
    * Persists a sync's changes along with its time, all or nothing, so `lastSynced` never
-   * covers data that wasn't saved.
+   * covers data that wasn't saved. Without `lastSynced`, the time is left as it is.
    */
-  public async save(walletId: number, result: SyncResult, lastSynced: number): Promise<void> {
+  public async save(walletId: number, result: SyncResult, lastSynced?: number): Promise<void> {
     const { addresses, assets, walletSync } = dbContext;
     await dbContext.transaction("rw", [addresses, assets, walletSync], async () => {
       await addressesDbService.bulkPut(result.changedAddresses);
       await assetsDbService.bulkPut(result.changedAssets);
       await assetsDbService.bulkDelete(result.removedAssets);
-      await walletSync.put({ walletId, lastSynced });
+      if (lastSynced !== undefined) await walletSync.put({ walletId, lastSynced });
     });
   }
 

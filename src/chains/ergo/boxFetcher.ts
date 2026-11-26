@@ -5,7 +5,10 @@ import { addressesDbService } from "@/database/addressesDbService";
 import { assetsDbService } from "@/database/assetsDbService";
 import { walletsDbService } from "@/database/walletsDbService";
 
-/** The wallet's spendable boxes with the mempool applied, newest first. */
+/**
+ * The wallet's spendable boxes with the mempool applied, newest first, in one read per address,
+ * for the service worker, which can't follow them over the relay's socket (`useBoxesStore`).
+ */
 export async function fetchBoxes(walletId: number): Promise<SpendableBox[]> {
   const boxes = await readHoldersFirst(walletId, getSpendableBoxes, (b) => b.length === 0);
   return sortBy(boxes, [(x) => x.creationHeight]).reverse();
