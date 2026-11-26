@@ -175,6 +175,10 @@
     "history": {
       "txTitle": "Transaction {txId}",
       "txState": "Pending | {count} confirmation | {count} confirmations",
+      "received": "Received",
+      "sent": "Sent",
+      "mixed": "Sent and received",
+      "noChange": "No balance change",
       "empty": "You have no transaction history yet.",
       "nextPage": "Load more transactions",
       "noRelay": "No relay server is set, so your transaction history can't be loaded.",
