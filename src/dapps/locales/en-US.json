@@ -28,7 +28,8 @@
       "utxoCount": "UTxO count",
       "oldestUtxo": "Oldest UTxO",
       "walletSize": "Wallet size",
-      "walletHealth": "Wallet health"
+      "walletHealth": "Wallet health",
+      "restFallback": "This wallet has too many boxes for the relay to follow, so only a safe number of them is loaded for consolidation. Optimize until the relay can follow the wallet again."
     },
     "nativeTokens": {
       "title": "Native Tokens",

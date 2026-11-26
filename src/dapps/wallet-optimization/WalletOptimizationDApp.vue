@@ -2,11 +2,13 @@
 import { computed, ref, toRaw, watch } from "vue";
 import { Amount, Box } from "@fleet-sdk/common";
 import { serializeBox } from "@fleet-sdk/serializer";
+import { TriangleAlertIcon } from "@lucide/vue";
 import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
 import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ActionFooter from "@/components/ActionFooter.vue";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   TransactionFeeConfig,
   TransactionSignDialog,
@@ -72,6 +74,10 @@ const utxoHealth = computed(() => {
 
   return { count, age, size, overall };
 });
+
+const restFallback = computed(
+  () => walletBoxes.status === "error" && walletBoxes.error?.code === "too_many_boxes"
+);
 
 const healthStatus = computed(() =>
   utxoHealth.value.overall ? t("common.healthy") : t("common.unhealthy")
@@ -176,6 +182,17 @@ function formatBytes(bytes: number, decimals = 1) {
           :content="healthStatus"
         />
       </div>
+
+      <Alert
+        v-if="restFallback"
+        id="rest-fallback-alert"
+        class="border-warning [&>svg]:text-warning"
+      >
+        <TriangleAlertIcon />
+        <AlertDescription>
+          {{ t("dapps.walletOptimizer.restFallback") }}
+        </AlertDescription>
+      </Alert>
 
       <I18nT
         keypath="dapps.walletOptimizer.description"
