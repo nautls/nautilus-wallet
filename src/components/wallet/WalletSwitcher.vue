@@ -21,6 +21,7 @@ import { useAppStore } from "@/stores/appStore";
 import { useRelayStore } from "@/stores/relayStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
   Command,
   CommandEmpty,
@@ -40,6 +41,7 @@ import ActionButton from "./ActionButton.vue";
 import RelayStatusBadge from "./RelayStatusBadge.vue";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { useDisplayedHealth } from "@/composables/useDisplayedHealth";
+import { useFormat } from "@/composables/useFormat";
 import { useRelayHealth } from "@/composables/useRelayHealth";
 import { EXT_ENTRY_ROOT } from "@/constants/extension";
 import { IDbWallet } from "@/types/database";
@@ -49,7 +51,19 @@ const app = useAppStore();
 const router = useRouter();
 const { t } = useI18n();
 
+const format = useFormat();
+
 const current = computed(() => app.wallets.find((w) => w.id === wallet.id));
+
+// the same address the receive view shows, so it follows the avoid address reuse setting
+const address = computed(() => {
+  try {
+    return wallet.changeAddress.script;
+  } catch {
+    return undefined;
+  }
+});
+const shortAddress = computed(() => format.string.shorten(address.value, 11));
 
 const relayStore = useRelayStore();
 const relay = useRelayHealth();
@@ -198,153 +212,170 @@ async function toggleViewMode() {
 }
 </script>
 <template>
-  <Popover v-model:open="isOpen">
-    <PopoverTrigger as-child>
-      <Button
-        variant="ghost"
-        role="combobox"
-        :aria-expanded="isOpen"
-        class="h-12 w-52.5 justify-between bg-transparent"
-      >
-        <WalletItem v-if="current" :wallet="current">
-          <template #badge>
+  <!-- the copy button can't be nested in the trigger, so it's laid over a placeholder there -->
+  <div class="relative">
+    <Popover v-model:open="isOpen">
+      <PopoverTrigger as-child>
+        <Button
+          variant="ghost"
+          role="combobox"
+          :aria-expanded="isOpen"
+          class="h-12 w-52.5 justify-between bg-transparent"
+        >
+          <WalletItem v-if="current" :wallet="current">
+            <template v-if="address" #subtitle>
+              <span class="invisible inline-flex items-center gap-1" aria-hidden="true">
+                {{ shortAddress }}<span class="size-2.5" />
+              </span>
+            </template>
+            <template #badge>
+              <RelayStatusBadge
+                :health="relayShown"
+                :label="relayMessage"
+                class="absolute -right-0.5 -bottom-0.5"
+              />
+            </template>
+          </WalletItem>
+          <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent class="w-52.5 p-0" @close-auto-focus="onCloseAutoFocus">
+        <Command
+          v-model:search-term="searchTerm"
+          class="max-h-125"
+          reset-search-term-on-blur
+          :filter-function="
+            (wallets: IDbWallet[]) =>
+              wallets.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
+          "
+        >
+          <div
+            v-if="relayShown !== 'live'"
+            data-relay-message
+            class="text-muted-foreground flex items-start gap-2 border-b px-3 py-2 text-xs"
+          >
             <RelayStatusBadge
               :health="relayShown"
               :label="relayMessage"
-              class="absolute -right-0.5 -bottom-0.5"
+              class="mt-1 shrink-0 ring-0"
+              aria-hidden="true"
             />
-          </template>
-        </WalletItem>
-        <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent class="w-52.5 p-0" @close-auto-focus="onCloseAutoFocus">
-      <Command
-        v-model:search-term="searchTerm"
-        class="max-h-125"
-        reset-search-term-on-blur
-        :filter-function="
-          (wallets: IDbWallet[]) =>
-            wallets.filter((w) => normalize(w.name).includes(normalizedSearchTerm))
-        "
-      >
-        <div
-          v-if="relayShown !== 'live'"
-          data-relay-message
-          class="text-muted-foreground flex items-start gap-2 border-b px-3 py-2 text-xs"
-        >
-          <RelayStatusBadge
-            :health="relayShown"
-            :label="relayMessage"
-            class="mt-1 shrink-0 ring-0"
-            aria-hidden="true"
-          />
-          <I18nT v-if="relayText" :keypath="relayText.key" tag="span" scope="global">
-            <template #link>
-              <Link
-                v-if="relayText.link"
-                data-relay-link
-                class="text-foreground"
-                :href="router.resolve({ name: relayText.link.route }).href"
-                @click.prevent="goToAndClose(relayText.link.route)"
-                >{{ relayText.link.label }}</Link
-              >
-            </template>
-            <template #version>{{ relayParams.version }}</template>
-            <template #required>{{ relayParams.required }}</template>
-          </I18nT>
-        </div>
-        <CommandInput :placeholder="t('common.search')" />
-        <CommandEmpty>{{ t("header.menu.noWalletsFound") }}</CommandEmpty>
-        <CommandList>
-          <CommandGroup>
-            <CommandItem
-              v-for="w in app.wallets"
-              :key="w.id"
-              class="gap-2"
-              :value="w"
-              @select="loadWallet(w.id)"
-            >
-              <WalletItem v-if="current" :wallet="w" concise />
-
-              <div class="h-4 w-4 transition-all duration-700">
-                <LoaderCircleIcon v-if="loadingId === w.id" class="h-full w-full animate-spin" />
-                <CheckIcon v-else-if="current?.id === w.id" class="h-full w-full" />
-              </div>
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-
-        <CommandSeparator />
-
-        <TooltipProvider :delay-duration="100">
-          <div
-            class="flex flex-row items-center justify-center gap-2 pt-2 *:cursor-default"
-            @pointerenter="clearHighlight"
-          >
-            <ActionButton
-              :label="isDark ? t('header.menu.lightMode') : t('header.menu.darkMode')"
-              @click="toggleColorMode"
-            >
-              <SunIcon v-if="isDark" />
-              <MoonIcon v-else />
-            </ActionButton>
-            <ActionButton
-              :label="
-                app.settings.hideBalances
-                  ? t('header.menu.showBalances')
-                  : t('header.menu.hideBalances')
-              "
-              @click="toggleValuesVisibility"
-            >
-              <EyeIcon v-if="app.settings.hideBalances" />
-              <EyeOffIcon v-else />
-            </ActionButton>
-            <ActionButton
-              :label="isPopupView ? t('header.menu.openSidePanel') : t('header.menu.openPopup')"
-              @click="toggleViewMode"
-            >
-              <Maximize2Icon v-if="isPopupView" />
-              <Minimize2Icon v-else />
-            </ActionButton>
-            <UnlockSessionButton @unlock="unlock" />
+            <I18nT v-if="relayText" :keypath="relayText.key" tag="span" scope="global">
+              <template #link>
+                <Link
+                  v-if="relayText.link"
+                  data-relay-link
+                  class="text-foreground"
+                  :href="router.resolve({ name: relayText.link.route }).href"
+                  @click.prevent="goToAndClose(relayText.link.route)"
+                  >{{ relayText.link.label }}</Link
+                >
+              </template>
+              <template #version>{{ relayParams.version }}</template>
+              <template #required>{{ relayParams.required }}</template>
+            </I18nT>
           </div>
-        </TooltipProvider>
+          <CommandInput :placeholder="t('common.search')" />
+          <CommandEmpty>{{ t("header.menu.noWalletsFound") }}</CommandEmpty>
+          <CommandList>
+            <CommandGroup>
+              <CommandItem
+                v-for="w in app.wallets"
+                :key="w.id"
+                class="gap-2"
+                :value="w"
+                @select="loadWallet(w.id)"
+              >
+                <WalletItem v-if="current" :wallet="w" concise />
 
-        <CommandList>
-          <CommandGroup>
-            <CommandItem
-              class="gap-2"
-              value="add-wallet"
-              @select.prevent="goToAndClose('add-wallet')"
-              v-once
-            >
-              <PlusCircleIcon class="h-5 w-5 shrink-0" />
-              {{ t("header.menu.newWallet") }}
-            </CommandItem>
+                <div class="h-4 w-4 transition-all duration-700">
+                  <LoaderCircleIcon v-if="loadingId === w.id" class="h-full w-full animate-spin" />
+                  <CheckIcon v-else-if="current?.id === w.id" class="h-full w-full" />
+                </div>
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
 
-            <CommandItem
-              class="gap-2"
-              value="settings"
-              @select.prevent="goToAndClose('wallet-settings')"
-              v-once
-            >
-              <SettingsIcon class="h-5 w-5 shrink-0" />
-              {{ t("header.menu.settings") }}
-            </CommandItem>
+          <CommandSeparator />
 
-            <CommandItem
-              class="gap-2"
-              value="about"
-              @select.prevent="goToAndClose('about-nautilus')"
-              v-once
+          <TooltipProvider :delay-duration="100">
+            <div
+              class="flex flex-row items-center justify-center gap-2 pt-2 *:cursor-default"
+              @pointerenter="clearHighlight"
             >
-              <InfoIcon class="h-5 w-5 shrink-0" />
-              {{ t("header.menu.about") }}
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-      </Command>
-    </PopoverContent>
-  </Popover>
+              <ActionButton
+                :label="isDark ? t('header.menu.lightMode') : t('header.menu.darkMode')"
+                @click="toggleColorMode"
+              >
+                <SunIcon v-if="isDark" />
+                <MoonIcon v-else />
+              </ActionButton>
+              <ActionButton
+                :label="
+                  app.settings.hideBalances
+                    ? t('header.menu.showBalances')
+                    : t('header.menu.hideBalances')
+                "
+                @click="toggleValuesVisibility"
+              >
+                <EyeIcon v-if="app.settings.hideBalances" />
+                <EyeOffIcon v-else />
+              </ActionButton>
+              <ActionButton
+                :label="isPopupView ? t('header.menu.openSidePanel') : t('header.menu.openPopup')"
+                @click="toggleViewMode"
+              >
+                <Maximize2Icon v-if="isPopupView" />
+                <Minimize2Icon v-else />
+              </ActionButton>
+              <UnlockSessionButton @unlock="unlock" />
+            </div>
+          </TooltipProvider>
+
+          <CommandList>
+            <CommandGroup>
+              <CommandItem
+                class="gap-2"
+                value="add-wallet"
+                @select.prevent="goToAndClose('add-wallet')"
+                v-once
+              >
+                <PlusCircleIcon class="h-5 w-5 shrink-0" />
+                {{ t("header.menu.newWallet") }}
+              </CommandItem>
+
+              <CommandItem
+                class="gap-2"
+                value="settings"
+                @select.prevent="goToAndClose('wallet-settings')"
+                v-once
+              >
+                <SettingsIcon class="h-5 w-5 shrink-0" />
+                {{ t("header.menu.settings") }}
+              </CommandItem>
+
+              <CommandItem
+                class="gap-2"
+                value="about"
+                @select.prevent="goToAndClose('about-nautilus')"
+                v-once
+              >
+                <InfoIcon class="h-5 w-5 shrink-0" />
+                {{ t("header.menu.about") }}
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+    <div v-if="address" data-header-address class="absolute top-[25px] left-[53px] flex">
+      <CopyButton
+        :content="address"
+        :tooltip="false"
+        class="text-muted-foreground hover:text-foreground gap-1 text-xs leading-tight font-normal [&_svg]:size-2.5"
+      >
+        {{ shortAddress }}
+      </CopyButton>
+    </div>
+  </div>
 </template>

@@ -39,6 +39,11 @@ export class Popup {
     return this.page.locator("[role=combobox][aria-expanded]").first();
   }
 
+  /** Opens the wallet switcher by its name row, since the address below it is a copy button. */
+  async openWalletSwitcher() {
+    await this.walletSwitcher.click({ position: { x: 80, y: 12 } });
+  }
+
   navLink(item: NavItem): Locator {
     return this.page.locator(`nav a[href="${NAV_PATHS[item]}"]`);
   }
@@ -50,12 +55,12 @@ export class Popup {
 
   /** Opens the wallet switcher popover and selects a menu entry. */
   async menu(entry: "New wallet" | "Settings" | "About") {
-    await this.walletSwitcher.click();
+    await this.openWalletSwitcher();
     await this.page.getByRole("option", { name: entry }).click();
   }
 
   async switchWallet(name: string) {
-    await this.walletSwitcher.click();
+    await this.openWalletSwitcher();
     await this.page.getByRole("option", { name: new RegExp(`^${name}`) }).click();
     await expect(this.walletSwitcher).toContainText(name);
   }

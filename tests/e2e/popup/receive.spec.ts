@@ -112,6 +112,29 @@ test.describe("receive", () => {
     await expect(page.locator("body > textarea")).toHaveValue(addr2);
   });
 
+  test("copies the default address from the header", async ({ popup }) => {
+    const page = popup.page;
+    const addr0 = await addressOf(WALLET_A, 0);
+    const addr1 = await addressOf(WALLET_A, 1);
+    const header = page.locator("[data-header-address]");
+
+    await expect(header).toHaveText(`${addr0.slice(0, 5)}…${addr0.slice(-5)}`);
+
+    await header.click();
+    await expect(header.getByRole("button", { name: "Copied" })).toBeVisible();
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    await expect(popup.walletSwitcher).toHaveAttribute("aria-expanded", "false");
+
+    await page.evaluate(() =>
+      document.body.appendChild(document.createElement("textarea")).focus()
+    );
+    await page.keyboard.press("ControlOrMeta+V");
+    await expect(page.locator("body > textarea")).toHaveValue(addr0);
+
+    await addressRows(page).nth(1).getByRole("button").first().click();
+    await expect(header).toHaveText(`${addr1.slice(0, 5)}…${addr1.slice(-5)}`);
+  });
+
   test("shows an address QR code", async ({ popup }) => {
     const page = popup.page;
     const addr2 = await addressOf(WALLET_A, 2);

@@ -196,7 +196,7 @@ test.describe("unlock session", () => {
 
     await popup.goto("/");
     await expect(button).toHaveCount(0);
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
     await expect(button).toHaveAccessibleName("Unlock");
     await button.click();
     const drawer = page.getByRole("dialog", { name: "Unlock Nautilus" });
@@ -213,7 +213,7 @@ test.describe("unlock session", () => {
     await drawer.locator("#unlock-password").fill(masterPassword);
     await drawer.getByRole("button", { name: "Unlock" }).click();
     await expect(drawer).toBeHidden();
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
     await expect(button).toHaveAccessibleName("Lock");
     await button.hover();
     await expect(page.getByRole("tooltip", { name: "Lock" })).toBeVisible();
@@ -232,7 +232,7 @@ test.describe("unlock session", () => {
 
     await setStayUnlocked(popup, false);
     await popup.goto("/");
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
     await expect(page.getByRole("option", { name: WALLET_A.name })).toBeVisible();
     await expect(button).toHaveCount(0);
   });
@@ -240,7 +240,7 @@ test.describe("unlock session", () => {
   test("is shown on wallets with their own password too", async ({ popup }) => {
     await popup.importWallet(WALLET_B);
     await popup.switchWallet(WALLET_B.name);
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
     await expect(popup.page.locator("[data-unlock-session]")).toBeVisible();
   });
 

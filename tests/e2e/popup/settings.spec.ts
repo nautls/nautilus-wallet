@@ -757,7 +757,7 @@ test.describe("settings", () => {
       await drawer.getByRole("button", { name: "Remove" }).last().click();
 
       await popup.expectWalletLoaded(WALLET_A.name);
-      await popup.walletSwitcher.click();
+      await popup.openWalletSwitcher();
       await expect(page.getByRole("option", { name: /Bob/ })).toHaveCount(0);
     });
 

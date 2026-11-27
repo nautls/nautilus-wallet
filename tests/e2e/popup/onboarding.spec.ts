@@ -48,8 +48,11 @@ test.describe("onboarding", () => {
       await popup.page.getByRole("button", { name: "Confirm" }).click();
 
       await popup.expectWalletLoaded("Fresh wallet");
-      await expect(popup.walletSwitcher).toContainText("Standard");
       await expect(popup.page.getByText("Your wallet isn't backed up")).toHaveCount(0);
+      await popup.openWalletSwitcher();
+      await expect(popup.page.getByRole("option", { name: /^Fresh wallet/ })).toContainText(
+        "Standard"
+      );
     });
 
     test("creates a wallet without a backup and asks to back it up once used", async ({
@@ -259,8 +262,9 @@ test.describe("onboarding", () => {
       await popup.page.getByRole("button", { name: "Import", exact: true }).click();
 
       await popup.expectWalletLoaded("Watcher");
-      await expect(popup.walletSwitcher).toContainText("Read-only");
       await expect(popup.page.getByText("12.5", { exact: true })).toBeVisible();
+      await popup.openWalletSwitcher();
+      await expect(popup.page.getByRole("option", { name: /^Watcher/ })).toContainText("Read-only");
     });
 
     test("shows a cancel button when a wallet already exists", async ({ popup }) => {

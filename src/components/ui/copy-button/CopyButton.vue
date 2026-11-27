@@ -14,12 +14,14 @@ interface Props extends PrimitiveProps {
   type?: ButtonHTMLAttributes["type"];
   class?: HTMLAttributes["class"];
   content?: string;
+  tooltip?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "minimal",
   size: "condensed",
-  type: "button"
+  type: "button",
+  tooltip: true
 });
 
 const { t } = useI18n({ useScope: "global" });
@@ -36,7 +38,7 @@ function onClick(e: MouseEvent) {
 <template>
   <TooltipProvider :delay-duration="100">
     <!-- keep the tooltip open on click so the "copied" feedback is visible -->
-    <Tooltip disable-closing-trigger>
+    <Tooltip disable-closing-trigger :disabled="!props.tooltip">
       <TooltipTrigger as-child>
         <Button
           :as="props.as"

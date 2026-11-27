@@ -95,8 +95,8 @@ function walletTypeToString(type: WalletType): string {
         {{ wallet.name }}
       </div>
 
-      <div class="text-muted-foreground text-xs leading-tight">
-        {{ walletTypeToString(wallet.type) }}
+      <div class="text-muted-foreground max-w-27.5 truncate text-xs leading-tight">
+        <slot name="subtitle">{{ walletTypeToString(wallet.type) }}</slot>
       </div>
     </div>
   </div>
