@@ -43,6 +43,8 @@
 
   --warning: oklch(0.72 0.17 50);
   --warning-foreground: oklch(0.25 0.06 45);
+  /* --warning is too light for small text on the light background */
+  --warning-text: oklch(0.55 0.15 50);
   --success: oklch(0.54 0.12 165);
   --success-foreground: oklch(0.985 0.005 225);
 
@@ -77,6 +79,7 @@
 
   --warning: oklch(0.75 0.16 52);
   --warning-foreground: oklch(0.25 0.06 45);
+  --warning-text: var(--warning);
   --success: oklch(0.74 0.13 165);
   --success-foreground: var(--ink);
 
@@ -116,6 +119,7 @@
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-text: var(--warning-text);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-header: var(--header);

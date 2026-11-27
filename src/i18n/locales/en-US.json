@@ -128,6 +128,17 @@
     "noConversionRate": "No conversion rate",
     "add": "Add asset",
     "noAssetsFound": "No assets found.",
+    "pending": {
+      "includes": "Includes {amount} pending",
+      "includesAsset": "Includes {amount} pending {asset}",
+      "includesHidden": "Includes pending funds",
+      "unpriced": "Some assets are pending",
+      "amount": "{amount} pending",
+      "badge": "Pending",
+      "title": "Pending funds",
+      "description": "Some of your balance comes from incoming transactions that the network hasn't confirmed yet. Until a block confirms them, the sender can still cancel or replace them, and those funds would leave your balance.",
+      "advice": "Wait for the transaction to confirm before you treat a payment as received."
+    },
     "tabs": {
       "tokens": "Tokens",
       "collectibles": "Collectibles"

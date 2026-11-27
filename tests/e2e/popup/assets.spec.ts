@@ -140,6 +140,118 @@ test("shows no balance change when the balance is first loaded", async ({ chain,
   await expect(popup.page.locator("[data-balance-delta]")).toHaveCount(0);
 });
 
+test.describe("pending balance", () => {
+  test.beforeEach(async ({ chain, popup }) => {
+    await fundWallet(chain, WALLET_A);
+    await popup.importWallet(WALLET_A);
+    await expect(popup.page.getByRole("heading", { name: /\$\s?25\.00/ })).toBeVisible();
+  });
+
+  test("marks incoming funds until they confirm", async ({ chain, popup }) => {
+    const page = popup.page;
+    chain.receivePending([
+      [
+        await addressOf(WALLET_A, 0),
+        {
+          nanoErgs: 4_200_000_000n,
+          tokens: [{ tokenId: TEST_TOKEN.tokenId, amount: "25000" }]
+        }
+      ]
+    ]);
+
+    // 4.2 ERG at 2 USD; the token has no rate, so it isn't in the total
+    await expect(page.getByRole("heading", { name: /\$\s?33\.40/ })).toBeVisible();
+    await expect(page.locator("#pending-balance-info")).toHaveText(/Includes \$\s?8\.40 pending/);
+    const rows = page.getByRole("tabpanel").locator("[data-token-list] > *");
+    await expect(rows.nth(0)).toContainText("16.7");
+    await expect(rows.nth(0).locator("[data-pending-amount]")).toHaveText("4.2 pending");
+    await expect(rows.nth(1)).toContainText("1,250");
+    await expect(rows.nth(1).locator("[data-pending-amount]")).toHaveText("250 pending");
+
+    await rows.nth(0).locator("[data-pending-amount]").hover();
+    await expect(page.locator("[data-pending-amount-tooltip]").first()).toContainText(
+      "Includes 4.2 pending ERG"
+    );
+    await page.mouse.move(0, 0);
+
+    await page.locator("#pending-balance-info").click();
+    await expect(page.locator("[data-pending-balance-explainer]")).toContainText(
+      "the sender can still cancel or replace them"
+    );
+    const listed = page.locator("[data-pending-asset]");
+    await expect(listed).toHaveText(["4.2 ERG", "250 TestToken"]);
+    await page.keyboard.press("Escape");
+
+    const delta = page.locator("[data-balance-delta]");
+    await expect(delta).toHaveCount(0, { timeout: 10_000 });
+    chain.confirmPending();
+
+    await expect(page.locator("#pending-balance-info")).toHaveCount(0);
+    await expect(page.locator("[data-pending-amount]")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /\$\s?33\.40/ })).toBeVisible();
+    await expect(delta).toHaveCount(0);
+  });
+
+  test("explains pending tokens that aren't in the total", async ({ chain, popup }) => {
+    const page = popup.page;
+    chain.receivePending([
+      [
+        await addressOf(WALLET_A, 0),
+        { nanoErgs: 1_000_000n, tokens: [{ tokenId: TEST_TOKEN.tokenId, amount: "25000" }] }
+      ]
+    ]);
+
+    await expect(page.locator("#pending-balance-info")).toHaveText("Some assets are pending");
+    const rows = page.getByRole("tabpanel").locator("[data-token-list] > *");
+    await expect(rows.nth(1).locator("[data-pending-amount]")).toHaveText("250 pending");
+  });
+
+  test("takes dropped incoming funds out of the balance", async ({ chain, popup }) => {
+    const page = popup.page;
+    const tx = chain.receivePending([[await addressOf(WALLET_A, 0), { nanoErgs: 1_000_000_000n }]]);
+    await expect(page.locator("#pending-balance-info")).toBeVisible();
+
+    chain.dropPending(tx.transactionId);
+
+    await expect(page.locator("#pending-balance-info")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /\$\s?25\.00/ })).toBeVisible();
+  });
+
+  test("doesn't mark the change of the wallet's own spend", async ({ chain, popup }) => {
+    const page = popup.page;
+    const address = await addressOf(WALLET_A, 1);
+    const [box] = chain.boxesOf(address);
+    chain.receivePending(
+      [
+        [address, { nanoErgs: 1_500_000_000n }],
+        [await addressOf(WALLET_B, 0), { nanoErgs: 1_000_000_000n }]
+      ],
+      [box]
+    );
+
+    await expect(page.getByRole("heading", { name: /\$\s?23\.00/ })).toBeVisible();
+    await expect(page.locator("#pending-balance-info")).toHaveCount(0);
+    await expect(page.locator("[data-pending-amount]")).toHaveCount(0);
+  });
+
+  test("marks incoming collectibles", async ({ chain, popup }) => {
+    const page = popup.page;
+    const nft = { ...TEST_NFT, tokenId: "b".repeat(64), name: "Pending NFT" };
+    chain.addToken(nft);
+    chain.receivePending([
+      [
+        await addressOf(WALLET_A, 0),
+        { nanoErgs: 1_000_000n, tokens: [{ tokenId: nft.tokenId, amount: "1" }] }
+      ]
+    ]);
+
+    await page.getByRole("tab", { name: "Collectibles" }).click();
+    const cards = page.getByRole("tabpanel").locator("[data-pending-amount]");
+    await expect(cards).toHaveCount(1);
+    await expect(cards).toHaveText("Pending");
+  });
+});
+
 test.describe("assets alerts", () => {
   test("warns about demurrage and links to the wallet optimizer", async ({ chain, popup }) => {
     chain.fund(await addressOf(WALLET_A, 0), {

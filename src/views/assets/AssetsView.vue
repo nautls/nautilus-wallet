@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, ref, watch } from "vue";
-import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "@lucide/vue";
+import { ClockIcon, EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
@@ -203,6 +203,27 @@ function onRowLeave(el: Element, done: () => void) {
   );
 }
 
+// tokens without a rate aren't in the total, so neither is their pending part
+const incomingTotal = computed(() =>
+  knownBalance.value.reduce(
+    (acc, a) =>
+      a.incoming ? acc.plus(a.incoming.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))) : acc,
+    bn(0)
+  )
+);
+const incomingValue = computed(() =>
+  hasFiatRate.value ? incomingTotal.value.times(ergPrice.value) : incomingTotal.value
+);
+const pendingAssets = computed(() => wallet.balance.filter((a) => a.incoming && a.metadata));
+const incomingInTotal = computed(() => incomingValue.value.gte(0.005));
+// pending tokens without a rate aren't in the total, but their rows are still marked
+const showIncoming = computed(() => !hideAmounts.value && pendingAssets.value.length > 0);
+const formattedIncoming = computed(() =>
+  hasFiatRate.value
+    ? formatCurrencyAmount(incomingValue.value, 2)
+    : format.number.currency(incomingValue.value, "erg", 2)
+);
+
 const formattedTotal = computed(() =>
   hasFiatRate.value
     ? formatCurrencyAmount(ergTotal.value.times(ergPrice.value), 2)
@@ -312,6 +333,44 @@ function openAssetInfoDialog(tokenId: string) {
         <span class="sr-only" aria-live="polite">
           {{ totalDelta ? t("asset.balanceChanged", { amount: totalDelta.text }) : "" }}
         </span>
+        <Transition name="balance-caption">
+          <Popover v-if="showIncoming">
+            <PopoverTrigger as-child>
+              <button
+                id="pending-balance-info"
+                type="button"
+                class="border-warning/70 text-warning-text hover:bg-warning/10 focus-visible:ring-ring/50 mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-dashed px-2.5 py-0.5 text-xs font-medium tabular-nums transition-colors outline-none focus-visible:ring-[3px]"
+              >
+                <ClockIcon class="size-3" aria-hidden="true" />
+                {{
+                  !incomingInTotal
+                    ? t("asset.pending.unpriced")
+                    : app.settings.hideBalances
+                      ? t("asset.pending.includesHidden")
+                      : t("asset.pending.includes", { amount: formattedIncoming })
+                }}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent data-pending-balance-explainer class="w-72 text-left text-xs">
+              <p class="mb-1.5 text-sm font-semibold">{{ t("asset.pending.title") }}</p>
+              <ul v-if="!app.settings.hideBalances" class="mb-2 flex flex-col gap-1 tabular-nums">
+                <li
+                  v-for="asset in pendingAssets"
+                  :key="asset.tokenId"
+                  data-pending-asset
+                  class="text-warning-text flex items-center gap-1.5 font-medium"
+                >
+                  <ClockIcon class="size-3 shrink-0" aria-hidden="true" />
+                  <span class="truncate">{{
+                    format.number.namedCurrency(asset.incoming, asset.metadata?.name)
+                  }}</span>
+                </li>
+              </ul>
+              <p class="text-muted-foreground mb-2">{{ t("asset.pending.description") }}</p>
+              <p>{{ t("asset.pending.advice") }}</p>
+            </PopoverContent>
+          </Popover>
+        </Transition>
       </div>
 
       <WalletAlerts />
@@ -409,9 +468,37 @@ function openAssetInfoDialog(tokenId: string) {
                     >
                       <span
                         :key="balanceChanges.amountKey(asset.tokenId)"
-                        class="inline-block [--balance-shift:0.3em]"
+                        class="inline-flex flex-row-reverse items-baseline gap-1.5 [--balance-shift:0.3em]"
                       >
-                        {{ format.number.decimal(asset.balance) }}
+                        <span>{{ format.number.decimal(asset.balance) }}</span>
+                        <TooltipProvider v-if="asset.incoming" :delay-duration="100">
+                          <Tooltip>
+                            <TooltipTrigger as-child>
+                              <span
+                                data-pending-amount
+                                class="text-warning-text -m-1 inline-flex self-center p-1"
+                              >
+                                <ClockIcon class="size-3.5!" aria-hidden="true" />
+                                <span class="sr-only">{{
+                                  t("asset.pending.amount", {
+                                    amount: format.number.decimal(asset.incoming)
+                                  })
+                                }}</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              data-pending-amount-tooltip
+                              class="max-w-72 text-center"
+                            >
+                              {{
+                                t("asset.pending.includesAsset", {
+                                  amount: format.number.decimal(asset.incoming),
+                                  asset: asset.metadata?.name
+                                })
+                              }}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </span>
                     </Transition>
 
@@ -468,6 +555,14 @@ function openAssetInfoDialog(tokenId: string) {
                   class="bg-scrim/70 text-scrim-foreground absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5 py-0.5 font-normal"
                 >
                   {{ nft.metadata?.name ?? nft.tokenId }}
+                </div>
+                <div
+                  v-if="nft.incoming"
+                  data-pending-amount
+                  class="bg-warning text-warning-foreground absolute top-1 left-1 flex h-6 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                >
+                  <ClockIcon class="size-3" aria-hidden="true" />
+                  {{ t("asset.pending.badge") }}
                 </div>
                 <div
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"

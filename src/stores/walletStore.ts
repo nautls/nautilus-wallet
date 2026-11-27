@@ -36,7 +36,10 @@ import { useChainStore } from "./chainStore";
 import { useRelayStore } from "./relayStore";
 
 export interface AssetBalance extends AssetInfo {
+  /** Confirmed plus pending: what the wallet's boxes can spend. */
   balance: BigNumber;
+  /** The part of `balance` received in txs not yet confirmed, which the sender can still drop. */
+  incoming?: BigNumber;
 }
 
 interface StateAsset extends AssetInfo {
@@ -230,7 +233,12 @@ export const useWalletStore = defineStore("wallet", () => {
       const balance = sumBy(assetGroup, (x) => x.confirmedAmount.plus(x.unconfirmedAmount ?? 0));
       if (tokenId !== ERG_TOKEN_ID && balance.lte(0)) continue;
 
-      summary.push({ tokenId, balance, metadata: assetGroup[0].metadata });
+      summary.push({
+        tokenId,
+        balance,
+        incoming: incomingAmount(assetGroup),
+        metadata: assetGroup[0].metadata
+      });
     }
 
     if (summary.length === 0) {
@@ -698,6 +706,16 @@ export const useWalletStore = defineStore("wallet", () => {
     deriveNewAddress
   };
 });
+
+/**
+ * The pending amount of one asset across the wallet's addresses, when it adds to the balance.
+ * Summed over the whole wallet because a spend's change lands as pending on the wallet's own
+ * addresses; only what is left after the spent inputs is received from someone else.
+ */
+export function incomingAmount(assets: { unconfirmedAmount?: BigNumber }[]): BigNumber | undefined {
+  const pending = sumBy(assets, (x) => x.unconfirmedAmount ?? bn(0));
+  return pending.gt(0) ? pending : undefined;
+}
 
 /** An address's assets as stored: one row per asset it holds or the mempool changes. */
 function toDbAssets(
