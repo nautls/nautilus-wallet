@@ -1,5 +1,8 @@
-import { DEFAULT_SERVER_URL } from "@/chains/ergo/services/graphQlService";
 import { MAINNET } from "./ergo";
+
+export const DEFAULT_SERVER_URL = MAINNET
+  ? "https://explore.sigmaspace.io/api/graphql"
+  : "https://gql-testnet.ergoplatform.com/";
 
 export const DEFAULT_SETTINGS = {
   lastOpenedWalletId: 0,

@@ -40,6 +40,7 @@ interface Props {
   transaction?: EIP12UnsignedTransaction;
   inputsToSign?: number[];
   signers?: InputSigners;
+  walletId?: number;
   loading?: boolean;
   broadcast?: boolean;
   class?: HTMLAttributes["class"];
@@ -55,18 +56,20 @@ const props = withDefaults(defineProps<Props>(), {
   broadcast: true,
   transaction: undefined,
   inputsToSign: undefined,
-  signers: undefined
+  signers: undefined,
+  walletId: undefined
 });
 
 const emit = defineEmits<Emits>();
 
 const app = useAppStore();
 const wallet = useWalletStore();
+const targetWalletId = computed(() => props.walletId ?? wallet.id);
 const prompt = usePasswordPrompt(
-  () => wallet.id,
+  () => targetWalletId.value,
   () => wallet.name
 );
-const activated = useActivationDelay(() => props.transaction);
+const activated = useActivationDelay(() => (props.loading ? undefined : props.transaction));
 const assets = useAssetsStore();
 const format = useFormat();
 
@@ -85,6 +88,8 @@ const isReadonly = computed(() => wallet.type === "readonly");
 const canSign = computed(
   () =>
     props.transaction &&
+    !props.loading &&
+    (props.walletId === undefined || wallet.id === props.walletId) &&
     !isReadonly.value && // Can't sign with read-only wallets
     (!parsedTx.value?.burning || (parsedTx.value?.burning && hasBurnAgreement.value)) // Must agree to burn, if burning
 );
@@ -133,6 +138,7 @@ async function sign() {
 
     const signed = await signTransaction({
       transaction: props.transaction,
+      walletId: props.walletId,
       password: prompt.passwordOrSession(password.value),
       inputsToSign: props.inputsToSign,
       signers: props.signers,
@@ -179,7 +185,7 @@ async function broadcastTransaction(signedTransaction: SignedTransaction, retry 
   try {
     if (retry) signing.value = true;
 
-    const result = await graphQLService.submitTransaction(signedTransaction, wallet.id);
+    const result = await graphQLService.submitTransaction(signedTransaction, targetWalletId.value);
     return result.transactionId;
   } catch (e) {
     toast({

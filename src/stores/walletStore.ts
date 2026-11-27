@@ -312,7 +312,7 @@ export const useWalletStore = defineStore("wallet", () => {
     const wlt = appStore.wallets.find((w) => w.id === walletId);
     if (!wlt) throw new Error(`Wallet 'id:${walletId}' not found`);
     const syncInBackground = opt.syncInBackground ?? true;
-    loadCount++;
+    const loadId = ++loadCount;
     setLoading(true);
 
     try {
@@ -321,17 +321,25 @@ export const useWalletStore = defineStore("wallet", () => {
       privateState.publicKey = wlt.publicKey;
       privateState.chainCode = wlt.chainCode;
       privateState.hasOldUtxos = false;
+      privateState.addresses = [];
+      privateState.assets = [];
+      privateState.lastSynced = 0;
       name.value = wlt.name;
       settings.value = { ...wlt.settings }; // a copy, so edits aren't applied to the stored list
 
       const dbAssets = await assetsDbService.getByWalletId(walletId);
+      if (loadId !== loadCount) return;
       const tokenIds = dbAssets.map((x) => x.tokenId);
       await assetsStore.loadMetadata(tokenIds, { fetchInBackground: syncInBackground });
+      if (loadId !== loadCount) return;
       privateState.assets = dbAssets;
 
       const dbAddresses = await addressesDbService.getByWalletId(walletId);
+      if (loadId !== loadCount) return;
       privateState.addresses = dbAddresses;
-      privateState.lastSynced = await walletSyncDbService.getLastSynced(walletId);
+      const lastSynced = await walletSyncDbService.getLastSynced(walletId);
+      if (loadId !== loadCount) return;
+      privateState.lastSynced = lastSynced;
 
       appStore.settings.lastOpenedWalletId = walletId;
 
@@ -346,7 +354,7 @@ export const useWalletStore = defineStore("wallet", () => {
         await sync();
       }
     } finally {
-      setLoading(false);
+      if (loadId === loadCount) setLoading(false);
     }
   }
 

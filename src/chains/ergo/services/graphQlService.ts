@@ -8,12 +8,13 @@ import {
 import { chunk, isEmpty, SignedTransaction, some } from "@fleet-sdk/common";
 import { hex, utf8 } from "@fleet-sdk/crypto";
 import { SConstant } from "@fleet-sdk/serializer";
-import { storage } from "webextension-polyfill";
 import { safeSigmaDecode } from "@/chains/ergo/serialization";
 import { bn } from "@/common/bigNumber";
 import { log } from "@/common/logger";
 import { ERG_TOKEN_ID, MAINNET } from "@/constants/ergo";
+import { DEFAULT_SERVER_URL } from "@/constants/settings";
 import { utxosDbService } from "@/database/utxosDbService";
+import { getSettings } from "@/extension/background/settings";
 import { Registers } from "@/types/connector";
 import { IAssetInfo } from "@/types/database";
 import { AssetStandard, AssetSubtype, AssetType } from "@/types/internal";
@@ -42,9 +43,7 @@ const FALLBACK_GRAPHQL_SERVERS = MAINNET
   ? ["https://gql.ergoplatform.com/", "https://graphql.erg.zelcore.io/"]
   : [];
 
-export const DEFAULT_SERVER_URL = MAINNET
-  ? "https://explore.sigmaspace.io/api/graphql"
-  : "https://gql-testnet.ergoplatform.com/";
+export { DEFAULT_SERVER_URL };
 
 const checkServerInfo = createGqlOperation<{ info: Info; state: State }>(
   "query info { info { version } state { network } }"
@@ -124,9 +123,9 @@ class GraphQLService extends ErgoGraphQLProvider<string> {
   }
 
   #loadServerUrl() {
-    storage.local
-      .get("settings")
-      .then((s) => this.setUrl((s.graphQLServer as string) ?? DEFAULT_SERVER_URL));
+    getSettings()
+      .then((settings) => this.setUrl(settings.graphQLServer?.trim() || DEFAULT_SERVER_URL))
+      .catch((e) => log.error("Failed to load GraphQL server URL", e));
   }
 
   async getAddressesInfo(addresses: string[]): Promise<AddressInfo[]> {

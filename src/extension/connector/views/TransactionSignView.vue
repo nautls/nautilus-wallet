@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { SignedInput, SignedTransaction, some } from "@fleet-sdk/common";
 import { useEventListener } from "@vueuse/core";
+import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { TransactionSign } from "@/components/transaction";
@@ -15,21 +16,31 @@ import { SignTxArgs, SignTxInputsArgs } from "@/types/d.ts/webext-rpc";
 
 type RequestType = AsyncRequest<SignTxArgs | SignTxInputsArgs>;
 
+const app = useAppStore();
 const assets = useAssetsStore();
 const wallet = useWalletStore();
 
 const request = ref<RequestType>();
 const walletId = ref(0);
 
+const loading = computed(
+  () =>
+    !request.value ||
+    !walletId.value ||
+    app.loading ||
+    wallet.loading ||
+    wallet.id !== walletId.value
+);
+
 watch(
-  () => wallet.loading,
+  () => app.loading,
   (loading) => setWallet(loading, walletId.value),
   { immediate: true }
 );
 
 watch(
   () => walletId.value,
-  (walletId) => setWallet(wallet.loading, walletId),
+  (walletId) => setWallet(app.loading, walletId),
   { immediate: true }
 );
 
@@ -84,7 +95,7 @@ onMounted(async () => {
   const connection = await connectedDAppsDbService.getByOrigin(request.value.origin);
   if (!connection || !connection.walletId) {
     request.value.resolve(error(APIErrorCode.Refused, "Unauthorized."));
-    window.close();
+    closeWindow();
     return;
   }
 
@@ -130,6 +141,8 @@ function closeWindow() {
       :transaction="request?.data.transaction"
       :inputs-to-sign="inputsToSign"
       :signers="signers"
+      :wallet-id="walletId"
+      :loading="loading"
       :broadcast="false"
       @refused="onRefused"
       @fail="onFail"

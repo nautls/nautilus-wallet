@@ -1,15 +1,16 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ExternalRequest, InternalRequest } from "../connector/rpc/protocol";
 
 type Handler = (msg: { data: unknown }) => Promise<unknown>;
 
-const { handlers, sendMessage } = vi.hoisted(() => ({
+const { allowWindowMessaging, handlers, sendMessage } = vi.hoisted(() => ({
+  allowWindowMessaging: vi.fn(),
   handlers: new Map<string, Handler>(),
   sendMessage: vi.fn()
 }));
 
 vi.mock("webext-bridge/content-script", () => ({
-  allowWindowMessaging: vi.fn(),
+  allowWindowMessaging,
   onMessage: (id: string, handler: Handler) => handlers.set(id, handler),
   sendMessage
 }));
@@ -17,29 +18,37 @@ vi.mock("webext-bridge/content-script", () => ({
 const ORIGIN = "https://attacker.io";
 const SPOOFED_PAYLOAD = { origin: "victim-dapp.io", favicon: "https://attacker.io/fake.png" };
 
-beforeAll(async () => {
-  const element = { nodeName: "HTML" };
-  const parent = { appendChild: vi.fn(), removeChild: vi.fn() };
-  const document = {
-    documentElement: element,
-    doctype: null,
-    head: parent,
-    createElement: () => ({})
-  };
-
-  vi.stubGlobal("document", document);
-  vi.stubGlobal("window", { document, addEventListener: vi.fn() });
-  vi.stubGlobal("location", { origin: ORIGIN });
-  vi.stubGlobal("chrome", { runtime: { getURL: (path: string) => path } });
-
-  await import("./contentScript");
-});
-
-beforeEach(() => {
-  sendMessage.mockReset();
-});
-
 describe("content script request forwarding", () => {
+  beforeAll(async () => {
+    vi.resetModules();
+    handlers.clear();
+    allowWindowMessaging.mockClear();
+
+    const element = { nodeName: "HTML" };
+    const parent = { appendChild: vi.fn(), removeChild: vi.fn() };
+    const document = {
+      documentElement: element,
+      doctype: null,
+      head: parent,
+      createElement: () => ({})
+    };
+
+    vi.stubGlobal("document", document);
+    vi.stubGlobal("window", { document, addEventListener: vi.fn() });
+    vi.stubGlobal("location", { origin: ORIGIN });
+    vi.stubGlobal("chrome", { runtime: { getURL: (path: string) => path } });
+
+    await import("./contentScript");
+  });
+
+  beforeEach(() => {
+    sendMessage.mockReset();
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
+  });
+
   const cases: [ExternalRequest, InternalRequest, Record<string, unknown>][] = [
     [ExternalRequest.GetUTxOs, InternalRequest.GetUTxOs, { target: { nanoErgs: "1" } }],
     [ExternalRequest.GetBalance, InternalRequest.GetBalance, { tokenId: "ERG" }],
@@ -118,5 +127,44 @@ describe("content script request forwarding", () => {
       { payload: { origin: ORIGIN }, filter: { payload: SPOOFED_PAYLOAD } },
       "background"
     );
+  });
+});
+
+describe("document eligibility", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ["SVG document", { nodeName: "svg" }, null],
+    ["XML document", { nodeName: "feed" }, null],
+    ["non-HTML doctype", { nodeName: "HTML" }, { name: "svg" }]
+  ])("skips script injection and messaging setup on %s", async (_, documentElement, doctype) => {
+    vi.resetModules();
+    handlers.clear();
+    allowWindowMessaging.mockClear();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const appendChild = vi.fn();
+    const createElement = vi.fn(() => ({}));
+    const document = {
+      documentElement,
+      doctype,
+      head: { appendChild, removeChild: vi.fn() },
+      createElement
+    };
+
+    vi.stubGlobal("document", document);
+    vi.stubGlobal("window", { document, addEventListener: vi.fn() });
+    vi.stubGlobal("location", { origin: ORIGIN });
+    vi.stubGlobal("chrome", { runtime: { getURL: (path: string) => path } });
+
+    await import("./contentScript");
+
+    expect(createElement).not.toHaveBeenCalled();
+    expect(appendChild).not.toHaveBeenCalled();
+    expect(allowWindowMessaging).not.toHaveBeenCalled();
+    expect(handlers.size).toBe(0);
   });
 });

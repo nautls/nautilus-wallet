@@ -4,7 +4,7 @@ import type { Box } from "@fleet-sdk/common";
 import { graphQLService } from "@/chains/ergo/services/graphQlService";
 
 export async function getBankBox(from: BoxSource): Promise<AgeUSDBankBox | undefined> {
-  const tokenId = SIGMA_USD_PARAMETERS.tokens.stableCoinId;
+  const tokenId = SIGMA_USD_PARAMETERS.tokens.nftId;
   const ergoTree = SIGMA_USD_PARAMETERS.contract;
 
   return getSingleton({ tokenId, ergoTree }, from);
