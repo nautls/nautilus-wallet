@@ -103,6 +103,13 @@ const relayParams = computed(() => ({
   required: MIN_RELAY_VERSION
 }));
 
+const showRelayMessage = computed(
+  () =>
+    relayShown.value !== "live" &&
+    relayShown.value !== "loading" &&
+    relayShown.value !== "connected"
+);
+
 const relayMessage = computed(() => {
   const text = relayText.value;
   return text ? t(text.key, { ...relayParams.value, link: text.link?.label ?? "" }) : "";
@@ -248,7 +255,7 @@ async function toggleViewMode() {
           "
         >
           <div
-            v-if="relayShown !== 'live'"
+            v-if="showRelayMessage"
             data-relay-message
             class="text-muted-foreground flex items-start gap-2 border-b px-3 py-2 text-xs"
           >
