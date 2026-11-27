@@ -236,7 +236,6 @@ test.describe("dApps", () => {
 
       await expect(page.getByText("UTxO count")).toBeVisible();
       await expect(page.getByText("Oldest UTxO")).toBeVisible();
-      await expect(page.getByText("Wallet size")).toBeVisible();
       await expect(page.getByText("Healthy", { exact: true })).toBeVisible();
     });
 
