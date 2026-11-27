@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, HTMLAttributes, nextTick, ref, useTemplateRef } from "vue";
+import { computed, HTMLAttributes, nextTick, ref, useTemplateRef, watch } from "vue";
 import {
   AddressType,
   EIP12UnsignedTransaction,
@@ -22,8 +22,7 @@ import { PasswordInput } from "@/components/ui/input";
 import { JsonViewer } from "@/components/ui/json-viewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ToastAction, useToast } from "@/components/ui/toast";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import { submitTransaction } from "@/chains/ergo/services/hergmesService";
 import { signTransaction } from "@/chains/ergo/signing";
 import { OutputInterpreter, TransactionInterpreter } from "@/chains/ergo/transaction/interpreter";
 import { log } from "@/common/logger";
@@ -62,23 +61,29 @@ const emit = defineEmits<Emits>();
 
 const app = useAppStore();
 const wallet = useWalletStore();
+const password = ref("");
 const prompt = usePasswordPrompt(
   () => wallet.id,
-  () => wallet.name
+  () => wallet.name,
+  password
 );
 const activated = useActivationDelay(() => props.transaction);
 const assets = useAssetsStore();
 const format = useFormat();
 
-const { toast } = useToast();
 const { t } = useI18n();
 
 const pwdInput = useTemplateRef("pwd-input");
 const ledgerDevice = useTemplateRef("ledger-device");
 
-const password = ref("");
 const hasBurnAgreement = ref(false);
 const signing = ref(false);
+const failedBroadcast = ref<{ transaction: SignedTransaction; message: string }>();
+
+watch(
+  () => props.transaction,
+  () => (failedBroadcast.value = undefined)
+);
 
 const isLedger = computed(() => wallet.type === "ledger");
 const isReadonly = computed(() => wallet.type === "readonly");
@@ -142,8 +147,7 @@ async function sign() {
     if (!signed) throw new Error(t("wallet.emptyProof"));
 
     if (props.broadcast && !Array.isArray(signed) /* only broadcast full transactions */) {
-      const txId = await broadcastTransaction(signed);
-      if (txId) emit("success", signed);
+      await broadcastTransaction(signed);
     } else {
       emit("success", signed);
     }
@@ -152,8 +156,11 @@ async function sign() {
     password.value = "";
     r$.$reset();
   } catch (e) {
-    if (await prompt.handleError(e)) {
-      nextTick(() => pwdInput.value?.input?.$el.focus());
+    if (await prompt.handleError(e, r$.password)) {
+      // a disabled input can't take focus, so re-enable it and wait for the render first
+      signing.value = false;
+      await nextTick();
+      pwdInput.value?.input?.$el.focus();
       return;
     } else if (e instanceof DeviceError) {
       if (e.code === RETURN_CODE.DENIED || e.code === RETURN_CODE.GLOBAL_ACTION_REFUSED) {
@@ -175,34 +182,36 @@ async function sign() {
   }
 }
 
-async function broadcastTransaction(signedTransaction: SignedTransaction, retry = false) {
+async function broadcastTransaction(transaction: SignedTransaction) {
   try {
-    if (retry) signing.value = true;
-
-    const result = await graphQLService.submitTransaction(signedTransaction, wallet.id);
-    return result.transactionId;
+    failedBroadcast.value = undefined;
+    await submitTransaction(transaction);
+    emit("success", transaction);
   } catch (e) {
-    toast({
-      title: t("transaction.sign.broadcastError"),
-      description: typeof e === "string" ? e : (e as Error).message,
-      variant: "destructive",
-      action: h(
-        ToastAction,
-        {
-          onClick: () => broadcastTransaction(signedTransaction, true),
-          altText: t("common.tryAgain")
-        },
-        { default: () => t("common.tryAgain") }
-      )
-    });
+    log.error(e);
+    failedBroadcast.value = { transaction, message: extractErrorMessage(e) };
+  }
+}
+
+async function retryBroadcast() {
+  if (!failedBroadcast.value) return;
+
+  try {
+    signing.value = true;
+    await broadcastTransaction(failedBroadcast.value.transaction);
   } finally {
-    if (retry) signing.value = false;
+    signing.value = false;
   }
 }
 
 const { r$ } = useRegle(
   { password },
-  { password: { required: prompt.requiredRule(() => isLedger.value) } },
+  {
+    password: {
+      required: prompt.requiredRule(() => isLedger.value),
+      correct: prompt.correctRule()
+    }
+  },
   { autoDirty: false }
 );
 </script>
@@ -303,6 +312,12 @@ const { r$ } = useRegle(
       <AlertDescription>{{ t("wallet.cantSignTx") }}</AlertDescription>
     </Alert>
 
+    <Alert v-else-if="failedBroadcast" id="tx-broadcast-error" variant="destructive">
+      <AlertCircleIcon class="size-5" />
+      <AlertTitle>{{ t("transaction.sign.broadcastError") }}</AlertTitle>
+      <AlertDescription class="wrap-break-word">{{ failedBroadcast.message }}</AlertDescription>
+    </Alert>
+
     <LedgerDevice v-else-if="isLedger" ref="ledger-device" />
 
     <Form v-else-if="!prompt.unlocked" @submit="sign">
@@ -328,6 +343,18 @@ const { r$ } = useRegle(
         >{{ t("common.cancel") }}</Button
       >
       <Button
+        v-if="failedBroadcast"
+        id="tx-broadcast-retry"
+        class="flex-2"
+        size="lg"
+        :disabled="signing"
+        @click="retryBroadcast"
+      >
+        <Loader2Icon v-if="signing" class="animate-spin" />
+        <template v-else>{{ t("common.tryAgain") }}</template>
+      </Button>
+      <Button
+        v-else
         class="flex-2"
         size="lg"
         :disabled="loading || signing || !canSign || !activated"

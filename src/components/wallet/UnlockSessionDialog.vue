@@ -2,8 +2,9 @@
 import { nextTick, ref, useTemplateRef, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, withMessage } from "@regle/rules";
-import { Loader2Icon } from "@lucide/vue";
+import { CircleAlertIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -16,7 +17,6 @@ import {
 import { Form, FormField } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/toast";
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
@@ -26,10 +26,10 @@ import { walletsDbService } from "@/database/walletsDbService";
 const emit = defineEmits(["close"]);
 
 const { t } = useI18n();
-const { toast } = useToast();
 
 const opened = ref(true);
 const loading = ref(false);
+const failure = ref<string>();
 const password = ref("");
 const pwdInput = useTemplateRef("pwd-input");
 
@@ -51,6 +51,7 @@ async function unlock() {
 
   try {
     loading.value = true;
+    failure.value = undefined;
     await walletsDbService.unlock(password.value);
     setOpened(false);
   } catch (e) {
@@ -65,11 +66,7 @@ async function unlock() {
     }
 
     log.error(e);
-    toast({
-      title: t("wallet.unlockFailed"),
-      variant: "destructive",
-      description: extractErrorMessage(e)
-    });
+    failure.value = extractErrorMessage(e);
   } finally {
     loading.value = false;
   }
@@ -77,6 +74,7 @@ async function unlock() {
 
 function reset() {
   password.value = "";
+  failure.value = undefined;
   r$.$reset();
 }
 
@@ -114,6 +112,12 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
           />
         </FormField>
       </Form>
+
+      <Alert v-if="failure" id="unlock-error" variant="destructive">
+        <CircleAlertIcon />
+        <AlertTitle>{{ t("wallet.unlockFailed") }}</AlertTitle>
+        <AlertDescription class="wrap-break-word">{{ failure }}</AlertDescription>
+      </Alert>
 
       <DrawerFooter>
         <Button :disabled="loading" @click="unlock">

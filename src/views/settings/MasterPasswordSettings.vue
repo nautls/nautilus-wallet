@@ -60,7 +60,7 @@ const description = computed(() => {
 async function reset() {
   try {
     await walletsDbService.resetMasterPassword();
-    toast({ title: t("settings.password.masterReset") });
+    toast({ title: t("settings.password.masterReset"), icon: "done" });
     router.push({ name: "master-password-setup" });
   } catch (e) {
     log.error(e);

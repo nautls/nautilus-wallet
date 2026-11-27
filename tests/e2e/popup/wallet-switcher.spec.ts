@@ -14,7 +14,7 @@ test.describe("wallet switcher", () => {
     await expect(popup.walletSwitcher).toContainText(WALLET_B.name);
     await expect(page.getByText("12.5", { exact: true })).toHaveCount(0);
 
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
     await expect(page.getByRole("option", { name: /Alice/ })).toBeVisible();
     await expect(page.getByRole("option", { name: /Bob/ })).toBeVisible();
     await page.getByRole("option", { name: /Alice/ }).click();
@@ -36,7 +36,7 @@ test.describe("wallet switcher", () => {
 
   test("searches wallets by name", async ({ popup }) => {
     const page = popup.page;
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
 
     const search = page.getByPlaceholder("Search");
     await search.fill("ali");
@@ -60,7 +60,7 @@ test.describe("wallet switcher", () => {
 
   test("names its action buttons by what they do", async ({ popup }) => {
     const page = popup.page;
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
 
     const eye = page.getByRole("button", { name: "Hide balances" });
     await eye.hover();
@@ -76,7 +76,7 @@ test.describe("wallet switcher", () => {
 
   test("toggles from auto to the opposite of a light system", async ({ popup }) => {
     const page = popup.page;
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
 
     // the button shows the mode it switches to
     await page.locator("button:has(svg.lucide-moon)").click();
@@ -88,7 +88,7 @@ test.describe("wallet switcher", () => {
     const page = popup.page;
     await page.emulateMedia({ colorScheme: "dark" });
     await expect(page.locator("html")).toHaveClass(/dark/);
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
 
     await page.locator("button:has(svg.lucide-sun)").click();
     await expect(page.locator("html")).not.toHaveClass(/dark/);
@@ -97,7 +97,7 @@ test.describe("wallet switcher", () => {
 
   test("follows system changes while in auto mode", async ({ popup }) => {
     const page = popup.page;
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
     await expect(page.locator("button:has(svg.lucide-moon)")).toBeVisible();
 
     await page.emulateMedia({ colorScheme: "dark" });
@@ -106,7 +106,7 @@ test.describe("wallet switcher", () => {
 
   test("only toggles between light and dark", async ({ popup }) => {
     const page = popup.page;
-    await popup.walletSwitcher.click();
+    await popup.openWalletSwitcher();
 
     for (const [icon, dark] of [
       ["moon", true],
@@ -130,7 +130,7 @@ test("shows wallets added in another window", async ({ context, extensionId, pop
 
   await popup.importWallet(WALLET_B);
 
-  await other.walletSwitcher.click();
+  await other.openWalletSwitcher();
   await expect(other.page.getByRole("option", { name: /Bob/ })).toBeVisible();
 });
 

@@ -1,22 +1,18 @@
 import { computed, inject, onMounted, ref, shallowReactive, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { uniq } from "@fleet-sdk/common";
 import { hex } from "@fleet-sdk/crypto";
 import { useColorMode } from "@vueuse/core";
 import { Locale } from "vue-i18n";
 import { useRouter } from "vue-router";
 import HdKey from "@/chains/ergo/hdKey";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import { PRELOADED_SETTINGS } from "@/boot/preload";
 import { log } from "@/common/logger";
 import { hdKeyPool } from "@/common/objectPool";
 import { useWebExtStorage } from "@/composables/useWebExtStorage";
 import { MAINNET } from "@/constants/ergo";
-import { UTXO_CHECK_INTERVAL } from "@/constants/intervals";
 import { DEFAULT_SETTINGS } from "@/constants/settings";
-import { utxosDbService } from "@/database/utxosDbService";
+import { mergeSettings } from "@/extension/background/settings";
 import { PasswordKind, WalletPatch, walletsDbService } from "@/database/walletsDbService";
-import { sendBackendServerUrl } from "@/extension/connector/rpc/uiRpcHandlers";
 import { IDbWallet, NotNullId } from "@/types/database";
 import { useChainStore } from "./chainStore";
 import { TransportType } from "@/common/ledger";
@@ -25,12 +21,11 @@ export type Settings = {
   lastOpenedWalletId: number;
   conversionCurrency: string;
   devMode: boolean;
-  graphQLServer: string;
+  relayUrl: string;
   explorerUrl: string;
   ipfsGateway: string;
   hideBalances: boolean;
   blacklistedTokensLists: string[];
-  zeroConf: boolean;
   locale: Locale | "auto";
   colorMode: "light" | "dark" | "auto";
   extension: { viewMode: "popup" | "sidebar" };
@@ -62,13 +57,14 @@ const usePrivateState = defineStore("_app", () => ({
 export const useAppStore = defineStore("app", () => {
   const viewTitle = ref("");
   const privateState = usePrivateState();
-  const chain = useChainStore();
+  // created here so that its height polling lives as long as the app
+  useChainStore();
   const router = useRouter();
   const settings = useWebExtStorage<Settings>(
     "settings",
     inject(PRELOADED_SETTINGS, DEFAULT_SETTINGS),
     {
-      mergeDefaults: true
+      mergeDefaults: mergeSettings
     }
   );
   const colorMode = useColorMode({
@@ -91,17 +87,6 @@ export const useAppStore = defineStore("app", () => {
     if (!viewTitle.value) return;
     viewTitle.value = "";
   });
-
-  watch(
-    () => settings.value.graphQLServer,
-    (newServerUrl) => {
-      graphQLService.setUrl(newServerUrl);
-      sendBackendServerUrl(newServerUrl);
-    },
-    { immediate: true }
-  );
-
-  watch(() => chain.height, checkPendingBoxes);
 
   watch(
     () => settings.value.colorMode,
@@ -164,18 +149,6 @@ export const useAppStore = defineStore("app", () => {
     await loadWallets();
 
     return walletId;
-  }
-
-  async function checkPendingBoxes() {
-    const dbBoxes = await utxosDbService.getAllPending();
-    const boxesToCheck = dbBoxes.filter(
-      (b) => b.spentTimestamp && Date.now() - b.spentTimestamp >= UTXO_CHECK_INTERVAL
-    );
-    if (boxesToCheck.length === 0) return;
-
-    const txIds = uniq(boxesToCheck.map((b) => b.spentTxId));
-    const mempool = await graphQLService.mempoolTransactionsLookup(txIds);
-    await utxosDbService.removeByTxIds(txIds.filter((id) => !mempool.has(id)));
   }
 
   function goTo(name: string) {

@@ -1,17 +1,13 @@
-import { Box, isDefined, some, utxoSum } from "@fleet-sdk/common";
+import { Box, isDefined } from "@fleet-sdk/common";
 import { BoxSelector, ErgoUnsignedInput } from "@fleet-sdk/core";
 import type { AssetBalance, SelectionTarget } from "@nautilus-js/eip12-types";
-import { groupBy } from "es-toolkit";
-import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
-import { bn, sumBy } from "@/common/bigNumber";
+import { fetchBoxes, readHoldersFirst } from "@/chains/ergo/boxFetcher";
+import { getBalances } from "@/chains/ergo/services/hergmesService";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
 import { addressesDbService } from "@/database/addressesDbService";
-import { assetsDbService } from "@/database/assetsDbService";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import { AddressState } from "@/types/internal";
 import type { AddressType } from "../connector/rpc/protocol";
-import { getSettings } from "./settings";
 
 export async function checkConnection(origin: string) {
   const connection = await connectedDAppsDbService.getByOrigin(origin);
@@ -19,8 +15,7 @@ export async function checkConnection(origin: string) {
 }
 
 export async function getUTxOs(walletId: number, target?: SelectionTarget): Promise<Box<string>[]> {
-  const settings = await getSettings();
-  const boxes = await fetchBoxes(walletId, settings.zeroConf);
+  const boxes = await fetchBoxes(walletId);
   const selector = new BoxSelector(boxes.map((box) => new ErgoUnsignedInput(box))).orderBy(
     (box) => box.creationHeight
   );
@@ -50,65 +45,21 @@ export async function getBalance(
   walletId: number,
   tokenId: string
 ): Promise<AssetBalance[] | string> {
-  const settings = await getSettings();
-  return settings.zeroConf
-    ? getRemoteBalance(walletId, tokenId)
-    : getLocalBalance(walletId, tokenId);
-}
-
-export async function getLocalBalance(
-  walletId: number,
-  tokenId: string
-): Promise<AssetBalance[] | string> {
-  if (tokenId !== "all") {
-    const assets = await assetsDbService.getByTokenId(walletId, tokenId);
-    return some(assets)
-      ? assets
-          .map((a) => bn(a.confirmedAmount))
-          .reduce((acc, val) => acc.plus(val))
-          .toString()
-      : "0";
-  }
-
-  const assets = await assetsDbService.getByWalletId(walletId);
-  const balances: AssetBalance[] = [];
-  const groups = groupBy(assets, (x) => x.tokenId);
-  for (const tokenId in groups) {
-    balances.push({
-      tokenId: tokenId === ERG_TOKEN_ID ? "ERG" : tokenId,
-      balance: sumBy(groups[tokenId], (x) => bn(x.confirmedAmount)).toString()
-    });
-  }
-
-  return balances;
-}
-
-async function getRemoteBalance(
-  walletId: number,
-  tokenId: string
-): Promise<AssetBalance[] | string> {
-  const addresses = await addressesDbService
-    .getByWalletId(walletId)
-    .then((addresses) => addresses.map((x) => x.script));
-
-  const utxos = await graphQLService.getBoxes({
-    where: {
-      addresses,
-      tokenId: tokenId === "all" || tokenId === ERG_TOKEN_ID ? undefined : tokenId
-    },
-    from: "blockchain+mempool"
-  });
-  const summary = utxoSum(utxos);
+  const { nanoErgs, tokens } = await readHoldersFirst(
+    walletId,
+    getBalances,
+    (balances) => balances.nanoErgs === 0n && balances.tokens.size === 0
+  );
 
   if (tokenId === "all") {
     return [
-      { tokenId: "ERG", balance: summary.nanoErgs.toString() },
-      ...summary.tokens.map((x) => ({ tokenId: x.tokenId, balance: x.amount.toString() }))
+      { tokenId: "ERG", balance: nanoErgs.toString() },
+      ...[...tokens].map(([tokenId, amount]) => ({ tokenId, balance: amount.toString() }))
     ];
   } else if (tokenId === ERG_TOKEN_ID) {
-    return summary.nanoErgs.toString();
+    return nanoErgs.toString();
   } else {
-    return summary.tokens.find((x) => x.tokenId === tokenId)?.amount.toString() || "0";
+    return (tokens.get(tokenId) ?? 0n).toString();
   }
 }
 
@@ -121,8 +72,4 @@ export async function getAddresses(walletId: number, filter: AddressType) {
   const state = filter === "used" ? AddressState.Used : AddressState.Unused;
   const addresses = await addressesDbService.getByState(walletId, state);
   return addresses.map((x) => x.script);
-}
-
-export async function getCurrentHeight() {
-  return graphQLService.getHeight();
 }

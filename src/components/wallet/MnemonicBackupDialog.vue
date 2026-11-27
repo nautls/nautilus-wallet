@@ -23,7 +23,11 @@ import { useToast } from "@/components/ui/toast";
 import { PasswordError } from "@/common/errors";
 import { log } from "@/common/logger";
 import { extractErrorMessage, unsafeDistinctRand } from "@/common/utils";
-import { usePasswordKind, usePasswordTexts } from "@/composables/usePasswordPrompt";
+import {
+  usePasswordKind,
+  usePasswordTexts,
+  useWrongPasswordRule
+} from "@/composables/usePasswordPrompt";
 import { walletsDbService } from "@/database/walletsDbService";
 import Mnemonic from "./Mnemonic.vue";
 
@@ -43,6 +47,7 @@ const walletId = ref(wallet.id);
 const { kind: passwordKind, reload: reloadPasswordKind } = usePasswordKind(walletId);
 const passwordTexts = usePasswordTexts(() => wallet.name);
 const password = ref("");
+const wrongPassword = useWrongPasswordRule(password, () => passwordTexts.wrong(passwordKind.value));
 const mnemonicWords = ref<string[]>([]);
 const mnemonicWordsConfirm = ref<string[]>([]);
 const editableIndexes = ref<number[]>([]);
@@ -77,7 +82,10 @@ const nextButtonTitle = computed(() =>
 const { r$: passwordRules } = useRegle(
   { password },
   {
-    password: { required: withMessage(required, () => passwordTexts.required(passwordKind.value)) }
+    password: {
+      required: withMessage(required, () => passwordTexts.required(passwordKind.value)),
+      correct: wrongPassword.correct
+    }
   },
   { autoDirty: false }
 );
@@ -110,7 +118,7 @@ async function markAsBackedUp() {
   try {
     loading.value = true;
     await app.updateWallet(walletId.value, { needsBackup: false });
-    toast({ title: t("wallet.backup.success") });
+    toast({ title: t("wallet.backup.success"), icon: "done" });
     setOpened(false);
   } catch (e) {
     log.error(e);
@@ -137,13 +145,12 @@ async function unlock() {
     step.value = 2;
   } catch (e) {
     if (e instanceof PasswordError) {
-      toast({
-        title: passwordTexts.wrong(passwordKind.value),
-        variant: "destructive",
-        description: passwordTexts.wrongHint()
-      });
-      nextTick(() => pwdInput.value?.input?.$el.focus());
-
+      wrongPassword.markWrong();
+      await passwordRules.password.$validate();
+      // a disabled input can't take focus, so re-enable it and wait for the render first
+      loading.value = false;
+      await nextTick();
+      pwdInput.value?.input?.$el.focus();
       return;
     }
 

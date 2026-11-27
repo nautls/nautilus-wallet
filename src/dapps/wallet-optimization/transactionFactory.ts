@@ -1,4 +1,4 @@
-import { Box, EIP12UnsignedTransaction, orderBy, utxoFilter } from "@fleet-sdk/common";
+import { Amount, Box, EIP12UnsignedTransaction, orderBy, utxoFilter } from "@fleet-sdk/common";
 import { TransactionBuilder } from "@fleet-sdk/core";
 import {
   safeGetChangeAddress,
@@ -8,7 +8,7 @@ import {
 import { FeeSettings, WalletType } from "@/types/internal";
 
 export async function createConsolidationTransaction(
-  inputs: Box[],
+  inputs: Box<Amount>[],
   creationHeight: number,
   walletType: WalletType,
   fee: FeeSettings

@@ -1,7 +1,7 @@
-import type { Locator, Page, Route } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { expect, fundWallet, test } from "../fixtures/test";
 import { addressOf, RECIPIENT_ADDRESS, WALLET_A, WALLET_B, xpubOf } from "../fixtures/wallets";
-import { GRAPHQL_URLS } from "../mocks/chain";
+import { RELAY_URLS } from "../mocks/chain";
 import { DAPP_HOST } from "../mocks/services";
 import { connectDapp } from "../pages/connector";
 
@@ -143,34 +143,58 @@ test.describe("settings", () => {
       await expect(page.getByRole("tab", { name: "Dunkel" })).toBeVisible();
     });
 
-    test("validates the GraphQL server", async ({ popup, chain }) => {
+    test("validates the relay server", async ({ popup, chain }) => {
       await popup.goto("/settings");
       const page = popup.page;
-      const input = page.locator("#gql-server");
+      const input = page.locator("#relay-url");
+      const [defaultRelay, otherRelay] = RELAY_URLS;
+
+      await expect(input).toHaveValue(defaultRelay);
 
       await input.fill("");
-      await expect(page.getByText("Enter a GraphQL server URL")).toBeVisible();
+      await expect(page.getByText("Enter a relay server URL")).toBeVisible();
 
       chain.network = "testnet";
-      await input.fill("https://gql.ergoplatform.com/");
+      await input.fill(otherRelay);
       await expect(
         page.getByText("Server must be on the same network as the wallet")
       ).toBeVisible();
 
       chain.network = "mainnet";
-      chain.version = "0.3.9";
-      await input.fill("https://graphql.erg.zelcore.io/");
-      await expect(page.getByText("Server must run version 0.4.4 or later")).toBeVisible();
+      chain.relayVersion = "0.2.9";
+      await input.fill(defaultRelay);
+      await expect(
+        page.getByText("Enter a relay server running version 0.3.0 or later")
+      ).toBeVisible();
 
-      chain.version = "0.5.1";
-      await input.fill("https://gql.ergoplatform.com/");
+      chain.relayVersion = "0.3.0";
+      await input.fill("https://unreachable.test");
+      await expect(page.getByText("Enter the URL of a reachable relay server")).toBeVisible();
+
+      await input.fill(otherRelay);
       await expect(page.getByText("Server must be on the same network as the wallet")).toHaveCount(
         0
       );
-      await expect(page.getByText(/Server must run version/)).toHaveCount(0);
+      await expect(page.getByText(/relay server/)).toHaveCount(0);
 
       await page.reload();
-      await expect(input).toHaveValue("https://gql.ergoplatform.com/");
+      await expect(input).toHaveValue(otherRelay);
+    });
+
+    test("saves a relay that is still starting up, with a warning", async ({ popup, chain }) => {
+      await popup.goto("/settings");
+      const page = popup.page;
+      const input = page.locator("#relay-url");
+      const [, otherRelay] = RELAY_URLS;
+
+      chain.ready = false;
+      await input.fill(otherRelay);
+      await expect(page.locator("#relay-starting")).toHaveText(
+        "This relay is still starting up, so it may not answer until it's done."
+      );
+
+      await page.reload();
+      await expect(input).toHaveValue(otherRelay);
     });
 
     test("validates the explorer and IPFS gateway URLs", async ({ popup }) => {
@@ -195,7 +219,7 @@ test.describe("settings", () => {
       await expect(page.getByText("Enter a valid URL, like https://example.com")).toHaveCount(0);
     });
 
-    test("toggles token blacklists and 0-conf", async ({ popup }) => {
+    test("toggles token blacklists", async ({ popup }) => {
       await popup.goto("/settings");
       const page = popup.page;
 
@@ -205,14 +229,9 @@ test.describe("settings", () => {
         await expect(page.locator(id)).not.toBeChecked();
       }
 
-      await expect(page.locator("[id='0-conf']")).not.toBeChecked();
-      await page.locator("[id='0-conf']").click();
-      await expect(page.locator("[id='0-conf']")).toBeChecked();
-
       await page.reload();
       await expect(page.locator("#nsfw-blacklist")).not.toBeChecked();
       await expect(page.locator("#scam-blacklist")).not.toBeChecked();
-      await expect(page.locator("[id='0-conf']")).toBeChecked();
     });
   });
 
@@ -306,7 +325,7 @@ test.describe("settings", () => {
       await drawer.locator("#new-password").fill(newPassword);
       await drawer.locator("#confirm-new-password").fill(newPassword);
       await drawer.getByRole("button", { name: "Confirm" }).click();
-      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+      await expect(drawer.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
       await expect(drawer).toBeVisible();
 
       await drawer.locator("#current-password").fill(WALLET_A.password);
@@ -329,7 +348,7 @@ test.describe("settings", () => {
       const review = page.getByRole("dialog").filter({ hasText: "Transaction review" });
       await review.getByRole("textbox", { name: / password$/ }).fill(WALLET_A.password);
       await review.getByRole("button", { name: "Sign" }).click();
-      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`).last()).toBeVisible();
+      await expect(review.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
 
       await review.getByRole("textbox", { name: / password$/ }).fill(newPassword);
       await review.getByRole("button", { name: "Sign" }).click();
@@ -355,12 +374,7 @@ test.describe("settings", () => {
       // rejects a wrong password and keeps the drawer open
       await drawer.locator("#backup-password").fill("wrong password");
       await drawer.getByRole("button", { name: "Show recovery phrase" }).click();
-      await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
-      await expect(
-        popup
-          .toast(`Incorrect "${WALLET_A.name}" password`)
-          .getByText("Check for typos and Caps Lock, then try again.")
-      ).toBeVisible();
+      await expect(drawer.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
       await expect(drawer.locator("#backup-password")).toBeVisible();
 
       // submits with enter
@@ -474,7 +488,7 @@ test.describe("settings", () => {
         await drawer.locator("#new-password").fill(ownPassword);
         await drawer.locator("#confirm-new-password").fill(ownPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Incorrect master password")).toBeVisible();
+        await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
 
         await drawer.locator("#current-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
@@ -486,11 +500,11 @@ test.describe("settings", () => {
         await drawer.locator("#current-password").fill(ownPassword);
         await drawer.locator("#master-password").fill("wrong password");
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Incorrect master password").last()).toBeVisible();
+        await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
         await drawer.locator("#current-password").fill("wrong password");
         await drawer.locator("#master-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast(`Incorrect "${WALLET_A.name}" password`)).toBeVisible();
+        await expect(drawer.getByText(`"${WALLET_A.name}" password is incorrect`)).toBeVisible();
 
         await drawer.locator("#current-password").fill(ownPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
@@ -567,7 +581,7 @@ test.describe("settings", () => {
         await drawer.locator("#new-password").fill(newMaster);
         await drawer.locator("#confirm-new-password").fill(newMaster);
         await drawer.getByRole("button", { name: "Confirm" }).click();
-        await expect(popup.toast("Incorrect master password")).toBeVisible();
+        await expect(drawer.getByText("Master password is incorrect")).toBeVisible();
         await drawer.locator("#current-password").fill(masterPassword);
         await drawer.getByRole("button", { name: "Confirm" }).click();
         await expect(popup.toast("Master password changed")).toBeVisible();
@@ -695,11 +709,8 @@ test.describe("settings", () => {
 
       test("reports a failure and can be retried", async ({ popup, context }) => {
         const page = popup.page;
-        const failAddressLookups = (route: Route) =>
-          route.request().postDataJSON()?.operationName === "addresses"
-            ? route.abort()
-            : route.fallback();
-        for (const url of GRAPHQL_URLS) await context.route(url, failAddressLookups);
+        const balances = `${RELAY_URLS[0]}/v1/addresses/*/balance`;
+        await context.route(balances, (route) => route.abort());
 
         await popup.goto("/settings");
         await resyncWallet(page);
@@ -707,7 +718,7 @@ test.describe("settings", () => {
         const button = page.getByRole("button", { name: "Re-sync", exact: true });
         await expect(button).toBeEnabled();
 
-        for (const url of GRAPHQL_URLS) await context.unroute(url, failAddressLookups);
+        await context.unroute(balances);
         await button.click();
         await expect(popup.toast("Wallet re-synced")).toBeVisible();
 
@@ -716,7 +727,9 @@ test.describe("settings", () => {
       });
     });
 
-    test("removes the only wallet", async ({ popup }) => {
+    test("removes the only wallet", async ({ popup, chain }) => {
+      const address = await addressOf(WALLET_A, 0);
+      await expect.poll(() => chain.follows(address)).toBe(true);
       await popup.goto("/settings");
       const page = popup.page;
       await page.getByRole("tab", { name: "Wallet" }).click();
@@ -729,6 +742,7 @@ test.describe("settings", () => {
 
       await expect(page).toHaveURL(/#\/add$/);
       await expect(page.getByText("Welcome to Nautilus Wallet")).toBeVisible();
+      await expect.poll(() => chain.follows(address)).toBe(false);
     });
 
     test("removes a wallet and switches to the remaining one", async ({ popup }) => {
@@ -743,7 +757,7 @@ test.describe("settings", () => {
       await drawer.getByRole("button", { name: "Remove" }).last().click();
 
       await popup.expectWalletLoaded(WALLET_A.name);
-      await popup.walletSwitcher.click();
+      await popup.openWalletSwitcher();
       await expect(page.getByRole("option", { name: /Bob/ })).toHaveCount(0);
     });
 

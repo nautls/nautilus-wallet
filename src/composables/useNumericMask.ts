@@ -44,6 +44,9 @@ export function useNumericMask(
    */
   const patchOptions = (options: MaskOptions) => {
     destroy();
+    // A new mask reads the input back as a change, and the input may not show a value set in
+    // the same tick yet: the value would revert to the shown one.
+    if (inputEl.value) inputEl.value.value = toRaw(valueRef.value);
     create(options);
   };
 
@@ -52,7 +55,8 @@ export function useNumericMask(
    */
   const patchOptionsQuietly = (options: MaskOptions) => {
     quietlyPatched = true;
-    patchOptions(options);
+    destroy();
+    create(options);
   };
 
   onMounted(create);
@@ -60,10 +64,14 @@ export function useNumericMask(
 
   watch(valueRef, (v) => {
     if (eq(v, currentValue)) return;
-    inputEl.value?.cleave?.setRawValue(!v || v.isNaN() ? "" : v.toString());
+    inputEl.value?.cleave?.setRawValue(toRaw(v));
   });
 
   return { value: valueRef, patchOptions, patchOptionsQuietly };
+}
+
+function toRaw(value?: BigNumber | null): string {
+  return !value || value.isNaN() ? "" : value.toFixed();
 }
 
 export function parse(raw: string): BigNumber | null {

@@ -1,32 +1,29 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import { CheckIcon, CircleAlertIcon } from "@lucide/vue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 
-const props = defineProps<{
+defineProps<{
   title: string;
   content: string;
+  limit: string;
   healthy: boolean;
   loading: boolean;
 }>();
-
-const iconColor = computed(() => (props.healthy ? "text-success" : "text-destructive"));
 </script>
 
 <template>
-  <StatsCard :title="title">
+  <StatsCard :title="title" content-class="items-end justify-between gap-2">
     <template #icon>
       <Skeleton v-if="loading" class="size-4 rounded-full" />
-      <template v-else>
-        <CheckIcon v-if="healthy" class="size-4" :class="iconColor" />
-        <CircleAlertIcon v-else class="size-4" :class="iconColor" />
-      </template>
+      <CheckIcon v-else-if="healthy" class="text-success size-4" />
+      <CircleAlertIcon v-else class="text-destructive size-4" />
     </template>
 
     <template #default>
-      <Skeleton v-if="loading" class="h-6 w-8/12" />
-      <div v-else class="text-base font-bold">{{ content }}</div>
+      <Skeleton v-if="loading" class="h-5 w-16" />
+      <p v-else class="text-xl leading-none font-semibold">{{ content }}</p>
+      <p class="text-muted-foreground text-xs leading-tight">{{ limit }}</p>
     </template>
   </StatsCard>
 </template>

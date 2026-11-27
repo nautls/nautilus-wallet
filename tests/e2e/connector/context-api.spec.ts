@@ -12,7 +12,7 @@ test.describe("dApp context API", () => {
     await connectDapp(context, dapp, WALLET_A.name);
   });
 
-  test("get_balance returns the confirmed balance", async ({ dapp }) => {
+  test("get_balance returns the balance", async ({ dapp }) => {
     expect(await invoke(dapp, () => window.ergo.get_balance())).toEqual({
       ok: true,
       value: "12500000000"

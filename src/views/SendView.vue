@@ -9,7 +9,11 @@ import { useRoute } from "vue-router";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
 import ActionFooter from "@/components/ActionFooter.vue";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionSignDialog,
+  TxActionButton
+} from "@/components/transaction";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
@@ -25,6 +29,7 @@ import {
 } from "@/chains/ergo/transaction/builder";
 import { type BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
+import { useTxReady } from "@/composables/useWalletBoxes";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -42,6 +47,7 @@ const route = useRoute();
 
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+const txReady = useTxReady();
 
 const assetSelectors = new Map<number, AssetSelectInstance>();
 const recipients = ref<Recipient[]>([]);
@@ -220,6 +226,7 @@ async function scrollToErrorElement() {
 }
 
 async function sendTransaction() {
+  if (!txReady.value) return; // Enter submits the form even while the footer's button is disabled
   const { valid } = await form$.$validate();
   if (!valid) return scrollToErrorElement();
 
@@ -406,8 +413,6 @@ function isFeeAsset(tokenId: string): boolean {
 
   <ActionFooter>
     <TransactionFeeConfig v-model="fee" :boxes-value="feeFundedBoxesValue" />
-    <Button type="submit" size="lg" class="w-full" @click="sendTransaction">{{
-      t("common.send")
-    }}</Button>
+    <TxActionButton type="submit" @click="sendTransaction">{{ t("common.send") }}</TxActionButton>
   </ActionFooter>
 </template>

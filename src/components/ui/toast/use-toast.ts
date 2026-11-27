@@ -7,8 +7,12 @@ const TOAST_REMOVE_DELAY = 1000000;
 
 export type StringOrVNode = string | VNode | (() => VNode);
 
+/** Destructive toasts show the `error` icon unless they set another. */
+export type ToastIcon = "sent" | "done" | "error";
+
 type ToasterToast = ToastProps & {
   id: string;
+  icon?: ToastIcon;
   title?: string;
   description?: StringOrVNode;
   action?: Component;

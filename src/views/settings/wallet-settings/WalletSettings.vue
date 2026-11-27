@@ -88,7 +88,7 @@ async function resync() {
   try {
     resyncing.value = true;
     await wallet.resync();
-    toast({ title: t("settings.wallet.resyncDone") });
+    toast({ title: t("settings.wallet.resyncDone"), icon: "done" });
   } catch (e) {
     log.error(e);
     toast({

@@ -24,11 +24,13 @@
       "description": "Use this tool to merge your UTxOs, boosting performance and avoiding {demurrage} fee.",
       "demurrage": "demurrage",
       "size": "{count} {size}",
-      "bytes": "bytes",
       "utxoCount": "UTxO count",
       "oldestUtxo": "Oldest UTxO",
-      "walletSize": "Wallet size",
-      "walletHealth": "Wallet health"
+      "walletHealth": "Wallet health",
+      "countLimit": "Healthy under {count}",
+      "ageLimit": "Healthy under {count} year | Healthy under {count} years",
+      "overYears": "Over {count} year | Over {count} years",
+      "restFallback": "This wallet has too many boxes for the relay to follow, so only a safe number is loaded for consolidation. Optimize until the relay can follow it again."
     },
     "nativeTokens": {
       "title": "Native Tokens",

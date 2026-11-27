@@ -20,6 +20,7 @@ test("moves connections stored by host to their origin", async ({ context, popup
       open.onupgradeneeded = () => {
         const store = open.result.createObjectStore("connectedDApps", { keyPath: "origin" });
         store.createIndex("walletId", "walletId");
+        open.result.createObjectStore("utxos", { keyPath: "id" });
       };
       db = (await done(open).catch((e) => {
         if (attempt >= 10) throw e;
@@ -45,15 +46,17 @@ test("moves connections stored by host to their origin", async ({ context, popup
       });
       const req = db.transaction("connectedDApps").objectStore("connectedDApps").getAllKeys();
       const keys = await new Promise((resolve) => (req.onsuccess = () => resolve(req.result)));
-      const version = db.version;
+      const { version, objectStoreNames } = db;
+      const hasUtxos = objectStoreNames.contains("utxos");
       db.close();
 
-      return { version, keys };
+      return { version, keys, hasUtxos };
     });
 
   // the app opens the database while starting up
   await expect.poll(readConnections).toEqual({
-    version: 90,
-    keys: ["http://localhost:5173", "https://dapp.test"]
+    version: 100,
+    keys: ["http://localhost:5173", "https://dapp.test"],
+    hasUtxos: false
   });
 });

@@ -1,10 +1,9 @@
 import { EIP12UnsignedTransaction, isEmpty, TokenAmount } from "@fleet-sdk/common";
 import { OutputBuilder, SAFE_MIN_BOX_VALUE, TransactionBuilder } from "@fleet-sdk/core";
 import { type BigNumber, bn } from "@/common/bigNumber";
-import { useAppStore } from "@/stores/appStore";
+import { useBoxesStore } from "@/stores/boxesStore";
+import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
-import { fetchBoxes } from "@/chains/ergo/boxFetcher";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
 import {
   safeGetChangeAddress,
   setFee,
@@ -68,13 +67,8 @@ export async function createBurnTransaction(
 }
 
 async function getContext() {
-  const wallet = useWalletStore();
-  const app = useAppStore();
-
-  const [inputs, height] = await Promise.all([
-    fetchBoxes(wallet.id, app.settings.zeroConf),
-    graphQLService.getHeight()
-  ]);
+  const { all: inputs } = await useBoxesStore().spendable();
+  const height = useChainStore().height;
 
   if (isEmpty(inputs)) throw Error("Unable to fetch inputs, please check your connection.");
   if (!height) throw Error("Unable to fetch current height, please check your connection.");

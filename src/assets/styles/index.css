@@ -43,6 +43,8 @@
 
   --warning: oklch(0.72 0.17 50);
   --warning-foreground: oklch(0.25 0.06 45);
+  /* --warning is too light for small text on the light background */
+  --warning-text: oklch(0.55 0.15 50);
   --success: oklch(0.54 0.12 165);
   --success-foreground: oklch(0.985 0.005 225);
 
@@ -77,6 +79,7 @@
 
   --warning: oklch(0.75 0.16 52);
   --warning-foreground: oklch(0.25 0.06 45);
+  --warning-text: var(--warning);
   --success: oklch(0.74 0.13 165);
   --success-foreground: var(--ink);
 
@@ -116,6 +119,7 @@
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-warning-text: var(--warning-text);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-header: var(--header);
@@ -125,6 +129,26 @@
   --color-scrim-foreground: var(--scrim-foreground);
   --color-code-key: var(--code-key);
   --color-code-string: var(--code-string);
+
+  --animate-ripple: ripple 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-token-new: token-new 1.5s ease-out;
+
+  @keyframes token-new {
+    from {
+      background-color: var(--color-accent);
+    }
+  }
+
+  @keyframes ripple {
+    from {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
 }
 
 @layer base {
@@ -176,4 +200,57 @@
 
 .slide-up-leave-active {
   position: absolute;
+}
+
+.balance-up-enter-active,
+.balance-down-enter-active {
+  transition:
+    translate 220ms var(--ease-snap),
+    opacity 220ms var(--ease-snap);
+}
+
+.balance-up-leave-active,
+.balance-down-leave-active {
+  transition:
+    translate 120ms ease-in,
+    opacity 120ms ease-in;
+}
+
+.balance-up-enter-from,
+.balance-down-leave-to {
+  opacity: 0;
+  translate: 0 var(--balance-shift, 0.5em);
+}
+
+.balance-up-leave-to,
+.balance-down-enter-from {
+  opacity: 0;
+  translate: 0 calc(var(--balance-shift, 0.5em) * -1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .balance-up-enter-active,
+  .balance-down-enter-active,
+  .balance-up-leave-active,
+  .balance-down-leave-active {
+    transition: none;
+  }
+
+  .balance-up-enter-from,
+  .balance-down-enter-from,
+  .balance-up-leave-to,
+  .balance-down-leave-to {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+.balance-caption-enter-active,
+.balance-caption-leave-active {
+  transition: opacity 150ms ease-out;
+}
+
+.balance-caption-enter-from,
+.balance-caption-leave-to {
+  opacity: 0;
 }

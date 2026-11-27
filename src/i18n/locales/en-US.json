@@ -85,6 +85,19 @@
     }
   },
   "header": {
+    "copyAddress": "Copy address",
+    "relay": {
+      "connected": "Connected to the relay",
+      "loading": "Connecting to the relay",
+      "reconnecting": "Reconnecting to the relay. Balances may be out of date.",
+      "waiting": "The relay is busy and asked to try again later. Balances may be out of date.",
+      "noRelay": "No relay server is set. Set one in {link}.",
+      "outdated": "The relay runs version {version}, but this version of Nautilus needs {required} or later. Some features may not work. Choose another relay in {link}.",
+      "tooManyBoxes": "This wallet has too many boxes for the relay to follow. Consolidate them with the {link}.",
+      "optimizer": "Wallet Optimizer",
+      "settings": "settings",
+      "refused": "The relay can't follow this wallet. Balances may be out of date."
+    },
     "nav": {
       "assets": "Assets",
       "history": "History",
@@ -111,9 +124,21 @@
     "balanceHidden": "Balance hidden",
     "amountHidden": "Amount hidden",
     "loadingBalance": "Loading balance",
+    "balanceChanged": "Balance changed by {amount}",
     "noConversionRate": "No conversion rate",
     "add": "Add asset",
     "noAssetsFound": "No assets found.",
+    "pending": {
+      "includes": "Includes {amount} pending",
+      "includesAsset": "Includes {amount} pending {asset}",
+      "includesHidden": "Includes pending funds",
+      "unpriced": "Some assets are pending",
+      "amount": "{amount} pending",
+      "badge": "Pending",
+      "title": "Pending funds",
+      "description": "Some of your balance comes from incoming transactions that the network hasn't confirmed yet. Until a block confirms them, the sender can still cancel or replace them, and those funds would leave your balance.",
+      "advice": "Wait for the transaction to confirm before you treat a payment as received."
+    },
     "tabs": {
       "tokens": "Tokens",
       "collectibles": "Collectibles"
@@ -163,8 +188,16 @@
     "history": {
       "txTitle": "Transaction {txId}",
       "txState": "Pending | {count} confirmation | {count} confirmations",
+      "received": "Received",
+      "sent": "Sent",
+      "mixed": "Sent and received",
+      "noChange": "No balance change",
       "empty": "You have no transaction history yet.",
-      "nextPage": "Load more transactions"
+      "nextPage": "Load more transactions",
+      "noRelay": "No relay server is set, so your transaction history can't be loaded.",
+      "loadError": "Some transactions couldn't be loaded.",
+      "cancelNotice": "This replaces transaction {txId} by sending its funds back to you at a higher fee. If the original is confirmed first, it goes through instead.",
+      "cancelsChained": "This cancels pending transaction {txIds}, which spends this transaction's outputs. | This cancels {count} pending transactions that spend this transaction's outputs: {txIds}."
     },
     "send": {
       "recipient": "Recipient",
@@ -203,7 +236,6 @@
       "reviewTxDesc": "Review the transaction before signing.",
       "buildError": "Transaction build failed",
       "success": "Transaction sent",
-      "successDesc": "Your transaction has been successfully signed and sent.",
       "signError": "Transaction signing failed"
     }
   },
@@ -215,6 +247,7 @@
     "createWalletPassword": "Create wallet password",
     "masterPasswordRequired": "Enter your master password",
     "wrongMasterPassword": "Master password is incorrect",
+    "wrongWalletPassword": "\"{name}\" password is incorrect",
     "walletPassword": "Wallet password",
     "walletPasswordRequired": "Enter a wallet password",
     "useMasterPassword": "Use master password",
@@ -234,9 +267,6 @@
     "namedWalletPassword": "\"{name}\" password",
     "enterMasterPassword": "Enter your master password",
     "enterWalletPassword": "Enter the \"{name}\" password",
-    "wrongMasterPasswordTitle": "Incorrect master password",
-    "wrongWalletPasswordTitle": "Incorrect \"{name}\" password",
-    "wrongPasswordHint": "Check for typos and Caps Lock, then try again.",
     "passwordTooGuessable": "Choose a harder password, without common words or patterns like 123456",
     "passwordStrength": {
       "title": "Password strength",
@@ -247,7 +277,7 @@
     },
     "emptyProof": "Prover returned no signed data.",
     "enterYourWalletPassword": "Enter your wallet password",
-    "wrongPassword": "Incorrect password",
+    "wrongPassword": "Password is incorrect",
     "xPubKey": "Extended public key",
     "xPubKeyDesc": "Extended public keys allow viewing transaction history and generating new addresses, but they cannot spend or move funds in any way.",
     "xPrivKey": "Extended private key",
@@ -358,18 +388,16 @@
       "scamTokensBlacklist": "Scam tokens",
       "network": "Network",
       "networkDesc": "Choose the servers Nautilus connects to.",
-      "gqlServer": "GraphQL server",
-      "requiredGql": "Enter a GraphQL server URL",
+      "relayServer": "Relay server",
+      "requiredRelay": "Enter a relay server URL",
+      "unreachableRelay": "Enter the URL of a reachable relay server",
       "wrongServerNetwork": "Server must be on the same network as the wallet",
-      "unsupportedServerVersion": "Server must run version {version} or later",
+      "unsupportedRelayVersion": "Enter a relay server running version {version} or later",
+      "relayStarting": "This relay is still starting up, so it may not answer until it's done.",
       "explorerUrl": "Explorer URL",
       "requiredExplorer": "Enter an explorer URL",
       "ipfsGateway": "IPFS gateway",
       "requiredIpfs": "Enter an IPFS gateway URL",
-      "experimental": "Experimental",
-      "experimentalDesc": "The features under this section are marked as experimental, which means they're not stable. Use it with caution, as it may contain bugs or undergo significant changes. It's a work in progress, so expect some rough edges.",
-      "zeroConf": "Enable 0-conf",
-      "zeroConfDesc": "0-conf, short for zero-confirmations, lets you spend assets without waiting for confirmations. It's fast but carries a risk of being double-spent until confirmed by the blockchain.",
       "advanced": "Advanced",
       "advancedDesc": "Settings most people don't need to change.",
       "ledger": "Ledger connection",

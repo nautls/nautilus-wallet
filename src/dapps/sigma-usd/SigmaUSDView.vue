@@ -1,21 +1,9 @@
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  Ref,
-  ref,
-  shallowRef,
-  triggerRef,
-  useTemplateRef,
-  watch
-} from "vue";
+import { computed, nextTick, onMounted, Ref, ref, useTemplateRef, watch } from "vue";
 import { ActionType, CoinType, FeeType, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
-import { BoxSource } from "@fleet-sdk/blockchain-providers";
 import { Maybe, useRegle } from "@regle/core";
 import { withMessage, withParams } from "@regle/rules";
-import { pausableWatch, useIntervalFn } from "@vueuse/core";
+import { pausableWatch } from "@vueuse/core";
 import {
   ArrowDownIcon,
   ArrowDownUpIcon,
@@ -28,10 +16,13 @@ import {
 import { I18nT, useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
-import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
 import ActionFooter from "@/components/ActionFooter.vue";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionSignDialog,
+  TxActionButton
+} from "@/components/transaction";
 import {
   Accordion,
   AccordionContent,
@@ -51,7 +42,7 @@ import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_DECIMALS, ERG_TOKEN_ID, MIN_BOX_VALUE, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
 import { AssetInfo, FeeSettings } from "@/types/internal";
 import { staticBigNumber } from "@/validators";
-import { getBankBox, getOracleBox } from "./blockchainService";
+import { useSigmaUsdBoxes } from "./useSigmaUsdBoxes";
 import { Asset, AssetInputSelect } from "./components";
 import { ERG_INFO, SIGSRV_INFO, SIGUSD_INFO } from "./metadata";
 import { createExchangeTransaction } from "./transactionFactory";
@@ -63,14 +54,21 @@ const RECOMMENDED_FEE = dbn(SAFE_MIN_FEE_VALUE * 2, ERG_DECIMALS);
 const wallet = useWalletStore();
 const app = useAppStore();
 const assets = useAssetsStore();
-const chain = useChainStore();
 const format = useFormat();
 const { t } = useI18n();
 
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
 
-const bank = shallowRef<SigmaUSDBank | undefined>();
-const loading = ref(false);
+const { bankBox, oracleBox, loading } = useSigmaUsdBoxes();
+const bank = computed(() =>
+  bankBox.value && oracleBox.value
+    ? new SigmaUSDBank(bankBox.value, oracleBox.value).setImplementorFee({
+        percentage: 22n,
+        precision: 4n,
+        address: "9g2FAxryPZ98qH6W5E3qyVYj2kyqgUE7HjfA1CdBT25FJWewpav"
+      })
+    : undefined
+);
 const lastChanged = ref<"from" | "to">("from");
 const isFeeBreakdownOpen = ref<string | undefined>();
 const fromAsset = ref<Asset | undefined>(convertibleAsset("sell", ERG_INFO));
@@ -79,7 +77,6 @@ const toAsset = ref<Asset | undefined>();
 const toAmount = ref<BigNumber | undefined>();
 const txFee = ref<FeeSettings>({ tokenId: ERG_TOKEN_ID, value: RECOMMENDED_FEE });
 const adjustFeeTrigger = useTemplateRef("adjust-fee-trigger");
-const bankUpdateInterval = useIntervalFn(() => loadBankFrom("mempool"), 5_000 /* 5 seconds */);
 
 const txFeeNanoergs = computed(() => udec(txFee.value.value, ERG_DECIMALS));
 const reservedErgAmount = computed(() => {
@@ -206,23 +203,10 @@ watch(fromAsset, () => {
 const fromWatcher = pausableWatch(fromAmount, () => convert("from"));
 const toWatcher = pausableWatch(toAmount, () => convert("to"));
 
-watch(
-  () => chain.height,
-  () => loadBankFrom("blockchain+mempool")
-);
-
-onMounted(async () => {
-  loading.value = true;
-
+onMounted(() => {
   // Load metadata for SigUSD and SigSRV, if not already loaded
   assets.loadMetadata([SIGUSD_INFO.tokenId, SIGSRV_INFO.tokenId]);
-  // Load bank and oracle boxes
-  await loadBankFrom("blockchain+mempool");
-
-  loading.value = false;
 });
-
-onBeforeUnmount(() => bankUpdateInterval.pause());
 
 async function convert(source: "from" | "to", retainSourceInfo = true) {
   const sourceAsset = source === "from" ? fromAsset.value : toAsset.value;
@@ -306,44 +290,6 @@ function findRedeemingTokenAmount(ergAmount: BigNumber, asset: Asset, bank: Sigm
   const fees = bank.getProtocolFee(x) + bank.getImplementorFee(x) + txFeeNanoergs.value;
 
   return (x + fees) / p;
-}
-
-async function loadBankFrom(from: BoxSource) {
-  if (bankUpdateInterval.isActive) bankUpdateInterval.pause();
-
-  try {
-    const [bankBox, oracleBox] = await Promise.all([
-      getBankBox(from),
-      // always load oracle box from the blockchain to avoid tx getting
-      // dropped by oracle updates during price changes
-      from !== "mempool" ? getOracleBox() : undefined
-    ]);
-
-    if (!bank.value) {
-      if (!bankBox || !oracleBox) return;
-
-      bank.value = new SigmaUSDBank(bankBox, oracleBox).setImplementorFee({
-        percentage: 22n,
-        precision: 4n,
-        address: "9g2FAxryPZ98qH6W5E3qyVYj2kyqgUE7HjfA1CdBT25FJWewpav"
-      });
-      return;
-    }
-
-    let changed = false;
-    if (bankBox && bankBox.boxId !== bank.value.bankBox.boxId) {
-      changed = true;
-      bank.value.bankBox = bankBox;
-    }
-    if (oracleBox && oracleBox.boxId !== bank.value.oracleBox.boxId) {
-      changed = true;
-      bank.value.oracleBox = oracleBox;
-    }
-
-    if (changed) triggerRef(bank);
-  } finally {
-    bankUpdateInterval.resume();
-  }
 }
 
 function getMax(asset: Ref<Asset | undefined>, action: ActionType): BigNumber {
@@ -729,12 +675,10 @@ function udec(amount: BigNumber | undefined, decimals?: number): bigint {
     </div>
 
     <ActionFooter>
-      <Button
+      <TxActionButton
         :disabled="loading || !hasInputValues || r$.$invalid"
-        class="w-full"
-        size="lg"
         @click="sendTransaction"
-        >{{ t("common.swap") }}</Button
+        >{{ t("common.swap") }}</TxActionButton
       >
     </ActionFooter>
   </div>

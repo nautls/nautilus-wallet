@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
+import type { Status } from "@hergmes/sdk";
 import { Maybe, useRegle } from "@regle/core";
 import { required, withAsync, withMessage } from "@regle/rules";
 import {
@@ -32,10 +33,11 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { coinGeckoService } from "@/chains/ergo/services/coinGeckoService";
 import {
-  MIN_SERVER_VERSION,
-  validateServerNetwork,
-  validateServerVersion
-} from "@/chains/ergo/services/graphQlService";
+  getRelayStatus,
+  isSupportedRelayVersion,
+  MIN_RELAY_VERSION
+} from "@/chains/ergo/services/hergmesService";
+import { MAINNET } from "@/constants/ergo";
 import { TransportType } from "@/common/ledger";
 import { cn } from "@/common/utils";
 import { LANGUAGE_LABELS, setLocale, SUPPORTED_LOCALES } from "@/i18n";
@@ -74,7 +76,7 @@ const transportsDisplayName = new Map([
 ]);
 
 const explorerUrl = ref(app.settings.explorerUrl);
-const graphQLServer = ref(app.settings.graphQLServer);
+const relayUrl = ref(app.settings.relayUrl);
 const ipfsGateway = ref(app.settings.ipfsGateway);
 
 const nsfwBlacklist = computedBlacklist("nsfw");
@@ -96,25 +98,20 @@ onMounted(async () => {
   currencyState.loading = false;
 });
 
-watch(explorerUrl, async () => {
+// a value edited while its validation ran is saved by its own validation, if it passes
+watch(explorerUrl, async (url) => {
   const { valid } = await r$.explorerUrl.$validate();
-  if (!valid) return;
-
-  app.settings.explorerUrl = explorerUrl.value;
+  if (valid && url === explorerUrl.value) app.settings.explorerUrl = url;
 });
 
-watch(graphQLServer, async () => {
-  const { valid } = await r$.graphQLServer.$validate();
-  if (!valid) return;
-
-  app.settings.graphQLServer = graphQLServer.value;
+watch(relayUrl, async (url) => {
+  const { valid } = await r$.relayUrl.$validate();
+  if (valid && url === relayUrl.value) app.settings.relayUrl = url;
 });
 
-watch(ipfsGateway, async () => {
+watch(ipfsGateway, async (url) => {
   const { valid } = await r$.ipfsGateway.$validate();
-  if (!valid) return;
-
-  app.settings.ipfsGateway = ipfsGateway.value;
+  if (valid && url === ipfsGateway.value) app.settings.ipfsGateway = url;
 });
 
 function selectCurrency(currency: string) {
@@ -150,30 +147,57 @@ function computedBlacklist(list: string) {
   });
 }
 
+// the relay rules of one validation share its status request
+let pendingStatus: { url: string; status: Promise<Status | undefined> } | undefined;
+const lastStatus = ref<{ url: string; status?: Status }>();
+const relayStarting = computed(
+  () => lastStatus.value?.url === relayUrl.value && lastStatus.value.status?.ready === false
+);
+
+function relayStatus(url: string): Promise<Status | undefined> {
+  if (pendingStatus?.url !== url) {
+    const status = getRelayStatus(url)
+      .catch(() => undefined)
+      .then((status) => {
+        lastStatus.value = { url, status };
+        return status;
+      })
+      .finally(() => {
+        if (pendingStatus?.status === status) pendingStatus = undefined;
+      });
+    pendingStatus = { url, status };
+  }
+
+  return pendingStatus.status;
+}
+
 const { r$ } = useRegle(
-  { explorerUrl, graphQLServer, ipfsGateway },
+  { explorerUrl, relayUrl, ipfsGateway },
   {
     explorerUrl: {
       required: withMessage(required, () => t("settings.global.requiredExplorer")),
       validUrl
     },
-    graphQLServer: {
-      required: withMessage(required, () => t("settings.global.requiredGql")),
+    relayUrl: {
+      required: withMessage(required, () => t("settings.global.requiredRelay")),
       validUrl,
+      reachable: withMessage(
+        withAsync(async (url: Maybe<string>) => !url || !!(await relayStatus(url))),
+        () => t("settings.global.unreachableRelay")
+      ),
       network: withMessage(
         withAsync(async (url: Maybe<string>) => {
-          if (!url) return true;
-          return await validateServerNetwork(url);
+          const status = url && (await relayStatus(url));
+          return !status || status.network === (MAINNET ? "mainnet" : "testnet");
         }),
         () => t("settings.global.wrongServerNetwork")
       ),
       version: withMessage(
         withAsync(async (url: Maybe<string>) => {
-          if (!url) return true;
-          return await validateServerVersion(url);
+          const status = url && (await relayStatus(url));
+          return !status || isSupportedRelayVersion(status.version);
         }),
-        () =>
-          t("settings.global.unsupportedServerVersion", { version: MIN_SERVER_VERSION.join(".") })
+        () => t("settings.global.unsupportedRelayVersion", { version: MIN_RELAY_VERSION })
       )
     },
     ipfsGateway: {
@@ -358,21 +382,24 @@ const { r$ } = useRegle(
       </CardHeader>
 
       <CardContent class="flex flex-col gap-4">
-        <FormField :validation="r$.graphQLServer">
-          <Label for="gql-server">{{ t("settings.global.gqlServer") }}</Label>
+        <FormField :validation="r$.relayUrl">
+          <Label for="relay-url">{{ t("settings.global.relayServer") }}</Label>
           <div class="relative w-full items-center">
-            <Input
-              id="gql-server"
-              v-model="graphQLServer"
-              :class="{ 'pr-7': r$.graphQLServer.$pending }"
-            />
+            <Input id="relay-url" v-model="relayUrl" :class="{ 'pr-7': r$.relayUrl.$pending }" />
             <span
-              v-if="r$.graphQLServer.$pending"
+              v-if="r$.relayUrl.$pending"
               class="absolute inset-y-0 end-0 flex items-center justify-center px-2"
             >
               <Loader2Icon class="text-muted-foreground size-4 animate-spin" />
             </span>
           </div>
+
+          <template v-if="relayStarting && !r$.relayUrl.$error" #description>
+            <span id="relay-starting" class="text-warning flex items-start gap-1.5">
+              <TriangleAlertIcon class="size-3.5 shrink-0 translate-y-px" aria-hidden="true" />
+              {{ t("settings.global.relayStarting") }}
+            </span>
+          </template>
         </FormField>
 
         <FormField :validation="r$.explorerUrl">
@@ -451,30 +478,6 @@ const { r$ } = useRegle(
             </span>
           </Label>
           <Switch id="dev-mode" class="justify-self-end" v-model="app.settings.devMode" />
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card class="bg-warning/10">
-      <CardHeader>
-        <CardTitle class="flex items-center gap-1">
-          {{ t("settings.global.experimental") }}
-          <TriangleAlertIcon class="text-warning size-4" />
-        </CardTitle>
-        <CardDescription class="hyphens-auto">
-          {{ t("settings.global.experimentalDesc") }}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent class="grid grid-cols-[1fr_auto] gap-4">
-        <div class="col-span-2 grid grid-cols-subgrid items-start">
-          <Label for="0-conf" class="flex flex-col items-start gap-1">
-            {{ t("settings.global.zeroConf") }}
-            <span class="text-muted-foreground text-xs font-normal hyphens-auto">
-              {{ t("settings.global.zeroConfDesc") }}
-            </span>
-          </Label>
-          <Switch id="0-conf" class="justify-self-end" v-model="app.settings.zeroConf" />
         </div>
       </CardContent>
     </Card>

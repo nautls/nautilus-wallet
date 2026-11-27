@@ -52,10 +52,16 @@ async function newAddress() {
 
 function getFormattedErgBalance(address: StateAddress, decimals = 3): string | undefined {
   if (address.state === AddressState.Unused) return t("address.state.unused");
-  let erg = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID)?.confirmedAmount;
-  if (!erg) erg = bn(0);
+  const asset = address.assets?.find((a) => a.tokenId === ERG_TOKEN_ID);
+  const erg = asset ? asset.confirmedAmount.plus(asset.unconfirmedAmount ?? 0) : bn(0);
 
   return `${format.number.decimal(erg, decimals, 1_000)} ERG`;
+}
+
+function countTokens(address: StateAddress): number {
+  return address.assets.filter(
+    (a) => a.tokenId !== ERG_TOKEN_ID && a.confirmedAmount.plus(a.unconfirmedAmount ?? 0).gt(0)
+  ).length;
 }
 
 function openExplorer(address: string | undefined) {
@@ -195,8 +201,8 @@ function openExplorer(address: string | undefined) {
             <HiddenAmount v-if="app.settings.hideBalances" />
             <template v-else>
               <span>{{ getFormattedErgBalance(address) }}</span>
-              <span v-if="address.assets.length > 1" class="text-muted-foreground">
-                {{ " +" + (address.assets.length - 1) }}</span
+              <span v-if="countTokens(address) > 0" class="text-muted-foreground">
+                {{ " +" + countTokens(address) }}</span
               >
             </template>
           </div>

@@ -2,9 +2,15 @@ import { computed, ref, shallowRef, toRaw, watch } from "vue";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import type BigNumber from "bignumber.js";
 import { groupBy, isEqual, maxBy } from "es-toolkit";
+import type { Assets, Relay, Subscription } from "@hergmes/sdk";
 import { useRouter } from "vue-router";
 import HdKey, { IndexedAddress } from "@/chains/ergo/hdKey";
-import { graphQLService } from "@/chains/ergo/services/graphQlService";
+import {
+  AddressBalance,
+  getAddressBalances,
+  hasBoxesCreatedBefore
+} from "@/chains/ergo/services/hergmesService";
+import { log } from "@/common/logger";
 import { hdKeyPool } from "@/common/objectPool";
 import { patchArray } from "@/common/reactivity";
 import { CHUNK_DERIVE_LENGTH, ERG_TOKEN_ID, HEALTHY_BLOCKS_AGE } from "@/constants/ergo";
@@ -27,10 +33,13 @@ import { MIN_SYNC_INTERVAL } from "../constants/intervals";
 import { useAppStore } from "./appStore";
 import { useAssetsStore } from "./assetsStore";
 import { useChainStore } from "./chainStore";
-import { usePoolStore } from "./poolStore";
+import { useRelayStore } from "./relayStore";
 
 export interface AssetBalance extends AssetInfo {
+  /** Confirmed plus pending: what the wallet's boxes can spend. */
   balance: BigNumber;
+  /** The part of `balance` received in txs not yet confirmed, which the sender can still drop. */
+  incoming?: BigNumber;
 }
 
 interface StateAsset extends AssetInfo {
@@ -47,6 +56,12 @@ export interface StateAddress {
 }
 
 const KNOWN_ASSETS = new Set(assetIconMap.keys());
+
+/**
+ * Addresses followed over the relay's socket, which takes 200 subscriptions; the rest are left
+ * for built-in dApps' keys. Addresses past it are read again on each new block.
+ */
+export const MAX_ADDRESS_SUBSCRIPTIONS = 180;
 
 const usePrivateStateStore = defineStore("_wallet", () => {
   const addresses = shallowRef<IDbAddress[]>([]);
@@ -92,7 +107,7 @@ export const useWalletStore = defineStore("wallet", () => {
   const assetsStore = useAssetsStore();
   const privateState = usePrivateStateStore();
   const chain = useChainStore();
-  const pool = usePoolStore();
+  const relayStore = useRelayStore();
 
   // #region state
   const name = ref("");
@@ -176,11 +191,15 @@ export const useWalletStore = defineStore("wallet", () => {
   );
 
   watch(
-    () => chain.height,
-    () => {
-      if (appStore.loading || privateState.loading || !appStore.settings.lastOpenedWalletId) return;
-      sync();
-    }
+    [
+      () => relayStore.relay,
+      () => privateState.id,
+      () => privateState.loading || !storedWallet(),
+      () => privateState.addresses,
+      // ranks addresses by whether they hold assets
+      () => [...new Set(privateState.assets.map((x) => x.address))].sort().join()
+    ],
+    ([relay, walletId, idle]) => follow(relay, walletId, idle)
   );
 
   // #region computed
@@ -204,35 +223,22 @@ export const useWalletStore = defineStore("wallet", () => {
   const unfilteredBalance = computed(() => summarizeBalance());
 
   function summarizeBalance(hidden?: Set<string>): AssetBalance[] {
-    const poolBalance = appStore.settings.zeroConf ? new Map(pool.balance) : new Map();
     const groupedAssets = groupBy(assets.value, (x) => x.tokenId);
     let summary = [] as AssetBalance[];
-    let patched = false;
 
     for (const tokenId in groupedAssets) {
       if (hidden?.has(tokenId)) continue;
 
       const assetGroup = groupedAssets[tokenId];
-      const unconfirmedAmount = poolBalance.get(tokenId) ?? 0;
-      if (poolBalance.delete(tokenId)) patched = true;
+      const balance = sumBy(assetGroup, (x) => x.confirmedAmount.plus(x.unconfirmedAmount ?? 0));
+      if (tokenId !== ERG_TOKEN_ID && balance.lte(0)) continue;
 
       summary.push({
         tokenId,
-        balance: sumBy(assetGroup, (x) => x.confirmedAmount).plus(unconfirmedAmount),
+        balance,
+        incoming: incomingAmount(assetGroup),
         metadata: assetGroup[0].metadata
       });
-    }
-
-    if (poolBalance.size > 0) {
-      for (const [tokenId, amount] of poolBalance) {
-        summary.push({
-          tokenId,
-          balance: amount,
-          metadata: assetsStore.metadata.get(tokenId)
-        });
-      }
-
-      patched = true;
     }
 
     if (summary.length === 0) {
@@ -243,10 +249,6 @@ export const useWalletStore = defineStore("wallet", () => {
           metadata: assetsStore.metadata.get(ERG_TOKEN_ID)
         }
       ];
-    }
-
-    if (patched) {
-      summary = summary.filter((x) => x.tokenId === ERG_TOKEN_ID || x.balance.gt(0));
     }
 
     if (summary.length <= 1) return summary;
@@ -340,8 +342,11 @@ export const useWalletStore = defineStore("wallet", () => {
         HdKey.fromPublicKey({ publicKey: wlt.publicKey, chainCode: wlt.chainCode })
       );
 
+      // a sync checks for old boxes once done, but one this recent is skipped
+      if (!syncDue()) checkOldUtxos();
+
       if (syncInBackground) {
-        sync();
+        sync().catch((e) => log.error("Failed to sync wallet", e));
       } else {
         await sync();
       }
@@ -400,88 +405,270 @@ export const useWalletStore = defineStore("wallet", () => {
     await addressesDbService.put(dbObj);
   }
 
+  let checkOldUtxosOnHeight = false;
+  watch(
+    () => chain.height,
+    (height) => {
+      if (!height || !checkOldUtxosOnHeight) return;
+      checkOldUtxosOnHeight = false;
+      checkOldUtxos();
+    }
+  );
+
   async function checkOldUtxos() {
-    privateState.hasOldUtxos = await graphQLService.checkBoxesOlderThan(
-      chain.height - HEALTHY_BLOCKS_AGE,
-      privateState.addresses.filter((x) => x.state === AddressState.Used).map((x) => x.script)
+    if (!chain.height) {
+      checkOldUtxosOnHeight = true;
+      return;
+    }
+
+    const walletId = privateState.id;
+    // every box holds ERG, so only these addresses have confirmed boxes
+    const holders = privateState.assets
+      .filter((x) => x.tokenId === ERG_TOKEN_ID && x.confirmedAmount !== "0")
+      .map((x) => x.address);
+
+    try {
+      const hasOld = await hasBoxesCreatedBefore(chain.height - HEALTHY_BLOCKS_AGE, holders);
+      if (walletId === privateState.id) privateState.hasOldUtxos = hasOld;
+    } catch (e) {
+      log.error("Failed to check for old boxes", e);
+    }
+  }
+
+  // #region relay subscriptions
+  type Hold = { subscription: Subscription; stop: () => void };
+  const holds = new Map<string, Hold>();
+  /** Bumped on every change of a hold's state, which isn't reactive. */
+  const holdsVersion = shallowRef(0);
+  const followPhases = computed(() => {
+    void holdsVersion.value;
+    return [...holds.values()].map((h) => h.subscription.state.phase);
+  });
+  let followed: { relay: Relay; walletId: number } | undefined;
+  let stopPolling: (() => void) | undefined;
+
+  /**
+   * Follows the balances of the wallet's addresses: by subscription up to
+   * `MAX_ADDRESS_SUBSCRIPTIONS`, the most likely to change first, and the rest on each block.
+   */
+  function follow(relay: Relay | undefined, walletId: number, idle: boolean) {
+    if (followed && (followed.relay !== relay || followed.walletId !== walletId || idle)) {
+      unfollow();
+    }
+    if (!relay || !walletId || idle) return;
+    followed = { relay, walletId };
+
+    const holding = new Set(privateState.assets.map((x) => x.address));
+    const rank = (a: IDbAddress) =>
+      holding.has(a.script)
+        ? 0
+        : a.index === settings.value.defaultChangeIndex
+          ? 1
+          : a.state === AddressState.Unused
+            ? 2
+            : 3;
+    const ranked = [...privateState.addresses].sort(
+      (a, b) => rank(a) - rank(b) || a.index - b.index
     );
+    const subscribed = new Set(ranked.slice(0, MAX_ADDRESS_SUBSCRIPTIONS).map((x) => x.script));
+    const polled = ranked.slice(MAX_ADDRESS_SUBSCRIPTIONS).map((x) => x.script);
+
+    for (const [script, hold] of holds) {
+      if (subscribed.has(script)) continue;
+      release(hold);
+      holds.delete(script);
+    }
+
+    for (const script of subscribed) {
+      if (holds.has(script)) continue;
+      const subscription = relay.subscribe({ address: script }, { boxes: false });
+      const stop = subscription.subscribe(({ balance }) => {
+        holdsVersion.value++;
+        if (balance) applyBalance(walletId, script, balance.confirmed, balance.pending);
+      });
+      holds.set(script, { subscription, stop });
+    }
+    holdsVersion.value++;
+
+    stopPolling?.();
+    stopPolling = undefined;
+    if (polled.length > 0) {
+      const poll = () => refreshBalances(walletId, loadCount, polled);
+      stopPolling = relay.onTip(poll);
+      poll();
+    }
+  }
+
+  function unfollow() {
+    for (const hold of holds.values()) release(hold);
+    holds.clear();
+    stopPolling?.();
+    stopPolling = undefined;
+    followed = undefined;
+    holdsVersion.value++;
+  }
+
+  function release(hold: Hold) {
+    hold.stop();
+    hold.subscription.close();
+  }
+
+  async function refreshBalances(walletId: number, loadId: number, scripts: string[]) {
+    try {
+      const balances = await getAddressBalances(scripts);
+      // a resync wiped what this read would patch
+      if (loadId !== loadCount) return;
+      for (const b of balances) {
+        applyBalance(walletId, b.address, b.confirmed, b.pending);
+      }
+    } catch (e) {
+      log.error("Failed to refresh balances", e);
+    }
+  }
+
+  /** Applies and stores an address's latest balance; an address that holds assets is used. */
+  function applyBalance(walletId: number, script: string, confirmed: Assets, pending: Assets) {
+    // while loading, the store may be wiped; subscriptions start again once it's done
+    if (walletId !== privateState.id || privateState.loading || !storedWallet()) return;
+    const address = privateState.addresses.find((x) => x.script === script);
+    if (!address) return;
+
+    const { changedAssets, removedAssets } = diffAssets(
+      privateState.assets.filter((x) => x.address === script),
+      toDbAssets(walletId, script, confirmed, pending)
+    );
+    const becameUsed = address.state !== AddressState.Used && changedAssets.length > 0;
+    const changedAddresses = becameUsed ? [{ ...address, state: AddressState.Used }] : [];
+    if (changedAssets.length === 0 && removedAssets.length === 0) return;
+
+    privateState.patchAssets(changedAssets, removedAssets);
+    privateState.patchAddresses(changedAddresses);
+    if (changedAssets.length > 0) assetsStore.loadMetadata(changedAssets.map((x) => x.tokenId));
+
+    walletSyncDbService
+      .save(walletId, { changedAddresses, changedAssets, removedAssets })
+      .catch((e) => log.error("Failed to store balances", e));
+
+    // keeps an unused address past the last used one
+    if (becameUsed) sync({ force: true }).catch((e) => log.error("Failed to sync wallet", e));
   }
 
   // #region private actions
-  async function sync() {
-    if (Date.now() - privateState.lastSynced < MIN_SYNC_INTERVAL) return setSyncing(false);
+  let discovery: Promise<void> | undefined;
+  let discoverAgain = false;
+
+  function syncDue(): boolean {
+    return Date.now() - privateState.lastSynced >= MIN_SYNC_INTERVAL;
+  }
+
+  /**
+   * Looks for addresses used past the last known used one; balances of known addresses are
+   * followed by `follow`. A sync asked for while one runs runs again after it.
+   */
+  function sync(opt: { force?: boolean } = {}): Promise<void> {
+    if (!opt.force && !syncDue()) {
+      setSyncing(false);
+      return Promise.resolve();
+    }
+
+    if (discovery) {
+      discoverAgain = true;
+      return discovery;
+    }
+
+    discovery = (async () => {
+      try {
+        do {
+          discoverAgain = false;
+          await discover();
+        } while (discoverAgain);
+      } finally {
+        discovery = undefined;
+      }
+    })();
+
+    return discovery;
+  }
+
+  async function discover() {
     setSyncing(true);
 
     const walletId = privateState.id;
     const loadId = loadCount;
     const isCurrent = () => walletId === privateState.id && loadId === loadCount;
-    const deriver = hdKeyPool.get(privateState.publicKey);
-    const addressesChunks = [] as IDbAddress[][];
-    const assetsChunks = [] as IDbAsset[][];
-    let offset = 0;
-    let keepChecking = true;
 
-    while (keepChecking && isCurrent()) {
-      const derived = getOrDerive(privateState.addresses, deriver, CHUNK_DERIVE_LENGTH, offset);
-      const info = await graphQLService.getAddressesInfo(derived.map((x) => x.script));
+    try {
+      const deriver = hdKeyPool.get(privateState.publicKey);
+      const known = [...privateState.addresses].sort((a, b) => a.index - b.index);
+      const scanned = [] as IDbAddress[];
+      const balances = new Map<string, AddressBalance>();
+      let offset = known.findLastIndex((x) => x.state === AddressState.Used) + 1;
+      let keepChecking = true;
 
-      addressesChunks.push(
-        derived.map((d) => {
-          const i = info.find((x) => x.address === d.script);
-          return {
+      while (keepChecking && isCurrent()) {
+        const derived = getOrDerive(known, deriver, CHUNK_DERIVE_LENGTH, offset);
+        const info = await getAddressBalances(derived.map((x) => x.script));
+        for (const b of info) balances.set(b.address, b);
+
+        scanned.push(
+          ...derived.map((d) => ({
             type: AddressType.P2PK,
-            state: i?.used ? AddressState.Used : AddressState.Unused,
+            state: balances.get(d.script)?.used ? AddressState.Used : AddressState.Unused,
             script: d.script,
             index: d.index,
             walletId
-          };
-        })
-      );
-
-      assetsChunks.push(
-        info.flatMap((address) =>
-          address.assets.map((asset): IDbAsset => ({
-            address: address.address,
-            tokenId: asset.tokenId,
-            confirmedAmount: asset.confirmedAmount,
-            unconfirmedAmount: asset.unconfirmedAmount,
-            walletId
           }))
-        )
+        );
+
+        offset += derived.length;
+        keepChecking = info.some((x) => x.used);
+      }
+
+      if (!isCurrent()) return;
+
+      // keep the last used address and the next unused one
+      const kept = scanned.slice(
+        0,
+        scanned.findLastIndex((x) => x.state === AddressState.Used) + 2
+      );
+      const keptScripts = new Set(kept.map((x) => x.script));
+      const changedAddresses = kept.filter((a) => {
+        const current = known.find((x) => x.script === a.script);
+        return !current || current.state !== a.state;
+      });
+
+      // a followed balance is newer than the one read here
+      const nextAssets = kept.flatMap((a) => {
+        const b = holds.get(a.script)?.subscription.state.balance ?? balances.get(a.script);
+        return b ? toDbAssets(walletId, a.script, b.confirmed, b.pending) : [];
+      });
+      const { changedAssets, removedAssets } = diffAssets(
+        privateState.assets.filter((x) => keptScripts.has(x.address)),
+        nextAssets
       );
 
-      offset += derived.length;
-      keepChecking = info.some((x) => x.used);
+      // patched and saved before any await, so a balance that arrives meanwhile lands after it
+      const syncedAt = Date.now();
+      privateState.patchAddresses(changedAddresses);
+      privateState.patchAssets(changedAssets, removedAssets);
+      privateState.lastSynced = syncedAt;
+      const saved = walletSyncDbService.save(
+        walletId,
+        { changedAddresses, changedAssets, removedAssets },
+        syncedAt
+      );
+
+      if (changedAssets.length > 0) {
+        assetsStore
+          .loadMetadata(changedAssets.map((x) => x.tokenId))
+          .catch((e) => log.error("Failed to load metadata", e));
+      }
+      await saved;
+
+      if (isCurrent()) checkOldUtxos();
+    } finally {
+      if (isCurrent()) setSyncing(false);
     }
-
-    if (!isCurrent()) return; // ensure we are still on the same wallet load
-
-    // detect changes
-    const changes = getChanges(
-      privateState.addresses,
-      addressesChunks.flat(),
-      privateState.assets,
-      assetsChunks.flat()
-    );
-    const { changedAddresses, changedAssets, removedAssets } = changes;
-
-    // persist data
-    const syncedAt = Date.now();
-    await walletSyncDbService.save(walletId, changes, syncedAt);
-
-    // load metadata for changed assets
-    if (changedAssets.length > 0) {
-      await assetsStore.loadMetadata(changedAssets.map((x) => x.tokenId));
-    }
-
-    // update state
-    if (!isCurrent()) return; // ensure we are still on the same wallet load
-    privateState.patchAddresses(changedAddresses);
-    privateState.patchAssets(changedAssets, removedAssets);
-    privateState.lastSynced = syncedAt;
-
-    checkOldUtxos();
-    setSyncing(false);
   }
 
   function setSyncing(value: boolean) {
@@ -501,6 +688,8 @@ export const useWalletStore = defineStore("wallet", () => {
     syncing: computed(() => privateState.syncing),
     synced: computed(() => privateState.lastSynced > 0),
     health,
+    followPhases,
+    follows: (script: string) => holds.has(script),
     needsBackup: computed(() => storedWallet()?.needsBackup ?? false),
     createdAt: computed(() => storedWallet()?.createdAt ?? 0),
     name,
@@ -518,41 +707,59 @@ export const useWalletStore = defineStore("wallet", () => {
   };
 });
 
-function getChanges(
-  currentAddresses: IDbAddress[],
-  newAddress: IDbAddress[],
-  currentAssets: IDbAsset[],
-  newAssets: IDbAsset[]
-) {
-  const sortedAddresses = newAddress.sort((a, b) => a.index - b.index);
-  const latUsedIndex = sortedAddresses.findLastIndex((a) => a.state === AddressState.Used);
-  const prunedAddresses = sortedAddresses.slice(0, latUsedIndex + 2); // keep last used and next unused
+/**
+ * The pending amount of one asset across the wallet's addresses, when it adds to the balance.
+ * Summed over the whole wallet because a spend's change lands as pending on the wallet's own
+ * addresses; only what is left after the spent inputs is received from someone else.
+ */
+export function incomingAmount(assets: { unconfirmedAmount?: BigNumber }[]): BigNumber | undefined {
+  const pending = sumBy(assets, (x) => x.unconfirmedAmount ?? bn(0));
+  return pending.gt(0) ? pending : undefined;
+}
 
-  const changedAddresses = prunedAddresses.filter((newAddress) => {
-    const currentAddress = currentAddresses.find((x) => x.script === newAddress.script);
-    if (!currentAddress) return true;
-    return currentAddress.state !== newAddress.state;
-  });
+/** An address's assets as stored: one row per asset it holds or the mempool changes. */
+function toDbAssets(
+  walletId: number,
+  address: string,
+  confirmed: Assets,
+  pending: Assets
+): IDbAsset[] {
+  const amounts = new Map<string, { confirmed: bigint; pending: bigint }>();
+  const add = (tokenId: string, kind: "confirmed" | "pending", amount: bigint) => {
+    const entry = amounts.get(tokenId) ?? { confirmed: 0n, pending: 0n };
+    entry[kind] += amount;
+    amounts.set(tokenId, entry);
+  };
 
-  const changedAssets = newAssets.filter((newAsset) => {
-    if (!prunedAddresses.some((x) => x.script === newAsset.address)) return false;
+  add(ERG_TOKEN_ID, "confirmed", confirmed.nanoErgs);
+  add(ERG_TOKEN_ID, "pending", pending.nanoErgs);
+  for (const [tokenId, amount] of confirmed.tokens) add(tokenId, "confirmed", amount);
+  for (const [tokenId, amount] of pending.tokens) add(tokenId, "pending", amount);
 
-    const currentAsset = currentAssets.find(
-      (x) => x.tokenId === newAsset.tokenId && x.address === newAsset.address
-    );
-    if (!currentAsset) return true;
+  return [...amounts]
+    .filter(([, x]) => x.confirmed !== 0n || x.pending !== 0n)
+    .map(([tokenId, x]) => ({
+      address,
+      tokenId,
+      confirmedAmount: x.confirmed.toString(),
+      unconfirmedAmount: x.pending !== 0n ? x.pending.toString() : undefined,
+      walletId
+    }));
+}
 
+/** What changed from `current` to `next`, both the assets of the same addresses. */
+function diffAssets(current: IDbAsset[], next: IDbAsset[]) {
+  const same = (a: IDbAsset, b: IDbAsset) => a.tokenId === b.tokenId && a.address === b.address;
+
+  const changedAssets = next.filter((n) => {
+    const c = current.find((x) => same(x, n));
     return (
-      currentAsset.confirmedAmount !== newAsset.confirmedAmount ||
-      currentAsset.unconfirmedAmount !== newAsset.unconfirmedAmount
+      !c || c.confirmedAmount !== n.confirmedAmount || c.unconfirmedAmount !== n.unconfirmedAmount
     );
   });
+  const removedAssets = current.filter((c) => !next.some((n) => same(c, n)));
 
-  const removedAssets = currentAssets.filter(
-    (c) => !newAssets.some((n) => n.address === c.address && n.tokenId === c.tokenId)
-  );
-
-  return { changedAddresses, changedAssets, removedAssets };
+  return { changedAssets, removedAssets };
 }
 
 /**

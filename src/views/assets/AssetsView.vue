@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "@lucide/vue";
+import { computed, onScopeDispose, ref, watch } from "vue";
+import { ClockIcon, EyeIcon, EyeOffIcon, SearchCheckIcon, SearchIcon } from "@lucide/vue";
+import { useMediaQuery } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useAssetsStore } from "@/stores/assetsStore";
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BigNumber, bn } from "@/common/bigNumber";
 import { cn, isErg } from "@/common/utils";
+import { BalanceDirection, useBalanceChanges } from "@/composables/useBalanceChanges";
 import { useFormat } from "@/composables/useFormat";
 import { useProgrammaticDialog } from "@/composables/useProgrammaticDialog";
 import { ERG_TOKEN_ID } from "@/constants/ergo";
@@ -29,6 +31,12 @@ const format = useFormat();
 const { t } = useI18n({ useScope: "global" });
 
 const LOADER_DELAY_MS = 300;
+const BALANCE_DELTA_MS = 4000;
+const ROW_ENTER: KeyframeAnimationOptions = {
+  duration: 220,
+  easing: "cubic-bezier(0.16, 1, 0.3, 1)"
+};
+const ROW_LEAVE: KeyframeAnimationOptions = { duration: 280, easing: "ease-in-out" };
 
 const filter = ref("");
 const currentTab = ref<"tokens" | "collectibles">("tokens");
@@ -36,7 +44,14 @@ const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
-const tokens = computed(() => filtered(wallet.nonArtworkBalance));
+// a token's amount and kind are unknown until its metadata loads; one that failed to load is
+// listed without an amount while it's tried again
+const knownBalance = computed(() => wallet.nonArtworkBalance.filter((a) => a.metadata));
+const tokens = computed(() =>
+  filtered(
+    wallet.nonArtworkBalance.filter((a) => a.metadata || assetsStore.unavailable.has(a.tokenId))
+  )
+);
 const collectibles = computed(() => filtered(wallet.artworkBalance));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
@@ -81,16 +96,158 @@ const hideAmounts = computed(
 );
 
 const ergTotal = computed(() =>
-  wallet.nonArtworkBalance.reduce(
+  knownBalance.value.reduce(
     (acc, a) => acc.plus(a.balance.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))),
     bn(0)
   )
 );
 
+const balanceChanges = useBalanceChanges(
+  () => wallet.id,
+  () => wallet.nonArtworkBalance,
+  (tokenId) => wallet.unfilteredBalance.some((x) => x.tokenId === tokenId),
+  () => !wallet.loading && !hideAmounts.value && !app.settings.hideBalances,
+  showTotalChange
+);
+
+const totalMove = ref<{ key: number; direction?: BalanceDirection }>({ key: 0 });
+const totalDelta = ref<{ text: string; gain: boolean }>();
+let totalDeltaTimer: ReturnType<typeof setTimeout> | undefined;
+
+function showTotalChange(deltas: Map<string, BigNumber>) {
+  let delta = bn(0);
+  for (const [tokenId, amount] of deltas) {
+    delta = delta.plus(amount.times(isErg(tokenId) ? 1 : rate(tokenId)));
+  }
+  if (hasFiatRate.value) delta = delta.times(ergPrice.value);
+  // the total shows two decimals, so smaller changes don't show in it
+  if (delta.abs().lt(0.005)) return;
+
+  const gain = delta.isPositive();
+  const amount = hasFiatRate.value
+    ? formatCurrencyAmount(delta.abs(), 2)
+    : format.number.currency(delta.abs(), "erg", 2);
+  totalDelta.value = { text: `${gain ? "+" : "\u2212"}${amount}`, gain };
+
+  clearTimeout(totalDeltaTimer);
+  totalDeltaTimer = setTimeout(() => (totalDelta.value = undefined), BALANCE_DELTA_MS);
+}
+
+function hideTotalChange() {
+  clearTimeout(totalDeltaTimer);
+  totalDelta.value = undefined;
+}
+
+onScopeDispose(() => clearTimeout(totalDeltaTimer));
+
+const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+
+function rowFrames(row: HTMLElement) {
+  const style = getComputedStyle(row);
+  return {
+    open: {
+      height: `${row.offsetHeight}px`,
+      paddingTop: style.paddingTop,
+      paddingBottom: style.paddingBottom
+    },
+    closed: { height: "0px", paddingTop: "0px", paddingBottom: "0px" }
+  };
+}
+
+function animateRow(
+  row: HTMLElement,
+  keyframes: Keyframe[],
+  options: KeyframeAnimationOptions,
+  done: () => void
+) {
+  row.style.overflow = "hidden";
+  const animation = row.animate(keyframes, options);
+  animation.onfinish = animation.oncancel = () => {
+    row.style.overflow = "";
+    done();
+  };
+}
+
+// rows also come and go when filtering or switching wallets, which must stay instant
+function onRowEnter(el: Element, done: () => void) {
+  const row = el as HTMLElement;
+  if (reducedMotion.value || !balanceChanges.isNew(row.dataset.tokenId!)) return done();
+
+  const { open, closed } = rowFrames(row);
+  animateRow(
+    row,
+    [
+      { ...closed, opacity: 0 },
+      { ...open, opacity: 1 }
+    ],
+    ROW_ENTER,
+    done
+  );
+}
+
+function onRowLeave(el: Element, done: () => void) {
+  const row = el as HTMLElement;
+  if (reducedMotion.value || !balanceChanges.isRemoved(row.dataset.tokenId!)) return done();
+
+  const { open, closed } = rowFrames(row);
+  animateRow(
+    row,
+    [
+      { ...open, opacity: 1 },
+      { ...open, opacity: 0, offset: 0.4 },
+      { ...closed, opacity: 0 }
+    ],
+    ROW_LEAVE,
+    done
+  );
+}
+
+// tokens without a rate aren't in the total, so neither is their pending part
+const incomingTotal = computed(() =>
+  knownBalance.value.reduce(
+    (acc, a) =>
+      a.incoming ? acc.plus(a.incoming.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))) : acc,
+    bn(0)
+  )
+);
+const incomingValue = computed(() =>
+  hasFiatRate.value ? incomingTotal.value.times(ergPrice.value) : incomingTotal.value
+);
+const pendingAssets = computed(() => wallet.balance.filter((a) => a.incoming && a.metadata));
+const incomingInTotal = computed(() => incomingValue.value.gte(0.005));
+// pending tokens without a rate aren't in the total, but their rows are still marked
+const showIncoming = computed(() => !hideAmounts.value && pendingAssets.value.length > 0);
+const formattedIncoming = computed(() =>
+  hasFiatRate.value
+    ? formatCurrencyAmount(incomingValue.value, 2)
+    : format.number.currency(incomingValue.value, "erg", 2)
+);
+
+const totalValue = computed(() =>
+  hasFiatRate.value ? ergTotal.value.times(ergPrice.value) : ergTotal.value
+);
 const formattedTotal = computed(() =>
   hasFiatRate.value
-    ? formatCurrencyAmount(ergTotal.value.times(ergPrice.value), 2)
-    : format.number.currency(ergTotal.value, "erg", 2)
+    ? formatCurrencyAmount(totalValue.value, 2)
+    : format.number.currency(totalValue.value, "erg", 2)
+);
+
+// moves on balance and price changes alike; only balance changes show a delta
+watch(
+  () => ({
+    walletId: wallet.id,
+    inFiat: hasFiatRate.value,
+    live: !wallet.loading && !hideAmounts.value && !app.settings.hideBalances,
+    value: totalValue.value,
+    text: formattedTotal.value
+  }),
+  (now, before) => {
+    if (!now.live || !before.live || now.text === before.text) return;
+    if (now.walletId !== before.walletId || now.inFiat !== before.inFiat) return;
+
+    const direction = now.value.gt(before.value) ? "up" : "down";
+    totalMove.value = { key: totalMove.value.key + 1, direction };
+  }
 );
 
 watch(
@@ -98,6 +255,7 @@ watch(
   () => {
     filter.value = "";
     currentTab.value = "tokens";
+    hideTotalChange();
   }
 );
 
@@ -151,7 +309,9 @@ function openAssetInfoDialog(tokenId: string) {
               />
               <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
             </template>
-            <template v-else>{{ formattedTotal }}</template>
+            <Transition v-else :name="`balance-${totalMove.direction}`" mode="out-in">
+              <span :key="totalMove.key" class="block truncate">{{ formattedTotal }}</span>
+            </Transition>
           </h2>
           <Button
             v-if="app.settings.hideBalances || !hideAmounts"
@@ -170,15 +330,69 @@ function openAssetInfoDialog(tokenId: string) {
             <EyeOffIcon v-else />
           </Button>
         </div>
-        <p class="text-muted-foreground text-xs">
-          {{
-            hasFiatRate || hideAmounts || app.settings.hideBalances
-              ? t("asset.totalBalance")
-              : t("asset.totalBalanceNoRate", {
-                  currency: app.settings.conversionCurrency.toUpperCase()
-                })
-          }}
-        </p>
+        <Transition name="balance-caption" mode="out-in">
+          <p
+            v-if="totalDelta && !hideAmounts && !app.settings.hideBalances"
+            key="delta"
+            data-balance-delta
+            class="text-xs font-medium tabular-nums"
+            :class="{ 'text-success': totalDelta.gain }"
+          >
+            {{ totalDelta.text }}
+          </p>
+          <p v-else key="label" class="text-muted-foreground text-xs">
+            {{
+              hasFiatRate || hideAmounts || app.settings.hideBalances
+                ? t("asset.totalBalance")
+                : t("asset.totalBalanceNoRate", {
+                    currency: app.settings.conversionCurrency.toUpperCase()
+                  })
+            }}
+          </p>
+        </Transition>
+        <span class="sr-only" aria-live="polite">
+          {{ totalDelta ? t("asset.balanceChanged", { amount: totalDelta.text }) : "" }}
+        </span>
+        <Transition name="balance-caption">
+          <div v-if="showIncoming">
+            <Popover>
+              <PopoverTrigger as-child>
+                <button
+                  id="pending-balance-info"
+                  type="button"
+                  class="border-warning/70 text-warning-text hover:bg-warning/10 focus-visible:ring-ring/50 mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-dashed px-2.5 py-0.5 text-xs font-medium tabular-nums transition-colors outline-none focus-visible:ring-[3px]"
+                >
+                  <ClockIcon class="size-3" aria-hidden="true" />
+                  {{
+                    !incomingInTotal
+                      ? t("asset.pending.unpriced")
+                      : app.settings.hideBalances
+                        ? t("asset.pending.includesHidden")
+                        : t("asset.pending.includes", { amount: formattedIncoming })
+                  }}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent data-pending-balance-explainer class="w-72 text-left text-xs">
+                <p class="mb-1.5 text-sm font-semibold">{{ t("asset.pending.title") }}</p>
+                <ul v-if="!app.settings.hideBalances" class="mb-2 flex flex-col gap-1 tabular-nums">
+                  <li
+                    v-for="asset in pendingAssets"
+                    :key="asset.tokenId"
+                    data-pending-asset
+                    class="text-warning-text flex items-center gap-1.5 font-medium"
+                  >
+                    <ClockIcon class="size-3 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{{
+                      format.number.namedCurrency(asset.incoming, format.asset.name(asset))
+                    }}</span>
+                  </li>
+                </ul>
+                <p class="text-muted-foreground mb-2">{{ t("asset.pending.description") }}</p>
+                <p>{{ t("asset.pending.advice") }}</p>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </Transition>
       </div>
 
       <WalletAlerts />
@@ -221,15 +435,25 @@ function openAssetInfoDialog(tokenId: string) {
             {{ t("asset.noAssetsFound") }}
           </p>
           <Transition name="slide-up" appear>
-            <div data-token-list class="flex flex-col">
+            <TransitionGroup
+              tag="div"
+              data-token-list
+              class="flex flex-col"
+              :css="false"
+              move-class="transition-none"
+              @enter="onRowEnter"
+              @leave="onRowLeave"
+            >
               <Button
                 v-for="asset in tokens"
                 :key="asset.tokenId"
+                :data-token-id="asset.tokenId"
                 variant="ghost"
                 :class="
                   cn(
                     'h-auto gap-3 px-3 py-2.5 text-left [&_svg]:size-9',
-                    isErg(asset.tokenId) && 'cursor-default'
+                    isErg(asset.tokenId) && 'cursor-default',
+                    balanceChanges.isNew(asset.tokenId) && 'animate-token-new'
                   )
                 "
                 @click="openAssetInfoDialog(asset.tokenId)"
@@ -255,8 +479,50 @@ function openAssetInfoDialog(tokenId: string) {
                     <Skeleton class="my-0.5 h-4 w-16" :class="{ invisible: !showLoader }" />
                     <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
                   </template>
+                  <template v-else-if="!asset.metadata">
+                    <Skeleton class="my-0.5 h-4 w-16" data-amount-unavailable />
+                    <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
+                  </template>
                   <template v-else>
-                    <span>{{ format.number.decimal(asset.balance) }}</span>
+                    <Transition
+                      :name="`balance-${balanceChanges.direction(asset.tokenId)}`"
+                      mode="out-in"
+                    >
+                      <span
+                        :key="balanceChanges.amountKey(asset.tokenId)"
+                        class="inline-flex flex-row-reverse items-baseline gap-1.5 [--balance-shift:0.3em]"
+                      >
+                        <span>{{ format.number.decimal(asset.balance) }}</span>
+                        <TooltipProvider v-if="asset.incoming" :delay-duration="100">
+                          <Tooltip>
+                            <TooltipTrigger as-child>
+                              <span
+                                data-pending-amount
+                                class="text-warning-text -m-1 inline-flex self-center p-1"
+                              >
+                                <ClockIcon class="size-3.5!" aria-hidden="true" />
+                                <span class="sr-only">{{
+                                  t("asset.pending.amount", {
+                                    amount: format.number.decimal(asset.incoming)
+                                  })
+                                }}</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              data-pending-amount-tooltip
+                              class="max-w-72 text-center"
+                            >
+                              {{
+                                t("asset.pending.includesAsset", {
+                                  amount: format.number.decimal(asset.incoming),
+                                  asset: format.asset.name(asset)
+                                })
+                              }}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                    </Transition>
 
                     <TooltipProvider :delay-duration="100" v-if="rate(asset.tokenId)">
                       <Tooltip>
@@ -279,7 +545,7 @@ function openAssetInfoDialog(tokenId: string) {
                   </template>
                 </div>
               </Button>
-            </div>
+            </TransitionGroup>
           </Transition>
         </TabsContent>
 
@@ -311,6 +577,14 @@ function openAssetInfoDialog(tokenId: string) {
                   class="bg-scrim/70 text-scrim-foreground absolute bottom-1 left-1 max-w-32 truncate rounded-md px-2.5 py-0.5 font-normal"
                 >
                   {{ nft.metadata?.name ?? nft.tokenId }}
+                </div>
+                <div
+                  v-if="nft.incoming"
+                  data-pending-amount
+                  class="bg-warning text-warning-foreground absolute top-1 left-1 flex h-6 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                >
+                  <ClockIcon class="size-3" aria-hidden="true" />
+                  {{ t("asset.pending.badge") }}
                 </div>
                 <div
                   v-if="!nft.balance.eq(1) && !app.settings.hideBalances"

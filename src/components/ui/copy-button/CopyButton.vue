@@ -14,17 +14,24 @@ interface Props extends PrimitiveProps {
   type?: ButtonHTMLAttributes["type"];
   class?: HTMLAttributes["class"];
   content?: string;
+  tooltip?: boolean;
+  icon?: boolean;
+  label?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "minimal",
   size: "condensed",
-  type: "button"
+  type: "button",
+  tooltip: true,
+  icon: true
 });
 
 const { t } = useI18n({ useScope: "global" });
 const { copy, copied } = useClipboard({ copiedDuring: 2_000, legacy: true });
-const label = computed(() => (copied.value ? t("common.copied") : t("common.copy")));
+const label = computed(() =>
+  copied.value ? t("common.copied") : (props.label ?? t("common.copy"))
+);
 
 function onClick(e: MouseEvent) {
   // avoid triggering parent click handlers, like collapsibles or list items
@@ -36,7 +43,7 @@ function onClick(e: MouseEvent) {
 <template>
   <TooltipProvider :delay-duration="100">
     <!-- keep the tooltip open on click so the "copied" feedback is visible -->
-    <Tooltip disable-closing-trigger>
+    <Tooltip disable-closing-trigger :disabled="!props.tooltip">
       <TooltipTrigger as-child>
         <Button
           :as="props.as"
@@ -50,8 +57,10 @@ function onClick(e: MouseEvent) {
           @click="onClick"
         >
           <slot v-if="$slots.default" />
-          <CopyCheckIcon v-if="copied" class="size-auto" />
-          <CopyIcon v-else class="size-auto" />
+          <template v-if="props.icon">
+            <CopyCheckIcon v-if="copied" class="size-auto" />
+            <CopyIcon v-else class="size-auto" />
+          </template>
         </Button>
       </TooltipTrigger>
       <TooltipContent :aria-label="label">

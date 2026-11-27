@@ -30,8 +30,10 @@ const forwarded = useForwardPropsEmits(reactiveOmit(props, "class", "dismissible
 <template>
   <DrawerPortal>
     <DrawerOverlay />
+    <!-- reka-ui has no prop to turn off swipe-to-dismiss; it skips any target inside this attribute -->
     <DrawerContent
       v-bind="{ ...$attrs, ...forwarded }"
+      data-reka-swipe-ignore
       :class="
         cn(
           'bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col gap-6 rounded-t-[10px] border p-6 outline-hidden',

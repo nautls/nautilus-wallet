@@ -2,10 +2,11 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, requiredIf, withMessage } from "@regle/rules";
-import { Loader2Icon } from "@lucide/vue";
+import { CircleAlertIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import NewPasswordFields from "@/components/NewPasswordFields.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -24,7 +25,7 @@ import { MasterPasswordChangedError, PasswordError, SessionLockedError } from "@
 import { log } from "@/common/logger";
 import { extractErrorMessage } from "@/common/utils";
 import { useNewPassword } from "@/composables/useNewPassword";
-import { usePasswordTexts } from "@/composables/usePasswordPrompt";
+import { usePasswordTexts, useWrongPasswordRule } from "@/composables/usePasswordPrompt";
 import { useUnlockSession } from "@/composables/useUnlockSession";
 import { PasswordKind, walletsDbService } from "@/database/walletsDbService";
 
@@ -47,6 +48,7 @@ const masterInput = useTemplateRef("master-input");
 
 const opened = ref(true);
 const loading = ref(false);
+const failure = ref<{ title: string; description?: string }>();
 const hasMaster = ref<boolean>();
 const walletId = ref(wallet.id);
 const walletName = ref(wallet.name);
@@ -121,18 +123,32 @@ const newLabel = computed(() => {
     : t("settings.wallet.newPassword");
 });
 
+const wrongCurrent = useWrongPasswordRule(currentPassword, () =>
+  passwordTexts.wrong(current.value)
+);
+const wrongMaster = useWrongPasswordRule(masterPassword, () => passwordTexts.wrong("master"));
+
 const { r$ } = useRegle(
   { currentPassword, masterPassword },
   {
     currentPassword: {
-      required: withMessage(required, () => passwordTexts.required(current.value))
+      required: withMessage(required, () => passwordTexts.required(current.value)),
+      correct: wrongCurrent.correct
     },
     masterPassword: {
-      required: withMessage(requiredIf(asksMaster), () => passwordTexts.required("master"))
+      required: withMessage(requiredIf(asksMaster), () => passwordTexts.required("master")),
+      correct: wrongMaster.correct
     }
   },
   { autoDirty: false }
 );
+
+// a disabled input can't take focus, so re-enable it and wait for the render first
+async function focusAfterError(input: typeof currentInput) {
+  loading.value = false;
+  await nextTick();
+  input.value?.input?.$el.focus();
+}
 
 async function submit() {
   const { valid } = await r$.$validate();
@@ -141,50 +157,44 @@ async function submit() {
 
   try {
     loading.value = true;
+    failure.value = undefined;
     await run(created);
 
-    toast({ title: texts.value.done });
+    toast({ title: texts.value.done, icon: "done" });
     emit("done");
     setOpened(false);
   } catch (e) {
     if (e instanceof MasterPasswordChangedError) {
       // show the fields the master password's current state calls for
       await loadMaster();
-      toast({
+      failure.value = {
         title: t("settings.password.masterChangedMeanwhile"),
-        variant: "destructive",
         description: props.action === "toMaster" ? texts.value.description : undefined
-      });
+      };
       if (asksMaster.value) nextTick(() => masterInput.value?.input?.$el.focus());
       return;
     }
 
     if (e instanceof SessionLockedError) {
       await session.reload();
-      toast({ title: t("wallet.sessionLocked"), description: passwordTexts.required("master") });
-      nextTick(() => masterInput.value?.input?.$el.focus());
+      await r$.masterPassword.$validate();
+      await focusAfterError(masterInput);
       return;
     }
 
     if (e instanceof PasswordError) {
-      const kind = e.kind ?? current.value;
-      toast({
-        title: passwordTexts.wrong(kind),
-        variant: "destructive",
-        description: passwordTexts.wrongHint()
-      });
-
-      const input = kind === current.value ? currentInput : masterInput;
-      nextTick(() => input.value?.input?.$el.focus());
+      const isCurrent = (e.kind ?? current.value) === current.value;
+      (isCurrent ? wrongCurrent : wrongMaster).markWrong();
+      await (isCurrent ? r$.currentPassword : r$.masterPassword).$validate();
+      await focusAfterError(isCurrent ? currentInput : masterInput);
       return;
     }
 
     log.error(e);
-    toast({
+    failure.value = {
       title: t("settings.password.changeFailed"),
-      variant: "destructive",
       description: extractErrorMessage(e)
-    });
+    };
   } finally {
     loading.value = false;
   }
@@ -218,6 +228,7 @@ async function loadMaster() {
 function reset() {
   currentPassword.value = "";
   masterPassword.value = "";
+  failure.value = undefined;
   newPassword.reset();
   r$.$reset();
 }
@@ -287,6 +298,14 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
           :disabled="loading"
         />
       </Form>
+
+      <Alert v-if="failure" id="password-error" variant="destructive">
+        <CircleAlertIcon />
+        <AlertTitle>{{ failure.title }}</AlertTitle>
+        <AlertDescription v-if="failure.description" class="wrap-break-word">
+          {{ failure.description }}
+        </AlertDescription>
+      </Alert>
 
       <DrawerFooter class="flex-row gap-4">
         <DrawerClose as-child>

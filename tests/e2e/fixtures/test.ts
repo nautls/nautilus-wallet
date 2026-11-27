@@ -5,7 +5,7 @@ import { buildBabelContract } from "@fleet-sdk/babel-fees-plugin";
 import { ErgoAddress, ErgoBox } from "@fleet-sdk/core";
 import { SGroupElement, SLong, SSigmaProp } from "@fleet-sdk/serializer";
 import { test as base, chromium, type BrowserContext, type Page } from "@playwright/test";
-import { EXTERNAL_ADDRESS, MockChain, type GqlBox } from "../mocks/chain";
+import { EXTERNAL_ADDRESS, MockChain, type MockBox } from "../mocks/chain";
 import { DAPP_ORIGIN, installServiceMocks, type ServiceOptions } from "../mocks/services";
 import { Popup } from "../pages/popup";
 import { addressOf, TEST_NFT, TEST_TOKEN, type TestWallet } from "./wallets";
@@ -104,7 +104,7 @@ export function addBabelBox(chain: MockChain, tokenId: string, nanoErgsPerToken:
     }
   };
 
-  const box: GqlBox = {
+  const box: MockBox = {
     ...candidate,
     // the builder rejects inputs whose id doesn't match their content
     boxId: new ErgoBox(candidate, transactionId, 0).boxId,
@@ -131,7 +131,7 @@ export function addRegisterKeyBox(chain: MockChain, publicKey: Uint8Array) {
     additionalRegisters: { R4: SGroupElement(publicKey).toHex() }
   };
 
-  const box: GqlBox = {
+  const box: MockBox = {
     ...candidate,
     boxId: new ErgoBox(candidate, transactionId, 0).boxId,
     transactionId,
@@ -147,9 +147,41 @@ export function addRegisterKeyBox(chain: MockChain, publicKey: Uint8Array) {
 export function addSigmaUsdBoxes(chain: MockChain) {
   const { bank, oracle } = JSON.parse(
     readFileSync(path.resolve(import.meta.dirname, "data/sigmausd.json"), "utf8")
-  ) as { bank: GqlBox; oracle: GqlBox };
+  ) as { bank: MockBox; oracle: MockBox };
 
   chain.addBox(bank);
   chain.addBox(oracle);
   return { bank, oracle };
+}
+
+/**
+ * Adds a pending oracle update to the chain: a tx spending `oracle` into a box with the same
+ * NFT and `rate` in R4, in nanoERGs per USD cent. Returns the new oracle box.
+ */
+export function updateOracle(chain: MockChain, oracle: MockBox, rate: bigint): MockBox {
+  const transactionId = randomBytes(32).toString("hex");
+  const candidate = {
+    value: BigInt(oracle.value),
+    ergoTree: oracle.ergoTree,
+    creationHeight: chain.height,
+    assets: oracle.assets.map((a) => ({ tokenId: a.tokenId, amount: BigInt(a.amount) })),
+    additionalRegisters: { ...oracle.additionalRegisters, R4: SLong(rate).toHex() }
+  };
+  const box: MockBox = {
+    ...candidate,
+    boxId: new ErgoBox(candidate, transactionId, 0).boxId,
+    transactionId,
+    index: 0,
+    value: candidate.value.toString(),
+    assets: oracle.assets
+  };
+
+  chain.addPending({
+    transactionId,
+    timestamp: String(Date.now()),
+    inputs: [{ proofBytes: "", extension: {}, index: 0, box: oracle }],
+    dataInputs: [],
+    outputs: [box]
+  });
+  return box;
 }

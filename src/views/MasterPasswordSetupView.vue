@@ -170,7 +170,7 @@ async function setUp() {
       chosenWallets.value.map((w) => ({ id: w.id, password: passwords[w.id] ?? "" }))
     );
 
-    toast({ title: t("settings.password.masterSetUp") });
+    toast({ title: t("settings.password.masterSetUp"), icon: "done" });
     if (window.history.state?.back) router.back();
     else router.push({ name: "assets" });
   } catch (e) {

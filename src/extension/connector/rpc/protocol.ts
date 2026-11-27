@@ -36,8 +36,7 @@ export const enum InternalRequest {
 
 export const enum InternalEvent {
   Loaded = "int:loaded",
-  Disconnected = "int:disconnected",
-  UpdatedBackendUrl = "int:backend-host-updated"
+  Disconnected = "int:disconnected"
 }
 
 export const enum ExternalEvent {

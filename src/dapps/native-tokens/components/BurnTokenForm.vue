@@ -9,9 +9,12 @@ import { useAssetsStore } from "@/stores/assetsStore";
 import { AssetBalance, useWalletStore } from "@/stores/walletStore";
 import { AssetInput, AssetSelect } from "@/components/asset";
 import ActionFooter from "@/components/ActionFooter.vue";
-import { TransactionFeeConfig, TransactionSignDialog } from "@/components/transaction";
+import {
+  TransactionFeeConfig,
+  TransactionSignDialog,
+  TxActionButton
+} from "@/components/transaction";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { CommandItem, CommandSeparator } from "@/components/ui/command";
 import { Form, FormField } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
@@ -19,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { TxAssetAmount } from "@/chains/ergo/transaction/builder";
 import { BigNumber, bn, decimalize, undecimalize } from "@/common/bigNumber";
 import { isErg } from "@/common/utils";
+import { useTxReady } from "@/composables/useWalletBoxes";
 import { useProgrammaticDialog } from "@/composables";
 import { useCollectChildValidations } from "@/composables/useValidationScope";
 import { ERG_DECIMALS, ERG_TOKEN_ID, SAFE_MIN_FEE_VALUE } from "@/constants/ergo";
@@ -29,6 +33,7 @@ const wallet = useWalletStore();
 const assets = useAssetsStore();
 const { t } = useI18n();
 const { open: openTransactionSignDialog } = useProgrammaticDialog(TransactionSignDialog);
+const txReady = useTxReady();
 
 const selected = ref<TxAssetAmount[]>([]);
 const fee = ref<FeeSettings>({
@@ -112,6 +117,7 @@ function getReservedAmountFor(tokenId: string): BigNumber | undefined {
 }
 
 async function burn() {
+  if (!txReady.value) return; // Enter submits the form even while the footer's button is disabled
   const { valid } = await form$.$validate();
   if (!valid) return;
 
@@ -193,8 +199,8 @@ function reset() {
 
   <ActionFooter>
     <TransactionFeeConfig v-model="fee" />
-    <Button type="submit" variant="destructive" size="lg" class="w-full" @click="burn">{{
+    <TxActionButton type="submit" variant="destructive" @click="burn">{{
       t("dapps.nativeTokens.burn.burn")
-    }}</Button>
+    }}</TxActionButton>
   </ActionFooter>
 </template>

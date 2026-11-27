@@ -1,9 +1,9 @@
 import { AgeUSDExchangeAction, AgeUSDExchangePlugin, SigmaUSDBank } from "@fleet-sdk/ageusd-plugin";
 import { EIP12UnsignedTransaction } from "@fleet-sdk/common";
 import { TransactionBuilder } from "@fleet-sdk/core";
+import { useBoxesStore } from "@/stores/boxesStore";
 import { useChainStore } from "@/stores/chainStore";
 import { useWalletStore } from "@/stores/walletStore";
-import { fetchBoxes } from "@/chains/ergo/boxFetcher";
 import {
   safeGetChangeAddress,
   setSelectionAndChangeStrategy
@@ -19,7 +19,7 @@ export async function createExchangeTransaction(
   const recipient = safeGetChangeAddress();
 
   const unsigned = new TransactionBuilder(chain.height)
-    .from(await fetchBoxes(wallet.id))
+    .from((await useBoxesStore().spendable()).all)
     .extend(AgeUSDExchangePlugin(bank, { ...action, recipient, transactionFee }))
     .sendChangeTo(recipient);
 
