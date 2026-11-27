@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, toRaw, watch } from "vue";
 import { Amount, Box } from "@fleet-sdk/common";
-import { serializeBox } from "@fleet-sdk/serializer";
 import { ShieldAlertIcon, ShieldCheckIcon, TriangleAlertIcon } from "@lucide/vue";
 import { minBy } from "es-toolkit";
 import { I18nT, useI18n } from "vue-i18n";
@@ -28,7 +27,6 @@ import {
   ERG_TOKEN_ID,
   HEALTHY_BLOCKS_AGE,
   HEALTHY_UTXO_COUNT,
-  HEALTHY_WALLET_SIZE,
   SAFE_MIN_FEE_VALUE
 } from "@/constants/ergo";
 import { FeeSettings } from "@/types/internal";
@@ -48,15 +46,6 @@ const boxes = ref<Box<Amount>[]>([]);
 const fee = ref<FeeSettings>({
   tokenId: ERG_TOKEN_ID,
   value: decimalize(bn(SAFE_MIN_FEE_VALUE), ERG_DECIMALS)
-});
-
-const walletSize = computed(() => {
-  let size = 0;
-  for (const box of boxes.value) {
-    size += serializeBox(box).length;
-  }
-
-  return size;
 });
 
 const minBoxHeight = computed(() => {
@@ -82,10 +71,9 @@ const oldestBox = computed(() => {
 const utxoHealth = computed(() => {
   const count = boxes.value.length < HEALTHY_UTXO_COUNT;
   const age = boxAge.value < HEALTHY_BLOCKS_AGE;
-  const size = walletSize.value < HEALTHY_WALLET_SIZE;
-  const overall = count && age && size;
+  const overall = count && age;
 
-  return { count, age, size, overall };
+  return { count, age, overall };
 });
 
 const restFallback = computed(
@@ -152,18 +140,6 @@ async function createTransaction() {
     toRaw(fee.value)
   );
 }
-
-function formatBytes(bytes: number, decimals = 1) {
-  const b = t("dapps.walletOptimizer.bytes");
-  if (!+bytes) return b;
-
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = [b, "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
 </script>
 
 <template>
@@ -220,13 +196,6 @@ function formatBytes(bytes: number, decimals = 1) {
           :healthy="utxoHealth.age"
           :content="oldestBox"
           :limit="t('dapps.walletOptimizer.ageLimit', healthyYears)"
-        />
-        <DataPoint
-          :title="t('dapps.walletOptimizer.walletSize')"
-          :loading="loading"
-          :healthy="utxoHealth.size"
-          :content="formatBytes(walletSize)"
-          :limit="t('dapps.walletOptimizer.sizeLimit', { size: formatBytes(HEALTHY_WALLET_SIZE) })"
         />
       </div>
 
