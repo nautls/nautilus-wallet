@@ -44,9 +44,14 @@ const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
-// a token's amount and kind are unknown until its metadata loads
-const listedBalance = computed(() => wallet.nonArtworkBalance.filter((a) => a.metadata));
-const tokens = computed(() => filtered(listedBalance.value));
+// a token's amount and kind are unknown until its metadata loads; one that failed to load is
+// listed without an amount while it's tried again
+const knownBalance = computed(() => wallet.nonArtworkBalance.filter((a) => a.metadata));
+const tokens = computed(() =>
+  filtered(
+    wallet.nonArtworkBalance.filter((a) => a.metadata || assetsStore.unavailable.has(a.tokenId))
+  )
+);
 const collectibles = computed(() => filtered(wallet.artworkBalance));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
@@ -91,7 +96,7 @@ const hideAmounts = computed(
 );
 
 const ergTotal = computed(() =>
-  listedBalance.value.reduce(
+  knownBalance.value.reduce(
     (acc, a) => acc.plus(a.balance.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))),
     bn(0)
   )
@@ -391,6 +396,10 @@ function openAssetInfoDialog(tokenId: string) {
                   </template>
                   <template v-else-if="hideAmounts">
                     <Skeleton class="my-0.5 h-4 w-16" :class="{ invisible: !showLoader }" />
+                    <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
+                  </template>
+                  <template v-else-if="!asset.metadata">
+                    <Skeleton class="my-0.5 h-4 w-16" data-amount-unavailable />
                     <span class="sr-only">{{ t("asset.loadingBalance") }}</span>
                   </template>
                   <template v-else>

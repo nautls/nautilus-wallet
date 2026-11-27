@@ -192,9 +192,9 @@ describe("token metadata", () => {
     ]);
   });
 
-  it("should be undefined when nothing is known or the request fails", async () => {
+  it("should be empty when nothing is known and undefined when the request fails", async () => {
     reply("GET /v1/tokens/metadata", json({ items: [] }));
-    expect(await getAssetsMetadata(["t3"])).toBeUndefined();
+    expect(await getAssetsMetadata(["t3"])).toEqual([]);
 
     reply("GET /v1/tokens/metadata", json({ error: "node_error", message: "down" }, 502));
     expect(await getAssetsMetadata(["t3"])).toBeUndefined();

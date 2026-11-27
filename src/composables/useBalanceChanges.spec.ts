@@ -134,6 +134,35 @@ describe("useBalanceChanges", () => {
     expect(changes.isRemoved("scam")).toBe(false);
   });
 
+  it("doesn't report a held token without metadata until its metadata arrives", async () => {
+    const { changes, update, onChange } = setup([asset("erg", 10), noMetadata("a", 2000000)]);
+
+    await update({ assets: [asset("erg", 10), noMetadata("a", 3000000)] });
+    await update({ assets: [asset("erg", 10), asset("a", 3, 6)] });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isNew("a")).toBe(false);
+  });
+
+  it("doesn't report a held token spent before its metadata arrives", async () => {
+    const { changes, update, onChange } = setup([asset("erg", 10), noMetadata("a", 2000000)]);
+
+    await update({ assets: [asset("erg", 10)] });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isRemoved("a")).toBe(false);
+  });
+
+  it("doesn't report a hidden token that is listed again", async () => {
+    const { changes, update, onChange } = setup([asset("erg", 10), asset("scam", 5)]);
+
+    await update({ assets: [asset("erg", 10)], hidden: [asset("scam", 5)] });
+    await update({ assets: [asset("erg", 10), asset("scam", 5)], hidden: [] });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isNew("scam")).toBe(false);
+  });
+
   it("ignores updates that leave every balance the same", async () => {
     const { update, onChange } = setup([asset("erg", 10)]);
 

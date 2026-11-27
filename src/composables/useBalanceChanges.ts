@@ -17,9 +17,13 @@ interface Snapshot {
 
 interface Amount {
   balance: BigNumber;
+  /** Amounts are decimalized with the token's metadata, so they can't be compared without it. */
+  hasMetadata: boolean;
   decimals?: number;
-  /** Added while live but not yet reported, as its amount isn't decimalized until metadata. */
+  /** Added while live, to be reported once its metadata arrives. */
   pending: boolean;
+  /** Left `balances` while still held; it comes back as the baseline, not as an addition. */
+  hidden: boolean;
 }
 
 const NEW_TOKEN_MS = 1500;
@@ -29,7 +33,7 @@ const NEW_TOKEN_MS = 1500;
  * should see happen: only those of the same wallet while `live`. Anything that changes
  * while not live (loading, amounts hidden) becomes the new baseline without being reported.
  * A token that leaves `balances` while `isHeld` still has it (now hidden by a filter, such as
- * a blacklist or artwork metadata that loaded late) is not reported as removed.
+ * a blacklist or artwork metadata that loaded late) is neither removed nor added back.
  */
 export function useBalanceChanges(
   walletId: () => number,
@@ -54,17 +58,28 @@ export function useBalanceChanges(
     [walletId, balances, live],
     ([id, current, isLive]) => {
       const previous = snapshot;
-      const reporting = isLive && previous?.walletId === id;
-      snapshot = {
-        walletId: id,
-        amounts: new Map(
-          current.map((a) => {
-            const before = reporting ? previous!.amounts.get(a.tokenId) : undefined;
-            const pending = reporting && !a.metadata && (!before || before.pending);
-            return [a.tokenId, { balance: a.balance, decimals: a.metadata?.decimals, pending }];
-          })
-        )
-      };
+      const sameWallet = previous?.walletId === id;
+      const reporting = isLive && sameWallet;
+      const amounts = new Map<string, Amount>();
+      for (const a of current) {
+        const before = sameWallet ? previous.amounts.get(a.tokenId) : undefined;
+        const hasMetadata = a.metadata !== undefined;
+        amounts.set(a.tokenId, {
+          balance: a.balance,
+          hasMetadata,
+          decimals: a.metadata?.decimals,
+          pending: reporting && !hasMetadata && (!before || before.pending),
+          hidden: false
+        });
+      }
+      if (sameWallet) {
+        for (const [tokenId, before] of previous.amounts) {
+          if (!amounts.has(tokenId) && isHeld(tokenId)) {
+            amounts.set(tokenId, { ...before, pending: false, hidden: true });
+          }
+        }
+      }
+      snapshot = { walletId: id, amounts };
 
       removedTokens = new Set();
       if (previous?.walletId !== id) {
@@ -77,7 +92,7 @@ export function useBalanceChanges(
       const added = new Set<string>();
       const nextMoves = new Map(moves.value);
       for (const [tokenId, now] of snapshot.amounts) {
-        if (now.pending) continue;
+        if (now.hidden || !now.hasMetadata) continue;
         const before = previous.amounts.get(tokenId);
         if (!before || before.pending) {
           added.add(tokenId);
@@ -85,8 +100,7 @@ export function useBalanceChanges(
           continue;
         }
 
-        // amounts are decimalized with the token's metadata, which can arrive after them
-        if (before.decimals !== now.decimals) continue;
+        if (before.hidden || !before.hasMetadata || before.decimals !== now.decimals) continue;
 
         const delta = now.balance.minus(before.balance);
         if (delta.isZero()) continue;
@@ -95,7 +109,7 @@ export function useBalanceChanges(
       }
 
       for (const [tokenId, before] of previous.amounts) {
-        if (snapshot.amounts.has(tokenId) || before.pending || isHeld(tokenId)) continue;
+        if (snapshot.amounts.has(tokenId) || before.hidden || !before.hasMetadata) continue;
         removedTokens.add(tokenId);
         deltas.set(tokenId, before.balance.negated());
       }

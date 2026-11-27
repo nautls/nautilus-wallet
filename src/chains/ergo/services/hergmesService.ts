@@ -41,6 +41,7 @@ const TYPES: Record<string, { type: AssetType; subtype?: string }> = {
 
 export const MIN_RELAY_VERSION = "0.3.0";
 export const NO_RELAY_MESSAGE = "No relay server is set. Set one in settings.";
+const METADATA_TIMEOUT_MS = 20_000;
 
 let client: RestClient | undefined;
 let clientUrl: string | undefined;
@@ -88,14 +89,13 @@ export async function getHeaders(): Promise<BlockHeader[]> {
 }
 
 /**
- * Returns `undefined` when the request fails or no token is known, so that callers don't
- * store missing tokens as unknown for good.
+ * Resolves to `undefined` only if the relay couldn't be asked, or didn't answer in time, so
+ * callers can try again; tokens the relay doesn't know are left out.
  */
 export async function getAssetsMetadata(tokenIds: string[]): Promise<IAssetInfo[] | undefined> {
   try {
-    const { items } = await (await rest()).tokens(tokenIds);
-    if (items.length === 0) return;
-
+    const signal = AbortSignal.timeout(METADATA_TIMEOUT_MS);
+    const { items } = await (await rest()).tokens(tokenIds, { signal });
     return items.map(parseTokenMetadata);
   } catch (e) {
     log.error("Failed to fetch metadata", tokenIds, e);

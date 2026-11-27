@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { ensureDefaults, isEmpty, uniq } from "@fleet-sdk/common";
 import { assetPricingService, AssetRate } from "@/chains/ergo/services/assetPricingService";
 import { getAssetsMetadata } from "@/chains/ergo/services/hergmesService";
+import { log } from "@/common/logger";
 import {
   ErgoTokenBlacklist,
   ergoTokenBlacklistService
@@ -17,6 +18,8 @@ import { useAppStore } from "./appStore";
 export type LoadMetadataOptions = { fetchInBackground: boolean; persist: boolean };
 
 const ERG_METADATA: BasicAssetMetadata = { name: "ERG", decimals: ERG_DECIMALS };
+const METADATA_RETRY_MS = 15_000;
+const METADATA_RETRY_MAX_MS = 5 * 60_000;
 
 const PRICE_RATES_UPDATE_INTERVAL = 5 * 30 * 1000;
 const PRICE_RATES_DEFAULTS = { lastUpdated: 0, prices: new Map<string, AssetRate>() };
@@ -144,45 +147,61 @@ export const useAssetsStore = defineStore("assets", () => {
     const unloaded = uniq(tokenIds).filter((x) => !metadata.has(x));
     if (unloaded.length === 0) return;
 
-    const dbMeta = await assetInfoDbService.getAnyOf(unloaded);
+    let dbMeta: IAssetInfo[] = [];
+    try {
+      dbMeta = await assetInfoDbService.getAnyOf(unloaded);
+    } catch (e) {
+      log.error("Failed to read stored metadata", e);
+    }
     patchMetadata(dbMeta);
 
-    // fetch data for non-persisted metadata
-    if (unloaded.length > dbMeta.length) {
-      const missing = unloaded.filter((id) => !dbMeta.some((x) => x.id === id));
+    const stored = new Set(dbMeta.map((x) => x.id));
+    const missing = unloaded.filter((id) => !stored.has(id));
+    if (missing.length === 0) return;
 
-      if (fetchInBackground) {
-        loadRemoteMetadata(missing, persist);
-      } else {
-        await loadRemoteMetadata(missing, persist);
-      }
-    }
+    const loading = loadRemoteMetadata(missing, persist);
+    if (!fetchInBackground) await loading;
   }
 
+  /** Tokens whose metadata couldn't be fetched; they are tried again until it is. */
+  const unavailable = shallowReactive(new Set<string>());
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let retryDelay = METADATA_RETRY_MS;
+
   async function loadRemoteMetadata(missing: string[], persist: boolean) {
-    const newMeta = await getAssetsMetadata(missing);
-    if (!newMeta) {
-      // not stored, so the next session asks again; tokens without metadata aren't listed
-      patchMetadata(missing.map(unknownMetadata));
+    const fetched = await getAssetsMetadata(missing);
+    if (!fetched) {
+      for (const id of missing) unavailable.add(id);
+      scheduleRetry();
       return;
     }
 
-    if (missing.length > newMeta.length) {
-      // fill in missing metadata with unknown metadata
-      newMeta.push(
-        ...missing.filter((id) => !newMeta.some((x) => x.id === id)).map(unknownMetadata)
-      );
+    const known = new Set(fetched.map((x) => x.id));
+    // kept in memory only, so a token the relay hasn't indexed yet is asked for next session
+    patchMetadata([...fetched, ...missing.filter((id) => !known.has(id)).map(unknownMetadata)]);
+    if (persist && fetched.length > 0) {
+      await assetInfoDbService
+        .bulkPut(fetched)
+        .catch((e) => log.error("Failed to store metadata", e));
     }
+  }
 
-    if (newMeta.length > 0) {
-      patchMetadata(newMeta);
-      if (persist) await assetInfoDbService.bulkPut(newMeta);
-    }
+  function scheduleRetry() {
+    if (retryTimer) return;
+    retryTimer = setTimeout(retryUnavailable, retryDelay);
+    retryDelay = Math.min(retryDelay * 2, METADATA_RETRY_MAX_MS);
+  }
+
+  async function retryUnavailable() {
+    retryTimer = undefined;
+    if (unavailable.size > 0) await loadRemoteMetadata([...unavailable], false);
+    if (unavailable.size === 0) retryDelay = METADATA_RETRY_MS;
   }
 
   function patchMetadata(patch: IAssetInfo[]) {
     if (patch.length === 0) return;
     for (const info of patch) {
+      unavailable.delete(info.id);
       metadata.set(info.id, {
         name: info.name,
         decimals: info.decimals,
@@ -194,7 +213,7 @@ export const useAssetsStore = defineStore("assets", () => {
 
   const pricesLoaded = computed(() => loaded.prices);
 
-  return { blacklist, blacklists, metadata, prices, pricesLoaded, loadMetadata };
+  return { blacklist, blacklists, metadata, unavailable, prices, pricesLoaded, loadMetadata };
 });
 
 function unknownMetadata(id: string): IAssetInfo {
