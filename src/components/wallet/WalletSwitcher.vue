@@ -63,7 +63,7 @@ const address = computed(() => {
     return undefined;
   }
 });
-const shortAddress = computed(() => format.string.shorten(address.value, 9));
+const shortAddress = computed(() => format.string.shorten(address.value, 11));
 
 const relayStore = useRelayStore();
 const relay = useRelayHealth();
@@ -224,9 +224,7 @@ async function toggleViewMode() {
         >
           <WalletItem v-if="current" :wallet="current">
             <template v-if="address" #subtitle>
-              <span class="invisible inline-flex items-center gap-1" aria-hidden="true">
-                {{ shortAddress }}<span class="size-2.5" />
-              </span>
+              <span class="invisible" aria-hidden="true">{{ shortAddress }}</span>
             </template>
             <template #badge>
               <RelayStatusBadge
@@ -371,8 +369,9 @@ async function toggleViewMode() {
     <div v-if="address" data-header-address class="absolute top-[25px] left-[53px] flex">
       <CopyButton
         :content="address"
-        :tooltip="false"
-        class="text-muted-foreground hover:text-foreground gap-1 text-xs leading-tight font-normal [&_svg]:size-2.5"
+        :icon="false"
+        :label="t('header.copyAddress')"
+        class="text-muted-foreground hover:bg-accent hover:text-foreground -mx-1 rounded-sm px-1 text-xs leading-tight font-normal"
       >
         {{ shortAddress }}
       </CopyButton>

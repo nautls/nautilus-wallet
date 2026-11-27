@@ -85,6 +85,7 @@
     }
   },
   "header": {
+    "copyAddress": "Copy address",
     "relay": {
       "connected": "Connected to the relay",
       "loading": "Connecting to the relay",

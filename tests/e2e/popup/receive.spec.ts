@@ -118,11 +118,15 @@ test.describe("receive", () => {
     const addr1 = await addressOf(WALLET_A, 1);
     const header = page.locator("[data-header-address]");
 
-    await expect(header).toHaveText(`${addr0.slice(0, 5)}…${addr0.slice(-5)}`);
+    await expect(header).toHaveText(shorten(addr0));
+
+    await expect(header.locator("svg")).toHaveCount(0);
+    await header.hover();
+    await expect(page.getByRole("tooltip")).toHaveText("Copy address");
 
     await header.click();
     await expect(header.getByRole("button", { name: "Copied" })).toBeVisible();
-    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    await expect(page.getByRole("tooltip")).toHaveText("Copied");
     await expect(popup.walletSwitcher).toHaveAttribute("aria-expanded", "false");
 
     await page.evaluate(() =>
@@ -132,7 +136,7 @@ test.describe("receive", () => {
     await expect(page.locator("body > textarea")).toHaveValue(addr0);
 
     await addressRows(page).nth(1).getByRole("button").first().click();
-    await expect(header).toHaveText(`${addr1.slice(0, 5)}…${addr1.slice(-5)}`);
+    await expect(header).toHaveText(shorten(addr1));
   });
 
   test("shows an address QR code", async ({ popup }) => {
