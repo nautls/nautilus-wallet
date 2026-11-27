@@ -131,6 +131,29 @@ test("shows a balance drop without the gain color", async ({ chain, popup }) => 
   await expect(delta).not.toHaveClass(/text-success/);
 });
 
+test("moves the total on a price change without showing a delta", async ({ chain, popup }) => {
+  await fundWallet(chain, WALLET_A);
+  await popup.importWallet(WALLET_A);
+  const page = popup.page;
+  const total = page.getByRole("heading", { name: /\$\s?25\.00/ });
+  await expect(total).toBeVisible();
+  await total.locator("span").evaluate((el) => el.setAttribute("data-before", ""));
+
+  // as a price refresh does: 12.5 ERG at 3 USD
+  await page.evaluate(async () => {
+    const key = "ergoTokenRates";
+    const stored = JSON.parse((await chrome.storage.local.get(key))[key] as string);
+    for (const [, rate] of stored.prices) rate.fiat = (rate.fiat / 2) * 3;
+    await chrome.storage.local.set({ [key]: JSON.stringify(stored) });
+  });
+
+  const moved = page.getByRole("heading", { name: /\$\s?37\.50/ });
+  await expect(moved).toBeVisible();
+  await expect(moved.locator("span[data-before]")).toHaveCount(0);
+  await expect(page.getByText("Wallet balance")).toBeVisible();
+  await expect(page.locator("[data-balance-delta]")).toHaveCount(0);
+});
+
 test("shows no balance change when the balance is first loaded", async ({ chain, popup }) => {
   await fundWallet(chain, WALLET_A);
   await popup.importWallet(WALLET_A);

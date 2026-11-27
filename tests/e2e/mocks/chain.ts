@@ -259,11 +259,12 @@ export class MockChain {
   confirmPending() {
     this.height += 1;
     const spent = new Set(this.#mempool.flatMap((tx) => tx.inputs.map((i) => i.box.boxId)));
-    this.#unspent = this.#unspent.filter((b) => !spent.has(b.boxId));
     for (const [index, tx] of this.#mempool.entries()) {
       this.#confirmed.push({ ...tx, inclusionHeight: this.height, headerId: hex32(), index });
       this.#unspent.push(...tx.outputs);
     }
+    // after the outputs, as a pending tx can spend another's
+    this.#unspent = this.#unspent.filter((b) => !spent.has(b.boxId));
     this.#mempool = [];
 
     for (const ws of this.#sockets.keys()) this.#sendTip(ws);

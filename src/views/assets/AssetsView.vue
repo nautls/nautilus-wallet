@@ -123,7 +123,6 @@ function showTotalChange(deltas: Map<string, BigNumber>) {
   // the total shows two decimals, so smaller changes don't show in it
   if (delta.abs().lt(0.005)) return;
 
-  totalMove.value = { key: totalMove.value.key + 1, direction: delta.isPositive() ? "up" : "down" };
   const gain = delta.isPositive();
   const amount = hasFiatRate.value
     ? formatCurrencyAmount(delta.abs(), 2)
@@ -224,10 +223,31 @@ const formattedIncoming = computed(() =>
     : format.number.currency(incomingValue.value, "erg", 2)
 );
 
+const totalValue = computed(() =>
+  hasFiatRate.value ? ergTotal.value.times(ergPrice.value) : ergTotal.value
+);
 const formattedTotal = computed(() =>
   hasFiatRate.value
-    ? formatCurrencyAmount(ergTotal.value.times(ergPrice.value), 2)
-    : format.number.currency(ergTotal.value, "erg", 2)
+    ? formatCurrencyAmount(totalValue.value, 2)
+    : format.number.currency(totalValue.value, "erg", 2)
+);
+
+// moves on balance and price changes alike; only balance changes show a delta
+watch(
+  () => ({
+    walletId: wallet.id,
+    inFiat: hasFiatRate.value,
+    live: !wallet.loading && !hideAmounts.value && !app.settings.hideBalances,
+    value: totalValue.value,
+    text: formattedTotal.value
+  }),
+  (now, before) => {
+    if (!now.live || !before.live || now.text === before.text) return;
+    if (now.walletId !== before.walletId || now.inFiat !== before.inFiat) return;
+
+    const direction = now.value.gt(before.value) ? "up" : "down";
+    totalMove.value = { key: totalMove.value.key + 1, direction };
+  }
 );
 
 watch(
@@ -334,42 +354,44 @@ function openAssetInfoDialog(tokenId: string) {
           {{ totalDelta ? t("asset.balanceChanged", { amount: totalDelta.text }) : "" }}
         </span>
         <Transition name="balance-caption">
-          <Popover v-if="showIncoming">
-            <PopoverTrigger as-child>
-              <button
-                id="pending-balance-info"
-                type="button"
-                class="border-warning/70 text-warning-text hover:bg-warning/10 focus-visible:ring-ring/50 mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-dashed px-2.5 py-0.5 text-xs font-medium tabular-nums transition-colors outline-none focus-visible:ring-[3px]"
-              >
-                <ClockIcon class="size-3" aria-hidden="true" />
-                {{
-                  !incomingInTotal
-                    ? t("asset.pending.unpriced")
-                    : app.settings.hideBalances
-                      ? t("asset.pending.includesHidden")
-                      : t("asset.pending.includes", { amount: formattedIncoming })
-                }}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent data-pending-balance-explainer class="w-72 text-left text-xs">
-              <p class="mb-1.5 text-sm font-semibold">{{ t("asset.pending.title") }}</p>
-              <ul v-if="!app.settings.hideBalances" class="mb-2 flex flex-col gap-1 tabular-nums">
-                <li
-                  v-for="asset in pendingAssets"
-                  :key="asset.tokenId"
-                  data-pending-asset
-                  class="text-warning-text flex items-center gap-1.5 font-medium"
+          <div v-if="showIncoming">
+            <Popover>
+              <PopoverTrigger as-child>
+                <button
+                  id="pending-balance-info"
+                  type="button"
+                  class="border-warning/70 text-warning-text hover:bg-warning/10 focus-visible:ring-ring/50 mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-dashed px-2.5 py-0.5 text-xs font-medium tabular-nums transition-colors outline-none focus-visible:ring-[3px]"
                 >
-                  <ClockIcon class="size-3 shrink-0" aria-hidden="true" />
-                  <span class="truncate">{{
-                    format.number.namedCurrency(asset.incoming, asset.metadata?.name)
-                  }}</span>
-                </li>
-              </ul>
-              <p class="text-muted-foreground mb-2">{{ t("asset.pending.description") }}</p>
-              <p>{{ t("asset.pending.advice") }}</p>
-            </PopoverContent>
-          </Popover>
+                  <ClockIcon class="size-3" aria-hidden="true" />
+                  {{
+                    !incomingInTotal
+                      ? t("asset.pending.unpriced")
+                      : app.settings.hideBalances
+                        ? t("asset.pending.includesHidden")
+                        : t("asset.pending.includes", { amount: formattedIncoming })
+                  }}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent data-pending-balance-explainer class="w-72 text-left text-xs">
+                <p class="mb-1.5 text-sm font-semibold">{{ t("asset.pending.title") }}</p>
+                <ul v-if="!app.settings.hideBalances" class="mb-2 flex flex-col gap-1 tabular-nums">
+                  <li
+                    v-for="asset in pendingAssets"
+                    :key="asset.tokenId"
+                    data-pending-asset
+                    class="text-warning-text flex items-center gap-1.5 font-medium"
+                  >
+                    <ClockIcon class="size-3 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{{
+                      format.number.namedCurrency(asset.incoming, format.asset.name(asset))
+                    }}</span>
+                  </li>
+                </ul>
+                <p class="text-muted-foreground mb-2">{{ t("asset.pending.description") }}</p>
+                <p>{{ t("asset.pending.advice") }}</p>
+              </PopoverContent>
+            </Popover>
+          </div>
         </Transition>
       </div>
 
@@ -493,7 +515,7 @@ function openAssetInfoDialog(tokenId: string) {
                               {{
                                 t("asset.pending.includesAsset", {
                                   amount: format.number.decimal(asset.incoming),
-                                  asset: asset.metadata?.name
+                                  asset: format.asset.name(asset)
                                 })
                               }}
                             </TooltipContent>
