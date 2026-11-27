@@ -549,14 +549,14 @@ export const useWalletStore = defineStore("wallet", () => {
   let discovery: Promise<void> | undefined;
   let discoverAgain = false;
 
-  /**
-   * Looks for addresses used past the last known used one; balances of known addresses are
-   * followed by `follow`. A sync asked for while one runs runs again after it.
-   */
   function syncDue(): boolean {
     return Date.now() - privateState.lastSynced >= MIN_SYNC_INTERVAL;
   }
 
+  /**
+   * Looks for addresses used past the last known used one; balances of known addresses are
+   * followed by `follow`. A sync asked for while one runs runs again after it.
+   */
   function sync(opt: { force?: boolean } = {}): Promise<void> {
     if (!opt.force && !syncDue()) {
       setSyncing(false);

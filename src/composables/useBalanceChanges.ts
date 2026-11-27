@@ -12,7 +12,14 @@ interface Move {
 
 interface Snapshot {
   walletId: number;
-  amounts: Map<string, { balance: BigNumber; decimals?: number }>;
+  amounts: Map<string, Amount>;
+}
+
+interface Amount {
+  balance: BigNumber;
+  decimals?: number;
+  /** Added while live but not yet reported, as its amount isn't decimalized until metadata. */
+  pending: boolean;
 }
 
 const NEW_TOKEN_MS = 1500;
@@ -21,10 +28,13 @@ const NEW_TOKEN_MS = 1500;
  * Follows the balance of each token of the open wallet and reports the changes a person
  * should see happen: only those of the same wallet while `live`. Anything that changes
  * while not live (loading, amounts hidden) becomes the new baseline without being reported.
+ * A token that leaves `balances` while `isHeld` still has it (now hidden by a filter, such as
+ * a blacklist or artwork metadata that loaded late) is not reported as removed.
  */
 export function useBalanceChanges(
   walletId: () => number,
   balances: () => AssetBalance[],
+  isHeld: (tokenId: string) => boolean,
   live: () => boolean,
   onChange?: (deltas: Map<string, BigNumber>) => void
 ) {
@@ -44,10 +54,15 @@ export function useBalanceChanges(
     [walletId, balances, live],
     ([id, current, isLive]) => {
       const previous = snapshot;
+      const reporting = isLive && previous?.walletId === id;
       snapshot = {
         walletId: id,
         amounts: new Map(
-          current.map((a) => [a.tokenId, { balance: a.balance, decimals: a.metadata?.decimals }])
+          current.map((a) => {
+            const before = reporting ? previous!.amounts.get(a.tokenId) : undefined;
+            const pending = reporting && !a.metadata && (!before || before.pending);
+            return [a.tokenId, { balance: a.balance, decimals: a.metadata?.decimals, pending }];
+          })
         )
       };
 
@@ -56,14 +71,15 @@ export function useBalanceChanges(
         moves.value = new Map();
         clearNewTokens();
       }
-      if (!isLive || previous?.walletId !== id) return;
+      if (!reporting) return;
 
       const deltas = new Map<string, BigNumber>();
       const added = new Set<string>();
       const nextMoves = new Map(moves.value);
       for (const [tokenId, now] of snapshot.amounts) {
+        if (now.pending) continue;
         const before = previous.amounts.get(tokenId);
-        if (!before) {
+        if (!before || before.pending) {
           added.add(tokenId);
           deltas.set(tokenId, now.balance);
           continue;
@@ -78,10 +94,10 @@ export function useBalanceChanges(
         nextMoves.set(tokenId, { rev: ++rev, direction: delta.isPositive() ? "up" : "down" });
       }
 
-      for (const tokenId of previous.amounts.keys()) {
-        if (snapshot.amounts.has(tokenId)) continue;
+      for (const [tokenId, before] of previous.amounts) {
+        if (snapshot.amounts.has(tokenId) || before.pending || isHeld(tokenId)) continue;
         removedTokens.add(tokenId);
-        deltas.set(tokenId, previous.amounts.get(tokenId)!.balance.negated());
+        deltas.set(tokenId, before.balance.negated());
       }
 
       if (deltas.size === 0) return;

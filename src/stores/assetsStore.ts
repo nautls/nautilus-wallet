@@ -161,7 +161,11 @@ export const useAssetsStore = defineStore("assets", () => {
 
   async function loadRemoteMetadata(missing: string[], persist: boolean) {
     const newMeta = await getAssetsMetadata(missing);
-    if (!newMeta) return;
+    if (!newMeta) {
+      // not stored, so the next session asks again; tokens without metadata aren't listed
+      patchMetadata(missing.map(unknownMetadata));
+      return;
+    }
 
     if (missing.length > newMeta.length) {
       // fill in missing metadata with unknown metadata

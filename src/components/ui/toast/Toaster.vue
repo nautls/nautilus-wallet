@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { isVNode } from "vue";
+import { omit } from "es-toolkit";
 import { CircleAlertIcon, CircleCheckIcon, SendIcon } from "@lucide/vue";
 import {
   Toast,
@@ -21,7 +22,7 @@ function iconOf(toast: { icon?: ToastIcon; variant?: string | null }): ToastIcon
 
 <template>
   <ToastProvider>
-    <Toast v-for="toast in toasts" :key="toast.id" v-bind="toast" class="pr-3">
+    <Toast v-for="toast in toasts" :key="toast.id" v-bind="omit(toast, ['icon'])" class="pr-3">
       <div class="flex min-w-0 grow items-center gap-3">
         <SendIcon
           v-if="iconOf(toast) === 'sent'"

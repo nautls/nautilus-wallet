@@ -44,7 +44,9 @@ const { open: _openAssetInfoDialog } = useProgrammaticDialog(AssetInfoDialog);
 
 const ergPrice = computed(() => assetsStore.prices.get(ERG_TOKEN_ID)?.fiat ?? 0);
 const containsArtwork = computed(() => wallet.artworkBalance.length > 0);
-const tokens = computed(() => filtered(wallet.nonArtworkBalance));
+// a token's amount and kind are unknown until its metadata loads
+const listedBalance = computed(() => wallet.nonArtworkBalance.filter((a) => a.metadata));
+const tokens = computed(() => filtered(listedBalance.value));
 const collectibles = computed(() => filtered(wallet.artworkBalance));
 const normalizedFilter = computed(() =>
   filter.value !== "" ? filter.value.trim().toLocaleLowerCase() : filter.value
@@ -89,7 +91,7 @@ const hideAmounts = computed(
 );
 
 const ergTotal = computed(() =>
-  wallet.nonArtworkBalance.reduce(
+  listedBalance.value.reduce(
     (acc, a) => acc.plus(a.balance.times(isErg(a.tokenId) ? 1 : rate(a.tokenId))),
     bn(0)
   )
@@ -98,6 +100,7 @@ const ergTotal = computed(() =>
 const balanceChanges = useBalanceChanges(
   () => wallet.id,
   () => wallet.nonArtworkBalance,
+  (tokenId) => wallet.unfilteredBalance.some((x) => x.tokenId === tokenId),
   () => !wallet.loading && !hideAmounts.value && !app.settings.hideBalances,
   showTotalChange
 );

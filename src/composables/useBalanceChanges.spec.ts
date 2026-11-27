@@ -4,17 +4,18 @@ import { BigNumber, bn } from "@/common/bigNumber";
 import type { AssetBalance } from "@/stores/walletStore";
 import { useBalanceChanges } from "./useBalanceChanges";
 
-function asset(tokenId: string, balance: number, decimals?: number): AssetBalance {
-  return {
-    tokenId,
-    balance: bn(balance),
-    metadata: decimals === undefined ? undefined : { decimals }
-  };
+function asset(tokenId: string, balance: number, decimals = 0): AssetBalance {
+  return { tokenId, balance: bn(balance), metadata: { decimals } };
+}
+
+function noMetadata(tokenId: string, balance: number): AssetBalance {
+  return { tokenId, balance: bn(balance) };
 }
 
 function setup(initial: AssetBalance[]) {
   const walletId = ref(1);
   const balances = ref(initial);
+  const hidden = ref<AssetBalance[]>([]);
   const live = ref(true);
   const onChange = vi.fn<(deltas: Map<string, BigNumber>) => void>();
   const scope = effectScope();
@@ -22,14 +23,21 @@ function setup(initial: AssetBalance[]) {
     useBalanceChanges(
       () => walletId.value,
       () => balances.value,
+      (tokenId) => [...balances.value, ...hidden.value].some((x) => x.tokenId === tokenId),
       () => live.value,
       onChange
     )
   )!;
 
-  const update = async (opt: { id?: number; assets?: AssetBalance[]; live?: boolean }) => {
+  const update = async (opt: {
+    id?: number;
+    assets?: AssetBalance[];
+    hidden?: AssetBalance[];
+    live?: boolean;
+  }) => {
     if (opt.id !== undefined) walletId.value = opt.id;
     if (opt.assets) balances.value = opt.assets;
+    if (opt.hidden) hidden.value = opt.hidden;
     if (opt.live !== undefined) live.value = opt.live;
     await nextTick();
   };
@@ -87,11 +95,43 @@ describe("useBalanceChanges", () => {
   });
 
   it("doesn't report an amount that changes because its decimals arrived", async () => {
-    const { update, onChange } = setup([asset("a", 1000)]);
+    const { changes, update, onChange } = setup([noMetadata("a", 1000)]);
 
     await update({ assets: [asset("a", 10, 2)] });
 
     expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isNew("a")).toBe(false);
+  });
+
+  it("reports a token added without metadata once its metadata arrives", async () => {
+    const { changes, update, onChange } = setup([asset("erg", 10)]);
+
+    await update({ assets: [asset("erg", 10), noMetadata("a", 1500000)] });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isNew("a")).toBe(false);
+
+    await update({ assets: [asset("erg", 10), asset("a", 1.5, 6)] });
+    expect(deltas(onChange)).toEqual({ a: 1.5 });
+    expect(changes.isNew("a")).toBe(true);
+  });
+
+  it("doesn't report a token added without metadata that turns out to be hidden", async () => {
+    const { changes, update, onChange } = setup([asset("erg", 10)]);
+
+    await update({ assets: [asset("erg", 10), noMetadata("nft", 1)] });
+    await update({ assets: [asset("erg", 10)], hidden: [asset("nft", 1)] });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isRemoved("nft")).toBe(false);
+  });
+
+  it("doesn't report a held token that becomes hidden", async () => {
+    const { changes, update, onChange } = setup([asset("erg", 10), asset("scam", 5)]);
+
+    await update({ assets: [asset("erg", 10)], hidden: [asset("scam", 5)] });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(changes.isRemoved("scam")).toBe(false);
   });
 
   it("ignores updates that leave every balance the same", async () => {
