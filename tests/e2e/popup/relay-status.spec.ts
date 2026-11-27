@@ -33,7 +33,7 @@ test.describe("relay status", () => {
     await expect(send.locator("[data-boxes-status]")).toBeVisible();
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/reconnecting.png` });
 
-    await page.getByRole("combobox").first().click();
+    await popup.openWalletSwitcher();
     await expect(page.locator("[data-relay-message]")).toContainText("Reconnecting to the relay");
     if (SHOTS)
       await page.screenshot({ path: `${SHOTS}/reconnecting-menu.png`, animations: "disabled" });
@@ -61,7 +61,7 @@ test.describe("relay status", () => {
     await expect(send.locator("[data-boxes-status]")).toHaveCount(0);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/waiting.png`, animations: "disabled" });
 
-    await page.getByRole("combobox").first().click();
+    await popup.openWalletSwitcher();
     await expect(page.locator("[data-relay-message]")).toContainText("try again later");
   });
 
@@ -78,7 +78,7 @@ test.describe("relay status", () => {
     await expect(page.getByRole("button", { name: "Send", exact: true })).toBeDisabled();
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/error.png` });
 
-    await page.getByRole("combobox").first().click();
+    await popup.openWalletSwitcher();
     await expect(page.locator("[data-relay-message]")).toContainText("too many boxes");
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/error-menu.png`, animations: "disabled" });
 
@@ -113,7 +113,7 @@ test("shows an error badge when the relay runs an older version than Nautilus ne
   const badge = page.locator("[data-relay-status]").first();
   await expect(badge).toHaveAttribute("data-health", "error");
 
-  await page.getByRole("combobox").first().click();
+  await popup.openWalletSwitcher();
   const message = page.locator("[data-relay-message]");
   await expect(message).toContainText("runs version 0.2.9");
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/outdated-menu.png`, animations: "disabled" });
