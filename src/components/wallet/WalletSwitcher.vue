@@ -63,7 +63,7 @@ const address = computed(() => {
     return undefined;
   }
 });
-const shortAddress = computed(() => format.string.shorten(address.value, 11));
+const shortAddress = computed(() => format.string.shorten(address.value, 9));
 
 const relayStore = useRelayStore();
 const relay = useRelayHealth();
