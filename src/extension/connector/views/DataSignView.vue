@@ -18,8 +18,10 @@ import { PasswordInput } from "@/components/ui/input";
 import { JsonViewer } from "@/components/ui/json-viewer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { signMessage } from "@/chains/ergo/signing";
+import { extractErrorMessage } from "@/common/utils";
 import { useActivationDelay } from "@/composables/useActivationDelay";
 import { usePasswordPrompt } from "@/composables/usePasswordPrompt";
+import { NETWORK } from "@/constants/ergo";
 import { connectedDAppsDbService } from "@/database/connectedDAppsDbService";
 import RequestHeader from "@/extension/connector/components/RequestHeader.vue";
 import { AsyncRequest } from "@/extension/connector/rpc/asyncRequestQueue";
@@ -63,17 +65,22 @@ onMounted(async () => {
   const connection = await connectedDAppsDbService.getByOrigin(req.origin);
   if (!connection || !connection.walletId) {
     req.resolve(error(APIErrorCode.Refused, "Unauthorized."));
-    window.close();
+    closeWindow();
     return;
   }
 
   request.value = req;
   walletId.value = connection.walletId;
 
-  ergoMessage = ErgoMessage.fromData(req.data.message);
-  messageData.value = decodeMessageData(ergoMessage);
-  messageType.value = decodeMessageType(ergoMessage);
-  encodedMessage.value = ergoMessage.encode();
+  try {
+    ergoMessage = ErgoMessage.fromData(req.data.message, NETWORK);
+    messageData.value = decodeMessageData(ergoMessage);
+    messageType.value = decodeMessageType(ergoMessage);
+    encodedMessage.value = ergoMessage.encode();
+  } catch (e) {
+    req.resolve(proverError(extractErrorMessage(e)));
+    closeWindow();
+  }
 });
 
 function decodeMessageData(message: ErgoMessage) {
@@ -128,14 +135,13 @@ async function sign() {
       prompt.passwordOrSession(password.value)
     );
 
-    if (!request.value) return proverError(t("wallet.emptyProof"));
+    if (!proof) throw new Error(t("wallet.emptyProof"));
     request.value.resolve(success(proof));
-
-    detachUnloadListener();
-    window.close();
+    closeWindow();
   } catch (e) {
     if (!(await prompt.handleError(e))) {
-      request.value.resolve(proverError(typeof e === "string" ? e : (e as Error).message));
+      request.value.resolve(proverError(extractErrorMessage(e)));
+      closeWindow();
     }
   }
 }
@@ -146,6 +152,10 @@ function proverError(message: string) {
 
 function cancel() {
   refuse();
+  closeWindow();
+}
+
+function closeWindow() {
   detachUnloadListener();
   window.close();
 }
@@ -165,7 +175,15 @@ function refuse() {
     />
 
     <ScrollArea type="hover" class="min-h-0 grow" hide-outline>
-      <div class="p-4">
+      <div class="flex flex-col gap-4 p-4">
+        <Card v-if="request?.data.address">
+          <CardHeader>
+            <CardTitle>{{ t("connector.signData.signingAddress") }}</CardTitle>
+          </CardHeader>
+
+          <CardContent class="font-mono text-xs break-all">{{ request.data.address }}</CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>{{ messageType }}</CardTitle>

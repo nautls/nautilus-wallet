@@ -3,7 +3,7 @@ import { computed, HTMLAttributes, onMounted, ref, shallowRef, watch } from "vue
 import { extractTokenIdFromBabelContract, isValidBabelBox } from "@fleet-sdk/babel-fees-plugin";
 import { areEqualBy, isEmpty } from "@fleet-sdk/common";
 import { withMessage } from "@regle/rules";
-import { groupBy, maxBy, sortBy } from "es-toolkit";
+import { groupBy } from "es-toolkit";
 import { ChevronsUpDownIcon, Loader2Icon, SlidersHorizontalIcon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useAppStore } from "@/stores/appStore";
@@ -14,7 +14,11 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
-import { fetchBabelBoxes, getNanoErgsPerTokenRate } from "@/chains/ergo/babelFees";
+import {
+  canCoverNanoErgs,
+  fetchBabelBoxes,
+  getNanoErgsPerTokenRate
+} from "@/chains/ergo/babelFees";
 import { BigNumber, bn, decimalize } from "@/common/bigNumber";
 import { cn } from "@/common/utils";
 import { useFormat } from "@/composables/useFormat";
@@ -170,31 +174,29 @@ async function loadAssets() {
     return;
   }
 
+  const minNanoErgs = BN_MIN_ERG_FEE.plus(props.boxesValue);
   const allBoxes = await fetchBabelBoxes(tokenIds);
-  const groups = groupBy(allBoxes.filter(isValidBabelBox), (box) =>
-    extractTokenIdFromBabelContract(box.ergoTree)
+  const groups = groupBy(
+    allBoxes.filter((box) => isValidBabelBox(box) && canCoverNanoErgs(box, minNanoErgs)),
+    (box) => extractTokenIdFromBabelContract(box.ergoTree)
   );
 
   const newAssets = Object.keys(groups)
     .map((tokenId): FeeAsset => {
-      const price = maxBy(
-        groups[tokenId].map((box) => getNanoErgsPerTokenRate(box)),
-        (p) => p.toNumber()
-      );
+      const price = groups[tokenId]
+        .map((box) => getNanoErgsPerTokenRate(box))
+        .reduce((best, rate) => (rate.gt(best) ? rate : best), bn(0));
 
       return {
         tokenId,
         metadata: assetsStore.metadata.get(tokenId),
-        nanoErgsPerToken: price || bn(0)
+        nanoErgsPerToken: price
       };
     })
-    .filter((asset) => !asset.nanoErgsPerToken.isZero());
+    .filter((asset) => asset.nanoErgsPerToken.gt(0));
 
   assets.value = assets.value.concat(
-    sortBy(
-      newAssets.filter((x) => x.nanoErgsPerToken),
-      [(x) => x.nanoErgsPerToken.toNumber()]
-    )
+    newAssets.sort((a, b) => a.nanoErgsPerToken.comparedTo(b.nanoErgsPerToken) ?? 0)
   );
 
   loading.value = false;
@@ -205,7 +207,7 @@ function getTokenUnitsFor(nanoErgs: BigNumber): BigNumber {
     nanoErgs.isZero() ||
     !intSelected.value ||
     !intSelected.value.nanoErgsPerToken ||
-    intSelected.value.nanoErgsPerToken.isZero()
+    intSelected.value.nanoErgsPerToken.lte(0)
   ) {
     return bn(0);
   }

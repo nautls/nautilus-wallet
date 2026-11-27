@@ -7,18 +7,20 @@ import {
 } from "@fleet-sdk/common";
 import { ErgoMessage } from "@fleet-sdk/core";
 import { hex, randomBytes, utf8 } from "@fleet-sdk/crypto";
+import { useAppStore } from "@/stores/appStore";
 import { useWalletStore } from "@/stores/walletStore";
 import { hdKeyPool } from "@/common/objectPool";
+import { hostOf } from "@/common/origin";
 import { addressesDbService } from "@/database/addressesDbService";
+import { walletsDbService } from "@/database/walletsDbService";
 import { InputSigners } from "@/types/connector";
-import { IDbAddress } from "@/types/database";
+import { IDbAddress, IDbWallet } from "@/types/database";
 import { getChangeAddress } from "./addresses";
 import { extractAddressesFromInputs } from "./extraction";
+import HdKey from "./hdKey";
 import { graphQLService } from "./services/graphQlService";
 import { hasV3ErgoTree } from "./transaction/blindSigning";
 import { getPrivateDeriver, Prover, StateCallback } from "./transaction/prover";
-import { useAppStore } from "@/stores/appStore";
-import { hostOf } from "@/common/origin";
 
 export interface UnsignedAuthMessage {
   message: string;
@@ -32,15 +34,13 @@ export interface AuthSignedMessage {
 
 export interface TransactionSigningParams {
   transaction: EIP12UnsignedTransaction;
+  walletId?: number;
   /** Leave out to use the unlock session. */
   password?: string;
   stateCallback?: StateCallback;
   inputsToSign?: number[];
   signers?: InputSigners;
 }
-
-const wallet = useWalletStore();
-const app = useAppStore();
 
 /**
  * Creates a EIP-28 signing message
@@ -82,13 +82,25 @@ export async function signAuthMessage(
 
 export async function signTransaction({
   transaction,
+  walletId: requestedWalletId,
   password,
   stateCallback: callback,
   inputsToSign,
   signers
 }: TransactionSigningParams): Promise<SignedTransaction | SignedInput[]> {
-  const walletId = wallet.id;
-  const isLedger = wallet.type === "ledger";
+  const wallet = useWalletStore();
+  const app = useAppStore();
+  const walletId = requestedWalletId ?? wallet.id;
+
+  let storedWallet: IDbWallet | undefined;
+  if (requestedWalletId !== undefined) {
+    storedWallet = await walletsDbService.getById(walletId);
+    if (!storedWallet) throw new Error(`Wallet 'id:${walletId}' not found.`);
+  }
+
+  const walletType = storedWallet?.type ?? wallet.type;
+  const walletSettings = storedWallet?.settings ?? wallet.settings;
+  const isLedger = walletType === "ledger";
   const inputAddresses = extractAddressesFromInputs(transaction.inputs);
   // With script reduction, a signer's key could also prove inputs the dApp didn't list.
   if (signers && (isLedger || hasV3ErgoTree(transaction))) {
@@ -100,7 +112,7 @@ export async function signTransaction({
     .map((a) => dbAddressMapper(a));
 
   if (addresses.length === 0) {
-    const change = (a: IDbAddress): boolean => a.index === wallet.settings.defaultChangeIndex;
+    const change = (a: IDbAddress): boolean => a.index === walletSettings.defaultChangeIndex;
     const firstIndex = (a: IDbAddress): boolean => a.index === 0;
 
     addresses.push(
@@ -115,7 +127,7 @@ export async function signTransaction({
   }
 
   const deriver = isLedger
-    ? hdKeyPool.get(wallet.publicKey)
+    ? getLedgerDeriver(storedWallet, wallet.publicKey)
     : await getPrivateDeriver(walletId, password);
 
   const encodedAddresses = ownAddresses.map((a) => a.script);
@@ -142,6 +154,14 @@ export async function signTransaction({
   }
 
   return signed;
+}
+
+function getLedgerDeriver(storedWallet: IDbWallet | undefined, publicKey: string): HdKey {
+  if (!storedWallet) return hdKeyPool.get(publicKey);
+  return HdKey.fromPublicKey({
+    publicKey: storedWallet.publicKey,
+    chainCode: storedWallet.chainCode
+  });
 }
 
 function dbAddressMapper(a: IDbAddress) {

@@ -455,6 +455,7 @@
     },
     "signData": {
       "header": "{host} requests to sign a message.",
+      "signingAddress": "Signing address",
       "dataType": {
         "text": "Text message",
         "json": "JSON object",

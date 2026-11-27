@@ -22,7 +22,10 @@ function canInject() {
 }
 
 function injectScript() {
-  if (!canInject()) error("cannot inject scripts.");
+  if (!canInject()) {
+    error("cannot inject scripts.");
+    return false;
+  }
   const path = `${EXT_ENTRY_ROOT}/content-scripts/injected.js`;
   debug("injecting", `'${path}'...`);
 
