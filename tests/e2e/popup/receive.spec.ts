@@ -14,6 +14,10 @@ function shorten(address: string) {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
 }
 
+function shortenHeader(address: string) {
+  return `${address.slice(0, 5)}…${address.slice(-5)}`;
+}
+
 test.describe("receive", () => {
   test.beforeEach(async ({ chain, popup }) => {
     await fundWallet(chain, WALLET_A);
@@ -118,7 +122,7 @@ test.describe("receive", () => {
     const addr1 = await addressOf(WALLET_A, 1);
     const header = page.locator("[data-header-address]");
 
-    await expect(header).toHaveText(shorten(addr0));
+    await expect(header).toHaveText(shortenHeader(addr0));
 
     await expect(header.locator("svg")).toHaveCount(0);
     await header.hover();
@@ -136,7 +140,7 @@ test.describe("receive", () => {
     await expect(page.locator("body > textarea")).toHaveValue(addr0);
 
     await addressRows(page).nth(1).getByRole("button").first().click();
-    await expect(header).toHaveText(shorten(addr1));
+    await expect(header).toHaveText(shortenHeader(addr1));
   });
 
   test("shows an address QR code", async ({ popup }) => {

@@ -310,15 +310,25 @@ test.describe("send", () => {
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await signInDrawer(popup, WALLET_A.password);
 
-    const toast = popup.toast("Transaction broadcast failed");
-    await expect(toast).toBeVisible();
-    await expect(toast).toContainText("Transaction rejected by the mempool");
+    const error = reviewDrawer(page).locator("#tx-broadcast-error");
+    await expect(error).toContainText("Transaction broadcast failed");
+    await expect(error).toContainText("Transaction rejected by the mempool");
+
+    // the drawer doesn't swipe, so dragging selects the message and dragging down keeps it open
+    const message = await error.locator("[data-slot=alert-description]").boundingBox();
+    if (!message) throw Error("no error message");
+    await drag(page, message.x + 1, message.y + 4, message.x + message.width - 1, message.y + 4);
+    expect(await page.evaluate(() => getSelection()?.toString())).toContain("mempool");
+    await drag(page, message.x + 1, message.y + 4, message.x + 1, message.y + 300);
+    await page.waitForTimeout(600);
+    await expect(reviewDrawer(page)).toBeVisible();
 
     // retry once the node accepts it
     chain.submitError = undefined;
-    // the review drawer hides everything else from the accessibility tree
-    await toast.locator("button", { hasText: "Try again" }).click();
+    await reviewDrawer(page).locator("#tx-broadcast-retry").click();
     await expect.poll(() => chain.submitted.length).toBe(1);
+    await expect(popup.toast("Transaction sent")).toBeVisible();
+    await expect(reviewDrawer(page)).toBeHidden();
   });
 });
 
@@ -438,3 +448,10 @@ test("read-only wallets can't send", async ({ chain, popup }) => {
   await expect(popup.navLink("send")).toHaveClass(/pointer-events-none/);
   await expect(popup.navLink("dapps")).toHaveClass(/pointer-events-none/);
 });
+
+async function drag(page: Page, fromX: number, fromY: number, toX: number, toY: number) {
+  await page.mouse.move(fromX, fromY);
+  await page.mouse.down();
+  await page.mouse.move(toX, toY, { steps: 10 });
+  await page.mouse.up();
+}

@@ -38,7 +38,7 @@ const emit = defineEmits<Emits>();
 
 const app = useAppStore();
 
-const { toast } = useToast();
+const { toast, dismiss } = useToast();
 const { t } = useI18n();
 
 const transaction = ref<EIP12UnsignedTransaction>();
@@ -49,6 +49,7 @@ watch(
   opened,
   async () => {
     if (!opened.value) return;
+    dismiss();
     transaction.value = await buildTransaction();
   },
   { immediate: true }

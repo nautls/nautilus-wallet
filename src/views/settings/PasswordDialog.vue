@@ -2,10 +2,11 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useRegle } from "@regle/core";
 import { required, requiredIf, withMessage } from "@regle/rules";
-import { Loader2Icon } from "@lucide/vue";
+import { CircleAlertIcon, Loader2Icon } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/walletStore";
 import NewPasswordFields from "@/components/NewPasswordFields.vue";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -47,6 +48,7 @@ const masterInput = useTemplateRef("master-input");
 
 const opened = ref(true);
 const loading = ref(false);
+const failure = ref<{ title: string; description?: string }>();
 const hasMaster = ref<boolean>();
 const walletId = ref(wallet.id);
 const walletName = ref(wallet.name);
@@ -155,6 +157,7 @@ async function submit() {
 
   try {
     loading.value = true;
+    failure.value = undefined;
     await run(created);
 
     toast({ title: texts.value.done, icon: "done" });
@@ -164,11 +167,10 @@ async function submit() {
     if (e instanceof MasterPasswordChangedError) {
       // show the fields the master password's current state calls for
       await loadMaster();
-      toast({
+      failure.value = {
         title: t("settings.password.masterChangedMeanwhile"),
-        variant: "destructive",
         description: props.action === "toMaster" ? texts.value.description : undefined
-      });
+      };
       if (asksMaster.value) nextTick(() => masterInput.value?.input?.$el.focus());
       return;
     }
@@ -189,11 +191,10 @@ async function submit() {
     }
 
     log.error(e);
-    toast({
+    failure.value = {
       title: t("settings.password.changeFailed"),
-      variant: "destructive",
       description: extractErrorMessage(e)
-    });
+    };
   } finally {
     loading.value = false;
   }
@@ -227,6 +228,7 @@ async function loadMaster() {
 function reset() {
   currentPassword.value = "";
   masterPassword.value = "";
+  failure.value = undefined;
   newPassword.reset();
   r$.$reset();
 }
@@ -296,6 +298,14 @@ defineExpose({ open: () => setOpened(true), close: () => setOpened(false) });
           :disabled="loading"
         />
       </Form>
+
+      <Alert v-if="failure" id="password-error" variant="destructive">
+        <CircleAlertIcon />
+        <AlertTitle>{{ failure.title }}</AlertTitle>
+        <AlertDescription v-if="failure.description" class="wrap-break-word">
+          {{ failure.description }}
+        </AlertDescription>
+      </Alert>
 
       <DrawerFooter class="flex-row gap-4">
         <DrawerClose as-child>
