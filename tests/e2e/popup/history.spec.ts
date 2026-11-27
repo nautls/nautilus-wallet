@@ -10,7 +10,7 @@ test.describe("transaction history", () => {
     const page = popup.page;
     const links = page.getByRole("link", { name: /^Transaction / });
     await expect(links).toHaveCount(2);
-    await expect(page.getByText("11 confirmations")).toHaveCount(2);
+    await expect(page.locator('[data-confirmations="11"]')).toHaveCount(2);
 
     // received amounts
     await expect(page.getByText("TestToken")).toBeVisible();
@@ -113,9 +113,9 @@ test.describe("transaction history", () => {
     await expect(more).toBeHidden();
     await expect(cards).toHaveCount(33);
 
-    const confirmations = (await cards.getByText(/\d+ confirmations/).allTextContents()).map((x) =>
-      Number.parseInt(x)
-    );
+    const confirmations = await cards
+      .locator("[data-confirmations]")
+      .evaluateAll((els) => els.map((x) => Number(x.getAttribute("data-confirmations"))));
     const expected = [
       ...Array.from({ length: 30 }, (_, i) => 2 * (i + 1) + 1),
       ...[5, 27, 29].map((i) => 2 * i + 2)
